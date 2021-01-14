@@ -537,7 +537,7 @@ class email_Incomings extends core_Master
                 
                 if (!empty($arrWeight)) {
                     arsort($arrWeight);
-                    
+
                     foreach ($arrWeight as $clsName => $dummy) {
                         try {
                             $status = $clsInstArr[$clsName]->process($mime, $accId, $uid);
@@ -1594,7 +1594,7 @@ class email_Incomings extends core_Master
         $period = core_Cron::getRecForSystemId('trainSpas')->period;
         $period = $period ? $period : 60;
         $period *= 60;
-        
+
         $query = self::getQuery();
         $before = dt::subtractSecs($period);
         $query->where(array("#modifiedOn >= '[#1#]'", $before));
@@ -1602,14 +1602,14 @@ class email_Incomings extends core_Master
         $query->where('#docCnt <= 1');
         $query->where("#emlFile != ''");
         $query->where('#emlFile IS NOT NULL');
-        
+
         $allBoxesArr = email_Inboxes::getAllEmailsArr(false);
         $allBoxesArrNew = array();
         foreach ((array) $allBoxesArr as $email) {
             $email = strtolower($email);
             $allBoxesArrNew[$email] = $email;
         }
-        
+
         while ($rec = $query->fetch()) {
             if (!$rec->emlFile) {
                 continue;
@@ -1625,7 +1625,7 @@ class email_Incomings extends core_Master
                     continue;
                 }
             }
-            
+
             $haveEmail = true;
             if (!$rec->userInboxes) {
                 $haveEmail = false;
@@ -1665,7 +1665,7 @@ class email_Incomings extends core_Master
                     continue;
                 }
             }
-            
+
             $type = spas_Client::LEARN_HAM;
             $typeStr = 'НЕ Е СПАМ (от възстановен имейл)';
             
@@ -1686,7 +1686,7 @@ class email_Incomings extends core_Master
             }
             
             $rawEmail = fileman_Files::getContent($fh);
-            
+
             try {
                 $sa = spas_Test::getSa();
                 
@@ -2033,7 +2033,12 @@ class email_Incomings extends core_Master
             
             return ;
         }
-        
+
+        if (Mode::is('forceDownload')) {
+
+            return ;
+        }
+
         $score = $rec->spamScore;
         if (!isset($score)) {
             $score = email_Spam::getSpamScore($rec->headers, false, null, $rec);
