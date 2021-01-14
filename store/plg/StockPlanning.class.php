@@ -124,12 +124,6 @@ class store_plg_StockPlanning extends core_Plugin
                     $firstDocument = null;
                 } elseif ($mvc instanceof planning_Jobs) {
                     $firstDocument = null;
-
-                    // Което е към продажба, ще се обновят и наличностите на продажбата обаче след shutdown-а
-                    // за да е сигурно, че ще се обнови след като всички задания са обновени
-                    if ($saleId = $mvc->fetchField($rec->id, 'saleId', false)) {
-                        cls::get('sales_Sales')->updateStocksAfterSessionClose[$saleId] = $saleId;
-                    }
                 }
 
                 // Амк има първи документ в треда да му се обновят запазените
@@ -203,19 +197,5 @@ class store_plg_StockPlanning extends core_Plugin
                store_StockPlanning::updateByDocument($mvc, $id);
            }
        }
-    }
-
-
-    /**
-     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
-     */
-    public static function on_AfterSessionClose($mvc)
-    {
-        // Ако има заопашени документи след края на сесията да се обновят наличностите им
-        if (is_array($mvc->updateStocksAfterSessionClose)) {
-            foreach ($mvc->updateStocksAfterSessionClose as $id) {
-                store_StockPlanning::updateByDocument($mvc, $id);
-            }
-        }
     }
 }
