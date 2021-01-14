@@ -1996,10 +1996,21 @@ abstract class deals_Helper
             }
         }
     }
-    
-    
+
+    /**
+     * Проверка дали артикулите отговарят на свойствата
+     *
+     * @param $productArr
+     * @param $haveMetas
+     * @param null $haveNotMetas
+     * @param null $metaError
+     * @return string|void
+     */
     public static function getContoRedirectError($productArr, $haveMetas, $haveNotMetas = null, $metaError = null)
     {
+        // При ръчно реконтиране се подтискат всякакви грешки
+        if(Mode::is('recontoTransaction')) return;
+
         $productCheck = deals_Helper::checkProductForErrors($productArr, $haveMetas, $haveNotMetas);
         if ($productCheck['notActive']) {
             return 'Артикулите|*: ' . implode(', ', $productCheck['notActive']) . ' |са затворени|*!';
