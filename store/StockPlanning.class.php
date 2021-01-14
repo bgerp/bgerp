@@ -277,7 +277,6 @@ class store_StockPlanning extends core_Manager
         $query->show('sourceClassId,sourceId');
 
         while($rec = $query->fetch()){
-            core_Statuses::newStatus("{$rec->sourceClassId} - {$rec->sourceId}", 'warning');
             store_StockPlanning::updateByDocument($rec->sourceClassId, $rec->sourceId);
         }
     }
