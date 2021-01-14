@@ -97,6 +97,13 @@ defIfNot('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', '');
 
 
 /**
+ * Дали дефолтно рецептите да са пълни или не
+ */
+defIfNot('CAT_DEFAULT_BOM_IS_COMPLETE', 'no');
+
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -107,7 +114,7 @@ defIfNot('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', '');
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -164,6 +171,7 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
+        'migrate::updateBoms'
     );
     
     
@@ -215,6 +223,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на стари нестандартни артикули->Неизползвани от'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на неизползвани стандартни артикули->Създадени преди'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Само в папките'),
+        'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Пълни,no=Непълни)', 'caption=Дали рецептите по подразбиране са завършени->Избор'),
     );
     
     
@@ -280,5 +289,20 @@ class cat_Setup extends core_ProtoSetup
     {
         $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
         $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
+    }
+
+
+    /**
+     * Обновява рецептите
+     */
+    public function updateBoms()
+    {
+        $Bom = cls::get('cat_Boms');
+        if(!$Bom->count()) return;
+
+        // Обновява полето за завършеност на рецептата
+        $isCompleteColName = str::phpToMysqlName('isComplete');
+        $query = "UPDATE {$Bom->dbTableName} SET {$isCompleteColName} = 'auto'";
+        $Bom->db->query($query);
     }
 }

@@ -203,7 +203,7 @@ class cat_Boms extends core_Master
     {
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
-        $this->FLD('isComplete', 'enum(no=Не,yes=Да)', 'caption=Завършена рецепта,notNull,value=no,input=none');
+        $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пълна рецепта,notNull,value=auto,mandatory');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
         $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
@@ -678,6 +678,12 @@ class cat_Boms extends core_Master
             
             if ($mvc->haveRightFor('recalcselfvalue', $rec)) {
                 $row->primeCost .= ht::createLink('', array($mvc, 'RecalcSelfValue', $rec->id), false, 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на себестойността');
+            }
+
+            if ($rec->isComplete == 'auto') {
+                $autoValue = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
+                $row->isComplete = $mvc->getFieldType('isComplete')->toVerbal($autoValue);
+                $row->isComplete = ht::createHint($row->isComplete, 'Стойността е автоматично определена');
             }
         }
     }

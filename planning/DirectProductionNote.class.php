@@ -347,11 +347,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
 
             // Дали да се изравнява себестойностт-а с тази от драйвера
+            $equalizePrimeCost = null;
             if($bomRec = cat_Products::getLastActiveBom(4329, 'production,sales')){
-                $equalizePrimeCost = ($bomRec->isComplete == 'yes') ? 'no' : 'yes';
-                $form->setDefault('equalizePrimeCost', $equalizePrimeCost);
+                if($bomRec->isComplete != 'auto'){
+                    $equalizePrimeCost = ($bomRec->isComplete == 'yes') ? 'no' : 'yes';
+                }
             }
-            $form->setDefault('equalizePrimeCost', planning_Setup::get('PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST'));
+
+            if(empty($equalizePrimeCost)){
+                $completeBomDefault = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
+                $equalizePrimeCost = ($completeBomDefault == 'yes') ? 'no' : 'yes';
+            }
+            $form->setDefault('equalizePrimeCost', $equalizePrimeCost);
         }
         
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
