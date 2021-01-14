@@ -840,7 +840,7 @@ class acc_Journal extends core_Master
                 
                 $this->logWrite('Реконтиране на документ', $rec->id);
                 
-                return followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"));
+                return followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"), 'warning');
             }
         }
         
