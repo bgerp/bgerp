@@ -120,21 +120,15 @@ class store_plg_StockPlanning extends core_Plugin
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                 if($firstDocument->isInstanceOf('planning_Tasks')){
                     $firstDocument = doc_Containers::getDocument($firstDocument->fetchField('originId'));
-                } elseif($mvc instanceof deals_DealMaster || $firstDocument->isInstanceOf('findeals_Deals') || ($mvc instanceof planning_Jobs)){
+                } elseif($mvc instanceof deals_DealMaster || $firstDocument->isInstanceOf('findeals_Deals')){
                     $firstDocument = null;
-                }
-            }
-
-            if(isset($firstDocument)){
-                $firstDocument->getInstance()->updateStocksOnShutdown[$firstDocument->that] = $firstDocument->that;
-
-                // Ако първия документ е задание
-                if($firstDocument->isInstanceOf('planning_Jobs')){
+                } elseif($mvc instanceof planning_Jobs){
 
                     // Което е към продажба, ще се обновят и наличностите на продажбата обаче след shutdown-а
                     // за да е сигурно, че ще се обнови след като всички задания са обновени
-                    if($saleId = $firstDocument->fetchField('saleId')){
+                    if($saleId = $mvc->fetchField($rec->id, 'saleId', false)){
                         cls::get('sales_Sales')->updateStocksAfterSessionClose[$saleId] = $saleId;
+                        core_Statuses::newStatus($saleId, 'warning');
                     }
                 }
             }
