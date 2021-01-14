@@ -5,7 +5,6 @@ var timeoutRemoveDisabled;
 var timeoutPageNavigation;
 var searchTimeout;
 var addedProduct;
-var microformat;
 
 function posActions() {
 	calculateWidth();
@@ -814,13 +813,6 @@ function enter(){
 		return;
 	}
 
-	// Ако е засечен микроформат и чака да се обработи се игнорира ентера
-	if (microformat) {
-		console.log('ENTER STOPPED WAITING MICROFORMAT');
-
-		return;
-	}
-
 	clearTimeout(timeout);
 	var value = $("input[name=ean]").val();
 
@@ -1176,7 +1168,6 @@ function afterload() {
 	setInputPlaceholder();
 	disableOrEnableEnlargeBtn();
 	disableOrEnableCurrencyBtn();
-	microformat = false;
 }
 
 
@@ -1409,13 +1400,13 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 	var inpVal = element.val();
 	var operation = getSelectedOperation();
 
-	if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
+	/*if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
 
 		microformat = true;
 		var selectedRecId = getSelectedRowId();
 		doOperation(operation, selectedRecId, true);
 		return;
-	}
+	}*/
 	
 	if(inpVal.startsWith("*")){
 		return;
