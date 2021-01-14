@@ -109,10 +109,10 @@ class tracking_Log extends core_Master
         
         $place = location_Places::toVerbal(self::DMSToDD($data['latitude']) . ',' . self::DMSToDD($data['longitude']));
         
-        $row->location = $place;
-        $row->location .= ' - покажи  <a href="https://maps.google.com/?q='
+        $row->location = '';
+        $row->location .= '<a href="https://maps.google.com/?q='
             . self::DMSToDD($data['latitude'])
-            . ',' . self::DMSToDD($data['longitude']) . '" target=_new>карта</a><br>';
+            . ',' . self::DMSToDD($data['longitude']) . '" target=_new>' . $place. '</a><br>';
         
     }
     
