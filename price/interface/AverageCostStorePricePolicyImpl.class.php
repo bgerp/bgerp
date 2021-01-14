@@ -152,6 +152,12 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
      */
     private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = true)
     {
+        // Ако баланса се изчислява в момента да не прави нищо
+        if ($useCachedDate && !core_Locks::get('RecalcBalances', 600, 2)) {
+
+            return array();
+        }
+
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
         $skipDocArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
         $lastBalance = acc_Balances::getLastBalance();
