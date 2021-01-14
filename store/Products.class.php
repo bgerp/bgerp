@@ -753,13 +753,11 @@ class store_Products extends core_Detail
         $field = Request::get('field', 'varchar');
         $toDate = Request::get('date', 'date');
         expect($rec = self::fetch($id));
+        $today = dt::today();
 
-        $start = dt::today();
-        $start = "{$start} 00:00:00";
         $end = "{$toDate} 23:59:59";
-
         $query = store_StockPlanning::getQuery();
-        $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date BETWEEN '{$start}' AND '{$end}'");
+        $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date <= '{$end}'");
         $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
         $query->where("#{$quantityField} IS NOT NULL");
         $query->show('sourceClassId,sourceId,date');
@@ -777,11 +775,14 @@ class store_Products extends core_Detail
                 $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
                 $row->createdBy .= " | {$folderId}";
             } else {
-
                 // Ако източника не е документ
                 $row->link = $Source->getHyperlink($dRec->sourceId, true);
                 $createdBy = $Source->fetchField($dRec->sourceId, 'createdBy');
                 $row->createdBy = crm_Profiles::createLink($createdBy);
+            }
+
+            if($dRec->date < $today) {
+                $row->link = ht::createHint($row->link, 'Датата е в миналото', 'warning', false);
             }
 
             // Подготвяне на реда с информация

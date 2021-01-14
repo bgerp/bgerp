@@ -298,15 +298,13 @@ class store_StockPlanning extends core_Manager
 
         $productArr = arr::make($productIds, true);
         $storesArr = isset($stores) ? arr::make($stores, true) : null;
-        $today = dt::today();
-        $today = "{$today} 00:00:00";
 
         // Каква ще е наличността към датата
         $query = static::getQuery();
         $query->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $query->XPR('totalOut', 'double', "ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
         $query->XPR('totalIn', 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
-        $query->where("#date >= '{$today}' AND #date <= '{$date}' AND #generic = 'no'");
+        $query->where("#date <= '{$date}' AND #generic = 'no'");
         $query->groupBy('productId,storeId');
         $query->show('productId,totalOut,totalIn,storeId');
 
@@ -335,14 +333,14 @@ class store_StockPlanning extends core_Manager
     public static function getMaxReservedByProduct()
     {
         $query = static::getQuery();
-        $today = dt::today();
 
         // Сумиране на всички сегашни и бъдещи запазени/очаквани количества по дата
-        $query->XPR("shortDate", 'date', "DATE(#date)");
+        // Ако записа е с минала дата, приема се че е текущата
+        $query->XPR("shortDate", 'date', "(CASE WHEN DATE(#date) >= CURDATE() THEN DATE(#date) ELSE CURDATE() END)");
         $query->XPR("quantityOutTotal", 'double', "ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
         $query->XPR("quantityInTotal", 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
         $query->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
-        $query->where("#generic = 'no' AND #storeId IS NOT NULL AND #shortDate >= CURDATE()");
+        $query->where("#generic = 'no' AND #storeId IS NOT NULL");
         $query->show('productId,storeId,shortDate,quantityInTotal,quantityOutTotal');
         $query->groupBy('storeId,productId,shortDate');
         $query->orderBy('shortDate', 'ASC');
