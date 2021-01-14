@@ -328,11 +328,11 @@ class dec_Declarations extends core_Master
         if ($rec->originId) {
             // и е по  документ фактура намираме кой е той
             $doc = doc_Containers::getDocument($rec->originId);
-
+            
             $class = $doc->className;
             $dId = $doc->that;
             $recOrigin = $class::fetch($dId);
-
+            
             // Попълваме данните от контрагента. Идват от фактурата
             $addressContragent = trim($recOrigin->contragentPlace . ' ' . $recOrigin->contragentPCode);
             if ($addressContragent && !empty($recOrigin->contragentAddress)) {
@@ -347,11 +347,16 @@ class dec_Declarations extends core_Master
             $row->contragentAddress = $Varchar->toVerbal($addressContragent);
             $row->contragentAddress = transliterate(tr($row->contragentAddress));
 
-            $uicContragent = drdata_Vats::getUicByVatNo($rec->contragentVatNo);
+            $uicContragent = drdata_Vats::getUicByVatNo($recOrigin->contragentVatNo); 
             if ($uic != $recOrigin->contragentVatNo) {
-                $row->contragentCompanyVatNo = $Varchar->toVerbal($rec->contragentVatNo);
+                $row->contragentCompanyVatNo = $Varchar->toVerbal($recOrigin->contragentVatNo);
             }
-            $row->contragentUicId = $uicContragent;
+            
+            if($recOrigin->uicNo) {
+                $row->contragentUicId = $recOrigin->uicNo;
+            } else {
+                $row->contragentUicId = $uicContragent;
+            }
 
             $invoiceNo = str_pad($recOrigin->number, '10', '0', STR_PAD_LEFT) . ' / ' . dt::mysql2verbal($recOrigin->date, 'd.m.Y');
             $row->invoiceNo = $invoiceNo;
