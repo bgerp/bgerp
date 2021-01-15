@@ -388,8 +388,7 @@ class label_Prints extends core_Master
                 $query = $mvc->getQuery();
                 $query->in('mediaId', array_keys($mediaArr));
                 $query->where("#state = 'active'");
-                $query->where("#createdBy = '[#1#]'", core_Users::getCurrent());
-
+                $query->where("#createdBy = " . core_Users::getCurrent());
                 $query->orderBy('#createdOn', 'DESC');
                 $query->show('mediaId');
                 $query->limit(1);
