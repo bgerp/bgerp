@@ -35,7 +35,7 @@ class location_Setup extends core_ProtoSetup
     public $managers = array(
         'location_Places',
         'location_LocationsCoords',
-
+        'migrate::fillGpsCoords',
 
     );
 
