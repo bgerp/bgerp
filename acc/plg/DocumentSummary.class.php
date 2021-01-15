@@ -322,7 +322,7 @@ class acc_plg_DocumentSummary extends core_Plugin
             if ($filter->to) {
                 $dateRange[1] = $filter->to;
             }
-            
+
             if (countR($dateRange) == 2) {
                 sort($dateRange);
             }
@@ -339,16 +339,40 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
                 $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;
             }
-            
-            if ($dateRange[0] && $dateRange[1]) {
+
+            if ($dateRange[0] || $dateRange[1]) {
                 $nullCond = '';
+                $where = '';
+
                 if ($fromField) {
-                    $where = "((#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59'))";
+                    if ($dateRange[0] && $dateRange[1]) {
+                        $where = "(#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59')";
+                    } else {
+                        if ($dateRange[0]) {
+                            $where .= "(#{$fromField} >= '[#1#]')";
+                        }
+
+                        if ($dateRange[1]) {
+                            $where .= "(#{$fromField} <= '[#2#] 23:59:59')";
+                        }
+                    }
+
                     $nullCond = " OR #{$fromField} IS NULL";
                 }
-                
-                if ($toField && $toField != $fromField) {
-                    $where .= " OR ((#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59'))";
+
+                if ($toField && ($toField != $fromField)) {
+                    if ($dateRange[0] && $dateRange[1]) {
+                        $where .= " OR (#{$toField} >= '[#1#]' AND #{$toField} <= '[#2#] 23:59:59')";
+                    } else {
+                        if ($dateRange[0]) {
+                            $where .= " OR (#{$toField} >= '[#1#]')";
+                        }
+
+                        if ($dateRange[1]) {
+                            $where .= " OR (#{$toField} <= '[#2#] 23:59:59')";
+                        }
+                    }
+
                     $nullCond = " OR (#{$fromField} IS NULL AND #{$toField} IS NULL)";
                 }
                 
@@ -359,7 +383,7 @@ class acc_plg_DocumentSummary extends core_Plugin
 
                 $data->query->where(array($where, $dateRange[0], $dateRange[1]));
             }
-            
+
             if (isset($filter->folder)) {
                 $data->query->where("#folderId = '{$filter->folder}'");
             }
