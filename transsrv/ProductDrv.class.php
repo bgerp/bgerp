@@ -89,6 +89,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $form->FLD('ourReff', 'varchar', 'caption=Обща информация->Наш реф.№');
         $form->FLD('auction', 'varchar', 'caption=Обща информация->Търг');
         $form->FLD('auctionId', 'varchar', 'caption=Обща информация->Търг,input=hidden');
+
+        $this->invoke('AfterTransportServiceFields', array(&$form));
     }
     
     
@@ -201,7 +203,9 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $params = array();
         $toleranceId = cat_Params::force('tolerance', 'Толеранс', 'cond_type_Percent', null, '%');
         $params[$toleranceId] = 0;
-        
+
+        $this->invoke('AfterTransportGetParams', array(&$params, $rec));
+
         if (!is_numeric($name)) {
             $nameId = cat_Params::fetch(array("#sysId = '[#1#]'", $name))->id;
         } else {

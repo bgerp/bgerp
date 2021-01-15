@@ -160,6 +160,14 @@
         <td class="boldText">[#ourReff#]</td>
     </tr>
     <!--ET_END ourReff-->
+    [#OTHER_BLOCKS#]
+    <!--ET_BEGIN BLOCK_CAPTION-->
+    [#BLOCK_CAPTION#]
+    <tr>
+        <td class="nowrap titleCol">[#BLOCK_CAPTION#]:</td>
+        <td class="boldText">[#BLOCK_VALUE#]</td>
+    </tr>
+    <!--ET_END BLOCK_CAPTION-->
 </table>
 <!--ET_END INFORMATION-->
 <div class="clearfix21"></div>
