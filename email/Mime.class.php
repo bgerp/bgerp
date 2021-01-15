@@ -198,6 +198,8 @@ class email_Mime extends core_BaseClass
                     // Ако е PHP под 7.2 - третираме като минути
                     if (PHP_VERSION_ID < 70200) {
                         $zTime *= 60;
+                    } else {
+                        $zTime *= -1;
                     }
 
                     $time = $time + $zTime + (date('O') / 100 * 60 * 60);
