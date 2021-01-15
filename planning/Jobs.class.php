@@ -1459,7 +1459,7 @@ class planning_Jobs extends core_Master
                         $dQuery->XPR('totalQuantity', 'double', "SUM(#quantity)");
                         $dQuery->where("#state = 'active' AND #canStore = 'yes'");
                         $dQuery->in("threadId", $threadsArr);
-                        if($detail instanceof planning_DirectProductNoteDetails){
+                        if($Detail instanceof planning_DirectProductNoteDetails){
                             $dQuery->where("#storeId IS NOT NULL");
                         }
                         $dQuery->show('productId,totalQuantity');
@@ -1515,5 +1515,12 @@ class planning_Jobs extends core_Master
         }
 
         return $res;
+    }
+
+    function act_Test()
+    {
+        $r = $this->getPlannedStocks(273);
+
+        bp($r);
     }
 }
