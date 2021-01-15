@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Клас 'email_Spam' - регистър на квалифицираните като твърд спам писма
@@ -132,9 +132,31 @@ class email_Spam extends email_ServiceEmails
         // Гледаме спам рейтинга
         $score = self::getSpamScore($mime->parts[1]->headersArr, true, $mime);
         if (isset($score) && ($score >= email_Setup::get('HARD_SPAM_SCORE'))) {
-            $isSpam = true;
+            $fromEmail = mb_strtolower($fromEmail);
+
+            // Ако има друг входящ или изходящ имейл, да не се третира като СПАМ
+            if (!email_Incomings::fetch(array("#fromEml = '[#1#]' AND #state != 'rejected'", $fromEmail))) {
+
+                $oQuery = email_Outgoings::getQuery();
+                $oQuery->where("#state != 'rejected'");
+                $oQuery->like('email', $fromEmail);
+                $oQuery->orLike('emailCc', $fromEmail);
+                $oQuery->show('email, emailCc');
+
+                while ($oRec = $oQuery->fetch()) {
+                    $emails = $oRec->email . ' ' . $oRec->emailCc;
+                    $emailsArr = type_Emails::toArray(mb_strtolower($emails));
+                    $emailsArr = arr::make($emailsArr, true);
+                    if ($emailsArr[$fromEmail]) {
+
+                        return false;
+                    }
+                }
+
+                $isSpam = true;
+            }
         }
-        
+
         return $isSpam;
     }
     

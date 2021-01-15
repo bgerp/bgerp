@@ -275,7 +275,7 @@ class drdata_Phones extends core_Manager
                     // да бъде локален телефон, проверяваме дали не започва директно с код
                     // на региона по дефолт или на мобилни оператори от държавата. Ако е така, добавяме 1 нула
                     if ($t1[0] > '0' && strlen($t1) >= 8 && strlen($t1) < 15) {
-                        if ($defaultAreaCode && strpos($t1, $defaultAreaCode) === 0) {
+                        if ($defaultAreaCode && strpos((string)$t1, (string)$defaultAreaCode) === 0) {
                             $t1 = '0' . $t1;
                         } else {
                             $mobArr = $this->getMobile($defaultCountryCode);
