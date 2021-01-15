@@ -1727,6 +1727,7 @@ class doc_Containers extends core_Manager
         
         if (is_array($docArr) && count($docArr)) {
             $docArrSort = array();
+            $i = 0;
             foreach ($docArr as $id => $class) {
                 $mvc = cls::get($class);
                 
@@ -1734,15 +1735,15 @@ class doc_Containers extends core_Manager
                     continue;
                 }
 
-                if($mvc->newBtnGroup){
-                    list($order, $group) = explode('|', $mvc->newBtnGroup);
-                } else {
-                    $order = 0;
-                    $group = 'Без група';
-                    wp($mvc);
-                }
-
                 if ($mvc->haveRightFor('add', $rec)) {
+                    if($mvc->newBtnGroup){
+                        list($order, $group) = explode('|', $mvc->newBtnGroup);
+                    } else {
+                        $order = 0;
+                        $group = 'Без група';
+                        wp($mvc);
+                    }
+
                     $ind = $order * 10000 + $i++;
                     $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
                 }
