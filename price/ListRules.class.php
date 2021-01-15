@@ -591,7 +591,7 @@ class price_ListRules extends core_Detail
     {
         if ($rec->listId) {
             if ($rec->validFrom <= dt::now() || empty($rec->validFrom)) {
-                price_Cache::callback_InvalidatePriceList($rec->listId);
+                $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
             } else {
                 core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validFrom);
             }
@@ -600,8 +600,22 @@ class price_ListRules extends core_Detail
             }
         }
     }
-    
-    
+
+
+    /**
+     * Изпълнява се на шътдаун
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Ако има списъци за инвалидиране на кешираните цени да се инвалидират
+        if (is_array($mvc->invalidateListsOnShutdown)) {
+            foreach ($mvc->invalidateListsOnShutdown as $listId) {
+                price_Cache::callback_InvalidatePriceList($listId);
+            }
+        }
+    }
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
