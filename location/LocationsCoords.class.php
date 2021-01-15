@@ -85,6 +85,8 @@ class location_LocationsCoords extends core_Master
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
         $this->FLD('originId', 'int', 'caption=Локация,input = hidden ');
 
+        $this->setDbIndex('lat,lng');
+
     }
 
 
