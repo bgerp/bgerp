@@ -191,7 +191,6 @@ class store_plg_StockPlanning extends core_Plugin
 
            // Обновяване на планираните количества на всички заопашени документи
            foreach ($mvc->updateStocksOnShutdown as $id) {
-               core_Statuses::newStatus("{$mvc->className}-{$id}");
                store_StockPlanning::updateByDocument($mvc, $id);
            }
        }
