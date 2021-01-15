@@ -100,8 +100,14 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      * абонираните потребители не се нотифицират
      */
     public $muteNotificationsBy = 'system';
-    
-    
+
+
+    /**
+     * Кои са сметките за изнвънредни приходи и разходи
+     */
+    protected $incomeAndCostAccounts = array('debit' => '6912', 'credit' => '7912');
+
+
     /**
      * След дефиниране на полетата на модела
      */
@@ -126,29 +132,8 @@ class purchase_ClosedDeals extends deals_ClosedDeals
         
         return $row;
     }
-    
-    
-    /**
-     * Връща разликата с която ще се приключи сделката
-     *
-     * @param mixed $threadId - ид на нишката или core_ObjectReference
-     *                        към първия документ в нишката
-     *
-     * @return float $amount - разликата на платеното и експедираното
-     */
-    public static function getClosedDealAmount($threadId)
-    {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-        $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
-        
-        $cost = acc_Balances::getBlAmounts($jRecs, '6912', 'debit')->amount;
-        $inc = acc_Balances::getBlAmounts($jRecs, '7912', 'credit')->amount;
-        
-        // Разликата между платеното и доставеното
-        return $inc - $cost;
-    }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      */

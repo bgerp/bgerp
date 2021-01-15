@@ -48,14 +48,12 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                <tr>
                                     <td class="cell">
                                         [#/deals/tpl/InvoiceContragentVatHeaderInfo.shtml#]
                                     </td>
                                     <td class="cell">
                                         [#/deals/tpl/InvoiceMyCompanyVatHeaderInfo.shtml#]
                                     </td>
-                                </tr>
                                 </tr>
                             </tbody>
                         </table>
@@ -259,7 +257,7 @@
                                 </tr>
                                 <tr class='footerDocInfo'>
                                     <td colspan="2">
-                                         <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                                        [#/doc/tpl/Copyright.shtml#]
                                     </td>
                                 </tr>
                             </tbody>

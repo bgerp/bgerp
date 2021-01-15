@@ -191,8 +191,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'mandatory,input=hidden,before=packQuantity,silent,removeAndRefreshForm=additionalMeasureId|additionalMeasureQuantity');
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
+
         $this->FLD('expenses', 'percent(Min=0)', 'caption=Реж. разходи,after=packQuantity');
-        
+        $this->FLD('equalizePrimeCost', 'enum(yes=Да,no=Не)', 'caption=Изравняване на сб-ст,notNull,value=yes,after=expenses');
+
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,input=none');
         
@@ -202,7 +204,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->setField('deadline', 'caption=Информация->Срок до');
         $this->setField('storeId', 'caption=Информация->Засклаждане в,silent,removeAndRefreshForm');
         $this->FLD('inputStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Информация->Влагане от,input');
-        $this->FLD('debitAmount', 'double(smartRound)', 'input=none');
+        $this->FLD('debitAmount', 'double(decimals=2)', 'input=none');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Разходен обект / Продажба->Избор');
         
         $this->setField('note', 'caption=Информация->Бележки,after=deadline');
@@ -253,7 +255,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $form->setDefault('storeId', $storeId);
         $form->setOptions('productId', $productOptions);
         $form->setDefault('productId', key($productOptions));
-        
+
         if(isset($rec->productId)){
             $packs = cat_Products::getPacks($rec->productId);
             $form->setOptions('packagingId', $packs);
@@ -343,6 +345,20 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $form->setDefault('additionalMeasureId', $secondMeasureId);
                 }
             }
+
+            // Дали да се изравнява себестойностт-а с тази от драйвера
+            $equalizePrimeCost = null;
+            if($bomRec = cat_Products::getLastActiveBom(4329, 'production,sales')){
+                if($bomRec->isComplete != 'auto'){
+                    $equalizePrimeCost = ($bomRec->isComplete == 'yes') ? 'no' : 'yes';
+                }
+            }
+
+            if(empty($equalizePrimeCost)){
+                $completeBomDefault = cat_Setup::get('DEFAULT_BOM_IS_COMPLETE');
+                $equalizePrimeCost = ($completeBomDefault == 'yes') ? 'no' : 'yes';
+            }
+            $form->setDefault('equalizePrimeCost', $equalizePrimeCost);
         }
         
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
@@ -584,10 +600,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $originRec = doc_Containers::getDocument($rec->originId)->rec();
         
         // Ако артикула има активна рецепта
-        $bomId = cat_Products::getLastActiveBom($rec->productId, 'production')->id;
-        if (!$bomId) {
-            $bomId = cat_Products::getLastActiveBom($rec->productId, 'sales')->id;
-        }
+        $bomId = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')->id;
         
         // Ако ням рецепта, не могат да се определят дефолт детайли за влагане
         if (!$bomId) {

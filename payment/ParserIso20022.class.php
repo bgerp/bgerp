@@ -97,7 +97,7 @@ class payment_ParserIso20022 extends core_BaseClass
                 $res->warnings[] = "Валутата за IBAN {$iban} се различава от тази в сметката";
                 continue;
             }
-            
+
             foreach ($stmt->Ntry as $node) {
                 $rec = new stdClass();
                 
@@ -158,7 +158,7 @@ class payment_ParserIso20022 extends core_BaseClass
             
             return ;
         }
-        
+
         $mime->saveFiles();
         
         $filesKeyList = $mime->getFiles();
@@ -170,20 +170,23 @@ class payment_ParserIso20022 extends core_BaseClass
             
             return ;
         }
-        
+
         $res = null;
         
         foreach ($filesArr as $fId) {
             $fName = fileman::fetchField($fId, 'name');
             $fExt = fileman::getExt($fName);
-            
+
             if ($fExt == 'xml') {
                 $fh = fileman::fetchField($fId, 'fileHnd');
                 $xml = fileman::extractStr($fh);
-                
+
                 $isoPos = strpos($xml, 'iso:20022');
-                
-                if (($isoPos === false) || ($isoPos > 50)) {
+
+                if (($isoPos === false) || ($isoPos > 100)) {
+
+                    fileman::logWarning('ISO20022 стринга е много назад', $fId);
+
                     continue;
                 }
                 

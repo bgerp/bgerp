@@ -50,6 +50,12 @@ defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
 
 
 /**
+ * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
+ */
+defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *

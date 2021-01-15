@@ -161,6 +161,7 @@ class gs1_TypeEan extends type_Varchar
      */
     public function isValidEan($value, $n = 13)
     {
+
         $digits12 = substr($value, 0, $n - 1);
         $digits13 = $this->eanCheckDigit($digits12, $n);
         $res = ($digits13 == $value);
@@ -215,6 +216,9 @@ class gs1_TypeEan extends type_Varchar
      */
     public function isValid($value)
     {
+        if(substr($value, 0, 1) == '#'){
+            return array();
+        }
         if (!trim($value)) {
             
             return array('value' => '');

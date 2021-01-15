@@ -764,14 +764,14 @@ class doc_FolderPlg extends core_Plugin
         $teammates = keylist::toArray(core_Users::getTeammates($userId));
         $managers = (array) core_Users::getByRole('manager');
         $ceos = (array) core_Users::getByRole('ceo');
-        
+
         // Подчинените в екипа (използва се само за мениджъри)
         $subordinates = array_diff($teammates, $managers);
         $subordinates = array_diff($subordinates, $ceos);
-        
+
         // Премахваме текущия потребител
         unset($ceos[$userId]);
-        
+
         foreach (array('teammates', 'ceos', 'managers', 'subordinates') as $v) {
             if (${$v}) {
                 ${$v} = implode(',', ${$v});
@@ -795,7 +795,7 @@ class doc_FolderPlg extends core_Plugin
             }
         }
         
-        if (core_Users::haveRole('ceo')) {
+        if (core_Users::haveRole('ceo', $userId)) {
             
             // ceo има достъп до всички team папки, дори, когато са на друг ceo, който не е от неговия екип
             $conditions[] = "#folderAccess = 'team'";
@@ -806,21 +806,27 @@ class doc_FolderPlg extends core_Plugin
         }
         
         switch (true) {
-            case core_Users::haveRole('ceo'):
+            case core_Users::haveRole('ceo', $userId):
                 
                 // CEO вижда всичко с изключение на private и secret папките на другите CEO
                 // Ако има само един `ceo` и е текущия потребител, да не сработва
                 if ($ceos) {
                     $conditions[] = "#folderInCharge NOT IN ({$ceos})";
+
+                    // CEO да може да вижда private папките на друг `ceo`
+                    if ($viewAccess) {
+                        $conditions[] = "#folderAccess != 'secret'";
+                    }
+                } else {
+
+                    // Ако няма друг CEO и текущията потребител е `ceo` - да вижда всички
+                    $conditions[] = "#folderAccess = 'public'";
+                    $conditions[] = "#folderAccess = 'team'";
+                    $conditions[] = "#folderAccess = 'private'";
+                    $conditions[] = "#folderAccess = 'secret'";
                 }
-                
-                // CEO да може да вижда private папките на друг `ceo`
-                if ($viewAccess) {
-                    $conditions[] = "#folderAccess != 'secret'";
-                }
-            
             break;
-            case core_Users::haveRole('manager'):
+            case core_Users::haveRole('manager', $userId):
                 
                 // Manager вижда private папките на подчинените в екипите си
                 if ($subordinates) {
@@ -840,7 +846,7 @@ class doc_FolderPlg extends core_Plugin
         if (!$query->fields['folderShared']) {
             $query->XPR('folderShared', 'varchar', '#shared');
         }
-        
+
         $query->where(core_Query::buildConditions($conditions, 'OR'));
     }
     
