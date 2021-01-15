@@ -274,13 +274,25 @@ class location_Places extends core_Master
      */
     protected static function getClosestBase($latitudeTo, $longitudeTo)
     {
+        $closestBase = array();
+        foreach (array('crm_Locations','drdata_bg_Places') as $cls) {
 
-        foreach (array('drdata_bg_Places', 'crm_Locations') as $cls) {
+            $dis = 0.05;
+            if ($cls == 'drdata_bg_Places'){
+                $countC = 0;
+                while ($countC <= 0) {
+                    $query = $cls::getQuery();
+                    $query->where("#lat < ($latitudeTo+$dis) AND #lat > ($latitudeTo-$dis) AND
+                               #lng < ($longitudeTo+$dis) AND #lng > ($longitudeTo-$dis)");
+                    $countC = $query->count();
 
-            $query = $cls::getQuery();
+                $dis +=0.05;
 
+                }
+            }else {
+                $query = $cls::getQuery();
+            }
 
-            $closestBase = array();
             while ($base = $query->fetch()) {
 
                 $latitudeFrom = $longitudeFrom = $distance = 0;

@@ -123,11 +123,15 @@ class email_ServiceEmails extends core_Manager
 
         Mode::push('forceDownload', true);
 
+        Users::forceSystemUser();
+
         $rId = $Incomings->process($mime, $rec->accountId, $rec->uid);
 
-        $eRec = $Incomings->fetch($rId);
+        Users::cancelSystemUser();
 
         Mode::pop('forceDownload');
+
+        $eRec = $Incomings->fetch($rId);
 
         expect($eRec);
 
