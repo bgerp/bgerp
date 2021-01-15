@@ -193,8 +193,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
 
         $this->FLD('expenses', 'percent(Min=0)', 'caption=Реж. разходи,after=packQuantity');
-        $this->FLD('equalizePrimeCost', 'enum(yes=Да,no=Не)', 'caption=Изравняване на сб-ст,notNull,value=yes,after=expenses');
-
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=Количество,input=none');
         
@@ -208,8 +206,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,allowEmpty)', 'input=none,after=expenses,caption=Разходен обект / Продажба->Избор');
         
         $this->setField('note', 'caption=Информация->Бележки,after=deadline');
-        
-        
+        $this->FLD('equalizePrimeCost', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Изравняване на сб-ст,notNull,value=yes,after=deadline,autohide=any');
+
+
+
         $this->setDbIndex('productId');
     }
     
