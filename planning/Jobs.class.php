@@ -1516,11 +1516,4 @@ class planning_Jobs extends core_Master
 
         return $res;
     }
-
-    function act_Test()
-    {
-        $r = $this->getPlannedStocks(273);
-
-        bp($r);
-    }
 }
