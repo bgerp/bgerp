@@ -857,13 +857,16 @@ class planning_Jobs extends core_Master
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
-            
-            
+
             $sumAdditionalMeasure = $mvc->sumAdditionalMeasure($rec);
             if(is_object($sumAdditionalMeasure)){
                 $additionalQuantityVerbal  = $Double->toVerbal($sumAdditionalMeasure->sumSecondMeasure);
                 $additionalMeasureName = cat_UoM::getShortName($sumAdditionalMeasure->secondMeasureId);
                 $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$additionalQuantityVerbal} {$additionalMeasureName}) </span>";
+            }
+
+            if(!empty($rec->deliveryTermId)){
+                $row->deliveryTermId = cond_DeliveryTerms::getHyperlink($rec->deliveryTermId, true);
             }
         }
         
