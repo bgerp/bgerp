@@ -314,7 +314,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
     {
         // Шаблон
         $tpl = getTplFromFile('transsrv/tpl/TransportProduct.shtml');
-        
+        $this->invoke('BeforeTransportRenderDescription', array(&$data));
+
         // ще се заместват само полетата от драйвера
         $fields = cat_Products::getDriverFields($this);
         $row = new stdClass();
