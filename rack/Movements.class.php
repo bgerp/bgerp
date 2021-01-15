@@ -99,12 +99,6 @@ class rack_Movements extends core_Manager
      */
     public $tableRowTpl = "[#ROW#][#ADD_ROWS#]\n";
     
-
-    /**
-     * Колко време след като са приключени движенията да се изтриват
-     */
-    const DELETE_CLOSED_MOVEMENTS_OLDER_THEN = 5184000;
-    
     
     /**
      * Описание на модела (таблицата)
@@ -1469,7 +1463,7 @@ class rack_Movements extends core_Manager
     public function cron_DeleteOldMovementsAndPallets()
     {
         // Изтриване на старите движения
-        $olderThan = self::DELETE_CLOSED_MOVEMENTS_OLDER_THEN;
+        $olderThan = rack_Setup::get('DELETE_OLD_MOVEMENTS');
         $this->deleteOldMovements($olderThan);
         
         // Изтриване на затворените палети

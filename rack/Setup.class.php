@@ -2,6 +2,12 @@
 
 
 /**
+ * След колко време да се изтриват старите движение
+ */
+defIfNot('RACK_DELETE_OLD_MOVEMENTS', 5184000);
+
+
+/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -86,14 +92,8 @@ class rack_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rack,ceo'),
     );
-    
-    
-    /**
-     * Описание на конфигурационните константи
-     */
-    public $configDescription = array();
-    
-    
+
+
     /**
      * Настройки за Cron
      */
@@ -150,8 +150,16 @@ class rack_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'RACK_DELETE_OLD_MOVEMENTS' => array('time','caption=Изтриване на стари движения->Период'),
+    );
+
+
     /**
      * Изпълнява се след setup-а
      */
