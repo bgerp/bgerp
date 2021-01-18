@@ -2114,7 +2114,11 @@ class eshop_Carts extends core_Master
                 $msg = $isError = null;
                 crm_Companies::checkUicId($rec->invoiceUicNo, $rec->invoiceCountry, $msg, $isError);
                 if (!empty($msg)) {
-                    $form->setWarning('invoiceUicNo', $msg);
+                    if($isError){
+                        $form->setError('invoiceUicNo', $msg);
+                    } else {
+                        $form->setWarning('invoiceUicNo', $msg);
+                    }
                 }
             }
             
@@ -2164,7 +2168,12 @@ class eshop_Carts extends core_Master
                     $userData = array('email' => $rec->email, 'personNames' => $rec->personNames, 'tel' => $rec->tel);
                     log_Browsers::setVars($userData);
                 }
-                
+
+                // Нормализаране на ЕИК-то/Нац. номера
+                if(!empty($rec->invoiceUicNo)){
+                    $rec->invoiceUicNo = preg_replace('/[^a-z\d]/i', '', $rec->invoiceUicNo);
+                }
+
                 $this->save($rec);
                 $this->updateMaster($rec);
                 core_Lg::pop();
