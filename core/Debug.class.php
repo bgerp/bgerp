@@ -176,7 +176,7 @@ class core_Debug
      */
     public static function log($name)
     {
-        if (!isDebug() || !core_Debug::$isLogging) {
+        if ((!isDebug() && !defined('DEBUG_FATAL_ERRORS_FILE')) || !core_Debug::$isLogging) {
             
             return ;
         }
