@@ -201,4 +201,16 @@ class crm_Setup extends core_ProtoSetup
         
         return $html;
     }
+
+    public function updateUics()
+    {
+        $query = crm_Companies::getQuery();
+        $query->where("#uicId IS NOT NULL");
+        $query->show('id,uicId');
+bp($query->fetchAll());
+        // Нормализиране на националния номер според държавата на контрагента
+        if(!empty($rec->uicId)){
+            $rec->uicId = deals_Helper::canonizeUicNumber($rec->uicId, $rec->country);
+        }
+    }
 }

@@ -24,7 +24,7 @@ class rack_Wrapper extends plg_ProtoWrapper
     public function description()
     {
         $this->TAB('rack_Movements', 'Движения->Списък', 'ceo,rack');
-        $this->TAB('rack_ArchiveMovements', 'Движения->История', 'ceo,rack');
+        $this->TAB('rack_OldMovements', 'Движения->История', 'ceo,rack');
 
         $this->TAB('rack_Products', 'Продукти', 'ceo,rack');
         $this->TAB('rack_Pallets', 'Палети', 'ceo,rack');

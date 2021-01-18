@@ -254,7 +254,7 @@ class rack_Movements extends rack_BaseMovement
         }
 
         if(isset($rec->id)){
-            rack_ArchiveMovements::sync($rec);
+            rack_OldMovements::save($rec);
         }
     }
 
@@ -266,9 +266,8 @@ class rack_Movements extends rack_BaseMovement
     {
         // Ако записите се изтриват по крон, няма да се трият от архива
         if(Mode::is('movementDeleteByCron')) return;
-
         foreach ($query->getDeletedRecs() as $rec) {
-            rack_ArchiveMovements::delete("#movementId = {$rec->id}");
+            rack_OldMovements::delete($rec->id);
         }
     }
 
@@ -1074,7 +1073,7 @@ class rack_Movements extends rack_BaseMovement
         // Изтриване и на прекалено старите архивирани движения
         if($olderThan = rack_Setup::get('DELETE_ARCHIVED_MOVEMENTS')){
             $createdBefore = dt::addSecs(-1 * $olderThan);
-            rack_ArchiveMovements::delete("#createdOn <= '{$createdBefore}'");
+            rack_OldMovements::delete("#createdOn <= '{$createdBefore}'");
         }
     }
     

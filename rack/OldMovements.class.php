@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class rack_ArchiveMovements extends rack_BaseMovement
+class rack_OldMovements extends rack_BaseMovement
 {
     /**
      * Заглавие
@@ -69,9 +69,7 @@ class rack_ArchiveMovements extends rack_BaseMovement
      */
     public function description()
     {
-        $this->FLD('movementId', 'key(mvc=rack_Movements,selectId)');
         parent::setFields($this);
-        $this->setDbIndex('movementId');
     }
 
 
@@ -82,24 +80,5 @@ class rack_ArchiveMovements extends rack_BaseMovement
     {
         $storeId = store_Stores::getCurrent();
         $data->title = 'История на движения на палетите в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
-    }
-
-
-    /**
-     * Синхронизиране на записа
-     *
-     * @param stdClass $rec
-     * @return void
-     */
-    public static function sync($rec)
-    {
-        $archivedRec = clone $rec;
-        $archivedRec->movementId = $rec->id;
-        unset($archivedRec->id);
-        if($exArchiveRec = rack_ArchiveMovements::fetch("#movementId = {$rec->id}")){
-            $archivedRec->id = $exArchiveRec->id;
-        }
-
-        static::save($archivedRec);
     }
 }
