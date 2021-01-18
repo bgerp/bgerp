@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class rack_OldMovements extends rack_BaseMovement
+class rack_OldMovements extends rack_MovementAbstract
 {
     /**
      * Заглавие
@@ -69,7 +69,9 @@ class rack_OldMovements extends rack_BaseMovement
      */
     public function description()
     {
+        $this->FLD('movementId', 'key(mvc=rack_Movements,select=id)', 'caption=Ид');
         parent::setFields($this);
+        $this->setDbUnique('movementId');
     }
 
 
@@ -79,6 +81,6 @@ class rack_OldMovements extends rack_BaseMovement
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $storeId = store_Stores::getCurrent();
-        $data->title = 'История на движения на палетите в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
+        $data->title = 'История на движенията на палетите в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
     }
 }

@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class rack_Movements extends rack_BaseMovement
+class rack_Movements extends rack_MovementAbstract
 {
     /**
      * Заглавие
@@ -253,8 +253,16 @@ class rack_Movements extends rack_BaseMovement
             }
         }
 
+        // Синхронизиране на записа
         if(isset($rec->id)){
-            rack_OldMovements::save($rec);
+            $clone = clone $rec;
+            $clone->movementId = $rec->id;
+            unset($clone->id);
+            if($exId = rack_OldMovements::fetchField("#movementId = {$clone->movementId}")){
+                $clone->id = $exId;
+            }
+
+            cls::get('rack_OldMovements')->save_($clone);
         }
     }
 

@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-abstract class rack_BaseMovement extends core_Manager
+abstract class rack_MovementAbstract extends core_Manager
 {
 
     /**
