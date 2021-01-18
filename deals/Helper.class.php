@@ -2135,4 +2135,19 @@ abstract class deals_Helper
         
         return false;
     }
+
+
+    /**
+     * Канонизиране на нац. номер/ЕИК
+     *
+     * @param string $number
+     * @param int $countryId
+     * @return string
+     */
+    public static function canonizeUicNumber($number, $countryId)
+    {
+        $canonize = preg_replace('/[^a-z\d]/i', '', $number);
+
+        return strtoupper($canonize);
+    }
 }
