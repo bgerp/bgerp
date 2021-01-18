@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class rack_Movements extends rack_BaseMovement
+class rack_Movements extends rack_MovementAbstract
 {
     /**
      * Заглавие
@@ -253,8 +253,9 @@ class rack_Movements extends rack_BaseMovement
             }
         }
 
+        // Синхронизиране на записа
         if(isset($rec->id)){
-            rack_ArchiveMovements::sync($rec);
+            rack_OldMovements::sync($rec);
         }
     }
 
@@ -268,7 +269,7 @@ class rack_Movements extends rack_BaseMovement
         if(Mode::is('movementDeleteByCron')) return;
 
         foreach ($query->getDeletedRecs() as $rec) {
-            rack_ArchiveMovements::delete("#movementId = {$rec->id}");
+            rack_OldMovements::delete("#movementId = {$rec->id}");
         }
     }
 
@@ -1074,7 +1075,7 @@ class rack_Movements extends rack_BaseMovement
         // Изтриване и на прекалено старите архивирани движения
         if($olderThan = rack_Setup::get('DELETE_ARCHIVED_MOVEMENTS')){
             $createdBefore = dt::addSecs(-1 * $olderThan);
-            rack_ArchiveMovements::delete("#createdOn <= '{$createdBefore}'");
+            rack_OldMovements::delete("#createdOn <= '{$createdBefore}'");
         }
     }
     

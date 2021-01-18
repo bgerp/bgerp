@@ -22,8 +22,8 @@ defIfNot('RACK_DELETE_ARCHIVED_MOVEMENTS', dt::SECONDS_IN_MONTH * 12);
  * @category  bgerp
  * @package   rack
  *
- * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -73,12 +73,12 @@ class rack_Setup extends core_ProtoSetup
         'rack_Zones',
         'rack_ZoneDetails',
         'rack_OccupancyOfRacks',
-        'rack_ArchiveMovements',
+        'rack_OldMovements',
         'migrate::truncateOldRecs',
         'migrate::deleteOldPlugins',
         'migrate::updateNoBatchRackDetails2',
         'migrate::changeOffsetInGetOccupancyOfRacks',
-        'migrate::updateArchive',
+        'migrate::updateArchive2',
     );
     
     
@@ -269,21 +269,17 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Запълва архива с първоначални данни
      */
-    public function updateArchive()
+    public function updateArchive2()
     {
         $Movements = cls::get('rack_Movements');
-        $Archive = cls::get('rack_ArchiveMovements');
         if(!$Movements->count()) return;
 
+        $Archive = cls::get('rack_OldMovements');
         $Archive->truncate();
-        $query = $Movements::getQuery();
-        $allMovements = $query->fetchAll();
 
-        array_walk($allMovements, function ($a) {
-            $a->movementId = $a->id;
-            unset($a->id);
-        });
-
-        $Archive->saveArray($allMovements);
+        $cols = "movement_id,store_id,product_id,packaging_id,pallet_id,position,batch,position_to,zones,worker_id,note,quantity,quantity_in_pack,state,zone_list,from_incoming_document,documents,modified_on,modified_by,search_keywords,created_on,created_by";
+        $colsFrom = "id,store_id,product_id,packaging_id,pallet_id,position,batch,position_to,zones,worker_id,note,quantity,quantity_in_pack,state,zone_list,from_incoming_document,documents,modified_on,modified_by,search_keywords,created_on,created_by";
+        $query = "INSERT INTO {$Archive->dbTableName}({$cols}) SELECT {$colsFrom} FROM {$Movements->dbTableName};";
+        $Archive->db->query($query);
     }
 }

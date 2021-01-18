@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class rack_ArchiveMovements extends rack_BaseMovement
+class rack_OldMovements extends rack_MovementAbstract
 {
     /**
      * Заглавие
@@ -69,9 +69,9 @@ class rack_ArchiveMovements extends rack_BaseMovement
      */
     public function description()
     {
-        $this->FLD('movementId', 'key(mvc=rack_Movements,selectId)');
+        $this->FLD('movementId', 'key(mvc=rack_Movements,select=id)', 'caption=Ид');
         parent::setFields($this);
-        $this->setDbIndex('movementId');
+        $this->setDbUnique('movementId');
     }
 
 
@@ -81,7 +81,7 @@ class rack_ArchiveMovements extends rack_BaseMovement
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $storeId = store_Stores::getCurrent();
-        $data->title = 'История на движения на палетите в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
+        $data->title = 'История на движенията на палетите в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
     }
 
 
@@ -93,13 +93,14 @@ class rack_ArchiveMovements extends rack_BaseMovement
      */
     public static function sync($rec)
     {
-        $archivedRec = clone $rec;
-        $archivedRec->movementId = $rec->id;
-        unset($archivedRec->id);
-        if($exArchiveRec = rack_ArchiveMovements::fetch("#movementId = {$rec->id}")){
-            $archivedRec->id = $exArchiveRec->id;
+        $clone = clone $rec;
+        $clone->movementId = $rec->id;
+        unset($clone->id);
+        if($exId = static::fetchField("#movementId = {$clone->movementId}")){
+            $clone->id = $exId;
         }
 
-        static::save($archivedRec);
+        $me = cls::get(get_called_class());
+        $me->save_($clone);
     }
 }
