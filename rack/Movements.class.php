@@ -255,14 +255,7 @@ class rack_Movements extends rack_MovementAbstract
 
         // Синхронизиране на записа
         if(isset($rec->id)){
-            $clone = clone $rec;
-            $clone->movementId = $rec->id;
-            unset($clone->id);
-            if($exId = rack_OldMovements::fetchField("#movementId = {$clone->movementId}")){
-                $clone->id = $exId;
-            }
-
-            cls::get('rack_OldMovements')->save_($clone);
+            rack_OldMovements::sync($rec);
         }
     }
 
@@ -274,8 +267,9 @@ class rack_Movements extends rack_MovementAbstract
     {
         // Ако записите се изтриват по крон, няма да се трият от архива
         if(Mode::is('movementDeleteByCron')) return;
+
         foreach ($query->getDeletedRecs() as $rec) {
-            rack_OldMovements::delete($rec->id);
+            rack_OldMovements::delete("#movementId = {$rec->id}");
         }
     }
 

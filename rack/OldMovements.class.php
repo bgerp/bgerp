@@ -83,4 +83,24 @@ class rack_OldMovements extends rack_MovementAbstract
         $storeId = store_Stores::getCurrent();
         $data->title = 'История на движенията на палетите в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
     }
+
+
+    /**
+     * Синхронизиране на записа
+     *
+     * @param stdClass $rec
+     * @return void
+     */
+    public static function sync($rec)
+    {
+        $clone = clone $rec;
+        $clone->movementId = $rec->id;
+        unset($clone->id);
+        if($exId = static::fetchField("#movementId = {$clone->movementId}")){
+            $clone->id = $exId;
+        }
+
+        $me = cls::get(get_called_class());
+        $me->save_($clone);
+    }
 }
