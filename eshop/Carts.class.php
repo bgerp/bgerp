@@ -1279,14 +1279,21 @@ class eshop_Carts extends core_Master
                 
                 $url = array();
                 $currentRec = self::fetch($id, 'total,state,haveProductsWithExpectedDelivery,domainId');
-                cms_Domains::setPublicDomain($currentRec->domainId);
-                
-                if($currentRec->state != $exState) {
+                if(!is_object($currentRec)){
+
+                    // Ако количката е изтрита междувременно, редирект
+                    core_Statuses::newStatus('Количката е изтрита');
                     $url = cls::get('eshop_Groups')->getUrlByMenuId(null);
-                } elseif(trim($exTotal) != trim($currentRec->total) || $exHaveProductsWithExpectedDelivery != $currentRec->haveProductsWithExpectedDelivery){
-                    $url = array($this, 'view', $id);
+                } else {
+                    cms_Domains::setPublicDomain($currentRec->domainId);
+
+                    if($currentRec->state != $exState) {
+                        $url = cls::get('eshop_Groups')->getUrlByMenuId(null);
+                    } elseif(trim($exTotal) != trim($currentRec->total) || $exHaveProductsWithExpectedDelivery != $currentRec->haveProductsWithExpectedDelivery){
+                        $url = array($this, 'view', $id);
+                    }
                 }
-                
+
                 // Ако състоянието на количката не е чернова, се редиректва
                 if (countR($url)) {
                     $resObj = new stdClass();

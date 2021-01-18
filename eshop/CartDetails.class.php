@@ -504,6 +504,7 @@ class eshop_CartDetails extends core_Detail
                 vislog_History::add("Изтриване на количката");
             }
         } else {
+            $msg = '|Количката е изчистена|*!';
             $deleteCart = true;
         }
         
