@@ -275,44 +275,35 @@ class location_Places extends core_Master
     protected static function getClosestBase($latitudeTo, $longitudeTo)
     {
         $closestBase = array();
-        foreach (array('crm_Locations','drdata_bg_Places') as $cls) {
 
-            $dis = 0.05;
-            if ($cls == 'drdata_bg_Places'){
-                $countC = 0;
-                while ($countC <= 0) {
-                    $query = $cls::getQuery();
-                    $query->where("#lat < ($latitudeTo+$dis) AND #lat > ($latitudeTo-$dis) AND
-                               #lng < ($longitudeTo+$dis) AND #lng > ($longitudeTo-$dis)");
-                    $countC = $query->count();
+        foreach (array('location_LocationsCoords','drdata_bg_Places') as $cls) {
 
-                $dis +=0.05;
+            $dis= ( $cls == 'drdata_bg_Places') ? 0.05 :0.002;
 
-                }
-            }else {
+            $countC = 0;
+            while ($countC <= 0) {
                 $query = $cls::getQuery();
+                $query->where("#lat < ($latitudeTo+$dis) AND #lat > ($latitudeTo-$dis) AND
+                               #lng < ($longitudeTo+$dis) AND #lng > ($longitudeTo-$dis)");
+                $countC = $query->count();
+
+                $dis += $dis;
+
             }
 
             while ($base = $query->fetch()) {
 
                 $latitudeFrom = $longitudeFrom = $distance = 0;
 
-                if ($cls == 'crm_Locations') {
+                $latitudeFrom = $base->lat;
 
-                    list($latitudeFrom, $longitudeFrom) = explode(',', $base->gpsCoords);
-                    if (!$latitudeFrom || !$longitudeFrom) continue;
+                $longitudeFrom = $base->lng;
 
-                } else {
-                    $latitudeFrom = $base->lat;
-
-                    $longitudeFrom = $base->lng;
-                }
                 $distance = self::vincentyGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo);
 
                 if ($closestBase->distance && $closestBase->distance < $distance) continue;
 
-                $name = ($cls == 'crm_Locations') ? $base->title : $base->city;
-
+                $name = ($cls == 'location_LocationsCoords') ? $base->title : $base->city;
 
                 $closestBase = (object)array('lat' => $latitudeFrom,
                     'lng' => $longitudeFrom,

@@ -2,6 +2,18 @@
 
 
 /**
+ * След колко време да се изтриват старите движение
+ */
+defIfNot('RACK_DELETE_OLD_MOVEMENTS', 5184000);
+
+
+/**
+ * След колко време да се изтриват архивораните движения
+ */
+defIfNot('RACK_DELETE_ARCHIVED_MOVEMENTS', dt::SECONDS_IN_MONTH * 12);
+
+
+/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -61,10 +73,12 @@ class rack_Setup extends core_ProtoSetup
         'rack_Zones',
         'rack_ZoneDetails',
         'rack_OccupancyOfRacks',
+        'rack_ArchiveMovements',
         'migrate::truncateOldRecs',
         'migrate::deleteOldPlugins',
         'migrate::updateNoBatchRackDetails2',
         'migrate::changeOffsetInGetOccupancyOfRacks',
+        'migrate::updateArchive',
     );
     
     
@@ -86,14 +100,8 @@ class rack_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rack,ceo'),
     );
-    
-    
-    /**
-     * Описание на конфигурационните константи
-     */
-    public $configDescription = array();
-    
-    
+
+
     /**
      * Настройки за Cron
      */
@@ -150,8 +158,17 @@ class rack_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'RACK_DELETE_OLD_MOVEMENTS' => array('time','caption=Изтриване на стари движения->Период'),
+        'RACK_DELETE_ARCHIVED_MOVEMENTS' => array('time','caption=Изтриване на архивирани движения->Период'),
+    );
+
+
     /**
      * Изпълнява се след setup-а
      */
@@ -246,5 +263,27 @@ class rack_Setup extends core_ProtoSetup
             
             core_Cron::save($qRec);
         }
+    }
+
+
+    /**
+     * Запълва архива с първоначални данни
+     */
+    public function updateArchive()
+    {
+        $Movements = cls::get('rack_Movements');
+        $Archive = cls::get('rack_ArchiveMovements');
+        if(!$Movements->count()) return;
+
+        $Archive->truncate();
+        $query = $Movements::getQuery();
+        $allMovements = $query->fetchAll();
+
+        array_walk($allMovements, function ($a) {
+            $a->movementId = $a->id;
+            unset($a->id);
+        });
+
+        $Archive->saveArray($allMovements);
     }
 }
