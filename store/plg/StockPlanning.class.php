@@ -65,12 +65,12 @@ class store_plg_StockPlanning extends core_Plugin
                 // Ако има детайл извличат се сумарно какви количества трябва да се запазят
                 $Detail = cls::get($mvc->mainDetail);
                 $dQuery = $Detail->getQuery();
-                $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFieldName}");
-                $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey={$Detail->productFieldName}");
-                $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey={$Detail->productFieldName}");
+                $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
+                $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey={$Detail->productFld}");
+                $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey={$Detail->productFld}");
                 $dQuery->XPR('totalQuantity', 'double', "SUM(#{$Detail->quantityFld})");
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
-                $dQuery->groupBy($Detail->productFieldName);
+                $dQuery->groupBy($Detail->productFld);
 
                 // Добавяне на складируемите артикули от детайла на документа
                 while($dRec = $dQuery->fetch()){
@@ -81,13 +81,13 @@ class store_plg_StockPlanning extends core_Plugin
 
                     $genericProductId = null;
                     if($dRec->generic == 'yes'){
-                        $genericProductId = $dRec->{$Detail->productFieldName};
+                        $genericProductId = $dRec->{$Detail->productFld};
                     } elseif($dRec->canConvert == 'yes'){
-                        $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->{$Detail->productFieldName}}", 'genericProductId');
+                        $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->{$Detail->productFld}}", 'genericProductId');
                     }
 
                     $res[] = (object)array('storeId' => $rec->{$mvc->storeFieldName},
-                                           'productId' => $dRec->{$Detail->productFieldName},
+                                           'productId' => $dRec->{$Detail->productFld},
                                            'date' => $date,
                                            'quantityIn' => $quantityIn,
                                            'quantityOut' => $quantityOut,
