@@ -1588,6 +1588,7 @@ class eshop_Carts extends core_Master
         
         if ($settings->chargeVat != 'yes') {
             $row->totalVat = $Double->toVerbal($vatAmount);
+            $row->totalVat = currency_Currencies::decorate($row->totalVat, $settings->currencyId);
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
