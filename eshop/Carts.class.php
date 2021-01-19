@@ -559,12 +559,20 @@ class eshop_Carts extends core_Master
     /**
      * Име на кошницата във външната част
      *
+     * @param boolean $translate - дали а е преведено
      * @return string $cartName
      */
-    public static function getCartDisplayName()
+    public static function getCartDisplayName($translate = true)
     {
         $settings = cms_Domains::getSettings();
-        $cartName = !empty($settings->cartName) ? $settings->cartName : tr(eshop_Setup::get('CART_EXTERNAL_NAME'));
+        if(!empty($settings->cartName)){
+            $cartName = $settings->cartName;
+        } else {
+            $cartName = eshop_Setup::get('CART_EXTERNAL_NAME');
+            if($translate){
+                $cartName = tr($cartName);
+            }
+        }
         
         return $cartName;
     }
@@ -582,7 +590,8 @@ class eshop_Carts extends core_Master
             
             return new core_ET(' ');
         }
-        
+
+        $count = 0;
         $cartId = ($cartId) ? $cartId : self::force(null, null, false);
         $url = array();
         
@@ -628,7 +637,6 @@ class eshop_Carts extends core_Master
         
         $tpl->removeBlocks();
         $tpl->removePlaces();
-        
         core_Lg::pop();
         
         return $tpl;
@@ -1413,7 +1421,7 @@ class eshop_Carts extends core_Master
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
 
         // Подмяна на заглавието на страницата
-        $cartDisplayName = $this->getCartDisplayName();
+        $cartDisplayName = $this->getCartDisplayName(false);
         $tpl->prepend(tr("{$cartDisplayName} за пазаруване") . ' « ', 'PAGE_TITLE');
 
         if (Mode::is('screenMode', 'narrow')) {
@@ -2197,7 +2205,7 @@ class eshop_Carts extends core_Master
         Mode::set('wrapper', 'cms_page_External');
         
         // Добавяне на бутони
-        $form->toolbar->addSbBtn('Обобщение', 'save', 'ef_icon = img/16/move.png, title = Запис на данните за поръчката, class=submitBtn');
+        $form->toolbar->addSbBtn('Обобщение||Submit', 'save', 'ef_icon = img/16/move.png, title = Запис на данните за поръчката, class=submitBtn');
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         if ($form->cmd == 'refresh') {
