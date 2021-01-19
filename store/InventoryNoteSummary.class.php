@@ -310,45 +310,17 @@ class store_InventoryNoteSummary extends doc_Detail
     private static function getPendingDocuments($valior, $storeId)
     {
         $res = array();
-        $docArray = array('store_ShipmentOrderDetails', 'store_ReceiptDetails', 'store_TransfersDetails', 'planning_ConsumptionNoteDetails', 'planning_ReturnNoteDetails', 'store_ConsignmentProtocolDetailsReceived', 'store_ConsignmentProtocolDetailsSend', 'planning_DirectProductNoteDetails', 'planning_DirectProductionNote');
-        
-        // Извличат се контейнерите на всички складови документи в състояние заявка
-        foreach ($docArray as $doc) {
-            $Doc = cls::get($doc);
-            $dQuery = $Doc->getQuery();
-            if ($Doc instanceof core_Detail) {
-                $dQuery->EXT('valior', $Doc->Master->className, "externalName={$Doc->Master->valiorFld},externalKey={$Doc->masterKey}");
-                $dQuery->EXT('state', $Doc->Master->className, "externalName=state,externalKey={$Doc->masterKey}");
-                $dQuery->EXT('containerId', $Doc->Master->className, "externalName=containerId,externalKey={$Doc->masterKey}");
-            }
-            
-            $valior = dt::addDays(-1, $valior);
-            $valior = dt::verbal2mysql($valior, false);
-            $dQuery->where("#valior <= '{$valior}' AND #valior IS NOT NULL");
-            $dQuery->where("#state = 'pending'");
-            if ($Doc instanceof store_TransfersDetails) {
-                $dQuery->EXT('fromStore', $Doc->Master->className, "externalName=fromStore,externalKey={$Doc->masterKey}");
-                $dQuery->EXT('toStore', $Doc->Master->className, "externalName=toStore,externalKey={$Doc->masterKey}");
-                $dQuery->where("#fromStore = {$storeId} || #toStore = {$storeId}");
-            } elseif ($Doc instanceof store_ShipmentOrderDetails || $Doc instanceof store_ReceiptDetails) {
-                $dQuery->EXT('storeId', $Doc->Master->className, "externalName=storeId,externalKey={$Doc->masterKey}");
-                $dQuery->where("#storeId = {$storeId}");
-            } else {
-                if (!$Doc->getField('storeId', false)) {
-                    $dQuery->EXT('storeId', $Doc->Master->className, "externalName=storeId,externalKey={$Doc->masterKey}");
-                    $dQuery->where("#storeId = {$storeId}");
-                }
-            }
-            setIfNot($Doc->productFld, 'productId');
-            $dQuery->show("containerId,{$Doc->productFld}");
-            while ($docRec = $dQuery->fetch()) {
-                if (!isset($res[$docRec->{$Doc->productFld}][$docRec->containerId])) {
-                    $link = doc_Containers::getDocument($docRec->containerId)->getLink(0)->getContent();
-                    $res[$docRec->{$Doc->productFld}][$docRec->containerId] = $link;
-                }
-            }
+
+        $valior = dt::addDays(-1, $valior);
+        $valior = dt::verbal2mysql($valior, false);
+        $query = store_StockPlanning::getQuery();
+        $query->where("(#state = 'pending' OR #state = 'waiting') AND #storeId = {$storeId} AND #date <= '{$valior}'");
+        while ($sourceRec = $query->fetch()) {
+            $Source = cls::get($sourceRec->sourceClassId);
+            $link = cls::haveInterface('doc_DocumentPlg', $Source) ? $Source->getLink($sourceRec->sourceId, 0) : $Source->getHyperlink($sourceRec->sourceId, true);
+            $res[$sourceRec->productId][] = $link;
         }
-        
+
         return $res;
     }
     
@@ -420,21 +392,24 @@ class store_InventoryNoteSummary extends doc_Detail
             
             if (isset($rec) && $rec->isBatch !== true) {
                 $row->charge = static::renderCharge($rec);
-                
+
                 // Рендиране на заявките, в които участва артикула
                 if (countR($pendingDocuments[$rec->productId]) && !Mode::isReadOnly()) {
-                    $btn = ht::createFnBtn('', null, null, array('class' => 'more-btn linkWithIcon warningContextMenu', 'title' => 'Заявки, в които е избран артикула'));
+
+                    $btn = ht::createFnBtn('', null, null, array('class' => 'more-btn linkWithIcon warningContextMenu', 'title' => 'Документи, които са запазили количества от артикула'));
                     $bodyLayout = new ET("<div class='clearfix21 modal-toolbar'>[#LI#]</div>");
                     foreach ($pendingDocuments[$rec->productId] as $link) {
-                        $bodyLayout->append("<div style='padding: 3px 5px 2px 0px;'>{$link}</div>", 'LI');
+                        $block = new core_ET("<div style='padding: 3px 5px 2px 0px;'>[#1#]</div>");
+                        $block->replace($link, '1');
+                        $block->removeBlocksAndPlaces();
+                        $bodyLayout->append($block, 'LI');
                     }
+
                     $layoutHtml = new core_ET('[#btn#][#text#][#productId#]');
                     $layoutHtml->replace($btn, 'btn');
                     $layoutHtml->replace($bodyLayout, 'text');
                     $layoutHtml->replace($row->productId, 'productId');
-                    $layoutHtml->removeBlocks();
-                    $layoutHtml->removePlaces();
-                    
+                    $layoutHtml->removeBlocksAndPlaces();
                     $row->productId = $layoutHtml;
                 }
             }

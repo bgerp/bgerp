@@ -3,7 +3,7 @@
 
 /**
  * Клас 'store_plg_BalanceSync'
- * Плъгин който след изчисляването на горещия баланс го синхронизира с store_Products и pos_Stocks
+ * Плъгин който след изчисляването на горещия баланс го синхронизира с store_Products
  *
  *
  * @category  bgerp
@@ -28,20 +28,13 @@ class store_plg_BalanceSync extends core_Plugin
         
         // Синхронизираме складовите наличностти
         store_Products::sync($all);
-        
-        // Ако има дефинирани точки на продажба
-        if (pos_Points::count()) {
-            
-            // Синхронизиране на складовите наличностти за POS-а
-            pos_Stocks::sync($all);
-        }
     }
     
     
     /**
      * Извлича информацията нужна за ъпдейт на склада
      */
-    public static function prepareStoreData()
+    private static function prepareStoreData()
     {
         $all = array();
         $balanceRec = acc_Balances::getLastBalance();

@@ -188,7 +188,6 @@ class pos_Setup extends core_ProtoSetup
         'pos_Receipts',
         'pos_ReceiptDetails',
         'pos_Reports',
-        'pos_Stocks',
         'pos_SellableProductsCache',
     );
     

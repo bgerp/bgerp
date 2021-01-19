@@ -224,9 +224,10 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             if ($row instanceof core_ET) {
                 continue;
             }
-            
+
             $rec = $data->recs[$id];
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state);
+            $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
+            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state, $deliveryDate);
             
             if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice) && $masterRec->isReverse == 'no') {
                 $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;

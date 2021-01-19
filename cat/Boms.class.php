@@ -443,7 +443,7 @@ class cat_Boms extends core_Master
     {
         if(countR(static::$activatedBoms)){
             foreach (static::$activatedBoms as $rec){
-                
+
                 // Намираме всички останали активни рецепти
                 $query = static::getQuery();
                 $query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
@@ -464,6 +464,14 @@ class cat_Boms extends core_Master
                 if ($idCount) {
                     core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
                 }
+
+                // Ако има задания към артикула да се обновят запазените им количества
+                $jQuery = planning_Jobs::getQuery();
+                $jQuery->where("#productId = {$rec->productId} AND #state IN ('active', 'stopped', 'wakeup')");
+                $jQuery->show('id');
+                while($jRec = $jQuery->fetch()){
+                    store_StockPlanning::updateByDocument('planning_Jobs', $jRec->id);
+                }
             }
         }
         
@@ -472,6 +480,9 @@ class cat_Boms extends core_Master
                 if ($nextId = $mvc->activateLastBefore($rec)) {
                     core_Statuses::newStatus("|Активирана е рецепта|* #Bom{$nextId}");
                 }
+
+                // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
+                store_StockPlanning::recalcByReff($mvc, $rec->id);
             }
         }
     }
@@ -1718,7 +1729,7 @@ class cat_Boms extends core_Master
             
             // Ако има склад се отсяват артикулите, които имат нулева наличност
             if (isset($storeId)) {
-                $quantity = store_Products::getQuantity($pRec->productId, $storeId);
+                $quantity = store_Products::getRec($pRec->productId, $storeId)->free;
                 if (empty($quantity)) {
                     continue;
                 }

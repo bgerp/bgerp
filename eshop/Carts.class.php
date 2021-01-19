@@ -510,7 +510,7 @@ class eshop_Carts extends core_Master
             
             // Дигане на флаг ако има артикули очакващи доставка
             if($rec->haveProductsWithExpectedDelivery != 'yes' && isset($settings->storeId) && $dRec->canStore == 'yes'){
-                $quantityInStore = store_Products::getQuantity($dRec->productId, $settings->storeId, true);
+                $quantityInStore = store_Products::getRec($dRec->productId, $settings->storeId)->free;
                 if($quantityInStore < $dRec->quantity){
                     $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$dRec->eshopProductId} AND #productId = {$dRec->productId}", 'deliveryTime');
                     if(!empty($eshopProductRec->deliveryTime)){
@@ -559,12 +559,20 @@ class eshop_Carts extends core_Master
     /**
      * Име на кошницата във външната част
      *
+     * @param boolean $translate - дали а е преведено
      * @return string $cartName
      */
-    public static function getCartDisplayName()
+    public static function getCartDisplayName($translate = true)
     {
         $settings = cms_Domains::getSettings();
-        $cartName = !empty($settings->cartName) ? $settings->cartName : tr(eshop_Setup::get('CART_EXTERNAL_NAME'));
+        if(!empty($settings->cartName)){
+            $cartName = $settings->cartName;
+        } else {
+            $cartName = eshop_Setup::get('CART_EXTERNAL_NAME');
+            if($translate){
+                $cartName = tr($cartName);
+            }
+        }
         
         return $cartName;
     }
@@ -582,7 +590,8 @@ class eshop_Carts extends core_Master
             
             return new core_ET(' ');
         }
-        
+
+        $count = 0;
         $cartId = ($cartId) ? $cartId : self::force(null, null, false);
         $url = array();
         
@@ -628,7 +637,6 @@ class eshop_Carts extends core_Master
         
         $tpl->removeBlocks();
         $tpl->removePlaces();
-        
         core_Lg::pop();
         
         return $tpl;
@@ -1279,14 +1287,21 @@ class eshop_Carts extends core_Master
                 
                 $url = array();
                 $currentRec = self::fetch($id, 'total,state,haveProductsWithExpectedDelivery,domainId');
-                cms_Domains::setPublicDomain($currentRec->domainId);
-                
-                if($currentRec->state != $exState) {
+                if(!is_object($currentRec)){
+
+                    // Ако количката е изтрита междувременно, редирект
+                    core_Statuses::newStatus('Количката е изтрита');
                     $url = cls::get('eshop_Groups')->getUrlByMenuId(null);
-                } elseif(trim($exTotal) != trim($currentRec->total) || $exHaveProductsWithExpectedDelivery != $currentRec->haveProductsWithExpectedDelivery){
-                    $url = array($this, 'view', $id);
+                } else {
+                    cms_Domains::setPublicDomain($currentRec->domainId);
+
+                    if($currentRec->state != $exState) {
+                        $url = cls::get('eshop_Groups')->getUrlByMenuId(null);
+                    } elseif(trim($exTotal) != trim($currentRec->total) || $exHaveProductsWithExpectedDelivery != $currentRec->haveProductsWithExpectedDelivery){
+                        $url = array($this, 'view', $id);
+                    }
                 }
-                
+
                 // Ако състоянието на количката не е чернова, се редиректва
                 if (countR($url)) {
                     $resObj = new stdClass();
@@ -1404,6 +1419,10 @@ class eshop_Carts extends core_Master
         $tpl->append('</div>');
         Mode::set('wrapper', 'cms_page_External');
         $tpl->prepend("\n<meta name=\"robots\" content=\"nofollow\">", 'HEAD');
+
+        // Подмяна на заглавието на страницата
+        $cartDisplayName = $this->getCartDisplayName(false);
+        $tpl->prepend(tr("{$cartDisplayName} за пазаруване") . ' « ', 'PAGE_TITLE');
 
         if (Mode::is('screenMode', 'narrow')) {
             jquery_Jquery::run($tpl, 'scrollToDetail();');
@@ -1569,6 +1588,7 @@ class eshop_Carts extends core_Master
         
         if ($settings->chargeVat != 'yes') {
             $row->totalVat = $Double->toVerbal($vatAmount);
+            $row->totalVat = currency_Currencies::decorate($row->totalVat, $settings->currencyId);
         }
         
         $row->productCount .= '&nbsp;' . (($rec->productCount == 1) ? tr('артикул') : tr('артикула'));
@@ -2186,7 +2206,7 @@ class eshop_Carts extends core_Master
         Mode::set('wrapper', 'cms_page_External');
         
         // Добавяне на бутони
-        $form->toolbar->addSbBtn('Обобщение', 'save', 'ef_icon = img/16/move.png, title = Запис на данните за поръчката, class=submitBtn');
+        $form->toolbar->addSbBtn('Обобщение||Submit', 'save', 'ef_icon = img/16/move.png, title = Запис на данните за поръчката, class=submitBtn');
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         if ($form->cmd == 'refresh') {

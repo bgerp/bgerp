@@ -25,7 +25,7 @@ class pos_Receipts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing, plg_State, pos_Wrapper, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_Modified,plg_RowTools2';
+    public $loadList = 'plg_Created, plg_Rejected, plg_Printing, acc_plg_DocumentSummary, plg_Printing, plg_State, pos_Wrapper, cat_plg_AddSearchKeywords, plg_Search, plg_Sorting, plg_Modified,plg_RowTools2,store_plg_StockPlanning';
     
     
     /**
@@ -158,8 +158,14 @@ class pos_Receipts extends core_Master
      *  Служебно ид на дефолтна рецепта за сторниране
      */
     const DEFAULT_REVERT_RECEIPT = -1;
-    
-    
+
+
+    /**
+     *  При преминаването в кои състояния ще се обновяват планираните складови наличностти
+     */
+    public $updatePlannedStockOnChangeStates = array('waiting');
+
+
     /**
      * Описание на модела
      */
@@ -639,32 +645,81 @@ class pos_Receipts extends core_Master
     /**
      * Проверка на количеството
      *
-     * @param stdClass $rec
-     * @param string   $error
+     * @param stdClass    $rec
+     * @param string      $error
+     * @param string|null $warning
      *
      * @return bool
      */
-    public static function checkQuantity($rec, &$error)
+    public static function checkQuantity($rec, &$error, &$warning = null)
     {
         // Ако е забранено продаването на неналични артикули да се проверява
         $notInStockChosen = pos_Setup::get('ALLOW_SALE_OF_PRODUCTS_NOT_IN_STOCK');
         if ($notInStockChosen == 'yes') {
-            
-            return true;
+
+           return true;
         }
-        
+
+        $today = dt::today();
         $pRec = cat_products_Packagings::getPack($rec->productId, $rec->value);
-        $quantityInStock = pos_Stocks::getQuantityByStore($rec->productId, $rec->storeId, $rec->batch);
+        $stRec = store_Products::getRec($rec->productId, $rec->storeId, $today);
+        $freeQuantityNow = $stRec->free;
+        $quantityInStock = $stRec->quantity;
+        $freeQuantity = store_Products::getRec($rec->productId, $rec->storeId)->free;
+
+        // Ако има положителна наличност
+        if(core_Packs::isInstalled('batch') && $quantityInStock > 0){
+            if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+                if(!empty($rec->batch)){
+
+                    // И е подадена конкретна партида, взима се нейното количество
+                    $quantityInStock = batch_Items::getQuantity($rec->productId, $rec->batch, $rec->storeId);
+                } else {
+
+                    // Ако е без партида но има партидност, гледа се колко има в склада, които са без партида
+                    $batchesIn = batch_Items::getBatchQuantitiesInStore($rec->productId, $rec->storeId);
+                    $quantityOnBatches = 0;
+                    array_walk($batchesIn, function($a) use(&$quantityOnBatches){ if($a > 0) {$quantityOnBatches += $a;}});
+                    $quantityInStock = round($quantityInStock - $quantityOnBatches, 4);
+                }
+            }
+        }
+
+        $originalQuantityInStock = $quantityInStock;
+        $originalFreeQuantityNow = $freeQuantityNow;
+        $originalFreeQuantity = $freeQuantity;
+
         $quantityInPack = ($pRec) ? $pRec->quantity : 1;
         $quantityInStock -= round($rec->quantity * $quantityInPack, 2);
+        $freeQuantity -= round($rec->quantity * $quantityInPack, 2);
+        $freeQuantityNow -= round($rec->quantity * $quantityInPack, 2);
+
+        $freeQuantityNow = round($freeQuantityNow, 2);
+        $freeQuantity = round($freeQuantity, 2);
         $quantityInStock = round($quantityInStock, 2);
-        
+        $Double = core_Type::getByName('double(decimals=2)');
+        $pName = cat_Products::getTitleById($rec->productId);
+
         if ($quantityInStock < 0) {
-            $error = "Количеството не е налично в склад|*: " . store_Stores::getTitleById($rec->storeId);
-            
+            $originalQuantityInStockVerbal = $Double->toVerbal($originalQuantityInStock);
+            $error = "|* {$pName}: |Количеството не е налично в склад|*: " . store_Stores::getTitleById($rec->storeId);
+            $error .= ". |Налично в момента|* {$originalQuantityInStockVerbal}";
+
             return false;
         }
-        
+
+        if($freeQuantityNow < 0){
+            $originalFreeQuantityNowVerbal = $Double->toVerbal($originalFreeQuantityNow);
+            $warning = "|* {$pName}: Количеството e над разполагаемото|* {$originalFreeQuantityNowVerbal} |днес в склад|*: " . store_Stores::getTitleById($rec->storeId);
+
+            return true;
+        }
+
+        if($freeQuantity < 0){
+            $originalFreeQuantityVerbal = $Double->toVerbal($originalFreeQuantity);
+            $warning = "|* {$pName}: Количеството e над минималното разполагаемото|* {$originalFreeQuantityVerbal} |в склад|*: " . store_Stores::getTitleById($rec->storeId);
+        }
+
         return true;
     }
     
@@ -677,7 +732,7 @@ class pos_Receipts extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         if ($rec->state != 'draft') {
-            
+
             // Създаване на нова чернова бележка
             return new Redirect(array($this, 'new'));
         }
@@ -688,19 +743,19 @@ class pos_Receipts extends core_Master
         if(isset($rec->revertId)){
             $error = null;
             if(!static::canCloseRevertReceipt($rec, $error)){
+
                 followRetUrl(null, $error, 'error');
             }
         }
-        
+
         $rec->state = 'waiting';
         $rec->__closed = true;
+
         if ($this->save($rec)) {
             if(isset($rec->revertId) && $rec->revertId != static::DEFAULT_REVERT_RECEIPT){
                 $this->calcRevertedTotal($rec->revertId);
             }
-            
-            // Обновяваме складовите наличности
-            pos_Stocks::updateStocks($rec->id);
+
             $this->logInAct('Приключване на бележка', $rec->id);
         }
         
@@ -1099,5 +1154,81 @@ class pos_Receipts extends core_Master
         $res = array_values($res);
         
         return $res;
+    }
+
+
+    /**
+     * Връща планираните наличности
+     *
+     * @param stdClass $rec
+     * @return array
+     *       ['productId']        - ид на артикул
+     *       ['storeId']          - ид на склад, или null, ако няма
+     *       ['date']             - на коя дата
+     *       ['quantityIn']       - к-во очаквано
+     *       ['quantityOut']      - к-во за експедиране
+     *       ['genericProductId'] - ид на генеричния артикул, ако има
+     *       ['reffClassId']      - клас на обект (различен от този на източника)
+     *       ['reffId']           - ид на обект (различен от този на източника)
+     */
+    public function getPlannedStocks($rec)
+    {
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+
+        $dQuery = pos_ReceiptDetails::getQuery();
+        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
+        $dQuery->where("#receiptId = {$rec->id} AND #action LIKE '%sale%'");
+
+        $res = array();
+        while($dRec = $dQuery->fetch()){
+            $packRec = cat_products_Packagings::getPack($dRec->productId, $dRec->value);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            $quantity = $quantityInPack * $dRec->quantity;
+
+            if(!empty($dRec->storeId)){
+                $key = "{$dRec->storeId}|{$dRec->productId}";
+                if(!array_key_exists($key, $res)){
+                    $genericProductId = null;
+                    if($dRec->generic == 'yes'){
+                        $genericProductId = $dRec->productId;
+                    } elseif($dRec->canConvert == 'yes'){
+                        $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
+                    }
+                    $res[$key] = (object)array('storeId'          => $dRec->storeId,
+                                               'productId'        => $dRec->productId,
+                                               'date'             => $rec->valior,
+                                               'quantityIn'       => null,
+                                               'quantityOut'      => 0,
+                                               'genericProductId' => $genericProductId);
+                }
+                $res[$key]->quantityOut += $quantity;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * ф-я връщаща най-голямото налично к-во в точката
+     *
+     * @param int $productId
+     * @param int $pointId
+     * @return double
+     */
+    public static function getBiggestQuantity($productId, $pointId)
+    {
+        $stores = pos_Points::getStores($pointId);
+        $storeArr = array();
+        foreach ($stores as $storeId){
+            $quantity = store_Products::getRec($productId, $storeId)->quantity;
+            $storeArr[$storeId] = $quantity;
+        }
+
+        arsort($storeArr);
+
+        return $storeArr[key($storeArr)];
     }
 }

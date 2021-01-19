@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -72,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код,productId=Артикул,measureId=Мярка,quantity,reservedQuantity,expectedQuantity,freeQuantity,expectedQuantityTotal,storeId';
+    public $listFields = 'code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin';
     
     
     /**
@@ -88,23 +88,22 @@ class store_Products extends core_Detail
     
     
     /**
-     * Флаг за обновяване на наличностите на шътдаун
-     */
-    public $updateOnShutdown = false;
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=leftAlign');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=nameCell');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
-        $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично');
-        $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Запазено');
-        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Очаквано днес');
-        $this->FLD('expectedQuantityTotal', 'double(maxDecimals=3)', 'caption=Очаквано,tdClass=notBolded');
-        $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Разполагаемо');
+        $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично,tdClass=stockCol');
+        $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Запазено,tdClass=horizonCol red');
+        $this->FLD('expectedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Очаквано,tdClass=horizonCol green');
+        $this->FNC('freeQuantity', 'double(maxDecimals=3)', 'caption=Днес->Разполагаемо,tdClass=horizonCol');
+
+        $this->FLD('reservedQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Запазено,tdClass=horizonCol red');
+        $this->FLD('expectedQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Очаквано,tdClass=horizonCol green');
+        $this->FNC('freeQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Разполагаемо,tdClass=horizonCol');
+        $this->FLD('dateMin', 'date', 'caption=Минимално->Дата');
+
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
         $this->setDbUnique('productId, storeId');
@@ -118,7 +117,7 @@ class store_Products extends core_Detail
      */
     protected static function on_BeforePrepareListPager($mvc, &$res, $data)
     {
-        $mvc->listItemsPerPage = (isset($data->masterMvc)) ? 100 : 20;
+        $mvc->listItemsPerPage = (isset($data->masterMvc)) ? 50 : 20;
     }
     
     
@@ -137,23 +136,29 @@ class store_Products extends core_Detail
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
             $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+
             $icon = cls::get('cat_Products')->getIcon($rec->productId);
             $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId), false, "ef_icon={$icon}");
             $pRec = cat_Products::fetch($rec->productId, 'code,isPublic,createdOn');
             $row->code = cat_Products::getVerbal($pRec, 'code');
-            
+            $rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
+
             if ($isDetail) {
                    
                 // Показване на запазеното количество
-                $basePack = key(cat_Products::getPacks($rec->productId));
-                if ($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)) {
-                    $rec->quantity /= $pRec->quantity;
-                    $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
-                    if (isset($rec->reservedQuantity)) {
-                        $rec->reservedQuantity /= $pRec->quantity;
+                if($data->masterMvc instanceof cat_Products){
+                    $basePack = key(cat_Products::getPacks($rec->productId));
+                    if ($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)) {
+                        $rec->quantity /= $pRec->quantity;
+                        $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
+                        foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin') as $fld){
+                            if (isset($rec->{$fld})) {
+                                $rec->{$fld} /= $pRec->quantity;
+                            }
+                        }
                     }
+                    $rec->measureId = $basePack;
                 }
-                $rec->measureId = $basePack;
                 
                 // Линк към хронологията
                 if (acc_BalanceDetails::haveRightFor('history')) {
@@ -165,13 +170,14 @@ class store_Products extends core_Detail
                     $histUrl['ent3Id'] = null;
                     $row->history = ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
                 }
-            } else {
-                $rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
             }
             
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             $rec->freeQuantity = $rec->quantity - $rec->reservedQuantity + $rec->expectedQuantity;
             $row->freeQuantity = $mvc->getFieldType('freeQuantity')->toVerbal($rec->freeQuantity);
+
+            $rec->freeQuantityMin = $rec->quantity - $rec->reservedQuantityMin + $rec->expectedQuantityMin;
+            $row->freeQuantityMin = $mvc->getFieldType('freeQuantityMin')->toVerbal($rec->freeQuantityMin);
             $row->measureId = cat_UoM::getTitleById($rec->measureId);
         }
     }
@@ -209,8 +215,14 @@ class store_Products extends core_Detail
         }
         
         $data->listFilter->setOptions('order', $orderOptions);
+        $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
-        
+
+        $hKey = 'productHorizonFilter' . core_Users::getCurrent();
+        if ($lastHorizon = core_Permanent::get($hKey)) {
+            $data->listFilter->setDefault('horizon', $lastHorizon);
+        }
+
         $stores = cls::get('store_Stores')->makeArray4Select('name', "#state != 'rejected'");
         $data->listFilter->setOptions('storeId', array('' => '') + $stores);
         $data->listFilter->setField('storeId', 'autoFilter');
@@ -236,17 +248,19 @@ class store_Products extends core_Detail
         $data->query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $data->query->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
         $data->query->EXT('productCreatedOn', 'cat_Products', 'externalName=createdOn,externalKey=productId');
-        
+
         if (isset($data->masterMvc)) {
             $data->listFilter->setDefault('order', 'all');
-            $data->listFilter->showFields = 'search,groupId';
+            $data->listFilter->showFields = 'horizon,search,groupId';
         } else {
+            $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('order', 'active');
-            $data->listFilter->showFields = 'storeId,search,order,groupId';
+            $data->listFilter->showFields = 'search,storeId,order,groupId,horizon';
+            unset($data->listFilter->view);
         }
         
-        $data->listFilter->input('storeId,order,groupId,search', 'silent');
-        
+        $data->listFilter->input('horizon,storeId,order,groupId,search', 'silent');
+
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
             
@@ -256,6 +270,7 @@ class store_Products extends core_Detail
                     $selectedStoreName = store_Stores::getHyperlink($rec->storeId, true);
                     $data->title = "|Наличности в склад|* <b style='color:green'>{$selectedStoreName}</b>";
                     $data->query->where("#storeId = {$rec->storeId}");
+                    unset($data->listFields['storeId']);
                 } elseif (countR($stores)) {
                     // Под всички складове се разбира само наличните за избор от потребителя
                     $data->query->in('storeId', array_keys($stores));
@@ -311,6 +326,24 @@ class store_Products extends core_Detail
                         $data->query->where("#isPublic = 'yes'");
                         break;
                 }
+
+                if(!empty($rec->horizon)){
+
+                    // Добавяне в лист изгледа
+                    $data->horizon = dt::addSecs($rec->horizon, null, false);
+                    $horizonVerbal = dt::mysql2verbal($data->horizon, 'd.m.Y');
+
+                    arr::placeInAssocArray($data->listFields, array('reservedOut' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>"), null, 'freeQuantityMin');
+                    arr::placeInAssocArray($data->listFields, array('expectedIn' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>"), null, 'reservedOut');
+                    arr::placeInAssocArray($data->listFields, array('resultDiff' => "|*{$horizonVerbal}-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>"), null, 'expectedIn');
+                    $mvc->FNC('reservedOut', 'double', ',tdClass=horizonCol red');
+                    $mvc->FNC('expectedIn', 'double', ',tdClass=horizonCol green');
+                    $mvc->FNC('resultDiff', 'double', ',tdClass=horizonCol');
+
+                    core_Permanent::set($hKey, $rec->horizon);
+                } else {
+                    core_Permanent::remove($hKey);
+                }
             }
             
             $data->query->orderBy('#state,#code');
@@ -321,8 +354,31 @@ class store_Products extends core_Detail
             }
         }
     }
-    
-    
+
+
+    /**
+     * След извличане на записите
+     */
+    protected static function on_AfterPrepareListRecs($mvc, &$res, $data)
+    {
+        if(empty($data->horizon) || !countR($data->recs)) return;
+        $productIds = arr::extractValuesFromArray($data->recs, 'productId');
+        $storeIds = arr::extractValuesFromArray($data->recs, 'storeId');
+
+        $reserved = store_StockPlanning::getPlannedQuantities($data->horizon, $productIds, $storeIds);
+
+        foreach ($data->recs as &$rec){
+            if(isset($reserved[$rec->storeId][$rec->productId])){
+                $rec->reservedOut = $reserved[$rec->storeId][$rec->productId]->reserved;
+                $rec->expectedIn = $reserved[$rec->storeId][$rec->productId]->expected;
+                $rec->resultDiff = $rec->quantity - $rec->reservedOut + $rec->expectedIn;
+            } else {
+                $rec->resultDiff = $rec->quantity;
+            }
+        }
+    }
+
+
     /**
      * Синхронизиране на запис от счетоводството с модела, Вика се от крон-а
      * (@see acc_Balances::cron_Recalc)
@@ -404,18 +460,66 @@ class store_Products extends core_Detail
             static::save($rec, 'state,quantity');
         }
     }
-    
-    
+
+
+    /**
+     * Връща запис за наличното,запазеното,очакваното и разполагаемото за даден артикул
+     *
+     * @param $productId          - артикул
+     * @param null|int $storeId   - склад или null за всички складове
+     * @param null|datetime $date - към коя дата
+     * @return object $res
+     */
+    public static function getRec($productId, $storeId = null, $date = null)
+    {
+        // Какви са наличностите
+        $query = self::getQuery();
+        $query->where("#productId = {$productId}");
+        $query->XPR('quantityTotal', 'double', 'SUM(#quantity)');
+        $query->XPR('reservedTotal', 'double', 'SUM(#reservedQuantity)');
+        $query->XPR('expectedTotal', 'double', 'SUM(#expectedQuantity)');
+        $query->XPR('reservedTotalMin', 'double', 'SUM(#reservedQuantityMin)');
+        $query->XPR('expectedTotalMin', 'double', 'SUM(#expectedQuantityMin)');
+        $query->show('quantityTotal,reservedTotal,expectedTotal,reservedTotalMin,expectedTotalMin');
+
+        if (isset($storeId)) {
+            $query->where("#storeId = {$storeId}");
+        }
+
+        $rec = $query->fetch();
+        $quantity = isset($rec->quantityTotal) ? $rec->quantityTotal : 0;
+        $res = (object)array('quantity' => $quantity);
+        if(is_null($date) && is_object($rec)){
+            $res->reserved = $rec->reservedTotalMin;
+            $res->expected = $rec->expectedTotalMin;
+        } else {
+            $res->reserved = 0;
+            $res->expected = 0;
+
+            // Ако е посочена дата се взимат очакваното и запазеното към нея
+            $planned = store_StockPlanning::getPlannedQuantities($date, $productId, $storeId);
+            foreach ($planned as $storeId => $storeArr){
+                array_walk($storeArr, function($o) use ($res){$res->reserved += $o->reserved; $res->expected += $o->expected;});
+            }
+        }
+
+        $res->free = $res->quantity - $res->reserved + $res->expected;
+
+        return $res;
+    }
+
+
     /**
      * Колко е количеството на артикула в складовете
      *
      * @param int      $productId    - ид на артикул
      * @param int|NULL $storeId      - конкретен склад, NULL ако е във всички
      * @param bool     $freeQuantity - FALSE за общото количество, TRUE само за разполагаемото (общо - запазено)
+     * @param datetime $date         - към коя дата, null за текущата
      *
      * @return float $sum          - сумата на количеството, общо или разполагаемо
      */
-    public static function getQuantity($productId, $storeId = null, $freeQuantity = false)
+    public static function getQuantity($productId, $storeId = null, $freeQuantity = false, $date = null)
     {
         $query = self::getQuery();
         $query->where("#productId = {$productId}");
@@ -424,9 +528,9 @@ class store_Products extends core_Detail
         if (isset($storeId)) {
             $query->where("#storeId = {$storeId}");
         }
-        
+
         if ($freeQuantity === true) {
-            $query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantity, 0) + COALESCE(#expectedQuantity, 0))');
+            $query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantityMin, 0) + COALESCE(#expectedQuantityMin, 0))');
         } else {
             $query->XPR('sum', 'double', 'SUM(#quantity)');
         }
@@ -439,37 +543,21 @@ class store_Products extends core_Detail
     
     
     /**
-     * След подготовка на тулбара на списъчния изглед
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareListToolbar($mvc, &$data)
-    {
-        if (haveRole('debug')) {
-            if (isset($data->masterMvc)) {
-                
-                return;
-            }
-            $data->toolbar->addBtn('Изчистване', array($mvc, 'truncate'), 'warning=Искате ли да изчистите таблицата, ef_icon=img/16/sport_shuttlecock.png, title=Изтриване на таблицата с продукти');
-        }
-    }
-    
-    
-    /**
      * Преди подготовката на полетата за листовия изглед
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-        $data->listFields['expectedQuantity'] = "|Очаквано|*<span class='small notBolded'> |*днес|*</span>";
-        $data->listFields['expectedQuantityTotal'] = "<span class='notBolded'>|Очаквано|*";
+        $data->listFields['reservedQuantity'] = "|Днес|*-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>";
+        $data->listFields['expectedQuantity'] = "|Днес|*-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>";
+        $data->listFields['freeQuantity'] = "|Днес|*-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>";
+        $data->listFields['reservedQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>";
+        $data->listFields['expectedQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>";
+        $data->listFields['freeQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>";
         $historyBefore = 'code';
         
         if (isset($data->masterMvc)) {
             if($data->masterMvc instanceof cat_Products){
                 arr::placeInAssocArray($data->listFields, array('storeId' => 'Склад|*'), null, 'code');
-                
-               
                 if($data->masterData->rec->generic == 'yes'){
                     $data->listFields = array('code' => 'Код', 'productId' => 'Артикул') + $data->listFields;
                 } else {
@@ -489,47 +577,38 @@ class store_Products extends core_Detail
     
     
     /**
-     * Изчиства записите в склада
-     */
-    public function act_Truncate()
-    {
-        requireRole('debug');
-        
-        // Изчистваме записите от моделите
-        store_Products::truncate();
-        
-        return new Redirect(array($this, 'list'));
-    }
-    
-    
-    /**
      * Проверяваме дали колонката с инструментите не е празна, и ако е така я махаме
      */
     protected static function on_BeforeRenderListTable($mvc, &$res, $data)
     {
-        $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field');
+        $data->listTableMvc->FLD('code', 'varchar', 'tdClass=small-field nowrap');
         $data->listTableMvc->FLD('measureId', 'varchar', 'tdClass=centered');
-        $data->listTableMvc->setField('expectedQuantityTotal', 'tdClass=expectedTotalCol');
         
         if (!countR($data->rows)) {
             
             return;
         }
-        
+
+        $today = dt::today();
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
-            
-            foreach (array('reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal') as $type){
-                if (!empty($rec->{$type})) {
-                    $title = ($type == 'reservedQuantity') ? 'От кои документи е резервирано количеството' : 'От кои документи е очакваното количество';
 
-                    $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $rec->id, 'field' => $type), 'local');
-                    $arrowImg = ht::createElement('img', array('src' => sbf('img/16/info-gray.png', '')));
+            $title = 'От кои документи е сформирано количеството';
+            foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'reservedOut', 'expectedIn') as $type){
+                if (!empty($rec->{$type})) {
+                    $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? $rec->dateMin : $data->horizon);
+
+                    $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $rec->id, 'field' => $type, 'date' => $date), 'local');
+                    $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
                     $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
-                    $row->{$type} = "<span class='fleft'>{$arrow} </span>". $row->{$type};
+                    $row->{$type} = $arrow . $row->{$type};
                 }
             }
+
+            $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
+            $date = dt::mysql2verbal($dateMin, 'd.m.Y');
+            $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
         }
     }
     
@@ -552,330 +631,115 @@ class store_Products extends core_Detail
             $options[''] = '';
         }
     }
-    
-    
-    /**
-     * Ако е вдигнат флаг, обновява запазаните наличности на shutdown
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if ($mvc->updateOnShutdown) {
-            $mvc->cron_CalcReservedQuantity();
-        }
-    }
-    
-    
+
+
     /**
      * Обновяване на резервираните наличности по крон
      */
     public function cron_CalcReservedQuantity()
     {
-        //@todo трябва цялото да се рефакторира
-        core_Debug::$isLogging = false;
-        core_App::setTimeLimit(200);
-        $now = dt::now();
-       
-        $docArr = array('sales_Sales' => array('storeFld' => 'shipmentStoreId', 'Detail' => 'sales_SalesDetails'), 
-                        'store_ShipmentOrders' => array('storeFld' => 'storeId', 'Detail' => 'store_ShipmentOrderDetails'),
-                        'planning_ConsumptionNotes' => array('storeFld' => 'storeId', 'Detail' => 'planning_ConsumptionNoteDetails'),
-                        'store_ConsignmentProtocols' => array('storeFld' => 'storeId', 'Detail' => 'store_ConsignmentProtocolDetailsSend'),
-                        'planning_DirectProductionNote' => array('storeFld' => 'storeId', 'Detail' => 'planning_DirectProductNoteDetails'), 
-        );
-        
-        $result = $queue = array();
-        foreach ($docArr as $Doc => $arr) {
-            $Doc = cls::get($Doc);
-            $storeField = $arr['storeFld'];
-            
-            // Всички заявки
-            $sQuery = $Doc->getQuery();
-            $sQuery->where("#state = 'pending'");
-            $sQuery->show("id,containerId,modifiedOn,{$storeField}");
-            if($Doc == 'sales_Sales'){
-                $sQuery->where("#{$storeField} IS NOT NULL");
-            }
-            
-            while ($sRec = $sQuery->fetch()) {
-                
-                // Опит за взимане на данните от постоянния кеш
-                $reserved = core_Permanent::get("reserved_{$sRec->containerId}", $sRec->modifiedOn);
-                
-                // Ако няма кеширани к-ва
-                if (!isset($reserved)) {
-                    $reserved = array();
-                    $Detail = cls::get($arr['Detail']);
-                    setIfNot($Detail->productFieldName, 'productId');
-                    $shQuery = $Detail->getQuery();
-                    $isCp = ($arr['Detail'] == 'store_ConsignmentProtocolDetailsSend');
-                    
-                    if ($isCp) {
-                        $suMFld = 'packQuantity';
-                        $shQuery->XPR('sum', 'double', "SUM(#{$suMFld} * #quantityInPack)");
-                    } else {
-                        $suMFld = 'quantity';
-                        $shQuery->XPR('sum', 'double', "SUM(#{$suMFld})");
-                    }
-                    
-                    $show = "{$Detail->productFieldName},{$suMFld},{$Detail->masterKey},sum,quantityInPack";
-                    $shQuery->where("#{$Detail->masterKey} = {$sRec->id}");
-                    $shQuery->groupBy($Detail->productFieldName);
-                    
-                    if($Detail instanceof planning_DirectProductNoteDetails){
-                        $shQuery->where("#{$storeField} IS NOT NULL");
-                        $show .= ",storeId";
-                    }
-                    $shQuery->show($show);
-                    
-                    while ($sd = $shQuery->fetch()) {
-                        $storeId = ($Detail instanceof planning_DirectProductNoteDetails) ? $sd->{$storeField} : $sRec->{$storeField};
-                        $key = "{$storeId}|{$sd->{$Detail->productFieldName}}";
-                        $reserved[$key] = array('sId' => $storeId, 'pId' => $sd->{$Detail->productFieldName}, 'reserved' => $sd->sum, 'expected' => null, 'expectedTotal' => null);
-                    }
-                    
-                    core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
-                }
-                
-                $queue[] = $reserved;
-            }
-        }
-        
-        
-        $tQuery = store_Transfers::getQuery();
-        $tQuery->where("#state = 'pending'");
-        $tQuery->show('id,containerId,fromStore,toStore,modifiedOn,deliveryTime');
-        while ($tRec = $tQuery->fetch()) {
-            
-            // Ако има срок на доставка и той е <= на сега, инвалидира се кеша, да се изчисли наново
-            if(!empty($tRec->deliveryTime) && $tRec->deliveryTime <= $now){
-                core_Permanent::remove("reserved_{$tRec->containerId}");
-            }
-            
-            $reserved = core_Permanent::get("reserved_{$tRec->containerId}", $tRec->modifiedOn);
-            
-            // Ако няма кеширани к-ва
-            if (!isset($reserved)) {
-                $reserved = array();
-                $tdQuery = store_TransfersDetails::getQuery();
-                $tdQuery->XPR('sum', 'double', "SUM(#quantity)");
-                $tdQuery->where("#transferId = {$tRec->id}");
-                $tdQuery->show('newProductId,quantity,transferId,quantityInPack,sum');
-                $tdQuery->groupBy('newProductId');
-               
-                while ($td = $tdQuery->fetch()) {
-                    $key = "{$tRec->fromStore}|{$td->newProductId}";
-                    $key2 = "{$tRec->toStore}|{$td->newProductId}";
-                    
-                    $reserved[$key] = array('sId' => $tRec->fromStore, 'pId' => $td->newProductId, 'reserved' => $td->sum, 'expected' => null, 'expectedTotal' => null);
-                    $reserved[$key2] = array('sId' => $tRec->toStore, 'pId' => $td->newProductId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $td->sum);
-                    
-                    $deliveryTime = $tRec->deliveryTime;
-                    if(!empty($deliveryTime) && $deliveryTime <= $now){
-                        $reserved[$key2]['expected'] = $td->sum;
-                    }
-                }
-               
-                core_Permanent::set("reserved_{$tRec->containerId}", $reserved, 4320);
-            }
-            
-            if(is_array($reserved) && countR($reserved)){
-                $queue[] = $reserved;
-            }
-        }
-        
-        $docArr = array('purchase_Purchases' => array('storeFld' => 'shipmentStoreId', 'Detail' => 'purchase_PurchasesDetails'),
-                        'store_Receipts' => array('storeFld' => 'storeId', 'Detail' => 'store_ReceiptDetails'));
-        
-        foreach ($docArr as $Doc1 => $arr){
-            $Doc = cls::get($Doc1);
-            
-            $srQuery = $Doc->getQuery();
-            $srQuery->where("#state = 'pending' AND #{$arr['storeFld']} IS NOT NULL");
-            
-            if($Doc instanceof purchase_Purchases){
-                $srQuery->show("id,containerId,modifiedOn,shipmentStoreId,valior,deliveryTime");
-            } else {
-                $srQuery->show("id,containerId,modifiedOn,storeId,deliveryTime");
-            }
-            
-            while ($sRec = $srQuery->fetch()) {
-                $deliveryTime = isset($sRec->deliveryTime) ? $sRec->deliveryTime : (isset($sRec->valior) ? $sRec->valior : $now);
-                
-                if($deliveryTime <= $now){
-                    core_Permanent::remove("reserved_{$sRec->containerId}");
-                }
-                
-                $reserved = core_Permanent::get("reserved_{$sRec->containerId}", $sRec->modifiedOn);
-                
-                // Ако няма кеширани к-ва
-                if (!isset($reserved)) {
-                    $reserved = array();
-                    $Detail = cls::get($arr['Detail']);
-                    
-                    $sdQuery = $Detail->getQuery();
-                    $sdQuery->XPR('sum', 'double', "SUM(#quantity)");
-                    $sdQuery->where("#{$Detail->masterKey} = {$sRec->id}");
-                    $sdQuery->show("productId,quantity,{$Detail->masterKey},sum");
-                    $sdQuery->groupBy('productId');
-                    
-                    while ($sd = $sdQuery->fetch()) {
-                        $key = "{$sRec->{$arr['storeFld']}}|{$sd->productId}";
-                        $reserved[$key] = array('sId' => $sRec->{$arr['storeFld']}, 'pId' => $sd->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $sd->sum);
-                        
-                        $deliveryTime = isset($sRec->deliveryTime) ? $sRec->deliveryTime : (isset($sRec->valior) ? $sRec->valior : null);
-                        
-                        if(!empty($deliveryTime) && $deliveryTime <= $now){
-                            $reserved[$key]['expected'] = $sd->sum;
-                        }
-                    }
-                    
-                    core_Permanent::set("reserved_{$sRec->containerId}", $reserved, 4320);
-                }
-                
-                if(is_array($reserved) && countR($reserved)){
-                    $queue[] = $reserved;
-                }
-            }
-        }
-        
-        // Добавяне на произвеждания артикул от протокола за производство
-        $pNoteQuery = planning_DirectProductionNote::getQuery();
-        $pNoteQuery->where("#storeId IS NOT NULL AND #state = 'pending'");
-        $tQuery->show('containerId,modifiedOn,deadline,storeId,quantity,productId');
-        while ($nRec = $pNoteQuery->fetch()) {
-            $reserved = core_Permanent::get("reserved_notes_{$nRec->containerId}", $nRec->modifiedOn);
-            
-            // Ако няма кеширани к-ва
-            if (!isset($reserved)) {
-                $reserved = array();
-               
-                $key = "{$nRec->storeId}|{$nRec->productId}";
-                $reserved[$key] = array('sId' => $nRec->storeId, 'pId' => $nRec->productId, 'reserved' => null, 'expected' => null, 'expectedTotal' => $nRec->quantity);
-                $deliveryTime = isset($nRec->deadline) ? $nRec->deadline : (isset($nRec->valior) ? $nRec->valior : null);
-                if(!empty($deliveryTime) && $deliveryTime <= $now){
-                    $reserved[$key]['expected'] = $nRec->quantity;
-                }
-                
-                core_Permanent::set("reserved_notes_{$nRec->containerId}", $reserved, 4320);
-            }
-            
-            if(countR($reserved)){
-                $queue[] = $reserved;
-            }
-        }
-        
-        // Добавят се и запазените от бележки в POS-а
-        if(core_Packs::isInstalled('pos')){
-            $receiptQuery = pos_Receipts::getQuery();
-            $receiptQuery->EXT('storePointId', 'pos_Points', 'externalName=storeId,externalKey=pointId');
-            $receiptQuery->where("#state = 'waiting'");
-            $receiptQuery->show('storePointId,modifiedOn');
-            while($receiptRec = $receiptQuery->fetch()){
-                $reserved = core_Permanent::get("reserved_receipts_{$receiptRec->id}", $receiptRec->modifiedOn);
-                
-                // Ако няма кеширани к-ва
-                if (!isset($reserved)) {
-                    $reserved = array();
-                    $rQuery = pos_ReceiptDetails::getQuery();
-                    $rQuery->where("#receiptId = {$receiptRec->id}");
-                    $rQuery->where("#action LIKE '%sale%'");
-                    
-                    while ($rd = $rQuery->fetch()) {
-                        $packRec = cat_products_Packagings::getPack($rd->productId, $rd->value);
-                        $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                        $quantity = $quantityInPack * $rd->quantity;
-                        
-                        if(!empty($rd->storeId)){
-                            $key = "{$rd->storeId}|{$rd->productId}";
-                            $reserved[$key] = array('sId' => $rd->storeId, 'pId' => $rd->productId, 'reserved' => $quantity, 'expected' => null, 'expectedTotal' => null);
-                        }
-                    }
-                    
-                    core_Permanent::set("reserved_receipts_{$receiptRec->id}", $reserved, 4320);
-                }
-                
-                $queue[] = $reserved;
-            }
-        }
-       
-        // Сумиране на к-та
-        foreach ($queue as $arr) {
-            foreach ($arr as $key => $obj) {
-                if (!array_key_exists($key, $result)) {
-                    $result[$key] = (object) array('storeId' => $obj['sId'], 'productId' => $obj['pId'], 'reservedQuantity' => $obj['reserved'], 'expectedQuantity' => $obj['expected'], 'expectedQuantityTotal' => $obj['expectedTotal'], 'state' => 'active');
-                } else {
-                    $result[$key]->reservedQuantity += $obj['reserved'];
-                    $result[$key]->expectedQuantityTotal += $obj['expectedTotal'];
-                    $result[$key]->expectedQuantity += $obj['expected'];
-                }
-            }
-        }
-        
-        // Извличане на всички стари записи
-        $storeQuery = static::getQuery();
-        $old = $storeQuery->fetchAll();
-        
+        $plannedCount = store_StockPlanning::count();
+        core_App::setTimeLimit($plannedCount * 0.7, 300);
+
         // Синхронизират се новите със старите записи
-        $res = arr::syncArrays($result, $old, 'storeId,productId', 'reservedQuantity,expectedQuantity,expectedQuantityTotal');
-        
+        $storeQuery = static::getQuery();
+        $oldRecs = $storeQuery->fetchAll();
+
+        // Изчисляване на максималните запазени количества
+        $queue = array();
+        $reservedMax = store_StockPlanning::getMaxReservedByProduct();
+        $queue[] = (object)array('quantities' => $reservedMax, 'fieldReserved' => 'reservedQuantityMin', 'fieldExpected' => 'expectedQuantityMin', 'dateField' => 'dateMin');
+
+        // Изчисляване на запазеното за днеска
+        $date = dt::today();
+        $reserved = store_StockPlanning::getPlannedQuantities($date);
+
+        unset($reserved[null]);
+        $queue[] = (object)array('quantities' => $reserved, 'fieldReserved' => 'reservedQuantity', 'fieldExpected' => 'expectedQuantity');
+
+        $result = array();
+        foreach ($queue as $object) {
+            foreach ($object->quantities as $arr) {
+                foreach ($arr as $o) {
+                    $key = "{$o->storeId}|{$o->productId}";
+                    if (!array_key_exists($key, $result)) {
+                        $result[$key] = (object) array('storeId' => $o->storeId, 'productId' => $o->productId, 'state' => 'active');
+                    }
+
+                    $result[$key]->{$object->fieldReserved} = ($o->reserved) ? $o->reserved : null;
+                    $result[$key]->{$object->fieldExpected} = ($o->expected) ? $o->expected : null;
+                    if(isset($object->dateField)){
+                        $result[$key]->{$object->dateField} = ($o->date) ? $o->date : null;
+                    }
+                }
+            }
+        }
+
+        // Отново се обхождат всички изчислени записи
+        foreach ($result as  $key => &$newObj) {
+
+            // Намират се старите им записи
+            $exRecs = array_filter($oldRecs, function($a) use ($newObj) { return $a->storeId == $newObj->storeId && $a->productId == $newObj->productId;});
+            if(is_array($exRecs)){
+                $exRec = $exRecs[key($exRecs)];
+                $currentFreeQuantity = $exRec->quantity - $exRec->reservedQuantity + $exRec->expectedQuantity;
+                $newFreeQuantity = $exRec->quantity - $newObj->reservedQuantityMin + $newObj->expectedQuantityMin;
+
+                // Ако текущото разполагаемо е по-малко или равно на намереното минимално разполагаемо, то текущото ще стане минимално !
+                if($currentFreeQuantity <= $newFreeQuantity){
+                    $newObj->reservedQuantityMin = $exRec->reservedQuantity;
+                    $newObj->expectedQuantityMin = $exRec->expectedQuantity;
+                    $newObj->dateMin = $date;
+                }
+            }
+        }
+
+        $res = arr::syncArrays($result, $oldRecs, 'storeId,productId', 'reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
+
         // Заклюване на процеса
         if (!core_Locks::get(self::SYNC_LOCK_KEY, 60, 1)) {
             $this->logWarning('Синхронизирането на складовите наличности е заключено от друг процес');
             
             return;
         }
-        
+
         // Добавяне и ъпдейт на резервираното количество на новите
         $this->saveArray($res['insert']);
-        $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,expectedQuantityTotal');
-        
+        $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
+
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
-        $unsetArr = array_filter($old, function (&$r) use ($result) {
-            if (!isset($r->reservedQuantity) && !isset($r->expectedQuantity) && !isset($r->expectedQuantityTotal)) {
-                
-                return false;
+        $unsetArr = array_filter($oldRecs, function (&$r) use ($reservedMax, $reserved) {
+            $unset = false;
+
+            // Ако е имало запазено/очаквано за днеска, но вече няма ще се ънсетнат
+            if(isset($r->reservedQuantity) || isset($r->expectedQuantity)){
+                if(!isset($reserved[$r->storeId][$r->productId])){
+                    $r->reservedQuantity = null;
+                    $r->expectedQuantity = null;
+                    $unset = true;
+                }
             }
-            if (array_key_exists("{$r->storeId}|{$r->productId}", $result)) {
-                
-                return false;
+
+            // Ако е имало минимално запазено/очаквано , но вече няма ще се ънсетнат
+            if(isset($r->reservedQuantityMin) || isset($r->expectedQuantityMin)){
+                if(!isset($reservedMax[$r->storeId][$r->productId])){
+                    $r->reservedQuantityMin = null;
+                    $r->expectedQuantityMin = null;
+                    $r->dateMin = null;
+                    $unset = true;
+                }
             }
-            
-            if(isset($r->reservedQuantity)){
-                $r->_nullifyReserved = true;
-            }
-            
-            if(isset($r->expectedQuantity)){
-                $r->_nullifyExpected = true;
-            }
-            
-            if(isset($r->expectedQuantityTotal)){
-                $r->_nullifyExpectedTotal = true;
-            }
-            
-            return true;
+
+            return $unset;
         });
-        
+
         // Техните резервирани количества се изтриват
         if (countR($unsetArr)) {
-            array_walk($unsetArr, function ($obj) {
-                if($obj->_nullifyReserved === true){
-                    $obj->reservedQuantity = null;
-                }
-                
-                if($obj->_nullifyExpected === true){
-                    $obj->expectedQuantity = null;
-                }
-                
-                if($obj->_nullifyExpectedTotal === true){
-                    $obj->expectedQuantityTotal = null;
-                }
-            });
-            
-            $this->saveArray($unsetArr, 'id,reservedQuantity,expectedQuantity,expectedQuantityTotal');
+            $this->saveArray($unsetArr, 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
         }
         
         // Освобождаване на процеса
         core_Locks::release(self::SYNC_LOCK_KEY);
-        core_Debug::$isLogging = true;
     }
     
     
@@ -884,108 +748,51 @@ class store_Products extends core_Detail
      */
     public function act_ShowReservedDocs()
     {
-        //core_Request::setProtected('field');
         requireRole('powerUser');
         $id = Request::get('id', 'int');
         $field = Request::get('field', 'varchar');
+        $toDate = Request::get('date', 'date');
         expect($rec = self::fetch($id));
-        $now = dt::now();
-        
-        $arr = array();
-        $arr['reservedQuantity'] = array('sales_SalesDetails' => 'shipmentStoreId', 'store_ShipmentOrderDetails' => 'storeId', 'store_TransfersDetails' => 'fromStore', 'planning_ConsumptionNoteDetails' => 'storeId', 'store_ConsignmentProtocolDetailsSend' => 'storeId', 'planning_DirectProductNoteDetails' => 'storeId');
-        $arr['expectedQuantity'] = array('purchase_PurchasesDetails' => 'shipmentStoreId', 'store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
-        $arr['expectedQuantityTotal'] = array('purchase_PurchasesDetails' => 'shipmentStoreId', 'store_TransfersDetails' => 'toStore', 'store_ReceiptDetails' => 'storeId');
-        
-        // Намират се документите, запазили количества
-        $docs = array();
-        foreach ($arr[$field] as $Detail => $storeField) {
-            
-            $Detail = cls::get($Detail);
-            expect($Detail->productFld, $Detail);
-            
-            $Master = $Detail->Master;
-            $dQuery = $Detail->getQuery();
-            $dQuery->EXT('containerId', $Master->className, "externalName=containerId,externalKey={$Detail->masterKey}");
-            if(!($Detail instanceof planning_DirectProductNoteDetails)){
-                $dQuery->EXT('storeId', $Master->className, "externalName={$storeField},externalKey={$Detail->masterKey}");
-            }
-            
-            $dQuery->EXT('state', $Master->className, "externalName=state,externalKey={$Detail->masterKey}");
-            $dQuery->EXT('valior', $Master->className, "externalName=valior,externalKey={$Detail->masterKey}");
-            if($Master->getField('deliveryTime', false)){
-                $dQuery->EXT('deliveryTime', $Master->className, "externalName=deliveryTime,externalKey={$Detail->masterKey}");
-            }
-            
-            $dQuery->where("#state = 'pending'");
-            $dQuery->where("#{$Detail->productFld} = {$rec->productId}");
-            $dQuery->where("#storeId = {$rec->storeId}");
-            $dQuery->groupBy('containerId');
-            
-            while ($dRec = $dQuery->fetch()) {
-                $deliveryTime = isset($dRec->deliveryTime) ? $dRec->deliveryTime : (isset($dRec->valior) ? $dRec->valior : null);
-                $deliveryTimeVerbal = isset($deliveryTime) ? core_Type::getByName('datetime(format=smartTime)')->toVerbal($deliveryTime) : null;
-                
-                if($field == 'reservedQuantity'){
-                    $docs[$dRec->containerId] = array('link' => doc_Containers::getDocument($dRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
-                } elseif($field == 'expectedQuantityTotal'){
-                    $docs[$dRec->containerId] = array('link' => doc_Containers::getDocument($dRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
-                } if(!empty($deliveryTime) && $deliveryTime <= $now){
-                    $docs[$dRec->containerId] = array('link' => doc_Containers::getDocument($dRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
-                }
-            }
-        }
-        
-        // Бележките в които е участвало
-        if(core_Packs::isInstalled('pos') && $field == 'reservedQuantity'){
-            $receiptQuery = pos_ReceiptDetails::getQuery();
-            $receiptQuery->EXT('pointId', 'pos_Receipts', "externalName=pointId,externalKey=receiptId");
-            $receiptQuery->EXT('state', 'pos_Receipts', "externalName=state,externalKey=receiptId");
-            $receiptQuery->where("#productId = {$rec->productId} AND #state = 'waiting' AND #action LIKE '%sale%'");
-            $receiptQuery->where("#storeId = {$rec->storeId}");
-            $receiptQuery->groupBy('receiptId');
-            $receiptQuery->show('receiptId');
-            while ($receiptRec = $receiptQuery->fetch()) {
-                $docs["receipt|{$receiptRec->receiptId}"] = array('link' => pos_Receipts::getHyperlink($receiptRec->receiptId, true));
-            }
-        }
-        
-        // Добавяне и мастъра на протокола за производство
-        if(in_array($field, array('expectedQuantity', 'expectedQuantityTotal'))){
-            $pNoteQuery = planning_DirectProductionNote::getQuery();
-            $pNoteQuery->where("#storeId = {$rec->storeId} AND #state = 'pending' AND #productId = {$rec->productId}");
-            $pNoteQuery->show('containerId,deadline,valior');
-            while($noteRec = $pNoteQuery->fetch()){
-                $deliveryTime = isset($noteRec->deadline) ? $noteRec->deadline : (isset($noteRec->valior) ? $noteRec->valior : null);
-                $deliveryTimeVerbal = isset($deliveryTime) ? core_Type::getByName('datetime(format=smartTime)')->toVerbal($deliveryTime) : null;
-                
-                if($field == 'expectedQuantityTotal'){
-                    $docs[$noteRec->containerId] = array('link' => doc_Containers::getDocument($noteRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
-                } if(!empty($deliveryTime) && $deliveryTime <= $now){
-                    $docs[$noteRec->containerId] = array('link' => doc_Containers::getDocument($noteRec->containerId)->getLink(0), 'date' => $deliveryTimeVerbal);
-                }
-            }
-        }
-        
+        $today = dt::today();
+
+        $end = "{$toDate} 23:59:59";
+        $query = store_StockPlanning::getQuery();
+        $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date <= '{$end}'");
+        $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
+        $query->where("#{$quantityField} IS NOT NULL");
+        $query->show('sourceClassId,sourceId,date');
+
         $links = '';
-        foreach ($docs as $containerId => $arr) {
-            if(strpos($containerId, 'receipt') === false){
-                $cRec = doc_Containers::fetch($containerId);
+        while($dRec = $query->fetch()){
+            $Source = cls::get($dRec->sourceClassId);
+            $row = (object)array('date' => dt::mysql2verbal($dRec->date));
+
+            // Ако източника е документ - показват се данните му
+            if($Source->hasPlugin('doc_DocumentPlg')){
+                $row->link = $Source->getLink($dRec->sourceId, 0);
+                $docRec = $Source->fetch($dRec->sourceId, 'createdBy,folderId');
+                $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
+                $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
+                $row->createdBy .= " | {$folderId}";
             } else {
-                list(, $receiptId) = explode('|', $containerId);
-                $cRec = pos_Receipts::fetch($receiptId);
+                // Ако източника не е документ
+                $row->link = $Source->getHyperlink($dRec->sourceId, true);
+                $createdBy = $Source->fetchField($dRec->sourceId, 'createdBy');
+                $row->createdBy = crm_Profiles::createLink($createdBy);
             }
-            $arr['createdBy'] = crm_Profiles::createLink($cRec->createdBy);
-            if($cRec->folderId){
-                $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($cRec->folderId))->title;
-                $arr['createdBy'] .= " | {$folderId}";
+
+            if($dRec->date < $today) {
+                $row->link = ht::createHint($row->link, 'Датата е в миналото', 'warning', false);
             }
-            
+
+            // Подготвяне на реда с информация
             $link = new core_ET("<div style='float:left'>[#link#] | [#createdBy#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date--></div>");
-            $link->placeArray($arr);
+            $link->placeObject($row);
             $links .= $link->getContent();
         }
+
         $tpl = new core_ET($links);
-       
+
         if (Request::get('ajax_mode')) {
             $resObj = new stdClass();
             $resObj->func = 'html';
@@ -1108,13 +915,14 @@ class store_Products extends core_Detail
         }
         
         parent::prepareDetail_($data);
-        
+
         if(countR($data->recs)){
             $totalField = ($data->masterData->rec->generic == 'yes') ? 'code' : 'storeId';
-            $data->rows['total'] = (object)array($totalField => "<div style='float:left'>" .  tr('Сумарно') . "</div>");
-            $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold';
+            $data->rows['total'] = (object)array($totalField =>  tr('Сумарно'));
+            $data->rows['total']->ROW_ATTR['style'] = 'background-color:#eee;font-weight:bold;';
+            $data->rows['total']->ROW_ATTR['class'] = 'totalRow';
             
-            foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityTotal', 'freeQuantity') as $fld){
+            foreach (array('quantity', 'reservedQuantity', 'expectedQuantity', 'expectedQuantityMin', 'freeQuantity', 'freeQuantityMin', 'reservedQuantityMin', 'reservedOut', 'expectedOut') as $fld){
                 ${$fld} = arr::sumValuesArray($data->recs, $fld, true);
                 $data->rows['total']->{$fld} = core_Type::getByName('double(decimals=2)')->toVerbal(${$fld});
             }

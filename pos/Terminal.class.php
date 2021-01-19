@@ -294,27 +294,17 @@ class pos_Terminal extends peripheral_Terminal
                     foreach ($stores as $storeId){
                         $block = clone $modalTpl->getBlock('INSTOCK_BLOCK');
                         $storeRow = (object)array('storeId' => store_Stores::getTitleById($storeId));
-                        
-                        $quantity = pos_Stocks::fetchField("#storeId = '{$storeId}' AND #productId = '{$productRec->id}'", 'quantity');
-                        $quantity = isset($quantity) ? $quantity : 0;
-                        $reservedQuantity = store_Products::fetchField("#storeId = {$storeId} AND #productId = {$productRec->id}", 'reservedQuantity');
-                        $free = $quantity;
-                        
-                        $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
-                        $inStockVerbal = ht::styleIfNegative($inStockVerbal, $quantity);
-                        $storeRow->inStock = $inStockVerbal;
-                        
-                        if(!empty($reservedQuantity) && $quantity){
-                            $reservedQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($reservedQuantity);
-                            $reservedQuantityVerbal = ht::styleIfNegative($reservedQuantityVerbal, $reservedQuantity);
-                            $storeRow->reserved = $reservedQuantityVerbal;
-                            $free -= $reservedQuantity;
+                        $stockRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = '{$productRec->id}'");
+
+                        foreach (array('reservedQuantity', 'expectedQuantity', 'quantity') as $fld){
+                            $verbalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($stockRec->{$fld});
+                            $storeRow->{$fld} = ht::styleIfNegative($verbalQuantity, $stockRec->{$fld});
                         }
-                        
-                        $freeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($free);
-                        $freeVerbal = ht::styleIfNegative($freeVerbal, $free);
-                        $storeRow->free = $freeVerbal;
-                        
+
+                        $freeQuantity = $stockRec->quantity - $stockRec->reservedQuantity + $stockRec->expectedQuantity;
+                        $freeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantity);
+                        $freeVerbal = ht::styleIfNegative($freeVerbal, $freeQuantity);
+                        $storeRow->freeQuantity = $freeVerbal;
                         $block->placeObject($storeRow);
                         $row->INSTOCK .= $block->getContent();
                     }
@@ -349,7 +339,8 @@ class pos_Terminal extends peripheral_Terminal
                 $changeMetaUrl = (cat_Products::haveRightFor('edit', $productRec->id)) ? array('cat_Products', 'changemeta', 'Selected' => $productRec->id, 'toggle' => 'canSell', 'ret_url' => array('pos_Terminal', 'open', 'receiptId' => $receitpId)) : array();
                 $warning = ($productRec->canSell == 'yes') ? 'Наистина ли желаете да спрете артикула от продажба|*?' : 'Наистина ли желаете да пуснете артикула в продажба|*?';
                 $warning = countR($changeMetaUrl) ? $warning : false;
-                $btn = ht::createBtn($btnTitle,  $changeMetaUrl, $warning, null, "class=actionBtn {$className}");
+
+                $btn = ht::createBtn($btnTitle,  $changeMetaUrl, $warning, null, "class=actionBtn {$className},title={$btnTitle} на артикула от продажба");
                 Request::removeProtected('Selected');
                 $modalTpl->append($btn, 'TOOLBAR');
                 
@@ -370,7 +361,7 @@ class pos_Terminal extends peripheral_Terminal
                 Mode::pop('noWrapper');
                 Mode::pop('text');
         }
-        
+
         // Ще се реплейсва и пулта
         $res = array();
         $resObj = new stdClass();
@@ -1390,9 +1381,10 @@ class pos_Terminal extends peripheral_Terminal
             $stores = pos_Points::getStores($rec->pointId);
             if(countR($stores) > 1 && empty($rec->revertId)){
                 $storeArr = array();
+
                 foreach ($stores as $storeId){
-                    $quantity = pos_Stocks::getQuantityByStore($selectedRec->productId, $storeId);
-                    $storeArr[$storeId] = $quantity;
+                    $stRec = store_Products::getRec($selectedRec->productId, $storeId);
+                    $storeArr[$storeId] = $stRec->free;
                 }
                 
                 arsort($storeArr);
@@ -1659,7 +1651,12 @@ class pos_Terminal extends peripheral_Terminal
         $resObj2->func = 'clearStatuses';
         $resObj2->arg = array('type' => 'error');
         $res[] = $resObj2;
-        
+
+        $resObj3 = new stdClass();
+        $resObj3->func = 'clearStatuses';
+        $resObj3->arg = array('type' => 'warning');
+        $res[] = $resObj3;
+
         return $res;
     }
     
@@ -1669,7 +1666,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $revertReceiptId - ид-то на бележката за сторниране
+     * @param stdClass|null $selectedRec - ид-то на бележката за сторниране
      * 
      * @return core_ET
      */
@@ -1992,12 +1989,12 @@ class pos_Terminal extends peripheral_Terminal
                 $res[$id]->CLASS .= ' notSellable';
             }
             
-            $stock = ($pRec->canStore == 'yes') ? pos_Stocks::getBiggestQuantity($id, $rec->pointId) : null;
+            $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId) : null;
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId));
             }
             
-            if ((isset($stock) && empty($stock))) {
+            if ((isset($stock) && $stock <= 0)) {
                 $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0));
                 $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
             }

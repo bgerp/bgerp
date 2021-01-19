@@ -328,9 +328,15 @@ class rack_ZoneDetails extends core_Detail
     public static function renderInlineDetail($masterRec, $masterMvc)
     {
         $tpl = new core_ET();
-        
+
+        if(empty($masterRec)){
+            bp();
+        }
+
         $me = cls::get(get_called_class());
-        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => $masterRec, 'listTableHideHeaders' => true, 'inlineDetail' => true);
+        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true);
+        //bp($masterRec);
+
         $dData = $me->prepareDetail($dData);
         if(!countR($dData->recs)) return $tpl;
         unset($dData->listFields['id']);
@@ -349,7 +355,7 @@ class rack_ZoneDetails extends core_Detail
      * @param stdClass $rec
      * @return core_ET $tpl
      */
-    private function getInlineMovements(&$rec, $masterRec)
+    private static function getInlineMovements(&$rec, $masterRec)
     {
         $Movements = clone cls::get('rack_Movements');
         $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');

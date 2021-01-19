@@ -54,13 +54,13 @@ class planning_Centers extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo, planning';
+    public $canList = 'ceo, planning, job';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo, planning';
+    public $canSingle = 'ceo, planning, job';
     
     
     /**

@@ -39,7 +39,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
-                    doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search';
+                    doc_DocumentPlg, plg_Printing, plg_Clone, bgerp_plg_Blank,doc_plg_HidePrices, deals_plg_SetTermDate, plg_Sorting,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
     /**
@@ -1123,5 +1123,64 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $usedDocs[$rec->productId] = cat_Products::fetchField($rec->productId, 'containerId');
         
         return $usedDocs;
+    }
+
+
+    /**
+     * Връща планираните наличности
+     *
+     * @param stdClass $rec
+     * @return array
+     *       ['productId']        - ид на артикул
+     *       ['storeId']          - ид на склад, или null, ако няма
+     *       ['date']             - на коя дата
+     *       ['quantityIn']       - к-во очаквано
+     *       ['quantityOut']      - к-во за експедиране
+     *       ['genericProductId'] - ид на генеричния артикул, ако има
+     *       ['reffClassId']      - клас на обект (различен от този на източника)
+     *       ['reffId']           - ид на обект (различен от този на източника)
+     */
+    public function getPlannedStocks($rec)
+    {
+        $res = array();
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if($canStore == 'yes'){
+            $res[] = (object)array('storeId'          => $rec->storeId,
+                                   'productId'        => $rec->productId,
+                                   'date'             => $date,
+                                   'quantityIn'       => $rec->quantity,
+                                   'quantityOut'      => null,
+                                   'genericProductId' => null);
+        }
+
+        $dQuery = planning_DirectProductNoteDetails::getQuery();
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
+        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
+        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+        $dQuery->XPR('totalQuantity', 'double', "SUM(#quantity)");
+        $dQuery->where("#noteId = {$rec->id} AND #storeId IS NOT NULL AND #type = 'input' AND #canStore = 'yes'");
+        $dQuery->groupBy('productId');
+
+        while ($dRec = $dQuery->fetch()) {
+            $genericProductId = null;
+            if($dRec->generic == 'yes'){
+                $genericProductId = $dRec->productId;
+            } elseif($dRec->canConvert == 'yes'){
+                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
+            }
+
+            $res[] = (object)array('storeId'          => $dRec->storeId,
+                                   'productId'        => $dRec->productId,
+                                   'date'             => $date,
+                                   'quantityIn'       => null,
+                                   'quantityOut'      => $dRec->totalQuantity,
+                                   'genericProductId' => $genericProductId);
+        }
+
+        return $res;
     }
 }

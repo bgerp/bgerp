@@ -48,7 +48,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,deals_plg_SaveValiorOnActivation, bgerp_plg_Export';
     
@@ -1098,8 +1098,8 @@ class sales_Sales extends deals_DealMaster
             $data->jobs[$jRec->id] = planning_Jobs::recToVerbal($jRec, $fields);
         }
         
-        if (planning_Jobs::haveRightFor('Createjobfromsale', (object) array('saleId' => $rec->id))) {
-            $data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'foreignId' => $rec->containerId,'ret_url' => true);
+        if (planning_Jobs::haveRightFor('add', (object) array('saleId' => $rec->id))) {
+            $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $rec->id, 'threadId' => $rec->threadId, 'foreignId' => $rec->containerId, 'ret_url' => true);
         }
     }
     
@@ -1137,11 +1137,13 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = static::fetchRec($id);
         $res = array();
-        
+
+        // Кои са производимите, активни артикули
         $saleQuery = sales_SalesDetails::getQuery();
         $saleQuery->where("#saleId = {$rec->id}");
-        $saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
-        $saleQuery->where("#meta = 'yes'");
+        $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+        $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+        $saleQuery->where("#canManifacture = 'yes' AND #state = 'active'");
         $saleQuery->show('productId');
         
         while ($dRec = $saleQuery->fetch()) {

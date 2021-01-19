@@ -639,9 +639,9 @@ abstract class deals_DealBase extends core_Master
                     'measureId' => cat_UoM::getShortName($expRec->measureId),
                     'productId' => cat_Products::getShortHyperLink($productId),
                 );
-                
+
                 if ($pRec->canStore == 'yes') {
-                    $expRec->inStock = store_Products::getQuantity($productId, null, true);
+                    $expRec->inStock = store_Products::getRec($productId)->free;
                 }
                 
                 foreach (array('quantity', 'shipQuantity', 'blQuantity', 'inStock') as $q) {
