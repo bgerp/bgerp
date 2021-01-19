@@ -1137,11 +1137,13 @@ class sales_Sales extends deals_DealMaster
     {
         $rec = static::fetchRec($id);
         $res = array();
-        
+
+        // Кои са производимите, активни артикули
         $saleQuery = sales_SalesDetails::getQuery();
         $saleQuery->where("#saleId = {$rec->id}");
-        $saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
-        $saleQuery->where("#meta = 'yes'");
+        $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+        $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+        $saleQuery->where("#canManifacture = 'yes' AND #state = 'active'");
         $saleQuery->show('productId');
         
         while ($dRec = $saleQuery->fetch()) {
