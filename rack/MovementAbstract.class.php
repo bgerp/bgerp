@@ -295,11 +295,11 @@ abstract class rack_MovementAbstract extends core_Manager
             }
 
             if(!empty($filterRec->from)){
-                $data->query->where("#createdOn >= '{$filterRec->from} 00:00'");
+                $data->query->where("#createdOn >= '{$filterRec->from} 00:00:00'");
             }
 
             if(!empty($filterRec->to)){
-                $data->query->where("#createdOn <= '{$filterRec->to} 59:59'");
+                $data->query->where("#createdOn <= '{$filterRec->to} 23:59:59'");
             }
 
             if(!empty($filterRec->workerId)){
