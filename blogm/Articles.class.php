@@ -494,16 +494,15 @@ class blogm_Articles extends core_Master
         
         if ($rec->categories) {
             $query = self::getQuery();
-            
-            $query->orderBy('#publishedOn');
-            
+            $query->XPR('calcDate', 'datetime', "COALESCE(#publishedOn, #createdOn)");
             $query->likeKeylist('categories', $rec->categories);
-            
-            $selected = false;
+            $query->orderBy('#publishedOn');
+
+            $flagSelected = false;
             $prev = $next = null;
             $now = dt::now();
             
-            while ($r = $query->fetch("#state = 'active' AND IF(#publishedOn IS NULL OR #publishedOn = '', #createdOn, #publishedOn)  <= '{$now}'")) {
+            while ($r = $query->fetch("#state = 'active' AND #calcDate  <= '{$now}'")) {
                 if ($r->id == $rec->id) {
                     $flagSelected = true;
                 } elseif (strlen($r->body)) {

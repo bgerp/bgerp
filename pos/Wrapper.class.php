@@ -24,7 +24,6 @@ class pos_Wrapper extends plg_ProtoWrapper
         $this->TAB('pos_Points', 'Точки', 'ceo, pos, admin');
         $this->TAB('pos_Receipts', 'Бележки', 'ceo,pos');
         $this->TAB('pos_Reports', 'Отчети', 'ceo,pos');
-        $this->TAB('pos_Stocks', 'Наличности', 'ceo,pos');
         $this->TAB('pos_SellableProductsCache', 'Дебъг->Keш', 'debug');
         
         $this->title = 'Точки на продажба';

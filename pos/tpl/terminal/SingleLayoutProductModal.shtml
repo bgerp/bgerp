@@ -24,7 +24,8 @@
         <tr>
 			<th>|Склад|*</th>
 			<th>|Налично|*</th>
-			<th>|Запазено|*</th>
+            <th>|Запазено|*</th>
+            <th>|Очаквано|*</th>
 			<th>|Разполагаемо|*</th>
 		</tr>
         [#INSTOCK#]
@@ -32,9 +33,10 @@
         [#INSTOCK_BLOCK#]
         <tr>
             <td>[#storeId#]:</td>
-            <td style="text-align: right"><b>[#inStock#]</b></td>
-            <td style="text-align: right"><b>[#reserved#]</b></td>
-            <td style="text-align: right"><b>[#free#]</b></td>
+            <td style="text-align: right"><b>[#quantity#]</b></td>
+            <td style="text-align: right"><b>[#reservedQuantity#]</b></td>
+            <td style="text-align: right"><b>[#expectedQuantity#]</b></td>
+            <td style="text-align: right"><b>[#freeQuantity#]</b></td>
         </tr>
         <!--ET_END INSTOCK_BLOCK-->
         </table>

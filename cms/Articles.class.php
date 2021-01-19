@@ -461,34 +461,36 @@ class cms_Articles extends core_Master
     {
         $navTpl = new ET();
         $noRootClass = ($data->hasRootNavigation) ? '' : 'noRoot';
-        
-        foreach ($data->links as $l) {
-            $selected = ($l->selected) ? 'sel_page' : '';
-            if ($l->closed) {
-                $aAttr = array('style' => 'color:#aaa !important;');
-            } else {
-                $aAttr = array();
+
+        if(is_array($data->links)){
+            foreach ($data->links as $l) {
+                $selected = ($l->selected) ? 'sel_page' : '';
+                if ($l->closed) {
+                    $aAttr = array('style' => 'color:#aaa !important;');
+                } else {
+                    $aAttr = array();
+                }
+
+                $navTpl->append("<div class='nav_item {$noRootClass} level{$l->level} {$selected}'>");
+                if ($l->url) {
+                    $navTpl->append(ht::createLink($l->title, $l->url, null, $aAttr));
+                } else {
+                    $navTpl->append('<span>' . $l->title .'</span>');
+                }
+                if ($selected) {
+                    $currentPage = $l->title;
+                }
+                if ($l->editLink) {
+                    // Добавяме интервал
+                    $navTpl->append('&nbsp;');
+
+                    // Добавяме линка
+                    $navTpl->append($l->editLink);
+                }
+                $navTpl->append('</div>');
             }
-            
-            $navTpl->append("<div class='nav_item {$noRootClass} level{$l->level} {$selected}'>");
-            if ($l->url) {
-                $navTpl->append(ht::createLink($l->title, $l->url, null, $aAttr));
-            } else {
-                $navTpl->append('<span>' . $l->title .'</span>');
-            }
-            if ($selected) {
-                $currentPage = $l->title;
-            }
-            if ($l->editLink) {
-                // Добавяме интервал
-                $navTpl->append('&nbsp;');
-                
-                // Добавяме линка
-                $navTpl->append($l->editLink);
-            }
-            $navTpl->append('</div>');
         }
-        
+
         if ($data->addLink) {
             $navTpl->append("<div class='addPage'>");
             $navTpl->append($data->addLink);

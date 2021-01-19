@@ -514,8 +514,23 @@ div.folder-cover {
 .leftAlign {
 	text-align: left !important;
 }
+.nameCell {
+	text-align: left !important;
+	min-width: 300px;
+	max-width: 460px !important;
+}
+
+.doc_Containers table.listTable .totalRow td, .folder-cover  .portal table.listTable  .totalRow td{
+	vertical-align: baseline !important;
+	padding: 2px 3px 5px !important;
+}
+
 .public.folder-cover {
 	margin: 0;
+}
+
+.folder-cover .store_Products .listRowsDetail {
+	overflow: auto;
 }
 
 .special-title {
@@ -1146,6 +1161,7 @@ div.acc-detail {
        width: auto;
 	   border-radius: 5px;
 	   font-size: 15px;
+		color: #000;
         &.bottom{
             bottom: auto;
             top: 0;
@@ -2222,6 +2238,10 @@ td.rowtools-column {
 }
 .narrow .largeNarrowCell {
 	min-width: 300px;
+}
+
+.horizonCol {
+	font-size: 0.85em;
 }
 
 .listAction table.listTable>tbody>tr>td, table.listTable.listAction>tbody>tr>td.wideColumn {

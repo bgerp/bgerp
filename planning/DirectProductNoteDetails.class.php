@@ -319,8 +319,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 if ($rec->type != 'input') {
                     continue;
                 }
-                
-                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state);
+
+                $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;
+                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
             }
             
             if(!empty($rec->quantityFromBom)){

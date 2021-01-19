@@ -201,7 +201,6 @@
                <!--ET_BEGIN totalVat-->
                <tr>
                   <td class="aright">|ДДС|*: </td>
-                  <td class="aright"><span class='cCode' style='font-weight:normal'>[#vatCurrencyId#]</span></td>
                   <td class="aright"><b>[#totalVat#]</b></td>
                </tr>
                <!--ET_END totalVat-->

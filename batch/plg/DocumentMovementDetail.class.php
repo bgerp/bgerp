@@ -406,6 +406,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         } else {
             // Ако има склад и документа е входящ, не може
             $info = $mvc->getRowInfo($rec);
+
             $storeId = (isset($rec->{$mvc->storeFieldName})) ? $rec->{$mvc->storeFieldName} : $mvc->Master->fetchField($rec->{$mvc->masterKey}, $mvc->Master->storeFieldName);
 
             if (!$storeId || !is_array($info->operation) || !countR($info->operation)) {
