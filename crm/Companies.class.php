@@ -96,7 +96,7 @@ class crm_Companies extends core_Master
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
+                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, drdata_plg_Canonize, plg_Printing,
                      acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg';
     
     
@@ -110,8 +110,16 @@ class crm_Companies extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
-    
-    
+
+
+    /**
+     * Кои полета да се канонизират и запишат в друг модел
+     *
+     * @see drdata_plg_Canonize
+     */
+    public $canonizeFields = 'uicId=uic';
+
+
     /**
      * Кой може да добавя?
      */
@@ -298,11 +306,11 @@ class crm_Companies extends core_Master
         
         // Данъчен номер на фирмата
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
-        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('uicId', 'drdata_type_Uic(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
         $this->FLD('eori', 'drdata_type_Eori', 'caption=EORI №,remember=info,class=contactData,export=Csv,silent');
         
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv,silent,removeAndRefreshForm');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,export=Csv');
         $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община,export=Csv');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData,export=Csv');
@@ -804,9 +812,9 @@ class crm_Companies extends core_Master
     protected static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
-        
+
         if ($form->isSubmitted()) {
-            
+
             // Проверяваме да няма дублиране на записи
             $fields = '';
             $resStr = static::getSimilarWarningStr($form->rec, $fields);
@@ -833,17 +841,9 @@ class crm_Companies extends core_Master
                 $Vats = cls::get('drdata_Vats');
                 $rec->vatId = $Vats->canonize($rec->vatId);
             }
-            
-            if (!empty($rec->uicId)) {
-                $msg = $isError = null;
-                static::checkUicId($rec->uicId, $rec->country, $msg, $isError);
-                if (!empty($msg)) {
-                    if ($isError === true) {
-                        $form->setError('uicId', $msg);
-                    } else {
-                        $form->setWarning('uicId', $msg);
-                    }
-                }
+
+            if(!empty($rec->uicId)){
+                drdata_type_Uic::check($form, $rec->uicId, $rec->country);
             }
         }
     }
@@ -875,8 +875,17 @@ class crm_Companies extends core_Master
             $data->title = null;
         }
     }
-    
-    
+
+
+    /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    protected static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+        $mvc->setFieldTypeParams('uicId', array('countryId' => $rec->country));
+    }
+
+
     /**
      * Промяна на данните от таблицата
      *
@@ -900,16 +909,6 @@ class crm_Companies extends core_Master
                 $row->image = $Fancybox->getImage($rec->logo, $tArr, $mArr);
             } elseif (!Mode::is('screenMode', 'narrow')) {
                 $row->image = '<img class="hgsImage" src=' . sbf('img/noimage120.gif') . " alt='no image'>";
-            }
-            
-            if (!empty($rec->uicId)) {
-                $msg = $isError = null;
-                crm_Companies::checkUicId($rec->uicId, $rec->country, $msg, $isError);
-                if (!empty($msg)) {
-                    $row->uicId = "<span class='red'>{$row->uicId}</span>";
-                    $icon = ($isError === true) ? 'error' : 'warning';
-                    $row->uicId = ht::createHint($row->uicId, $msg, $icon);
-                }
             }
             
             $VatType = new drdata_VatType();
@@ -975,7 +974,6 @@ class crm_Companies extends core_Master
         }
         
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
-        
         if ($rec->vatId && $rec->uicId) {
             if ("BG{$rec->uicId}" == $rec->vatId) {
                 unset($row->uicId);

@@ -53,7 +53,6 @@ defIfNot('CRM_ALPHABET_FILTER', 'standart');
  * @license   GPL 3
  *
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class crm_Setup extends core_ProtoSetup
 {
@@ -144,6 +143,7 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
+        'migrate::updateUics',
     );
     
     
@@ -202,15 +202,57 @@ class crm_Setup extends core_ProtoSetup
         return $html;
     }
 
+
+    /**
+     * Обновява националните номера
+     */
     public function updateUics()
     {
-        $query = crm_Companies::getQuery();
-        $query->where("#uicId IS NOT NULL");
+        $Canonized = cls::get('drdata_CanonizedStrings');
+        $Canonized->setupMvc();
+
+        // Всички фирми с национални номера
+        $Companies = cls::get('crm_Companies');
+        $query = $Companies->getQuery();
+        $query->where("#uicId IS NOT NULL AND #uicId != ''");
         $query->show('id,uicId');
-bp($query->fetchAll());
+
         // Нормализиране на националния номер според държавата на контрагента
-        if(!empty($rec->uicId)){
-            $rec->uicId = deals_Helper::canonizeUicNumber($rec->uicId, $rec->country);
+        $save = $update = array();
+        while($rec = $query->fetch()){
+
+            // Канонизиране на номера
+            $canonized = drdata_CanonizedStrings::canonize($rec->uicId, 'uic', false);
+
+            // Подмяна на нац. номер с канонизирания
+            if(!empty($canonized)){
+                if(!array_key_exists($rec->uicId, $save)){
+                    $save[$rec->uicId] = (object)array('string' => $rec->uicId, 'canonized' => $canonized, 'type' => 'uic');
+                }
+
+                $rec->uicId = $canonized;
+                $update[$rec->id] = $rec;
+            }
+        }
+
+        // Канонизация на номерата
+        if(countR($save)) {
+            $eQuery = $Canonized->getQuery();
+            $all = $eQuery->fetchAll();
+
+            $res = arr::syncArrays($save, $all, 'string,type', 'string,canonized');
+            if(countR($res['insert'])){
+                $Canonized->saveArray($res['insert']);
+            }
+
+            if(countR($res['update'])){
+                $Canonized->saveArray($res['update'], 'id,string,canonized');
+            }
+        }
+
+        // Ъпдейт на фирмите
+        if(countR($update)) {
+            $Companies->saveArray($update, 'id,uicId');
         }
     }
 }
