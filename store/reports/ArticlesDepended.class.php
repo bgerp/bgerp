@@ -195,7 +195,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 continue;
             }
             $minCost = $rec->minCost ? $rec->minCost : 0;
-            $pQuantity = store_Products::getQuantity($pRec->productId, $rec->storeId);
+            $pQuantity = store_Products::getRec($pRec->productId, $rec->storeId, dt::today())->quantity;
             $amount = $pQuantity * $selfPrice;
             $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
             
