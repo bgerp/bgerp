@@ -9,7 +9,7 @@
  * @package   drdata
  *
  * @author    Ivelin Dimov <ivelin.pdimov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -62,6 +62,13 @@ class drdata_CanonizedStrings extends core_Manager
     }
 
 
+    /**
+     * Връща стринга, отговарящ на канонизацията
+     *
+     * @param string $canonized
+     * @param string $type
+     * @return string $canonized
+     */
     public static function getString($canonized, $type)
     {
         $query = static::getQuery();
