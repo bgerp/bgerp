@@ -78,7 +78,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)', 'caption=Количество за показване,maxRadio=2,columns=2,after=title,single=none');
+        $fieldset->FLD('typeOfQuantity', 'enum(existent=Налично,free=Разполагаемо)', 'caption=Количество за показване,maxRadio=2,columns=2,after=title,mandatory,single=none');
         $fieldset->FLD('additional', 'table(columns=code|name,captions=Код на артикула|Наименование,widths=8em|20em)', 'caption=Артикули||Additional,autohide,advanced,after=storeId,single=none');
         $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,after=typeOfQuantity');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
@@ -99,7 +99,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
         
-        $form->setDefault('typeOfQuantity', 'TRUE');
+        $form->setDefault('typeOfQuantity', 'free');
     }
     
     
@@ -489,14 +489,10 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
             while ($recProduct = $query->fetch()) {
                 
                 $id = $recProduct->productId;
-                
-                if ($rec->typeOfQuantity == 'FALSE') {
-                    $typeOfQuantity = false;
-                } else {
-                    $typeOfQuantity = true;
-                }
-                
-                $quantity = store_Products::getQuantity($id, $recProduct->storeId, $typeOfQuantity);
+
+                $quantity = ($rec->typeOfQuantity == 'existent') ? store_Products::getRec($id, $recProduct->storeId)->quantity : store_Products::getRec($id, $recProduct->storeId)->free;
+
+                bp($quantity,$rec->typeOfQuantity,store_Products::getRec($id, $recProduct->storeId)->quantity);
                 
                 if (! array_key_exists($id, $recs)) {
                     $recs[$id] =
@@ -541,10 +537,10 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
         if ($export === false) {
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            if ($rec->typeOfQuantity == 'TRUE') {
+            if ($rec->typeOfQuantity == 'free') {
                 $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Разполагаемо,smartCenter');
             }
-            if ($rec->typeOfQuantity == 'FALSE') {
+            if ($rec->typeOfQuantity == 'existent') {
                 $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Налично,smartCenter');
             }
             $fld->FLD('receiptQuantity', 'double', 'caption=Количество->За получаване,smartCenter');
