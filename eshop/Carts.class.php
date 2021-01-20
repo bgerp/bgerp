@@ -37,7 +37,7 @@ class eshop_Carts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Rejected, plg_Modified,acc_plg_DocumentSummary,plg_Sorting,plg_Printing';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, drdata_plg_Canonize, plg_Rejected, plg_Modified,acc_plg_DocumentSummary,plg_Sorting,plg_Printing';
     
     
     /**
@@ -152,8 +152,15 @@ class eshop_Carts extends core_Master
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/trolley.png';
-    
-    
+
+    /**
+     * Кои полета да се канонизират и запишат в друг модел
+     *
+     * @see drdata_plg_Canonize
+     */
+    public $canonizeFields = 'invoiceUicNo=uic';
+
+
     /**
      * Описание на модела
      */
@@ -2078,6 +2085,7 @@ class eshop_Carts extends core_Master
                 $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
                 $form->setDefault('invoiceNames', $form->rec->personNames);
             } else {
+                $form->setFieldType('invoiceUicNo', 'drdata_type_Uic');
                 $form->setField('invoiceNames', 'caption=Данни за фактуриране->Фирма');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактуриране->ДДС №||VAT ID');
             }
@@ -2131,15 +2139,7 @@ class eshop_Carts extends core_Master
             }
             
             if (!empty($rec->invoiceUicNo) && $rec->makeInvoice == 'company') {
-                $msg = $isError = null;
-                crm_Companies::checkUicId($rec->invoiceUicNo, $rec->invoiceCountry, $msg, $isError);
-                if (!empty($msg)) {
-                    if($isError){
-                        $form->setError('invoiceUicNo', $msg);
-                    } else {
-                        $form->setWarning('invoiceUicNo', $msg);
-                    }
-                }
+                drdata_type_Uic::check($form, $rec->invoiceUicNo, $rec->invoiceCountry, 'uicNo');
             }
             
             if (!empty($rec->invoiceNames) && $rec->makeInvoice != 'none') {
@@ -2187,11 +2187,6 @@ class eshop_Carts extends core_Master
                 if (!$cu) {
                     $userData = array('email' => $rec->email, 'personNames' => $rec->personNames, 'tel' => $rec->tel);
                     log_Browsers::setVars($userData);
-                }
-
-                // Нормализаране на ЕИК-то/Нац. номера
-                if(!empty($rec->invoiceUicNo)){
-                    $rec->invoiceUicNo = preg_replace('/[^a-z\d]/i', '', $rec->invoiceUicNo);
                 }
 
                 $this->save($rec);
@@ -2804,5 +2799,16 @@ class eshop_Carts extends core_Master
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         $mvc->renderDeliveryData($data->rec, $tpl);
+    }
+
+
+    /**
+     * Метод по подразбиране за взимане на полетата за канонизиране
+     */
+    protected static function on_AfterGetCanonizedFields($mvc, &$res, $rec)
+    {
+        if($rec->makeInvoice != 'company'){
+            unset($res['uicNo']);
+        }
     }
 }
