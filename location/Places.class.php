@@ -140,19 +140,21 @@ class location_Places extends core_Master
 
         //Вербализиране на посоката
         $direction = self::getDirection($angle);
+        $oldDeistance = $distance;
+bp($distance);
+        if ($distance >= 30) {
 
-        if ($distance > $closestBase->diameter) {
+            switch ($distance) {
 
-            if ($distance < 1000) {
-
-                $measure = 'метра';
-                $distance = round($distance, 0);
-            } else {
-
-                $measure = 'км.';
-                $distance = round($distance / 1000, 2);
+                case $distance>=30 && $distance<100:$distance = round($distance/10,0)*10; break;
+                case $distance>=100 && $distance<1000:$distance = round($distance/100,0)*100; break;
+                case $distance>=1000 && $distance<5000:$distance = round($distance/1000,1); break;
+                case $distance>5000:$distance = round($distance/1000,0); break;
 
             }
+
+            $measure = ($distance < 1000 && $oldDeistance < 1000) ? 'м.' : 'км.';
+
         } else {
             $measure = '';
             $distance = 'в ' . $closestBaseName;
