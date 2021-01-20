@@ -2,7 +2,7 @@
 
 
 /**
- * Клас 'drdata_type_Uic' - тип за ЕИК кодове или национални номера
+ * Клас 'drdata_type_Uic' - тип за ЕИК кодове или Национални номера
  *
  *
  * @category  bgerp
@@ -77,7 +77,7 @@ class drdata_type_Uic extends type_Varchar
 
         if (!empty($value)) {
             $msg = $isError = null;
-            crm_Companies::checkUicId($value, $this->params['countryId'], $msg, $isError);
+            static::checkUicId($value, $this->params['countryId'], $msg, $isError);
 
             if (!empty($msg)) {
                 $value = "<span class='red'>{$value}</span>";
@@ -100,7 +100,7 @@ class drdata_type_Uic extends type_Varchar
      *
      * @return bool - валиден ли е националния номер
      */
-    public static function checkUicId($uicNo, $countryId = null, &$msg, &$isError)
+    private static function checkUicId($uicNo, $countryId = null, &$msg, &$isError)
     {
         $msg = null;
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
