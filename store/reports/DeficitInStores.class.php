@@ -490,7 +490,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                 
                 $id = $recProduct->productId;
 
-                $quantity = ($rec->typeOfQuantity == 'existent') ? store_Products::getQuantities($id, $recProduct->storeId)->quantity : store_Products::getRec($id, $recProduct->storeId)->free;
+                $quantity = ($rec->typeOfQuantity == 'existent') ? store_Products::getQuantities($id, $recProduct->storeId)->quantity : store_Products::getQuantities($id, $recProduct->storeId)->free;
 
                 if (! array_key_exists($id, $recs)) {
                     $recs[$id] =
