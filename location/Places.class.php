@@ -141,7 +141,7 @@ class location_Places extends core_Master
         //Вербализиране на посоката
         $direction = self::getDirection($angle);
         $oldDeistance = $distance;
-bp($distance);
+
         if ($distance >= 30) {
 
             switch ($distance) {

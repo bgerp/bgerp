@@ -77,7 +77,7 @@ class email_Spam extends email_ServiceEmails
             $rec = new stdClass();
             
             // Само първите 100К от писмото
-            $rec->data = substr($mime->getData(), 0, 100000);
+            $rec->data = $mime->getData();
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
