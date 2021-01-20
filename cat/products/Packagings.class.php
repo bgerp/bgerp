@@ -860,7 +860,7 @@ class cat_products_Packagings extends core_Detail
                     
                     if ($productRec->canStore == 'yes') {
                         if ($storeId = $Doc->fetchField($Doc->storeFieldName)) {
-                            $quantity = store_Products::getRec($productRec->id, $storeId)->free;
+                            $quantity = store_Products::getQuantities($productRec->id, $storeId)->free;
                             $packQuantity = $quantity / $quantityInPack;
                             $packQuantityVerbal = (empty($packQuantity)) ? tr('Няма наличност') : core_Type::getByName('double(smartRound)')->toVerbal($packQuantity);
                             

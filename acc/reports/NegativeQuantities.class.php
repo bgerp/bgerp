@@ -191,7 +191,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $today = dt::today();
-        $quantityNow = store_Products::getRec($dRec->articulId, null, $today)->quantity;
+        $quantityNow = store_Products::getQuantities($dRec->articulId, null, $today)->quantity;
         $row = new stdClass();
         
         $rec->productCount++;
@@ -241,7 +241,7 @@ class acc_reports_NegativeQuantities extends frame2_driver_TableData
             $row->quantity .= "<span class= '{$color}'>" . core_Type::getByName('double(decimals=2)')->toVerbal($val) . '</span>' . '</br>';
             
             if (!is_null($productId)) {
-                $quantityNow = store_Products::getRec($productId, $storeId, $today)->quantity;
+                $quantityNow = store_Products::getQuantities($productId, $storeId, $today)->quantity;
             }
             $colorNow = 'green';
             if ($quantityNow < 0) {

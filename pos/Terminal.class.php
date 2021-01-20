@@ -1383,7 +1383,7 @@ class pos_Terminal extends peripheral_Terminal
                 $storeArr = array();
 
                 foreach ($stores as $storeId){
-                    $stRec = store_Products::getRec($selectedRec->productId, $storeId);
+                    $stRec = store_Products::getQuantities($selectedRec->productId, $storeId);
                     $storeArr[$storeId] = $stRec->free;
                 }
                 

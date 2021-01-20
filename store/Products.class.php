@@ -470,7 +470,7 @@ class store_Products extends core_Detail
      * @param null|datetime $date - към коя дата
      * @return object $res
      */
-    public static function getRec($productId, $storeId = null, $date = null)
+    public static function getQuantities($productId, $storeId = null, $date = null)
     {
         // Какви са наличностите
         $query = self::getQuery();
@@ -506,39 +506,6 @@ class store_Products extends core_Detail
         $res->free = $res->quantity - $res->reserved + $res->expected;
 
         return $res;
-    }
-
-
-    /**
-     * Колко е количеството на артикула в складовете
-     *
-     * @param int      $productId    - ид на артикул
-     * @param int|NULL $storeId      - конкретен склад, NULL ако е във всички
-     * @param bool     $freeQuantity - FALSE за общото количество, TRUE само за разполагаемото (общо - запазено)
-     * @param datetime $date         - към коя дата, null за текущата
-     *
-     * @return float $sum          - сумата на количеството, общо или разполагаемо
-     */
-    public static function getQuantity($productId, $storeId = null, $freeQuantity = false, $date = null)
-    {
-        $query = self::getQuery();
-        $query->where("#productId = {$productId}");
-        $query->show('sum');
-        
-        if (isset($storeId)) {
-            $query->where("#storeId = {$storeId}");
-        }
-
-        if ($freeQuantity === true) {
-            $query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantityMin, 0) + COALESCE(#expectedQuantityMin, 0))');
-        } else {
-            $query->XPR('sum', 'double', 'SUM(#quantity)');
-        }
-        
-        $calcedSum = $query->fetch()->sum;
-        $sum = (!empty($calcedSum)) ? $calcedSum : 0;
-        
-        return $sum;
     }
     
     

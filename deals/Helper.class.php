@@ -420,7 +420,7 @@ abstract class deals_Helper
             $packQuantity = 1;
         }
 
-        $stRec = store_Products::getRec($productId, $storeId);
+        $stRec = store_Products::getQuantities($productId, $storeId);
         $quantity = $stRec->free;
         
         $Double = cls::get('type_Double');
@@ -741,7 +741,7 @@ abstract class deals_Helper
 
         $date = isset($date) ? $date : null;
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
-        $stRec = store_Products::getRec($productId, $storeId, $date);
+        $stRec = store_Products::getQuantities($productId, $storeId, $date);
         $freeQuantityOriginal = $stRec->free;
 
         $Double = core_Type::getByName('double(smartRound)');

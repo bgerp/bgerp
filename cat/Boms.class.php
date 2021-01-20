@@ -1729,7 +1729,7 @@ class cat_Boms extends core_Master
             
             // Ако има склад се отсяват артикулите, които имат нулева наличност
             if (isset($storeId)) {
-                $quantity = store_Products::getRec($pRec->productId, $storeId)->free;
+                $quantity = store_Products::getQuantities($pRec->productId, $storeId)->free;
                 if (empty($quantity)) {
                     continue;
                 }
