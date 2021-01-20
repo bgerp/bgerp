@@ -72,10 +72,9 @@ class drdata_CanonizedStrings extends core_Manager
     public static function getString($canonized, $type)
     {
         $query = static::getQuery();
-        $query->XPR("order", 'int', "(CASE WHEN #canonized != #string THEN 1 ELSE 2 END)");
         $query->where(array('#canonized = "[#1#]"', $canonized));
         $query->where("#type = '{$type}'");
-        $query->orderBy('order=ASC,id=DESC');
+        $query->orderBy('id=DESC');
         $query->limit(1);
         $rec = $query->fetch();
 

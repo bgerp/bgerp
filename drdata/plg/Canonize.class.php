@@ -45,10 +45,17 @@ class drdata_plg_Canonize extends core_Plugin
         $canonizeFields = $mvc->getCanonizedFields($rec);
         if(!countR($canonizeFields)) return;
 
+        $oldRec = null;
+        if(isset($rec->id)){
+            $oldRec = $mvc->fetch($rec->id, '*', false);
+        }
+
         // Преди запис посочените полета се канонизират при нужда
         foreach ($canonizeFields as $field => $type) {
             if(!empty($rec->{$field})){
-                $rec->{$field} = drdata_CanonizedStrings::canonize($rec->{$field}, $type);
+                if($oldRec->{$field} != $rec->{$field}){
+                    $rec->{$field} = drdata_CanonizedStrings::canonize($rec->{$field}, $type);
+                }
             }
         }
     }
