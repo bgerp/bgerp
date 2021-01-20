@@ -52,13 +52,25 @@ class drdata_CanonizedStrings extends core_Manager
      */
     public function description()
     {
-        $this->FLD('string', 'varchar(128, ci)', 'caption=Стринг');
-        $this->FLD('canonized', 'varchar(128, ci)', 'caption=Канонизиран');
+        $this->FLD('string', 'varchar(128, ci)', 'caption=Оригинал->Стринг');
+        $this->FNC('stringLen', 'int', 'caption=Оригинал->Дължина');
+        $this->FLD('canonized', 'varchar(128, ci)', 'caption=Канонизиран->Стринг');
+        $this->FNC('canonizedLen', 'int', 'caption=Канонизиран->Дължина');
         $this->FLD('type', 'enum(uic=Нац.номер,iban=IBAN)', 'caption=Тип');
 
         $this->setDbUnique('string,type');
         $this->setDbIndex('canonized');
         $this->setDbIndex('canonized,type');
+    }
+
+
+    /**
+     * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
+     */
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+        $row->stringLen = mb_strlen($rec->string);
+        $row->canonizedLen = mb_strlen($rec->canonized);
     }
 
 
