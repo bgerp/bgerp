@@ -20,9 +20,7 @@ class support_TaskType extends core_Mvc
     
     public $title = 'Сигнал';
     
-    public $withoutResStr = 'without resources';
-    
-    
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -31,7 +29,6 @@ class support_TaskType extends core_Mvc
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('typeId', 'key(mvc=support_IssueTypes, select=type)', 'caption=Тип, mandatory, width=100%, silent, after=title');
-        $fieldset->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, after=typeId, refreshForm, silent');
         $fieldset->FLD('systemId', 'key(mvc=support_Systems, select=name)', 'caption=Система, input=hidden, silent');
         
         $fieldset->FLD('name', 'varchar(64)', 'caption=Данни за обратна връзка->Име, mandatory, input=none, silent');
@@ -240,8 +237,8 @@ class support_TaskType extends core_Mvc
     {
         $res = null;
     }
-    
-    
+
+
     /**
      *
      *
@@ -252,6 +249,8 @@ class support_TaskType extends core_Mvc
      */
     public static function on_AfterPrepareEditForm($Driver, $mvc, &$res, $data)
     {
+        $data->form->setField('assetResourceId', 'after=typeId');
+
         $data->form->setField('title', array('mandatory' => false));
         $rec = $data->form->rec;
         
@@ -342,27 +341,14 @@ class support_TaskType extends core_Mvc
                 $opt->attr = array('class' => 'boldText');
                 $assetResArr[$rec->id] = $opt;
             }
+
+            $data->form->setOptions('assetResourceId', $assetResArr);
+
+            $data->form->setField('assetResourceId', 'input=input');
+        } else {
+            $data->form->setField('assetResourceId', 'input=none');
         }
-        
-        $data->form->setOptions('assetResourceId', $assetResArr);
-        
-        if (($data->form->cmd == 'refresh') || (!$data->form->cmd && $data->form->rec->assetResourceId)) {
-            // При избор на компонент, да са избрани споделените потребители, които са отговорници
-            if ($data->form->rec->assetResourceId) {
-                $assetId = planning_AssetResources::fetchField($data->form->rec->assetResourceId, 'id');
-                
-                if ($assetId) {
-                    $maintainers = planning_AssetResourceFolders::fetchField(array("#classId = '[#1#]' AND #objectId = '[#2#]' AND #folderId = '[#3#]'", planning_AssetResources::getClassId(), $assetId, $rec->folderId), 'users');
-                }
-                
-                $maintainers = keylist::removeKey($maintainers, core_Users::getCurrent());
-                
-                if ($maintainers) {
-                    $data->form->setDefault('sharedUsers', $maintainers);
-                }
-            }
-        }
-        
+
         if (($srcId = $data->form->rec->SrcId) && ($srcClass = $data->form->rec->SrcClass)) {
             if (cls::haveInterface('support_IssueCreateIntf', $srcClass)) {
                 $srcInst = cls::getInterface('support_IssueCreateIntf', $srcClass);
@@ -376,24 +362,7 @@ class support_TaskType extends core_Mvc
         $data->form->setField('timeDuration', 'autohide');
         $data->form->setField('timeEnd', 'autohide');
     }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     *
-     * @param support_TaskType $Driver
-     * @param core_Mvc         $mvc
-     * @param stdClass         $row    Това ще се покаже
-     * @param stdClass         $rec    Това е записа в машинно представяне
-     * @param array|null       $fields Това е записа в машинно представяне
-     */
-    public static function on_AfterRecToVerbal($Driver, $mvc, &$row, $rec, $fields = array())
-    {
-        if ($rec->assetResourceId) {
-            $row->assetResourceId = planning_AssetResources::getLinkToSingle($rec->assetResourceId, 'codeAndName');
-        }
-    }
-    
+
     
     /**
      *
@@ -458,14 +427,6 @@ class support_TaskType extends core_Mvc
      */
     public static function on_AfterSave($Driver, $mvc, &$id, $rec)
     {
-        if ($rec->assetResourceId) {
-            $nRec = new stdClass();
-            $nRec->id = $rec->assetResourceId;
-            $nRec->lastUsedOn = dt::now();
-            
-            planning_AssetResources::save($nRec, 'lastUsedOn');
-        }
-        
         if (core_Users::getCurrent() < 1) {
             log_Browsers::setVars(array('name' => $rec->name, 'email' => $rec->email));
         }
@@ -491,11 +452,7 @@ class support_TaskType extends core_Mvc
         if ($row->systemId) {
             $resArr['systemId'] = array('name' => tr('Система'), 'val' => '[#systemId#]');
         }
-        
-        if ($row->assetResourceId) {
-            $resArr['assetResourceId'] = array('name' => tr('Ресурс'), 'val' => '[#assetResourceId#]');
-        }
-        
+
         if ($row->typeId) {
             $resArr['typeId'] = array('name' => tr('Тип'), 'val' => '[#typeId#]');
         }
@@ -590,13 +547,7 @@ class support_TaskType extends core_Mvc
         if ($rec->typeId) {
             $sTxt .= ' ' . support_IssueTypes::fetchField($rec->typeId, 'type');
         }
-        
-        if ($rec->assetResourceId) {
-            $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
-            $sTxt .= ' ' . $pRec->code . ' ' . $pRec->name;
-        } else {
-            $sTxt .= ' ' . $Driver->withoutResStr;
-        }
+
         
         if ($rec->systemId) {
             $sTxt .= ' ' . support_Systems::fetchField($rec->systemId, 'name');
