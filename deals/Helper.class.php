@@ -2040,10 +2040,12 @@ abstract class deals_Helper
     {
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
-        if ($minListId) {
+        $isPublic = cat_Products::fetchField($productId, 'isPublic');
+        $foundMinPrice = null;
+        if ($minListId && $isPublic == 'yes') {
             $foundMinPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $minListId, $useQuotationPrice);
         }
-        
+
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
         
         foreach (array($foundMinPrice, $foundPrice) as $i => $var){
@@ -2108,8 +2110,7 @@ abstract class deals_Helper
             $Detail = cls::get($mvc->mainDetail);
             
             $dQuery = $Detail::getQuery();
-            $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey={$Detail->productFld}");
-            $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #isPublic = 'yes'");
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $priceDate = ($rec == 'draft') ? null : $rec->valior;
 
             if($mvc instanceof sales_Sales){
