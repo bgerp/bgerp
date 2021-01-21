@@ -727,7 +727,7 @@ class store_Products extends core_Detail
         $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date <= '{$end}'");
         $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
         $query->where("#{$quantityField} IS NOT NULL");
-        $query->show('sourceClassId,sourceId,date');
+        $query->show('sourceClassId,sourceId,date,state');
 
         $links = '';
         while($dRec = $query->fetch()){
@@ -740,7 +740,7 @@ class store_Products extends core_Detail
                 $docRec = $Source->fetch($dRec->sourceId, 'createdBy,folderId');
                 $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
                 $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
-                $row->createdBy .= " | {$folderId}";
+                $row->createdBy = " {$folderId} | {$row->createdBy}";
             } else {
                 // Ако източника не е документ
                 $row->link = $Source->getHyperlink($dRec->sourceId, true);
@@ -748,12 +748,13 @@ class store_Products extends core_Detail
                 $row->createdBy = crm_Profiles::createLink($createdBy);
             }
 
+            $row->link = "<span class='state-{$dRec->state} document-handler'>{$row->link}</span>";
             if($dRec->date < $today) {
                 $row->link = ht::createHint($row->link, 'Датата е в миналото', 'warning', false);
             }
 
             // Подготвяне на реда с информация
-            $link = new core_ET("<div style='float:left'>[#link#] | [#createdBy#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date--></div>");
+            $link = new core_ET("<div style='float:left'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
             $link->placeObject($row);
             $links .= $link->getContent();
         }
