@@ -79,8 +79,8 @@ class location_LocationsCoords extends core_Master
     protected function description()
     {
 
-        $this->FLD('lat', 'varchar', 'caption=Географска ширина');
-        $this->FLD('lng', 'varchar', 'caption=Географска дължина');
+        $this->FLD('lat', 'varchar(32)', 'caption=Географска ширина');
+        $this->FLD('lng', 'varchar(32)', 'caption=Географска дължина');
         $this->FLD('title', 'varchar', 'caption=Наименование');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
         $this->FLD('originId', 'int', 'caption=Локация,input = hidden ');
