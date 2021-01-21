@@ -319,7 +319,7 @@ class planning_Jobs extends core_Master
         }
 
         if (isset($rec->saleId)) {
-            $products = sales_Sales::getManifacurableProducts($rec->saleId);
+            $products = sales_Sales::getManifacurableProducts($rec->saleId, true);
             $form->setFieldType('productId', 'key(mvc=cat_Products)');
             if(countR($products) == 1){
                 $form->setDefault('productId', key($products));
@@ -964,7 +964,7 @@ class planning_Jobs extends core_Master
                 if ($saleState != 'active' && $saleState != 'closed') {
                     $res = 'no_one';
                 } else {
-                    $products = sales_Sales::getManifacurableProducts($rec->saleId);
+                    $products = sales_Sales::getManifacurableProducts($rec->saleId, true);
                     if (!countR($products)) {
                         $res = 'no_one';
                     }
