@@ -657,8 +657,10 @@ class planning_Jobs extends core_Master
                 $form->setWarning('dueDate', 'Падежът е в миналото');
             }
 
-            if (self::fetchField("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")) {
-                $form->setWarning('productId', 'В момента има активно задание, желаете ли да създадете още едно|*?');
+            if ($aCount = self::count("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")) {
+                $aCount = core_Type::getByName('int')->toVerbal($aCount);
+                $msg = ($aCount == 1) ? 'активно задание' : 'активни задания';
+                $form->setWarning('productId', "В момента артикулът има още|* <b>{$aCount}</b> |{$msg}|*. |Желаете ли да създадете още едно|*?");
             }
 
             $productInfo = cat_Products::getProductInfo($form->rec->productId);
