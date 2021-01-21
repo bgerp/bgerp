@@ -1120,7 +1120,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     $row->deliveryTermId = $deliveryAdress;
                 }
             }
-           
+
             // Подготовка на имената на моята фирма и контрагента
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + (array) $headerInfo);
@@ -1740,11 +1740,10 @@ abstract class deals_DealMaster extends deals_DealBase
         $fields['contragentClassId'] = $contragentClass->getClassId();
         $fields['contragentId'] = $contragentId;
         
-        // Ако няма валута, това е основната за периода
-        $fields['currencyId'] = (empty($fields['currencyId'])) ? acc_Periods::getBaseCurrencyCode($fields['valior']) : $fields['currencyId'];
-        
+        // Валутата е дефолтната за папката
+        $fields['currencyId'] = (isset($fields['currencyId'])) ? $fields['currencyId'] : cond_plg_DefaultValues::getDefaultValue($me, $fields['folderId'], 'currencyId');
+
         // Ако няма курс, това е този за основната валута
-        
         if (empty($fields['currencyRate'])) {
             $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], null);
             expect($fields['currencyRate']);
