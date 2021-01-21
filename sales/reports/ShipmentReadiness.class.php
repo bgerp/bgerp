@@ -712,19 +712,27 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             $ignore = false;
             if ($productRec->isPublic == 'no') {
-                $closedJobId = planning_Jobs::fetchField("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
+
+                // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
+                $closedJobQuery = planning_Jobs::getQuery();
+                $closedJobQuery->where("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
+                $closedJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+                $closedJobQuery->XPR('totalQuantityProduced', 'double', 'SUM(COALESCE(#quantityProduced, 0))');
+                $closedJobQuery->show('totalQuantity,totalQuantityProduced');
+                $closedJobCount = $closedJobQuery->count();
+                $closedJobRec = $closedJobQuery->fetch();
+
                 $activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #saleId = {$saleRec->id}");
-                
-                // Се приема че е готово
-                if ($closedJobId && !$activeJobId) {
-                    
-                    // Ако има приключено задание
-                    $q = planning_Jobs::fetchField($closedJobId, 'quantity');
+
+                // Ако има приключени задания и няма други активни, се приема че е готово
+                if ($closedJobCount && !$activeJobId) {
+
+                    $q = $closedJobRec->totalQuantity;
                     $amount = $q * $price;
-                    
+
                     // Ако има експедирано и то е над 90% от заскалденото, ще се маха продажбата
                     if (isset($shippedProducts[$pId])) {
-                        $produced = planning_Jobs::fetchField($closedJobId, 'quantityProduced');
+                        $produced = $closedJobRec->totalQuantityProduced;
                         if ($shippedProducts[$pId]->quantity >= ($produced * 0.9)) {
                             $quantityInStore = store_Products::getQuantities($productRec->id)->quantity;
                             if ($quantityInStore <= 1) {
