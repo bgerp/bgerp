@@ -4723,6 +4723,9 @@ table .eshop-btn {
 	&.defaultTheme.topPageNewsbar {
 		top: 0;
 	}
+	&.bottomContentNewsbar {
+		margin: 20px 0 10px;
+	}
 }
 
 .narrow .newsbar.topPageNewsbar {
