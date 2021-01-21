@@ -324,9 +324,10 @@ class sales_Services extends deals_ServiceMaster
     protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
-        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec) && $rec->isReverse !== 'yes') {
-            core_Statuses::newStatus('Документа не може да се контира, защото има артикули с продажна цена под минималната|*!', 'error');
+
+        $errorMsg = null;
+        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg) && $rec->isReverse !== 'yes') {
+            core_Statuses::newStatus($errorMsg, 'error');
             
             return false;
         }

@@ -1808,7 +1808,14 @@ class sales_Quotations extends core_Master
                 return false;
             }
         }
-        
+
+        $errorMsg = null;
+        if(deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)){
+            core_Statuses::newStatus($errorMsg, 'error');
+
+            return false;
+        }
+
         cls::get('sales_QuotationsDetails')->saveArray($saveRecs);
     }
     

@@ -2094,13 +2094,15 @@ abstract class deals_Helper
      *
      * @param core_Mvc $mvc
      * @param stdClass $rec
+     * @param null|string $msg
      *
      * @return bool
      */
-    public static function hasProductsBellowMinPrice($mvc, $rec)
+    public static function hasProductsBellowMinPrice($mvc, $rec, &$msg = null)
     {
         $minPolicyId = sales_Setup::get('MIN_PRICE_POLICY');
-        
+
+        $products = array();
         if (isset($mvc->mainDetail) && !empty($minPolicyId)) {
             $rec = $mvc->fetchRec($rec);
             $Detail = cls::get($mvc->mainDetail);
@@ -2109,27 +2111,33 @@ abstract class deals_Helper
             $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey={$Detail->productFld}");
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $priceDate = ($rec == 'draft') ? null : $rec->valior;
-            
+
             if($mvc instanceof sales_Sales){
-                $useQuotationPrice = isset($rec->originId) ? true : false;
+                $useQuotationPrice = isset($rec->originId);
+            } elseif($mvc instanceof sales_Quotations){
+                $useQuotationPrice = false;
             } elseif($mvc instanceof store_ShipmentOrders){
                 $useQuotationPrice = false;
                 if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                     if($firstDocument->isInstanceOf('sales_Sales')){
                         $firstDocumentOrigin = $firstDocument->fetchField('originId');
-                        $useQuotationPrice = isset($firstDocumentOrigin) ? true : false;
+                        $useQuotationPrice = isset($firstDocumentOrigin);
                     }
                 }
             }
-            
+
             while ($dRec = $dQuery->fetch()) {
                 $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
                 if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice)){
                     if($checkedObject['hintType'] == 'error'){
-                        
-                        return true;
+                        $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
                 }
+            }
+
+            if(countR($products)){
+                $msg = "Следните артикули са с продажни цени под минималната|*: " . implode(', ', $products);
+                return true;
             }
         }
         
