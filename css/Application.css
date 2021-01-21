@@ -4043,6 +4043,8 @@ table .eshop-btn {
     margin-top: 30px; }
   .newsbar.defaultTheme.topPageNewsbar {
     top: 0; }
+  .newsbar.bottomContentNewsbar {
+    margin: 20px 0 10px; }
 
 .narrow .newsbar.topPageNewsbar {
   position: static; }
