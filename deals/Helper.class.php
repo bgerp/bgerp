@@ -2107,7 +2107,7 @@ abstract class deals_Helper
             
             $dQuery = $Detail::getQuery();
             $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey={$Detail->productFld}");
-            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #isPublic = 'yes'");
             $priceDate = ($rec == 'draft') ? null : $rec->valior;
             
             if($mvc instanceof sales_Sales){

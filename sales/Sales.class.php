@@ -1130,10 +1130,11 @@ class sales_Sales extends deals_DealMaster
      * Връща всички производими артикули от продажбата
      *
      * @param mixed $id - ид или запис
+     * @param boolean $onlyActive - дали да са само активните артикули
      *
      * @return array $res - масив с производимите артикули
      */
-    public static function getManifacurableProducts($id)
+    public static function getManifacurableProducts($id, $onlyActive = false)
     {
         $rec = static::fetchRec($id);
         $res = array();
@@ -1142,10 +1143,13 @@ class sales_Sales extends deals_DealMaster
         $saleQuery = sales_SalesDetails::getQuery();
         $saleQuery->where("#saleId = {$rec->id}");
         $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
-        $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
-        $saleQuery->where("#canManifacture = 'yes' AND #state = 'active'");
+        $saleQuery->where("#canManifacture = 'yes'");
+        if($onlyActive){
+            $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+            $saleQuery->where("#state = 'active'");
+        }
+
         $saleQuery->show('productId');
-        
         while ($dRec = $saleQuery->fetch()) {
             $res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, false);
         }
@@ -1425,11 +1429,10 @@ class sales_Sales extends deals_DealMaster
         $this->requireRightFor('createsaleforproduct', (object) array('folderId' => $folderId, 'productId' => $productId));
         $cover = doc_Folders::getCover($folderId);
         $fields = array('dealerId' => sales_Sales::getDefaultDealerId($folderId));
-        
+
         // Създаване на продажба и редирект към добавянето на артикула
         try {
             expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that, $fields));
-            
             redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
         } catch (core_exception_Expect $e) {
             $errorMsg = $e->getMessage();
