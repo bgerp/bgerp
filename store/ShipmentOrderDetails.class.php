@@ -236,7 +236,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     $warning = 'Цената е под себестойността';
                     if(isset($foundPrimeCost)){
                         $primeCostVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
-                        $warning = "{$warning}|*: {$primeCostVerbal}";
+                        $warning = "{$warning}|*: {$primeCostVerbal} |без ДДС|*";
                     }
                     
                     $row->packPrice = ht::createHint($row->packPrice, $warning, 'warning', false);
@@ -246,7 +246,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     if($firstDocument = doc_Threads::getFirstDocument($masterRec->threadId)){
                         if($firstDocument->isInstanceOf('sales_Sales')){
                             $firstDocumentOrigin = $firstDocument->fetchField('originId');
-                            $useQuotationPrice = isset($firstDocumentOrigin) ? true : false;
+                            $useQuotationPrice = isset($firstDocumentOrigin);
                         }
                     }
                     
