@@ -692,17 +692,24 @@ class planning_Jobs extends core_Master
     /**
      * Преди запис на документ
      *
-     * @param core_Manager $mvc
+     * @param core_Manager $зmvc
      * @param stdClass     $rec
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         // Ако заданието е към сделка и е избран департамент, да се рутира към него
         if (empty($rec->id) && isset($rec->saleId) && isset($rec->department)) {
+
+            // Ако заданието е до продажба и има избран център, рутира се до него
+            $oldThreadId = $rec->threadId;
             $rec->folderId = planning_Centers::forceCoverAndFolder($rec->department);
-            unset($rec->threadId);
-            unset($rec->containerId);
-            $mvc->route($rec);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+
+            // Обновяване на информацията за контейнера и старата нишка, че документ се е преместил оттам
+            $cRec = doc_Containers::fetch($rec->containerId);
+            $cRec->threadId = $rec->threadId;
+            doc_Containers::save($cRec, 'threadId, modifiedOn, modifiedBy');
+            doc_Threads::updateThread($oldThreadId);
         }
 
         if ($rec->isEdited === true && isset($rec->id) && $rec->_isClone !== true) {
