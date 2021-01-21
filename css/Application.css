@@ -2247,7 +2247,8 @@ pre.document {
   font-size: 0.95em; }
   .dec-document ul {
     margin-top: 5px;
-    margin-bottom: 0; }
+    margin-bottom: 0;
+    margin-left: 25px; }
     .dec-document ul li {
       padding-bottom: 10px; }
   .dec-document .richtext {
