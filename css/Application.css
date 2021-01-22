@@ -2250,10 +2250,10 @@ pre.document {
     margin-bottom: 0;
     margin-left: 25px; }
     .dec-document ul li {
-      padding-bottom: 10px; }
+      padding-bottom: 5px; }
   .dec-document .richtext {
     color: black;
-    line-height: 1em; }
+    line-height: 1.5em; }
     .dec-document .richtext ul {
       margin-left: 10px; }
   .dec-document .inner-text {
