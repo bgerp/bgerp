@@ -79,7 +79,7 @@ class drdata_type_Uic extends type_Varchar
             $msg = $isError = null;
             static::checkUicId($value, $this->params['countryId'], $msg, $isError);
 
-            if (!empty($msg)) {
+            if (!empty($msg) && !Mode::isReadOnly()) {
                 $value = "<span class='red'>{$value}</span>";
                 $icon = ($isError === true) ? 'error' : 'warning';
                 $value = ht::createHint($value, $msg, $icon);
