@@ -888,9 +888,11 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
 
-            $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
-            if(!drdata_Countries::isEu($cData->countryId, $rec->valior) && empty($rec->contragentEori)){
-                $form->setWarning('contragentEori', 'За контрагенти извън ЕС, е препоръчително да има EORI №');
+            if(isset($rec->contragentClassI) && isset($rec->contragentId)){
+                $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
+                if(!drdata_Countries::isEu($cData->countryId, $rec->valior) && empty($rec->contragentEori)){
+                    $form->setWarning('contragentEori', 'За контрагенти извън ЕС, е препоръчително да има EORI №');
+                }
             }
         }
         

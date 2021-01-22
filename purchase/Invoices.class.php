@@ -370,6 +370,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         if ($rec->type != 'dc_note') {
             // Ако източника е фирма и не е избрана фирма, забраняваме определени полета
             if ($rec->contragentSource == 'company' && empty($rec->selectedContragentId)) {
+                unset($rec->contragentName);
                 foreach (array('contragentName', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
                     $form->setReadOnly($fld);
                 }
