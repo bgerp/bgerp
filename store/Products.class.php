@@ -911,8 +911,10 @@ class store_Products extends core_Detail
            
             return new core_ET('');
         }
-        
+
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tpl->append(tr('Наличности'), 'title');
+
         if($data->masterData->rec->generic == 'yes'){
             $infoBlock = tr("Показани са наличностите на артикулите, които заместват|* <b class='green'>") . cat_Products::getTitleById($data->masterId) . "</b>";
             $infoBlock = "<div style='margin-bottom:5px'>{$infoBlock}</div>";
