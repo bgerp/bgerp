@@ -137,7 +137,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime,input=hidden,silent');
         $mvc->FLD('displayRate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime');
-        $mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
+        $mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
         $mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
         $mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
@@ -1108,6 +1108,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if ($rec->deliveryPlaceId) {
+                $row->deliveryPlaceId = crm_Locations::getHyperlink($rec->deliveryPlaceId);
                 if ($gln = crm_Locations::fetchField($rec->deliveryPlaceId, 'gln')) {
                     $row->deliveryPlaceId .= ', ' . $gln;
                 }
