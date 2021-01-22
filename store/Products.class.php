@@ -727,28 +727,31 @@ class store_Products extends core_Detail
         $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date <= '{$end}'");
         $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
         $query->where("#{$quantityField} IS NOT NULL");
-        $query->show('sourceClassId,sourceId,date,state');
+        $query->show('sourceClassId,sourceId,date');
 
         $links = '';
         while($dRec = $query->fetch()){
             $Source = cls::get($dRec->sourceClassId);
             $row = (object)array('date' => dt::mysql2verbal($dRec->date));
 
+
             // Ако източника е документ - показват се данните му
             if($Source->hasPlugin('doc_DocumentPlg')){
                 $row->link = $Source->getLink($dRec->sourceId, 0);
-                $docRec = $Source->fetch($dRec->sourceId, 'createdBy,folderId');
+                $docRec = $Source->fetch($dRec->sourceId, 'createdBy,folderId,state');
                 $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
                 $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
                 $row->createdBy = " {$folderId} | {$row->createdBy}";
+                $state = $docRec->state;
             } else {
                 // Ако източника не е документ
                 $row->link = $Source->getHyperlink($dRec->sourceId, true);
-                $createdBy = $Source->fetchField($dRec->sourceId, 'createdBy');
-                $row->createdBy = crm_Profiles::createLink($createdBy);
+                $docRec = $Source->fetch($dRec->sourceId, 'createdBy,state');
+                $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
+                $state = $docRec->state;
             }
 
-            $row->link = "<span class='state-{$dRec->state} document-handler'>{$row->link}</span>";
+            $row->link = "<span class='state-{$state} document-handler'>{$row->link}</span>";
             if($dRec->date < $today) {
                 $row->link = ht::createHint($row->link, 'Датата е в миналото', 'warning', false);
             }
