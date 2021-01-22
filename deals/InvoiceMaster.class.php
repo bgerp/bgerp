@@ -685,7 +685,11 @@ abstract class deals_InvoiceMaster extends core_Master
         if ($form->rec->template) {
             $mvc->pushTemplateLg($form->rec->template);
         }
+
+        Mode::push('htmlEntity', 'none');
         $form->setDefault('contragentName', $coverClass::getVerbal($coverId, 'name'));
+        Mode::pop('htmlEntity');
+
         if ($form->rec->template) {
             core_Lg::pop();
         }
