@@ -49,18 +49,25 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
             if (!$this->class->isAllowedToBePosted($rec, $error, true)) {
                 acc_journal_RejectRedirect::expect(false, $error);
             }
-            
+
+            $Detail = cls::get('sales_InvoiceDetails');
             $exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM');
             $productsWithoutExportParam = array();
             $onlyZeroQuantities = true;
-            $dQuery = sales_InvoiceDetails::getQuery();
+            $dQuery = $Detail->getQuery();
             $dQuery->where("#invoiceId = {$rec->id}");
-            $dQuery->show('productId,quantity');
-            
+            $dRecs = $dQuery->fetchAll();
+            if($rec->type != 'invoice'){
+                $Detail::modifyDcDetails($dRecs, $rec, $Detail);
+            }
+
             // Проверяват се всички артитули имат ли го зададен
-            while ($dRec = $dQuery->fetch()) {
+            foreach ($dRecs as $dRec) {
+                if($rec->type != 'invoice'){
+                    if ($dRec->changedQuantity !== true && $dRec->changedPrice !== true) continue;
+                }
+
                 $productArr[$dRec->productId] = $dRec->productId;
-                
                 if ($exportParamId) {
                     if (!cat_Products::getParams($dRec->productId, $exportParamId)) {
                         $productsWithoutExportParam[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
