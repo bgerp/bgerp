@@ -85,8 +85,16 @@ class bank_IncomeDocuments extends bank_Document
      * Права за плъгин-а bgerp_plg_Export
      */
     public $canExport = 'ceo, invoicer';
-    
-    
+
+
+    /**
+     * Да могат ли да се посочват документите от обединените нишки
+     *
+     * @see deals_plg_SelectInvoice
+     */
+    public $showReffContainersFromCombinedDeals = true;
+
+
     /**
      * Описание на модела
      */
