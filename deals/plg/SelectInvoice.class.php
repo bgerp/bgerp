@@ -25,7 +25,6 @@ class deals_plg_SelectInvoice extends core_Plugin
     {
         $mvc->FLD('fromContainerId', 'int', 'caption=Към,input=hidden,silent');
         $mvc->setDbIndex('fromContainerId');
-        setIfNot($mvc->showReffContainersFromCombinedDeals, false);
     }
     
     
@@ -138,8 +137,7 @@ class deals_plg_SelectInvoice extends core_Plugin
         $threadsArr = array($rec->threadId => $rec->threadId);
 
         // Ако в документа е разрешено да се показват ф-те към обединените сделки
-        if($mvc->showReffContainersFromCombinedDeals){
-            $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+        if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
             $closedDocuments = keylist::toArray($firstDocument->fetchField('closedDocuments'));
             if(countR($closedDocuments)){
                 $docQuery = $firstDocument->getQuery();

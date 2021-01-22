@@ -82,14 +82,6 @@ class bank_SpendingDocuments extends bank_Document
 
 
     /**
-     * Да могат ли да се посочват документите от обединените нишки
-     *
-     * @see deals_plg_SelectInvoice
-     */
-    public $showReffContainersFromCombinedDeals = true;
-
-
-    /**
      * Описание на модела
      */
     public function description()
