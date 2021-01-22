@@ -600,7 +600,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         if ($rec->isReverse == 'no') {
             
             // Към чернова може да се генерират проформи, а към контиран фактури
-            if ($rec->state == 'draft') {
+            if (in_array($rec->state, array('draft', 'pending'))) {
                 
                 // Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
                 if ($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")) {
