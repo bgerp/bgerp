@@ -224,13 +224,10 @@ class doc_PdfCreator extends core_Manager
                 $css .= "\n" . $styles;
             }
         }
-
-        core_Sbf::getSbfFilePath('css/pdf.css');
-        core_Sbf::getSbfFilePath('css/email.css');
-
+        
         $css .= "\n" . getFileContent('css/email.css') .
             "\n" . getFileContent('css/pdf.css');
-
+        
         return $css;
     }
     
