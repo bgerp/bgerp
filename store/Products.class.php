@@ -757,7 +757,7 @@ class store_Products extends core_Detail
             }
 
             // Подготвяне на реда с информация
-            $link = new core_ET("<div style='float:left'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
+            $link = new core_ET("<div style='float:left;padding-bottom:5px'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
             $link->placeObject($row);
             $links .= $link->getContent();
         }
