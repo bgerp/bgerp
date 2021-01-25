@@ -2058,7 +2058,6 @@ abstract class deals_Helper
                 $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
                 $foundPrice = $var->price * (1 - $var->discount);
                 
-                $diff = abs(round($price - $foundPrice, 5));
                 $price1Round = round($price, 5);
                 $price2Round = round($foundPrice, 5);
                 
@@ -2070,7 +2069,7 @@ abstract class deals_Helper
                         $obj = array();
 
                         if($i == 0 && $percent >= 0){
-                            $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantity);
+                            $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round);
                             $obj['hint'] ='Цената е под минималната за клиента';
                             $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
                             $obj['hintType'] = 'error';
@@ -2079,7 +2078,7 @@ abstract class deals_Helper
                         } 
                         
                         if($i == 1){
-                            $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantity);
+                            $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round);
                             $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
                             $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
