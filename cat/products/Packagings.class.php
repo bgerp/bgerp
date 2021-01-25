@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -138,8 +138,8 @@ class cat_products_Packagings extends core_Detail
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
-            $baseMeasureId = cat_Products::getProductInfo($rec->productId)->productRec->measureId;
+
+            $baseMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
             if ($baseMeasureId == $rec->packagingId) {
                 if ($rec->quantity != 1) {
                     $form->setError('quantity', 'Количеството не може да е различно от единица за избраната мярка/опаковка');
@@ -157,12 +157,6 @@ class cat_products_Packagings extends core_Detail
                 }
             }
             
-            // Ако за този продукт има друга основна опаковка, тя става не основна
-            if ($rec->isBase == 'yes' && $packRec = static::fetch("#productId = {$rec->productId} AND #isBase = 'yes'")) {
-                $packRec->isBase = 'no';
-                static::save($packRec, 'isBase');
-            }
-            
             if (self::allowWeightQuantityCheck($rec->productId, $rec->packagingId, $rec->id)) {
                 if ($error = self::checkWeightQuantity($rec->productId, $rec->packagingId, $rec->quantity)) {
                     $form->setError('quantity', $error);
@@ -173,6 +167,40 @@ class cat_products_Packagings extends core_Detail
                 $warning = null;
                 if (!deals_Helper::checkQuantity($baseMeasureId, $rec->quantity, $warning)) {
                     $form->setError('quantity', $warning);
+                }
+            }
+
+            $derivitiveMeasures = cat_UoM::getSameTypeMeasures($baseMeasureId);
+            $packagingRec = cat_UoM::fetch($rec->packagingId);
+            if($packagingRec->type == 'uom'){
+
+                if(!array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                    $packagingBaseUomId = ($packagingRec->baseUnitId) ? $packagingRec->baseUnitId : $packagingRec->id;
+
+                    // Ако артикула има вече избрана друга различна мярка
+                    $query = static::getQuery();
+                    $query->where("#productId = {$rec->productId} AND #id != '{$rec->id}'");
+                    $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                    $query->EXT('name', 'cat_UoM', 'externalName=name,externalKey=packagingId');
+                    $query->EXT('baseUnitId', 'cat_UoM', 'externalName=baseUnitId,externalKey=packagingId');
+                    $query->XPR('baseUnitIdNorm', 'int', "COALESCE(#baseUnitId, #packagingId)");
+                    $query->notIn('packagingId', array_keys($derivitiveMeasures));
+                    $query->where("#type = 'uom' AND #baseUnitIdNorm != {$packagingBaseUomId}");
+                    $query->show('id');
+                    $query->groupBy('baseUnitIdNorm');
+
+                    if($query->fetch()){
+                        $form->setError('packagingId', 'Артикулът не може да има трета независима мярка');
+                    }
+                }
+            }
+
+            if(!$form->gotErrors()){
+
+                // Ако за този продукт има друга основна опаковка, тя става не основна
+                if ($rec->isBase == 'yes' && $packRec = static::fetch("#productId = {$rec->productId} AND #isBase = 'yes'")) {
+                    $packRec->isBase = 'no';
+                    static::save($packRec, 'isBase');
                 }
             }
         }
