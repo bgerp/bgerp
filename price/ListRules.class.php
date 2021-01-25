@@ -879,7 +879,7 @@ class price_ListRules extends core_Detail
             if ($priority == 1) {
                 $fields['domain'] = 'Артикул';
                 if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                    $toolbar->addBtn('Стойност', array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority,'ret_url' => true), null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
+                    $toolbar->addBtn('Стойност', array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority, 'ret_url' => getRetUrl()), null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
                 }
             } else {
                 $fields['domain'] = 'Група';
@@ -889,7 +889,7 @@ class price_ListRules extends core_Detail
             if ($masterRec->parent) {
                 if ($priority == 1) {
                     if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                        $toolbar->addBtn('Продуктов марж', array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority, 'ret_url' => true), null, 'title=Задаване на правило с % за артикул,ef_icon=img/16/tag.png');
+                        $toolbar->addBtn('Продуктов марж', array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority, 'ret_url' => getRetUrl()), null, 'title=Задаване на правило с % за артикул,ef_icon=img/16/tag.png');
                     }
                 } else {
                     if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {

@@ -126,10 +126,8 @@ class cat_products_PriceDetails extends core_Manager
             $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $data->masterData->rec->proto, null, $now, $validFrom);
             $primeCostIsFromTemplate = true;
         }
-        
-        if (isset($primeCost)) {
-            $primeCostDate = $validFrom;
-        }
+
+        $primeCostDate = (isset($primeCost)) ? $validFrom : null;
         
         $catalogListId = cat_Setup::get('DEFAULT_PRICELIST');
         $catalogCost = price_ListRules::getPrice($catalogListId, $data->masterId, null, $now, $validFrom);
@@ -145,7 +143,8 @@ class cat_products_PriceDetails extends core_Manager
         if (isset($catalogCost)) {
             $catalogCostDate = $validFrom;
         }
-        
+
+        $futurePrimeCostDate = null;
         $lQuery = price_ListRules::getQuery();
         $lQuery->where("#listId = {$primeCostListId} AND #type = 'value' AND #productId = {$data->masterId} AND #validFrom > '{$now}'");
         $lQuery->orderBy('validFrom', 'ASC');
@@ -208,7 +207,7 @@ class cat_products_PriceDetails extends core_Manager
                 $threadId = price_Lists::fetchField(price_ListRules::PRICE_LIST_COST, 'threadId');
                 
                 if (doc_Threads::haveRightFor('single', $threadId)) {
-                    $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
+                    $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId, 'ret_url' => true));
                 }
                 
                 $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($primeCost);
@@ -261,7 +260,7 @@ class cat_products_PriceDetails extends core_Manager
             $threadId = price_Lists::fetchField($catalogListId, 'threadId');
             
             if (doc_Threads::haveRightFor('single', $threadId)) {
-                $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
+                $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId, 'ret_url' => true));
             }
             
             // Ако каталожната цена е от прототипа, показва се тази информация
@@ -282,7 +281,7 @@ class cat_products_PriceDetails extends core_Manager
                 $type = tr('Политика|* "' . price_Lists::getTitleById($minListId) . '"');
                 $threadId = price_Lists::fetchField($minListId, 'threadId');
                 if (doc_Threads::haveRightFor('single', $threadId)) {
-                    $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
+                    $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId, 'ret_url' => true));
                 }
 
                 $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($minCost);
