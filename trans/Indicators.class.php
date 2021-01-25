@@ -159,8 +159,8 @@ class trans_Indicators extends core_BaseClass
         $details = array();
         
         $detQuery = trans_LineDetails::getQuery();
-        $detQuery->EXT('modifiedOn', trans_Lines, "externalName=modifiedOn,externalKey=lineId");
-        $detQuery->EXT('start', trans_Lines, "externalName=start,externalKey=lineId");
+        $detQuery->EXT('modifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
+        $detQuery->EXT('start', 'trans_Lines', "externalName=start,externalKey=lineId");
         $detQuery->where("#start >= '{$from}'");
         $detQuery->where("#modifiedOn >= '{$timeline}'");
         
