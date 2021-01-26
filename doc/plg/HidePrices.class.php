@@ -92,7 +92,16 @@ class doc_plg_HidePrices extends core_Plugin
                 return true;
             }
         }
-        
+
+        // Ако документа е нишка на продажба и тя е с видими цени да се показват
+        if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+            if($firstDocument->isInstanceOf('sales_Sales')){
+                $visiblePricesByAllInThread = $firstDocument->fetchField('visiblePricesByAllInThread');
+
+                return ($visiblePricesByAllInThread == 'yes');
+            }
+        }
+
         // Ако горните не са изпълнени, потребителя няма право да вижда цените/сумите по документите
         return false;
     }
@@ -191,7 +200,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if (self::canSeePriceFields($data->masterRec)){
+        if (isset($data->masterRec) && self::canSeePriceFields($data->masterRec)){
             
             return;
         }
