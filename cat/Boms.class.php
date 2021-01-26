@@ -578,9 +578,13 @@ class cat_Boms extends core_Master
         
         if ($action == 'add' && isset($rec->originId)) {
             $origin = doc_Containers::getDocument($rec->originId);
+            $threadId = $origin->fetchField('threadId');
+
             if($origin->isInstanceOf('planning_Tasks')){
                 $res = 'no_one';
             } elseif(in_array($origin->fetchField('state'), array('draft', 'rejected'))) {
+                $res = 'no_one';
+            } elseif(!doc_Threads::haveRightFor('single', $threadId)){
                 $res = 'no_one';
             }
         }
