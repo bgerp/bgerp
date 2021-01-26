@@ -1528,26 +1528,4 @@ class planning_Jobs extends core_Master
 
         return $res;
     }
-
-
-    /**
-     * Коя е дефолт папката за нови записи
-     */
-    public function getDefaultFolder($userId = null)
-    {
-        // Дефолтната папка е последната в която е създадено задание от потребителя
-        $userId = isset($userId) ? $userId : core_Users::getCurrent();
-        $query = planning_Jobs::getQuery();
-        $query->where("#createdBy = {$userId} AND #department IS NOT NULL");
-        $query->orderBy('createdOn', 'DESC');
-
-        while($rec = $query->fetch()){
-            if(doc_Folders::haveRightToFolder($rec->folderId, $userId)){
-
-                return $rec->folderId;
-            }
-        }
-
-        return null;
-    }
 }

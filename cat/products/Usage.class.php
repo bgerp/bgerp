@@ -298,7 +298,30 @@ class cat_products_Usage extends core_Manager
         
         // Проверяваме можем ли да добавяме нови задания
         if ($data->Jobs->haveRightFor('add', (object) array('productId' => $data->masterId))) {
-            $data->addUrl = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'ret_url' => true);
+            $defaultFolderId = $this->getJobDefaultFolder($data->masterId);
+            $data->addUrl = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'defaultFolderId' => $defaultFolderId, 'ret_url' => true);
         }
+    }
+
+
+    /**
+     * Коя е дефолтната папка за ново задание
+     */
+    private function getJobDefaultFolder($productId, $userId = null)
+    {
+        // Дефолтната папка е последната в която е създадено задание от потребителя
+        $userId = isset($userId) ? $userId : core_Users::getCurrent();
+        $query = planning_Jobs::getQuery();
+        $query->where("#createdBy = {$userId} AND #productId = '{$productId}' AND #department IS NOT NULL");
+        $query->orderBy('createdOn', 'DESC');
+
+        while($rec = $query->fetch()){
+            if(doc_Folders::haveRightToFolder($rec->folderId, $userId)){
+
+                return $rec->folderId;
+            }
+        }
+
+        return null;
     }
 }
