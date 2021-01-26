@@ -306,17 +306,19 @@ class cat_products_Usage extends core_Manager
 
     /**
      * Коя е дефолтната папка за ново задание
+     *
+     * @param int $productId
+     * @return int|null
      */
-    private function getJobDefaultFolder($productId, $userId = null)
+    private function getJobDefaultFolder($productId)
     {
         // Дефолтната папка е последната в която е създадено задание от потребителя
-        $userId = isset($userId) ? $userId : core_Users::getCurrent();
         $query = planning_Jobs::getQuery();
-        $query->where("#createdBy = {$userId} AND #productId = '{$productId}' AND #department IS NOT NULL");
+        $query->where("#productId = '{$productId}' AND #department IS NOT NULL");
         $query->orderBy('createdOn', 'DESC');
 
         while($rec = $query->fetch()){
-            if(doc_Folders::haveRightToFolder($rec->folderId, $userId)){
+            if(doc_Folders::haveRightToFolder($rec->folderId)){
 
                 return $rec->folderId;
             }
