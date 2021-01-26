@@ -674,7 +674,7 @@ class blast_ListDetails extends doc_Detail
             } else {
                 $csvRows = $csv;
             }
-            
+
             // Ако първия ред са имена на колони - махаме ги
             if ($exp->getValue('#firstRow') == 'columnNames') {
                 unset($csvRows[0]);
@@ -1172,6 +1172,11 @@ class blast_ListDetails extends doc_Detail
                     
                     // Ако е продажба или покупка, филтрирам по държава, ако е зададено, защото не е направено със заявката
                     if ((($docType == 'sales_Sales') || ($docType == 'purchase_Purchases')) && (($countriesInclude || $countriesExlude))) {
+                        if (!cls::load($rec->contragentClassId, true)) {
+
+                            continue;
+                        }
+
                         $contragentCountry = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
 
                         if ($countriesInclude) {
@@ -1268,7 +1273,11 @@ class blast_ListDetails extends doc_Detail
                     if (!$name) {
                         $name = $cInstRec->name;
                     }
-                    
+
+                    $email = '"' . $email . '"';
+                    $name = '"' . $name . '"';
+                    $countryName = '"' . $countryName . '"';
+
                     $csvArr[] = $email . ',' . $name . ',' . $countryName;
                 }
             } else {
@@ -1354,6 +1363,10 @@ class blast_ListDetails extends doc_Detail
                     if ($rec->country) {
                         $countryName = marketing_Inquiries2::getVerbal($rec, 'country');
                     }
+
+                    $email = '"' . $email . '"';
+                    $name = '"' . $name . '"';
+                    $countryName = '"' . $countryName . '"';
                     
                     $csvArr[] = $email . ',' . $name . ',' . $countryName;
                 }
@@ -1361,7 +1374,7 @@ class blast_ListDetails extends doc_Detail
         }
 
         core_Lg::pop();
-        
+
         return $csvArr;
     }
     
