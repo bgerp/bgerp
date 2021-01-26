@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -36,7 +36,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, deals_plg_SaveValiorOnActivation, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
+    public $loadList = 'plg_RowTools2, deals_plg_SaveValiorOnActivation, store_plg_StockPlanning, store_plg_StoreFilter, planning_Wrapper, acc_plg_DocumentSummary, acc_plg_Contable,
                     doc_DocumentPlg, plg_Printing, plg_Clone, plg_Sorting,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
     
     
@@ -44,8 +44,17 @@ class planning_ReturnNotes extends deals_ManifactureMaster
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'storeId,note';
-    
-    
+
+
+    /**
+     * До потребители с кои роли може да се споделя документа
+     *
+     * @var string
+     * @see store_StockPlanning
+     */
+    public $stockPlanningDirection = 'in';
+
+
     /**
      * Кой има право да чете?
      */
