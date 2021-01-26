@@ -274,7 +274,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $jQuery->show('productId,quantityProduced');
         while ($jRec = $jQuery->fetch()) {
             $pRec = cat_products::fetch($jRec->productId, 'name,code,isPublic,measureId,canStore,nameEn');
-            $inStock = ($pRec->canStore == 'yes') ? store_Products::getQuantities($jRec->productId)->free : null;
+            $inStock = ($pRec->canStore == 'yes') ? store_Products::getQuantities($jRec->productId)->quantity : null;
             $inStock = core_Type::getByName('double(smartRound)')->toVerbal($inStock) . ' ' . cat_UoM::getShortName($pRec->measureId);
             $produced = core_Type::getByName('double(smartRound)')->toVerbal($jRec->quantityProduced);
             $arr[] = array('job' => planning_Jobs::getLink($jRec->id), 'inStock' => $inStock, 'produced' => $produced);
