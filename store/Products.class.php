@@ -573,6 +573,18 @@ class store_Products extends core_Detail
                 }
             }
 
+            if(!empty($rec->freeQuantity) && !isset($rec->reservedQuantity) && !isset($rec->expectedQuantity)){
+                $row->freeQuantity = "<span class='lighterColor'>{$row->freeQuantity}</span>";
+            }
+
+            if(!empty($rec->freeQuantityMin) && !isset($rec->reservedQuantityMin) && !isset($rec->expectedQuantityMin)){
+                $row->freeQuantityMin = "<span class='lighterColor'>{$row->freeQuantity}</span>";
+            }
+
+            if(!empty($rec->resultDiff) && !isset($rec->reservedOut) && !isset($rec->expectedIn)){
+                $row->resultDiff = "<span class='lighterColor'>{$row->resultDiff}</span>";
+            }
+
             $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
             $date = dt::mysql2verbal($dateMin, 'd.m.Y');
             $row->freeQuantityMin = ht::createHint($row->freeQuantityMin, $date,'img/16/calendar_1.png', true, 'height=12px,width=12px');
