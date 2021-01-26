@@ -51,8 +51,14 @@ class purchase_Offers extends core_Master
      * Заглавие
      */
     public $title = 'Оферти за покупки';
-    
-    
+
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'purchase/tpl/SingleLayoutOffer.shtml';
+
+
     /**
      * Плъгини за зареждане
      */

@@ -1945,6 +1945,9 @@ td.rowtools-column {
 .horizonCol {
   font-size: 0.85em; }
 
+.lighterColor {
+  opacity: 0.6; }
+
 .listAction table.listTable>tbody>tr>td,
 table.listTable.listAction>tbody>tr>td.wideColumn {
   max-width: none !important; }
