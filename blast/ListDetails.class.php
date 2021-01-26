@@ -1090,11 +1090,11 @@ class blast_ListDetails extends doc_Detail
         }
         
         $allEmailArr = array();
-        
+
         foreach ($documentTypeArr as $docType) {
             $docType = cls::get($docType)->className;
             $getFromNextEmail = false;
-            
+
             if ($docType == 'sales_Sales' || $docType == 'sales_Quotations' || $docType == 'purchase_Purchases') {
                 $getFromNextEmail = true;
                 
@@ -1147,7 +1147,7 @@ class blast_ListDetails extends doc_Detail
                         }
                     }
                 }
-                
+
                 // Филтрираме по дата
                 if ($docFrom || $docTo) {
                     $query->EXT('masterCreatedOn', $masterClass, "externalName=createdOn,externalKey={$docDetailsInst->masterKey}");
@@ -1166,14 +1166,14 @@ class blast_ListDetails extends doc_Detail
                 
                 $query->EXT('containerId', $masterClass, "externalName=containerId,externalKey={$docDetailsInst->masterKey}");
                 $query->EXT('folderId', $masterClass, "externalName=folderId,externalKey={$docDetailsInst->masterKey}");
-                
+
                 while ($rec = $query->fetch()) {
                     $name = '';
                     
-                    // Ако е продажба, филтрирам по държава, ако е зададено, защото не е направено със заявката
-                    if (($docType == 'sales_Sales') && (($countriesInclude || $countriesExlude))) {
+                    // Ако е продажба или покупка, филтрирам по държава, ако е зададено, защото не е направено със заявката
+                    if ((($docType == 'sales_Sales') || ($docType == 'purchase_Purchases')) && (($countriesInclude || $countriesExlude))) {
                         $contragentCountry = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
-                        
+
                         if ($countriesInclude) {
                             if (!$contragentCountry) {
                                 continue;
@@ -1259,7 +1259,7 @@ class blast_ListDetails extends doc_Detail
                     }
                     
                     $allEmailArr[$email] = $email;
-                    
+
                     $countryName = '';
                     if ($cInstRec && $cInstRec->country) {
                         $countryName = $cInst->getVerbal($cInstRec, 'country');
@@ -1359,7 +1359,7 @@ class blast_ListDetails extends doc_Detail
                 }
             }
         }
-        
+
         core_Lg::pop();
         
         return $csvArr;
