@@ -181,7 +181,6 @@ class cat_products_Packagings extends core_Detail
                     $query = static::getQuery();
                     $query->where("#productId = {$rec->productId} AND #id != '{$rec->id}'");
                     $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-                    $query->EXT('name', 'cat_UoM', 'externalName=name,externalKey=packagingId');
                     $query->EXT('baseUnitId', 'cat_UoM', 'externalName=baseUnitId,externalKey=packagingId');
                     $query->XPR('baseUnitIdNorm', 'int', "COALESCE(#baseUnitId, #packagingId)");
                     $query->notIn('packagingId', array_keys($derivitiveMeasures));
@@ -205,8 +204,36 @@ class cat_products_Packagings extends core_Detail
             }
         }
     }
-    
-    
+
+
+    /**
+     * Коя е втората основна мярка на артикула
+     *
+     * @param $productId
+     * @return null
+     */
+    public static function getSecondMeasureId($productId)
+    {
+        // Ако артикула има вече избрана друга различна мярка
+        $productMeasureId = cat_Products::fetchField($productId, 'measureId');
+        $productMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
+
+        $query = static::getQuery();
+        $query->where("#productId = {$productId}");
+        $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        $query->EXT('baseUnitId', 'cat_UoM', 'externalName=baseUnitId,externalKey=packagingId');
+        $query->XPR('baseUnitIdNorm', 'int', "COALESCE(#baseUnitId, #packagingId)");
+        $query->notIn('packagingId', array_keys($productMeasures));
+        $query->where("#type = 'uom'");
+        $query->groupBy('baseUnitIdNorm');
+        $query->show('baseUnitIdNorm');
+
+        $rec = $query->fetch();
+
+        return is_object($rec) ? $rec->baseUnitIdNorm : null;
+    }
+
+
     /**
      * Колко опаковки от същия вид има артикула
      *

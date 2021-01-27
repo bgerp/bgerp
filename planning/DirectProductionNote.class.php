@@ -321,19 +321,25 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             // Ако има избрана опаковка
             if(isset($rec->packagingId)){
                 $additionalMeasures = cat_Products::getPacks($rec->productId, true);
-                $similarMeasures = cat_UoM::getSameTypeMeasures($rec->packagingId);
-               
+
+                // Ако е опаковка и има други мерки различно от основната избират се те
+                $packType = cat_UoM::fetchField($rec->packagingId, 'type');
+                if($packType == 'uom'){
+                    $similarMeasures = cat_UoM::getSameTypeMeasures($rec->packagingId);
+                } else {
+                    $similarMeasures = cat_UoM::getSameTypeMeasures($productRec->measureId);
+                }
+
                 // От допълнителните мерки махам подобните на тези от главната опаковка/мярка
                 unset($similarMeasures['']);
                 unset($additionalMeasures[$rec->packagingId]);
                 $additionalMeasures = array_diff_key($additionalMeasures, $similarMeasures);
                 $additionalMeasureCount = countR($additionalMeasures);
-                
+
                 // Показване на избор на допълнителната мярка
                 if($additionalMeasureCount){
                     $form->setField('additionalMeasureQuantity', 'input');
                     $secondMeasureId = key($additionalMeasures);
-                    
                     if($additionalMeasureCount == 1){
                         $form->setField('additionalMeasureId', 'input=hidden');
                         $form->setField('additionalMeasureQuantity', "unit=" . cat_UoM::getShortName($secondMeasureId));
@@ -402,14 +408,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } else {
                 $rec->dealId = null;
             }
-            
+
+            $measureDerivities = cat_Uom::getSameTypeMeasures($productInfo->productRec->measureId);
+
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-            //if(!empty($rec->additionalMeasureId) && !empty($rec->additionalMeasureQuantity)){
-                //if($rec->additionalMeasureId == $productInfo->productRec->measureId){
-                    //$rec->quantityInPack = $rec->additionalMeasureQuantity / $rec->packQuantity;
-                //}
-            //}
-            
+            if(!empty($rec->additionalMeasureId) && !empty($rec->additionalMeasureQuantity)){
+
+                if(array_key_exists($rec->additionalMeasureId, $measureDerivities)){
+                    $additionalMeasureQuantity = cat_UoM::convertToBaseUnit($rec->additionalMeasureQuantity, $rec->additionalMeasureId);
+                    $rec->quantityInPack = $additionalMeasureQuantity / $rec->packQuantity;
+                }
+            }
+
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
         }
     }
@@ -440,7 +450,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         $row->subTitle = (isset($rec->storeId)) ? 'Засклаждане на продукт' : 'Производство на услуга';
         $row->subTitle = tr($row->subTitle);
-        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+
+        $quantityInPack = $rec->quantityInPack;
+        if(!empty($rec->additionalMeasureId)){
+            if($rec->additionalMeasureId == $productRec->measureId){
+
+                // Ако втората мярка е основната показваме оригиналното к-во в опаковка
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+                $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
+                $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще отчетено в производството");
+            }
+        }
+
+        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $quantityInPack);
         
         if (isset($rec->inputStoreId)) {
             $row->inputStoreId = store_Stores::getHyperlink($rec->inputStoreId, true);

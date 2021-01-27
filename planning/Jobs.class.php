@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureId,secondMeasureCoefficient';
 
 
     /**
@@ -239,7 +239,11 @@ class planning_Jobs extends core_Master
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Планирано,input=none');
-        
+
+        $this->FLD('secondMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Мярка', 'input=none');
+        $this->FLD('secondMeasureCoefficient', 'double(smartRound)', 'input=none,notNull,value=1');
+        $this->FLD('secondMeasureQuantity', 'double(decimals=2)', 'caption=Втора мярка->К-во,input=none');
+
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
@@ -867,11 +871,17 @@ class planning_Jobs extends core_Master
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
 
-            $sumAdditionalMeasure = $mvc->sumAdditionalMeasure($rec);
-            if(is_object($sumAdditionalMeasure)){
-                $additionalQuantityVerbal  = $Double->toVerbal($sumAdditionalMeasure->sumSecondMeasure);
-                $additionalMeasureName = cat_UoM::getShortName($sumAdditionalMeasure->secondMeasureId);
+            if(!empty($rec->secondMeasureId)){
+                $additionalQuantityVerbal  = $Double->toVerbal($rec->secondMeasureQuantity);
+                $additionalMeasureName = cat_UoM::getShortName($rec->secondMeasureId);
+
+                $measureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
+                $coefficientVerbal = core_Type::getByName('double')->toVerbal($rec->secondMeasureCoefficient);
+                $hint = "{$coefficientVerbal} " . tr('за') . " 1 {$measureName}";
+                $additionalMeasureName = ht::createHint($additionalMeasureName, $hint);
+
                 $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$additionalQuantityVerbal} {$additionalMeasureName}) </span>";
+
             }
 
             if(!empty($rec->deliveryTermId)){
@@ -888,33 +898,8 @@ class planning_Jobs extends core_Master
             unset($row->quantityNotStored);
         }
     }
-    
-    
-    /**
-     * Сумиране на втората мярка
-     * 
-     * @param stdClass $rec
-     * @return false|stdClass $res
-     */
-    private function sumAdditionalMeasure($rec)
-    {
-        $res = (object)array('secondMeasures' => array());
-        $noteQuery = self::getJobProductionNotesQuery($rec);
-        while($noteRec = $noteQuery->fetch()){
-            if(empty($noteRec->additionalMeasureQuantity)) return false;
-            
-            $res->sumSecondMeasure += $noteRec->additionalMeasureQuantity;
-            $res->secondMeasures[$noteRec->additionalMeasureId] = $noteRec->additionalMeasureId;
-        }
-        
-        if(countR($res->secondMeasures) != 1) return false;
-        
-        $res->secondMeasureId = key($res->secondMeasures);
-        
-        return $res;
-        
-    }
-    
+
+
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
@@ -1140,8 +1125,7 @@ class planning_Jobs extends core_Master
         $noteQuery = planning_DirectProductionNote::getQuery();
         $noteQuery->in("originId", $containerIds);
         $noteQuery->where("#state = 'active' AND #productId = {$rec->productId}");
-        $noteQuery->show('quantity,additionalMeasureId,additionalMeasureQuantity');
-        
+
         return $noteQuery;
     }
     
@@ -1158,10 +1142,41 @@ class planning_Jobs extends core_Master
         $me = cls::get(get_called_class());
         $rec = static::fetch("#containerId = {$containerId}");
         $noteQuery = self::getJobProductionNotesQuery($rec);
-        $totalQuantity = arr::sumValuesArray($noteQuery->fetchAll(), 'quantity');
+        $allRecs = $noteQuery->fetchAll();
+
+        $totalQuantity = arr::sumValuesArray($allRecs, 'quantity');
         $rec->quantityProduced = empty($totalQuantity) ? 0 : $totalQuantity;
 
-        $me->save_($rec, 'quantityProduced');
+        $saveFields = 'quantityProduced';
+        if($secondMeasureId = cat_products_Packagings::getSecondMeasureId($rec->productId)) {
+            $secondMeasureDerivities = cat_UoM::getSameTypeMeasures($secondMeasureId);
+            unset($secondMeasureDerivities['']);
+
+            $secondMeasureArr = array();
+            foreach($allRecs as $noteRec){
+                if(array_key_exists($noteRec->packagingId, $secondMeasureDerivities)){
+                    $secondMeasureArr[$secondMeasureId]['quantity'] += cat_UoM::convertToBaseUnit($noteRec->packQuantity, $noteRec->packagingId);
+                    $secondMeasureArr[$secondMeasureId]['baseQuantity'] += $noteRec->quantity;
+                } elseif(array_key_exists($noteRec->additionalMeasureId, $secondMeasureDerivities)){
+                    $secondMeasureArr[$secondMeasureId]['quantity'] += cat_UoM::convertToBaseUnit($noteRec->additionalMeasureQuantity, $noteRec->additionalMeasureId);
+                    $secondMeasureArr[$secondMeasureId]['baseQuantity'] += $noteRec->quantity;
+                }
+            }
+
+            $saveFields .= ',secondMeasureId,secondMeasureCoefficient,secondMeasureQuantity';
+            if(isset($secondMeasureArr[$secondMeasureId])){
+                $coefficient = round($secondMeasureArr[$secondMeasureId]['baseQuantity'] / $secondMeasureArr[$secondMeasureId]['quantity'], 5);
+                $rec->secondMeasureId = $secondMeasureId;
+                $rec->secondMeasureCoefficient = $coefficient;
+                $rec->secondMeasureQuantity = $secondMeasureArr[$secondMeasureId]['quantity'];
+            } else {
+                $rec->secondMeasureId = null;
+                $rec->secondMeasureQuantity = null;
+                $rec->secondMeasureCoefficient = null;
+            }
+        }
+
+        $me->save_($rec, $saveFields);
         $me->touchRec($rec);
     }
     
