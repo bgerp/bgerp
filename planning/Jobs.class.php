@@ -986,13 +986,6 @@ class planning_Jobs extends core_Master
             $res = 'no_one';
         }
         
-        // Ако потрбителя няма достъп до сингъла на артикула, не може да модифицира заданията към артикула
-        if (($action == 'add' || $action == 'delete') && isset($rec->productId) && $res != 'no_one') {
-            if (!cat_Products::haveRightFor('single', $rec->productId)) {
-                $res = 'no_one';
-            }
-        }
-        
         // Само спрените могат да се променят
         if ($action == 'changerec' && isset($rec)) {
             if ($rec->state != 'stopped') {
