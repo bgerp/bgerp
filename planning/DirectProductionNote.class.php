@@ -11,7 +11,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -207,8 +207,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         
         $this->setField('note', 'caption=Информация->Бележки,after=deadline');
         $this->FLD('equalizePrimeCost', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Изравняване на сб-ст,notNull,value=yes,after=deadline,autohide=any');
-
-
 
         $this->setDbIndex('productId');
     }
@@ -963,6 +961,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * Създаване на протокол за производство на артикул
      * Ако може след създаването ще зареди артикулите от активната рецепта и/или задачите
      *
+     * @throws core_exception_Expect
      * @param int       $jobId     - ид на задание
      * @param int       $productId - ид на артикул
      * @param float     $quantity  - к-во за произвеждане
@@ -973,6 +972,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      *                         ['expenses']      - режийни разходи
      *                         ['batch']         - партиден номер
      *                         ['inputStoreId']  - дефолтен склад за влагане
+     * @return int
      */
     public static function createDraft($jobId, $productId, $quantity, $valior = null, $fields = array())
     {
@@ -1037,6 +1037,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * АПИ метод за добавяне на детайл към протокол за производство
      *
+     * @throws core_exception_Expect
      * @param int      $id             - ид на артикул
      * @param int      $productId      - ид на продукт
      * @param int      $packagingId    - ид на опаковка
@@ -1044,6 +1045,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      * @param float    $quantityInPack - к-во в опаковка
      * @param bool     $isWaste        - дали е отпадък или не
      * @param int|NULL $storeId        - ид на склад, или NULL ако е от незавършеното производство
+     * @return void
      */
     public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $isWaste = false, $storeId = null)
     {

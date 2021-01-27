@@ -560,7 +560,6 @@ class planning_Jobs extends core_Master
             $query = self::getQuery();
             $query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
             $query->groupBy('sFolderId');
-            
             $query->where('#saleId IS NOT NULL');
             $query->show('sFolderId');
             
@@ -581,7 +580,6 @@ class planning_Jobs extends core_Master
     public function renderSingle_($data)
     {
         $tpl = parent::renderSingle_($data);
-        
         $tpl->push('planning/tpl/styles.css', 'CSS');
         
         // Рендираме историята на действията със заданието
@@ -698,7 +696,7 @@ class planning_Jobs extends core_Master
     /**
      * Преди запис на документ
      *
-     * @param core_Manager $зmvc
+     * @param core_Mvc $mvc
      * @param stdClass     $rec
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
@@ -876,12 +874,10 @@ class planning_Jobs extends core_Master
                 $additionalMeasureName = cat_UoM::getShortName($rec->secondMeasureId);
 
                 $measureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
-                $coefficientVerbal = core_Type::getByName('double')->toVerbal($rec->secondMeasureCoefficient);
+                $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->secondMeasureCoefficient);
                 $hint = "{$coefficientVerbal} " . tr('за') . " 1 {$measureName}";
                 $additionalMeasureName = ht::createHint($additionalMeasureName, $hint);
-
                 $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$additionalQuantityVerbal} {$additionalMeasureName}) </span>";
-
             }
 
             if(!empty($rec->deliveryTermId)){
@@ -1060,7 +1056,6 @@ class planning_Jobs extends core_Master
         }
         
         $data->row->history = array_reverse($data->row->history, true);
-        
         $data->packagingData = new stdClass();
         $data->packagingData->masterMvc = cls::get('cat_Products');
         $data->packagingData->masterId = $data->rec->productId;
