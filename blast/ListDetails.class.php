@@ -1322,17 +1322,35 @@ class blast_ListDetails extends doc_Detail
                     $query->where(array("#coverClass = '[#1#]'", $clsId = $contragentType::getClassId()));
                 }
 
-                // Ако има зададена група, филтрираме по нея
-                $catGroupsWhere = '';
+                // Ако има зададена група, извличаме всичките и филтрираме по тях
+                $prodArr = false;
                 if ($groupIds) {
                     $groupIdsArr = type_Keylist::toArray($groupIds);
                     if (!empty($groupIdsArr)) {
-                        $catGroupsWhere = '';
+
+                        $prodArr = array();
+
                         foreach ($groupIdsArr as $gId) {
                             $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
                         }
+
+                        $prodQuery = cat_Products::getQuery();
+                        $prodQuery->where($catGroupsWhere);
+                        $prodQuery->where("#state != 'rejected'");
+                        $prodQuery->where("#originId IS NOT NULL");
+
+                        $prodQuery->show('originId');
+
+                        while ($prodRec = $prodQuery->fetch()) {
+                            if (!$prodRec->originId) {
+                                continue;
+                            }
+
+                            $prodArr[$prodRec->originId] = $prodRec->originId;
+                        }
                     }
                 }
+
                 while ($rec = $query->fetch()) {
                     $email = trim($rec->email);
                     
@@ -1344,9 +1362,9 @@ class blast_ListDetails extends doc_Detail
                         continue;
                     }
 
-                    // Гледаме дали е в някоя група от зададените
-                    if ($catGroupsWhere) {
-                        if (!cat_Products::fetch("(#originId = '{$rec->containerId}') AND ({$catGroupsWhere})")) {
+                    if ($prodArr !== false) {
+                        if (!isset($prodArr[$rec->containerId])) {
+
                             continue;
                         }
                     }
