@@ -559,9 +559,7 @@ class store_Products extends core_Detail
         $today = dt::today();
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
-
             $title = 'От кои документи е сформирано количеството';
-            wp($rec);
 
             foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'reservedOut', 'expectedIn') as $type){
                 if (!empty($rec->{$type})) {
