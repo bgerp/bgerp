@@ -874,8 +874,10 @@ class planning_Jobs extends core_Master
                 $additionalMeasureName = cat_UoM::getShortName($rec->secondMeasureId);
 
                 $measureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
+                $secondMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
+
                 $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->secondMeasureCoefficient);
-                $hint = "{$coefficientVerbal} " . tr('за') . " 1 {$measureName}";
+                $hint = " 1 {$secondMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
                 $additionalMeasureName = ht::createHint($additionalMeasureName, $hint);
                 $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$additionalQuantityVerbal} {$additionalMeasureName}) </span>";
             }

@@ -456,7 +456,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 // Ако втората мярка е основната показваме оригиналното к-во в опаковка
                 $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
                 $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
-                $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще отчетено в производството");
+                $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще се отчете в производството");
             }
         }
 
