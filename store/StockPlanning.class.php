@@ -300,8 +300,8 @@ class store_StockPlanning extends core_Manager
         // Каква ще е наличността към датата
         $query = static::getQuery();
         $query->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
-        $query->XPR('totalOut', 'double', "ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
-        $query->XPR('totalIn', 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
+        $query->XPR('totalOut', 'double', "SUM(COALESCE(#quantityOut, 0))");
+        $query->XPR('totalIn', 'double', "SUM(COALESCE(#quantityIn, 0))");
         $query->where("#date <= '{$date}' AND #generic = 'no'");
         $query->groupBy('productId,storeId');
         $query->show('productId,totalOut,totalIn,storeId');
@@ -316,7 +316,7 @@ class store_StockPlanning extends core_Manager
 
         $res = array();
         while($rec = $query->fetch()){
-            $res[$rec->storeId][$rec->productId] = (object)array('productId' => $rec->productId, 'storeId' => $rec->storeId, 'reserved' => $rec->totalOut, 'expected' => $rec->totalIn);
+            $res[$rec->storeId][$rec->productId] = (object)array('productId' => $rec->productId, 'storeId' => $rec->storeId, 'reserved' => round($rec->totalOut, 4), 'expected' => round($rec->totalIn, 4));
         }
 
         return $res;
