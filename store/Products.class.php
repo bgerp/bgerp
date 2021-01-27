@@ -561,6 +561,8 @@ class store_Products extends core_Detail
             $rec = $data->recs[$id];
 
             $title = 'От кои документи е сформирано количеството';
+            wp($rec);
+
             foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'reservedOut', 'expectedIn') as $type){
                 if (!empty($rec->{$type})) {
                     $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? $rec->dateMin : $data->horizon);
