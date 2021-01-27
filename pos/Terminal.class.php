@@ -1934,11 +1934,12 @@ class pos_Terminal extends peripheral_Terminal
         $productClassId = cat_Products::getClassId();
         
         $Policy = cls::get('price_ListToCustomers');
-        $listId = pos_Points::fetchField($rec->pointId, 'policyId');
+        $listId = pos_Points::getSettings($rec->pointId, 'policyId');
+
         if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
             $listId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
-        
+
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
                 $packId = $pRec->packId;
