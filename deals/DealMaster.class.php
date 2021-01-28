@@ -2417,6 +2417,16 @@ abstract class deals_DealMaster extends deals_DealBase
             $entries = $TransactionClassName::getEntries($rec->id);
             $shipped = ($mvc instanceof sales_Sales) ? $TransactionClassName::getShippedProducts($entries, '321') : $TransactionClassName::getShippedProducts($entries, $rec->id, '321');
 
+            $shippedProducts = arr::extractValuesFromArray($shipped, 'productId');
+            $plannedProducts = arr::extractValuesFromArray($res, 'productId');
+
+            // Ако има експедиция поне по един от артикулите в продажбата тя няма да запазва !
+            if(array_intersect_key($plannedProducts, $shippedProducts)){
+
+                $res = array();
+                return;
+            }
+
             // За всяко от количествата, които ще се запазват
             $newRes = array();
             foreach($res as $plannedRec){
@@ -2426,13 +2436,6 @@ abstract class deals_DealMaster extends deals_DealBase
                 array_walk($pendingRecs, function($a) use ($plannedRec, &$removeQuantity, $field){
                     if($a->productId == $plannedRec->productId){
                         $removeQuantity += $a->{$field};
-                    }
-                });
-
-                // Проспадане от запазеното количество, на вече експедираното
-                array_walk($shipped, function($a) use ($plannedRec, &$removeQuantity){
-                    if($a->productId == $plannedRec->productId){
-                        $removeQuantity += $a->quantity;
                     }
                 });
 
