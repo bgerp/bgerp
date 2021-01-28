@@ -386,7 +386,15 @@ class colab_Threads extends core_Manager
             if (is_null($userId)) {
                 $requiredRoles = 'no_one';
             } else {
-                $folderId = setIfNot($rec->folderId, Request::get('folderId', 'key(mvc=doc_Folders)'), Mode::get('lastFolderId'));
+                $folderId = Mode::get('lastFolderId');
+                if(is_object($rec) && isset($rec->folderId)){
+                    $folderId = $rec->folderId;
+                } else {
+                    if($reqFolderId = Request::get('folderId', 'key(mvc=doc_Folders)')){
+                        $folderId = $reqFolderId;
+                    }
+                }
+
                 $sharedFolders = colab_Folders::getSharedFolders($userId);
                 
                 if (!in_array($folderId, $sharedFolders)) {

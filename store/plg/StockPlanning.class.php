@@ -118,9 +118,10 @@ class store_plg_StockPlanning extends core_Plugin
     {
         if(isset($rec->threadId)){
             if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
+
                 if ($firstDocument->isInstanceOf('planning_Tasks')) {
                     $firstDocument = doc_Containers::getDocument($firstDocument->fetchField('originId'));
-                } elseif ($mvc instanceof deals_DealMaster || $firstDocument->isInstanceOf('findeals_Deals') || $mvc instanceof planning_Jobs) {
+                } elseif ($mvc instanceof deals_DealMaster || $firstDocument->isInstanceOf('findeals_Deals') || $mvc instanceof planning_Jobs || $firstDocument->isInstanceOf('store_Transfers') || $firstDocument->isInstanceOf('planning_ConsumptionNotes') || $firstDocument->isInstanceOf('planning_ReturnNotes')) {
                     $firstDocument = null;
                 }
 

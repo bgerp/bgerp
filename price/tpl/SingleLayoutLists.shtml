@@ -37,6 +37,14 @@
             <td>[#vat#]</td>
         </tr>
         <!--ET_END vat-->
+
+        <!--ET_BEGIN visiblePricesByAnyone-->
+        <tr>
+            <td class="title-style">|Видимост на цените|*</td>
+            <td>[#visiblePricesByAnyone#]</td>
+        </tr>
+        <!--ET_END visiblePricesByAnyone-->
+
         <!--ET_BEGIN discountCompared-->
         <tr>
             <td class="title-style">|Отстъпка към|*</td>

@@ -674,7 +674,7 @@ class blast_ListDetails extends doc_Detail
             } else {
                 $csvRows = $csv;
             }
-            
+
             // Ако първия ред са имена на колони - махаме ги
             if ($exp->getValue('#firstRow') == 'columnNames') {
                 unset($csvRows[0]);
@@ -1073,7 +1073,10 @@ class blast_ListDetails extends doc_Detail
     public static function importCsvFromDocuments($documentType, $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $docFrom, $docTo)
     {
         core_App::setTimeLimit(600);
-        
+
+        // Спираме логването в дебъг
+        core_Debug::$isLogging = false;
+
         $listRec = blast_Lists::fetch($listId);
         core_Lg::push($listRec->lg);
         
@@ -1090,11 +1093,57 @@ class blast_ListDetails extends doc_Detail
         }
         
         $allEmailArr = array();
-        
+
+        $allFoldersArr = false;
+        if ($countriesInclude || $countriesExlude) {
+            $allFoldersArr = array();
+
+            $fQuery = doc_Folders::getQuery();
+
+            $fQuery->where("#state != 'rejected'");
+
+            $fQuery->show('id');
+
+            $fpQuery = clone $fQuery;
+            $pClsId = crm_Persons::getClassId();
+            $fpQuery->EXT('country', 'crm_Persons', 'externalKey=coverId');
+            $fpQuery->where(array("#coverClass = '[#1#]'", $pClsId));
+
+            $cClsId = crm_Companies::getClassId();
+            $fQuery->where(array("#coverClass = '[#1#]'", $cClsId));
+            $fQuery->EXT('country', 'crm_Companies', 'externalKey=coverId');
+
+            if ($countriesInclude) {
+                $fQuery->in('country', type_Keylist::toArray($countriesInclude));
+                $fpQuery->in('country', type_Keylist::toArray($countriesInclude));
+            }
+
+            // Премахваме тези държави от списъка
+            if ($countriesExlude) {
+                $fQuery->notIn('country', type_Keylist::toArray($countriesExlude));
+                $fpQuery->notIn('country', type_Keylist::toArray($countriesExlude));
+            }
+
+            while ($rec = $fQuery->fetch()) {
+                $allFoldersArr[$rec->id] = $rec->id;
+            }
+
+            while ($rec = $fpQuery->fetch()) {
+                $allFoldersArr[$rec->id] = $rec->id;
+            }
+        }
+
         foreach ($documentTypeArr as $docType) {
             $docType = cls::get($docType)->className;
             $getFromNextEmail = false;
-            
+
+            if ($allFoldersArr !== false) {
+                if (empty($allFoldersArr)) {
+
+                    continue;
+                }
+            }
+
             if ($docType == 'sales_Sales' || $docType == 'sales_Quotations' || $docType == 'purchase_Purchases') {
                 $getFromNextEmail = true;
                 
@@ -1111,7 +1160,15 @@ class blast_ListDetails extends doc_Detail
                 $docDetailsInst = cls::get($docDetails);
                 
                 $query = $docDetailsInst->getQuery();
-                
+
+                if ($allFoldersArr !== false) {
+                    $query->EXT('mFolderId', $masterClass, "externalName=folderId,externalKey={$docDetailsInst->masterKey}");
+                    $query->in('mFolderId', $allFoldersArr);
+                }
+
+                $query->EXT('mState', $masterClass, "externalName=folderId,externalKey={$docDetailsInst->masterKey}");
+                $query->where("#mState != 'rejected'");
+
                 $query->groupBy($docDetailsInst->masterKey);
                 
                 // Филтрираме по група
@@ -1119,33 +1176,11 @@ class blast_ListDetails extends doc_Detail
                     $query->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
                     $query->likeKeylist('groups', $groupIds);
                 }
-                
-                if ($countriesInclude || $countriesExlude || $contragentType) {
-                    $query->EXT('contragentClassId', $masterClass, "externalName=contragentClassId,externalKey={$docDetailsInst->masterKey}");
-                    if ($countriesInclude || $countriesExlude) {
-                        $query->EXT('contragentId', $masterClass, "externalName=contragentId,externalKey={$docDetailsInst->masterKey}");
-                    }
-                }
-                
+
                 // Филтрираме по вид контрагент
                 if ($contragentType) {
+                    $query->EXT('contragentClassId', $masterClass, "externalName=contragentClassId,externalKey={$docDetailsInst->masterKey}");
                     $query->where(array("#contragentClassId = '[#1#]'", $clsId = $contragentType::getClassId()));
-                }
-                
-                // Филтрираме по държави
-                if ($countriesInclude || $countriesExlude) {
-                    if ($docType == 'sales_Quotations') {
-                        $query->EXT('contragentCountryId', $masterClass, "externalName=contragentCountryId,externalKey={$docDetailsInst->masterKey}");
-                        
-                        if ($countriesInclude) {
-                            $query->in('contragentCountryId', type_Keylist::toArray($countriesInclude));
-                        }
-                        
-                        // Премахваме тези държави от списъка
-                        if ($countriesExlude) {
-                            $query->notIn('contragentCountryId', type_Keylist::toArray($countriesExlude));
-                        }
-                    }
                 }
                 
                 // Филтрираме по дата
@@ -1166,29 +1201,9 @@ class blast_ListDetails extends doc_Detail
                 
                 $query->EXT('containerId', $masterClass, "externalName=containerId,externalKey={$docDetailsInst->masterKey}");
                 $query->EXT('folderId', $masterClass, "externalName=folderId,externalKey={$docDetailsInst->masterKey}");
-                
+
                 while ($rec = $query->fetch()) {
                     $name = '';
-                    
-                    // Ако е продажба, филтрирам по държава, ако е зададено, защото не е направено със заявката
-                    if (($docType == 'sales_Sales') && (($countriesInclude || $countriesExlude))) {
-                        $contragentCountry = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
-                        
-                        if ($countriesInclude) {
-                            if (!$contragentCountry) {
-                                continue;
-                            }
-                            if (!type_Keylist::isIn($contragentCountry, $countriesInclude)) {
-                                continue;
-                            }
-                        }
-                        
-                        if ($countriesExlude) {
-                            if (type_Keylist::isIn($contragentCountry, $countriesExlude)) {
-                                continue;
-                            }
-                        }
-                    }
                     
                     $fRec = doc_Folders::fetch($rec->folderId);
                     $cInstRec = null;
@@ -1259,7 +1274,7 @@ class blast_ListDetails extends doc_Detail
                     }
                     
                     $allEmailArr[$email] = $email;
-                    
+
                     $countryName = '';
                     if ($cInstRec && $cInstRec->country) {
                         $countryName = $cInst->getVerbal($cInstRec, 'country');
@@ -1268,7 +1283,11 @@ class blast_ListDetails extends doc_Detail
                     if (!$name) {
                         $name = $cInstRec->name;
                     }
-                    
+
+                    $email = '"' . $email . '"';
+                    $name = '"' . $name . '"';
+                    $countryName = '"' . $countryName . '"';
+
                     $csvArr[] = $email . ',' . $name . ',' . $countryName;
                 }
             } else {
@@ -1276,7 +1295,13 @@ class blast_ListDetails extends doc_Detail
                 // Ако е запитване
                 
                 $query = marketing_Inquiries2::getQuery();
-                
+
+                if ($allFoldersArr !== false) {
+                    $query->in('folderId', $allFoldersArr);
+                }
+
+                $query->where("#state != 'rejected'");
+
                 $query->where('#email IS NOT NULL');
                 $query->where("#email != ''");
                 
@@ -1296,47 +1321,67 @@ class blast_ListDetails extends doc_Detail
                     $query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
                     $query->where(array("#coverClass = '[#1#]'", $clsId = $contragentType::getClassId()));
                 }
-                
-                // Ако се филтрира по държави
-                if ($countriesInclude || $countriesExlude) {
-                    if ($countriesInclude) {
-                        $query->in('country', type_Keylist::toArray($countriesInclude));
-                    }
-                    
-                    if ($countriesExlude) {
-                        $query->notIn('country', type_Keylist::toArray($countriesExlude));
-                    }
-                }
-                
-                // Ако има зададена група, филтрираме по нея
-                $catGroupsWhere = '';
+
+                // Ако има зададена група, извличаме всичките и филтрираме по тях
+                $prodArr = false;
                 if ($groupIds) {
                     $groupIdsArr = type_Keylist::toArray($groupIds);
                     if (!empty($groupIdsArr)) {
-                        $catGroupsWhere = '';
+
+                        $prodArr = array();
+
                         foreach ($groupIdsArr as $gId) {
                             $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
                         }
+
+                        $prodQuery = cat_Products::getQuery();
+                        $prodQuery->where($catGroupsWhere);
+                        $prodQuery->where("#state != 'rejected'");
+                        $prodQuery->where("#originId IS NOT NULL");
+
+                        $prodQuery->show('originId');
+
+                        while ($prodRec = $prodQuery->fetch()) {
+                            if (!$prodRec->originId) {
+                                continue;
+                            }
+
+                            $prodArr[$prodRec->originId] = $prodRec->originId;
+                        }
                     }
                 }
+
                 while ($rec = $query->fetch()) {
                     $email = trim($rec->email);
                     
                     if (!$email) {
                         continue ;
                     }
-                    
+
                     if ($allEmailArr[$email]) {
                         continue;
                     }
-                    
-                    // Гледаме дали е в някоя група от зададените
-                    if ($catGroupsWhere) {
-                        if (!cat_Products::fetch("(#originId = '{$rec->containerId}') AND ({$catGroupsWhere})")) {
+
+                    if ($prodArr !== false) {
+                        if (!isset($prodArr[$rec->containerId])) {
+
                             continue;
                         }
                     }
-                    
+
+                    $countryName = '';
+                    try {
+                        $cover = doc_Folders::getCover($rec->folderId);
+
+                        $countryName = $cover->getVerbal('country');
+                    } catch (core_exception_Expect $e) {
+                        reportException($e);
+
+                        if ($rec->country) {
+                            $countryName = $docType::getVerbal($rec, 'country');
+                        }
+                    }
+
                     $allEmailArr[$email] = $email;
                     
                     $name = '';
@@ -1349,19 +1394,18 @@ class blast_ListDetails extends doc_Detail
                     } else {
                         $name = $rec->company ? $rec->company : $rec->personNames;
                     }
-                    
-                    $countryName = '';
-                    if ($rec->country) {
-                        $countryName = marketing_Inquiries2::getVerbal($rec, 'country');
-                    }
+
+                    $email = '"' . $email . '"';
+                    $name = '"' . $name . '"';
+                    $countryName = '"' . $countryName . '"';
                     
                     $csvArr[] = $email . ',' . $name . ',' . $countryName;
                 }
             }
         }
-        
+
         core_Lg::pop();
-        
+
         return $csvArr;
     }
     

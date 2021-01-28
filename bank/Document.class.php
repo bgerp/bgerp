@@ -341,8 +341,8 @@ abstract class bank_Document extends deals_PaymentDocument
             $dealInfo = $origin->getAggregateDealInfo();
             
             // Коя е дебитната и кредитната сметка
-            $opperations = $dealInfo->get('allowedPaymentOperations');
-            $operation = $opperations[$rec->operationSysId];
+            $operations = $dealInfo->get('allowedPaymentOperations');
+            $operation = $operations[$rec->operationSysId];
             $debitAcc = empty($operation['reverse']) ? $operation['debit'] : $operation['credit'];
             $creditAcc = empty($operation['reverse']) ? $operation['credit'] : $operation['debit'];
             $rec->debitAccId = $debitAcc;

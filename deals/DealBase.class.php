@@ -641,7 +641,7 @@ abstract class deals_DealBase extends core_Master
                 );
 
                 if ($pRec->canStore == 'yes') {
-                    $expRec->inStock = store_Products::getRec($productId)->free;
+                    $expRec->inStock = store_Products::getQuantities($productId)->free;
                 }
                 
                 foreach (array('quantity', 'shipQuantity', 'blQuantity', 'inStock') as $q) {

@@ -470,7 +470,7 @@ class store_Products extends core_Detail
      * @param null|datetime $date - към коя дата
      * @return object $res
      */
-    public static function getRec($productId, $storeId = null, $date = null)
+    public static function getQuantities($productId, $storeId = null, $date = null)
     {
         // Какви са наличностите
         $query = self::getQuery();
@@ -506,39 +506,6 @@ class store_Products extends core_Detail
         $res->free = $res->quantity - $res->reserved + $res->expected;
 
         return $res;
-    }
-
-
-    /**
-     * Колко е количеството на артикула в складовете
-     *
-     * @param int      $productId    - ид на артикул
-     * @param int|NULL $storeId      - конкретен склад, NULL ако е във всички
-     * @param bool     $freeQuantity - FALSE за общото количество, TRUE само за разполагаемото (общо - запазено)
-     * @param datetime $date         - към коя дата, null за текущата
-     *
-     * @return float $sum          - сумата на количеството, общо или разполагаемо
-     */
-    public static function getQuantity($productId, $storeId = null, $freeQuantity = false, $date = null)
-    {
-        $query = self::getQuery();
-        $query->where("#productId = {$productId}");
-        $query->show('sum');
-        
-        if (isset($storeId)) {
-            $query->where("#storeId = {$storeId}");
-        }
-
-        if ($freeQuantity === true) {
-            $query->XPR('sum', 'double', 'SUM(#quantity - COALESCE(#reservedQuantityMin, 0) + COALESCE(#expectedQuantityMin, 0))');
-        } else {
-            $query->XPR('sum', 'double', 'SUM(#quantity)');
-        }
-        
-        $calcedSum = $query->fetch()->sum;
-        $sum = (!empty($calcedSum)) ? $calcedSum : 0;
-        
-        return $sum;
     }
     
     
@@ -592,8 +559,8 @@ class store_Products extends core_Detail
         $today = dt::today();
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
-
             $title = 'От кои документи е сформирано количеството';
+
             foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin', 'reservedOut', 'expectedIn') as $type){
                 if (!empty($rec->{$type})) {
                     $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? $rec->dateMin : $data->horizon);
@@ -604,6 +571,18 @@ class store_Products extends core_Detail
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
                     $row->{$type} = $arrow . $row->{$type};
                 }
+            }
+
+            if(!empty($rec->freeQuantity) && !isset($rec->reservedQuantity) && !isset($rec->expectedQuantity)){
+                $row->freeQuantity = "<span class='lighterColor'>{$row->freeQuantity}</span>";
+            }
+
+            if(!empty($rec->freeQuantityMin) && !isset($rec->reservedQuantityMin) && !isset($rec->expectedQuantityMin)){
+                $row->freeQuantityMin = "<span class='lighterColor'>{$row->freeQuantity}</span>";
+            }
+
+            if(!empty($rec->resultDiff) && !isset($rec->reservedOut) && !isset($rec->expectedIn)){
+                $row->resultDiff = "<span class='lighterColor'>{$row->resultDiff}</span>";
             }
 
             $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
@@ -767,26 +746,30 @@ class store_Products extends core_Detail
             $Source = cls::get($dRec->sourceClassId);
             $row = (object)array('date' => dt::mysql2verbal($dRec->date));
 
+
             // Ако източника е документ - показват се данните му
             if($Source->hasPlugin('doc_DocumentPlg')){
                 $row->link = $Source->getLink($dRec->sourceId, 0);
-                $docRec = $Source->fetch($dRec->sourceId, 'createdBy,folderId');
+                $docRec = $Source->fetch($dRec->sourceId, 'createdBy,folderId,state');
                 $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
                 $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
-                $row->createdBy .= " | {$folderId}";
+                $row->createdBy = " {$folderId} | {$row->createdBy}";
+                $state = $docRec->state;
             } else {
                 // Ако източника не е документ
                 $row->link = $Source->getHyperlink($dRec->sourceId, true);
-                $createdBy = $Source->fetchField($dRec->sourceId, 'createdBy');
-                $row->createdBy = crm_Profiles::createLink($createdBy);
+                $docRec = $Source->fetch($dRec->sourceId, 'createdBy,state');
+                $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
+                $state = $docRec->state;
             }
 
+            $row->link = "<span class='state-{$state} document-handler'>{$row->link}</span>";
             if($dRec->date < $today) {
                 $row->link = ht::createHint($row->link, 'Датата е в миналото', 'warning', false);
             }
 
             // Подготвяне на реда с информация
-            $link = new core_ET("<div style='float:left'>[#link#] | [#createdBy#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date--></div>");
+            $link = new core_ET("<div style='float:left;padding-bottom:5px'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
             $link->placeObject($row);
             $links .= $link->getContent();
         }
@@ -940,8 +923,10 @@ class store_Products extends core_Detail
            
             return new core_ET('');
         }
-        
+
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $tpl->append(tr('Наличности'), 'title');
+
         if($data->masterData->rec->generic == 'yes'){
             $infoBlock = tr("Показани са наличностите на артикулите, които заместват|* <b class='green'>") . cat_Products::getTitleById($data->masterId) . "</b>";
             $infoBlock = "<div style='margin-bottom:5px'>{$infoBlock}</div>";

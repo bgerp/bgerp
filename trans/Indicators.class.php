@@ -159,8 +159,8 @@ class trans_Indicators extends core_BaseClass
         $details = array();
         
         $detQuery = trans_LineDetails::getQuery();
-        $detQuery->EXT('modifiedOn', trans_Lines, "externalName=modifiedOn,externalKey=lineId");
-        $detQuery->EXT('start', trans_Lines, "externalName=start,externalKey=lineId");
+        $detQuery->EXT('modifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
+        $detQuery->EXT('start', 'trans_Lines', "externalName=start,externalKey=lineId");
         $detQuery->where("#start >= '{$from}'");
         $detQuery->where("#modifiedOn >= '{$timeline}'");
         
@@ -229,10 +229,9 @@ class trans_Indicators extends core_BaseClass
         }
         
         $weights = array();
-        
         $detQuery = trans_LineDetails::getQuery();
-        $detQuery->EXT('modifiedOn', trans_Lines, "externalName=modifiedOn,externalKey=lineId");
-        $detQuery->EXT('start', trans_Lines, "externalName=start,externalKey=lineId");
+        $detQuery->EXT('modifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
+        $detQuery->EXT('start', 'trans_Lines', "externalName=start,externalKey=lineId");
         $detQuery->where("#start >= '{$from}'");
         $detQuery->where("#modifiedOn >= '{$timeline}'");
         
@@ -245,27 +244,18 @@ class trans_Indicators extends core_BaseClass
         }
         
         $query = trans_Lines::getQuery();
-        
         $query->where("#start >= '{$from}'");
-        
         $query->where("#modifiedOn >= '{$timeline}'");
         
         while ($iRec = $query->fetch()) {
-            
             if (empty($iRec->forwarderPersonId)) {
                 continue;
             }
-            
-            
-            
+
             $personId =$iRec->forwarderPersonId;
-            
             $Document = doc_Containers::getDocument($iRec->containerId);
-            
             $docId = $Document->that;
-            
             $docClassId = $Document->getClassId();
-            
             $indicatorId = $deliveredWeight;
             
             $value = 0;
@@ -276,7 +266,7 @@ class trans_Indicators extends core_BaseClass
                 }
             }
             
-            $isRejected = $iRec->state == 'rejected'? true: false;
+            $isRejected = $iRec->state == 'rejected';
             
             hr_Indicators::addIndicatorToArray($result, $iRec->start, $personId,$docId,$docClassId, $indicatorId, $value, $isRejected);
         }

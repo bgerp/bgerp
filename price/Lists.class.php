@@ -8,8 +8,8 @@
  * @category  bgerp
  * @package   price
  *
- * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -167,6 +167,7 @@ class price_Lists extends core_Master
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,where=#state !\\= \\\'rejected\\\',allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
         $this->FLD('discountComparedShowAbove', 'percent(min=0)', 'caption=Показване на отстъпка в документите->Ако е над,placeholder=1 %');
+        $this->FLD('visiblePricesByAnyone', 'enum(no=Само потребители с права,yes=За всички)', 'caption=Видимост на цените->Избор,notNull,value=no');
         $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне->Значещи цифри');
         $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне->Мин. знаци');
         $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка/Отстъпка по подразбиране->Процент');
@@ -345,9 +346,8 @@ class price_Lists extends core_Master
     {
         $form = $data->form;
         $rec = $form->rec;
-        
+
         $folderId = $rec->folderId;
-        
         if (isset($rec->cClass, $rec->cId)) {
             $Cover = new core_ObjectReference($rec->cClass, $rec->cId);
         } else {
@@ -355,15 +355,34 @@ class price_Lists extends core_Master
         }
         
         $form->rec->folderId = $Cover->forceCoverAndFolder();
-        
+
+        // Кои са достъпните политики
+        $parentOptions = self::getAccessibleOptions();
         if (empty($rec->id)) {
-            // Бащата може да бъде от достъпните до потребителя политики
-            $form->setOptions('parent', self::getAccessibleOptions());
-            
+
             // По дефолт слагаме за частните политики да наследяват дефолт политиката за контрагента, иначе 'Каталог'
             $rec->parent = ($rec->cId && $rec->cClass) ? price_ListToCustomers::getListForCustomer($rec->cClass, $rec->cId) : cat_Setup::get('DEFAULT_PRICELIST');
+        } else {
+            // Ако наследената политика, не присъства в опциите, задаваме я за да не се затрие
+            if($rec->parent && !array_key_exists($rec->parent, $parentOptions)){
+                $parentOptions[$rec->parent] = static::getVerbal($rec->parent, 'title');
+            }
+
+            // От наличните политики за наследяване, се махат тези, в които текущата вече е наследена, да не става зацикляне
+            foreach ($parentOptions as $k => $v){
+                $parents = $mvc->getParents($k);
+                if(array_key_exists($rec->id, $parents)){
+                    unset($parentOptions[$rec->id]);
+                }
+            }
+
+            // Ако има правило за МАРЖ политиката, трябва винаги да е базирана на друга политика
+            if(price_ListRules::fetchField("#type != 'value' AND #listId = {$rec->id}")){
+                $form->setField('parent', 'mandatory');
+            }
         }
-        
+
+        $form->setOptions('parent', $parentOptions);
         $form->setDefault('currency', acc_Periods::getBaseCurrencyCode());
         
         // За политиката себестойност, скриваме определени полета
@@ -378,8 +397,30 @@ class price_Lists extends core_Master
             $form->setField('minDecimals', "placeholder={$minDecimals}");
         }
     }
-    
-    
+
+
+    /**
+     * Връща всички политики, които са наследени
+     *
+     * @param mixed $id
+     * @return array $parents
+     */
+    private function getParents($id)
+    {
+        $rec = $this->fetchRec($id);
+        $parents = array($rec->id => $rec->id);
+        $parent = $rec->parent;
+        while ($parent && ($lRec = $this->fetch($parent, 'parent'))) {
+            if(!empty($lRec->parent)){
+                $parents[$lRec->parent] = $lRec->parent;
+            }
+            $parent = $lRec->parent;
+        }
+
+        return $parents;
+    }
+
+
     /**
      * След подготовката на заглавието на формата
      */
@@ -404,7 +445,7 @@ class price_Lists extends core_Master
     
     
     /**
-     * Намираме ценовите политики, които може да избира потребителя
+     * Намиране na ценовите политики, които може да избира потребителя
      * Ако ги няма може да избира само публичните + частните, до чийто контрагент има достъп
      *
      * @param mixed $cClass           - клас на контрагента

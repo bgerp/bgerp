@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -100,8 +100,16 @@ abstract class deals_InvoiceMaster extends core_Master
      * @see bgerp_plg_CsvExport
      */
     public $exportableCsvFields = 'date,number=Фактура №,contragentName=Контрагент,contragentVatNo=ДДС №,uicNo=ЕИК,dealValue=Сума общо,dealValueWithoutDiscount=Без ДДС,vatAmount=ДДС,currencyId=Валута,accountId=Банкова сметка,state';
-    
-    
+
+
+    /**
+     * Кои полета да се канонизират и запишат в друг модел
+     *
+     * @see drdata_plg_Canonize
+     */
+    public $canonizeFields = 'uicNo=uic';
+
+
     /**
      * След описанието на полетата
      */
@@ -116,7 +124,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('contragentCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контрагент->Държава,mandatory,contragentDataField=countryId,silent');
         $mvc->FLD('contragentVatNo', 'drdata_VatType', 'caption=Контрагент->VAT №,contragentDataField=vatNo');
         $mvc->FLD('contragentEori', 'drdata_type_Eori', 'caption=Контрагент->EORI №,contragentDataField=eori');
-        $mvc->FLD('uicNo', 'type_Varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId');
+        $mvc->FLD('uicNo', 'varchar', 'caption=Контрагент->Национален №,contragentDataField=uicId');
         $mvc->FLD('contragentPCode', 'varchar(16)', 'caption=Контрагент->П. код,recently,class=pCode,contragentDataField=pCode');
         $mvc->FLD('contragentPlace', 'varchar(64)', 'caption=Контрагент->Град,class=contactData,contragentDataField=place');
         $mvc->FLD('contragentAddress', 'varchar(255)', 'caption=Контрагент->Адрес,class=contactData,contragentDataField=address');
@@ -129,7 +137,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,input=hidden');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime,input=hidden,silent');
         $mvc->FLD('displayRate', 'double(decimals=5)', 'caption=Плащане->Курс,before=dueTime');
-        $mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие,input=hidden');
+        $mvc->FLD('deliveryId', 'key(mvc=cond_DeliveryTerms, select=codeName, allowEmpty)', 'caption=Доставка->Условие');
         $mvc->FLD('deliveryPlaceId', 'key(mvc=crm_Locations, select=title)', 'caption=Доставка->Място,hint=Избор измежду въведените обекти на контрагента');
         $mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
@@ -146,8 +154,19 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин,before=accountId,mandatory');
         $mvc->FLD('autoPaymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,mixed=Смесено)', 'placeholder=Автоматично,caption=Плащане->Начин,input=none');
     }
-    
-    
+
+
+    /**
+     * Метод по подразбиране за взимане на полетата за канонизиране
+     */
+    protected static function on_AfterGetCanonizedFields($mvc, &$res, $rec)
+    {
+        if($rec->contragentClassId == crm_Persons::getClassId()){
+            unset($res['uicNo']);
+        }
+    }
+
+
     /**
      * Изчисляване на общото
      */
@@ -631,8 +650,21 @@ abstract class deals_InvoiceMaster extends core_Master
             unset($data->pager);
         }
     }
-    
-    
+
+
+    /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    protected static function on_BeforeRecToVerbal($mvc, &$row, $rec)
+    {
+        if($rec->contragentId == crm_Persons::getClassId()){
+            $mvc->setFieldType('uicNo', 'bglocal_EgnType');
+        } else {
+            $mvc->setFieldType('uicNo', 'drdata_type_Uic');
+        }
+    }
+
+
     /**
      * След подготовка на формата
      */
@@ -653,17 +685,21 @@ abstract class deals_InvoiceMaster extends core_Master
         if ($form->rec->template) {
             $mvc->pushTemplateLg($form->rec->template);
         }
+
+        Mode::push('htmlEntity', 'none');
         $form->setDefault('contragentName', $coverClass::getVerbal($coverId, 'name'));
+        Mode::pop('htmlEntity');
+
         if ($form->rec->template) {
             core_Lg::pop();
         }
-        
+
+        $form->setFieldType('uicNo', 'drdata_type_Uic');
         if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
             if ($className == 'crm_Persons') {
-                $numType = 'bglocal_EgnType';
                 $form->setField('uicNo', 'caption=Контрагент->ЕГН');
-                $form->getField('uicNo')->type = cls::get($numType);
+                $form->setFieldType('uicNo', 'bglocal_EgnType');
             }
         }
         
@@ -772,28 +808,20 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setWarning('contragentVatNo,uicNo', 'Сигурни ли сте, че не трябва да въведете поне един от номерата|*?');
                 }
             }
-            
-            foreach (array('contragentVatNo', 'uicNo') as $numFld) {
-                if (!empty($rec->{$numFld})) {
-                    if (!preg_match('/^[a-zA-Zа-яА-Я0-9_]*$/iu', $rec->{$numFld})) {
-                        $form->setError($numFld, 'Лоши символи в номера');
-                    }
+
+            if (!empty($rec->contragentVatNo)) {
+                if (!preg_match('/^[a-zA-Zа-яА-Я0-9_]*$/iu', $rec->contragentVatNo)) {
+                    $form->setError('contragentVatNo', 'Лоши символи в номера');
                 }
             }
             
             // Проверка дали националния номер е валиден за държавата
             if ($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)) {
-                $msg1 = $isError = null;
-                crm_Companies::checkUicId($rec->uicNo, $rec->contragentCountryId, $msg1, $isError);
-                if (!empty($msg)) {
-                    if ($isError === true) {
-                        $form->setError('uicNo', $msg1);
-                    } else {
-                        $form->setWarning('uicNo', $msg1);
-                    }
+                if(!empty($rec->uicId)){
+                    drdata_type_Uic::check($form, $rec->uicNo, $rec->contragentCountryId, 'uicNo');
                 }
             }
-            
+
             // Ако е ДИ или КИ
             if ($rec->type != 'invoice') {
                 if (isset($rec->changeAmount)) {
@@ -815,18 +843,18 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setError('changeAmount,dcReason', 'Не може да се зададе основание за увеличение/намаление ако не е посочена сума');
                 }
                 
-                if (isset($rec->changeAmountVat)) {
+                if (!empty($rec->changeAmountVat)) {
                     $vat = $rec->changeAmountVat;
                 } else {
                     // Изчисляване на стойността на ддс-то
                     $vat = acc_Periods::fetchByDate()->vatRate;
-                    
+
                     // Ако не трябва да се начислява ддс, не начисляваме
                     if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
                         $vat = 0;
                     }
                 }
-                
+
                 $origin = doc_Containers::getDocument($rec->originId);
                 $originRec = $origin->fetch('dpAmount,dpOperation,dealValue,date');
                 
@@ -864,9 +892,11 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
 
-            $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
-            if(!drdata_Countries::isEu($cData->countryId, $rec->valior) && empty($rec->contragentEori)){
-                $form->setWarning('contragentEori', 'За контрагенти извън ЕС, е препоръчително да има EORI №');
+            if(isset($rec->contragentClassI) && isset($rec->contragentId)){
+                $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
+                if(!drdata_Countries::isEu($cData->countryId, $rec->valior) && empty($rec->contragentEori)){
+                    $form->setWarning('contragentEori', 'За контрагенти извън ЕС, е препоръчително да има EORI №');
+                }
             }
         }
         
@@ -1082,6 +1112,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if ($rec->deliveryPlaceId) {
+                $row->deliveryPlaceId = crm_Locations::getHyperlink($rec->deliveryPlaceId);
                 if ($gln = crm_Locations::fetchField($rec->deliveryPlaceId, 'gln')) {
                     $row->deliveryPlaceId .= ', ' . $gln;
                 }

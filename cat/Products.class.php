@@ -2111,7 +2111,7 @@ class cat_Products extends embed_Manager
         if ($fields['-list']) {
             $meta = arr::make($rec->meta, true);
             if ($meta['canStore']) {
-                $rec->quantity = store_Products::getRec($rec->id)->quantity;
+                $rec->quantity = store_Products::getQuantities($rec->id)->quantity;
                 $row->quantity = $mvc->getVerbal($rec, 'quantity');
                 $row->quantity = ht::styleNumber($row->quantity, $rec->quantity);
             }

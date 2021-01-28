@@ -600,7 +600,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         if ($rec->isReverse == 'no') {
             
             // Към чернова може да се генерират проформи, а към контиран фактури
-            if ($rec->state == 'draft') {
+            if (in_array($rec->state, array('draft', 'pending'))) {
                 
                 // Ако има проформа към протокола, правим линк към нея, иначе бутон за създаване на нова
                 if ($iRec = sales_Proformas::fetch("#sourceContainerId = {$rec->containerId} AND #state != 'rejected'")) {
@@ -725,9 +725,10 @@ class store_ShipmentOrders extends store_DocumentMaster
     protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        
-        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec) && $rec->isReverse !== 'yes') {
-            core_Statuses::newStatus('Документа не може да се контира, защото има артикули с продажна цена под минималната|*!', 'error');
+
+        $errorMsg = null;
+        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg) && $rec->isReverse !== 'yes') {
+            core_Statuses::newStatus($errorMsg, 'error');
             
             return false;
         }

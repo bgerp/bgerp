@@ -810,7 +810,9 @@ class blogm_Articles extends core_Master
         
         // Добавяме стиловете от темата
         $layout->push($data->ThemeClass->getStyles(), 'CSS');
-        
+
+        jquery_Jquery::run($layout, 'toggleNarrowMenu();', TRUE);
+
         // Поставяме шаблона за външен изглед
         Mode::set('wrapper', 'cms_page_External');
         

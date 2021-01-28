@@ -274,7 +274,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
         $jQuery->show('productId,quantityProduced');
         while ($jRec = $jQuery->fetch()) {
             $pRec = cat_products::fetch($jRec->productId, 'name,code,isPublic,measureId,canStore,nameEn');
-            $inStock = ($pRec->canStore == 'yes') ? store_Products::getRec($jRec->productId)->free : null;
+            $inStock = ($pRec->canStore == 'yes') ? store_Products::getQuantities($jRec->productId)->quantity : null;
             $inStock = core_Type::getByName('double(smartRound)')->toVerbal($inStock) . ' ' . cat_UoM::getShortName($pRec->measureId);
             $produced = core_Type::getByName('double(smartRound)')->toVerbal($jRec->quantityProduced);
             $arr[] = array('job' => planning_Jobs::getLink($jRec->id), 'inStock' => $inStock, 'produced' => $produced);
@@ -712,21 +712,29 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             
             $ignore = false;
             if ($productRec->isPublic == 'no') {
-                $closedJobId = planning_Jobs::fetchField("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
+
+                // Сумира се всичко произведено и планирано по задания за артикула по сделката, които са приключени
+                $closedJobQuery = planning_Jobs::getQuery();
+                $closedJobQuery->where("#productId = {$pId} AND #state = 'closed' AND #saleId = {$saleRec->id}");
+                $closedJobQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+                $closedJobQuery->XPR('totalQuantityProduced', 'double', 'SUM(COALESCE(#quantityProduced, 0))');
+                $closedJobQuery->show('totalQuantity,totalQuantityProduced');
+                $closedJobCount = $closedJobQuery->count();
+                $closedJobRec = $closedJobQuery->fetch();
+
                 $activeJobId = planning_Jobs::fetchField("#productId = {$pId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #saleId = {$saleRec->id}");
-                
-                // Се приема че е готово
-                if ($closedJobId && !$activeJobId) {
-                    
-                    // Ако има приключено задание
-                    $q = planning_Jobs::fetchField($closedJobId, 'quantity');
+
+                // Ако има приключени задания и няма други активни, се приема че е готово
+                if ($closedJobCount && !$activeJobId) {
+
+                    $q = $closedJobRec->totalQuantity;
                     $amount = $q * $price;
-                    
+
                     // Ако има експедирано и то е над 90% от заскалденото, ще се маха продажбата
                     if (isset($shippedProducts[$pId])) {
-                        $produced = planning_Jobs::fetchField($closedJobId, 'quantityProduced');
+                        $produced = $closedJobRec->totalQuantityProduced;
                         if ($shippedProducts[$pId]->quantity >= ($produced * 0.9)) {
-                            $quantityInStore = store_Products::getRec($productRec->id)->quantity;
+                            $quantityInStore = store_Products::getQuantities($productRec->id)->quantity;
                             if ($quantityInStore <= 1) {
                                 $ignore = true;
                             }
@@ -756,7 +764,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             if (is_null($amount)) {
                 
                 // Изчислява се колко от сумата на артикула може да се изпълни
-                $quantityInStock = store_Products::getRec($pId, $saleRec->shipmentStoreId)->quantity;
+                $quantityInStock = store_Products::getQuantities($pId, $saleRec->shipmentStoreId)->quantity;
                 $quantityInStock = ($quantityInStock > $quantity) ? $quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
                 
                 $amount = $quantityInStock * $price;
@@ -818,7 +826,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
             $totalAmount += $pRec->quantity * $price;
             
             // Определя се каква сума може да се изпълни
-            $quantityInStock = store_Products::getRec($pId, $soRec->storeId)->quantity;
+            $quantityInStock = store_Products::getQuantities($pId, $soRec->storeId)->quantity;
             $quantityInStock = ($quantityInStock > $pRec->quantity) ? $pRec->quantity : (($quantityInStock < 0) ? 0 : $quantityInStock);
             
             $amount = $quantityInStock * $price;

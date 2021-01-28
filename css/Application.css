@@ -1945,6 +1945,9 @@ td.rowtools-column {
 .horizonCol {
   font-size: 0.85em; }
 
+.lighterColor {
+  opacity: 0.6; }
+
 .listAction table.listTable>tbody>tr>td,
 table.listTable.listAction>tbody>tr>td.wideColumn {
   max-width: none !important; }
@@ -2247,12 +2250,13 @@ pre.document {
   font-size: 0.95em; }
   .dec-document ul {
     margin-top: 5px;
-    margin-bottom: 0; }
+    margin-bottom: 0;
+    margin-left: 25px; }
     .dec-document ul li {
-      padding-bottom: 10px; }
+      padding-bottom: 5px; }
   .dec-document .richtext {
     color: black;
-    line-height: 1em; }
+    line-height: 1.5em; }
     .dec-document .richtext ul {
       margin-left: 10px; }
   .dec-document .inner-text {
@@ -4043,6 +4047,8 @@ table .eshop-btn {
     margin-top: 30px; }
   .newsbar.defaultTheme.topPageNewsbar {
     top: 0; }
+  .newsbar.bottomContentNewsbar {
+    margin: 20px 0 10px; }
 
 .narrow .newsbar.topPageNewsbar {
   position: static; }

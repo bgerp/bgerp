@@ -235,19 +235,20 @@ class sales_SalesDetails extends deals_DealDetail
                // Предупреждение дали цената е под себестойност
                $foundPrimeCost = null;
                if(sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $foundPrimeCost)){
+
                    $warning = 'Цената е под себестойността';
                    if(isset($foundPrimeCost)){
                        $primeCostVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
-                       $warning = "{$warning}|*: {$primeCostVerbal}";
+                       $warning = "{$warning}|*: {$primeCostVerbal} |без ДДС|*";
                    }
                    
                    $row->packPrice = ht::createHint($row->packPrice, $warning, 'warning', false);
                } elseif(in_array($masterRec->state, array('pending', 'draft'))){
                    
                    // Предупреждение дали цената е под очакваната за клиента
-                   $useQuotationPrice = isset($masterRec->originId) ? true : false;
+                   $useQuotationPrice = isset($masterRec->originId);
                    $discount = isset($rec->discount) ? $rec->discount : $rec->autoDiscount;
-                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice)){
+                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice)){
                        $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
                    }
                }

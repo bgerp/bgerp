@@ -236,7 +236,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     $warning = 'Цената е под себестойността';
                     if(isset($foundPrimeCost)){
                         $primeCostVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
-                        $warning = "{$warning}|*: {$primeCostVerbal}";
+                        $warning = "{$warning}|*: {$primeCostVerbal} |без ДДС|*";
                     }
                     
                     $row->packPrice = ht::createHint($row->packPrice, $warning, 'warning', false);
@@ -246,12 +246,12 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     if($firstDocument = doc_Threads::getFirstDocument($masterRec->threadId)){
                         if($firstDocument->isInstanceOf('sales_Sales')){
                             $firstDocumentOrigin = $firstDocument->fetchField('originId');
-                            $useQuotationPrice = isset($firstDocumentOrigin) ? true : false;
+                            $useQuotationPrice = isset($firstDocumentOrigin);
                         }
                     }
                     
                     // Предупреждение дали цената е под очакваната за клиента
-                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, null, $useQuotationPrice)){
+                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, null, $useQuotationPrice)){
                         $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
                     }
                 }
