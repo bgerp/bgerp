@@ -752,13 +752,16 @@ class planning_Jobs extends core_Master
         if($packType != 'uom'){
             $rec->quantityProduced /= $rec->quantityInPack;
         }
+        $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
 
         $packQuantity = $rec->packQuantity;
         $originalQuantityProduced = $rec->quantityProduced;
+
         if(!empty($rec->secondMeasureId)){
             $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
 
             $coefficient = $originalQuantityProduced / $rec->secondMeasureQuantity;
+
             $additionalQuantityVerbal  = $Double->toVerbal($rec->secondMeasureQuantity);
             $additionalMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
             $measureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
@@ -1168,11 +1171,13 @@ class planning_Jobs extends core_Master
         if($secondMeasureId = cat_products_Packagings::getSecondMeasureId($rec->productId)) {
             $secondMeasureDerivities = cat_UoM::getSameTypeMeasures($secondMeasureId);
             unset($secondMeasureDerivities['']);
+            $quantityProduced = 0;
 
             // Първо се обхождат тези протоколи, в които има въведени и двете мерки
             $secondMeasureArr = array();
             foreach($allRecs as $noteRec){
                 $quantityProduced += $noteRec->quantity;
+
                 if(empty($noteRec->additionalMeasureId)) continue;
 
                 // Сумиране на общо какви к-ва от двете мерки има
@@ -1220,7 +1225,6 @@ class planning_Jobs extends core_Master
             $saveFields .= ',secondMeasureId,secondMeasureQuantity';
         }
 
-       // bp($rec);
         $me->save_($rec, $saveFields);
         $me->touchRec($rec);
     }
