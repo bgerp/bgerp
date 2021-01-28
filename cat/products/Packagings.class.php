@@ -705,7 +705,7 @@ class cat_products_Packagings extends core_Detail
             // Връщаме намерения резултат
             return $isUsed;
         }
-        
+
         // Детайли в които ще проверяваме
         $details = array('sales_SalesDetails',
             'purchase_PurchasesDetails',
@@ -717,6 +717,9 @@ class cat_products_Packagings extends core_Detail
             'planning_DirectProductNoteDetails',
             'planning_ConsumptionNoteDetails',
             'cat_BomDetails',
+            'planning_Jobs',
+            'planning_Jobs',
+            'planning_DirectProductionNote',
             'sales_ProformaDetails',
             'sales_ServicesDetails',
             'purchase_ServicesDetails',
