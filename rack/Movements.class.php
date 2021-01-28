@@ -867,7 +867,8 @@ class rack_Movements extends rack_MovementAbstract
             
             // Ако се мести от склада, и количеството е над наличното, се показва предупреждение
             if($transaction->from == rack_PositionType::FLOOR){
-                $availableQuantity = rack_Products::getQuantity($transaction->productId, $transaction->storeId, true);
+                $availableQuantity = rack_Products::getQuantities($transaction->productId, $transaction->storeId)->free;
+
                 if(round($transaction->quantity, 4) > round($availableQuantity, 4)){
                     $res->warnings[] = "|Въведеното количество е над наличното в склада|*!";
                     $res->warningFields[] = 'quantity';
