@@ -753,34 +753,35 @@ class planning_Jobs extends core_Master
             $rec->quantityProduced /= $rec->quantityInPack;
         }
         $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
-
         $packQuantity = $rec->packQuantity;
         $originalQuantityProduced = $rec->quantityProduced;
 
+        // Ако има втора мярка
         if(!empty($rec->secondMeasureId)){
             $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
 
             $coefficient = $originalQuantityProduced / $rec->secondMeasureQuantity;
+            $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
 
             $additionalQuantityVerbal  = $Double->toVerbal($rec->secondMeasureQuantity);
             $additionalMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
             $measureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
             $originalMeasureName = $measureName;
             $originalSecondMeasureName = $additionalMeasureName;
+            $hint = " 1 {$additionalMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
 
+            // Ако втората мярка е опаковката подменям ги
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
                 $row->quantityProduced = $additionalQuantityVerbal;
                 $additionalQuantityVerbal = $Double->toVerbal($originalQuantityProduced);
                 $additionalMeasureName = $originalMeasureName;
                 $measureName = $originalSecondMeasureName;
                 $originalQuantityProduced = $rec->secondMeasureQuantity;
+                $hint = " 1 {$measureName} " . tr('е') . " {$coefficientVerbal} {$additionalMeasureName}";
             }
 
+            // Показване на съотвествието с втората мярка
             if(isset($fields['-single'])){
-
-                // Показване на съотвествието с втората мярка
-                $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
-                $hint = " 1 {$additionalMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
                 $additionalMeasureName = ht::createHint($additionalMeasureName, $hint);
                 $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$additionalQuantityVerbal} {$additionalMeasureName}) </span>";
             }
@@ -788,7 +789,6 @@ class planning_Jobs extends core_Master
 
         $rec->quantityNotStored = $rec->quantityFromTasks - $originalQuantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
-
         $rec->quantityToProduce = $packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $originalQuantityProduced);
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
