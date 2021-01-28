@@ -1223,8 +1223,12 @@ class sales_Sales extends deals_DealMaster
         }
         
         if (isset($fields['-single'])) {
+
+            // Показване на дефолт дали цените ще са видими
             if(empty($rec->visiblePricesByAllInThread) && in_array($rec->state, array('draft', 'pending'))){
-                $row->visiblePricesByAllInThread = ht::createHint('', 'Ще бъде записано след активиране, спрямо зададеното в ценовата политика за клиента');
+                $listId = isset($rec->priceListId) ? $rec->priceListId : price_ListToCustomers::getListForCustomer($rec->contragentClassId, $rec->contragentId, $rec->valior);
+                $visiblePrices = $mvc->getFieldType('visiblePricesByAllInThread')->toVerbal(price_Lists::fetchField($listId, 'visiblePricesByAnyone'));
+                $row->visiblePricesByAllInThread = ht::createHint($visiblePrices, 'Ще бъде записано след активиране, спрямо зададеното в ценовата политика за клиента');
             }
 
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {

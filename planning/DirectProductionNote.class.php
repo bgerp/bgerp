@@ -256,12 +256,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         if(isset($rec->productId)){
             $packs = cat_Products::getPacks($rec->productId);
-            $form->setOptions('packagingId', $packs);
-            
+
             // Ако артикула не е складируем, скриваме полето за мярка
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
-           
+
+            $secondMeasureDerivitives = array();
+            $measureDerivitives = cat_UoM::getSameTypeMeasures($productRec->measureId);
+            if($secondMeasureId = cat_products_Packagings::getSecondMeasureId($rec->productId)){
+                $secondMeasureDerivitives = cat_UoM::getSameTypeMeasures($secondMeasureId);
+            }
+
             if($originDoc->isInstanceOf('planning_Jobs')){
+                $originPackId = $originRec->packagingId;
                 $form->setDefault('jobQuantity', $originRec->quantity);
                 $quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
 
@@ -279,13 +285,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
                 $producedQuantity = $originDoc->fetchField('producedQuantity');
                 $info->totalQuantity -= $producedQuantity;
-                
+                $originPackId = $info->packagingId;
+
                 $form->setDefault('packagingId', $info->packagingId);
                 if ($info->totalQuantity > 0) {
                     $form->setDefault('packQuantity', $info->totalQuantity);
                 }
             }
-            
+
+            if(!array_key_exists($originPackId, $secondMeasureDerivitives)){
+                $packs = array_diff_key($packs, $secondMeasureDerivitives);
+            } else {
+                $packs = array_diff_key($packs, $measureDerivitives);
+            }
+
+            $form->setOptions('packagingId', $packs);
             $form->setDefault('packagingId', $originRec->packagingId);
             if ($productRec->canStore == 'no') {
                 $measureShort = cat_UoM::getShortName($rec->packagingId);
