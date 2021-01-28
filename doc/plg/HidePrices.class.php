@@ -202,7 +202,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        if (isset($data->masterRec) && self::canSeePriceFields($data->masterRec)){
+        if (self::canSeePriceFields($data->masterRec)){
             
             return;
         }
