@@ -542,7 +542,7 @@ class support_Systems extends core_Master
                 if ($id) {
                     $search = $data->recs[$id]->code . ' ' . $data->recs[$id]->name;
                 } else {
-                    $search = cls::get('support_TaskType')->withoutResStr;
+                    $search = cls::get('cal_Tasks')->withoutResStr;
                 }
                 
                 $listUrl = array('support_Tasks', 'list', 'systemId' => $data->masterData->rec->id, 'search' => $search);

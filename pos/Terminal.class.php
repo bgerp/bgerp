@@ -1027,7 +1027,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 // Ако има клиентска карта с посочения номер, намира се контрагента ѝ
                 if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
-                    $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec)->getTitleById($cardRec->contragentId));
+                    $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec->contragentClassId)->getTitleById($cardRec->contragentId));
                     $count++;
                 }
                 
@@ -1383,7 +1383,7 @@ class pos_Terminal extends peripheral_Terminal
                 $storeArr = array();
 
                 foreach ($stores as $storeId){
-                    $stRec = store_Products::getRec($selectedRec->productId, $storeId);
+                    $stRec = store_Products::getQuantities($selectedRec->productId, $storeId);
                     $storeArr[$storeId] = $stRec->free;
                 }
                 
@@ -1934,11 +1934,12 @@ class pos_Terminal extends peripheral_Terminal
         $productClassId = cat_Products::getClassId();
         
         $Policy = cls::get('price_ListToCustomers');
-        $listId = pos_Points::fetchField($rec->pointId, 'policyId');
+        $listId = pos_Points::getSettings($rec->pointId, 'policyId');
+
         if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
             $listId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
-        
+
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
                 $packId = $pRec->packId;

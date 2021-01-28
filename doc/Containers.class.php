@@ -781,7 +781,7 @@ class doc_Containers extends core_Manager
         
         while ($cRec = $cQuery->fetch()) {
             if ($show) {
-                doc_HiddenContainers::showOrHideDocument($cRec->id, false, true);
+                doc_HiddenContainers::showOrHideDocument($cRec->id);
             } elseif ($hide) {
                 doc_HiddenContainers::removeFromTemp($cRec->id);
             }

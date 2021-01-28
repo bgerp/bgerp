@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureId,secondMeasureCoefficient,secondMeasureQuantity';
 
 
     /**
@@ -239,7 +239,11 @@ class planning_Jobs extends core_Master
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Планирано,input=none');
-        
+
+        $this->FLD('secondMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Мярка', 'input=none');
+        $this->FLD('secondMeasureCoefficient', 'double(smartRound)', 'input=none,notNull,value=1');
+        $this->FLD('secondMeasureQuantity', 'double(decimals=2)', 'caption=Втора мярка->К-во,input=none');
+
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
@@ -556,7 +560,6 @@ class planning_Jobs extends core_Master
             $query = self::getQuery();
             $query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
             $query->groupBy('sFolderId');
-            
             $query->where('#saleId IS NOT NULL');
             $query->show('sFolderId');
             
@@ -577,7 +580,6 @@ class planning_Jobs extends core_Master
     public function renderSingle_($data)
     {
         $tpl = parent::renderSingle_($data);
-        
         $tpl->push('planning/tpl/styles.css', 'CSS');
         
         // Рендираме историята на действията със заданието
@@ -657,8 +659,10 @@ class planning_Jobs extends core_Master
                 $form->setWarning('dueDate', 'Падежът е в миналото');
             }
 
-            if (self::fetchField("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")) {
-                $form->setWarning('productId', 'В момента има активно задание, желаете ли да създадете още едно|*?');
+            if ($aCount = self::count("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")) {
+                $aCount = core_Type::getByName('int')->toVerbal($aCount);
+                $msg = ($aCount == 1) ? 'активно задание' : 'активни задания';
+                $form->setWarning('productId', "В момента артикулът има още|* <b>{$aCount}</b> |{$msg}|*. |Желаете ли да създадете още едно|*?");
             }
 
             $productInfo = cat_Products::getProductInfo($form->rec->productId);
@@ -692,17 +696,24 @@ class planning_Jobs extends core_Master
     /**
      * Преди запис на документ
      *
-     * @param core_Manager $mvc
+     * @param core_Mvc $mvc
      * @param stdClass     $rec
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         // Ако заданието е към сделка и е избран департамент, да се рутира към него
         if (empty($rec->id) && isset($rec->saleId) && isset($rec->department)) {
+
+            // Ако заданието е до продажба и има избран център, рутира се до него
+            $oldThreadId = $rec->threadId;
             $rec->folderId = planning_Centers::forceCoverAndFolder($rec->department);
-            unset($rec->threadId);
-            unset($rec->containerId);
-            $mvc->route($rec);
+            $rec->threadId = doc_Threads::create($rec->folderId, $rec->createdOn, $rec->createdBy);
+
+            // Обновяване на информацията за контейнера и старата нишка, че документ се е преместил оттам
+            $cRec = doc_Containers::fetch($rec->containerId);
+            $cRec->threadId = $rec->threadId;
+            doc_Containers::save($cRec, 'threadId, modifiedOn, modifiedBy');
+            doc_Threads::updateThread($oldThreadId);
         }
 
         if ($rec->isEdited === true && isset($rec->id) && $rec->_isClone !== true) {
@@ -858,10 +869,16 @@ class planning_Jobs extends core_Master
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
 
-            $sumAdditionalMeasure = $mvc->sumAdditionalMeasure($rec);
-            if(is_object($sumAdditionalMeasure)){
-                $additionalQuantityVerbal  = $Double->toVerbal($sumAdditionalMeasure->sumSecondMeasure);
-                $additionalMeasureName = cat_UoM::getShortName($sumAdditionalMeasure->secondMeasureId);
+            if(!empty($rec->secondMeasureId)){
+                $additionalQuantityVerbal  = $Double->toVerbal($rec->secondMeasureQuantity);
+                $additionalMeasureName = cat_UoM::getShortName($rec->secondMeasureId);
+
+                $measureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
+                $secondMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
+
+                $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($rec->secondMeasureCoefficient);
+                $hint = " 1 {$secondMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
+                $additionalMeasureName = ht::createHint($additionalMeasureName, $hint);
                 $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$additionalQuantityVerbal} {$additionalMeasureName}) </span>";
             }
 
@@ -879,33 +896,8 @@ class planning_Jobs extends core_Master
             unset($row->quantityNotStored);
         }
     }
-    
-    
-    /**
-     * Сумиране на втората мярка
-     * 
-     * @param stdClass $rec
-     * @return false|stdClass $res
-     */
-    private function sumAdditionalMeasure($rec)
-    {
-        $res = (object)array('secondMeasures' => array());
-        $noteQuery = self::getJobProductionNotesQuery($rec);
-        while($noteRec = $noteQuery->fetch()){
-            if(empty($noteRec->additionalMeasureQuantity)) return false;
-            
-            $res->sumSecondMeasure += $noteRec->additionalMeasureQuantity;
-            $res->secondMeasures[$noteRec->additionalMeasureId] = $noteRec->additionalMeasureId;
-        }
-        
-        if(countR($res->secondMeasures) != 1) return false;
-        
-        $res->secondMeasureId = key($res->secondMeasures);
-        
-        return $res;
-        
-    }
-    
+
+
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
@@ -1066,7 +1058,6 @@ class planning_Jobs extends core_Master
         }
         
         $data->row->history = array_reverse($data->row->history, true);
-        
         $data->packagingData = new stdClass();
         $data->packagingData->masterMvc = cls::get('cat_Products');
         $data->packagingData->masterId = $data->rec->productId;
@@ -1131,8 +1122,7 @@ class planning_Jobs extends core_Master
         $noteQuery = planning_DirectProductionNote::getQuery();
         $noteQuery->in("originId", $containerIds);
         $noteQuery->where("#state = 'active' AND #productId = {$rec->productId}");
-        $noteQuery->show('quantity,additionalMeasureId,additionalMeasureQuantity');
-        
+
         return $noteQuery;
     }
     
@@ -1149,10 +1139,41 @@ class planning_Jobs extends core_Master
         $me = cls::get(get_called_class());
         $rec = static::fetch("#containerId = {$containerId}");
         $noteQuery = self::getJobProductionNotesQuery($rec);
-        $totalQuantity = arr::sumValuesArray($noteQuery->fetchAll(), 'quantity');
+        $allRecs = $noteQuery->fetchAll();
+
+        $totalQuantity = arr::sumValuesArray($allRecs, 'quantity');
         $rec->quantityProduced = empty($totalQuantity) ? 0 : $totalQuantity;
 
-        $me->save_($rec, 'quantityProduced');
+        $saveFields = 'quantityProduced';
+        if($secondMeasureId = cat_products_Packagings::getSecondMeasureId($rec->productId)) {
+            $secondMeasureDerivities = cat_UoM::getSameTypeMeasures($secondMeasureId);
+            unset($secondMeasureDerivities['']);
+
+            $secondMeasureArr = array();
+            foreach($allRecs as $noteRec){
+                if(array_key_exists($noteRec->packagingId, $secondMeasureDerivities)){
+                    $secondMeasureArr[$secondMeasureId]['quantity'] += cat_UoM::convertToBaseUnit($noteRec->packQuantity, $noteRec->packagingId);
+                    $secondMeasureArr[$secondMeasureId]['baseQuantity'] += $noteRec->quantity;
+                } elseif(array_key_exists($noteRec->additionalMeasureId, $secondMeasureDerivities)){
+                    $secondMeasureArr[$secondMeasureId]['quantity'] += cat_UoM::convertToBaseUnit($noteRec->additionalMeasureQuantity, $noteRec->additionalMeasureId);
+                    $secondMeasureArr[$secondMeasureId]['baseQuantity'] += $noteRec->quantity;
+                }
+            }
+
+            $saveFields .= ',secondMeasureId,secondMeasureCoefficient,secondMeasureQuantity';
+            if(isset($secondMeasureArr[$secondMeasureId])){
+                $coefficient = round($secondMeasureArr[$secondMeasureId]['baseQuantity'] / $secondMeasureArr[$secondMeasureId]['quantity'], 5);
+                $rec->secondMeasureId = $secondMeasureId;
+                $rec->secondMeasureCoefficient = $coefficient;
+                $rec->secondMeasureQuantity = $secondMeasureArr[$secondMeasureId]['quantity'];
+            } else {
+                $rec->secondMeasureId = null;
+                $rec->secondMeasureQuantity = null;
+                $rec->secondMeasureCoefficient = null;
+            }
+        }
+
+        $me->save_($rec, $saveFields);
         $me->touchRec($rec);
     }
     

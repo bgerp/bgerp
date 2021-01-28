@@ -165,7 +165,7 @@ class crm_ext_Cards extends core_Manager
             $row->contragentId = $Contragent->getHyperLink($rec->contragentId, true);
         }
         
-        $row->created = tr("|на|* {$row->createdOn} |от|* {$row->createdBy}");
+        $row->created = tr("|* {$row->createdOn} |от|* {$row->createdBy}");
     }
     
     

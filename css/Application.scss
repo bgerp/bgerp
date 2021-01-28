@@ -2244,6 +2244,10 @@ td.rowtools-column {
 	font-size: 0.85em;
 }
 
+.lighterColor {
+	opacity: 0.6;
+}
+
 .listAction table.listTable>tbody>tr>td, table.listTable.listAction>tbody>tr>td.wideColumn {
 	max-width: none !important;
 }
@@ -2620,13 +2624,14 @@ pre.document {
 	ul{
 		margin-top: 5px;
 		margin-bottom: 0;
+		margin-left: 25px;
 		li {
-			padding-bottom: 10px;
+			padding-bottom: 5px;
 		}
 	}
 	.richtext {
 	   color: #000;
-	   line-height: 1em;
+	   line-height: 1.5em;
 	   ul {
 	       margin-left: 10px;
 	   }
@@ -4722,6 +4727,9 @@ table .eshop-btn {
 	}
 	&.defaultTheme.topPageNewsbar {
 		top: 0;
+	}
+	&.bottomContentNewsbar {
+		margin: 20px 0 10px;
 	}
 }
 

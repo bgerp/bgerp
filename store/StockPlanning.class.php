@@ -76,7 +76,7 @@ class store_StockPlanning extends core_Manager
         $this->FLD('reffClassId', 'class', 'caption=Втори източник->Клас,tdClass=leftCol');
         $this->FLD('reffId', 'key(mvc=doc_Containers,select=id)', 'caption=Втори източник->Ид,tdClass=leftCol');
         $this->FLD('threadId', 'int', 'caption=Източник->Нишка');
-        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, waiting=Чакащи, pending=Заявка,rejected=Оттеглен, closed=Приключен, stopped=Спрян, wakeup=Събуден)', 'caption=Състояние, input=none');
+        $this->FNC('state', 'enum(draft=Чернова, active=Активиран, waiting=Чакащи, pending=Заявка,rejected=Оттеглен, closed=Приключен, stopped=Спрян, wakeup=Събуден)', 'caption=Състояние, input=none');
 
         $this->setDbIndex('reffClassId,reffId');
         $this->setDbIndex('productId,storeId');
@@ -106,7 +106,9 @@ class store_StockPlanning extends core_Manager
 
         $Source = cls::get($rec->sourceClassId);
         $row->sourceId = $Source->hasPlugin('doc_DocumentPlg') ? $Source->getLink($rec->sourceId, 0) : $Source->getHyperlink($rec->sourceId, true);
-        $row->ROW_ATTR['class'] = "state-{$rec->state}";
+        $state = $Source->fetchField($rec->sourceId, 'state');
+        $row->state = $mvc->getFieldType('state')->toVerbal($state);
+        $row->ROW_ATTR['class'] = "state-{$state}";
 
         if(isset($rec->reffClassId) && isset($rec->reffId)){
             $SecondSource = cls::get($rec->reffClassId);
@@ -156,18 +158,13 @@ class store_StockPlanning extends core_Manager
         $classId = $Class->getClassId();
         $now = dt::now();
 
+        $threadId = null;
         if(cls::haveInterface('doc_DocumentIntf', $Class)){
-            $sourceRec = $Class->fetch($id, 'threadId,state');
+            $sourceRec = $Class->fetch($id, 'threadId');
             $threadId = $sourceRec->threadId;
-            $state = $sourceRec->state;
-        } else {
-            $threadId = $state = null;
-            if($Class->getField('state', false)){
-                $state = $Class->fetchField($id, 'state');
-            }
         }
 
-        array_walk($array, function($a) use ($now, $classId, $threadId, $id, $state) {$a->createdOn = $now; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId; $a->state = $state;});
+        array_walk($array, function($a) use ($now, $classId, $threadId, $id) {$a->createdOn = $now; $a->sourceClassId = $classId; $a->sourceId = $id; $a->threadId = $threadId;});
     }
 
 
@@ -303,8 +300,8 @@ class store_StockPlanning extends core_Manager
         // Каква ще е наличността към датата
         $query = static::getQuery();
         $query->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
-        $query->XPR('totalOut', 'double', "ROUND(SUM(COALESCE(#quantityOut, 0)), 4)");
-        $query->XPR('totalIn', 'double', "ROUND(SUM(COALESCE(#quantityIn, 0)), 4)");
+        $query->XPR('totalOut', 'double', "SUM(COALESCE(#quantityOut, 0))");
+        $query->XPR('totalIn', 'double', "SUM(COALESCE(#quantityIn, 0))");
         $query->where("#date <= '{$date}' AND #generic = 'no'");
         $query->groupBy('productId,storeId');
         $query->show('productId,totalOut,totalIn,storeId');
@@ -319,7 +316,7 @@ class store_StockPlanning extends core_Manager
 
         $res = array();
         while($rec = $query->fetch()){
-            $res[$rec->storeId][$rec->productId] = (object)array('productId' => $rec->productId, 'storeId' => $rec->storeId, 'reserved' => $rec->totalOut, 'expected' => $rec->totalIn);
+            $res[$rec->storeId][$rec->productId] = (object)array('productId' => $rec->productId, 'storeId' => $rec->storeId, 'reserved' => round($rec->totalOut, 4), 'expected' => round($rec->totalIn, 4));
         }
 
         return $res;

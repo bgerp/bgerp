@@ -185,7 +185,7 @@ class cms_GalleryGroups extends core_Manager
     public static function getDefaultGroupId()
     {
         // По подразбиране да се използва групата централни
-        return cms_GalleryGroups::fetchField("#title = 'Централни'");
+        return cms_GalleryGroups::fetchField("#title = 'Без-стил'");
     }
     
     

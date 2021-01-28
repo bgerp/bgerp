@@ -134,7 +134,20 @@ class deals_plg_SelectInvoice extends core_Plugin
      */
     public static function on_AfterGetReasonContainerOptions($mvc, &$res, $rec)
     {
-        $res = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($rec->threadId, null, false, false, true) : deals_Helper::getInvoicesInThread($rec->threadId, null, true, true, false);
+        $threadsArr = array($rec->threadId => $rec->threadId);
+
+        // Ако в документа е разрешено да се показват ф-те към обединените сделки
+        if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+            $closedDocuments = keylist::toArray($firstDocument->fetchField('closedDocuments'));
+            if(countR($closedDocuments)){
+                $docQuery = $firstDocument->getQuery();
+                $docQuery->in('id', $closedDocuments);
+                $docQuery->show('threadId');
+                $threadsArr += arr::extractValuesFromArray($docQuery->fetchAll(), 'threadId');
+            }
+        }
+
+        $res = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, false);
     }
     
     

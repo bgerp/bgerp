@@ -420,7 +420,7 @@ abstract class deals_Helper
             $packQuantity = 1;
         }
 
-        $stRec = store_Products::getRec($productId, $storeId);
+        $stRec = store_Products::getQuantities($productId, $storeId);
         $quantity = $stRec->free;
         
         $Double = cls::get('type_Double');
@@ -741,7 +741,7 @@ abstract class deals_Helper
 
         $date = isset($date) ? $date : null;
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
-        $stRec = store_Products::getRec($productId, $storeId, $date);
+        $stRec = store_Products::getQuantities($productId, $storeId, $date);
         $freeQuantityOriginal = $stRec->free;
 
         $Double = core_Type::getByName('double(smartRound)');
@@ -2026,9 +2026,10 @@ abstract class deals_Helper
      * Проверка дали цената е под очакваната за клиента
      *
      * @param int           $productId
-     * @param float         $price
-     * @param float         $discount
-     * @param float         $quantity
+     * @param double        $price
+     * @param double        $discount
+     * @param double        $quantity
+     * @param double        $quantityInPack
      * @param int           $contragentClassId
      * @param int           $contragentId
      * @param datetime|null $valior
@@ -2036,14 +2037,16 @@ abstract class deals_Helper
      *
      * @return stdClass|null $obj
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true)
     {
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
-        if ($minListId) {
+        $isPublic = cat_Products::fetchField($productId, 'isPublic');
+        $foundMinPrice = null;
+        if ($minListId && $isPublic == 'yes') {
             $foundMinPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $minListId, $useQuotationPrice);
         }
-        
+
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
         
         foreach (array($foundMinPrice, $foundPrice) as $i => $var){
@@ -2056,7 +2059,6 @@ abstract class deals_Helper
                 $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
                 $foundPrice = $var->price * (1 - $var->discount);
                 
-                $diff = abs(round($price - $foundPrice, 5));
                 $price1Round = round($price, 5);
                 $price2Round = round($foundPrice, 5);
                 
@@ -2066,16 +2068,20 @@ abstract class deals_Helper
                     
                     if ($diff > $toleranceDiff) {
                         $obj = array();
-                        
+
                         if($i == 0 && $percent >= 0){
-                            $obj['hint'] ='Крайната цена е под минималната за клиента|*!';
+                            $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
+                            $obj['hint'] ='Цената е под минималната за клиента';
+                            $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
                             $obj['hintType'] = 'error';
                             
                             return $obj;
                         } 
                         
                         if($i == 1){
-                            $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента|*!' : 'Крайната цена е под очакваната за клиента|*!';
+                            $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
+                            $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
+                            $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
                         
                             return $obj;
@@ -2094,42 +2100,49 @@ abstract class deals_Helper
      *
      * @param core_Mvc $mvc
      * @param stdClass $rec
+     * @param null|string $msg
      *
      * @return bool
      */
-    public static function hasProductsBellowMinPrice($mvc, $rec)
+    public static function hasProductsBellowMinPrice($mvc, $rec, &$msg = null)
     {
         $minPolicyId = sales_Setup::get('MIN_PRICE_POLICY');
-        
+
+        $products = array();
         if (isset($mvc->mainDetail) && !empty($minPolicyId)) {
             $rec = $mvc->fetchRec($rec);
             $Detail = cls::get($mvc->mainDetail);
             
             $dQuery = $Detail::getQuery();
-            $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey={$Detail->productFld}");
-            $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #isPublic = 'yes'");
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $priceDate = ($rec == 'draft') ? null : $rec->valior;
-            
+
             if($mvc instanceof sales_Sales){
-                $useQuotationPrice = isset($rec->originId) ? true : false;
+                $useQuotationPrice = isset($rec->originId);
+            } elseif($mvc instanceof sales_Quotations){
+                $useQuotationPrice = false;
             } elseif($mvc instanceof store_ShipmentOrders){
                 $useQuotationPrice = false;
                 if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                     if($firstDocument->isInstanceOf('sales_Sales')){
                         $firstDocumentOrigin = $firstDocument->fetchField('originId');
-                        $useQuotationPrice = isset($firstDocumentOrigin) ? true : false;
+                        $useQuotationPrice = isset($firstDocumentOrigin);
                     }
                 }
             }
-            
+
             while ($dRec = $dQuery->fetch()) {
                 $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice)){
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice)){
                     if($checkedObject['hintType'] == 'error'){
-                        
-                        return true;
+                        $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
                 }
+            }
+
+            if(countR($products)){
+                $msg = "Следните артикули са с продажни цени под минималната|*: " . implode(', ', $products);
+                return true;
             }
         }
         

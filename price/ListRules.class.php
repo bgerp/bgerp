@@ -853,7 +853,7 @@ class price_ListRules extends core_Detail
         $tpl = getTplFromFile('price/tpl/ListRules.shtml');
         
         unset($data->listFields['priority']);
-        $display = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument')) ? true : false;
+        $display = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument'));
         
         if ($masterRec->state != 'rejected' && $display === true) {
             $img = ht::createElement('img', array('src' => sbf('img/16/tools.png', '')));
@@ -861,7 +861,8 @@ class price_ListRules extends core_Detail
         }
         
         $tpl->append($this->renderListFilter($data), 'ListFilter');
-        
+        $retUrl = getRetUrl();
+
         // За всеки приоритет
         foreach (array(1 => 'Правила с висок приоритет', 2 => 'Правила със среден приоритет', 3 => 'Правила с нисък приоритет') as $priority => $title) {
             $block = clone $tpl->getBlock('PRIORITY');
@@ -879,7 +880,12 @@ class price_ListRules extends core_Detail
             if ($priority == 1) {
                 $fields['domain'] = 'Артикул';
                 if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                    $toolbar->addBtn('Стойност', array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'priority' => $priority,'ret_url' => true), null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
+                    $url = array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority);
+                    if(countR($retUrl)){
+                        $url['ret_url'] = $retUrl;
+                    }
+
+                    $toolbar->addBtn('Стойност', $url, null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
                 }
             } else {
                 $fields['domain'] = 'Група';
@@ -889,11 +895,21 @@ class price_ListRules extends core_Detail
             if ($masterRec->parent) {
                 if ($priority == 1) {
                     if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                        $toolbar->addBtn('Продуктов марж', array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => true), null, 'title=Задаване на правило с % за артикул,ef_icon=img/16/tag.png');
+                        $url = array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority);
+                        if(countR($retUrl)){
+                            $url['ret_url'] = $retUrl;
+                        }
+
+                        $toolbar->addBtn('Продуктов марж', $url, null, 'title=Задаване на правило с % за артикул,ef_icon=img/16/tag.png');
                     }
                 } else {
                     if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                        $toolbar->addBtn('Групов марж', array($this, 'add', 'type' => 'groupDiscount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => true), null, 'title=Задаване на групово правило с %,ef_icon=img/16/grouping.png');
+                        $url = array($this, 'add', 'type' => 'groupDiscount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => true);
+                        if(countR($retUrl)){
+                            $url['ret_url'] = $retUrl;
+                        }
+
+                        $toolbar->addBtn('Групов марж', $url, null, 'title=Задаване на групово правило с %,ef_icon=img/16/grouping.png');
                     }
                 }
             } else {

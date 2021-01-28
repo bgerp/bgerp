@@ -491,7 +491,7 @@ class eshop_ProductDetails extends core_Detail
         
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if (isset($settings->storeId) && $canStore == 'yes') {
-            $quantity = store_Products::getRec($rec->productId, $settings->storeId)->free;
+            $quantity = store_Products::getQuantities($rec->productId, $settings->storeId)->free;
 
             if ($quantity < $rec->quantityInPack) {
                 if(empty($rec->deliveryTime)){

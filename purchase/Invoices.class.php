@@ -45,7 +45,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable,plg_Clone, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
+                    doc_plg_HidePrices, acc_plg_DocumentSummary, drdata_plg_Canonize,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
     
     
     /**
@@ -213,7 +213,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
         $form->FLD('contragentSource', 'enum(company=Фирми,newContragent=Нов доставчик)', 'input,silent,removeAndRefreshForm=selectedContragentId,caption=Контрагент->Източник,before=contragentName');
         $form->setDefault('contragentSource', 'company');
-        $form->FLD('selectedContragentId', 'int', 'input=none,silent,removeAndRefreshForm,caption=Контрагент->Избор,after=contragentSource');
+        $form->FLD('selectedContragentId', 'int', 'input=none,silent,removeAndRefreshForm,caption=Контрагент->Избор,after=contragentSource,mandatory');
     }
     
     
@@ -370,6 +370,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         if ($rec->type != 'dc_note') {
             // Ако източника е фирма и не е избрана фирма, забраняваме определени полета
             if ($rec->contragentSource == 'company' && empty($rec->selectedContragentId)) {
+                unset($rec->contragentName);
                 foreach (array('contragentName', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
                     $form->setReadOnly($fld);
                 }

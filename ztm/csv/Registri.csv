@@ -99,6 +99,7 @@ hvac.loop1_1.fan.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,HVAC,system,
 hvac.loop1_1.fan.min_speed,float,0.0/100.0,HVAC,system,0.0,Loop 1 fan minimum speed [%]
 hvac.loop1_1.fan.max_speed,float,0.0/100.0,HVAC,system,30.0,Loop 1 fan maximum speed [%]
 hvac.loop1_1.temp.settings,str,,HVAC,system,temp/DS18B20/28FF2B70C11604B7,Loop 1 temperature sensor settings
+hvac.loop1_1.temp.down_limit,int,0.0/,HVAC,system,15,Loop 1 temperature down limit
 hvac.loop1_1.valve.settings,str,,HVAC,system,TONHE/a20m15b2c,Loop 1 valve settings
 hvac.loop1_1.valve.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO4,Loop 1 valve output
 hvac.loop1_1.valve.feedback,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AI1,Loop 1 valve feedback
