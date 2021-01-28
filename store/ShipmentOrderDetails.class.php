@@ -241,17 +241,19 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     
                     $row->packPrice = ht::createHint($row->packPrice, $warning, 'warning', false);
                 } elseif(in_array($masterRec->state, array('pending', 'draft'))) {
-                    
+
+                    $listId = null;
                     $useQuotationPrice = false;
                     if($firstDocument = doc_Threads::getFirstDocument($masterRec->threadId)){
                         if($firstDocument->isInstanceOf('sales_Sales')){
-                            $firstDocumentOrigin = $firstDocument->fetchField('originId');
-                            $useQuotationPrice = isset($firstDocumentOrigin);
+                            $firstDocumentRec = $firstDocument->fetch('originId,priceListId');
+                            $useQuotationPrice = isset($firstDocumentRec->originId);
+                            $listId = $firstDocumentRec->priceListId;
                         }
                     }
                     
                     // Предупреждение дали цената е под очакваната за клиента
-                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, null, $useQuotationPrice)){
+                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $listId, $useQuotationPrice)){
                         $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
                     }
                 }
