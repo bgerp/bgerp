@@ -752,6 +752,7 @@ class planning_Jobs extends core_Master
         if($packType != 'uom'){
             $rec->quantityProduced /= $rec->quantityInPack;
         }
+        $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
 
         $packQuantity = $rec->packQuantity;
         $originalQuantityProduced = $rec->quantityProduced;
@@ -760,6 +761,7 @@ class planning_Jobs extends core_Master
             $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
 
             $coefficient = $originalQuantityProduced / $rec->secondMeasureQuantity;
+
             $additionalQuantityVerbal  = $Double->toVerbal($rec->secondMeasureQuantity);
             $additionalMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
             $measureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
@@ -782,8 +784,6 @@ class planning_Jobs extends core_Master
                 $additionalMeasureName = ht::createHint($additionalMeasureName, $hint);
                 $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$additionalQuantityVerbal} {$additionalMeasureName}) </span>";
             }
-        } else {
-            $row->quantityProduced = $Double->toVerbal($originalQuantityProduced);
         }
 
         $rec->quantityNotStored = $rec->quantityFromTasks - $originalQuantityProduced;
