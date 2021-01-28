@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureId,secondMeasureCoefficient,secondMeasureQuantity';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureId,secondMeasureQuantity';
 
 
     /**
@@ -241,7 +241,6 @@ class planning_Jobs extends core_Master
         $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Планирано,input=none');
 
         $this->FLD('secondMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Мярка', 'input=none');
-        $this->FLD('secondMeasureCoefficient', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('secondMeasureQuantity', 'double(decimals=2)', 'caption=Втора мярка->К-во,input=none');
 
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
@@ -1218,7 +1217,7 @@ class planning_Jobs extends core_Master
             $rec->quantityProduced = empty($quantityProduced) ? 0 : $quantityProduced;
             $rec->secondMeasureId = empty($quantityProduced) ? null : $secondMeasureId;
             $rec->secondMeasureQuantity = $secondMeasureQuantity;
-            $saveFields .= ',secondMeasureId,secondMeasureCoefficient,secondMeasureQuantity';
+            $saveFields .= ',secondMeasureId,secondMeasureQuantity';
         }
 
        // bp($rec);
