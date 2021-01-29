@@ -1202,8 +1202,26 @@ class planning_Jobs extends core_Master
                 $secondMeasureQuantity = $secondMeasureArr[$secondMeasureId]['quantity'];
             } else {
 
+                // Колко е коефициента
+                $packRec = cat_products_Packagings::getPack($rec->productId, $secondMeasureId);
+                if(!is_object($packRec)){
+
+                    // Ако няма проверява се някоя от нейните производни
+                    $sameTypeMeasureIds = cat_UoM::getSameTypeMeasures($secondMeasureId);
+                    unset($sameTypeMeasureIds['']);
+                    unset($sameTypeMeasureIds[$secondMeasureId]);
+                    $sameTypeMeasureIds = array_keys($sameTypeMeasureIds);
+
+                    // Ако има да се конвертира
+                    foreach ($sameTypeMeasureIds as $sId){
+                        if($packRec = cat_products_Packagings::getPack($rec->productId, $sId)){
+                            $coefficient = cat_UoM::convertValue($packRec->quantity, $sId, $secondMeasureId);
+                            break;
+                        }
+                    }
+                }
+
                 // Ако няма ще е теоретичния
-                $coefficient = cat_products_Packagings::getPack($rec->productId, $secondMeasureId)->quantity;
                 $secondMeasureQuantity = 0;
             }
 
