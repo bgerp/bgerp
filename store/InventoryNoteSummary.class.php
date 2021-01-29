@@ -314,11 +314,14 @@ class store_InventoryNoteSummary extends doc_Detail
         $valior = dt::addDays(-1, $valior);
         $valior = dt::verbal2mysql($valior, false);
         $query = store_StockPlanning::getQuery();
-        $query->where("(#state = 'pending' OR #state = 'waiting') AND #storeId = {$storeId} AND #date <= '{$valior}'");
+        $query->where("#storeId = {$storeId} AND #date <= '{$valior}'");
         while ($sourceRec = $query->fetch()) {
             $Source = cls::get($sourceRec->sourceClassId);
-            $link = cls::haveInterface('doc_DocumentPlg', $Source) ? $Source->getLink($sourceRec->sourceId, 0) : $Source->getHyperlink($sourceRec->sourceId, true);
-            $res[$sourceRec->productId][] = $link;
+            $state = $Source->fetchField($sourceRec->sourceId, 'state');
+            if(in_array($state, array('pending', 'draft'))){
+                $link = cls::haveInterface('doc_DocumentIntf', $Source) ? $Source->getLink($sourceRec->sourceId, 0) : $Source->getHyperlink($sourceRec->sourceId, true);
+                $res[$sourceRec->productId][] = $link;
+            }
         }
 
         return $res;

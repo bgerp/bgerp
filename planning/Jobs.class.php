@@ -741,6 +741,7 @@ class planning_Jobs extends core_Master
         $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
         $Double = core_Type::getByName('double(smartRound)');
         $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
 
         if (isset($rec->productId) && empty($fields['__isDetail'])) {
             $rec->quantityFromTasks = planning_Tasks::getProducedQuantityForJob($rec);
@@ -751,7 +752,10 @@ class planning_Jobs extends core_Master
         $packType = cat_UoM::fetchField($rec->packagingId, 'type');
         if($packType != 'uom'){
             $rec->quantityProduced /= $rec->quantityInPack;
+        } else {
+            $rec->quantityProduced = cat_UoM::convertValue($rec->quantityProduced, $measureId,  $rec->packagingId);
         }
+
         $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
         $packQuantity = $rec->packQuantity;
         $originalQuantityProduced = $rec->quantityProduced;
@@ -765,7 +769,7 @@ class planning_Jobs extends core_Master
 
             $additionalQuantityVerbal  = $Double->toVerbal($rec->secondMeasureQuantity);
             $additionalMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
-            $measureName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
+            $measureName = tr(cat_UoM::getShortName($measureId));
             $originalMeasureName = $measureName;
             $originalSecondMeasureName = $additionalMeasureName;
             $hint = " 1 {$additionalMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
