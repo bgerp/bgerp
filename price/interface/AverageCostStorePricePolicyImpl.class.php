@@ -381,13 +381,17 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     public function getAffectedProducts($datetime)
     {
         $affected = array();
-        
+
         // Ако има избрани складове, гледа се има ли дебити в тях
         $storeData = $this->getStoreInfo();
         if(countR($storeData['storeItemIds'])){
             $skipDocumentArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
-            
-            $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit', $storeData['storeItemIds'], $skipDocumentArr);
+
+            // Опит бъгфикс
+            $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
+            $time = !empty($lastCalcedDebitTime) ? $lastCalcedDebitTime : $datetime;
+
+            $affected = parent::getAffectedProductWithStoreMovement($time, 'debit', $storeData['storeItemIds'], $skipDocumentArr);
         }
         
         return $affected;
