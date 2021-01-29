@@ -193,10 +193,12 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 if(is_object($lastBalance)){
                     $where .= " AND #journalCreatedOn <= '{$lastBalance->lastCalculate}'";
                 }
-
                 log_System::logDebug("AVG FROM '{$lastCalcedDebitTime}' - BID={$lastBalance->id} '{$lastBalance->lastCalculate}'");
 
                 $jQuery->where($where);
+
+                log_System::logDebug("AVG QUERY '{$jQuery->getWhereAndHaving()->w}'");
+
             }
             
             $jRec = $jQuery->fetch();
