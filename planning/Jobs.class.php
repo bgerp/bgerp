@@ -1205,9 +1205,8 @@ class planning_Jobs extends core_Master
                 // Колко е коефициента
                 $packRec = cat_products_Packagings::getPack($rec->productId, $secondMeasureId);
 
+                // Ако няма проверява се някоя от нейните производни
                 if(!is_object($packRec)){
-
-                    // Ако няма проверява се някоя от нейните производни
                     $sameTypeMeasureIds = cat_UoM::getSameTypeMeasures($secondMeasureId);
                     unset($sameTypeMeasureIds['']);
                     unset($sameTypeMeasureIds[$secondMeasureId]);
@@ -1220,6 +1219,8 @@ class planning_Jobs extends core_Master
                             break;
                         }
                     }
+                } else {
+                    $coefficient = $packRec->quantity;
                 }
 
                 // Ако няма ще е теоретичния
