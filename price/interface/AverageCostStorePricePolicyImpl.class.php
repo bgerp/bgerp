@@ -211,7 +211,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 unset($jRec->maxValior);
                 $debitRecs[$itemId] = $jRec;
 
-                log_System::logDebug("AVG Quantity {$jRec->debitQuantity}");
+                log_System::logDebug("AVG Quantity {$jRec->debitQuantity} AMOUNT {$jRec->amount}");
             }
         }
 
