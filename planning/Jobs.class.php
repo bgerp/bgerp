@@ -1204,6 +1204,7 @@ class planning_Jobs extends core_Master
 
                 // Колко е коефициента
                 $packRec = cat_products_Packagings::getPack($rec->productId, $secondMeasureId);
+
                 if(!is_object($packRec)){
 
                     // Ако няма проверява се някоя от нейните производни
