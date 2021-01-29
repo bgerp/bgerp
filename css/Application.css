@@ -442,6 +442,9 @@ div.folder-cover {
 .folder-cover  .portal table.listTable  .totalRow td {
   vertical-align: baseline !important;
   padding: 2px 3px 5px !important; }
+  .doc_Containers table.listTable .totalRow td.horizonCol,
+  .folder-cover  .portal table.listTable  .totalRow td.horizonCol {
+    top: 0 !important; }
 
 .public.folder-cover {
   margin: 0; }
@@ -1943,9 +1946,22 @@ td.rowtools-column {
   min-width: 300px; }
 
 .horizonCol {
+  position: relative;
+  top: 2px;
   font-size: 0.85em; }
+  .horizonCol .anchor-arrow,
+  .horizonCol .endTooltip {
+    width: 10px;
+    height: 10px; }
+    .horizonCol .anchor-arrow img,
+    .horizonCol .endTooltip img {
+      width: 12px;
+      height: 12px; }
+  .horizonCol .additionalInfo-holder {
+    position: relative;
+    top: 1px; }
 
-.lighterColor {
+.lighter-color {
   opacity: 0.6; }
 
 .listAction table.listTable>tbody>tr>td,

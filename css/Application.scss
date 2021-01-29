@@ -523,6 +523,9 @@ div.folder-cover {
 .doc_Containers table.listTable .totalRow td, .folder-cover  .portal table.listTable  .totalRow td{
 	vertical-align: baseline !important;
 	padding: 2px 3px 5px !important;
+	&.horizonCol {
+		top: 0 !important;
+	}
 }
 
 .public.folder-cover {
@@ -2241,10 +2244,24 @@ td.rowtools-column {
 }
 
 .horizonCol {
+	position: relative;
+	top: 2px;
 	font-size: 0.85em;
+	.anchor-arrow,  .endTooltip{
+		width: 10px;
+		height: 10px;
+		img {
+			width: 12px;
+			height: 12px;
+		}
+	}
+	.additionalInfo-holder {
+		position: relative;
+		top:1px;
+	}
 }
 
-.lighterColor {
+.lighter-color {
 	opacity: 0.6;
 }
 
