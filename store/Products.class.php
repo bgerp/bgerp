@@ -574,15 +574,15 @@ class store_Products extends core_Detail
             }
 
             if(!empty($rec->freeQuantity) && !isset($rec->reservedQuantity) && !isset($rec->expectedQuantity)){
-                $row->freeQuantity = "<span class='lighterColor'>{$row->freeQuantity}</span>";
+                $row->freeQuantity = "<span class='lighter-color'>{$row->freeQuantity}</span>";
             }
 
             if(!empty($rec->freeQuantityMin) && !isset($rec->reservedQuantityMin) && !isset($rec->expectedQuantityMin)){
-                $row->freeQuantityMin = "<span class='lighterColor'>{$row->freeQuantity}</span>";
+                $row->freeQuantityMin = "<span class='lighter-color'>{$row->freeQuantity}</span>";
             }
 
             if(!empty($rec->resultDiff) && !isset($rec->reservedOut) && !isset($rec->expectedIn)){
-                $row->resultDiff = "<span class='lighterColor'>{$row->resultDiff}</span>";
+                $row->resultDiff = "<span class='lighter-color'>{$row->resultDiff}</span>";
             }
 
             $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
@@ -769,7 +769,7 @@ class store_Products extends core_Detail
             }
 
             // Подготвяне на реда с информация
-            $link = new core_ET("<div style='float:left;padding-bottom:5px'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
+            $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
             $link->placeObject($row);
             $links .= $link->getContent();
         }
