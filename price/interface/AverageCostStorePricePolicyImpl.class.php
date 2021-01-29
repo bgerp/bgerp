@@ -155,6 +155,8 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         // Ако баланса се изчислява в момента да не прави нищо
         if ($useCachedDate && !core_Locks::get('RecalcBalances', 600, 2)) {
 
+            log_System::logDebug("AVG BALANCE NOT FREE");
+
             return array();
         }
 
@@ -191,6 +193,9 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 if(is_object($lastBalance)){
                     $where .= " AND #journalCreatedOn <= '{$lastBalance->lastCalculate}'";
                 }
+
+                log_System::logDebug("AVG FROM '{$lastCalcedDebitTime}' - BID={$lastBalance->id} '{$lastBalance->lastCalculate}'");
+
                 $jQuery->where($where);
             }
             
@@ -203,12 +208,15 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 unset($jRec->sumDebitAmount);
                 unset($jRec->maxValior);
                 $debitRecs[$itemId] = $jRec;
+
+                log_System::logDebug("AVG Quantity {$jRec->debitQuantity}");
             }
         }
 
         $lastCalcedDebitTime = is_object($lastBalance) ? $lastBalance->lastCalculate : dt::now();
         core_Permanent::set('lastCalcedDebitTime', $lastCalcedDebitTime, core_Permanent::IMMORTAL_VALUE);
-        
+        log_System::logDebug("AVG SAVED TIME {$lastCalcedDebitTime}");
+
         return $debitRecs;
     }
     
