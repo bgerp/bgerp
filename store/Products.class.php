@@ -574,15 +574,15 @@ class store_Products extends core_Detail
             }
 
             if(!empty($rec->freeQuantity) && !isset($rec->reservedQuantity) && !isset($rec->expectedQuantity)){
-                $row->freeQuantity = "<span class='lighter-color'>{$row->freeQuantity}</span>";
+                $row->freeQuantity = "<span class='quiet'>{$row->freeQuantity}</span>";
             }
 
             if(!empty($rec->freeQuantityMin) && !isset($rec->reservedQuantityMin) && !isset($rec->expectedQuantityMin)){
-                $row->freeQuantityMin = "<span class='lighter-color'>{$row->freeQuantity}</span>";
+                $row->freeQuantityMin = "<span class='quiet'>{$row->freeQuantity}</span>";
             }
 
             if(!empty($rec->resultDiff) && !isset($rec->reservedOut) && !isset($rec->expectedIn)){
-                $row->resultDiff = "<span class='lighter-color'>{$row->resultDiff}</span>";
+                $row->resultDiff = "<span class='quiet'>{$row->resultDiff}</span>";
             }
 
             $dateMin = !empty($rec->dateMin) ? $rec->dateMin : dt::today();
