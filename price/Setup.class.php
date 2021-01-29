@@ -32,6 +32,12 @@ defIfNot('PRICE_CRON_UPDATE_PRIME_COST', '5');
 
 
 /**
+ * На колко време да се кешират и обновяват рецептите
+ */
+defIfNot('PRICE_CRON_UPDATE_BOM_COST', '11');
+
+
+/**
  * Инсталиране на модул 'price'
  *
  * Ценови политики на фирмата
@@ -40,7 +46,7 @@ defIfNot('PRICE_CRON_UPDATE_PRIME_COST', '5');
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -84,15 +90,6 @@ class price_Setup extends core_ProtoSetup
             'offset' => 77,
             'timeLimit' => 10
         ),
-
-        array(
-            'systemId' => 'Update bom costs',
-            'description' => 'Обновяване на кешираните цени по рецепти',
-            'controller' => 'price_interface_LastActiveBomCostPolicy',
-            'action' => 'updateCachedBoms',
-            'period' => 11,
-            'timeLimit' => 360,
-        ),
     );
 
 
@@ -127,7 +124,15 @@ class price_Setup extends core_ProtoSetup
         $rec->action = 'Updateprimecosts';
         $rec->period = static::get('CRON_UPDATE_PRIME_COST');
         $rec->timeLimit = 360;
+        $html .= core_Cron::addOnce($rec);
 
+        $rec = new stdClass();
+        $rec->systemId =  'Update bom costs';
+        $rec->description = 'Обновяване на кешираните цени по рецепти';
+        $rec->controller = 'price_interface_LastActiveBomCostPolicy';
+        $rec->action = 'updateCachedBoms';
+        $rec->period = static::get('CRON_UPDATE_BOM_COST');
+        $rec->timeLimit = 360;
         $html .= core_Cron::addOnce($rec);
 
         return $html;
@@ -160,6 +165,7 @@ class price_Setup extends core_ProtoSetup
         'PRICE_MIN_CHANGE_UPDATE_PRIME_COST' => array('percent(Min=0,max=1)', 'caption=Автоматично обновяване на себестойностите->Мин. промяна'),
         'PRICE_STORE_AVERAGE_PRICES' => array('keylist(mvc=store_Stores,select=name)', 'caption=Складове за които да се записва осреднена цена->Избор,callOnChange=price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices'),
         'PRICE_CRON_UPDATE_PRIME_COST' => array('int(min=0)', 'caption=Настройки на крона за обновяване на себестойностите->Минути'),
+        'PRICE_CRON_UPDATE_BOM_COST' => array('int(min=0)', 'caption=Настройки на крона за обновяване на себестойностите на рецептите->Минути'),
     );
 
 
