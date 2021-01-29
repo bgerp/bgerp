@@ -892,10 +892,12 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
 
-            if(isset($rec->contragentClassI) && isset($rec->contragentId)){
+            if(isset($rec->contragentClassId) && isset($rec->contragentId)){
                 $cData = cls::get($rec->contragentClassId)->getContragentData($rec->contragentId);
-                if(!drdata_Countries::isEu($cData->countryId, $rec->valior) && empty($rec->contragentEori)){
-                    $form->setWarning('contragentEori', 'За контрагенти извън ЕС, е препоръчително да има EORI №');
+                $ukCountryId = drdata_Countries::fetchField("#commonName = 'United Kingdom'");
+
+                if($cData->countryId == $ukCountryId && empty($rec->contragentEori)){
+                    $form->setWarning('contragentEori', 'За Великобритания, е препоръчително да има EORI №');
                 }
             }
         }
