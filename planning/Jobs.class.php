@@ -753,7 +753,10 @@ class planning_Jobs extends core_Master
         if($packType != 'uom'){
             $rec->quantityProduced /= $rec->quantityInPack;
         } else {
-            $rec->quantityProduced = cat_UoM::convertValue($rec->quantityProduced, $measureId,  $rec->packagingId);
+            $converted = cat_UoM::convertValue($rec->quantityProduced, $measureId,  $rec->packagingId);
+            if($converted !== false){
+                $rec->quantityProduced = $converted;
+            }
         }
 
         $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
@@ -776,6 +779,9 @@ class planning_Jobs extends core_Master
 
             // Ако втората мярка е опаковката подменям ги
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                $secondMeasureQuantity = cat_UoM::convertValue($rec->secondMeasureQuantity, $rec->secondMeasureId, $rec->packagingId);
+                $additionalQuantityVerbal  = $Double->toVerbal($secondMeasureQuantity);
+
                 $row->quantityProduced = $additionalQuantityVerbal;
                 $additionalQuantityVerbal = $Double->toVerbal($originalQuantityProduced);
                 $additionalMeasureName = $originalMeasureName;
@@ -1215,7 +1221,15 @@ class planning_Jobs extends core_Master
                     // Ако има да се конвертира
                     foreach ($sameTypeMeasureIds as $sId){
                         if($packRec = cat_products_Packagings::getPack($rec->productId, $sId)){
-                            $coefficient = cat_UoM::convertValue($packRec->quantity, $sId, $secondMeasureId);
+                            if(!in_array($rec->packagingId, $sameTypeMeasureIds)){
+                                $coefficient = cat_UoM::convertValue($packRec->quantity, $sId, $secondMeasureId);
+                            } else {
+                                $coefficient = $packRec->quantity;
+                            }
+
+                            //bp($coefficient);
+
+                           // bp($packRec->quantity, $coefficient);
                             break;
                         }
                     }
@@ -1248,7 +1262,7 @@ class planning_Jobs extends core_Master
             $rec->secondMeasureQuantity = $secondMeasureQuantity;
             $saveFields .= ',secondMeasureId,secondMeasureQuantity';
         }
-
+        //bp($rec->quantityProduced, $rec->secondMeasureQuantity);
         $me->save_($rec, $saveFields);
         $me->touchRec($rec);
     }
