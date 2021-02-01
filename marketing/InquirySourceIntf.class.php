@@ -44,4 +44,16 @@ class marketing_InquirySourceIntf
     {
         return $this->class->getInquiryData($id);
     }
+
+
+    /**
+     * Какво е заглавието на източника
+     *
+     * @param $id     - ид на запис
+     * @return string - заглавие
+     */
+    public function getSourceTitle($id)
+    {
+        return $this->class->getSourceTitle($id);
+    }
 }

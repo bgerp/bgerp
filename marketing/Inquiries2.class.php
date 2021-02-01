@@ -485,7 +485,7 @@ class marketing_Inquiries2 extends embed_Manager
         if(isset($rec->sourceClassId)){
             if(cls::load($rec->sourceClassId, true)){
                 $Source = cls::get($rec->sourceClassId);
-                $row->sourceId = ($Source instanceof core_Master) ? $Source->getHyperlink($rec->sourceId, true) : $Source->getTitleById($rec->sourceId);
+                $row->sourceId = $Source->getSourceTitle($rec->sourceId);
             }
         }
         

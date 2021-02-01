@@ -422,12 +422,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
 
             $measureDerivities = cat_Uom::getSameTypeMeasures($productInfo->productRec->measureId);
-
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             if(!empty($rec->additionalMeasureId) && !empty($rec->additionalMeasureQuantity)){
 
                 if(array_key_exists($rec->additionalMeasureId, $measureDerivities)){
-                    $additionalMeasureQuantity = cat_UoM::convertToBaseUnit($rec->additionalMeasureQuantity, $rec->additionalMeasureId);
+                    $additionalMeasureQuantity = cat_Uom::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $productInfo->productRec->measureId);
                     $rec->quantityInPack = $additionalMeasureQuantity / $rec->packQuantity;
                 }
             }

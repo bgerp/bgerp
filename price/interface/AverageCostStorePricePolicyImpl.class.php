@@ -155,6 +155,8 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
         // Ако баланса се изчислява в момента да не прави нищо
         if ($useCachedDate && !core_Locks::get('RecalcBalances', 600, 2)) {
 
+            log_System::logDebug("AVG BALANCE NOT FREE");
+
             return array();
         }
 
@@ -191,7 +193,12 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 if(is_object($lastBalance)){
                     $where .= " AND #journalCreatedOn <= '{$lastBalance->lastCalculate}'";
                 }
+                log_System::logDebug("AVG FROM '{$lastCalcedDebitTime}' - BID={$lastBalance->id} '{$lastBalance->lastCalculate}'");
+
                 $jQuery->where($where);
+
+                log_System::logDebug("AVG QUERY '{$jQuery->getWhereAndHaving()->w}'");
+
             }
             
             $jRec = $jQuery->fetch();
@@ -203,12 +210,15 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 unset($jRec->sumDebitAmount);
                 unset($jRec->maxValior);
                 $debitRecs[$itemId] = $jRec;
+
+                log_System::logDebug("AVG Quantity {$jRec->debitQuantity} AMOUNT {$jRec->amount}");
             }
         }
 
         $lastCalcedDebitTime = is_object($lastBalance) ? $lastBalance->lastCalculate : dt::now();
         core_Permanent::set('lastCalcedDebitTime', $lastCalcedDebitTime, core_Permanent::IMMORTAL_VALUE);
-        
+        log_System::logDebug("AVG SAVED TIME {$lastCalcedDebitTime}");
+
         return $debitRecs;
     }
     
@@ -371,13 +381,17 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     public function getAffectedProducts($datetime)
     {
         $affected = array();
-        
+
         // Ако има избрани складове, гледа се има ли дебити в тях
         $storeData = $this->getStoreInfo();
         if(countR($storeData['storeItemIds'])){
             $skipDocumentArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
-            
-            $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit', $storeData['storeItemIds'], $skipDocumentArr);
+
+            // Опит бъгфикс
+            $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
+            $time = !empty($lastCalcedDebitTime) ? $lastCalcedDebitTime : $datetime;
+
+            $affected = parent::getAffectedProductWithStoreMovement($time, 'debit', $storeData['storeItemIds'], $skipDocumentArr);
         }
         
         return $affected;

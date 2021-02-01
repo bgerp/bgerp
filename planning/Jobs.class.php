@@ -753,7 +753,10 @@ class planning_Jobs extends core_Master
         if($packType != 'uom'){
             $rec->quantityProduced /= $rec->quantityInPack;
         } else {
-            $rec->quantityProduced = cat_UoM::convertValue($rec->quantityProduced, $measureId,  $rec->packagingId);
+            $converted = cat_UoM::convertValue($rec->quantityProduced, $measureId,  $rec->packagingId);
+            if($converted !== false){
+                $rec->quantityProduced = $converted;
+            }
         }
 
         $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
@@ -776,6 +779,9 @@ class planning_Jobs extends core_Master
 
             // Ако втората мярка е опаковката подменям ги
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                $secondMeasureQuantity = cat_UoM::convertValue($rec->secondMeasureQuantity, $rec->secondMeasureId, $rec->packagingId);
+                $additionalQuantityVerbal  = $Double->toVerbal($secondMeasureQuantity);
+
                 $row->quantityProduced = $additionalQuantityVerbal;
                 $additionalQuantityVerbal = $Double->toVerbal($originalQuantityProduced);
                 $additionalMeasureName = $originalMeasureName;
@@ -1202,8 +1208,32 @@ class planning_Jobs extends core_Master
                 $secondMeasureQuantity = $secondMeasureArr[$secondMeasureId]['quantity'];
             } else {
 
+                // Колко е коефициента
+                $packRec = cat_products_Packagings::getPack($rec->productId, $secondMeasureId);
+
+                // Ако няма проверява се някоя от нейните производни
+                if(!is_object($packRec)){
+                    $sameTypeMeasureIds = cat_UoM::getSameTypeMeasures($secondMeasureId);
+                    unset($sameTypeMeasureIds['']);
+                    unset($sameTypeMeasureIds[$secondMeasureId]);
+                    $sameTypeMeasureIds = array_keys($sameTypeMeasureIds);
+
+                    // Ако има да се конвертира
+                    foreach ($sameTypeMeasureIds as $sId){
+                        if($packRec = cat_products_Packagings::getPack($rec->productId, $sId)){
+                            if(!in_array($rec->packagingId, $sameTypeMeasureIds)){
+                                $coefficient = cat_UoM::convertValue($packRec->quantity, $sId, $secondMeasureId);
+                            } else {
+                                $coefficient = $packRec->quantity;
+                            }
+                            break;
+                        }
+                    }
+                } else {
+                    $coefficient = $packRec->quantity;
+                }
+
                 // Ако няма ще е теоретичния
-                $coefficient = cat_products_Packagings::getPack($rec->productId, $secondMeasureId)->quantity;
                 $secondMeasureQuantity = 0;
             }
 
