@@ -1226,10 +1226,6 @@ class planning_Jobs extends core_Master
                             } else {
                                 $coefficient = $packRec->quantity;
                             }
-
-                            //bp($coefficient);
-
-                           // bp($packRec->quantity, $coefficient);
                             break;
                         }
                     }
@@ -1262,7 +1258,7 @@ class planning_Jobs extends core_Master
             $rec->secondMeasureQuantity = $secondMeasureQuantity;
             $saveFields .= ',secondMeasureId,secondMeasureQuantity';
         }
-        //bp($rec->quantityProduced, $rec->secondMeasureQuantity);
+
         $me->save_($rec, $saveFields);
         $me->touchRec($rec);
     }
