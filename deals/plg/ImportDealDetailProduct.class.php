@@ -52,8 +52,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $form = cls::get('core_Form');
             
             $cu = core_Users::getCurrent();
-            $cacheRec = core_Cache::get($mvc->className, "importProducts{$cu}");
-            
+
             // Подготвяме формата
             $form->FLD($mvc->masterKey, "key(mvc={$mvc->Master->className})", 'input=hidden,silent');
             $form->input(null, 'silent');
@@ -62,37 +61,53 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $form->setDefault('folderId', $masterRec->folderId);
             
             self::prepareForm($form);
-            
+
+            if (isset($form->rec->fromClipboard)) {
+                list($isFromClipboard) = explode('_', $form->rec->fromClipboard);
+            }
+
+            $cacheRec = core_Cache::get($mvc->className, "importProducts_{$cu}_{$isFromClipboard}");
+
             if ($cacheRec) {
                 foreach ($cacheRec as $name => $value) {
                     $form->rec->{$name} = $value;
                 }
             }
-            
+
             $form->input();
             
             // Ако формата е импутната
             if ($form->isSubmitted()) {
                 $rec = &$form->rec;
-                
-                // Трябва да има посочен източник
-                if ((empty($rec->csvData) && empty($rec->csvFile))) {
-                    $form->setError('csvData,csvFile', 'Трябва да е попълнено поне едно от полетата');
+
+                if (empty($rec->csvData) && empty($rec->csvFile) && empty($rec->fromClipboard)) {
+                    $form->setError('csvData,csvFile,fromClipboard', 'Трябва да е попълнено поне едно от полетата');
                 }
-                
-                // Трябва да има посочен източник
-                if ((!empty($rec->csvData) && !empty($rec->csvFile))) {
-                    $form->setError('csvData,csvFile', 'Трябва да е попълнено само едно от полетата');
+
+                if ((!empty($rec->csvData) + !empty($rec->csvFile) + !empty($rec->fromClipboard)) >= 2) {
+                    $form->setError('csvData,csvFile,fromClipboard', 'Трябва да е попълнено само едно от полетата');
                 }
-                
+
+                $isFromClipboard = false;
+
                 if (!$form->gotErrors()) {
-                    $data = ($rec->csvFile) ? bgerp_plg_Import::getFileContent($rec->csvFile) : $rec->csvData;
-                    
-                    $delimiter = $rec->delimiter == '\t' ? "\t" : $rec->delimiter;
-                    
-                    
-                    // Обработваме данните
-                    $rows = csv_Lib::getCsvRows($data, $delimiter, $rec->enclosure, $rec->firstRow);
+                    if (!$rec->fromClipboard) {
+                        $data = ($rec->csvFile) ? bgerp_plg_Import::getFileContent($rec->csvFile) : $rec->csvData;
+
+                        $delimiter = $rec->delimiter == '\t' ? "\t" : $rec->delimiter;
+
+                        // Обработваме данните
+                        $rows = csv_Lib::getCsvRows($data, $delimiter, $rec->enclosure, $rec->firstRow);
+                    } else {
+                        $clipboardValsArr = export_Clipboard::getVals();
+
+                        list($clipboardClass, $clipboardObjId) = explode('_', $rec->fromClipboard);
+
+                        $rows = (array) $clipboardValsArr[$clipboardClass][$clipboardObjId]->recs;
+
+                        $isFromClipboard = true;
+                    }
+
                     $fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol, 'pack' => $rec->packcol);
                     
                     if (core_Packs::isInstalled('batch')) {
@@ -100,17 +115,54 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     }
                     
                     if (!countR($rows)) {
-                        $form->setError('csvData,csvFile', 'Не са открити данни за импорт');
+                        $form->setError('csvData,csvFile,fromClipboard', 'Не са открити данни за импорт');
                     }
-                    
+
+                    if ($isFromClipboard) {
+                        foreach ($fields as $fKey => $fVal) {
+                            if (isset($fVal) && isset($form->_cMap[$fVal])) {
+                                $fields[$fKey] = $form->_cMap[$fVal];
+                            }
+                        }
+                    }
+
                     // Ако можем да импортираме импортираме
                     if ($mvc->haveRightFor('import')) {
-                        
+
                         // Обработваме и проверяваме данните
-                        if ($msg = self::checkRows($rows, $fields, $rec->folderId, $mvc)) {
-                            $form->setError('csvData', $msg);
+
+                        $errArr = self::checkRows($rows, $fields, $rec->folderId, $mvc);
+
+                        if (!empty($errArr)) {
+                            if ($isFromClipboard && $clipboardClass) {
+
+                                $j = cls::get($clipboardClass)->getLinkToSingle($clipboardObjId);
+
+                                $msg = "|Има проблем със следните записи от|* {$j}:";
+
+                                $msg .= '<ul>';
+
+                                foreach ($errArr as $r) {
+                                    $errMsg = implode(', ', $r);
+
+                                    $msg .= "|*<li>{$errMsg}" . '</li>';
+                                }
+                                $msg .= '</ul>';
+
+                                $form->setError('fromClipboard', $msg);
+                            } else {
+                                $msg = '|Има проблем със следните редове|*:';
+                                $msg .= '<ul>';
+                                foreach ($errArr as $j => $r) {
+                                    $errMsg = implode(', ', $r);
+                                    $msg .= "|*<li>|Ред|* '{$j}' : {$errMsg}" . '</li>';
+                                }
+                                $msg .= '</ul>';
+
+                                $form->setError('csvData', $msg);
+                            }
                         }
-                        
+
                         if (!$form->gotErrors()) {
                             
                             // Импортиране на данните от масива в зададените полета
@@ -120,7 +172,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                             $mvc->Master->logWrite('Импортиране на артикули', $rec->{$mvc->masterKey});
                             
                             // Редирект кум мастъра на документа към който ще импортираме
-                            redirect(array($mvc->Master, 'single', $rec->{$mvc->masterKey}), false, '|' . $msg);
+                            redirect(array($mvc->Master, 'single', $rec->{$mvc->masterKey}), false, $msg);
                         }
                     }
                 }
@@ -147,11 +199,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     {
         $err = array();
         $msg = false;
-        
+
         $isPartner = core_Users::haveRole('partner');
         $batchInstalled = core_Packs::isInstalled('batch');
         foreach ($rows as $i => &$row) {
-            
+
             // Подготвяме данните за реда
             $obj = (object) array('code' => $row[$fields['code']],
                 'quantity' => $row[$fields['quantity']],
@@ -324,18 +376,8 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             
             $row = clone $obj;
         }
-        
-        if (countR($err)) {
-            $msg = '|Има проблем със следните редове|*:';
-            $msg .= '<ul>';
-            foreach ($err as $j => $r) {
-                $errMsg = implode(', ', $r);
-                $msg .= "|*<li>|Ред|* '{$j}' : {$errMsg}" . '</li>';
-            }
-            $msg .= '</ul>';
-        }
-        
-        return $msg;
+
+        return $err;
     }
     
     
@@ -362,7 +404,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         if ($failed != 0) {
             $msg .= ". |Не са импортирани|* {$failed} |артикула";
         }
-        
+
         return $msg;
     }
     
@@ -373,8 +415,13 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     private static function cacheImportParams($mvc, $rec)
     {
         $cu = core_Users::getCurrent();
-        $key = "importProducts{$cu}";
-        
+
+        if (isset($rec->fromClipboard)) {
+            list($isFromClipboard) = explode('_', $rec->fromClipboard);
+        }
+
+        $key = "importProducts_{$cu}_{$isFromClipboard}";
+
         core_Cache::remove($mvc->className, $key);
         $nRec = (object) array('delimiter' => $rec->delimiter,
             'enclosure' => $rec->enclosure,
@@ -399,39 +446,136 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $form->info = tr('Въведете данни или качете csv файл');
         $form->FLD('csvData', 'text(1000000)', 'width=100%,caption=Данни');
         $form->FLD('csvFile', 'fileman_FileType(bucket=bnav_importCsv)', 'width=100%,caption=CSV файл');
-        
-        // Настройки на данните
-        $form->FLD('delimiter', 'varchar(1,size=5)', 'width=100%,caption=Настройки->Разделител,maxRadio=5,placeholder=Автоматично');
-        $form->FLD('enclosure', 'varchar(1,size=3)', 'width=100%,caption=Настройки->Ограждане,placeholder=Автоматично');
-        $form->FLD('firstRow', 'enum(,data=Данни,columnNames=Имена на колони)', 'width=100%,caption=Настройки->Първи ред,placeholder=Автоматично');
-        
-        $form->setSuggestions('delimiter', array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|', '\t' => 'Таб'));
-        
-        $form->setSuggestions('enclosure', array('' => '', '"' => '"', '\'' => '\''));
-        $form->setDefault('delimiter', ',');
-        $form->setDefault('enclosure', '"');
-        
+
+        $clipboardValsArr = export_Clipboard::getVals();
+
+        if ($clipboardValsArr) {
+
+            $docArr = array();
+            foreach ($clipboardValsArr as $clsId => $clsObjArr) {
+                if (!cls::load($clsId, true)) {
+
+                    continue;
+                }
+
+                $clsInst = cls::get($clsId);
+                foreach ($clsObjArr as $objId => $recs) {
+                    $dRow = $clsInst->getDocumentRow($objId);
+                    $title = $dRow->recTitle ? $dRow->recTitle : $dRow->title;
+
+                    $docArr["{$clsId}_{$objId}"] = $title;
+                }
+            }
+
+            if (!empty($docArr)) {
+                $enum = cls::get('type_Enum');
+
+                $options = array('' => '') + $docArr;
+
+                $enum->options = $options;
+
+                $form->FLD('fromClipboard', $enum, 'width=100%,caption=От клипборда, removeAndRefreshForm=csvData|csvFile|delimiter|enclosure|firstRow|codecol|quantitycol|packcol|pricecol|batchcol, silent');
+            }
+        }
+
+        if ($form->cmd == 'refresh') {
+            $form->input('fromClipboard');
+        } else {
+            $form->input(null, true);
+        }
+
+        $isFromClipboard = false;
+
+        if ($form->rec->fromClipboard) {
+            $isFromClipboard = true;
+        }
+//
+
+
+        $unit = '';
+        $type = 'enum()';
+        if (!$isFromClipboard) {
+            // Настройки на данните
+            $form->FLD('delimiter', 'varchar(1,size=5)', 'width=100%,caption=Настройки->Разделител,maxRadio=5,placeholder=Автоматично');
+            $form->FLD('enclosure', 'varchar(1,size=3)', 'width=100%,caption=Настройки->Ограждане,placeholder=Автоматично');
+            $form->FLD('firstRow', 'enum(,data=Данни,columnNames=Имена на колони)', 'width=100%,caption=Настройки->Първи ред,placeholder=Автоматично');
+
+            $form->setSuggestions('delimiter', array('' => '', ',' => ',', ';' => ';', ':' => ':', '|' => '|', '\t' => 'Таб'));
+
+            $form->setSuggestions('enclosure', array('' => '', '"' => '"', '\'' => '\''));
+            $form->setDefault('delimiter', ',');
+            $form->setDefault('enclosure', '"');
+
+            $unit = ",unit=колона";
+
+            $type = 'int';
+        }
+
+
+
         // Съответстващи колонки на полета
-        $form->FLD('codecol', 'int', 'caption=Съответствие в данните->Код,unit=колона,mandatory');
-        $form->FLD('quantitycol', 'int', 'caption=Съответствие в данните->Количество,unit=колона,mandatory');
-        $form->FLD('packcol', 'int', 'caption=Съответствие в данните->Мярка/Опаковка,unit=колона');
+        $form->FLD('codecol', $type, "caption=Съответствие в данните->Код{$unit},mandatory");
+        $form->FLD('quantitycol', $type, "caption=Съответствие в данните->Количество{$unit},mandatory");
+        $form->FLD('packcol', $type, "caption=Съответствие в данните->Мярка/Опаковка{$unit}");
         
         $fields = array('codecol', 'quantitycol', 'packcol');
         if (!core_Users::haveRole('partner')) {
-            $form->FLD('pricecol', 'int', 'caption=Съответствие в данните->Цена,unit=колона');
+            $form->FLD('pricecol', $type, "caption=Съответствие в данните->Цена{$unit}");
             $fields[] = 'pricecol';
         }
         
         if (core_Packs::isInstalled('batch')) {
-            $form->FLD('batchcol', 'int', 'caption=Съответствие в данните->Партида,unit=колона');
+            $form->FLD('batchcol', $type, "caption=Съответствие в данните->Партида{$unit}");
             $fields[] = 'batchcol';
         }
-        
-        foreach ($fields as $i => $fld) {
-            $form->setSuggestions($fld, array(1 => 1,2 => 2,3 => 3,4 => 4,5 => 5,6 => 6,7 => 7));
-            $form->setDefault($fld, $i + 1);
+
+        if (!$isFromClipboard) {
+            foreach ($fields as $i => $fld) {
+                $form->setSuggestions($fld, array(1 => 1,2 => 2,3 => 3,4 => 4,5 => 5,6 => 6,7 => 7));
+                $form->setDefault($fld, $i + 1);
+            }
+        } else {
+            list($clsId, $objId) = explode('_', $form->rec->fromClipboard);
+
+            $clsInst = cls::get($clsId);
+
+            $fElemKey = key($clipboardValsArr[$clsId][$objId]->recs);
+            $fElemArr = $clipboardValsArr[$clsId][$objId]->recs[$fElemKey];
+
+            if ($fElemArr) {
+
+                $fArr = array('' => '');
+                $cMap = array();
+                foreach ((array)$fElemArr as $fName => $fVal) {
+                    if ($clipboardValsArr[$clsId][$objId]->fields->fields[$fName]->caption) {
+                        $caption = $clipboardValsArr[$clsId][$objId]->fields->fields[$fName]->caption;
+                        $fArr[$caption] = $caption;
+                        $cMap[$caption] = $fName;
+                    } else {
+                        $caption = $fName;
+                        $fArr[$fName] = $fName;
+                        $cMap[$fName] = $fName;
+                    }
+
+
+                    if (mb_stripos($form->fields['codecol']->caption, $caption) !== false) {
+                        $form->setDefault('codecol', $caption);
+                    }
+
+                    if (mb_stripos($form->fields['quantitycol']->caption, $caption) !== false) {
+                        $form->setDefault('quantitycol', $caption);
+                    }
+
+                }
+
+                $form->_cMap = $cMap;
+
+                foreach ($fields as $i => $fld) {
+                    $form->setOptions($fld, $fArr);
+                }
+            }
         }
-        
+
         $form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
     }

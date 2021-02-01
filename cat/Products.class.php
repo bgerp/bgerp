@@ -3633,7 +3633,7 @@ class cat_Products extends embed_Manager
                     $tFieldsArr = arr::make($toggleFields[$dInst->className], true);
                 }
             }
-            
+
             // Подготвяме полетата, които ще се експортират
             $exportArr = arr::make($this->getExportFieldsNameFromMaster(), true);
             
@@ -3641,7 +3641,7 @@ class cat_Products extends embed_Manager
             if ($exportArr['batch'] && !core_Packs::isInstalled('batch')) {
                 unset($exportArr['batch']);
             }
-            
+
             foreach ($exportArr as $eName => $eFields) {
                 if ($eName == $eFields) {
                     $fFieldsArr[$eName] = $eName;
@@ -3660,10 +3660,17 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id] = new stdClass();
                 }
                 
-                $recs[$dRec->id]->productId = $dRec->productId;
-                $recs[$dRec->id]->packPrice = $dRec->packPrice;
-                $recs[$dRec->id]->discount = $dRec->discount;
-                
+                foreach (array('productId' => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
+                    $recs[$dRec->id]->{$fName} = $dRec->{$fName};
+
+                    if ($dInst->fields[$fName] && $dInst->fields[$fName]->caption) {
+                        $fCaption = $dInst->fields[$fName]->caption;
+                    }
+                    if (!$csvFields->fields[$fName]) {
+                        $csvFields->FLD($fName, 'varchar', "caption={$fCaption}");
+                    }
+                }
+
                 $allFFieldsArr = $fFieldsArr;
                 
                 if ($dInst->exportToMaster) {
@@ -3679,7 +3686,7 @@ class cat_Products extends embed_Manager
                     
                     $allFFieldsArr = array_merge($allFFieldsArr, $exportToMasterArr);
                 }
-               
+
                 foreach ($allFFieldsArr as $k => $vArr) {
                     if (!$dInst->fields[$k]) {
                         continue;
@@ -3737,7 +3744,7 @@ class cat_Products extends embed_Manager
                         }
                         
                         $recs[$dRec->id]->{$k} = $dRec->{$k};
-                        
+
                         if (!$csvFields->fields[$k]) {
                             if ($dInst->fields[$k]->type instanceof type_Double) {
                                 $csvFields->FLD($k, 'varchar', "caption={$dInst->fields[$k]->caption}");
@@ -3747,14 +3754,22 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
-                
+
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
                     if ($recs[$dRec->id]->packPrice && $dRec->discount && !($masterMvc instanceof deals_InvoiceMaster && $mRec->type == 'dc_note')) {
                         $recs[$dRec->id]->packPrice -= ($recs[$dRec->id]->packPrice * $dRec->discount);
+
+                        $caption = 'Цена';
+                        if ($dInst->fields['packPrice'] && $dInst->fields['packPrice']->caption) {
+                            $caption = $dInst->fields['packPrice']->caption;
+                        }
+                        if (!$csvFields->fields['packPrice']) {
+                            $csvFields->FLD('packPrice', 'varchar', "caption={$caption}");
+                        }
                     }
                 }
-                
+
                 // За добавяне на бачовете
                 if ($allFFieldsArr['batch'] && $masterMvc->storeFieldName && $mRec->{$masterMvc->storeFieldName}) {
                     $Def = batch_Defs::getBatchDef($dRec->{$dInst->productFld});
@@ -3779,7 +3794,7 @@ class cat_Products extends embed_Manager
                         $bQuery->orderBy('id', 'ASC');
                         
                         $haveBatch = false;
-                        
+
                         while ($bRec = $bQuery->fetch()) {
                             $oRec = clone $recs[$dRec->id];
                             
@@ -3796,7 +3811,7 @@ class cat_Products extends embed_Manager
                             
                             $haveBatch = true;
                         }
-                        
+
                         if ($haveBatch) {
                             if ($recs[$dRec->id]->packQuantity > 0) {
                                 // За да се подреди под другите записи от същия продукт
@@ -3810,8 +3825,8 @@ class cat_Products extends embed_Manager
                     }
                 }
             }
-            
-            
+
+
             /**
              * Ако артикула е ред във КИ или ДИ със промяна, да се покаже промененото количество
              */
@@ -3832,12 +3847,12 @@ class cat_Products extends embed_Manager
                     }
                 }
             }
-            
+
             if (!empty($recs)) {
                 break;
             }
         }
-        
+
         return $recs;
     }
     

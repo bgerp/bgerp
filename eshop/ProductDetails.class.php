@@ -786,4 +786,21 @@ class eshop_ProductDetails extends core_Detail
         
         return $res;
     }
+
+
+    /**
+     * Какво е заглавието на източника
+     *
+     * @param $id     - ид на запис
+     * @return string - заглавие
+     */
+    public function getSourceTitle($id)
+    {
+        $rec = $this->fetch($id);
+        $url = eshop_Products::getSingleUrlArray($rec->eshopProductId);
+        $title = self::getPublicProductTitle($rec->eshopProductId, $rec->productId);
+        $title = ht::createLink($title, $url, false, 'ef_icon=img/16/globe.png');
+
+        return $title;
+    }
 }

@@ -1284,11 +1284,7 @@ class blast_ListDetails extends doc_Detail
                         $name = $cInstRec->name;
                     }
 
-                    $email = '"' . $email . '"';
-                    $name = '"' . $name . '"';
-                    $countryName = '"' . $countryName . '"';
-
-                    $csvArr[] = $email . ',' . $name . ',' . $countryName;
+                    $csvArr[] = csv_Lib::getCsvLine(array($email, $name, $countryName), ',', '"');
                 }
             } else {
                 
@@ -1395,11 +1391,7 @@ class blast_ListDetails extends doc_Detail
                         $name = $rec->company ? $rec->company : $rec->personNames;
                     }
 
-                    $email = '"' . $email . '"';
-                    $name = '"' . $name . '"';
-                    $countryName = '"' . $countryName . '"';
-                    
-                    $csvArr[] = $email . ',' . $name . ',' . $countryName;
+                    $csvArr[] = csv_Lib::getCsvLine(array($email, $name, $countryName), ',', '"');
                 }
             }
         }
