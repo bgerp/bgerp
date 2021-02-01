@@ -457,7 +457,7 @@ class price_Lists extends core_Master
     public static function getAccessibleOptions($cClass = null, $cId = null, $filterByPublic = true)
     {
         $query = static::getQuery();
-        $query->show('title');
+        $query->show('title,visiblePricesByAnyone');
         $query->where("#state != 'rejected'");
         if($filterByPublic === true){
             $query->where("#public = 'yes'");
@@ -472,7 +472,7 @@ class price_Lists extends core_Master
         // От тях остават, само тези достъпни до потребителя
         $options = array();
         while ($rec = $query->fetch()) {
-            if (static::haveRightFor('single', $rec->id)) {
+            if (static::haveRightFor('single', $rec->id) || $rec->visiblePricesByAnyone == 'yes') {
                 $options[$rec->id] = static::getVerbal($rec, 'title');
             }
         }
@@ -662,6 +662,7 @@ class price_Lists extends core_Master
             $rec->vat = 'yes';
             $rec->defaultSurcharge = null;
             $rec->roundingPrecision = 3;
+            $rec->visiblePricesByAnyone = 'yes';
             $rec->folderId = $this->getDefaultFolder();
             $rec->createdBy = core_Users::SYSTEM_USER;
             $rec->createdOn = dt::now();
