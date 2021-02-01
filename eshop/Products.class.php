@@ -1913,4 +1913,16 @@ class eshop_Products extends core_Master
         
         return $res;
     }
+
+
+    /**
+     * Какво е заглавието на източника
+     *
+     * @param $id     - ид на запис
+     * @return string - заглавие
+     */
+    public function getSourceTitle($id)
+    {
+        return $this->getHyperlink($id, true);
+    }
 }
