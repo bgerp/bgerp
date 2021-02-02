@@ -678,7 +678,9 @@ class planning_Jobs extends core_Master
                 $form->setWarning('dueDate', 'Падежът е в миналото');
             }
 
-            if ($aCount = self::count("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")) {
+            //  Проверка има ли други активни задания
+            $id = isset($rec->clonedFromId) ? null : $rec->id;
+            if ($aCount = self::count("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$id}'")) {
                 $aCount = core_Type::getByName('int')->toVerbal($aCount);
                 $msg = ($aCount == 1) ? 'активно задание' : 'активни задания';
                 $form->setWarning('productId', "В момента артикулът има още|* <b>{$aCount}</b> |{$msg}|*. |Желаете ли да създадете още едно|*?");
@@ -765,6 +767,7 @@ class planning_Jobs extends core_Master
         $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
         $Double = core_Type::getByName('double(smartRound)');
         $quantityProduced = $rec->quantityProduced;
+        $originalQuantity = $quantityProduced;
 
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
         $measureName = tr(cat_UoM::getShortName($measureId));
@@ -778,7 +781,6 @@ class planning_Jobs extends core_Master
         // Ако има втора мярка
         if(isset($rec->secondMeasureId)){
             $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
-
             $secondMeasureQuantity = isset($rec->secondMeasureQuantity) ? $rec->secondMeasureQuantity : 0;
 
             // Ако заданието е в нея, ще се показват разменени местата на количествата
@@ -789,15 +791,15 @@ class planning_Jobs extends core_Master
                 $secondMeasureQuantityVerbal = $Double->toVerbal($rec->quantityProduced);
             } else {
                 $rec->quantityProduced /= $rec->quantityInPack;
-                $quantityProduced = $rec->quantityProduced;
                 $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
+                $quantityProduced = $rec->quantityProduced;
 
                 $secondMeasureQuantityVerbal = $Double->toVerbal($secondMeasureQuantity);
                 $secondMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
 
                 // Ако има коефициент показва се колко е той
                 if($rec->secondMeasureQuantity){
-                    $coefficient = $rec->quantityProduced / $rec->secondMeasureQuantity;
+                    $coefficient = $originalQuantity / $rec->secondMeasureQuantity;
                     $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
                     $hint = " 1 {$secondMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
                     $secondMeasureName = ht::createHint($secondMeasureName, $hint);
@@ -1210,6 +1212,7 @@ class planning_Jobs extends core_Master
             $secondMeasureDerivities = cat_UoM::getSameTypeMeasures($secondMeasureId);
             unset($secondMeasureDerivities['']);
 
+            // Сумиране на произведеното във втора мярка
             $rec->secondMeasureQuantity = 0;
             foreach($allRecs as $noteRec){
                 if(array_key_exists($noteRec->packagingId, $secondMeasureDerivities)){
