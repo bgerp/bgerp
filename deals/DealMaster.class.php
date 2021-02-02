@@ -533,8 +533,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'active'");
                 break;
             case 'paidnotdelivered':
-                $query->where("(#deliveredRound < #dealRound)  AND (#paymentState = 'paid' OR #paymentState = 'repaid')");
-                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#paidRound > #deliveredRound");
+                $query->where("#state = 'active'");
                 break;
             case 'unpaid':
                 $query->where('#paidRound < #deliveredRound OR #paidRound IS NULL');
