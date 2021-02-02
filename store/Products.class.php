@@ -618,7 +618,7 @@ class store_Products extends core_Detail
     public function cron_CalcReservedQuantity()
     {
         $plannedCount = store_StockPlanning::count();
-        core_App::setTimeLimit($plannedCount * 0.7, 300);
+        core_App::setTimeLimit($plannedCount * 0.7, false,200);
 
         // Синхронизират се новите със старите записи
         $storeQuery = static::getQuery();

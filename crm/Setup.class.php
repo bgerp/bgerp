@@ -217,7 +217,7 @@ class crm_Setup extends core_ProtoSetup
         $query->where("#uicId IS NOT NULL AND #uicId != ''");
         $query->show('id,uicId');
         $count =  $query->count();
-        core_App::setTimeLimit($count * 0.6, 300);
+        core_App::setTimeLimit($count * 0.6, false,300);
 
         // Нормализиране на националния номер според държавата на контрагента
         $save = $update = array();

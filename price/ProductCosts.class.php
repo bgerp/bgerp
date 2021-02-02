@@ -174,7 +174,7 @@ class price_ProductCosts extends core_Manager
                 $count = countR($affectedProducts);
                 if($count){
                     
-                    core_App::setTimeLimit($count * 0.5, 60);
+                    core_App::setTimeLimit($count * 0.5, false,60);
                     $calced = $Interface->calcCosts($affectedProducts);
                     $update = array_merge($update, $calced);
                 }
