@@ -779,37 +779,49 @@ class planning_Jobs extends core_Master
         }
 
         // Ако има втора мярка
+        $coefficient = null;
         if(isset($rec->secondMeasureId)){
             $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
             $secondMeasureQuantity = isset($rec->secondMeasureQuantity) ? $rec->secondMeasureQuantity : 0;
 
             // Ако заданието е в нея, ще се показват разменени местата на количествата
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
-                $quantityProduced = $rec->secondMeasureQuantity;
-                $row->quantityProduced = $Double->toVerbal($rec->secondMeasureQuantity);
+                $quantityProduced = $secondMeasureQuantity;
+                $row->quantityProduced = $Double->toVerbal($secondMeasureQuantity);
                 $secondMeasureName = $measureName;
                 $secondMeasureQuantityVerbal = $Double->toVerbal($rec->quantityProduced);
+                $measureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
+
+                // Ако има коефициент показва се колко е той
+                if($rec->secondMeasureQuantity){
+                    $coefficient = $rec->secondMeasureQuantity / $originalQuantity;
+
+                }
             } else {
                 $rec->quantityProduced /= $rec->quantityInPack;
                 $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
                 $quantityProduced = $rec->quantityProduced;
-
                 $secondMeasureQuantityVerbal = $Double->toVerbal($secondMeasureQuantity);
                 $secondMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
 
                 // Ако има коефициент показва се колко е той
                 if($rec->secondMeasureQuantity){
                     $coefficient = $originalQuantity / $rec->secondMeasureQuantity;
-                    $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
-                    $hint = " 1 {$secondMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
-                    $secondMeasureName = ht::createHint($secondMeasureName, $hint);
                 }
+            }
+
+            // Ако има сметнат коефициент, показва се колко е той
+            if(isset($coefficient)){
+                $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
+                $hint = " 1 {$secondMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
+                $secondMeasureName = ht::createHint($secondMeasureName, $hint);
             }
             $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
         } else {
 
             // Ако няма втора мярка, всичко се конвертира в опаковката
             $rec->quantityProduced /= $rec->quantityInPack;
+            $quantityProduced = $rec->quantityProduced;
             $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
         }
 
