@@ -152,8 +152,7 @@ class planning_interface_ProductionNoteImpl
         
         $code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
         $name = trim(cat_Products::getVerbal($rec->productId, 'name'));
-        $quantity = cat_UoM::round($measureId, $quantity);
-        
+
         // Ако мярката е 'хил. бр' и к-то е под 10 да се каства към бройки
         $thousandPcsId = cat_UoM::fetchBySysId('K pcs')->id;
         if($measureId == $thousandPcsId && $quantity < 10){
