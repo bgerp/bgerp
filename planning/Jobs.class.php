@@ -775,10 +775,13 @@ class planning_Jobs extends core_Master
             $row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
         }
 
-        if($rec->secondMeasureId){
+        // Ако има втора мярка
+        if(isset($rec->secondMeasureId)){
             $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
 
             $secondMeasureQuantity = isset($rec->secondMeasureQuantity) ? $rec->secondMeasureQuantity : 0;
+
+            // Ако заданието е в нея, ще се показват разменени местата на количествата
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
                 $quantityProduced = $rec->secondMeasureQuantity;
                 $row->quantityProduced = $Double->toVerbal($rec->secondMeasureQuantity);
@@ -792,6 +795,7 @@ class planning_Jobs extends core_Master
                 $secondMeasureQuantityVerbal = $Double->toVerbal($secondMeasureQuantity);
                 $secondMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
 
+                // Ако има коефициент показва се колко е той
                 if($rec->secondMeasureQuantity){
                     $coefficient = $rec->quantityProduced / $rec->secondMeasureQuantity;
                     $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
@@ -801,27 +805,28 @@ class planning_Jobs extends core_Master
             }
             $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
         } else {
+
+            // Ако няма втора мярка, всичко се конвертира в опаковката
             $rec->quantityProduced /= $rec->quantityInPack;
             $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
         }
 
-        $packQuantity = $rec->packQuantity;
-
         // Ако има втора мярка
         if(!empty($rec->secondMeasureId)){
+
+            // Ако заданието е във втората мярка, то ще се показва, че ще се отчита в основната
             $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
                 $mandatoryMeasure = cat_Products::fetchField($rec->productId, 'measureId');
             } else {
                 $mandatoryMeasure = $rec->secondMeasureId;
             }
-
-           $row->secondMeasureId = cat_UoM::getVerbal($mandatoryMeasure, 'name');
+            $row->secondMeasureId = cat_UoM::getVerbal($mandatoryMeasure, 'name');
         }
 
         $rec->quantityNotStored = $rec->quantityFromTasks - $quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
-        $rec->quantityToProduce = $packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $quantityProduced);
+        $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $quantityProduced);
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
