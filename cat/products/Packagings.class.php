@@ -221,16 +221,16 @@ class cat_products_Packagings extends core_Detail
         $query = static::getQuery();
         $query->where("#productId = {$productId}");
         $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-        $query->EXT('baseUnitId', 'cat_UoM', 'externalName=baseUnitId,externalKey=packagingId');
+        $query->EXT('baseUnitRatio', 'cat_UoM', 'externalName=baseUnitRatio,externalKey=packagingId');
         $query->XPR('baseUnitIdNorm', 'int', "COALESCE(#baseUnitId, #packagingId)");
         $query->notIn('packagingId', array_keys($productMeasures));
         $query->where("#type = 'uom'");
-        $query->groupBy('baseUnitIdNorm');
-        $query->show('baseUnitIdNorm');
+        $query->orderBy('baseUnitRatio=asc');
+        $query->show('packagingId');
 
         $rec = $query->fetch();
 
-        return is_object($rec) ? $rec->baseUnitIdNorm : null;
+        return is_object($rec) ? $rec->packagingId : null;
     }
 
 

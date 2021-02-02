@@ -262,8 +262,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $secondMeasureDerivitives = array();
             $measureDerivitives = cat_UoM::getSameTypeMeasures($productRec->measureId);
-            if($secondMeasureId = cat_products_Packagings::getSecondMeasureId($rec->productId)){
-                $secondMeasureDerivitives = cat_UoM::getSameTypeMeasures($secondMeasureId);
+            if($jobRec->secondMeasureId){
+                $secondMeasureDerivitives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
             }
 
             if($originDoc->isInstanceOf('planning_Jobs')){
@@ -342,25 +342,30 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $similarMeasures = cat_UoM::getSameTypeMeasures($productRec->measureId);
                 }
 
-                // От допълнителните мерки махам подобните на тези от главната опаковка/мярка
-                unset($similarMeasures['']);
-                unset($additionalMeasures[$rec->packagingId]);
-                $additionalMeasures = array_diff_key($additionalMeasures, $similarMeasures);
-                $additionalMeasureCount = countR($additionalMeasures);
+                // Ако в заданието е оказано да се отчита във втора мярка
+                if($jobRec->secondMeasureId){
 
-                // Показване на избор на допълнителната мярка
-                if($additionalMeasureCount){
-                    $form->setField('additionalMeasureQuantity', 'input');
-                    $secondMeasureId = key($additionalMeasures);
-                    if($additionalMeasureCount == 1){
-                        $form->setField('additionalMeasureId', 'input=hidden');
-                        $form->setField('additionalMeasureQuantity', "unit=" . cat_UoM::getShortName($secondMeasureId));
-                    } else {
-                        $form->setField('additionalMeasureId', 'input');
-                        $form->setOptions('additionalMeasureId', $additionalMeasures);
+                    // От допълнителните мерки махам подобните на тези от главната опаковка/мярка
+                    unset($similarMeasures['']);
+                    unset($additionalMeasures[$rec->packagingId]);
+                    $additionalMeasures = array_diff_key($additionalMeasures, $similarMeasures);
+                    $additionalMeasureCount = countR($additionalMeasures);
+
+                    // Показване на избор на допълнителната мярка
+                    if($additionalMeasureCount){
+                        $form->setField('additionalMeasureQuantity', 'input');
+                        $secondMeasureId = key($additionalMeasures);
+                        if($additionalMeasureCount == 1){
+                            $form->setField('additionalMeasureId', 'input=hidden');
+                            $form->setField('additionalMeasureQuantity', "unit=" . cat_UoM::getShortName($secondMeasureId));
+                        } else {
+                            $form->setField('additionalMeasureId', 'input');
+                            $form->setOptions('additionalMeasureId', $additionalMeasures);
+                        }
+
+                        $form->setField('additionalMeasureQuantity', 'mandatory');
+                        $form->setDefault('additionalMeasureId', $secondMeasureId);
                     }
-                    
-                    $form->setDefault('additionalMeasureId', $secondMeasureId);
                 }
             }
 

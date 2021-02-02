@@ -955,4 +955,16 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return new core_ET("");
     }
+
+
+    /**
+     * Коя е втората мярка на артикула, ако има
+     *
+     * @param int $id   - ид
+     * @return int|null - ид на втора мяркя или null, ако няма
+     */
+    public function getSecondMeasureId($id)
+    {
+        return cat_products_Packagings::getSecondMeasureId($id);
+    }
 }
