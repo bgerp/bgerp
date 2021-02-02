@@ -764,6 +764,7 @@ class planning_Jobs extends core_Master
         $row->title = ($fields['-single']) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
         $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
         $Double = core_Type::getByName('double(smartRound)');
+        $quantityProduced = $rec->quantityProduced;
 
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
         $measureName = tr(cat_UoM::getShortName($measureId));
@@ -779,11 +780,13 @@ class planning_Jobs extends core_Master
 
             $secondMeasureQuantity = isset($rec->secondMeasureQuantity) ? $rec->secondMeasureQuantity : 0;
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                $quantityProduced = $rec->secondMeasureQuantity;
                 $row->quantityProduced = $Double->toVerbal($rec->secondMeasureQuantity);
                 $secondMeasureName = $measureName;
                 $secondMeasureQuantityVerbal = $Double->toVerbal($rec->quantityProduced);
             } else {
                 $rec->quantityProduced /= $rec->quantityInPack;
+                $quantityProduced = $rec->quantityProduced;
                 $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
 
                 $secondMeasureQuantityVerbal = $Double->toVerbal($secondMeasureQuantity);
@@ -796,7 +799,6 @@ class planning_Jobs extends core_Master
                     $secondMeasureName = ht::createHint($secondMeasureName, $hint);
                 }
             }
-
             $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
         } else {
             $rec->quantityProduced /= $rec->quantityInPack;
@@ -817,9 +819,9 @@ class planning_Jobs extends core_Master
            $row->secondMeasureId = cat_UoM::getVerbal($mandatoryMeasure, 'name');
         }
 
-        $rec->quantityNotStored = $rec->quantityFromTasks - $rec->quantityProduced;
+        $rec->quantityNotStored = $rec->quantityFromTasks - $quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
-        $rec->quantityToProduce = $packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $rec->quantityProduced);
+        $rec->quantityToProduce = $packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $quantityProduced);
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
