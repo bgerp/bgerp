@@ -3586,46 +3586,46 @@ class cat_Products extends embed_Manager
     public function getRecsForExportInDetails($masterMvc, $mRec, &$csvFields, $activatedBy)
     {
         expect($mRec);
-        
+
         $canSeePrice = haveRole('seePrice,ceo', $activatedBy);
         $pStrName = 'price';
-        
+
         $Detail = null;
         if (isset($masterMvc->mainDetail)) {
             $Detail = cls::get($masterMvc->mainDetail);
         }
-        
+
         $detArr = arr::make($masterMvc->details);
-        
+
         expect(!empty($detArr));
-        
+
         $recs = array();
-        
+
         $exportFStr = $this->getExportMasterFieldName();
         $exportFCls = cls::get(get_called_class());
         $fFieldsArr = array();
-        
+
         foreach ($detArr as $dName) {
             if (!cls::load($dName, true)) {
                 continue;
             }
-            
+
             $dInst = cls::get($dName);
-            
+
             $detClsId = $dInst->getClassId();
-            
+
             if (!$dInst->fields[$exportFStr]) {
                 continue;
             }
-            
+
             if (!($exportFCls instanceof $dInst->fields[$exportFStr]->type->params['mvc'])) {
                 continue;
             }
-            
+
             if (!$dInst->masterKey) {
                 continue;
             }
-            
+
             $tFieldsArr = array();
             if ($mRec->template) {
                 $toggleFields = doc_TplManager::fetchField($mRec->template, 'toggleFields');
@@ -3636,7 +3636,7 @@ class cat_Products extends embed_Manager
 
             // Подготвяме полетата, които ще се експортират
             $exportArr = arr::make($this->getExportFieldsNameFromMaster(), true);
-            
+
             // За бачовете - ако не е инсталиран пакета - премахваме полето
             if ($exportArr['batch'] && !core_Packs::isInstalled('batch')) {
                 unset($exportArr['batch']);
@@ -3649,17 +3649,17 @@ class cat_Products extends embed_Manager
                     $fFieldsArr[$eName] = explode('|', $eFields);
                 }
             }
-            
+
             $dQuery = $dInst->getQuery();
             $dQuery->where(array("#{$dInst->masterKey} = {$mRec->id}"));
-            
+
             $dQuery->orderBy('id', 'ASC');
-           
+
             while ($dRec = $dQuery->fetch()) {
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
                 }
-                
+
                 foreach (array('productId' => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
                     $recs[$dRec->id]->{$fName} = $dRec->{$fName};
 
@@ -3672,10 +3672,10 @@ class cat_Products extends embed_Manager
                 }
 
                 $allFFieldsArr = $fFieldsArr;
-                
+
                 if ($dInst->exportToMaster) {
                     $exportToMasterArr = arr::make($dInst->exportToMaster, true);
-                    
+
                     foreach ($exportToMasterArr as $eName => $eFields) {
                         if ($eName == $eFields) {
                             $exportToMasterArr[$eName] = $eName;
@@ -3683,7 +3683,7 @@ class cat_Products extends embed_Manager
                             $exportToMasterArr[$eName] = explode('|', $eFields);
                         }
                     }
-                    
+
                     $allFFieldsArr = array_merge($allFFieldsArr, $exportToMasterArr);
                 }
 
@@ -3691,19 +3691,19 @@ class cat_Products extends embed_Manager
                     if (!$dInst->fields[$k]) {
                         continue;
                     }
-                    
+
                     if (is_array($vArr) && $dInst->fields[$k]->type->params['mvc']) {
-                        
+
                         // Ако полето е ключ и от него трябва да се вземе стойността на друго поле
-                        
+
                         $vInst = cls::get($dInst->fields[$k]->type->params['mvc']);
-                        
+
                         if (!$dRec->{$k}) {
                             continue;
                         }
-                        
+
                         $vRec = $vInst->fetch($dRec->{$k});
-                        
+
                         foreach ($vArr as $v) {
                             // Ако няма права за виждане на цена, на потребителя, който е активирал
                             if (stripos($v, $pStrName)) {
@@ -3715,14 +3715,14 @@ class cat_Products extends embed_Manager
                                     }
                                 }
                             }
-                            
+
                             // Попълване на кода
                             if (($vInst instanceof cat_Products) && ($v == 'code')) {
                                 cat_Products::setCodeIfEmpty($vRec);
                             }
-                            
+
                             $recs[$dRec->id]->{$v} = $vRec->{$v};
-                            
+
                             if (!$csvFields->fields[$v]) {
                                 if ($vInst->fields[$v]->type instanceof type_Double) {
                                     $csvFields->FLD($v, 'varchar', "caption={$vInst->fields[$v]->caption}");
@@ -3742,7 +3742,7 @@ class cat_Products extends embed_Manager
                                 }
                             }
                         }
-                        
+
                         $recs[$dRec->id]->{$k} = $dRec->{$k};
 
                         if (!$csvFields->fields[$k]) {
@@ -3777,38 +3777,38 @@ class cat_Products extends embed_Manager
                         if (!$csvFields->fields['batch']) {
                             $csvFields->FLD('batch', 'text', 'caption=Партида');
                         }
-                        
+
                         $bQuery = batch_BatchesInDocuments::getQuery();
-                        
+
                         if (isset($dRec->packagingId)) {
                             $bQuery->where(array("#packagingId = '[#1#]'", $dRec->packagingId));
                         }
-                        
+
                         if (isset($dRec->productId)) {
                             $bQuery->where(array("#productId = '[#1#]'", $dRec->productId));
                         }
-                        
+
                         $bQuery->where(array("#detailRecId = '[#1#]'", $dRec->id));
                         $bQuery->where(array("#detailClassId = '[#1#]'", $detClsId));
-                        
+
                         $bQuery->orderBy('id', 'ASC');
-                        
+
                         $haveBatch = false;
 
                         while ($bRec = $bQuery->fetch()) {
                             $oRec = clone $recs[$dRec->id];
-                            
+
                             $bQuantity = $bRec->quantity;
                             if ($bRec->quantityInPack) {
                                 $bQuantity /= $bRec->quantityInPack;
                             }
-                            
+
                             $bName = $dRec->id . '_' . $bRec->id;
                             $recs[$bName] = $oRec;
                             $recs[$bName]->packQuantity = $bQuantity;
                             $recs[$bName]->batch = $bRec->batch;
                             $recs[$dRec->id]->packQuantity -= $recs[$bName]->packQuantity;
-                            
+
                             $haveBatch = true;
                         }
 
@@ -3833,14 +3833,14 @@ class cat_Products extends embed_Manager
             if ($masterMvc instanceof deals_InvoiceMaster) {
                 if (isset($allFFieldsArr['quantity']) && $mRec->type == 'dc_note') {
                     $Detail::modifyDcDetails($recs, $mRec, $Detail);
-                    
+
                     foreach ($recs as $id => &$mdRec) {
                         if ($allFFieldsArr['packPrice']) {
                             if ($mdRec->packPrice && $mdRec->discount) {
                                 $mdRec->packPrice -= ($mdRec->packPrice * $mdRec->discount);
                             }
                         }
-                        
+
                         if (!$mdRec->changedQuantity && !$mdRec->changedPrice) {
                             unset($recs[$id]);
                         }
@@ -3853,9 +3853,26 @@ class cat_Products extends embed_Manager
             }
         }
 
+        // Подреждане за запазване на предишна логика
+        $orderMap = array('code', 'packQuantity', 'packagingId', 'packPrice');
+        $fArr = $csvFields->fields;
+        $newFArr = array();
+        foreach ($fArr as $fName => $fRec) {
+            foreach ($orderMap as $oFieldName) {
+                if ($fArr[$oFieldName]) {
+                    $newFArr[$oFieldName] = $fArr[$oFieldName];
+                    unset($fArr[$oFieldName]);
+                }
+            }
+        }
+        if ($fArr) {
+            $newFArr += $fArr;
+        }
+        $csvFields->fields = $newFArr;
+
         return $recs;
     }
-    
+
     
     /**
      * Дали артикула се среща в детайла на активни договори (Покупка и продажба)
