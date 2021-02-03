@@ -75,7 +75,7 @@ class store_StockPlanning extends core_Manager
         $this->FLD('sourceId', 'int', 'caption=Източник->Ид,tdClass=leftCol');
         $this->FLD('reffClassId', 'class', 'caption=Втори източник->Клас,tdClass=leftCol');
         $this->FLD('reffId', 'key(mvc=doc_Containers,select=id)', 'caption=Втори източник->Ид,tdClass=leftCol');
-        $this->FLD('threadId', 'int', 'caption=Източник->Нишка');
+        $this->FLD('threadId', 'int', 'caption=Източник->Нишка,silent');
         $this->FNC('state', 'enum(draft=Чернова, active=Активиран, waiting=Чакащи, pending=Заявка,rejected=Оттеглен, closed=Приключен, stopped=Спрян, wakeup=Събуден)', 'caption=Състояние, input=none');
 
         $this->setDbIndex('reffClassId,reffId');
@@ -212,6 +212,7 @@ class store_StockPlanning extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        $data->listFilter->input(null, 'silent');
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'date,productId,storeId,threadId,sourceClassId';
         $data->listFilter->input();

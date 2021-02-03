@@ -196,4 +196,17 @@ class store_plg_StockPlanning extends core_Plugin
            }
        }
     }
+
+
+    /**
+     * Поставя бутони за генериране на други банкови документи възоснова
+     * на този, само ако документа е "чернова".
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        if (store_StockPlanning::haveRightFor('list')) {
+            $data->toolbar->addBtn('Хоризонти', array('store_StockPlanning', 'list', 'threadId' => $rec->threadId), null, 'ef_icon=img/16/bug.png,title=Разглеждане на хоризонтите,row=3');
+        }
+    }
 }
