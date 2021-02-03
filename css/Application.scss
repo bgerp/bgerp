@@ -1173,6 +1173,10 @@ div.acc-detail {
 	   .aright{
 	       padding-right: 5px;
 	   }
+		&.left {
+			right: 0;
+			left: auto;
+		}
 	   td{
 	       white-space: nowrap;
 	       border: none !important;

@@ -1037,6 +1037,9 @@ div.acc-detail {
       top: 0; }
     .additionalInfo-holder .additionalInfo .aright {
       padding-right: 5px; }
+    .additionalInfo-holder .additionalInfo.left {
+      right: 0;
+      left: auto; }
     .additionalInfo-holder .additionalInfo td {
       white-space: nowrap;
       border: none !important;
