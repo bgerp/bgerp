@@ -458,6 +458,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $productRec = cat_Products::fetch($rec->productId, 'measureId');
         $origin = doc_Containers::getDocument($rec->originId);
         $jobRec = ($origin->isInstanceOf('planning_Tasks')) ? doc_Containers::getDocument($origin->fetchField('originId'))->fetch() : $origin->fetch();
+        if(empty($jobRec->secondMeasureId)) return null;
+
         $secondMeasureDerivitives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
 
         if(array_key_exists($rec->packagingId, $secondMeasureDerivitives)){
