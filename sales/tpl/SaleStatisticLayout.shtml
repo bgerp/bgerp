@@ -20,7 +20,7 @@
              </td>
              <!--ET_END INVOICE_DOWNPAYMENT_TH-->
              <td class = 'sum-th'>
-                 |Информация|*
+                 |Информация|* [#visiblePricesByAllInThread#]
              </td>
           </tr>
           <tr>
@@ -61,11 +61,6 @@
                   <!--ET_BEGIN closeWith-->
                   <span style='font-weight:normal'>|Приключено с|*</span>: [#closeWith#]<br>
                   <!--ET_END closeWith-->
-                  <!--ET_BEGIN visiblePricesByAllInThread-->
-                  <hr />
-                  <span style='font-weight:normal'>|Цени и суми в нишката|*</span><br>
-                  [#visiblePricesByAllInThread#]<br>
-                  <!--ET_END visiblePricesByAllInThread-->
               </td>
            </tr>
            <tr>
