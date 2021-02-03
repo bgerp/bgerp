@@ -766,11 +766,18 @@ abstract class deals_Helper
         
         if (!empty($hint)) {
             $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
-            
+
+            //  Показване на хоризонта при нужда
+            $productName = cat_Products::getVerbal($productId, 'name');
+            $url = array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName);
+            if(isset($date)){
+                $diff = dt::secsBetween(dt::verbal2mysql($date, false), dt::today());
+                $url['horizon'] = $diff;
+            }
+
             // Линк към наличното в склада ако има права
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
-                $productName = cat_Products::getVerbal($productId, 'name');
-                $html = ht::createLinkRef($html, array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName));
+                $html = ht::createLinkRef($html, $url);
             }
         }
     }
