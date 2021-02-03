@@ -366,7 +366,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             // Дали да се изравнява себестойностт-а с тази от драйвера
             $equalizePrimeCost = null;
-            if($bomRec = cat_Products::getLastActiveBom(4329, 'production,sales')){
+            if($bomRec = cat_Products::getLastActiveBom($rec->productId, 'production,sales')){
                 if($bomRec->isComplete != 'auto'){
                     $equalizePrimeCost = ($bomRec->isComplete == 'yes') ? 'no' : 'yes';
                 }
