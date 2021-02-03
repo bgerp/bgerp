@@ -763,26 +763,26 @@ class planning_Jobs extends core_Master
 
                 // Ако има коефициент показва се колко е той
                 if($rec->secondMeasureQuantity){
-                    $coefficient = $rec->secondMeasureQuantity / $originalQuantity;
-
+                    $coefficient = $originalQuantity / $rec->secondMeasureQuantity;
                 }
             } else {
                 $rec->quantityProduced /= $rec->quantityInPack;
                 $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
                 $quantityProduced = $rec->quantityProduced;
                 $secondMeasureQuantityVerbal = $Double->toVerbal($secondMeasureQuantity);
-                $secondMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
 
+                $secondMeasureName = $measureName;
+                $measureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
                 // Ако има коефициент показва се колко е той
                 if($rec->secondMeasureQuantity){
-                    $coefficient = $originalQuantity / $rec->secondMeasureQuantity;
+                    $coefficient =  $originalQuantity / $rec->secondMeasureQuantity;
                 }
             }
 
             // Ако има сметнат коефициент, показва се колко е той
             if(isset($coefficient)){
                 $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
-                $hint = " 1 {$secondMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
+                $hint = " 1 {$measureName} " . tr('е') . " {$coefficientVerbal} {$secondMeasureName}";
                 $secondMeasureName = ht::createHint($secondMeasureName, $hint);
             }
             $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
