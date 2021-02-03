@@ -487,30 +487,27 @@ class planning_Jobs extends core_Master
         }
         
         $data->listFilter->setField('selectPeriod', 'caption=Падеж');
-        $contragentsWithJobs = self::getContragentsWithJobs();
-        if (countR($contragentsWithJobs)) {
-            $data->listFilter->FLD('contragent', 'int', 'caption=Контрагенти,input,silent');
-            $data->listFilter->setOptions('contragent', array('' => '') + $contragentsWithJobs);
-            $data->listFilter->input('contragent', 'silent');
-        }
-        
+        $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent,after=view');
+        $data->listFilter->input('contragentFolderId', 'silent');
         $data->listFilter->input();
-        $data->listFilter->showFields .= ',contragent';
+        $data->listFilter->showFields .= ',contragentFolderId';
         
         if ($filter = $data->listFilter->rec) {
-            if (isset($filter->contragent)) {
-                
+            if (isset($filter->contragentFolderId)) {
+
                 // Намиране на ид-та на всички продажби в избраната папка на контрагента
                 $sQuery = sales_Sales::getQuery();
-                $sQuery->where("#folderId = {$filter->contragent}");
+                $sQuery->where("#folderId = {$filter->contragentFolderId} AND #state NOT IN ('draft', 'pending', 'rejected')");
                 $sQuery->show('id');
                 $sales = arr::extractValuesFromArray($sQuery->fetchAll(), 'id');
-                
-                // Филтрират се само тези задания към посочените продажби
-                $data->query->where('#saleId IS NOT NULL');
-                $data->query->in('saleId', $sales);
+                if(countR($sales)){
+                    $data->query->where('#saleId IS NOT NULL');
+                    $data->query->in('saleId', $sales);
+                } else {
+                    $data->query->where("1=2");
+                }
             }
-            
+
             // Филтър по изглед
             if (isset($filter->view)) {
                 switch ($filter->view) {
@@ -553,43 +550,15 @@ class planning_Jobs extends core_Master
                         $tQuery->show('docId');
                         $jobIdsWithTasks = arr::extractValuesFromArray($tQuery->fetchAll(), 'docId');
                         $data->query->where("#state = 'active'");
-                        
+
                         if (countR($jobIdsWithTasks)) {
                             $data->query->notIn('id', $jobIdsWithTasks);
                         }
-                        
+
                         break;
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Извличане с кеширане на списъка на контрагентите със задания
-     *
-     * @return array $options
-     */
-    private static function getContragentsWithJobs()
-    {
-        $options = core_Cache::get('planning_Jobs', 'contragentsWithJobs', 120, array('planning_Jobs'));
-        
-        if(!is_array($options) || !countR($options)) {
-            $options = array();
-            $query = self::getQuery();
-            $query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
-            $query->groupBy('sFolderId');
-            $query->where('#saleId IS NOT NULL');
-            $query->show('sFolderId');
-            
-            while ($jRec = $query->fetch()) {
-                $options[$jRec->sFolderId] = doc_Folders::getTitleById($jRec->sFolderId);
-            }
-            
-            core_Cache::set('planning_Jobs', 'contragentsWithJobs', $options, 120, array('planning_Jobs'));
-        }
-        
-        return $options;
     }
     
     
