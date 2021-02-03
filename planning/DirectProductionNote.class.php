@@ -462,6 +462,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $secondMeasureDerivitives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
 
+        // Ако се произвежда в някоя от вторите мерки
         if(array_key_exists($rec->packagingId, $secondMeasureDerivitives)){
             $additionalQuantity = cat_UoM::convertValue($rec->packQuantity, $rec->packagingId, $jobRec->secondMeasureId);
 
@@ -473,12 +474,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $expectedEquvalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $productRec->measureId, $rec->additionalMeasureId);
             $additionalQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId,  $productRec->measureId);
         } else {
+
+            // Ако не се произвежда директно във втора мярка.
             $packRec = cat_products_Packagings::getPack($rec->productId, $jobRec->secondMeasureId);
             $secondMeasureQuantityInPack = is_object($packRec) ? $packRec->quantity : 1;
 
             $additionalQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $jobRec->secondMeasureId);
             $expectedQuantity = $rec->quantity / $secondMeasureQuantityInPack;
-
             $equivalentMeasureId = $rec->additionalMeasureId;
             $expectedEquvalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $jobRec->secondMeasureId, $rec->additionalMeasureId);
         }
@@ -486,11 +488,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $diff = abs(core_Math::diffInPercent($additionalQuantity, $expectedQuantity));
         $allowedDiff = planning_Setup::get('PNOTE_SECOND_MEASURE_TOLERANCE_WARNING') * 100;
 
+        // Ако разликата е над допустимата, показва се предупреждение
         if($diff > $allowedDiff){
             $expectedSecondMeasureVerbal = core_Type::getByName('double(smartRound)')->toVerbal($expectedEquvalentQuantityInMeasure);
             $equivalentMeasureIdVerbal = cat_UoM::getShortName($equivalentMeasureId);
 
-            $msg = "Има разминаване от над |*{$allowedDiff} %, |спрямо очакваното от|* {$expectedSecondMeasureVerbal} |{$equivalentMeasureIdVerbal}|*";
+            $msg = "Има разминаване от над |*{$allowedDiff} %, |спрямо очакваното от|* <b>{$expectedSecondMeasureVerbal} |{$equivalentMeasureIdVerbal}|*</b>";
 
             return $msg;
         }
