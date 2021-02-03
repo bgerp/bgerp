@@ -469,6 +469,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
             $equivalentMeasureId = $productRec->measureId;
             $expectedEquvalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $productRec->measureId, $rec->additionalMeasureId);
+            $additionalQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId,  $productRec->measureId);
         } else {
             $packRec = cat_products_Packagings::getPack($rec->productId, $jobRec->secondMeasureId);
             $secondMeasureQuantityInPack = is_object($packRec) ? $packRec->quantity : 1;
