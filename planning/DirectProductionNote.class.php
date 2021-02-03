@@ -249,7 +249,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $jobRec = $originDoc->fetch();
             $productOptions = array($originRec->productId => cat_Products::getTitleById($originRec->productId, false));
         }
-        
+
         $form->setDefault('storeId', $storeId);
         $form->setOptions('productId', $productOptions);
         $form->setDefault('productId', key($productOptions));
@@ -426,21 +426,76 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $rec->dealId = null;
             }
 
-            $measureDerivities = cat_Uom::getSameTypeMeasures($productInfo->productRec->measureId);
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             if(!empty($rec->additionalMeasureId) && !empty($rec->additionalMeasureQuantity)){
-
+                $measureDerivities = cat_Uom::getSameTypeMeasures($productInfo->productRec->measureId);
                 if(array_key_exists($rec->additionalMeasureId, $measureDerivities)){
-                    $additionalMeasureQuantity = cat_Uom::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $productInfo->productRec->measureId);
+                    $additionalMeasureQuantity = cat_Uom::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $productInfo->productRec->measureId, $rec->quantityInPack);
                     $rec->quantityInPack = $additionalMeasureQuantity / $rec->packQuantity;
                 }
             }
 
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+
+            // Проверка на количеството на втората мярка
+            if(!empty($rec->additionalMeasureId)){
+                if($warning = $mvc->checkAdditionalMeasureQuantity($rec)){
+                    $form->setWarning('additionalMeasureQuantity', $warning);
+                }
+            }
         }
     }
-    
-    
+
+
+    /**
+     * Проверка има ли разминаване спрямо очакваното отношение между мерките
+     *
+     * @param $rec              - ид на запис
+     * @return string|null $msg - съобщение на предупреждението
+     */
+    private function checkAdditionalMeasureQuantity($rec)
+    {
+        $productRec = cat_Products::fetch($rec->productId, 'measureId');
+        $origin = doc_Containers::getDocument($rec->originId);
+        $jobRec = ($origin->isInstanceOf('planning_Tasks')) ? doc_Containers::getDocument($origin->fetchField('originId'))->fetch() : $origin->fetch();
+        $secondMeasureDerivitives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
+
+        if(array_key_exists($rec->packagingId, $secondMeasureDerivitives)){
+            $additionalQuantity = cat_UoM::convertValue($rec->packQuantity, $rec->packagingId, $jobRec->secondMeasureId);
+
+            $packRec = cat_products_Packagings::getPack($rec->productId, $jobRec->secondMeasureId);
+            $coefficient = is_object($packRec) ? $packRec->quantity : 1;
+            $expectedQuantity = $coefficient * $additionalQuantity;
+
+            $equivalentMeasureId = $productRec->measureId;
+            $expectedEquvalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $productRec->measureId, $rec->additionalMeasureId);
+        } else {
+            $packRec = cat_products_Packagings::getPack($rec->productId, $jobRec->secondMeasureId);
+            $secondMeasureQuantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+
+            $additionalQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $jobRec->secondMeasureId);
+            $expectedQuantity = $rec->quantity * $secondMeasureQuantityInPack;
+
+            $equivalentMeasureId = $rec->additionalMeasureId;
+            $expectedEquvalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $jobRec->secondMeasureId, $rec->additionalMeasureId);
+        }
+
+        $diff = abs(core_Math::diffInPercent($additionalQuantity, $expectedQuantity));
+        $allowedDiff = planning_Setup::get('PNOTE_SECOND_MEASURE_TOLERANCE_WARNING') * 100;
+
+        if($diff > $allowedDiff){
+            $expectedSecondMeasureVerbal = core_Type::getByName('double(smartRound)')->toVerbal($expectedEquvalentQuantityInMeasure);
+            $equivalentMeasureIdVerbal = cat_UoM::getShortName($equivalentMeasureId);
+
+            $msg = "Има разминаване от над |*{$allowedDiff} %, |спрямо очакваното от|* {$expectedSecondMeasureVerbal} |{$equivalentMeasureIdVerbal}|*";
+
+            return $msg;
+        }
+
+        return null;
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -475,6 +530,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
                 $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
                 $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще се отчете в производството");
+            }
+
+            if($additionalQuantityWarning = $mvc->checkAdditionalMeasureQuantity($rec)){
+                $row->additionalMeasureQuantity = ht::createHint($row->additionalMeasureQuantity, $additionalQuantityWarning, 'warning', false);
             }
         }
 
