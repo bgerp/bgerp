@@ -259,6 +259,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         $this->setDbIndex('proto');
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('sourceClassId,sourceId');
     }
     
     

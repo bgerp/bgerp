@@ -805,7 +805,7 @@ select.tabHolder {
 }
 
 .pos-price-field {
-	font-size: 1.05em;
+	font-size: 1.02em;
 }
 
 .measureResult {
@@ -819,6 +819,7 @@ select.tabHolder {
 	border: 2px solid #999;
 	border-radius: 5px;
 	height: 113px;
+	font-size: 0.95em;
 	background: #f1f1f1;
 	user-select: none;
 	opacity: 0.7;
@@ -829,8 +830,9 @@ select.tabHolder {
 		opacity: 1;
 	}
 	.pos-title {
+		margin-top: -1px;
 		text-indent: -75px;
-		height: 72px;
+		height: 75px;
 		line-height: 130%;
 	}
 	.pos-photo-field {
