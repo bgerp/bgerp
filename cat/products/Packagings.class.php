@@ -729,7 +729,12 @@ class cat_products_Packagings extends core_Detail
         // За всеки от изброените документи проверяваме дали е избран артикула с мярката
         $isUsed = false;
         foreach ($details as $Detail) {
-            if ($Detail == 'cat_BomDetails') {
+            if($Detail == 'planning_Jobs'){
+                if ($Detail::fetch("#productId = {$productId} AND (#packagingId = '{$uomId}' OR #secondMeasureId = '{$uomId}')", 'id')) {
+                    $isUsed = true;
+                    break;
+                }
+            } elseif ($Detail == 'cat_BomDetails') {
                 if ($Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
                     $isUsed = true;
                     break;
