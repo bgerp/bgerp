@@ -849,18 +849,19 @@ class planning_Jobs extends core_Master
         $row->measureId = cat_UoM::getShortName($rec->packagingId);
         $tolerance = ($rec->tolerance) ? $rec->tolerance : 0;
         $diff = $rec->packQuantity * $tolerance;
-        
+
         foreach (array('quantityFromTasks', 'quantityProduced') as $fld) {
-            if ($rec->{$fld} < ($rec->packQuantity - $diff)) {
+            $quantityValue = ($fld == 'quantityFromTasks') ? $rec->quantityFromTasks : $quantityProduced;
+            if ($quantityValue < ($rec->packQuantity - $diff)) {
                 $color = 'black';
-            } elseif ($rec->{$fld} >= ($rec->packQuantity - $diff) && $rec->{$fld} <= ($rec->packQuantity + $diff)) {
+            } elseif ($quantityValue >= ($rec->packQuantity - $diff) && $quantityValue <= ($rec->packQuantity + $diff)) {
                 $color = 'green';
             } else {
                 $row->{$fld} = ht::createHint($row->{$fld}, 'Произведено е повече от планираното', 'warning', false);
                 $color = 'red';
             }
             
-            if ($rec->{$fld} != 0) {
+            if ($quantityValue != 0) {
                 $quantityRow = new core_ET("<span style='color:[#color#]'>[#quantity#]</span>");
                 $quantityRow->placeArray(array('color' => $color, 'quantity' => $row->{$fld}));
                 $row->{$fld} = $quantityRow;
