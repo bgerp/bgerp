@@ -319,15 +319,13 @@ class marketing_Router
 
             // Ако има ДДС номер и той е различен от подадения, няма да се търси тази папка
             if(!empty($vatId) && !empty($folderData->vatNo)) {
-                if(str::removeWhiteSpace($vatId) != str::removeWhiteSpace($folderData->vatNo)) continue;
+                if(str::removeWhiteSpace($vatId) == str::removeWhiteSpace($folderData->vatNo)) return $mRec->folderId;
             }
 
             // Ако има ЕИК/ЕГН номер и той е различен от подадения, няма да се търси тази папка
             if(!empty($uicId) && !empty($folderData->uicId)) {
-                if(str::removeWhiteSpace($uicId) != str::removeWhiteSpace($folderData->uicId)) continue;
+                if(str::removeWhiteSpace($uicId) == str::removeWhiteSpace($folderData->uicId)) return $mRec->folderId;
             }
-
-            return $mRec->folderId;
         }
 
         return null;
