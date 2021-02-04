@@ -237,12 +237,16 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('quantity3', 'double(decimals=2,Min=0)', 'caption=Количества->Количество|* 3,hint=Въведете количество,input=none,formOrder=49');
         $this->FLD('company', 'varchar(128)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
         $this->FLD('personNames', 'varchar(128)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,oldFieldName=name');
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=52,contragentDataField=countryId,mandatory');
-        $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=53,mandatory');
-        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=54');
-        $this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=55');
-        $this->FLD('place', 'varchar(64)', 'caption=Контактни данни->Град,class=contactData,hint=Населено място: град или село и община,formOrder=56');
-        $this->FLD('address', 'varchar(255)', 'caption=Контактни данни->Адрес,class=contactData,hint=Вашият адрес,formOrder=57');
+
+        $this->FLD('vatId', 'drdata_VatType', 'caption=Контактни данни->ДДС №,formOrder=52');
+        $this->FLD('uicId', 'drdata_type_Uic(26)', 'caption=Контактни данни->ЕИК / ЕГН,formOrder=53');
+
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=54,contragentDataField=countryId,mandatory');
+        $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=55,mandatory');
+        $this->FLD('tel', 'drdata_PhoneType(type=tel)', 'caption=Контактни данни->Телефони,class=contactData,hint=Вашият телефон,formOrder=56');
+        $this->FLD('pCode', 'varchar(16)', 'caption=Контактни данни->П. код,class=contactData,hint=Вашият пощенски код,formOrder=57');
+        $this->FLD('place', 'varchar(64)', 'caption=Контактни данни->Град,class=contactData,hint=Населено място: град или село и община,formOrder=58');
+        $this->FLD('address', 'varchar(255)', 'caption=Контактни данни->Адрес,class=contactData,hint=Вашият адрес,formOrder=59');
         $this->FLD('inqDescription', 'richtext(rows=4,bucket=InquiryBucket)', 'caption=Вашето запитване||Your inquiry->Съобщение||Message,formOrder=50000');
         $this->FLD('deliveryAdress', 'varchar', 'caption=Вашето запитване||Your inquiry->Доставка||Delivery,formOrder=50004');
         
@@ -350,14 +354,28 @@ class marketing_Inquiries2 extends embed_Manager
             $marketingEmail = countR($emails) ? $emails[0] : $personRec->email;
             $form->setDefault('personNames', $personRec->name);
             $form->setDefault('email', $marketingEmail);
-            
             if ($companyFolderId = core_Mode::get('lastActiveContragentFolder')) {
                 $form->setDefault('company', doc_Folders::getCover($companyFolderId)->fetchField('name'));
             } else {
                 $hide = false;
             }
         }
-        
+
+        // Промяна на полето за ДДС номер
+        $uniqueFields = marketing_Setup::get('MANDATORY_UNIQUE_FIELDS');
+        if(in_array($uniqueFields, array('uicId', 'hide'))){
+            $form->setField('vatId', 'input=none');
+        } elseif(in_array($uniqueFields, array('vatId', 'both'))){
+            $form->setField('vatId', 'mandatory');
+        }
+
+        // Промяна на полето за ЕИК/ЕГН
+        if(in_array($uniqueFields, array('vat', 'hide'))){
+            $form->setField('uicId', 'input=none');
+        } elseif(in_array($uniqueFields, array('uicId', 'both'))){
+            $form->setField('uicId', 'mandatory');
+        }
+
         $contactFields = $this->selectFields("#class == 'contactData'");
         if (is_array($contactFields)) {
             foreach ($contactFields as $name => $value) {
