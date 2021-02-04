@@ -757,7 +757,7 @@ class planning_Jobs extends core_Master
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
                 $quantityProduced = $secondMeasureQuantity;
                 $row->quantityProduced = $Double->toVerbal($secondMeasureQuantity);
-                $secondMeasureName = $measureName;
+                $secondMeasureNameHint = $secondMeasureName = $measureName;
                 $secondMeasureQuantityVerbal = $Double->toVerbal($rec->quantityProduced);
                 $measureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
 
@@ -771,8 +771,10 @@ class planning_Jobs extends core_Master
                 $quantityProduced = $rec->quantityProduced;
                 $secondMeasureQuantityVerbal = $Double->toVerbal($secondMeasureQuantity);
 
-                $secondMeasureName = $measureName;
+                $secondMeasureNameHint = $measureName;
                 $measureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
+                $secondMeasureName = $measureName;
+
                 // Ако има коефициент показва се колко е той
                 if($rec->secondMeasureQuantity){
                     $coefficient =  $originalQuantity / $rec->secondMeasureQuantity;
@@ -782,7 +784,7 @@ class planning_Jobs extends core_Master
             // Ако има сметнат коефициент, показва се колко е той
             if(isset($coefficient)){
                 $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
-                $hint = " 1 {$measureName} " . tr('е') . " {$coefficientVerbal} {$secondMeasureName}";
+                $hint = " 1 {$measureName} " . tr('е') . " {$coefficientVerbal} {$secondMeasureNameHint}";
                 $secondMeasureName = ht::createHint($secondMeasureName, $hint);
             }
             $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
