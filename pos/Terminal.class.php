@@ -1975,7 +1975,7 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
             $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
-            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($obj->productId, 'name'), 0, 95);
+            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($obj->productId, 'name'), 0, 80);
             $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
             
             $res[$id]->photo = $this->getPosProductPreview($obj->productId, 70, 70);
