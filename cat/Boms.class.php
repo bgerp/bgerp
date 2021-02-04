@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class cat_Boms extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'showInProduct, expenses, isComplete';
+    public $changableFields = 'title,showInProduct, expenses, isComplete';
     
     
     /**
@@ -50,12 +50,6 @@ class cat_Boms extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'productId,notes';
-    
-    
-    /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
     
     
     /**
@@ -201,6 +195,7 @@ class cat_Boms extends core_Master
      */
     public function description()
     {
+        $this->FLD('title', 'varchar(124)', 'caption=Заглавие,tdClass=nameCell');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пълна рецепта,notNull,value=auto,mandatory');
@@ -213,6 +208,8 @@ class cat_Boms extends core_Master
         $this->FLD('hash', 'varchar', 'input=none');
         
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,state,type');
+        $this->setDbUnique('productId,title');
     }
     
     
@@ -661,8 +658,10 @@ class cat_Boms extends core_Master
             $shortUom = cat_UoM::getShortName($measureId);
             $row->quantity .= ' ' . $shortUom;
         }
-        
+
+        $row->title = $mvc->getHyperlink($rec, true);
         if ($fields['-single'] && !doc_HiddenContainers::isHidden($rec->containerId)) {
+            $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
             $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
             $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
             
@@ -1747,24 +1746,21 @@ class cat_Boms extends core_Master
         
         return $res;
     }
-    
-    
+
+
     /**
-     * Обновява modified стойностите
-     *
-     * @param core_Master $mvc
-     * @param bool|NULL   $res
-     * @param int         $id
+     * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    public static function on_AfterTouchRec($mvc, &$res, $id)
+    public static function getRecTitle($rec, $escaped = true)
     {
-        $rec = $mvc->fetchRec($id);
-        
-        if ($rec) {
-            if ($rec->state == 'rejected') {
-                // @todo - премахване след ремонт
-                wp('cat_Boms::afterTouchRejected', $res, $rec);
-            }
+        $rec = static::fetchRec($rec);
+        $title = static::getHandle($rec);
+        if(!empty($rec->title)){
+            $title .= "/" . static::getVerbal($rec, 'title');
         }
+        $title .= "/" . cat_Products::getTitleById($rec->productId);
+        $title = str::limitLen($title, 94);
+
+        return $title;
     }
 }
