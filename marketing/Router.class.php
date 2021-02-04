@@ -291,7 +291,8 @@ class marketing_Router
 
 
     /**
-     * Рутиране по БРИД на запитване, ако намерената папка е с друго еик/егн/ДДС номер от подадените се игнорира
+     * Рутиране по БРИД на запитване, търси папката от същия тип, където е рутирано предишно запитване
+     * и ДДС номер и ЕИК/ЕГН  съвпадат с подадените (ако има)
      *
      * @param $brid                 - брид
      * @param $coverClass           - клас на корицата
@@ -313,29 +314,23 @@ class marketing_Router
         $mQuery->show('folderId');
         $mQuery->orderBy('createdOn', 'DESC');
 
-        $folderId = $mQuery->fetch()->folderId;
-
-        if(isset($folderId)){
-            $folderData = doc_Folders::getContragentData($folderId);
+        while($mRec = $mQuery->fetch()){
+            $folderData = doc_Folders::getContragentData($mRec->folderId);
 
             // Ако има ДДС номер и той е различен от подадения, няма да се търси тази папка
             if(!empty($vatId) && !empty($folderData->vatNo)) {
-                if(str::removeWhiteSpace($vatId) != str::removeWhiteSpace($folderData->vatNo)){
-
-                    return null;
-                }
+                if(str::removeWhiteSpace($vatId) != str::removeWhiteSpace($folderData->vatNo)) continue;
             }
 
             // Ако има ЕИК/ЕГН номер и той е различен от подадения, няма да се търси тази папка
             if(!empty($uicId) && !empty($folderData->uicId)) {
-                if(str::removeWhiteSpace($uicId) != str::removeWhiteSpace($folderData->uicId)){
-
-                    return null;
-                }
+                if(str::removeWhiteSpace($uicId) != str::removeWhiteSpace($folderData->uicId)) continue;
             }
+
+            return $mRec->folderId;
         }
 
-        return $folderId;
+        return null;
     }
     
     
