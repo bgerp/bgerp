@@ -1400,18 +1400,13 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 	var inpVal = element.val();
 	var operation = getSelectedOperation();
 
-	/*if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
-
-		microformat = true;
-		var selectedRecId = getSelectedRowId();
-		doOperation(operation, selectedRecId, true);
-		return;
-	}*/
-	
-	if(inpVal.startsWith("*")){
+	// Ако е засечен микроформат няма да се търси, ще се чака потребителя да направи нещо
+	if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
+		console.log('MICROFORMAT waiting');
 		return;
 	}
-	
+	console.log('trigger SEARCH');
+
 	var selectedElement = $(".highlighted.productRow");
 	var selectedRecId = selectedElement.attr("data-id");
 
