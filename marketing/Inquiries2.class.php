@@ -1086,7 +1086,7 @@ class marketing_Inquiries2 extends embed_Manager
                 // Винаги се рутира към правилната папка
                 $domainId = cms_Domains::getPublicDomain()->id;
                 $routerExplanation = null;
-                $rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid, null, null, $routerExplanation, $domainId);
+                $rec->folderId = marketing_InquiryRouter::route($rec->company, $rec->personNames, $rec->email, $rec->tel, $rec->country, $rec->pCode, $rec->place, $rec->address, $rec->brid, $rec->vatId, $rec->uicId, $routerExplanation, $domainId);
                 
                 // Запис и редирект
                 if ($this->haveRightFor('new')) {

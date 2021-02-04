@@ -288,17 +288,20 @@ class marketing_Router
             return crm_Companies::forceCoverAndFolder((object) array('id' => $companyId, 'inCharge' => $inCharge));
         }
     }
-    
-    
+
+
     /**
-     * Рутиране по БРИД на запиътване
+     * Рутиране по БРИД на запитване, ако намерената папка е с друго еик/егн/ДДС номер от подадените се игнорира
      *
-     * @param string   $brid
-     * @param int|NULL $folderId
+     * @param $brid                 - брид
+     * @param $coverClass           - клас на корицата
+     * @param null|string $vatId    - ДДС номер ако има
+     * @param null|string $uicId    - ЕИК/ЕГН ако има
+     * @return null|int  $folderId  - ид на намерена папка, ако има
      */
-    public static function routeByBrid($brid)
+    public static function routeByBrid($brid, $coverClass, $vatId = null, $uicId = null)
     {
-        $contragentClasses = core_Classes::getOptionsByInterface('crm_ContragentAccRegIntf');
+        $CoverClass = cls::get($coverClass);
         
         // Опит за намиране на последното запитване със същия брид в папка на фирма/лице
         $mQuery = marketing_Inquiries2::getQuery();
@@ -306,11 +309,33 @@ class marketing_Router
         $mQuery->EXT('fState', 'doc_Folders', 'externalName=state,externalKey=folderId');
         $mQuery->where("#brid IS NOT NULL AND #fState != 'rejected' AND #fState != 'closed' AND #state != 'rejected'");
         $mQuery->where(array("#brid = '[#1#]'", $brid));
-        $mQuery->in('coverClass', array_keys($contragentClasses));
+        $mQuery->where("#coverClass = {$CoverClass->getClassId()}");
         $mQuery->show('folderId');
         $mQuery->orderBy('createdOn', 'DESC');
-        
-        return $mQuery->fetch()->folderId;
+
+        $folderId = $mQuery->fetch()->folderId;
+
+        if(isset($folderId)){
+            $folderData = doc_Folders::getContragentData($folderId);
+
+            // Ако има ДДС номер и той е различен от подадения, няма да се търси тази папка
+            if(!empty($vatId) && !empty($folderData->vatNo)) {
+                if(str::removeWhiteSpace($vatId) != str::removeWhiteSpace($folderData->vatNo)){
+
+                    return null;
+                }
+            }
+
+            // Ако има ЕИК/ЕГН номер и той е различен от подадения, няма да се търси тази папка
+            if(!empty($uicId) && !empty($folderData->uicId)) {
+                if(str::removeWhiteSpace($uicId) != str::removeWhiteSpace($folderData->uicId)){
+
+                    return null;
+                }
+            }
+        }
+
+        return $folderId;
     }
     
     
