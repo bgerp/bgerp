@@ -286,7 +286,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 
                 //Себестойност на артикула
                 $selfPrice = self::getProductPrice($pRec, $master, $rec->pricesType);
-               
+                $arrS[]=$selfPrice;
+                $arrC[]=$consumedQuantity;
                 // Запис в масива
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
@@ -320,10 +321,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 }
             }
         }
-        
+
         foreach ($recs as $key => $val) {
             $val->totalQuantity = $val->consumedQuantity - $val->returnedQuantity;
-            $val->totalAmount = ($val->consumedQuantity - $val->returnedQuantity) * $val->selfPrice;
+            $val->totalAmount = ($val->consumedAmount - $val->returnedAmount);
         }
         
         //Подредба на резултатите
@@ -334,7 +335,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             
             arr::sortObjects($recs, $orderBy, $orderType, $order);
         }
-        
+
         return $recs;
     }
     
