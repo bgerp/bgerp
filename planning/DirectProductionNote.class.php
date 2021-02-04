@@ -296,7 +296,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             if(!array_key_exists($originPackId, $secondMeasureDerivitives)){
                 $packs = array_diff_key($packs, $secondMeasureDerivitives);
             } else {
-                $packs = array_diff_key($packs, $measureDerivitives);
+                $packs = array_intersect_key($packs, $secondMeasureDerivitives);
             }
 
             $form->setOptions('packagingId', $packs);
