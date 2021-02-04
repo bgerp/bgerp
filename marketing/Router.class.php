@@ -174,7 +174,8 @@ class marketing_Router
         $coverClassId = doc_Folders::fetchCoverClassId($folderId);
         $personsClassId = crm_Persons::getClassId();
         $companyClassId = crm_Companies::getClassId();
-        
+
+        $res = null;
         switch ($allowedCover) {
             case 'contragent':
                 $res = ($coverClassId == $personsClassId || $coverClassId == $companyClassId);
@@ -417,7 +418,10 @@ class marketing_Router
     {
         $Class = cls::get($class);
         expect(cls::haveInterface('crm_ContragentAccRegIntf', $Class));
-        if($id = $Class->fetchField(array("#{$field} = '[#1#]' AND #state != 'rejected'", $vatId))){
+        $canonizedId = str::removeWhiteSpace($vatId);
+
+        if($id = $Class->fetchField(array("(#{$field} = '[#1#]' || #{$field} = '[#2#]') AND #state != 'rejected'", $vatId, $canonizedId))){
+
             return $Class->forceCoverAndFolder((object) array('id' => $id, 'inCharge' => $inCharge));
         }
         
