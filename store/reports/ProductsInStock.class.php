@@ -302,10 +302,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         }
 
         if (!is_null($recs) && $rec->orderBy) {
-            arr::sortObjects($recs, $rec->orderBy, 'asc');
+            $order = ($rec->orderBy == 'amount') ? 'DESC' : 'ASC';
+            arr::sortObjects($recs, $rec->orderBy, $order);
         }
-
-        //arr::sortObjects($recs, 'productName', 'ASC', 'stri');
 
         $rec->totalProducts = (count($recs));
 
