@@ -483,10 +483,11 @@ abstract class deals_Helper
      *
      * @return void
      */
-    public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
+    public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack = null)
     {
         if ($packRec = cat_products_Packagings::getPack($productId, $packagingId)) {
             if (cat_UoM::fetchField($packagingId, 'showContents') == 'yes') {
+                $quantityInPack = isset($quantityInPack) ? $quantityInPack : $packRec->quantity;
                 $measureId = cat_Products::fetchField($productId, 'measureId');
                 $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack, $packRec);
             }
