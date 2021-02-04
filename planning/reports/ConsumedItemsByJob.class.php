@@ -221,6 +221,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             
             $pQuery->EXT('valior', "${master}", 'externalName=valior,externalKey=noteId');
             $pQuery->EXT('state', "${master}", 'externalName=state,externalKey=noteId');
+            if ($master == 'planning_ConsumptionNotes'){
+                $pQuery->EXT('storeId', "${master}", 'externalName=storeId,externalKey=noteId');
+            }
+
             $pQuery->EXT('threadId', "${master}", 'externalName=threadId,externalKey=noteId');
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
@@ -251,6 +255,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             }
             
             while ($pRec = $pQuery->fetch()) {
+
+                if ($master == 'planning_ConsumptionNotes' && !$pRec->storeId)continue;
+
                 $consumedQuantity = $returnedQuantity = $pRec->quantity;
                 
                 if ($master == 'planning_ReturnNotes') {
