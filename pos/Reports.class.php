@@ -674,7 +674,7 @@ class pos_Reports extends core_Master
                 $receiptRec->modifiedOn = dt::now();
                 $receiptRec->exState = $receiptRec->state;
                 $receiptRec->state = $nextState;
-                core_Statuses::newStatus($receiptRec->state, 'warning');
+
                 $Receipts->save($receiptRec, 'state,modifiedOn,modifiedBy,exState');
                 if($receiptRec->state == 'closed'){
                     store_StockPlanning::remove($Receipts, $receiptRec->id);
