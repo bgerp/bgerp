@@ -20,6 +20,12 @@ defIfNot('MARKETING_MANDATORY_CONTACT_FIELDS', 'person');
 
 
 /**
+ * Дали да се показват във формата за запитване уникалните полета за идентификатори
+ */
+defIfNot('MARKETING_MANDATORY_UNIQUE_FIELDS', 'hide');
+
+
+/**
  * Маркетинг - инсталиране / деинсталиране
  *
  *
@@ -65,6 +71,7 @@ class marketing_Setup extends core_ProtoSetup
         'MARKETING_INQUIRE_FROM_EMAIL' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращане на запитването по имейл->Имейл \'От\''),
         'MARKETING_INQUIRE_TO_EMAIL' => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
         'MARKETING_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за запитване->Поле'),
+        'MARKETING_MANDATORY_UNIQUE_FIELDS' => array('enum(vat=ДДС №,uicId=ЕИК/ЕГН,both=ДДС № и ЕИК/ЕГН, none=Незадължителни, hide=Да не се показват)', 'caption=Показване на полета за ДДС № и ЕИК/ЕГН в запитването->Избор'),
     );
     
     
