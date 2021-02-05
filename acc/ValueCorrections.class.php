@@ -292,13 +292,12 @@ class acc_ValueCorrections extends core_Master
      * @param core_ObjectReference $origin
      * @param string               $dataField
      */
-    public static function addProductsFromOriginToForm(&$form, core_ObjectReference $origin, $dataField = 'productsData')
+    public static function addProductsFromOriginToForm(&$form, core_ObjectReference $origin, $Master, $dataField = 'productsData')
     {
         // Запомняне на всички експедирани/заскладени артикули от оридижина
-        $me = cls::get(get_called_class());
-        $products = $origin->getCorrectableProducts($me);
+        $products = $origin->getCorrectableProducts($Master);
         $form->allProducts = $products;
-        
+
         if (countR($products)) {
             
             // Добавяме всички възможни артикули като опции в SET поле
@@ -339,7 +338,7 @@ class acc_ValueCorrections extends core_Master
         
         // Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
         expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
-        self::addProductsFromOriginToForm($form, $firstDoc);
+        self::addProductsFromOriginToForm($form, $firstDoc, $mvc);
         
         $chargeVat = $firstDoc->fetchField('chargeVat');
         $form->setDefault('currencyId', $firstDoc->fetchField('currencyId'));
