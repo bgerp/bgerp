@@ -56,7 +56,13 @@ class cat_Boms extends core_Master
      * Детайла, на модела
      */
     public $details = 'cat_BomDetails';
-    
+
+
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsSingleField = 'name';
+
     
     /**
      * Кой е основния детайл
@@ -951,7 +957,7 @@ class cat_Boms extends core_Master
     public function prepareBoms(&$data)
     {
         $data->rows = array();
-        
+
         // Намираме неоттеглените задания
         $query = cat_Boms::getQuery();
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
@@ -959,6 +965,11 @@ class cat_Boms extends core_Master
         $query->where("#productId = {$data->masterId}");
         $query->where("#state != 'rejected'");
         $query->orderBy('orderByState', 'ASC');
+
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $data->Pager->setPageVar('cat_Products', $data->masterId, 'cat_Boms');
+        $data->Pager->setLimit($query);
+
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec);
@@ -1001,17 +1012,25 @@ class cat_Boms extends core_Master
         }
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $title = tr('Технологични рецепти');
-        $tpl->append($title, 'title');
+        if(!$data->fromConvertable){
+            $title = tr('Технологични рецепти');
+            $tpl->append($title, 'title');
+        }
         
         $data->listFields = arr::make('title=Рецепта,type=Вид,quantity=Количество,createdBy=От||By,createdOn=На');
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $details = $table->get($data->rows, $data->listFields);
-        
+        if ($data->Pager) {
+            $details->append($data->Pager->getHtml());
+        }
+
         // Ако артикула не е производим, показваме в детайла
         if ($data->notManifacturable === true) {
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
+            $tpl->append('state-rejected', 'TAB_STATE');
+        } elseif($data->fromConvertable && $data->masterData->rec->canConvert != 'yes'){
+            $tpl->replace(" <span class='red small'>(" . tr('Артикулът не е вложим') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }
         $tpl->append($details, 'content');
