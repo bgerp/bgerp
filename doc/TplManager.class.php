@@ -146,7 +146,7 @@ class doc_TplManager extends core_Master
         $this->setDbUnique('name');
         $this->setDbIndex('docClassId');
         $this->setDbIndex('lang,docClassId');
-        $this->setDbIndex('docClassId,sate');
+        $this->setDbIndex('docClassId,state');
     }
     
     
