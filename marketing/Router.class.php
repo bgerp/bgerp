@@ -315,18 +315,27 @@ class marketing_Router
         $mQuery->show('folderId');
         $mQuery->orderBy('createdOn', 'DESC');
 
-        while($mRec = $mQuery->fetch()){
+        $mRec = $mQuery->fetch();
+        if($mRec->folderId){
             $folderData = doc_Folders::getContragentData($mRec->folderId);
 
             // Ако има ДДС номер и той е различен от подадения, няма да се търси тази папка
             if(!empty($vatId) && !empty($folderData->vatNo)) {
-                if(str::removeWhiteSpace($vatId) == str::removeWhiteSpace($folderData->vatNo)) return $mRec->folderId;
+                if(str::removeWhiteSpace($vatId) != str::removeWhiteSpace($folderData->vatNo)) {
+
+                    return null;
+                }
             }
 
             // Ако има ЕИК/ЕГН номер и той е различен от подадения, няма да се търси тази папка
             if(!empty($uicId) && !empty($folderData->uicId)) {
-                if(str::removeWhiteSpace($uicId) == str::removeWhiteSpace($folderData->uicId)) return $mRec->folderId;
+                if(str::removeWhiteSpace($uicId) != str::removeWhiteSpace($folderData->uicId)) {
+
+                    return null;
+                }
             }
+
+            return $mRec->folderId;
         }
 
         return null;
