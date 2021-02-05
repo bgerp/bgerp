@@ -387,46 +387,65 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
         $isSale = ($itemRec->classId == sales_Sales::getClassId());
         $mPn = ($itemRec->classId == planning_DirectProductionNote::getClassId());
         $isTransfer = ($itemRec->classId == store_Transfers::getClassId());
-        
+
         foreach ($products as $p) {
             $creditArr = array('60201', $expenseItemId, array('cat_Products', $productId), 'quantity' => $sign * $p->allocated);
             
             if ($isPurchase || $isTransfer) {
-                $storesArr = array();
-                foreach ($p->inStores as $storeId => $p2) {
-                    $q = (is_array($p2)) ? $p2['quantity'] : $p2;
-                    $am = (is_array($p2)) ? $p2['amount'] : $p2;
-                    $obj = (object) array('productId' => $p->productId,
-                        'quantity' => $q,
-                        'amount' => $am,
-                        'transportWeight' => $p->transportWeight,
-                        'transportVolume' => $p->transportVolume,
-                    );
-                    
-                    $storesArr[$storeId] = $obj;
-                }
-                
-                if (countR($storesArr) > 1) {
-                    $errorMsg2 = acc_ValueCorrections::allocateAmount($storesArr, $p->allocated, $allocateBy);
-                    if (!empty($errorMsg2)) {
-                        
-                        return $entries;
+
+                if(is_array($p->inStores) && countR($p->inStores)){
+                    $storesArr = array();
+                    foreach ($p->inStores as $storeId => $p2) {
+                        $q = (is_array($p2)) ? $p2['quantity'] : $p2;
+                        $am = (is_array($p2)) ? $p2['amount'] : $p2;
+                        $obj = (object) array('productId' => $p->productId,
+                            'quantity' => $q,
+                            'amount' => $am,
+                            'transportWeight' => $p->transportWeight,
+                            'transportVolume' => $p->transportVolume,
+                        );
+
+                        $storesArr[$storeId] = $obj;
                     }
-                } else {
-                    $storeId = key($storesArr);
-                    $storesArr[$storeId]->allocated = $p->allocated;
-                }
-                
-                foreach ($storesArr as $storeId2 => $p3) {
-                    $allocated = core_Math::roundNumber($p3->allocated);
-                    $creditArr['quantity'] = $sign * $allocated;
-                    
-                    $entries[] = array('debit' => array('321',
-                        array('store_Stores', $storeId2),
-                        array('cat_Products', $p3->productId),
-                        'quantity' => 0),
-                    'credit' => $creditArr,
-                    'reason' => 'Разпределяне на разходи');
+
+                    if (countR($storesArr) > 1) {
+                        $errorMsg2 = acc_ValueCorrections::allocateAmount($storesArr, $p->allocated, $allocateBy);
+                        if (!empty($errorMsg2)) {
+
+                            return $entries;
+                        }
+                    } else {
+                        $storeId = key($storesArr);
+                        $storesArr[$storeId]->allocated = $p->allocated;
+                    }
+
+                    foreach ($storesArr as $storeId2 => $p3) {
+                        $allocated = core_Math::roundNumber($p3->allocated);
+                        $creditArr['quantity'] = $sign * $allocated;
+
+                        $entries[] = array('debit' => array('321',
+                            array('store_Stores', $storeId2),
+                            array('cat_Products', $p3->productId),
+                            'quantity' => 0),
+                            'credit' => $creditArr,
+                            'reason' => 'Разпределяне на разходи');
+                    }
+                } if(is_array($p->expenseItems) && countR($p->expenseItems)){
+                    foreach ($p->expenseItems as $expenseItemId1 => $expenseData) {
+                        $expenseQuantity = (is_array($expenseData)) ? $expenseData['quantity'] : $expenseData;
+                        $amount = round($p->allocated * ($expenseQuantity / $p->quantity), 2);
+
+                        $creditArr['quantity'] = $sign * $amount;
+
+                        $entries[] = array(
+                            'debit' => array('60201',
+                                $expenseItemId1,
+                                array('cat_Products', $p->productId),
+                                'quantity' => 0),
+                            'credit' => $creditArr,
+                            'reason' => 'Разпределяне на разходи'
+                        );
+                    }
                 }
             } elseif ($isSale) {
                 $canStore = cat_Products::fetchField($p->productId, 'canStore');
