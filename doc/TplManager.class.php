@@ -16,7 +16,7 @@
  * @package   doc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -142,9 +142,11 @@ class doc_TplManager extends core_Master
         
         // Полета които ще се показват в съответния мениджър и неговите детайли
         $this->FLD('toggleFields', 'blob(serialize,compress)', 'caption=Полета за скриване,input=none');
-        
-        // Уникален индекс
+
         $this->setDbUnique('name');
+        $this->setDbIndex('docClassId');
+        $this->setDbIndex('lang,docClassId');
+        $this->setDbIndex('docClassId,sate');
     }
     
     
@@ -176,9 +178,10 @@ class doc_TplManager extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
+        $rec = $form->rec;
+
         // Ако шаблона е клонинг
-        if ($originId = $form->rec->originId) {
+        if ($originId = $rec->originId) {
             
             // Копират се нужните данни от ориджина
             expect($origin = static::fetch($originId));
@@ -189,22 +192,25 @@ class doc_TplManager extends core_Master
             $form->setDefault('toggleFields', $origin->toggleFields);
             $form->setReadOnly('path', $origin->path);
             $form->setDefault('printCount', $origin->printCount);
-            
-            
-            
-        } else {
-            $form->setField('path', 'input=none');
         }
         
         // При смяна на документа се рефрешва формата
-        if (empty($form->rec->id)) {
+        if (empty($rec->id)) {
             $form->setField('docClassId', array('removeAndRefreshForm' => 'lang|content|toggleFields|path'));
         }
         
         // Ако има избран документ, се подготвят допълнителните полета
-        if ($form->rec->docClassId) {
-            $DocClass = cls::get($form->rec->docClassId);
+        if ($rec->docClassId) {
+            $DocClass = cls::get($rec->docClassId);
             $mvc->prepareToggleFields($DocClass, $form);
+        }
+
+        if($rec->createdBy == core_Users::SYSTEM_USER){
+            $form->setReadOnly('name');
+            $fields = array_keys($form->selectFields("#input != 'hidden' AND #name != 'name' AND #name != 'printCount'"));
+            foreach ($fields as $fld){
+                $form->setField($fld, 'input=none');
+            }
         }
     }
     
@@ -448,7 +454,7 @@ class doc_TplManager extends core_Master
                 expect($object->hashNarrow = md5_file(getFullPath($object->narrowContent)));
             }
             
-            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content) && ($exRec->printCount == $object->printCount)) {
+            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content)) {
                 $skipped++;
                 continue;
             }
@@ -508,12 +514,6 @@ class doc_TplManager extends core_Master
         if ($action == 'delete' && isset($rec)) {
             // Ако шаблона е използван в някой документ, не може да се трие
             if (cls::get($rec->docClassId)->fetch("#template = {$rec->id}")) {
-                $res = 'no_one';
-            }
-        }
-        
-        if (($action == 'edit') && isset($rec)) {
-            if ($rec->createdBy == -1) {
                 $res = 'no_one';
             }
         }

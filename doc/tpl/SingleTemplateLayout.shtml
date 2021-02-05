@@ -23,7 +23,7 @@
         </tr>
         
         <tr>
-            <td class="title-style" style='width:150px'>|Брой копия при печат|*</td>
+            <td class="title-style" style='width:150px'>|Копия при печат|*</td>
             <td> [#printCount#]</td>
         </tr>
         
