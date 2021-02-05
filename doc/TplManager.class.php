@@ -153,7 +153,7 @@ class doc_TplManager extends core_Master
     /**
      * Подготовка на филтър формата
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->setOptions('docClassId', static::getClassesWithTemplates());
         $data->listFilter->setField('docClassId', "placeholder=Всички документи");
@@ -175,7 +175,7 @@ class doc_TplManager extends core_Master
     /**
      * След потготовка на формата за добавяне / редактиране
      */
-    public static function on_AfterPrepareEditForm($mvc, &$data)
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
         $rec = $form->rec;
@@ -205,6 +205,7 @@ class doc_TplManager extends core_Master
             $mvc->prepareToggleFields($DocClass, $form);
         }
 
+        // Ако шаблона е системен, може да се променя само броя му копия
         if($rec->createdBy == core_Users::SYSTEM_USER){
             $form->setReadOnly('name');
             $fields = array_keys($form->selectFields("#input != 'hidden' AND #name != 'name' AND #name != 'printCount'"));
@@ -272,7 +273,7 @@ class doc_TplManager extends core_Master
     /**
      * Проверка след изпращането на формата
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             
@@ -490,7 +491,7 @@ class doc_TplManager extends core_Master
     /**
      * След подготовка на единичния изглед
      */
-    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $data->toolbar->addBtn('Всички', array('doc_TplManager', 'list'), 'caption=Всички шаблони,ef_icon=img/16/view.png');
         
