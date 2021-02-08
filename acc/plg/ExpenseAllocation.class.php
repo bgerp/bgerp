@@ -116,11 +116,6 @@ class acc_plg_ExpenseAllocation extends core_Plugin
         }
 
         if ($form->isSubmitted()) {
-            if(!in_array($rec->allocationBy, array('no', 'auto'))){
-                if (!countR($form->allProducts)) {
-                    $form->setError('allocationBy,expenseItemId', 'В избраната сделка няма експедирани/заскладени артикули');
-                }
-            }
 
             if (isset($rec->id)) {
                 // Колко разпределено по-реда
@@ -134,6 +129,12 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                     $form->setError($mvc->packQuantityFld, "Въведеното к-во е по-малко от к-то разпределеното по разходи|* <b>{$allocatedVerbal}</b> |{$uomName}|*");
                 }
             } elseif(isset($rec->expenseItemId) && isset($rec->allocationBy)) {
+                if(!in_array($rec->allocationBy, array('no', 'auto'))){
+                    if (!countR($form->allProducts)) {
+                        $form->setError('allocationBy,expenseItemId', 'В избраната сделка няма експедирани/заскладени артикули');
+                    }
+                }
+
                 if($rec->allocationBy == 'auto'){
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                     $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
