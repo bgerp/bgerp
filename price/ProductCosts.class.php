@@ -151,9 +151,9 @@ class price_ProductCosts extends core_Manager
     {
         $self = cls::get(get_called_class());
         $PolicyOptions = core_Classes::getOptionsByInterface('price_CostPolicyIntf');
-        
+
         // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
-        $update = array();
+        $totalProducts = $update = array();
         foreach ($PolicyOptions as $policyId) {
             if (cls::load($policyId, true)) {
                 
@@ -169,7 +169,8 @@ class price_ProductCosts extends core_Manager
                 
                 // Кои са засегнатите артикули, касаещи политиката
                 $affectedProducts = $Interface->getAffectedProducts($datetime);
-                
+                $totalProducts += $affectedProducts;
+
                 // Ако има такива, ще се прави опит за изчисляване на себестойносттите
                 $count = countR($affectedProducts);
                 if($count){
@@ -180,7 +181,7 @@ class price_ProductCosts extends core_Manager
                 }
             }
         }
-        
+
         if(!countR($update)){
            
             return;
@@ -193,8 +194,9 @@ class price_ProductCosts extends core_Manager
         
         // Синхронизиране на новите записи със старите записи на засегнатите пера
         $exQuery = self::getQuery();
-        $exQuery->in('productId', $affectedProducts);
+        $exQuery->in('productId', $totalProducts);
         $exRecs = $exQuery->fetchAll();
+
         $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
         
         // Добавяне на нови записи
