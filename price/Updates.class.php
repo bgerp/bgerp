@@ -574,8 +574,8 @@ class price_Updates extends core_Manager
         }
 
         // Ако ще се изпълни правилото на коя дата ще се приложи
-        if($res && empty($appliedOn)){
-            $rec->appliedOn = dt::mysql2verbal(null, 'Y-m-d 23:00:00');
+        if($res){
+            $rec->appliedOn = ($appliedOn) ? $appliedOn : dt::mysql2verbal(null, 'Y-m-d 23:00:00');
         }
 
         // Връщаме резултата
