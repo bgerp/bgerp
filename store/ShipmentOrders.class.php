@@ -180,7 +180,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Шаблон за печата като за клиент
      */
-    public $printAsClientLayaoutFile = 'store/tpl/SingleLayoutPackagingListClient.shtml';
+    public $printAsClientLayoutFile = 'store/tpl/SingleLayoutPackagingListClient.shtml';
     
     
     /**
