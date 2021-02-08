@@ -231,7 +231,7 @@ class planning_Jobs extends core_Master
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|quantity|oldJobId');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|quantity|oldJobId');
         $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
         
@@ -1569,5 +1569,16 @@ class planning_Jobs extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     */
+    public static function canAddToThread($threadId)
+    {
+        $saleId = Request::get('saleId', 'int');
+
+        return isset($saleId);
     }
 }
