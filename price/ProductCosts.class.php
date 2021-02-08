@@ -162,11 +162,6 @@ class price_ProductCosts extends core_Manager
                 $Interface = cls::getInterface('price_CostPolicyIntf', $policyId);
                 if($Interface->hasSeparateCalcProcess()) continue;
                 
-                // Ако е миграция, средната складова няма да се преизчислява от тук
-                if (Mode::is('isMigrate') && ($Policy instanceof price_interface_AverageCostStorePricePolicyImpl)) {
-                    continue;
-                }
-                
                 // Кои са засегнатите артикули, касаещи политиката
                 $affectedProducts = $Interface->getAffectedProducts($datetime);
                 $totalProducts += $affectedProducts;
