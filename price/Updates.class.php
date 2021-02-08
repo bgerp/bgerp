@@ -527,7 +527,7 @@ class price_Updates extends core_Manager
                 break;
             case 'nextDay':
                 
-                // Дали часа от датата е 15:00
+                // Дали часа от датата е 23:00
                 $normNow = dt::mysql2verbal($date, 'd.m.y');
                 $lastAppliedOn = ($rec->appliedOn) ? dt::mysql2verbal($rec->appliedOn, 'd.m.y') : null;
                 if($lastAppliedOn != $normNow){
@@ -540,7 +540,7 @@ class price_Updates extends core_Manager
                 break;
             case 'nextWeek':
                 
-                // Дали датата е петък 15:00 часа
+                // Дали датата е петък 23:00 часа
                 $normNow = dt::mysql2verbal($date, 'D:H', 'en');
                 $lastAppliedOn = ($rec->appliedOn) ? dt::mysql2verbal($rec->appliedOn, 'D:H', 'en') : null;
 
@@ -554,7 +554,7 @@ class price_Updates extends core_Manager
                 break;
             case 'nextMonth':
                 
-                // Дали датата е 5 дена преди края на текущия месец в 15:00 часа
+                // Дали датата е 5 дена преди края на текущия месец в 23:00 часа
                 $lastDayOfMonth = dt::getLastDayOfMonth($date);
                 $dateToCompare = dt::addDays(-5, $lastDayOfMonth);
                 $dateToCompare = dt::addSecs(60 * 60 * 23, $dateToCompare);
