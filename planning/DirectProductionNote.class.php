@@ -546,12 +546,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         $quantityInPack = $rec->quantityInPack;
         if(!empty($rec->additionalMeasureId)){
+
+            // Ако има втора мярка, показване на информацията за нея
             $additionalMeasureType = cat_UoM::fetchField($rec->additionalMeasureId, 'type');
             if($rec->additionalMeasureId == $productRec->measureId || $additionalMeasureType != 'uom'){
                 if($additionalMeasureType != 'uom'){
                     deals_Helper::getPackInfo($row->additionalMeasureId, $rec->productId, $rec->additionalMeasureId);
                 }
-
                 $row->additionalMeasureId = ht::createHint($row->additionalMeasureId, "Това количество ще се отчете в производството");
             }
 
@@ -905,11 +906,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $this->save($rec, 'debitAmount');
             $this->logWrite('Задаване на себестойност', $rec->id);
 
-            $controUrl = $this->getContoUrl($id);
-            $controUrl['ret_url'] = $this->getSingleUrlArray($rec->id);
+            $contoUrl = $this->getContoUrl($id);
+            $contoUrl['ret_url'] = $this->getSingleUrlArray($rec->id);
 
             // Редирект към екшъна за контиране
-            redirect($controUrl);
+            redirect($contoUrl);
         }
 
         $form->toolbar->addSbBtn('Контиране', 'save', 'ef_icon = img/16/tick-circle-frame.png, title = Контиране на документа');
@@ -1298,11 +1299,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
 
             $res[] = (object)array('storeId'          => $dRec->storeId,
-                'productId'        => $dRec->productId,
-                'date'             => $date,
-                'quantityIn'       => null,
-                'quantityOut'      => $dRec->totalQuantity,
-                'genericProductId' => $genericProductId);
+                                   'productId'        => $dRec->productId,
+                                   'date'             => $date,
+                                   'quantityIn'       => null,
+                                   'quantityOut'      => $dRec->totalQuantity,
+                                   'genericProductId' => $genericProductId);
         }
 
         return $res;

@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -106,6 +106,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         
         $this->setDbIndex('productId');
+        $this->setDbIndex('noteId,type');
     }
     
     
