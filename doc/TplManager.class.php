@@ -122,8 +122,8 @@ class doc_TplManager extends core_Master
                                                      'eshop_Setup' => array('ESHOP_SALE_DEFAULT_TPL_BG', 'ESHOP_SALE_DEFAULT_TPL_EN'),
                                                      'sales_Setup' => array('SALE_SALE_DEF_TPL_BG', 'SALE_SALE_DEF_TPL_EN', 'SALE_INVOICE_DEF_TPL_BG', 'SALE_INVOICE_DEF_TPL_EN'),
     );
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -190,7 +190,6 @@ class doc_TplManager extends core_Master
             $form->setDefault('content', $origin->content);
             $form->setDefault('narrowContent', $origin->narrowContent);
             $form->setDefault('toggleFields', $origin->toggleFields);
-            $form->setReadOnly('path', $origin->path);
             $form->setDefault('printCount', $origin->printCount);
         }
         
