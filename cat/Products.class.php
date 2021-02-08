@@ -3660,7 +3660,13 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id] = new stdClass();
                 }
 
-                foreach (array('productId' => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
+                if ($dInst instanceof cat_ListingDetails) {
+                    $defFieldsArr = array('productId' => 'Артикул', 'price' => 'Цена', 'reff' => "Техен код");
+                } else {
+                    $defFieldsArr = array('productId' => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка");
+                }
+
+                foreach ($defFieldsArr as $fName => $fCaption) {
                     $recs[$dRec->id]->{$fName} = $dRec->{$fName};
 
                     if ($dInst->fields[$fName] && $dInst->fields[$fName]->caption) {
