@@ -769,6 +769,10 @@ class price_ListRules extends core_Detail
      */
     public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode = null, $vat = 'no')
     {
+        if($primeCost < 0){
+            wp($primeCost);
+        }
+
         // По подразбиране задаваме в текуща валута
         $currencyCode = isset($currencyCode) ? $currencyCode : acc_Periods::getBaseCurrencyCode();
         
