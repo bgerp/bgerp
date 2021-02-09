@@ -93,6 +93,15 @@ class hr_EmailCreatePlg extends core_Plugin
                     $requiredRoles = 'no_one';
                 }
             }
+
+            // Ако има изпратен имейл в нишката, да не се показва бутона
+            if ($requiredRoles != 'no_one') {
+                if ($rec->threadId) {
+                    if (email_Outgoings::fetch(array("#threadId = '[#1#]' && #state = 'closed'", $rec->threadId))) {
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
         }
     }
 }
