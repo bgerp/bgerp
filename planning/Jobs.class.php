@@ -761,6 +761,7 @@ class planning_Jobs extends core_Master
 
             // Ако заданието е в нея, ще се показват разменени местата на количествата
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                $secondMeasureQuantity = cat_UoM::convertValue($secondMeasureQuantity, $rec->secondMeasureId, $rec->packagingId);
                 $quantityProduced = $secondMeasureQuantity;
                 $row->quantityProduced = $Double->toVerbal($secondMeasureQuantity);
                 $secondMeasureNameHint = $secondMeasureName = $measureName;
@@ -1198,17 +1199,17 @@ class planning_Jobs extends core_Master
         // Ако артикулът поддържа втора мярка
         $saveFields = 'quantityProduced';
 
-        if($secondMeasureId = cat_products_Packagings::getSecondMeasureId($rec->productId)) {
-            $secondMeasureDerivities = cat_UoM::getSameTypeMeasures($secondMeasureId);
+        if($rec->secondMeasureId) {
+            $secondMeasureDerivities = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
             unset($secondMeasureDerivities['']);
 
             // Сумиране на произведеното във втора мярка
             $rec->secondMeasureQuantity = 0;
             foreach($allRecs as $noteRec){
                 if(array_key_exists($noteRec->packagingId, $secondMeasureDerivities)){
-                    $rec->secondMeasureQuantity += cat_UoM::convertValue($noteRec->packQuantity, $noteRec->packagingId, $secondMeasureId);
+                    $rec->secondMeasureQuantity += cat_UoM::convertValue($noteRec->packQuantity, $noteRec->packagingId, $rec->secondMeasureId);
                 } elseif(array_key_exists($noteRec->additionalMeasureId, $secondMeasureDerivities)){
-                    $rec->secondMeasureQuantity += cat_UoM::convertValue($noteRec->additionalMeasureQuantity, $noteRec->additionalMeasureId, $secondMeasureId);
+                    $rec->secondMeasureQuantity += cat_UoM::convertValue($noteRec->additionalMeasureQuantity, $noteRec->additionalMeasureId, $rec->secondMeasureId);
                 }
             }
 
