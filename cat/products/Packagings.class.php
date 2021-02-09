@@ -97,9 +97,10 @@ class cat_products_Packagings extends core_Detail
     public function description()
     {
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden, silent');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth|templateId,silent');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'tdClass=leftCol,caption=Опаковка,mandatory,smartCenter,removeAndRefreshForm=quantity|tareWeight|sizeWidth|sizeHeight|sizeDepth|templateId|isSecondMeasure,silent');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'input,caption=Количество,mandatory,smartCenter');
         $this->FLD('isBase', 'enum(yes=Да,no=Не)', 'caption=Основна,mandatory,maxRadio=2');
+        $this->FLD('isSecondMeasure', 'enum(yes=Да,no=Не)', 'caption=Втора мярка,mandatory,maxRadio=2,input=none');
         $this->FLD('eanCode', 'gs1_TypeEan(mvc=cat_products_Packagings,field=eanCode,stringIfEmpty)', 'caption=EAN');
         $this->FLD('templateId', 'key(mvc=cat_PackParams,select=title)', 'caption=Размери,silent,removeAndRefreshForm=tareWeight|sizeWidth|sizeHeight|sizeDepth,class=w50');
         $this->FLD('sizeWidth', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Дължина,autohide=any');
@@ -170,36 +171,14 @@ class cat_products_Packagings extends core_Detail
                 }
             }
 
-            $derivitiveMeasures = cat_UoM::getSameTypeMeasures($baseMeasureId);
-            $packagingRec = cat_UoM::fetch($rec->packagingId);
-            if($packagingRec->type == 'uom'){
-
-                if(!array_key_exists($rec->packagingId, $derivitiveMeasures)){
-                    $packagingBaseUomId = ($packagingRec->baseUnitId) ? $packagingRec->baseUnitId : $packagingRec->id;
-
-                    // Ако артикула има вече избрана друга различна мярка
-                    $query = static::getQuery();
-                    $query->where("#productId = {$rec->productId} AND #id != '{$rec->id}'");
-                    $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-                    $query->EXT('baseUnitId', 'cat_UoM', 'externalName=baseUnitId,externalKey=packagingId');
-                    $query->XPR('baseUnitIdNorm', 'int', "COALESCE(#baseUnitId, #packagingId)");
-                    $query->notIn('packagingId', array_keys($derivitiveMeasures));
-                    $query->where("#type = 'uom' AND #baseUnitIdNorm != {$packagingBaseUomId}");
-                    $query->show('id');
-                    $query->groupBy('baseUnitIdNorm');
-
-                    if($query->fetch()){
-                        $form->setError('packagingId', 'Артикулът не може да има трета независима мярка');
-                    }
-                }
-            }
-
             if(!$form->gotErrors()){
 
                 // Ако за този продукт има друга основна опаковка, тя става не основна
-                if ($rec->isBase == 'yes' && $packRec = static::fetch("#productId = {$rec->productId} AND #isBase = 'yes'")) {
-                    $packRec->isBase = 'no';
-                    static::save($packRec, 'isBase');
+                if ($rec->isBase == 'yes') {
+                    if($packRec = static::fetch("#productId = {$rec->productId} AND #isBase = 'yes' AND #id != '{$rec->id}'")){
+                        $packRec->isBase = 'no';
+                        static::save($packRec, 'isBase');
+                    }
                 }
             }
         }
@@ -207,12 +186,27 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
-     * Коя е втората основна мярка на артикула
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    protected static function on_BeforeSave($mvc, $id, $rec)
+    {
+        // Ако за този продукт има друга втора мярка, тя става не основна
+        if ($rec->isSecondMeasure == 'yes') {
+            if($packRec = static::fetch("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$rec->id}'")){
+                $packRec->isSecondMeasure = 'no';
+                $mvc->save_($packRec, 'isSecondMeasure');
+            }
+        }
+    }
+
+
+    /**
+     * Намира първата срещната втора мярка
      *
-     * @param $productId
+     * @param int|null $productId
      * @return null
      */
-    public static function getSecondMeasureId($productId)
+    private static function getFirstSecondMeasureId($productId)
     {
         // Ако артикула има вече избрана друга различна мярка
         $productMeasureId = cat_Products::fetchField($productId, 'measureId');
@@ -224,13 +218,31 @@ class cat_products_Packagings extends core_Detail
         $query->EXT('baseUnitRatio', 'cat_UoM', 'externalName=baseUnitRatio,externalKey=packagingId');
         $query->XPR('baseUnitIdNorm', 'int', "COALESCE(#baseUnitId, #packagingId)");
         $query->notIn('packagingId', array_keys($productMeasures));
-        $query->where("#type = 'uom'");
+        $query->where("#type = 'uom' AND #isSecondMeasure != 'no'");
         $query->orderBy('baseUnitRatio=asc');
         $query->show('packagingId');
 
         $rec = $query->fetch();
 
         return is_object($rec) ? $rec->packagingId : null;
+    }
+
+
+    /**
+     * Коя е втората основна мярка на артикула
+     *
+     * @param $productId
+     * @return null
+     */
+    public static function getSecondMeasureId($productId)
+    {
+        // Ако има конкретно избрана е тя, ако няма е първата
+        $secondMeasureId = static::fetchField("#productId = {$productId} AND #isSecondMeasure = 'yes'", 'packagingId');
+        if(empty($secondMeasureId)) {
+            $secondMeasureId = static::getFirstSecondMeasureId($productId);
+        }
+
+        return $secondMeasureId;
     }
 
 
@@ -440,7 +452,16 @@ class cat_products_Packagings extends core_Detail
         }
         
         $form->setField('templateId', 'input=none');
+
+        // Има ли твърдо забита втора мярка
+        $defaultSecondMeasureId = null;
+        if($Driver = cat_Products::getDriver($rec->productId)){
+            $defaultSecondMeasureId = $Driver->getSecondMeasureId($rec->productId);
+        }
+
         if (isset($rec->packagingId)) {
+            $productMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $derivitiveMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
             $uomType = cat_UoM::fetchField($rec->packagingId, 'type');
             if ($uomType != 'uom') {
                 $form->setField('templateId', 'input');
@@ -457,6 +478,18 @@ class cat_products_Packagings extends core_Detail
                         $form->setDefault('sizeHeight', $pRec->sizeHeight);
                         $form->setDefault('sizeDepth', $pRec->sizeDepth);
                         $form->setDefault('tareWeight', $pRec->tareWeight);
+                    }
+                }
+            } elseif(empty($defaultSecondMeasureId)) {
+
+                // Ако драйвера няма втора мярка, и това ще е първата различна мярка, тя по-дефолт ще е втора
+                if(!array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                    $form->setField('isSecondMeasure', 'input');
+                    $alreadyHaveSecondMeasure = cat_products_Packagings::fetchField("#productId = {$rec->productId} AND #isSecondMeasure = 'yes' AND #id != '{$rec->id}'");
+                    if($alreadyHaveSecondMeasure){
+                        $form->setDefault('isSecondMeasure', 'no');
+                    } else {
+                        $form->setDefault('isSecondMeasure', 'yes');
                     }
                 }
             }
@@ -513,7 +546,20 @@ class cat_products_Packagings extends core_Detail
         if ($rec->isBase == 'yes') {
             $row->packagingId = '<b>' . $row->packagingId . '</b>';
         }
-        
+
+        if($Driver = cat_Products::getDriver($rec->productId)){
+            $secondMeasureId = $Driver->getSecondMeasureId($rec->productId);
+        }
+        if(empty($secondMeasureId)){
+            $secondMeasureId = static::getSecondMeasureId($rec->productId);
+        }
+
+        // Маркиране на втората мярка
+        if ($rec->isSecondMeasure != 'no' && $rec->packagingId == $secondMeasureId) {
+            $row->packagingId = '<i>' . $row->packagingId . '</i>';
+            $row->packagingId = ht::createHint($row->packagingId, 'Втора мярка', 'notice', false);
+        }
+
         if($fields['-list']) {
             if($rec->modifiedOn) {
                 $row->user = crm_Profiles::createLink($rec->modifiedBy) . ', ' . $mvc->getVerbal($rec, 'modifiedOn');

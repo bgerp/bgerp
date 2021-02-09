@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureId,secondMeasureQuantity';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureQuantity';
 
 
     /**
@@ -409,7 +409,13 @@ class planning_Jobs extends core_Master
             $form->setDefault('packagingId', key($packs));
 
             if ($Driver = cat_Products::getDriver($rec->productId)) {
-                $secondMeasureId = $Driver->getSecondMeasureId($rec->productId);
+
+                // Коя е втората мярка, ако не идва от драйвера се търси в опаковките
+                $secondMeasureId = (isset($rec->id) && $rec->secondMeasureId) ? $rec->secondMeasureId : $Driver->getSecondMeasureId($rec->productId);
+                if(empty($secondMeasureId)){
+                    $secondMeasureId = cat_products_Packagings::getSecondMeasureId($rec->productId);
+                }
+
                 if(empty($secondMeasureId)){
                     $form->setField('allowSecondMeasure', 'input=none');
                 } else {

@@ -965,6 +965,6 @@ abstract class cat_ProductDriver extends core_BaseClass
      */
     public function getSecondMeasureId($id)
     {
-        return cat_products_Packagings::getSecondMeasureId($id);
+        return null;
     }
 }
