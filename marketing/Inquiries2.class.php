@@ -238,8 +238,8 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('company', 'varchar(128)', 'caption=Контактни данни->Фирма,class=contactData,hint=Вашата фирма,formOrder=50');
         $this->FLD('personNames', 'varchar(128)', 'caption=Контактни данни->Лице,class=contactData,hint=Вашето име||Your name,contragentDataField=person,formOrder=51,oldFieldName=name');
 
-        $this->FLD('vatId', 'drdata_VatType', 'caption=Контактни данни->ДДС №,formOrder=52');
-        $this->FLD('uicId', 'drdata_type_Uic(26)', 'caption=Контактни данни->ЕИК / ЕГН,formOrder=53');
+        $this->FLD('vatId', 'drdata_VatType', 'caption=Контактни данни->ДДС №,formOrder=52,class=contactData');
+        $this->FLD('uicId', 'drdata_type_Uic(26)', 'caption=Контактни данни->ЕИК / ЕГН,formOrder=53,class=contactData');
 
         $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Контактни данни->Държава,class=contactData,hint=Вашата държава,formOrder=54,contragentDataField=countryId,mandatory');
         $this->FLD('email', 'email(valid=drdata_Emails->validate)', 'caption=Контактни данни->Имейл,class=contactData,hint=Вашият имейл||Your email,formOrder=55,mandatory');
@@ -361,19 +361,33 @@ class marketing_Inquiries2 extends embed_Manager
             }
         }
 
-        // Промяна на полето за ДДС номер
-        $uniqueFields = marketing_Setup::get('MANDATORY_UNIQUE_FIELDS');
-        if(in_array($uniqueFields, array('uicId', 'hide'))){
-            $form->setField('vatId', 'input=none');
-        } elseif(in_array($uniqueFields, array('vatId', 'both'))){
-            $form->setField('vatId', 'mandatory');
-        }
+        if($hide === false){
+            if($settings = $this->getMarketingFieldSettings()){
+                $form->setField('personNames', 'mandatory');
+                if($settings->mandatoryInquiryContactFields == 'company'){
+                    $form->setField('company', 'mandatory');
+                } else {
+                    $form->setField('company', 'input=none');
+                }
 
-        // Промяна на полето за ЕИК/ЕГН
-        if(in_array($uniqueFields, array('vat', 'hide'))){
-            $form->setField('uicId', 'input=none');
-        } elseif(in_array($uniqueFields, array('uicId', 'both'))){
-            $form->setField('uicId', 'mandatory');
+                if($settings->mandatoryInquiryContactFields == 'person'){
+                    $form->setField('uicId', 'caption=Контактни данни->ЕГН');
+                    $form->setField('vatId', 'input=none');
+                    if($settings->mandatoryEGN == 'mandatory'){
+                        $form->setField('uicId', 'mandatory');
+                    } elseif($settings->mandatoryEGN == 'no'){
+                        $form->setField('uicId', 'input=none');
+                    }
+                } else {
+                    $form->setField('uicId', 'caption=Контактни данни->ЕИК');
+                    if($settings->mandatoryUicId == 'no'){
+                        $form->setField('uicId', 'input=none');
+                    }
+                    if($settings->mandatoryVatId == 'no'){
+                        $form->setField('vatId', 'input=none');
+                    }
+                }
+            }
         }
 
         $contactFields = $this->selectFields("#class == 'contactData'");
@@ -419,12 +433,6 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         $mvc->expandEditForm($data);
-        
-        if (haveRole('powerUser')) {
-            $form->setField('personNames', 'mandatory=unsetValue');
-            $form->setField('country', 'mandatory=unsetValue');
-            $form->setField('email', 'mandatory=unsetValue');
-        }
     }
     
     
@@ -947,8 +955,42 @@ class marketing_Inquiries2 extends embed_Manager
     {
         return 'opened';
     }
-    
-    
+
+
+    /**
+     * Връща настройките на запитването
+     *
+     * @return null|stdClass $res
+     */
+    private function getMarketingFieldSettings()
+    {
+        if(!core_Packs::isInstalled('eshop')) return;
+
+        if(Mode::is('wrapper', 'cms_page_External')){
+
+            // Взимат се настройките от домейна
+            $domainSettings = cms_Domains::getSettings();
+
+            $res = (object)array('mandatoryInquiryContactFields' => $domainSettings->mandatoryInquiryContactFields,
+                                 'mandatoryEGN'                  => $domainSettings->mandatoryEGN,
+                                 'mandatoryUicId'                => $domainSettings->mandatoryUicId,
+                                 'mandatoryVatId'                => $domainSettings->mandatoryVatId,
+            );
+
+            return $res;
+        }
+
+        // Ако не се вика от външната част, се взимат от настройките на пакета
+        $res = new stdClass();
+        $fldArr = array('mandatoryInquiryContactFields' => 'MANDATORY_INQUIRY_CONTACT_FIELDS', 'mandatoryEGN' => 'MANDATORY_EGN', 'mandatoryUicId' => 'MANDATORY_UIC_ID', 'mandatoryVatId' => 'MANDATORY_VAT_ID');
+        foreach ($fldArr as $fld => $const){
+            $res->{$fld} = eshop_Setup::get($const);
+        }
+
+        return $res;
+    }
+
+
     /**
      * Екшън за добавяне на запитване от нерегистрирани потребители
      */
@@ -956,6 +998,8 @@ class marketing_Inquiries2 extends embed_Manager
     {
         $cu = core_Users::getCurrent('id', false);
         Mode::set('showBulletin', false);
+        Mode::set('wrapper', 'cms_page_External');
+
         Request::setProtected('classId, objectId,customizeProtoOpt');
         expect404($classId = Request::get('classId', 'int'));
         expect404($objectId = Request::get('objectId', 'int'));
@@ -1011,15 +1055,6 @@ class marketing_Inquiries2 extends embed_Manager
         
         if (empty($cu)) {
             $form->setDefault('title', $title);
-        }
-        
-        $mandatoryField = marketing_Setup::get('MANDATORY_CONTACT_FIELDS');
-        if (in_array($mandatoryField, array('company', 'both'))) {
-            $form->setField('company', 'mandatory');
-        }
-        
-        if (in_array($mandatoryField, array('person', 'both'))) {
-            $form->setField('personNames', 'mandatory');
         }
         
         $form->input(null, 'silent');
@@ -1171,7 +1206,6 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($form->isSubmitted()) {
-            
             $moqVerbal = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($rec->moq);
             
             // Ако няма въведени количества
@@ -1253,6 +1287,25 @@ class marketing_Inquiries2 extends embed_Manager
                                 $form->setError('deliveryAdress', 'Не се извършва доставка до посочената локация');
                             }
                         }
+                    }
+                }
+            }
+
+            // Проверка на задължителните полета
+            if($settings = $mvc->getMarketingFieldSettings()){
+                $cu = core_Users::getCurrent();
+
+                if(!empty($rec->vatId) && empty($rec->uicId) && $settings->mandatoryUicId != 'no'){
+                    $rec->uicId = drdata_Vats::getUicByVatNo($rec->vatId);
+                }
+
+                if(!(isset($cu) && core_Users::isContractor($cu))){
+                    if(empty($rec->vatId) && $settings->mandatoryVatId == 'mandatory'){
+                        $form->setError('vatId', "Непопълнен задължителен ДДС №");
+                    }
+
+                    if(empty($rec->uicId) && $settings->mandatoryUicId == 'mandatory'){
+                        $form->setError('uicId', "Непопълнен задължителен ЕИК");
                     }
                 }
             }
