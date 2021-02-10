@@ -918,7 +918,6 @@ class cat_Products extends embed_Manager
         $listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
         
         $listFilter->view = 'horizontal';
-        $listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
     
@@ -1039,6 +1038,8 @@ class cat_Products extends embed_Manager
         if ($data->listFilter->rec->groupId) {
             $data->query->where("LOCATE('|{$data->listFilter->rec->groupId}|', #groups)");
         }
+
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
     }
     
     
