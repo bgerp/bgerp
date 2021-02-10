@@ -1770,22 +1770,18 @@ abstract class deals_Helper
     {
         $warning = null;
         $productsWithNegativeQuantity = array();
-        if (!is_array($arr) || !countR($arr)) {
-            return;
-        }
-        
+        if (!is_array($arr) || !countR($arr)) return;
+
         foreach ($arr as $obj) {
             $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
-            if ($canStore != 'yes') {
-                return;
-            }
-            
+            if ($canStore != 'yes') continue;
+
             $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
             }
         }
-        
+
         if (countR($productsWithNegativeQuantity)) {
             $warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ' . implode(', ', $productsWithNegativeQuantity) . ', |в склад|* ' . store_Stores::getTitleById($storeId);
         }

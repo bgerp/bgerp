@@ -22,8 +22,14 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
      * @var sales_Sales
      */
     public $class;
-    
-    
+
+
+    /**
+     * Кеш
+     */
+    private $instantProducts = array();
+
+
     /**
      * Генериране на счетоводните транзакции, породени от експедиционно нареждане.
      *
@@ -93,6 +99,30 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
                 $entries = $this->getEntries($rec, $origin);
             }
         }
+
+        if (Mode::get('saveTransaction')) {
+            if($rec->isReverse == 'no'){
+                $shipped = array();
+                foreach ($entries as $d){
+                    if($d['credit'][0] == '321') {
+                        if(!array_key_exists($d['credit'][2][1], $this->instantProducts)){
+                            $shipped[] = (object)array('productId' => $d['credit'][2][1], 'quantity' => $d['credit']['quantity']);
+                        }
+                    }
+                }
+
+                if(countR($shipped)){
+
+                    // Ако ще се доведе до отрицателна, количност и не е разрешено да се сетне грешка
+                    $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
+                    if($allowNegativeShipment == 'no'){
+                        if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($shipped, $rec->storeId, $rec->state)) {
+                            acc_journal_RejectRedirect::expect(false, $warning);
+                        }
+                    }
+                }
+            }
+        }
         
         $rec->valior = empty($rec->valior) ? dt::today() : $rec->valior;
         
@@ -112,12 +142,12 @@ class store_transaction_ShipmentOrder extends acc_DocumentTransactionSource
     private function getEntries($rec, $origin, $reverse = false)
     {
         // Записите от тип 1 (вземане от клиент)
-        $entries = array();
+        $entries = $instantProducts = array();
         
         if(!$reverse){
-            
+
             // Ако има артикули с моментно производство - произвеждат се
-            $entriesProduction = sales_transaction_Sale::getProductionEntries($rec, $this->class, 'storeId');
+            $entriesProduction = sales_transaction_Sale::getProductionEntries($rec, $this->class, 'storeId', $this->instantProducts);
             if (countR($entriesProduction)) {
                 $entries = array_merge($entries, $entriesProduction);
             }

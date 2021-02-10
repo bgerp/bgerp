@@ -14,6 +14,12 @@ defIfNot('STORE_TARIFF_NUMBER_LENGTH', '8');
 
 
 /**
+ * Изписване на отрицателни наличности от склада
+ */
+defIfNot('STORE_ALLOW_NEGATIVE_SHIPMENT', 'yes');
+
+
+/**
  * class store_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -24,7 +30,7 @@ defIfNot('STORE_TARIFF_NUMBER_LENGTH', '8');
  * @package   store
  *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -116,6 +122,7 @@ class store_Setup extends core_ProtoSetup
     public $configDescription = array(
         'STORE_ACC_ACCOUNTS' => array('acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)', 'caption=Складова синхронизация със счетоводството->Сметки'),
         'STORE_TARIFF_NUMBER_LENGTH' => array('int', 'caption=Групиране на тарифните номера по част от него->Първите,unit=цифри'),
+        'STORE_ALLOW_NEGATIVE_SHIPMENT' => array('enum(no=Забранено, yes=Разрешено)', 'caption=Изписване на минус от склад->Избор'),
     );
     
     
