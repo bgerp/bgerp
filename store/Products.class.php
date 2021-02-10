@@ -222,7 +222,7 @@ class store_Products extends core_Detail
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         $data->listFilter->FNC('setting', 'enum(productMeasureId=Основна мярка,basePack=Основна опаковка)', 'caption=Настройка,input,silent,recently');
 
-        $sKey = 'stockSettingFilter' . core_Users::getCurrent();
+        $sKey = "stockSettingFilter{$data->masterId}" . core_Users::getCurrent();
         if ($lastHorizon = core_Permanent::get($sKey)) {
             $data->listFilter->setDefault('setting', $lastHorizon);
         }
