@@ -437,17 +437,17 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 // Ако втората мярка е производна на основната, обръща се в основната
                 if(array_key_exists($rec->additionalMeasureId, $measureDerivities)){
                     $additionalMeasureQuantity = cat_Uom::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $productInfo->productRec->measureId);
-                    $rec->quantityInPack = round($additionalMeasureQuantity / $rec->packQuantity, 5);
+                    $rec->quantityInPack = $additionalMeasureQuantity / $rec->packQuantity;
                 } elseif($secondMeasureType == 'packaging'){
 
                     // Ако втората мярка е опаковка, смята се колко е в основната мярка
                     $quantityInPack = ($productInfo->packagings[$rec->additionalMeasureId]) ? $productInfo->packagings[$rec->additionalMeasureId]->quantity : 1;
                     $additionalMeasureQuantity = $rec->additionalMeasureQuantity * $quantityInPack;
-                    $rec->quantityInPack = round($additionalMeasureQuantity / $rec->packQuantity, 5);
+                    $rec->quantityInPack = $additionalMeasureQuantity / $rec->packQuantity;
                 }
             }
 
-            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
+            $rec->quantity = round($rec->packQuantity * $rec->quantityInPack, 5);
 
             // Проверка на количеството на втората мярка
             if(!empty($rec->additionalMeasureId)){
