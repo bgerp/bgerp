@@ -255,9 +255,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $form->setDefault('productId', key($productOptions));
 
         if(isset($rec->productId)){
-            $packs = cat_Products::getPacks($rec->productId);
-
             // Ако артикула не е складируем, скриваме полето за мярка
+            $packs = cat_Products::getPacks($rec->productId, false, $jobRec->secondMeasureId);
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
 
             $secondMeasureDerivitives = array();
