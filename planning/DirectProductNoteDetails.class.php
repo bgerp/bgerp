@@ -238,13 +238,19 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         if(!countR($data->rows)) return;
 
+        $origin = doc_Containers::getDocument($data->masterData->rec->originId);
+        if($origin->isInstanceOf('planning_Tasks')){
+            $origin = doc_Containers::getDocument($origin->fetchField('originId'));
+        }
+
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
             if (empty($rec->storeId)) {
                 $row->storeId = "<span class='quiet'>"  . tr('Незавършено производство') . '</span>';
             } elseif($rec->type != 'pop') {
+                $threadId = $origin->fetchField('threadId');
                 $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;
-                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
+                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate, $threadId);
             }
 
             if(!empty($rec->quantityFromBom)){
