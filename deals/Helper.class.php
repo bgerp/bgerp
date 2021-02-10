@@ -725,16 +725,18 @@ abstract class deals_Helper
      * @param int   $productId
      * @param int   $storeId
      * @param float $quantity
-     * @param string state
+     * @param string $state
+     * @param datetime $date
+     * @param int $ignoreFirstDocumentPlannedInThread
      *
      * @return void
      */
-    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state, $date = null)
+    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state, $date = null, $ignoreFirstDocumentPlannedInThread = null)
     {
         if (!in_array($state, array('draft', 'pending'))) {
             return;
         }
-        
+
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if ($canStore != 'yes') {
             return;
@@ -743,8 +745,28 @@ abstract class deals_Helper
         $date = isset($date) ? $date : null;
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
         $stRec = store_Products::getQuantities($productId, $storeId, $date);
-        $freeQuantityOriginal = $stRec->free;
 
+        // Ако има посочена нишка, чийто първи документ да се игнорира от хоризонтите,
+        if(isset($ignoreFirstDocumentPlannedInThread)){
+            if($firstDocument = doc_Threads::getFirstDocument($ignoreFirstDocumentPlannedInThread)){
+
+                $iQuery = store_StockPlanning::getQuery();
+                $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that}");
+                $iQuery->show('quantityIn,quantityOut');
+                $iRec = $iQuery->fetch();
+
+                // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
+                if(is_object($iRec) && is_object($stRec)){
+                    $stRec->reserved -= $iRec->quantityOut;
+                    $stRec->reserved = abs($stRec->reserved);
+                    $stRec->expected -= $iRec->quantityIn;
+                    $stRec->expected = abs($stRec->expected);
+                    $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                }
+            }
+        }
+
+        $freeQuantityOriginal = $stRec->free;
         $Double = core_Type::getByName('double(smartRound)');
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
         $futureQuantity = $stRec->quantity - $quantity;
