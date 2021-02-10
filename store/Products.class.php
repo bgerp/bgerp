@@ -222,12 +222,6 @@ class store_Products extends core_Detail
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
         $data->listFilter->FNC('setting', 'enum(productMeasureId=Основна мярка,basePack=Основна опаковка)', 'caption=Настройка,input,silent,recently');
 
-        $sKey = "stockSettingFilter{$data->masterId}" . core_Users::getCurrent();
-        if ($lastHorizon = core_Permanent::get($sKey)) {
-            $data->listFilter->setDefault('setting', $lastHorizon);
-        }
-        $data->listFilter->setDefault('setting', 'productMeasureId');
-
         $hKey = 'productHorizonFilter' . core_Users::getCurrent();
         if ($lastHorizon = core_Permanent::get($hKey)) {
             $data->listFilter->setDefault('horizon', $lastHorizon);
@@ -261,14 +255,23 @@ class store_Products extends core_Detail
 
         if (isset($data->masterMvc)) {
             $data->listFilter->setDefault('order', 'all');
-            $data->listFilter->showFields = 'horizon,search,groupId,setting';
+            $data->listFilter->showFields = 'horizon,search,groupId';
+
+            if($data->masterMvc instanceof store_Stores){
+                $data->listFilter->setDefault('setting', $data->masterData->rec->displayStockMeasure);
+            }
         } else {
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('order', 'active');
             $data->listFilter->showFields = 'search,storeId,order,groupId,horizon,setting';
             unset($data->listFilter->view);
+
+            $sKey = "stockSettingFilter" . core_Users::getCurrent();
+            if ($lastHorizon = core_Permanent::get($sKey)) {
+                $data->listFilter->setDefault('setting', $lastHorizon);
+            }
         }
-        
+        $data->listFilter->setDefault('setting', 'productMeasureId');
         $data->listFilter->input('horizon,storeId,order,groupId,search,setting', 'silent');
 
         // Ако има филтър

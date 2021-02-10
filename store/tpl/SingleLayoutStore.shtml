@@ -52,6 +52,10 @@
 	                            <td>[#ShowDocumentsAsButtons#]</td>
 	                        </tr>
 	                        <!--ET_END ShowDocumentsAsButtons-->
+                            <tr>
+                                <td class='dt'>|Мярка на наличностите|*:</td>
+                                <td>[#displayStockMeasure#]</td>
+                            </tr>
                         </table>
                     </div>
                 </fieldset>
