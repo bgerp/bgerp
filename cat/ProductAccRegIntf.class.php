@@ -318,16 +318,4 @@ class cat_ProductAccRegIntf extends acc_RegisterIntf
     {
         return $this->class->getHash($rec);
     }
-
-
-    /**
-     * Коя е втората мярка на артикула, ако има
-     *
-     * @param int $id   - ид
-     * @return int|null - ид на втора мяркя или null, ако няма
-     */
-    public function getSecondMeasureId($id)
-    {
-        return $this->class->getSecondMeasureId($id);
-    }
 }

@@ -614,4 +614,16 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     {
         return $this->class->getInquiryDataTpl($rec);
     }
+
+
+    /**
+     * Коя е втората мярка на артикула, ако има
+     *
+     * @param int $id   - ид
+     * @return int|null - ид на втора мяркя или null, ако няма
+     */
+    public function getSecondMeasureId($id)
+    {
+        return $this->class->getSecondMeasureId($id);
+    }
 }

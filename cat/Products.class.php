@@ -1816,8 +1816,14 @@ class cat_Products extends embed_Manager
         
         return $primeCost;
     }
-    
 
+
+    /**
+     * Коя е втората мярка, на артикула ако има
+     *
+     * @param $productId
+     * @return null|string $secondMeasureId
+     */
     public static function getSecondMeasureId($productId)
     {
         $secondMeasureId = null;
