@@ -1657,7 +1657,7 @@ class sales_Sales extends deals_DealMaster
                         }
                     }
 
-                    if($addProductToCheck){ bp($detailsToCheck);
+                    if($addProductToCheck){
                         $detailsToCheck[] = $dRec;
                     }
                 }
