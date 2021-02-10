@@ -216,7 +216,6 @@ class cat_products_Packagings extends core_Detail
         $query->where("#productId = {$productId}");
         $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
         $query->EXT('baseUnitRatio', 'cat_UoM', 'externalName=baseUnitRatio,externalKey=packagingId');
-        $query->XPR('baseUnitIdNorm', 'int', "COALESCE(#baseUnitId, #packagingId)");
         $query->notIn('packagingId', array_keys($productMeasures));
         $query->where("#type = 'uom' AND #isSecondMeasure != 'no'");
         $query->orderBy('baseUnitRatio=asc');
@@ -547,17 +546,13 @@ class cat_products_Packagings extends core_Detail
             $row->packagingId = '<b>' . $row->packagingId . '</b>';
         }
 
-        if($Driver = cat_Products::getDriver($rec->productId)){
-            $secondMeasureId = $Driver->getSecondMeasureId($rec->productId);
-        }
-        if(empty($secondMeasureId)){
-            $secondMeasureId = static::getSecondMeasureId($rec->productId);
-        }
-
         // Маркиране на втората мярка
-        if ($rec->isSecondMeasure != 'no' && $rec->packagingId == $secondMeasureId) {
-            $row->packagingId = '<i>' . $row->packagingId . '</i>';
-            $row->packagingId = ht::createHint($row->packagingId, 'Втора мярка', 'notice', false);
+        if ($rec->isSecondMeasure != 'no') {
+            $secondMeasureId = cat_Products::getSecondMeasureId($rec->productId);
+            if($rec->packagingId == $secondMeasureId){
+                $row->packagingId = '<i>' . $row->packagingId . '</i>';
+                $row->packagingId = ht::createHint($row->packagingId, 'Втора мярка', 'notice', false);
+            }
         }
 
         if($fields['-list']) {

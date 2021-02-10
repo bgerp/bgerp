@@ -1843,13 +1843,13 @@ class cat_Products extends embed_Manager
      * Връща масив със всички опаковки, в които може да участва един продукт + основната му мярка
      * Първия елемент на масива е основната опаковка (ако няма основната мярка)
      *
-     * @param int  $productId    - ид на артикул
-     * @param bool $onlyMeasures - дали да се връщат само мерките на артикула
-     * @param bool $forProduction - дали да са само за производство
+     * @param int            $productId    - ид на артикул
+     * @param bool           $onlyMeasures - дали да се връщат само мерките на артикула
+     * @param false|null|int $secondMeasureId - коя да е втората мярка
      *
      * @return array $options - опаковките
      */
-    public static function getPacks($productId, $onlyMeasures = false, $forProduction = false)
+    public static function getPacks($productId, $onlyMeasures = false, $secondMeasureId = false)
     {
         $options = array();
         expect($productRec = cat_Products::fetch($productId, 'measureId,canStore'));
@@ -1866,9 +1866,11 @@ class cat_Products extends embed_Manager
             }
 
             // Ако са само за производство остават само вторите мерки и производните на основната
-            if($forProduction){
+            if($secondMeasureId !== false){
+                expect(is_numeric($secondMeasureId) || is_null($secondMeasureId), $secondMeasureId);
+
                 $allowedMeasures = cat_UoM::getSameTypeMeasures($baseId);
-                if($secondMeasureId = static::getSecondMeasureId($productId)){
+                if($secondMeasureId = isset($secondMeasureId) ? $secondMeasureId : static::getSecondMeasureId($productId)){
                     $allowedMeasures += cat_Uom::getSameTypeMeasures($secondMeasureId);
                 }
                 unset($allowedMeasures['']);
