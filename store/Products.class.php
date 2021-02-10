@@ -492,11 +492,9 @@ class store_Products extends core_Detail
         $query = self::getQuery();
         $query->where("#productId = {$productId}");
         $query->XPR('quantityTotal', 'double', 'SUM(#quantity)');
-        $query->XPR('reservedTotal', 'double', 'SUM(#reservedQuantity)');
-        $query->XPR('expectedTotal', 'double', 'SUM(#expectedQuantity)');
         $query->XPR('reservedTotalMin', 'double', 'SUM(#reservedQuantityMin)');
         $query->XPR('expectedTotalMin', 'double', 'SUM(#expectedQuantityMin)');
-        $query->show('quantityTotal,reservedTotal,expectedTotal,reservedTotalMin,expectedTotalMin');
+        $query->show('quantityTotal,reservedTotalMin,expectedTotalMin');
 
         if (isset($storeId)) {
             $query->where("#storeId = {$storeId}");
