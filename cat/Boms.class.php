@@ -194,8 +194,16 @@ class cat_Boms extends core_Master
      * Опашка от спрените рецепти
      */
     private static $stoppedActiveBoms = array();
-    
-    
+
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title,hash';
+
+
     /**
      * Описание на модела
      */
