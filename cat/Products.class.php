@@ -1817,21 +1817,37 @@ class cat_Products extends embed_Manager
         return $primeCost;
     }
     
-    
+
+    public static function getSecondMeasureId($productId)
+    {
+        $secondMeasureId = null;
+        if($Driver = static::getDriver($productId)){
+            $secondMeasureId = $Driver->getSecondMeasureId($productId);
+        }
+
+        if(empty($secondMeasureId)){
+            $secondMeasureId = cat_products_Packagings::getSecondMeasureId($productId);
+        }
+
+        return $secondMeasureId;
+    }
+
+
     /**
      * Връща масив със всички опаковки, в които може да участва един продукт + основната му мярка
      * Първия елемент на масива е основната опаковка (ако няма основната мярка)
      *
      * @param int  $productId    - ид на артикул
      * @param bool $onlyMeasures - дали да се връщат само мерките на артикула
+     * @param bool $forProduction - дали да са само за производство
      *
      * @return array $options - опаковките
      */
-    public static function getPacks($productId, $onlyMeasures = false)
+    public static function getPacks($productId, $onlyMeasures = false, $forProduction = false)
     {
         $options = array();
         expect($productRec = cat_Products::fetch($productId, 'measureId,canStore'));
-        
+
         // Определяме основната мярка
         $baseId = $productRec->measureId;
         if ($productRec->canStore == 'yes') {
@@ -1842,7 +1858,19 @@ class cat_Products extends embed_Manager
             if ($onlyMeasures === true) {
                 $packQuery->where("#type = 'uom'");
             }
-            
+
+            // Ако са само за производство остават само вторите мерки и производните на основната
+            if($forProduction){
+                $allowedMeasures = cat_UoM::getSameTypeMeasures($baseId);
+                if($secondMeasureId = static::getSecondMeasureId($productId)){
+                    $allowedMeasures += cat_Uom::getSameTypeMeasures($secondMeasureId);
+                }
+                unset($allowedMeasures['']);
+
+                $allowedMeasuresString = implode(',', array_keys($allowedMeasures));
+                $packQuery->where("#type != 'uom' OR #packagingId IN ({$allowedMeasuresString})");
+            }
+
             while ($packRec = $packQuery->fetch()) {
                 $options[$packRec->packagingId] = cat_UoM::getTitleById($packRec->packagingId, false);
                 if ($packRec->isBase == 'yes') {

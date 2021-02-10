@@ -342,7 +342,7 @@ class planning_Jobs extends core_Master
                 $form->setOptions('oldJobId', array('' => '') + $oldJobs);
             }
 
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, false, true);
             $form->setOptions('packagingId', $packs);
 
             // Ако артикула не е складируем, скриваме полето за мярка
@@ -411,10 +411,7 @@ class planning_Jobs extends core_Master
             if ($Driver = cat_Products::getDriver($rec->productId)) {
 
                 // Коя е втората мярка, ако не идва от драйвера се търси в опаковките
-                $secondMeasureId = (isset($rec->id) && $rec->secondMeasureId) ? $rec->secondMeasureId : $Driver->getSecondMeasureId($rec->productId);
-                if(empty($secondMeasureId)){
-                    $secondMeasureId = cat_products_Packagings::getSecondMeasureId($rec->productId);
-                }
+                $secondMeasureId = (isset($rec->id) && $rec->secondMeasureId) ? $rec->secondMeasureId : cat_Products:: getSecondMeasureId($rec->productId);
 
                 if(empty($secondMeasureId)){
                     $form->setField('allowSecondMeasure', 'input=none');

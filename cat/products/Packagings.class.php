@@ -201,34 +201,6 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
-     * Намира първата срещната втора мярка
-     *
-     * @param int|null $productId
-     * @return null
-     */
-    private static function getFirstSecondMeasureId($productId)
-    {
-        // Ако артикула има вече избрана друга различна мярка
-        $productMeasureId = cat_Products::fetchField($productId, 'measureId');
-        $productMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
-
-        $query = static::getQuery();
-        $query->where("#productId = {$productId}");
-        $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
-        $query->EXT('baseUnitRatio', 'cat_UoM', 'externalName=baseUnitRatio,externalKey=packagingId');
-        $query->XPR('baseUnitIdNorm', 'int', "COALESCE(#baseUnitId, #packagingId)");
-        $query->notIn('packagingId', array_keys($productMeasures));
-        $query->where("#type = 'uom' AND #isSecondMeasure != 'no'");
-        $query->orderBy('baseUnitRatio=asc');
-        $query->show('packagingId');
-
-        $rec = $query->fetch();
-
-        return is_object($rec) ? $rec->packagingId : null;
-    }
-
-
-    /**
      * Коя е втората основна мярка на артикула
      *
      * @param $productId
@@ -238,9 +210,6 @@ class cat_products_Packagings extends core_Detail
     {
         // Ако има конкретно избрана е тя, ако няма е първата
         $secondMeasureId = static::fetchField("#productId = {$productId} AND #isSecondMeasure = 'yes'", 'packagingId');
-        if(empty($secondMeasureId)) {
-            $secondMeasureId = static::getFirstSecondMeasureId($productId);
-        }
 
         return $secondMeasureId;
     }

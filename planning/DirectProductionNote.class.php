@@ -261,7 +261,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
 
             $secondMeasureDerivitives = array();
-            $measureDerivitives = cat_UoM::getSameTypeMeasures($productRec->measureId);
             if($jobRec->secondMeasureId){
                 $secondMeasureDerivitives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
             }
@@ -340,6 +339,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     // Ако заданието е във втора мярка, и се произвежда в някоя от производните и
                     if(array_key_exists($rec->packagingId, $secondMeasureDerivitives)){
                         $additionalMeasures = array_diff_key($originalPacks, $secondMeasureDerivitives);
+
+                        $pQuery = cat_products_Packagings::getQuery();
+                        $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                        $pQuery->where("#type = 'uom' AND #productId = {$rec->productId}");
+                        $pQuery->notIn('packagingId', array_keys($secondMeasureDerivitives));
+                        $pQuery->show('packagingId');
+                        $ignoreMeasureArr = arr::extractValuesFromArray($pQuery->fetchAll(), 'packagingId');
+                        $additionalMeasures = array_diff_key($additionalMeasures, $ignoreMeasureArr);
                     } else {
                         $additionalMeasures = array_intersect_key($originalPacks, $secondMeasureDerivitives);
                     }
