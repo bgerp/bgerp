@@ -62,6 +62,24 @@ defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
 
 
 /**
+ * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
+ */
+defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
+
+
+/**
+ * Автоматично приключване на задание, изпълнени над
+ */
+defIfNot('PLANNING_JOB_AUTO_COMPLETION_PERCENT', '');
+
+
+/**
+ * Автоматично приключване на задание, да не са модифицирани от
+ */
+defIfNot('PLANNING_JOB_AUTO_COMPLETION_DELAY', '21600');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -69,7 +87,7 @@ defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
  * @package   planning
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -119,6 +137,9 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Толеранс за разминаване между очакваното съответствие в протоколите за производство->Предупреждение'),
         'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Отчитане на теглото в ПО->Предупреждение'),
         'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
+
+        'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на заданието->Изпълнени над,callOnChange=planning_Setup::setJobAutoClose'),
+        'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на заданието->Без модификации от'),
     );
     
     
@@ -197,6 +218,39 @@ class planning_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StageDriver', 'private');
         
         return $html;
+    }
+
+
+    /**
+     * След промяна на процента за приключване на задание
+     */
+    public static function setJobAutoClose($Type, $oldValue, $newValue)
+    {
+        $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
+        if(empty($newValue)){
+            if(is_object($exRec)){
+                $exRec->state = 'stopped';
+                core_Cron::save($exRec, 'state');
+            }
+        } elseif(empty($oldValue)) {
+            $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
+            if($exRec->state == 'stopped'){
+                $exRec->state = 'free';
+                core_Cron::save($exRec, 'state');
+            } else {
+                $rec = new stdClass();
+                $rec->systemId =  'Close Old Jobs';
+                $rec->description = 'Затваряне на стари задания';
+                $rec->controller = 'planning_Jobs';
+                $rec->action = 'CloseOldJobs';
+                $rec->period = 720;
+                $rec->offset = 60;
+                $rec->delay = 0;
+                $rec->timeLimit = 120;
+
+                core_Cron::addOnce($rec);
+            }
+        }
     }
 
 

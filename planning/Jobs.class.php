@@ -1139,6 +1139,7 @@ class planning_Jobs extends core_Master
             while ($tRec = $tQuery->fetch()) {
                 $tRec->state = 'closed';
                 cls::get('planning_Tasks')->save_($tRec, 'state');
+                planning_Tasks::logWrite("Приключване на задача, след приключване на заданието", $tRec->id);
                 $count++;
             }
             
@@ -1584,5 +1585,48 @@ class planning_Jobs extends core_Master
         $saleId = Request::get('saleId', 'int');
 
         return isset($saleId);
+    }
+
+
+    /**
+     * Затваряне на приключени задания
+     */
+    public function cron_CloseOldJobs()
+    {
+        // Задания готови на колко процента, да се приключват
+        $percent = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT');
+        if(empty($percent)) return;
+
+        // Да не са променяни от
+        $delay = planning_Setup::get('JOB_AUTO_COMPLETION_DELAY');
+        $fromDate = dt::addSecs(-1 * $delay);
+
+        $isSystemUser = core_Users::isSystemUser();
+        if(!$isSystemUser){
+            core_Users::forceSystemUser();
+        }
+
+        // Намиране на всички задания готови над посочения процент
+        $query = planning_Jobs::getQuery();
+        $query->XPR('progress', 'date', 'ROUND((#quantityProduced / #quantity), 2)');
+        $query->in("state", array('active', 'wakeup', 'stopped'));
+        $query->where("#modifiedOn < '{$fromDate}' AND #progress >= {$percent}");
+        $query->limit(50);
+
+        // Всяко едно се приключва
+        Mode::push('preventNotifications', true);
+        while($rec = $query->fetch()){
+            $rec->brState = $rec->state;
+            $rec->state = 'closed';
+
+            $this->save($rec);
+            $this->invoke('AfterChangeState', array(&$rec,  $rec->state));
+            $this->logWrite('Автоматично приключване', $rec->id);
+        }
+        Mode::pop();
+
+        if(!$isSystemUser){
+            core_Users::cancelSystemUser();
+        }
     }
 }
