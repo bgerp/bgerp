@@ -1275,8 +1275,6 @@ class cat_Products extends embed_Manager
             return $groupRec->vat;
         }
 
-        $date = '2021-01-01';
-
         // Връщаме ДДС-то от периода
         $period = acc_Periods::fetchByDate($date);
 
