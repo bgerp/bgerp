@@ -133,10 +133,7 @@ class store_Products extends core_Detail
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
         // Ако няма никакви записи - нищо не правим
-        if (!countR($data->recs)) {
-            
-            return;
-        }
+        if (!countR($data->recs)) return;
         
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
@@ -147,7 +144,12 @@ class store_Products extends core_Detail
             $pRec = cat_Products::fetch($rec->productId, 'code,isPublic,createdOn');
             $row->code = cat_Products::getVerbal($pRec, 'code');
             $rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $measureType = $data->listFilter->rec->setting;
+
+            if(isset($data->masterMvc) && $data->masterMvc instanceof cat_Products){
+                $measureType = 'basePack';
+            } else {
+                $measureType = $data->listFilter->rec->setting;
+            }
 
             // Ако ще се показва в основна опаковка, показва се в нея и к-та се конвертират
             if($measureType == 'basePack'){
