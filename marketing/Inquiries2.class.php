@@ -301,7 +301,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if ($Driver){
-            $Driver->addInquiryFields($data->form->rec->proto, $data->form, true);
+            $Driver->addInquiryFields($data->form->rec->proto, $data->form);
             if(is_array($form->rec->additionalData)){
                 foreach ($form->rec->additionalData as $aFld => $aValue){
                     if($form->getField($aFld, false)){
@@ -765,7 +765,7 @@ class marketing_Inquiries2 extends embed_Manager
         // Вербализиране на допълнителните полета от драйвера
         if($Driver = $mvc->getDriver($data->rec)){
             if(is_array($data->rec->additionalData)){
-                $inquiryFields = marketing_Inquiries2::getInquiryFields($data->rec->proto, $Driver);
+                $inquiryFields = marketing_Inquiries2::getInquiryFields($data->rec->proto, $Driver, $data->rec->additionalData);
                 foreach ($data->rec->additionalData as $fld => $value){
                     if(array_key_exists($fld, $inquiryFields)){
                         $data->row->{$fld} = $inquiryFields[$fld]->type->toVerbal($value);
@@ -1514,10 +1514,10 @@ class marketing_Inquiries2 extends embed_Manager
      *
      * @return array $res - добавените полета от драйвера
      */
-    public static function getInquiryFields($protoId, $driver, $onlySingleFields = false)
+    public static function getInquiryFields($protoId, $driver, $existingFields = array())
     {
         $fieldset = cls::get('core_Fieldset');
-        $driver->addInquiryFields($protoId, $fieldset);
+        $driver->addInquiryFields($protoId, $fieldset, $existingFields);
         
         $res = array();
         if (is_array($fieldset->fields)) {
