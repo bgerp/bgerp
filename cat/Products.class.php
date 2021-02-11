@@ -1274,10 +1274,17 @@ class cat_Products extends embed_Manager
         if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date)) {
             return $groupRec->vat;
         }
-        
+
+        $date = '2021-01-01';
+
         // Връщаме ДДС-то от периода
         $period = acc_Periods::fetchByDate($date);
-        
+
+        if(!is_object($period)){
+
+            return (string)acc_Setup::get('DEFAULT_VAT_RATE');
+        }
+
         return $period->vatRate;
     }
     

@@ -131,7 +131,7 @@ abstract class deals_Helper
             if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
                 $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
             }
-            
+
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
             $price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
@@ -207,6 +207,7 @@ abstract class deals_Helper
 
         // "Просто" изчисляване на ДДС-то в документа, ако има само една ставка
         if (countR($vats) == 1 && ($masterRec->type == 'invoice' || $masterRec->type == 'dc_note')) {
+
             $vat = key($vats);
             $vats[$vat]->sum = round($vats[$vat]->sum, 2);
             $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
