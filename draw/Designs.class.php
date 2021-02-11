@@ -655,6 +655,21 @@ class draw_Designs extends core_Master
         
         $svg->info[$params[0]] = $y;
     }
+
+
+    // $caption, $val
+    public static function cmd_ErrorMsg($params, &$svg, &$contex, &$error)
+    {
+        $y = self::calcExpr($params[1], $contex);
+
+        if ($y === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[1] . '"';
+
+            return false;
+        }
+
+        $svg->errorMsg[$params[0]] = $y;
+    }
     
     
     public static function cmd_WriteSizeText($params, &$svg, &$contex, &$error)
@@ -1093,7 +1108,7 @@ class draw_Designs extends core_Master
             $tpl->append($data->form->renderHtml(), 'DETAILS');
         }
         
-        if (!$data->error) {
+        if (!$data->error && !$data->canvas->errorMsg) {
             $tpl->append($data->canvas->render(), 'DETAILS');
         } else {
             $tpl->append("<h3 style='color:red;'>" . $data->error . '</h3>', 'DETAILS');
@@ -1102,6 +1117,12 @@ class draw_Designs extends core_Master
         if ($data->canvas->info) {
             foreach ($data->canvas->info as $c => $v) {
                 $tpl->append("<div>${c} = <b>${v}</b></div>", 'INFO_BLOCK');
+            }
+        }
+
+        if ($data->canvas->errorMsg) {
+            foreach ($data->canvas->errorMsg as $c => $v) {
+                $tpl->append("<div class='errorMsg'>${c} = <b>${v}</b></div>", 'ERROR_BLOCK');
             }
         }
     }
