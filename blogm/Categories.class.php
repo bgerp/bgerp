@@ -9,7 +9,7 @@
  * @package   blogm
  *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,13 +25,13 @@ class blogm_Categories extends core_Manager
     /**
      * Зареждане на необходимите плъгини
      */
-    public $loadList = 'plg_RowTools2, blogm_Wrapper';
+    public $loadList = 'plg_RowTools2, cms_plg_ContentSharable, blogm_Wrapper';
     
     
     /**
      * Полета за изглед
      */
-    public $listFields = 'id, title, description';
+    public $listFields = 'id, title, description, menuId, sharedMenus';
     
     
     /**
@@ -44,8 +44,16 @@ class blogm_Categories extends core_Manager
      * Кой може да редактира
      */
     public $canEdit = 'cms, ceo, admin, blog';
-    
-    
+
+
+    /**
+     * Към менюта от кой клас да се споделят
+     *
+     * @see cms_plg_ContentSharable
+     */
+    public $sharableToContentSourceClass = 'blogm_Articles';
+
+
     /**
      * Кой може да изтрива
      */
@@ -70,6 +78,10 @@ class blogm_Categories extends core_Manager
     public function description()
     {
         $this->FLD('title', 'varchar(60)', 'caption=Заглавие,mandatory');
+
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm,mandatory');
+        $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,refreshForm');
+
         $this->FLD('description', 'richtext(bucket=' . blogm_Articles::FILE_BUCKET . ')', 'caption=Описание');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         
@@ -114,13 +126,17 @@ class blogm_Categories extends core_Manager
     /**
      * Връща категориите по текущия език
      */
-    public static function getCategoriesByDomain($domainId = null)
+    public static function getCategoriesByDomain($domainId = null, $cMenuId = null)
     {
         $options = array();
         
         // Взимаме заявката към категориите, според избрания език
         $query = static::getQuery();
         self::filterByDomain($query, $domainId);
+        if(isset($cMenuId)){
+            $query->where("#menuId = {$cMenuId} OR LOCATE('|{$cMenuId}|', #sharedMenus)");
+        }
+
         while ($rec = $query->fetch()) {
             $options[$rec->id] = static::getVerbal($rec, 'title');
         }
@@ -154,7 +170,7 @@ class blogm_Categories extends core_Manager
             }
             
             // Създаваме линк, който ще покаже само статиите от избраната категория
-            $title = ht::createLink($title, $id ? array('blogm_Articles', 'browse', 'category' => $id) : array('blogm_Articles'));
+            $title = ht::createLink($title, $id ? array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'category' => $id) : array('blogm_Articles', 'Browse', 'cMenuId' => $data->menuId));
             
             // Див-обвивка
             $title = ht::createElement('div', $attr, $title);
