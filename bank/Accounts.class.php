@@ -9,7 +9,7 @@
  * @package   bank
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -186,7 +186,7 @@ class bank_Accounts extends core_Master
             }
         }
         
-        // ако формата е събмитната, и банката и бика не са попълнени,
+        // Ако формата е събмитната, и банката и бика не са попълнени,
         // то ги извличаме от IBAN-a , ако са попълнени изкарваме преудреждение
         // ако те се разминават с тези в системата
         if ($form->isSubmitted()) {
@@ -433,7 +433,7 @@ class bank_Accounts extends core_Master
         $query->where("#contragentCls = {$Contragent->getClassId()}");
         
         $myCompany = crm_Companies::fetchOwnCompany();
-        $isOurCompany = ($myCompany->companyId == $contragentId && $Contragent->getClassId() == crm_Companies::getClassId()) ? true : false;
+        $isOurCompany = ($myCompany->companyId == $contragentId && $Contragent->getClassId() == crm_Companies::getClassId());
         
         while ($rec = $query->fetch()) {
             
@@ -469,12 +469,15 @@ class bank_Accounts extends core_Master
         expect($IbanType->fromVerbal($iban));
         
         if (!static::fetch(array("#iban = '[#1#]'", $iban))) {
-            bank_Accounts::save((object) array('iban' => $iban,
-                'contragentCls' => $contragentClsId,
-                'contragentId' => $contragentId,
-                'currencyId' => $currency,
-                'bank' => bglocal_Banks::getBankName($iban),
-                'bic' => bglocal_Banks::getBankBic($iban)));
+            $rec = (object) array('iban'          => $iban,
+                                  'contragentCls' => $contragentClsId,
+                                  'contragentId'  => $contragentId,
+                                  'currencyId'    => $currency,
+                                  'bank'          => bglocal_Banks::getBankName($iban),
+                                  'bic'           => bglocal_Banks::getBankBic($iban));
+
+
+            bank_Accounts::save($rec);
         }
     }
     
