@@ -139,9 +139,11 @@ class eshop_Groups extends core_Master
      */
     protected function on_AfterPrepareEditForm($mvc, $res, $data)
     {
+        $form = &$data->form;
+
         $classId = core_Classes::getId($mvc->className);
         $domainId = cms_Domains::getCurrent();
-        if (isset($data->form->rec) && ($menuId = $data->form->rec->menuId)) {
+        if (isset($form->rec) && ($menuId = $form->rec->menuId)) {
             $cond = "(#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}) || (#id = ${menuId})";
         } else {
             $cond = "#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}";
@@ -159,7 +161,7 @@ class eshop_Groups extends core_Master
         while ($cRec = $cQuery->fetch()) {
             $menuArr[$cRec->id] = cms_Content::getVerbal($cRec, 'menu') . ' (' . cms_Content::getVerbal($cRec, 'domainId') . ')';
         }
-        $data->form->setSuggestions('sharedMenus', $menuArr);
+        $form->setSuggestions('sharedMenus', $menuArr);
         
         $cQuery = cms_Content::getQuery();
         $opt = array();
@@ -168,11 +170,11 @@ class eshop_Groups extends core_Master
         }
         
         if (countR($opt) == 1) {
-            $data->form->setReadOnly('menuId');
+            $form->setReadOnly('menuId');
         }
-        
-        $data->form->setOptions('menuId', $opt);
-        $data->form->setField('perPage', 'placeholder=' . eshop_Setup::get('PRODUCTS_PER_PAGE'));
+
+        $form->setOptions('menuId', $opt);
+        $form->setField('perPage', 'placeholder=' . eshop_Setup::get('PRODUCTS_PER_PAGE'));
     }
     
     
