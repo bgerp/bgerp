@@ -5257,6 +5257,10 @@ div.location.public {
 .distro_Files  .listToolbar {
   border-bottom: none !important; }
 
+.declarationApproved .richtext {
+  background: url("../img/16/checkbox_yes.png") 20px 2px no-repeat;
+  padding-left: 40px; }
+
 .distro-tools a {
   margin: 0 5px 0;
   position: relative;
