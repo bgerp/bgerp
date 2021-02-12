@@ -113,7 +113,8 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 
                 // Ако има калкулатор се изчислява колко е общото обемно тегло на цялото ен
                 if($Calculator = cond_DeliveryTerms::getTransportCalculator($saleRec->deliveryTermId)){
-                    if($saleRec->deliveryCalcTransport != 'yes'){
+                    if($saleRec->deliveryCalcTransport == 'yes'){
+
                         $totalWeight = $totalVolume = 0;
                         $cloneQuery = clone $query;
                         $allDetails = $cloneQuery->fetchAll();
@@ -157,7 +158,8 @@ class sales_plg_CalcPriceDelta extends core_Plugin
                 }
                 
                 // Ако ще се изчислява лайв себестойноста на ен смята се какъв би бил транспорта и се добавя към себестойността
-                if(isset($primeCost) && $calcLiveSoDelta == 'yes' && isset($TransportShipmentArr) && $dRec->canStore == 'yes'){
+                if(isset($primeCost) && $calcLiveSoDelta == 'yes' && isset($TransportShipmentArr) && $dRec->canStore == 'yes' && isset($Calculator)){
+
                     $volumicWeight = $Calculator->getVolumicWeight($dRec->weight, $dRec->volume, $TransportShipmentArr['deliveryTermId'], $TransportShipmentArr['deliveryData']);
                     $fee = $TransportShipmentArr['Calculator']->getTransportFee($TransportShipmentArr['deliveryTermId'], $volumicWeight, $TransportShipmentArr['totalVolumicWeight'], $TransportShipmentArr['deliveryData']);
                     
