@@ -24,14 +24,9 @@ class email_Incomings extends core_Master
      * VN - Viet Nam
      * SN - Senegal
      * SL - Sierra Leone
-     * HK - Hong Kong
-     * BO - Bolivia
-     * NP - Nepal
-     * IN - India
-     * SG - Singapore
      */
-    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL', 'HK', 'BO', 'NP', 'IN', 'SG');
-    
+    public static $riskIpArr = array('GH', 'NG', 'VN', 'SN', 'SL');
+
     
     /**
      * Максимален брой файлове от имейл, които да се сканират за баркод
