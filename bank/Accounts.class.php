@@ -476,7 +476,6 @@ class bank_Accounts extends core_Master
                                   'bank'          => bglocal_Banks::getBankName($iban),
                                   'bic'           => bglocal_Banks::getBankBic($iban));
 
-
             bank_Accounts::save($rec);
         }
     }

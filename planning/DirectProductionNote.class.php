@@ -754,7 +754,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $dRec->quantityInPack = $resource->quantityInPack;
 
             // Дефолтното к-во ще е разликата между к-та за произведеното до сега и за произведеното в момента
-            $roundQuantity = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+            if($quantityProduced){
+                $roundQuantity = $resource->propQuantity - $bomInfo1['resources'][$index]->propQuantity;
+            } else {
+                $roundQuantity = $resource->propQuantity;
+            }
 
             $uomRec = cat_UoM::fetch($dRec->packagingId, 'roundSignificant,round');
             $dRec->quantity = core_Math::roundNumber($roundQuantity, $uomRec->round, $uomRec->roundSignificant);
