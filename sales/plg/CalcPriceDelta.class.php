@@ -109,23 +109,24 @@ class sales_plg_CalcPriceDelta extends core_Plugin
         $TransportShipmentArr = null;
         if($mvc instanceof store_DocumentMaster){
             if($calcLiveSoDelta == 'yes'){
-                $saleRec = doc_Threads::getFirstDocument($rec->threadId)->fetch('deliveryTermId,deliveryData');
+                $saleRec = doc_Threads::getFirstDocument($rec->threadId)->fetch('deliveryTermId,deliveryCalcTransport,deliveryData');
                 
                 // Ако има калкулатор се изчислява колко е общото обемно тегло на цялото ен
                 if($Calculator = cond_DeliveryTerms::getTransportCalculator($saleRec->deliveryTermId)){
-                    
-                    $totalWeight = $totalVolume = 0;
-                    $cloneQuery = clone $query;
-                    $allDetails = $cloneQuery->fetchAll();
-                    array_walk($allDetails, function($a) use (&$totalWeight, &$totalVolume){$totalWeight += $a->weight; $totalVolume += $a->volume;});
-                    
-                    $logisticData = $mvc->getLogisticData($rec);
-                    setIfNot($logisticData['toPCode'], '');
-                    $saleRec->deliveryData = is_array($saleRec->deliveryData) ? $saleRec->deliveryData : array();
-                    $deliveryData = $saleRec->deliveryData + array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
-                 
-                    $totalVolumicWeight = $Calculator->getVolumicWeight($totalWeight, $totalVolume, $saleRec->deliveryTermId, $deliveryData);
-                    $TransportShipmentArr = array('Calculator' => $Calculator, 'totalVolumicWeight' => $totalVolumicWeight, 'deliveryData' => $deliveryData, 'deliveryTermId' => $saleRec->deliveryTermId);
+                    if($saleRec->deliveryCalcTransport != 'yes'){
+                        $totalWeight = $totalVolume = 0;
+                        $cloneQuery = clone $query;
+                        $allDetails = $cloneQuery->fetchAll();
+                        array_walk($allDetails, function($a) use (&$totalWeight, &$totalVolume){$totalWeight += $a->weight; $totalVolume += $a->volume;});
+
+                        $logisticData = $mvc->getLogisticData($rec);
+                        setIfNot($logisticData['toPCode'], '');
+                        $saleRec->deliveryData = is_array($saleRec->deliveryData) ? $saleRec->deliveryData : array();
+                        $deliveryData = $saleRec->deliveryData + array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
+
+                        $totalVolumicWeight = $Calculator->getVolumicWeight($totalWeight, $totalVolume, $saleRec->deliveryTermId, $deliveryData);
+                        $TransportShipmentArr = array('Calculator' => $Calculator, 'totalVolumicWeight' => $totalVolumicWeight, 'deliveryData' => $deliveryData, 'deliveryTermId' => $saleRec->deliveryTermId);
+                    }
                 }
             }
         }
