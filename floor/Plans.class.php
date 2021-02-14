@@ -81,7 +81,12 @@ class floor_Plans extends core_Master {
      */
     // public $listFields = 'order,name,state';
     
-    
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'name';
+
+
     /**
      * Описание на модела
      */
@@ -90,6 +95,10 @@ class floor_Plans extends core_Master {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование, mandatory');
         $this->FLD('width', 'float(m=0)', 'caption=Широчина,unit=m');
         $this->FLD('height', 'float(m=0)', 'caption=Дълбочина,unit=m');
+        $this->FLD('zoom', 'percent(min=0.1,max=10)', 'caption=Мащаб');
+        $this->FLD('image', 'fileman_FileType(bucket=pictures)', 'caption=Фон->Изображение');
+        $this->FLD('backgroundColor', 'color_Type', 'caption=Фон->Цвят');
+        $this->FLD('decorator', 'class(interface=floor_ObjectDecoratorIntf,select=title,allowEmpty)', 'caption=Декоратор');
 
         $this->setDbUnique('name');
     }
@@ -121,54 +130,101 @@ class floor_Plans extends core_Master {
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $url = array($mvc, 'View', $data->rec->id);
-
         $data->toolbar->addBtn('Покажи', $url, "ef_icon={$mvc->singleIcon}, target=_blank,title =Покажи плана");
+        
+        $url = array($mvc, 'Design', $data->rec->id);
+        $data->toolbar->addBtn('Редактирай', $url, "ef_icon=img/16/shape_move_back.png, target=_blank,title =Покажи плана");
     }
 
 
-    public function act_View()
+    public function act_Design()
+    {
+        return $this->act_View(null, true);
+    }
+
+
+    public function act_View($planId = null, $design = false)
     {
         Mode::set('wrapper', 'page_Empty');
         RequireRole('admin');
-
-        $planId = Request::get('id', 'int');
+        
+        if(!isset($planId)) {
+            $planId = Request::get('id', 'int');
+        }
 
         expect($pRec = floor_Plans::fetch($planId));
 
-        $width = self::toPix($pRec->width);
-        $height = self::toPix($pRec->height);
-        $tpl = new ET("<div style=\"width:{$width}px;height:{$height}px; outline:solid 4px #666;  margin: 5px;position:relative; display:table;\">[#OBJECTS#]</div>");
+        $width = self::toPix($pRec->width, $pRec->zoom);
+        $height = self::toPix($pRec->height, $pRec->zoom);
+        if(!$pRec->backgroundColor) {
+            $pRec->backgroundColor = 'white';
+        }
+        
+        $style = array();
+        if($pRec->image) {
+            $style[] =  "background-image:url('" . trim(fileman_Download::getDownloadUrl($pRec->image)) . "')";
+            $style[] = "background-size: {$width}px {$height}px";
+        }
+
+        $style[] = $design ? "outline:dotted 4px green" : "outline:solid 4px #666";
+        
+        if(count($style)) {
+            $styleStr = implode(';', $style);
+        } else {
+            $styleStr = '';
+        }
+
+        $tpl = new ET("<div data-id=\"{$planId}\" id=\"floor\" class=\"floor\" style=\"width:{$width}px;height:{$height}px; background-color:{$pRec->backgroundColor};{$styleStr}\">[#OBJECTS#]</div>");
         
         jqueryui_Ui::enable($tpl);
-        jquery_Jquery::run($tpl, ' $(".floor-object").draggable({"stop": 
-            function(event) {
-                $.post( "/floor_Plans/UpdatePossition",  {objId: event.target.id,  x: $("#"+event.target.id).offset().left - $("#"+event.target.id).parent().offset().left,  y:  $("#"+event.target.id).offset().top - $("#"+event.target.id).parent().offset().top})
-            }, 
-            containment: "parent"})');
+        jquery_Jquery::run($tpl, $design ? 'editFloorplan();' : 'setTimeout(refreshFloor, 3000);');
         $tpl->push('floor/css/floorplan.css', 'CSS');
-        
+        $tpl->push('floor/js/floorplan.js', 'JS');
+
         $Floors = cls::get('floor_Objects');
         
         $query = $Floors->getQuery();
         
         while($oRec = $query->fetch("#planId = {$planId}")) {
             
-            $w = self::toPix($oRec->width);
-            $h = self::toPix($oRec->height);
-            $x = self::toPix($oRec->x);
-            $y = self::toPix($oRec->y);
+            $w = self::toPix($oRec->width, $pRec->zoom);
+            $h = self::toPix($oRec->height, $pRec->zoom);
+            $x = self::toPix($oRec->x, $pRec->zoom);
+            $y = self::toPix($oRec->y, $pRec->zoom);
             $text = $Floors->getVerbal($oRec, 'text');
-            
+            if(!$text) {
+                $text = $Floors->getVerbal($oRec, 'name');
+            }
             $borderWidth = $oRec->borderWidth;
-            $borderColor = $oRec->borderColor ? $oRec->borderColor : "#333";
-            $backgroundColor = $oRec->backgroundColor;
 
-            $imgSrc = trim(fileman_Download::getDownloadUrl($oRec->image));
+            $borderColor = $oRec->borderColor ? $oRec->borderColor : "#333";
+            
+            $style = array();
+
+            if($oRec->backgroundColor) {
+                $style[] = "background-color:" . $oRec->backgroundColor;
+            }
+            
+            if($oRec->image) {
+                $style[] = "background-image:url('" . trim(fileman_Download::getDownloadUrl($oRec->image)) . "')";
+                $style[] = "background-size: {$w}px;";
+            }
+
+            if($oRec->opacity) {
+                $style[] = 'opacity:' . $oRec->opacity;
+            }
+
+            if($pRec->decorator && (!$design)) {
+                $d = cls::get($pRec->decorator);
+                $d->decorate($oRec->name, $style, $text);
+            }
+
+            $styleStr = implode(';', $style);
 
             $r = round(min($w, $h) * $oRec->round);
             $url = toUrl(array('floor_Objects', 'edit', $oRec->id, 'ret_url' => true));
-            $tpl->append("<div id='{$oRec->id}' class='floor-object' ondblclick='document.location=\"{$url}\"' style='left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;border: {$borderWidth}px solid {$borderColor}; background-color: {$backgroundColor}; background-image: url(\"{$imgSrc}\"); background-size: {$w}px ''>
-                <div class='floor-obj'>{$text}</div>", 'OBJECTS');
+            $tpl->append("<div id='{$oRec->id}' class='floor-object' ondblclick='document.location=\"{$url}\"' style=\"left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;border: {$borderWidth}px solid {$borderColor};{$styleStr};\">
+                <div class='floor-obj'>{$text}</div></div>", 'OBJECTS');
         }
 
         return $tpl;
@@ -183,10 +239,26 @@ class floor_Plans extends core_Master {
         $objId = Request::get('objId', 'int');
  
         if($rec = floor_Objects::fetch($objId)) {
-            $this->requireRightfor('edit', $rec);
-            $rec->x = self::fromPix(Request::get('x', 'int'));
-            $rec->y = self::fromPix(Request::get('y', 'int'));
+            $this->requireRightfor('edit', $rec->planId);
+            $pRec = self::fetch($rec->planId);
+            $rec->x = self::fromPix(Request::get('x', 'int'), $pRec->zoom);
+            $rec->y = self::fromPix(Request::get('y', 'int'), $pRec->zoom);
             floor_Objects::save($rec, 'x,y');
+        }
+
+        shutdown();
+    }
+
+    /**
+     * Екшън, който обновява позицията на даден елемент
+     */
+    public function act_DeleteObject()
+    { 
+        $objId = Request::get('objId', 'int');
+ 
+        if($rec = floor_Objects::fetch($objId)) {
+            $this->requireRightfor('edit', $rec->planId);
+            floor_Objects::delete($rec->id);
         }
 
         shutdown();
@@ -194,11 +266,56 @@ class floor_Plans extends core_Master {
 
 
     /**
+     * Екшън, който обновява позицията на даден елемент
+     */
+    public function act_ChangeSize()
+    { 
+        $objId = Request::get('objId', 'int');
+        
+        $height = Request::get('height', 'int');
+
+        if($rec = floor_Objects::fetch($objId)) {
+            $this->requireRightfor('edit', $rec->planId);
+            $pRec = self::fetch($rec->planId);
+            $width = self::fromPix(Request::get('width', 'int'), $pRec->zoom);
+            $height = self::fromPix(Request::get('height', 'int'), $pRec->zoom);
+            if($width > 0 && $height>0) {
+                $rec->width = $width;
+                $rec->height = $height;
+                floor_Objects::save($rec, 'width,height');
+            }
+        }
+
+        shutdown();
+    }
+
+
+    /**
+     *
+     */
+    public function act_RefreshFloor()
+    {
+        $id = Request::get('floorId', 'int');
+        
+        if($rec = self::fetch($id)) {
+            $this->requireRightFor('view', $rec);
+            $res = array();
+            $tpl = $this->act_View($id);
+            $res['html'] = (string) $tpl;
+            core_App::outputJson($res);
+        }
+    }
+
+
+    /**
      * Конвертиране на метри към пиксели
      */
-    private static function toPix($x)
+    private static function toPix($x, $zoom)
     {
-        $y = round($x*40);
+        if(!$zoom) {
+            $zoom = 1;
+        }
+        $y = round($x*40*$zoom);
 
         return $y;
     }
@@ -206,9 +323,12 @@ class floor_Plans extends core_Master {
     /**
      * Конвертиране на пиксели към метри
      */
-    private static function fromPix($x)
+    private static function fromPix($x, $zoom)
     {
-        $y = round($x/40, 3);
+        if(!$zoom) {
+            $zoom = 1; 
+        }
+        $y = round($x/(40*$zoom), 6);
 
         return $y;
     }

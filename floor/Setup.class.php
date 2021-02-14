@@ -55,6 +55,12 @@ class floor_Setup extends core_ProtoSetup
         'floor_Plans',
         'floor_Objects',
     );
+
+
+    /**
+     * Дефинирани класове с интерфейси
+     */
+    public $defClasses = 'floor_TestDecorator';
     
     /**
      * Роли за достъп до модула
