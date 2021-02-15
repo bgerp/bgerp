@@ -365,7 +365,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (is_null($rec->seeDelta)) {
             $rec->seeDelta = 'no';
         }
-        
+
         //Показването да бъде ли ГРУПИРАНО
         if (($rec->grouping == 'no') && ($rec->group || $rec->category)) {
             if ($rec->typeOfGroups == 'art') {
@@ -375,22 +375,22 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             $this->groupByField = $groupByField;
         }
-        
+
         if ($rec->seeByContragent == 'yes') {
             $this->groupByField = 'contragent';
         }
-        
+
         $recs = $invProd = array();
-        
-        
+
+
         //Ако има избрано разбивка "Артикули по контрагент"
         //Подготвяме масив с фактурираните артикули през избрания период
         //разбити по контрагент
         if ($rec->seeByContragent == 'yes') {
             $invDetQuery = sales_InvoiceDetails::getQuery();
-            
+
             $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
-            
+
             $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
             
             $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
@@ -450,15 +450,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
             }
         }
-        
-        
+
+
         if ($rec->quantityType == 'shipped') {
             $query = sales_PrimeCostByDocument::getQuery();
             
             //не е бърза продажба//
             $query->where('#sellCost IS NOT NULL');
         } else {
-            
+
             //За заявени количества
             $query = sales_SalesDetails::getQuery();
             
@@ -628,10 +628,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             //Код на артикула
             $artCode = $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}";
-            
+
             //Мярка на артикула
-            $measureArt = cat_Products::getProductInfo($recPrime->productId)->productRec->measureId;
-            
+            $measureArt = cat_Products::fetch($recPrime->productId)->measureId;
+
             //Данни за ПРЕДХОДЕН ПЕРИОД или МЕСЕЦ
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                 if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
