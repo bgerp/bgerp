@@ -127,21 +127,6 @@ class blogm_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
-        // Ако няма категории, създаваме някакви
-        if (!blogm_Categories::fetch('1=1')) {
-            $cat = array('Новини' => 'Новостите за нашата фирма',
-                'Интересно' => 'Интересни неща за бизнеса и около него',
-                'Политика' => 'Позиция по въпроси касаещи България, Европа и света',
-                'Наука' => 'Достиженията на науката в нашия бизнес',
-                'Изкуство' => 'Творческото начало в бизнеса',
-                'Статистика' => 'Отчети и доклади, за любителите на цифрите',
-            );
-            foreach ($cat as $title => $d) {
-                $rec = (object) array('title' => $title, 'description' => $d);
-                blogm_Categories::save($rec);
-            }
-        }
-        
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'every_one', 'every_one');
         
@@ -157,8 +142,7 @@ class blogm_Setup extends core_ProtoSetup
         $rec->period = 5;
         $rec->offset = 3;
         $html .= core_Cron::addOnce($rec);
-        
-        
+
         // Изтриване на СПАМ коментари
         $rec = new stdClass();
         $rec->systemId = 'Delete SPAM comments';
