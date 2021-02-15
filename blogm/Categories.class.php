@@ -78,21 +78,20 @@ class blogm_Categories extends core_Manager
     public function description()
     {
         $this->FLD('title', 'varchar(60)', 'caption=Заглавие,mandatory');
-
         $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm,mandatory');
         $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,refreshForm');
-
         $this->FLD('description', 'richtext(bucket=' . blogm_Articles::FILE_BUCKET . ')', 'caption=Описание');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         
         $this->setDbUnique('title');
+        $this->setDbUnique('title,menuId');
     }
     
     
     /**
      * Създаване на линк към статиите, филтрирани спрямо избраната категория
      */
-    public function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->title = ht::createLink($row->title, array('blogm_Articles', 'list', 'category' => $rec->id));
     }
@@ -114,7 +113,7 @@ class blogm_Categories extends core_Manager
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
         
@@ -151,16 +150,18 @@ class blogm_Categories extends core_Manager
     public static function renderCategories_($data)
     {
         // Шаблон, който ще представлява списъка от хиперлинкове към категориите
-        $tpl = new ET();
+        $tpl = new ET("");
         
         if (!$data->categories) {
             $data->categories = array();
         }
-        
+
+        if(countR($data->categories) == 1) return;
+
         $Lg = cls::get('core_Lg');
         $allCaption = $Lg->translate('Всички', false, cms_Content::getLang());
         $cat = array('' => $allCaption) + $data->categories;
-        
+
         // За всяка Категория, създаваме линк и го поставяме в списъка
         foreach ($cat as $id => $title) {
             if ($data->selectedCategories[$id] || (!$id && !countR($data->selectedCategories))) {
@@ -190,7 +191,7 @@ class blogm_Categories extends core_Manager
     /**
      * Преди извличане на записите от БД
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         self::filterByDomain($data->query, cms_Domains::getCurrent());
     }

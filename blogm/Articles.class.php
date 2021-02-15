@@ -126,7 +126,7 @@ class blogm_Articles extends core_Master
     /**
      * Обработка на вербалното представяне на статиите
      */
-    public function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $rec->body = trim($rec->body);
         
@@ -178,7 +178,7 @@ class blogm_Articles extends core_Master
     /**
      * Изпълнява се преди всеки запис
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = null)
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null)
     {
         if (!$fields) {
             if ($rec->state == 'active') {
@@ -213,7 +213,7 @@ class blogm_Articles extends core_Master
     /**
      * Обработка на заглавието
      */
-    public function on_AfterPrepareListTitle($mvc, $data)
+    protected function on_AfterPrepareListTitle($mvc, $data)
     {
         // Проверява имали избрана категория
         $category = Request::get('category', 'int');
@@ -235,7 +235,7 @@ class blogm_Articles extends core_Master
     /**
      * Подготовка на формата за добавяне/редактиране на статия
      */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = $data->form;
         
@@ -260,7 +260,7 @@ class blogm_Articles extends core_Master
     /**
      *  Филтриране на статиите по ключови думи и категория
      */
-    public static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
@@ -540,7 +540,7 @@ class blogm_Articles extends core_Master
     /**
      * Добавяме бутон за преглед на статията в публичната част на сайта
      */
-    public function on_AfterPrepareSingleToolbar($mvc, $data)
+    protected function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->haveRightFor('article', $data->rec)) {
             $data->toolbar->addBtn(
@@ -1159,7 +1159,7 @@ class blogm_Articles extends core_Master
      * @param core_ET        $tpl
      * @param object         $data
      */
-    public function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         // Оттегляне на нотификацията
         $url = array($mvc, 'single', $data->rec->id);
