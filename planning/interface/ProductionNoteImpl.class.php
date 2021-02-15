@@ -194,31 +194,35 @@ class planning_interface_ProductionNoteImpl
         
         $grossWeight = null;
         $kgId = cat_Uom::fetchBySysId('kg')->id;
-        if($netWeight = cat_Products::convertToUom($rec->productId, 'kg')){
-            $netWeightVerbal = cat_UoM::round($kgId, $netWeight);
-            $netWeightVerbal = core_Type::getByName('double(smartRound)')->toVerbal($netWeightVerbal);
-            $netWeightVerbal = "{$netWeightVerbal} " . tr(cat_UoM::getTitleById($kgId));
-            
-            if(!empty($packRec->tareWeight)){
-                $grossWeight = $netWeight + $packRec->tareWeight;
-                $grossWeightVerbal = cat_UoM::round($kgId, $grossWeight);
-                $grossWeightVerbal = core_Type::getByName('double(smartRound)')->toVerbal($grossWeight);
-                $grossWeightVerbal = "{$grossWeightVerbal} " . tr(cat_UoM::getTitleById($kgId));
-            }
+        $kgDerivities = cat_UoM::getSameTypeMeasures($kgId);
+        unset($kgDerivities['']);
+
+        $mpnWeight = $mpnWeightVerbal = null;
+        if(array_key_exists($rec->additionalMeasureId, $kgDerivities)){
+            $mpnWeight = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $kgId);
+        } elseif(array_key_exists($rec->packagingId, $kgDerivities)){
+            $mpnWeight = cat_UoM::convertValue($rec->quantity, $rec->packagingId, $kgId);
         }
-       
+
+        if(!empty($mpnWeight)){
+            Mode::push('text', 'plain');
+            $mpnWeightVerbal = core_Type::getByName('double(smartRound)')->toVerbal($mpnWeight);
+            $mpnWeightVerbal = "{$mpnWeightVerbal} " . tr(cat_UoM::getTitleById($kgId));
+            Mode::pop();
+        }
+
         $expiryTime = cat_Products::getParams($rec->productId, 'expiryTime');
         $date = dt::mysql2verbal($rec->valior, 'd.m.Y');
         $singleUrl = toUrl(array($this->class, 'single', $rec->id), 'absolute');
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
-            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'NET_WEIGHT' => $netWeightVerbal, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl);
+            $res = array('CODE' => $code, 'NAME' => $name, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobHandle, 'VALIOR' => $date, 'QR_CODE' => $singleUrl, 'QR_CODE_90' => $singleUrl);
             if(isset($batch)){
                 $res['BATCH'] = $batch;
             }
             
-            if(isset($grossWeight)){
-                $res['GROSS_WEIGHT'] = $grossWeightVerbal;
+            if(isset($mpnWeightVerbal)){
+                $res['WEIGHT_MPN'] = $mpnWeightVerbal;
             }
             
             if(!empty($expiryTime)){
@@ -242,7 +246,7 @@ class planning_interface_ProductionNoteImpl
         }
         
         $resArr[$key] = $arr;
-        
+
         return $resArr[$key];
     }
     
