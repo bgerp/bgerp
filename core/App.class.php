@@ -1,5 +1,7 @@
 <?php
 
+defIfNot('EF_DEFAULT_ACT_NAME', 'default');
+defIfNot('EF_DEFAULT_CTR_NAME', 'index');
 
 class core_App
 {
