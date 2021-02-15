@@ -323,7 +323,10 @@ class blogm_Articles extends core_Master
         $data = new stdClass();
         $data->query = $this->getQuery();
         $data->articleId = $id;
-        
+        $data->menuId = $cMenuId;
+        $data->menuRec = cms_Content::fetch($data->menuId);
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId);
+
         // Трябва да има $rec за това $id
         $data->rec = $this->fetch($id);
         
@@ -447,7 +450,6 @@ class blogm_Articles extends core_Master
         blogm_Comments::prepareComments($data);
         
         $data->selectedCategories = keylist::toArray($data->rec->categories);
-        
         $this->prepareNavigation($data);
         
         if ($this->haveRightFor('single', $data->rec)) {
