@@ -436,7 +436,7 @@ abstract class deals_Helper
         $verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
         $foundQuantity = $quantity;
         
-        $text = "|Начлично|* <b>{$storeName}</b> : {$verbalQuantityInStock} {$shortUom}, |Разполагаемо|* : {$verbalQuantity} {$shortUom}";
+        $text = "|Налично|* <b>{$storeName}</b> : {$verbalQuantityInStock} {$shortUom}, |Разполагаемо|* : {$verbalQuantity} {$shortUom}";
         if (!empty($stRec->reserved)) {
             $verbalReserved = $Double->toVerbal($stRec->reserved);
             $text .= ' ' . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
