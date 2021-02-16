@@ -152,8 +152,13 @@ class cat_Categories extends core_Master
      * Дефолт достъп до новите корици
      */
     public $defaultAccess = 'team';
-    
-    
+
+    /**
+     * Минимална дължина на генерираните кодове
+     */
+    const MIN_CODE_PADDING = 1;
+
+
     /**
      * Извиква се след подготовката на формата
      */
@@ -182,7 +187,8 @@ class cat_Categories extends core_Master
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
         $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като шаблони->Използване');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
-        $this->FLD('prefix', 'varchar(64)', 'caption=Настройки - препоръчителни за артикулите в категорията->Начало код');
+        $this->FLD('prefix', 'varchar(32)', 'caption=Настройки - препоръчителни за артикулите в категорията->Представка код');
+        $this->FLD('minCodePad', 'int(Min=0)', 'caption=Настройки - препоръчителни за артикулите в категорията->Мин. дължина на кода');
         $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Групи,columns=2');
         $this->FLD('params', 'keylist(mvc=cat_Params,select=typeExt,makeLinks)', 'caption=Настройки - препоръчителни за артикулите в категорията->Параметри');
         
@@ -363,11 +369,13 @@ class cat_Categories extends core_Master
         
         // Ако има представка
         if ($rec->prefix) {
-            
+            $minCodeLen = !empty($rec->minCodePad) ? $rec->minCodePad : static::MIN_CODE_PADDING;
+            $startCode = str_pad('1', $minCodeLen, '0', STR_PAD_LEFT);
+
             // Опитваме се да намерим първия код започващ с представката
-            $code = str::addIncrementSuffix('', $rec->prefix);
+            $code = str::addIncrementSuffix('', $rec->prefix, $startCode);
             while (cat_Products::getByCode($code)) {
-                $code = str::addIncrementSuffix($code, $rec->prefix);
+                $code = str::addIncrementSuffix($code, $rec->prefix, $startCode);
                 if (!cat_Products::getByCode($code)) {
                     break;
                 }
