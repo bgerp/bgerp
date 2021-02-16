@@ -195,7 +195,6 @@ class trans_Lines extends core_Master
         $this->FLD('start', 'datetime', 'caption=Начало, mandatory');
         $this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици)', 'caption=Повторение');
         $this->FLD('state', 'enum(draft=Чернова,,pending=Заявка,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
-        $this->FLD('isRepeated', 'enum(yes=Да,no=Не)', 'caption=Генерирано на повторение,input=none');
         $this->FLD('vehicle', 'varchar', 'caption=Превозвач->Превозно средство,oldFieldName=vehicleId');
         $this->FLD('forwarderId', 'key2(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
         $this->FLD('forwarderPersonId', 'key2(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Превозвач->МОЛ');
@@ -293,8 +292,7 @@ class trans_Lines extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
-            $rec->isRepeated = 'no';
+
             if ($rec->start < dt::today()) {
                 $form->setError('start', 'Не може да се създаде линия за предишен ден!');
             }
