@@ -423,18 +423,20 @@ abstract class deals_Helper
 
         $stRec = store_Products::getQuantities($productId, $storeId);
         $quantity = $stRec->free;
-        
-        $Double = cls::get('type_Double');
-        $Double->params['smartRound'] = 'smartRound';
-        
+        $quantityInStock = $stRec->quantity;
+
+        $Double = core_Type::getByName('double(smartRound)');
+
         $pInfo = cat_Products::getProductInfo($productId);
         $shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
         $storeName = isset($storeId) ? (" |в|* " . store_Stores::getTitleById($storeId)) : '';
         $verbalQuantity = $Double->toVerbal($quantity);
+        $verbalQuantityInStock = $Double->toVerbal($quantityInStock);
+
         $verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
         $foundQuantity = $quantity;
         
-        $text = "|Разполагаемо|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
+        $text = "|Начлично|* <b>{$storeName}</b> : {$verbalQuantityInStock} {$shortUom}, |Разполагаемо|* : {$verbalQuantity} {$shortUom}";
         if (!empty($stRec->reserved)) {
             $verbalReserved = $Double->toVerbal($stRec->reserved);
             $text .= ' ' . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
