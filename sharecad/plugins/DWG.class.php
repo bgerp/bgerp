@@ -46,7 +46,7 @@ class sharecad_plugins_DWG extends core_Plugin
                 $thumbHeight = fileman_Setup::get('PREVIEW_HEIGHT');
             }
 
-            $res = sharecad_View::getFrame('cSxXYz', array('id' => 'imgIframe', 'class' => 'webdrvIframe', 'style' => "min-width: 100%; min-height: {$thumbHeight}px;"));
+            $res = sharecad_View::getFrame('cSxXYz', array('id' => 'imgIframe', 'class' => 'webdrvIframe', 'style' => "min-width: 100%; height: {$thumbHeight}px;"));
 
             if (!$res) {
                 $res = 'Възникна грешка при визуализацията на файла.';
