@@ -33,8 +33,14 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
      * Дали да се зададат размери за широчина и височина на изходния файл
      */
     public static $useSizes = true;
-    
-    
+
+
+    /**
+     *
+     */
+    public static $convertToPng = true;
+
+
     /**
      * Колко пъти да се увеличи широчината/височината за показване
      * По-добро качество
@@ -50,6 +56,11 @@ class fileman_webdrv_Qcad extends fileman_webdrv_Inkscape
      */
     public static function startConvertingToPng($fRec, $params)
     {
+        if (!self::$convertToPng) {
+
+            return ;
+        }
+
         if (!defined('QCAD_PATH') || !QCAD_PATH) {
             fileman_webdrv_Qcad::logAlert('Няма зададена стойност за "QCAD_PATH"');
             
