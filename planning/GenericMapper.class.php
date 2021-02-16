@@ -193,13 +193,7 @@ class planning_GenericMapper extends core_Manager
      */
     public function prepareResources(&$data)
     {
-        if (!haveRole('ceo,planning')) {
-            $data->notConvertableAnymore = true;
-            
-            return;
-        }
-
-        if ($data->masterData->rec->canConvert != 'yes') {
+        if (!haveRole('ceo,planning' || $data->masterData->rec->canConvert != 'yes')) {
             $data->notConvertableAnymore = true;
         }
 
@@ -213,7 +207,8 @@ class planning_GenericMapper extends core_Manager
 
         if($data->notConvertableAnymore && !countR($data->genData->rows) && !countR($data->recData->rows)){
             $data->hide = true;
-            return;
+
+            return $data;
         }
 
         $data->TabCaption = 'Влагане';
@@ -257,6 +252,7 @@ class planning_GenericMapper extends core_Manager
             }
         }
     }
+
 
     /**
      * Рендира данните на заместващите артикули
