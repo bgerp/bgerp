@@ -1270,7 +1270,7 @@ class sales_Quotations extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         expect($rec->state == 'active');
-        $this->requireRightFor('salefromquotation', (object) array('folderId' => $rec));
+        $this->requireRightFor('salefromquotation', $rec);
         
         // Подготовка на формата за филтриране на данните
         $form = $this->getFilterForm($rec->id, $id);
