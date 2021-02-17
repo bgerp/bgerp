@@ -273,7 +273,7 @@ class core_Db
 
         if (defined('CORE_DB_REPORT_SLOW_QUERY_TIME') && ($eTime >= CORE_DB_REPORT_SLOW_QUERY_TIME)) {
 //            wp("Бавна заявка", $eTime, $sqlQuery);
-        }
+//        }
 
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
