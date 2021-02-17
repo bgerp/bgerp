@@ -359,7 +359,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->to);
         $baseCurrencyId = currency_Currencies::getIdByCode($baseCurrency);
 
-        //При групиране по кои крупи да работи: групи артикули или цатегории артикули
+        //При групиране по кои крупи да работи: групи артикули или категории артикули
         if ($rec->typeOfGroups == 'art') {
             $checkForGruping = 'group';
         } elseif (($rec->typeOfGroups == 'category')) {
