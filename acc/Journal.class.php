@@ -368,6 +368,7 @@ class acc_Journal extends core_Master
         } catch (acc_journal_Exception $ex) {
             $tr = $docClass->getTransaction($docRec->id);
             reportException($ex);
+            $mvc->logErr("Грешка при контиране на документ", $docRec->id);
             error($ex->getMessage(), $tr, $ex->getMessage());
         }
         

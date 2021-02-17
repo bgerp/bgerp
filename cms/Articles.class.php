@@ -147,10 +147,11 @@ class cms_Articles extends core_Master
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $form->showFields = 'search, menuId';
-        
         $form->input('search, menuId', 'silent');
-        
-        $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
+
+        $domainId = cms_Domains::getPublicDomain('id');
+        $opt = cms_Content::getMenuOpt($mvc, $domainId);
+        $form->setOptions('menuId', $opt);
         
         $form->setField('menuId', 'refreshForm');
         
@@ -178,8 +179,9 @@ class cms_Articles extends core_Master
             $cRec = cms_Content::fetch($rec->menuId);
             cms_Domains::selectCurrent($cRec->domainId);
         }
-        
-        $data->form->setOptions('menuId', arr::combine(array('' => ''), cms_Content::getMenuOpt($mvc)));
+
+        $domainId = cms_Domains::getPublicDomain('id');
+        $data->form->setOptions('menuId', arr::combine(array('' => ''), cms_Content::getMenuOpt($mvc, $domainId)));
     }
     
     

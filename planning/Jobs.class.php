@@ -211,7 +211,7 @@ class planning_Jobs extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureId,secondMeasureQuantity';
+    public $fieldsNotToClone = 'dueDate,quantityProduced,history,oldJobId,secondMeasureQuantity';
 
 
     /**
@@ -231,21 +231,22 @@ class planning_Jobs extends core_Master
      */
     public function description()
     {
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|quantity|oldJobId');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|quantity|oldJobId');
         $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none');
         $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
         
-        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,mandatory,input=hidden,before=packQuantity');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,mandatory,input=hidden,before=packQuantity,silent,removeAndRefreshForm');
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         $this->FLD('quantity', 'double(decimals=2)', 'caption=Количество->Планирано,input=none');
 
-        $this->FLD('secondMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Мярка', 'input=none');
+        $this->FLD('secondMeasureId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Втора мярка->Мярка', 'input=hidden');
         $this->FLD('secondMeasureQuantity', 'double(decimals=2)', 'caption=Втора мярка->К-во,input=none');
 
         $this->FLD('quantityFromTasks', 'double(decimals=2)', 'input=none,caption=Количество->Произведено,notNull,value=0');
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
+        $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
@@ -253,7 +254,7 @@ class planning_Jobs extends core_Master
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
         $this->FLD('deliveryPlace', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Данни от договора->Място');
-        
+
         $this->FLD('weight', 'cat_type_Weight', 'caption=Тегло,input=none');
         $this->FLD('brutoWeight', 'cat_type_Weight', 'caption=Бруто,input=none');
         $this->FLD(
@@ -265,13 +266,13 @@ class planning_Jobs extends core_Master
         $this->FLD('saleId', 'key(mvc=sales_Sales)', 'input=hidden,silent,caption=Продажба');
         $this->FLD('sharedUsers', 'userList(roles=planning|ceo)', 'caption=Споделяне->Потребители,autohide');
         $this->FLD('history', 'blob(serialize, compress)', 'caption=Данни,input=none');
-        
+
         $this->setDbIndex('productId');
         $this->setDbIndex('oldJobId');
         $this->setDbIndex('saleId');
     }
-    
-    
+
+
     /**
      * Връща последните валидни задания за артикула
      *
@@ -283,29 +284,29 @@ class planning_Jobs extends core_Master
     private static function getOldJobs($productId, $id, $folderId)
     {
         $res = array();
-        
+
         // Старите задания към артикула или към артикулите в неговата папка
         $pQuery = cat_Products::getQuery();
         $pQuery->where("#folderId = {$folderId}");
         $pQuery->show('id');
         $products = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
         $products[$productId] = $productId;
-        
+
         $query = self::getQuery();
         $query->in('productId', $products);
         $query->where("#id != '{$id}' AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
-        
+
         $query->orderBy('id', 'DESC');
         $query->show('id,productId,state');
-        
+
         while ($rec = $query->fetch()) {
             $res[$rec->id] = self::getRecTitle($rec);
         }
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
@@ -334,13 +335,14 @@ class planning_Jobs extends core_Master
 
         // Ако има предишни задания зареждат се за избор
         if(isset($rec->productId)){
+
             $oldJobs = self::getOldJobs($rec->productId, $rec->id, $rec->folderId);
             if (countR($oldJobs)) {
                 $form->setField('oldJobId', 'input');
                 $form->setOptions('oldJobId', array('' => '') + $oldJobs);
             }
 
-            $packs = cat_Products::getPacks($rec->productId);
+            $packs = cat_Products::getPacks($rec->productId, false, $rec->secondMeasureId);
             $form->setOptions('packagingId', $packs);
 
             // Ако артикула не е складируем, скриваме полето за мярка
@@ -405,6 +407,27 @@ class planning_Jobs extends core_Master
             }
 
             $form->setDefault('packagingId', key($packs));
+
+            if ($Driver = cat_Products::getDriver($rec->productId)) {
+
+                // Коя е втората мярка, ако не идва от драйвера се търси в опаковките
+                $secondMeasureId = (isset($rec->id) && $rec->secondMeasureId) ? $rec->secondMeasureId : cat_Products:: getSecondMeasureId($rec->productId);
+
+                if(empty($secondMeasureId)){
+                    $form->setField('allowSecondMeasure', 'input=none');
+                } else {
+                    $derivitiveMeasures = cat_UoM::getSameTypeMeasures($secondMeasureId);
+                    $form->setDefault('allowSecondMeasure', 'yes');
+                    if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                        $mandatoryMeasure = cat_Products::fetchField($rec->productId, 'measureId');
+                    } else {
+                        $mandatoryMeasure = $secondMeasureId;
+                    }
+                    $mandatoryMeasureName = tr(cat_UoM::getVerbal($mandatoryMeasure, 'name'));
+                    $form->setFieldType('allowSecondMeasure', "enum(no=Без,yes=Задължително ({$mandatoryMeasureName}))");
+                    $form->setDefault('secondMeasureId', $secondMeasureId);
+                }
+            }
         }
     }
     
@@ -467,30 +490,27 @@ class planning_Jobs extends core_Master
         }
         
         $data->listFilter->setField('selectPeriod', 'caption=Падеж');
-        $contragentsWithJobs = self::getContragentsWithJobs();
-        if (countR($contragentsWithJobs)) {
-            $data->listFilter->FLD('contragent', 'int', 'caption=Контрагенти,input,silent');
-            $data->listFilter->setOptions('contragent', array('' => '') + $contragentsWithJobs);
-            $data->listFilter->input('contragent', 'silent');
-        }
-        
+        $data->listFilter->FLD('contragentFolderId', 'key2(mvc=doc_Folders,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent,after=view');
+        $data->listFilter->input('contragentFolderId', 'silent');
         $data->listFilter->input();
-        $data->listFilter->showFields .= ',contragent';
+        $data->listFilter->showFields .= ',contragentFolderId';
         
         if ($filter = $data->listFilter->rec) {
-            if (isset($filter->contragent)) {
-                
+            if (isset($filter->contragentFolderId)) {
+
                 // Намиране на ид-та на всички продажби в избраната папка на контрагента
                 $sQuery = sales_Sales::getQuery();
-                $sQuery->where("#folderId = {$filter->contragent}");
+                $sQuery->where("#folderId = {$filter->contragentFolderId} AND #state NOT IN ('draft', 'pending', 'rejected')");
                 $sQuery->show('id');
                 $sales = arr::extractValuesFromArray($sQuery->fetchAll(), 'id');
-                
-                // Филтрират се само тези задания към посочените продажби
-                $data->query->where('#saleId IS NOT NULL');
-                $data->query->in('saleId', $sales);
+                if(countR($sales)){
+                    $data->query->where('#saleId IS NOT NULL');
+                    $data->query->in('saleId', $sales);
+                } else {
+                    $data->query->where("1=2");
+                }
             }
-            
+
             // Филтър по изглед
             if (isset($filter->view)) {
                 switch ($filter->view) {
@@ -533,43 +553,15 @@ class planning_Jobs extends core_Master
                         $tQuery->show('docId');
                         $jobIdsWithTasks = arr::extractValuesFromArray($tQuery->fetchAll(), 'docId');
                         $data->query->where("#state = 'active'");
-                        
+
                         if (countR($jobIdsWithTasks)) {
                             $data->query->notIn('id', $jobIdsWithTasks);
                         }
-                        
+
                         break;
                 }
             }
         }
-    }
-    
-    
-    /**
-     * Извличане с кеширане на списъка на контрагентите със задания
-     *
-     * @return array $options
-     */
-    private static function getContragentsWithJobs()
-    {
-        $options = core_Cache::get('planning_Jobs', 'contragentsWithJobs', 120, array('planning_Jobs'));
-        
-        if(!is_array($options) || !countR($options)) {
-            $options = array();
-            $query = self::getQuery();
-            $query->EXT('sFolderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
-            $query->groupBy('sFolderId');
-            $query->where('#saleId IS NOT NULL');
-            $query->show('sFolderId');
-            
-            while ($jRec = $query->fetch()) {
-                $options[$jRec->sFolderId] = doc_Folders::getTitleById($jRec->sFolderId);
-            }
-            
-            core_Cache::set('planning_Jobs', 'contragentsWithJobs', $options, 120, array('planning_Jobs'));
-        }
-        
-        return $options;
     }
     
     
@@ -658,7 +650,9 @@ class planning_Jobs extends core_Master
                 $form->setWarning('dueDate', 'Падежът е в миналото');
             }
 
-            if ($aCount = self::count("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$rec->id}'")) {
+            //  Проверка има ли други активни задания
+            $id = isset($rec->clonedFromId) ? null : $rec->id;
+            if ($aCount = self::count("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$id}'")) {
                 $aCount = core_Type::getByName('int')->toVerbal($aCount);
                 $msg = ($aCount == 1) ? 'активно задание' : 'активни задания';
                 $form->setWarning('productId', "В момента артикулът има още|* <b>{$aCount}</b> |{$msg}|*. |Желаете ли да създадете още едно|*?");
@@ -674,6 +668,10 @@ class planning_Jobs extends core_Master
             
             $nettoWeight = cat_Products::convertToUom($rec->productId, 'kg');
             $rec->weight = (!empty($nettoWeight)) ? $nettoWeight : null;
+
+            if($rec->allowSecondMeasure == 'no'){
+                unset($rec->secondMeasureId);
+            }
         }
     }
     
@@ -740,8 +738,11 @@ class planning_Jobs extends core_Master
         $row->title = ($fields['-single']) ? $mvc->getRecTitle($rec) : $mvc->getLink($rec->id);
         $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantityFromTasks);
         $Double = core_Type::getByName('double(smartRound)');
-        $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
+        $quantityProduced = $rec->quantityProduced;
+        $originalQuantity = $quantityProduced;
+
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+        $measureName = tr(cat_UoM::getShortName($measureId));
 
         if (isset($rec->productId) && empty($fields['__isDetail'])) {
             $rec->quantityFromTasks = planning_Tasks::getProducedQuantityForJob($rec);
@@ -749,57 +750,72 @@ class planning_Jobs extends core_Master
             $row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
         }
 
-        $packType = cat_UoM::fetchField($rec->packagingId, 'type');
-        if($packType != 'uom'){
-            $rec->quantityProduced /= $rec->quantityInPack;
-        } else {
-            $converted = cat_UoM::convertValue($rec->quantityProduced, $measureId,  $rec->packagingId);
-            if($converted !== false){
-                $rec->quantityProduced = $converted;
-            }
-        }
+        // Ако има втора мярка
+        $coefficient = null;
+        if(isset($rec->secondMeasureId)){
+            $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
+            $secondMeasureQuantity = isset($rec->secondMeasureQuantity) ? $rec->secondMeasureQuantity : 0;
 
-        $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
-        $packQuantity = $rec->packQuantity;
-        $originalQuantityProduced = $rec->quantityProduced;
+            // Ако заданието е в нея, ще се показват разменени местата на количествата
+            if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
+                $secondMeasureQuantity = cat_UoM::convertValue($secondMeasureQuantity, $rec->secondMeasureId, $rec->packagingId);
+                $quantityProduced = $secondMeasureQuantity;
+                $row->quantityProduced = $Double->toVerbal($secondMeasureQuantity);
+                $secondMeasureNameHint = $secondMeasureName = $measureName;
+                $secondMeasureQuantityVerbal = $Double->toVerbal($rec->quantityProduced);
+                $measureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
+
+                // Ако има коефициент показва се колко е той
+                if($rec->secondMeasureQuantity){
+                    $coefficient = $originalQuantity / $rec->secondMeasureQuantity;
+                }
+            } else {
+                $rec->quantityProduced /= $rec->quantityInPack;
+                $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
+                $quantityProduced = $rec->quantityProduced;
+                $secondMeasureQuantityVerbal = $Double->toVerbal($secondMeasureQuantity);
+
+                $secondMeasureNameHint = $measureName;
+                $measureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
+                $secondMeasureName = $measureName;
+
+                // Ако има коефициент показва се колко е той
+                if($rec->secondMeasureQuantity){
+                    $coefficient =  $originalQuantity / $rec->secondMeasureQuantity;
+                }
+            }
+
+            // Ако има сметнат коефициент, показва се колко е той
+            if(isset($coefficient)){
+                $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
+                $hint = " 1 {$measureName} " . tr('е') . " {$coefficientVerbal} {$secondMeasureNameHint}";
+                $secondMeasureName = ht::createHint($secondMeasureName, $hint);
+            }
+            $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
+        } else {
+
+            // Ако няма втора мярка, всичко се конвертира в опаковката
+            $rec->quantityProduced /= $rec->quantityInPack;
+            $quantityProduced = $rec->quantityProduced;
+            $row->quantityProduced = $Double->toVerbal($rec->quantityProduced);
+        }
 
         // Ако има втора мярка
         if(!empty($rec->secondMeasureId)){
+
+            // Ако заданието е във втората мярка, то ще се показва, че ще се отчита в основната
             $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
-
-            $coefficient = $originalQuantityProduced / $rec->secondMeasureQuantity;
-            $coefficientVerbal = core_Type::getByName('double(smartRound)')->toVerbal($coefficient);
-
-            $additionalQuantityVerbal  = $Double->toVerbal($rec->secondMeasureQuantity);
-            $additionalMeasureName = tr(cat_UoM::getShortName($rec->secondMeasureId));
-            $measureName = tr(cat_UoM::getShortName($measureId));
-            $originalMeasureName = $measureName;
-            $originalSecondMeasureName = $additionalMeasureName;
-            $hint = " 1 {$additionalMeasureName} " . tr('е') . " {$coefficientVerbal} {$measureName}";
-
-            // Ако втората мярка е опаковката подменям ги
             if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
-                $secondMeasureQuantity = cat_UoM::convertValue($rec->secondMeasureQuantity, $rec->secondMeasureId, $rec->packagingId);
-                $additionalQuantityVerbal  = $Double->toVerbal($secondMeasureQuantity);
-
-                $row->quantityProduced = $additionalQuantityVerbal;
-                $additionalQuantityVerbal = $Double->toVerbal($originalQuantityProduced);
-                $additionalMeasureName = $originalMeasureName;
-                $measureName = $originalSecondMeasureName;
-                $originalQuantityProduced = $rec->secondMeasureQuantity;
-                $hint = " 1 {$measureName} " . tr('е') . " {$coefficientVerbal} {$additionalMeasureName}";
+                $mandatoryMeasure = cat_Products::fetchField($rec->productId, 'measureId');
+            } else {
+                $mandatoryMeasure = $rec->secondMeasureId;
             }
-
-            // Показване на съотвествието с втората мярка
-            if(isset($fields['-single'])){
-                $additionalMeasureName = ht::createHint($additionalMeasureName, $hint);
-                $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$additionalQuantityVerbal} {$additionalMeasureName}) </span>";
-            }
+            $row->secondMeasureId = cat_UoM::getVerbal($mandatoryMeasure, 'name');
         }
 
-        $rec->quantityNotStored = $rec->quantityFromTasks - $originalQuantityProduced;
+        $rec->quantityNotStored = $rec->quantityFromTasks - $quantityProduced;
         $row->quantityNotStored = $Double->toVerbal($rec->quantityNotStored);
-        $rec->quantityToProduce = $packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $originalQuantityProduced);
+        $rec->quantityToProduce = $rec->packQuantity - (($rec->quantityFromTasks) ? $rec->quantityFromTasks : $quantityProduced);
         $row->quantityToProduce = $Double->toVerbal($rec->quantityToProduce);
         
         foreach (array('quantityNotStored', 'quantityToProduce') as $fld) {
@@ -810,7 +826,7 @@ class planning_Jobs extends core_Master
         
         if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'type' => 'production', 'originId' => $rec->containerId))) {
             core_RowToolbar::createIfNotExists($row->_rowTools);
-            $row->_rowTools->addLink('Нова работна рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), "ef_icon=img/16/article.png,title=Създаване на нова работна рецепта");
+            $row->_rowTools->addLink('Работна рецепта', array('cat_Boms', 'add', 'productId' => $rec->productId, 'originId' => $rec->containerId, 'quantityForPrice' => $rec->quantity, 'ret_url' => true, 'type' => 'production'), "ef_icon=img/16/article.png,title=Създаване на нова работна рецепта");
         }
         
         if (isset($fields['-list'])) {
@@ -839,18 +855,19 @@ class planning_Jobs extends core_Master
         $row->measureId = cat_UoM::getShortName($rec->packagingId);
         $tolerance = ($rec->tolerance) ? $rec->tolerance : 0;
         $diff = $rec->packQuantity * $tolerance;
-        
+
         foreach (array('quantityFromTasks', 'quantityProduced') as $fld) {
-            if ($rec->{$fld} < ($rec->packQuantity - $diff)) {
+            $quantityValue = ($fld == 'quantityFromTasks') ? $rec->quantityFromTasks : $quantityProduced;
+            if ($quantityValue < ($rec->packQuantity - $diff)) {
                 $color = 'black';
-            } elseif ($rec->{$fld} >= ($rec->packQuantity - $diff) && $rec->{$fld} <= ($rec->packQuantity + $diff)) {
+            } elseif ($quantityValue >= ($rec->packQuantity - $diff) && $quantityValue <= ($rec->packQuantity + $diff)) {
                 $color = 'green';
             } else {
                 $row->{$fld} = ht::createHint($row->{$fld}, 'Произведено е повече от планираното', 'warning', false);
                 $color = 'red';
             }
             
-            if ($rec->{$fld} != 0) {
+            if ($quantityValue != 0) {
                 $quantityRow = new core_ET("<span style='color:[#color#]'>[#quantity#]</span>");
                 $quantityRow->placeArray(array('color' => $color, 'quantity' => $row->{$fld}));
                 $row->{$fld} = $quantityRow;
@@ -1122,6 +1139,7 @@ class planning_Jobs extends core_Master
             while ($tRec = $tQuery->fetch()) {
                 $tRec->state = 'closed';
                 cls::get('planning_Tasks')->save_($tRec, 'state');
+                planning_Tasks::logWrite("Приключване на задача, след приключване на заданието", $tRec->id);
                 $count++;
             }
             
@@ -1178,85 +1196,23 @@ class planning_Jobs extends core_Master
 
         // Ако артикулът поддържа втора мярка
         $saveFields = 'quantityProduced';
-        if($secondMeasureId = cat_products_Packagings::getSecondMeasureId($rec->productId)) {
-            $secondMeasureDerivities = cat_UoM::getSameTypeMeasures($secondMeasureId);
+
+        if($rec->secondMeasureId) {
+            $secondMeasureDerivities = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
             unset($secondMeasureDerivities['']);
-            $quantityProduced = 0;
 
-            // Първо се обхождат тези протоколи, в които има въведени и двете мерки
-            $secondMeasureArr = array();
+            // Сумиране на произведеното във втора мярка
+            $rec->secondMeasureQuantity = 0;
             foreach($allRecs as $noteRec){
-                $quantityProduced += $noteRec->quantity;
-
-                if(empty($noteRec->additionalMeasureId)) continue;
-
-                // Сумиране на общо какви к-ва от двете мерки има
                 if(array_key_exists($noteRec->packagingId, $secondMeasureDerivities)){
-                    $secondMeasureArr[$secondMeasureId]['quantity'] += cat_UoM::convertToBaseUnit($noteRec->packQuantity, $noteRec->packagingId);
-                    $secondMeasureArr[$secondMeasureId]['baseQuantity'] += $noteRec->quantity;
+                    $rec->secondMeasureQuantity += cat_UoM::convertValue($noteRec->packQuantity, $noteRec->packagingId, $rec->secondMeasureId);
                 } elseif(array_key_exists($noteRec->additionalMeasureId, $secondMeasureDerivities)){
-                    $secondMeasureArr[$secondMeasureId]['quantity'] += cat_UoM::convertToBaseUnit($noteRec->additionalMeasureQuantity, $noteRec->additionalMeasureId);
-                    $secondMeasureArr[$secondMeasureId]['baseQuantity'] += $noteRec->quantity;
+                    $rec->secondMeasureQuantity += cat_UoM::convertValue($noteRec->additionalMeasureQuantity, $noteRec->additionalMeasureId, $rec->secondMeasureId);
                 }
             }
 
-            // Смятане на коефициента
-            if(countR($secondMeasureArr)){
-
-                // Ако има въведени съотвествия коефициента, ще е реалния
-                $coefficient = round($secondMeasureArr[$secondMeasureId]['baseQuantity'] / $secondMeasureArr[$secondMeasureId]['quantity'], 5);
-                $secondMeasureQuantity = $secondMeasureArr[$secondMeasureId]['quantity'];
-            } else {
-
-                // Колко е коефициента
-                $packRec = cat_products_Packagings::getPack($rec->productId, $secondMeasureId);
-
-                // Ако няма проверява се някоя от нейните производни
-                if(!is_object($packRec)){
-                    $sameTypeMeasureIds = cat_UoM::getSameTypeMeasures($secondMeasureId);
-                    unset($sameTypeMeasureIds['']);
-                    unset($sameTypeMeasureIds[$secondMeasureId]);
-                    $sameTypeMeasureIds = array_keys($sameTypeMeasureIds);
-
-                    // Ако има да се конвертира
-                    foreach ($sameTypeMeasureIds as $sId){
-                        if($packRec = cat_products_Packagings::getPack($rec->productId, $sId)){
-                            if(!in_array($rec->packagingId, $sameTypeMeasureIds)){
-                                $coefficient = cat_UoM::convertValue($packRec->quantity, $sId, $secondMeasureId);
-                            } else {
-                                $coefficient = $packRec->quantity;
-                            }
-                            break;
-                        }
-                    }
-                } else {
-                    $coefficient = $packRec->quantity;
-                }
-
-                // Ако няма ще е теоретичния
-                $secondMeasureQuantity = 0;
-            }
-
-            // След това се търсят протоколите където се произвежда само в една мярка
-            foreach($allRecs as $noteRec1) {
-                if (!empty($noteRec1->additionalMeasureId)) continue;
-
-                if(array_key_exists($noteRec1->packagingId, $secondMeasureDerivities)){
-
-                    // Ако тази мярка е втората няма да се конвертира
-                    $secondMeasureQuantity += cat_UoM::convertToBaseUnit($noteRec1->packQuantity, $noteRec1->packagingId);
-                } else {
-
-                    // Обръщане във втората мярка според реалния коефициент
-                    $secondMeasureQuantity += round($noteRec1->quantity / $coefficient, 5);
-                }
-            }
-
-            // Записване на информацията за вторите мерки
-            $rec->quantityProduced = empty($quantityProduced) ? 0 : $quantityProduced;
-            $rec->secondMeasureId = empty($quantityProduced) ? null : $secondMeasureId;
-            $rec->secondMeasureQuantity = $secondMeasureQuantity;
-            $saveFields .= ',secondMeasureId,secondMeasureQuantity';
+            $rec->secondMeasureQuantity = round($rec->secondMeasureQuantity, 5);
+            $saveFields .= ',secondMeasureQuantity';
         }
 
         $me->save_($rec, $saveFields);
@@ -1618,5 +1574,59 @@ class planning_Jobs extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     */
+    public static function canAddToThread($threadId)
+    {
+        $saleId = Request::get('saleId', 'int');
+
+        return isset($saleId);
+    }
+
+
+    /**
+     * Затваряне на приключени задания
+     */
+    public function cron_CloseOldJobs()
+    {
+        // Задания готови на колко процента, да се приключват
+        $percent = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT');
+        if(empty($percent)) return;
+
+        // Да не са променяни от
+        $delay = planning_Setup::get('JOB_AUTO_COMPLETION_DELAY');
+        $fromDate = dt::addSecs(-1 * $delay);
+
+        $isSystemUser = core_Users::isSystemUser();
+        if(!$isSystemUser){
+            core_Users::forceSystemUser();
+        }
+
+        // Намиране на всички задания готови над посочения процент
+        $query = planning_Jobs::getQuery();
+        $query->XPR('progress', 'date', 'ROUND((#quantityProduced / #quantity), 2)');
+        $query->in("state", array('active', 'wakeup', 'stopped'));
+        $query->where("#modifiedOn < '{$fromDate}' AND #progress >= {$percent}");
+        $query->limit(50);
+
+        // Всяко едно се приключва
+        Mode::push('preventNotifications', true);
+        while($rec = $query->fetch()){
+            $rec->brState = $rec->state;
+            $rec->state = 'closed';
+
+            $this->save($rec);
+            $this->invoke('AfterChangeState', array(&$rec,  $rec->state));
+            $this->logWrite('Автоматично приключване', $rec->id);
+        }
+        Mode::pop();
+
+        if(!$isSystemUser){
+            core_Users::cancelSystemUser();
+        }
     }
 }

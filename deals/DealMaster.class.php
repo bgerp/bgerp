@@ -533,8 +533,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'active'");
                 break;
             case 'paidnotdelivered':
-                $query->where("(#deliveredRound < #dealRound)  AND (#paymentState = 'paid' OR #paymentState = 'repaid')");
-                $query->where("#state = 'active' OR #state = 'closed'");
+                $query->where("#paidRound > #deliveredRound");
+                $query->where("#state = 'active'");
                 break;
             case 'unpaid':
                 $query->where('#paidRound < #deliveredRound OR #paidRound IS NULL');
@@ -1673,8 +1673,6 @@ abstract class deals_DealMaster extends deals_DealBase
      *      o $fields['receiptId']             - информативно от коя бележка е
      *      o $fields['onlineSale']            - дали е онлайн продажба
      *      o $fields['priceListId']           - ценова политика
-     *      
-     *      
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1682,7 +1680,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $contragentClass = cls::get($contragentClass);
         expect($cRec = $contragentClass->fetch($contragentId));
-        expect($cRec->state != 'rejected');
+        expect($cRec->state != 'rejected' && $cRec->state != 'closed', "Контрагента е затворен или оттеглен");
         
         // Намираме всички полета, които не са скрити или не се инпутват, те са ни позволените полета
         $me = cls::get(get_called_class());
@@ -2333,7 +2331,7 @@ abstract class deals_DealMaster extends deals_DealBase
         expect($folderId = Request::get('folderId', 'int'));
         $this->requireRightFor('add', (object)array('folderId' => $folderId));
         expect(doc_Folders::haveRightToFolder($folderId));
-        
+
         // Проверка има ли все пак желана стойност за действието
         $constValue = Request::get('autoAction', "enum(form,addProduct,createProduct,importlisted)");
         $productId = Request::get('productId', 'int');

@@ -540,7 +540,7 @@ class core_String
         if (count($matches) == 2) {
             $number = $matches[1];
             $number = self::increment($number);
-            
+
             $offset = strlen($prefix);
             $startTagPos = strrpos($string, "{$prefix}") + $offset;
             
@@ -567,10 +567,17 @@ class core_String
     public static function increment($str)
     {
         if (is_string($str)) {
-            
+
+            // Ако целия стринг е число, инкрементираме го
+            if (is_numeric($str)) {
+                ++$str;
+
+                return (string) $str;
+            }
+
             //Разделяне на текста от последното число
             preg_match("/.+?(\d+)$/", $str, $match);
-            
+
             //Ако е открито число
             if (isset($match['1'])) {
                 $numLen = strlen($match['1']);
@@ -579,13 +586,6 @@ class core_String
                 
                 // Съединяване на текста с инкрементирана с единица стойност на последното число
                 return $other . str_pad(++$match['1'], $numLen, '0', STR_PAD_LEFT);
-            }
-            
-            // Ако целия стринг е число, инкрементираме го
-            if (is_numeric($str)) {
-                ++$str;
-                
-                return (string) $str;
             }
         }
         

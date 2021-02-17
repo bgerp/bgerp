@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -106,6 +106,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         
         $this->setDbIndex('productId');
+        $this->setDbIndex('noteId,type');
     }
     
     
@@ -228,8 +229,38 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
         }
     }
-    
-    
+
+
+    /**
+     * Помощна ф-я за модифициране на записите
+     */
+    private function modifyRows($data)
+    {
+        if(!countR($data->rows)) return;
+
+        $origin = doc_Containers::getDocument($data->masterData->rec->originId);
+        if($origin->isInstanceOf('planning_Tasks')){
+            $origin = doc_Containers::getDocument($origin->fetchField('originId'));
+        }
+
+        foreach ($data->rows as $id => &$row) {
+            $rec = $data->recs[$id];
+            if (empty($rec->storeId)) {
+                $row->storeId = "<span class='quiet'>"  . tr('Незавършено производство') . '</span>';
+            } elseif($rec->type != 'pop') {
+                $threadId = $origin->fetchField('threadId');
+                $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;
+                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate, $threadId);
+            }
+
+            if(!empty($rec->quantityFromBom)){
+                $rec->quantityFromBom /= $rec->quantityInPack;
+                $row->quantityFromBom = $this->getFieldType('quantityFromBom')->fromVerbal($rec->quantityFromBom);
+            }
+        }
+    }
+
+
     /**
      * Променяме рендирането на детайлите
      *
@@ -256,11 +287,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $iData->listTableMvc = clone $this;
         $iData->rows = $data->inputArr;
         $iData->recs = array_intersect_key($iData->recs, $iData->rows);
-        
+
         $this->invoke('BeforeRenderListTable', array(&$tpl, &$iData));
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
         $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
+        $this->modifyRows($iData);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
         $tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
         
@@ -268,7 +300,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
             $tpl->append(ht::createBtn('Артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
             $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
-            
         }
 
         // Рендираме таблицата с отпадъците
@@ -280,11 +311,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $pData->listTableMvc = clone $this;
             $pData->rows = $data->popArr;
             $pData->recs = array_intersect_key($pData->recs, $pData->rows);
-            
+
             $this->invoke('BeforeRenderListTable', array(&$tpl, &$pData));
             plg_AlignDecimals2::alignDecimals($this, $pData->recs, $pData->rows);
-            
             $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, $this->hideListFieldsIfEmpty);
+            $this->modifyRows($pData);
+
             $popTable = $table->get($pData->rows, $pData->listFields);
             $detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
             
@@ -298,37 +330,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         // Връщаме шаблона
         return $tpl;
-    }
-    
-    
-    /**
-     * След преобразуване на записа в четим за хора вид.
-     */
-    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
-    {
-        if (!countR($data->recs)) {
-            
-            return;
-        }
-        
-        foreach ($data->rows as $id => &$row) {
-            $rec = $data->recs[$id];
-            if (empty($rec->storeId)) {
-                $row->storeId = "<span class='quiet'>"  . tr('Незавършено производство') . '</span>';
-            } else {
-                if ($rec->type != 'input') {
-                    continue;
-                }
-
-                $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;
-                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
-            }
-            
-            if(!empty($rec->quantityFromBom)){
-                $rec->quantityFromBom /= $rec->quantityInPack;
-                $row->quantityFromBom = $mvc->getFieldType('quantityFromBom')->fromVerbal($rec->quantityFromBom);
-            }
-        }
     }
     
     

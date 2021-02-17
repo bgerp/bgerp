@@ -112,8 +112,8 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
                 $tmpArr[$itemId] = new stdClass();
             }
             
-            // Сумираме сумите и количествата
-            if ($dRec->blQuantity >= 0) {
+            // Сумираме неотрицателните сумите и количества
+            if ($dRec->blQuantity >= 0 && $dRec->blAmount >= 0) {
                 $tmpArr[$itemId]->quantity += $dRec->blQuantity;
                 $tmpArr[$itemId]->amount += $dRec->blAmount;
             }

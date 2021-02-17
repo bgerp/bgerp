@@ -421,7 +421,7 @@ class acc_Features extends core_Manager
         }
         
         $count = countR($items);
-        core_App::setTimeLimit($count * 0.7, 600);
+        core_App::setTimeLimit($count * 0.7, false,600);
         
         // Ако има пера
         if ($count) {

@@ -578,23 +578,35 @@ class cms_Content extends core_Manager
     {
         $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
-    
-    
+
+
     /**
      * Връща опциите от менюто, които отговарят на текущия домейн и клас
+     *
+     * @param mixed $class
+     * @param null|int $domainId
+     * @return array $res
      */
     public static function getMenuOpt($class, $domainId = null)
     {
         $classId = core_Classes::getId($class);
-        if (!$domainId) {
-            $domainId = cms_Domains::getPublicDomain('id');
-        }
-        
+
         $res = array();
         $query = self::getQuery();
+        $query->where("#source = {$classId} AND #state = 'active'");
+        if(isset($domainId)){
+            $query->where("#domainId = {$domainId}");
+        }
         $query->orderBy('#order');
-        while ($rec = $query->fetch("#domainId = {$domainId} AND #source = {$classId}")) {
-            $res[$rec->id] = $rec->menu;
+
+        while ($rec = $query->fetch()) {
+            if(!isset($domainId)){
+                $title = cms_Content::getVerbal($rec, 'menu') . ' (' . cms_Content::getVerbal($rec, 'domainId') . ')';
+            } else {
+                $title = cms_Content::getVerbal($rec, 'menu');
+            }
+
+            $res[$rec->id] = $title;
         }
         
         return $res;

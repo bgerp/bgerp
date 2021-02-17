@@ -13,8 +13,25 @@
  *
  * @since     v 0.1
  */
-class export_Clipboard extends export_Csv
+class export_Clipboard extends core_Mvc
 {
+
+
+    /**
+     * Импортиране на csv-файл в даден мениджър
+     *
+     * @param int $clsId
+     * @param int $objId
+     *
+     * @return bool
+     */
+    public function canUseExport($clsId, $objId)
+    {
+
+        return cls::get('export_Csv')->canUseExport($clsId, $objId);
+    }
+
+
     /**
      * Заглавие на таблицата
      */
@@ -245,5 +262,20 @@ class export_Clipboard extends export_Csv
     {
 
         return null;
+    }
+
+
+    /**
+     * Добавя параметри към експорта на формата
+     *
+     * @param core_Form    $form
+     * @param int          $clsId
+     * @param int|stdClass $objId
+     *
+     * @return NULL|string
+     */
+    public function addParamFields($form, $clsId, $objId)
+    {
+
     }
 }

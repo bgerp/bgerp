@@ -927,18 +927,18 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return array();
     }
-    
-    
+
+
     /**
      * Добавя полета към формата за запитване
      *
      * @param int $protoProductId
      * @param core_FieldSet $fieldset
-     * @param boolean $onlyActive
+     * @param array $existingFields
      *
      * @return void
      */
-    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset, $onlyActive = false)
+    public function addInquiryFields($protoProductId, core_FieldSet &$fieldset, $existingFields = array())
     {
         
     }
@@ -954,5 +954,17 @@ abstract class cat_ProductDriver extends core_BaseClass
     public function getInquiryDataTpl($rec)
     {
         return new core_ET("");
+    }
+
+
+    /**
+     * Коя е втората мярка на артикула, ако има
+     *
+     * @param int $id   - ид
+     * @return int|null - ид на втора мяркя или null, ако няма
+     */
+    public function getSecondMeasureId($id)
+    {
+        return null;
     }
 }

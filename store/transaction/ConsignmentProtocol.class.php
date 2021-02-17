@@ -66,7 +66,18 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         // Намираме всички предадени артикули
         $sendQuery = store_ConsignmentProtocolDetailsSend::getQuery();
         $sendQuery->where("#protocolId = {$rec->id}");
-        while ($sendRec = $sendQuery->fetch()) {
+        $sendAll = $sendQuery->fetchAll();
+
+        if (Mode::get('saveTransaction')) {
+            $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
+            if($allowNegativeShipment == 'no'){
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($sendAll, $rec->storeId, $rec->state)) {
+                    acc_journal_RejectRedirect::expect(false, $warning);
+                }
+            }
+        }
+
+        foreach ($sendAll as $sendRec) {
             $productsArr[$sendRec->productId] = $sendRec->productId;
             $quantity = $sendRec->quantityInPack * $sendRec->packQuantity;
             $entries[] = array(

@@ -314,7 +314,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             return;
         }
         
-        core_App::setTimeLimit($count * 0.8, 900);
+        core_App::setTimeLimit($count * 0.8, false, 900);
         
         // Мапване на артикулите с перата и намиране на последните им дебити в посочените складове
         $map = $me->getProductItemMap($publicProductIds, $alreadyCalculatedProductIds);

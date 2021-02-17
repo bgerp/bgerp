@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class price_Updates extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name=Правило,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Себестойност->Сума,updateMode=Себестойност->Обновяване';
+    public $listFields = 'id, name=Правило,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Сб-ст,appliedOn,updateMode=Обновяване';
     
     /**
      * Кой може да го промени?
@@ -87,7 +87,8 @@ class price_Updates extends core_Manager
         
         $this->FLD('costValue', 'double', 'input=none,caption=Себестойност');
         $this->FLD('updateMode', 'enum(manual=Ръчно,now=При изчисление,nextDay=Следващия ден,nextWeek=Следващата седмица,nextMonth=Следващия месец)', 'caption=Обновяване');
-        
+        $this->FLD('appliedOn', 'datetime', 'input=none,caption=Последно');
+
         $this->setDbUnique('objectId,type');
     }
     
@@ -405,6 +406,7 @@ class price_Updates extends core_Manager
                 
                 // Влиза в сила от 00:00 на следващия ден
                 $date = dt::addDays(1, dt::today());
+
                 break;
             case 'nextWeek':
                 
@@ -474,28 +476,32 @@ class price_Updates extends core_Manager
         
         // Обновяване на себестойностите на всички засегнати артикули от предишното време на обновяване
         price_ProductCosts::saveCalcedCosts($datetime);
-       
+        $updateRules = array();
+
         // Взимаме всички записи
         $now = dt::now();
         $query = $this->getQuery();
-        
+
         // За всеки
         while ($rec = $query->fetch()) {
-            
             try {
-                // Ако не може да се изпълни, пропускаме го
-                if (!$this->canBeApplied($rec, $now)) {
-                    continue;
-                }
-                
+                // Ако не може да се изпълни, пропуска се
+                if (!$this->canBeApplied($rec, $now)) continue;
+
                 // Ще обновяваме себестойностите в модела, освен за записите на които ръчно ще трябва да се обнови
                 $saveInPriceList = ($rec->updateMode == 'manual') ? false : true;
-                
+                $updateRules[$rec->id] = $rec;
+
                 // Изчисляваме и записваме себестойностите
                 $this->savePrimeCost($rec, $saveInPriceList);
             } catch (core_exception_Expect $e) {
                 reportException($e);
             }
+        }
+
+        // Обновяване на времето на изпълнение на последните записи
+        if(countR($updateRules)){
+            $this->saveArray($updateRules, 'id,appliedOn');
         }
     }
     
@@ -508,39 +514,70 @@ class price_Updates extends core_Manager
      *
      * @return bool $res  - може или не може да се изпълни условието
      */
-    private function canBeApplied($rec, $date)
+    private function canBeApplied(&$rec, $date)
     {
         $res = false;
+        $appliedOn = null;
+
         switch ($rec->updateMode) {
             case 'manual':
             case 'now':
                 $res = true;
+                $appliedOn = dt::now();
                 break;
             case 'nextDay':
                 
-                // Дали часа от датата е 15:00
-                $hour = dt::mysql2verbal($date, 'H');
-                $res = ($hour == '15');
+                // Дали часа от датата е 23:00
+                $normNow = dt::mysql2verbal($date, 'd.m.y');
+                $lastAppliedOn = ($rec->appliedOn) ? dt::mysql2verbal($rec->appliedOn, 'd.m.y') : null;
+                if($lastAppliedOn != $normNow){
+                    $hour = dt::mysql2verbal($date, 'H');
+                    if($hour == '23'){
+                        $res = true;
+                    }
+                }
+
                 break;
             case 'nextWeek':
                 
-                // Дали датата е петък 15:00 часа
-                $day = dt::mysql2verbal($date, 'D:H', 'en');
-                $res = ($day == 'Fri:15');
+                // Дали датата е петък 23:00 часа
+                $normNow = dt::mysql2verbal($date, 'D:H', 'en');
+                $lastAppliedOn = ($rec->appliedOn) ? dt::mysql2verbal($rec->appliedOn, 'D:H', 'en') : null;
+
+                $res = false;
+                if($lastAppliedOn != $normNow){
+                    if($normNow == 'Fri:23'){
+                        $res = true;
+                    }
+                }
+
                 break;
             case 'nextMonth':
                 
-                // Дали датата е 5 дена преди края на текущия месец в 15:00 часа
+                // Дали датата е 5 дена преди края на текущия месец в 23:00 часа
                 $lastDayOfMonth = dt::getLastDayOfMonth($date);
                 $dateToCompare = dt::addDays(-5, $lastDayOfMonth);
-                $dateToCompare = dt::addSecs(60 * 60 * 15, $dateToCompare);
-                $dateToCompare = dt::mysql2verbal($dateToCompare, 'd:H');
-                $date = dt::mysql2verbal($date, 'd:H');
-                
-                $res = ($date == $dateToCompare);
+                $dateToCompare = dt::addSecs(60 * 60 * 23, $dateToCompare);
+                $dateToCompare = dt::mysql2verbal($dateToCompare, 'd.m');
+                $lastAppliedOn = ($rec->appliedOn) ? dt::mysql2verbal($rec->appliedOn, 'd.m') : null;
+
+                // Ако е станала датата на изпълнение
+                if($lastAppliedOn != $dateToCompare){
+                    $normNow = dt::mysql2verbal($date, 'd.m');
+                    if($normNow == $dateToCompare){
+                        $res = true;
+                        $rec->appliedOn = dt::mysql2verbal(null, 'Y-m-d 23:00:00');
+                    }
+                }
+
                 break;
         }
-        
+
+        // Ако ще се изпълни правилото на коя дата ще се приложи
+        if($res){
+            $rec->appliedOn = ($appliedOn) ? $appliedOn : dt::mysql2verbal(null, 'Y-m-d 23:00:00');
+        }
+
         // Връщаме резултата
         return $res;
     }
@@ -553,6 +590,12 @@ class price_Updates extends core_Manager
     {
         if (haveRole('debug')) {
             $data->toolbar->addBtn('Преизчисли', array($mvc, 'recalc'), null, 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на себестойностите,target=_blank');
+        }
+
+        if (haveRole('admin')) {
+            $cronRec = core_Cron::getRecForSystemId('Update primecosts');
+            $url = array('core_Cron', 'ProcessRun', str::addHash($cronRec->id), 'forced' => 'yes');
+            $data->toolbar->addBtn('Обновяване', $url, 'title=Обновяване на себестойностите,ef_icon=img/16/arrow_refresh.png,target=cronjob');
         }
     }
     

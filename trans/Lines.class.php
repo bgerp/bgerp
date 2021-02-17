@@ -9,7 +9,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -195,7 +195,6 @@ class trans_Lines extends core_Master
         $this->FLD('start', 'datetime', 'caption=Начало, mandatory');
         $this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици)', 'caption=Повторение');
         $this->FLD('state', 'enum(draft=Чернова,,pending=Заявка,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
-        $this->FLD('isRepeated', 'enum(yes=Да,no=Не)', 'caption=Генерирано на повторение,input=none');
         $this->FLD('vehicle', 'varchar', 'caption=Превозвач->Превозно средство,oldFieldName=vehicleId');
         $this->FLD('forwarderId', 'key2(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
         $this->FLD('forwarderPersonId', 'key2(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Превозвач->МОЛ');
@@ -293,8 +292,7 @@ class trans_Lines extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
-            $rec->isRepeated = 'no';
+
             if ($rec->start < dt::today()) {
                 $form->setError('start', 'Не може да се създаде линия за предишен ден!');
             }
@@ -367,9 +365,7 @@ class trans_Lines extends core_Master
         
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$data->rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
-        
-       
-        
+
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
             $transInfo = $Document->getTransportLineInfo($data->rec->id);
@@ -501,7 +497,7 @@ class trans_Lines extends core_Master
     {
         $linesArr = array();
         $query = self::getQuery();
-        $query->where("#state = 'pending'");
+        $query->where("#state = 'pending' AND #start >= NOW()");
         $query->orderBy('id', 'DESC');
         
         $recs = $query->fetchAll();
@@ -555,57 +551,10 @@ class trans_Lines extends core_Master
     
     
     /**
-     * Метод опресняващ затварящ транспортната линия
-     *
-     * @param stdClass $data - дата
-     *
-     * @return void
-     */
-    public static function callback_closeAfterDate($data)
-    {
-        try {
-            expect($rec = self::fetch($data->id));
-            if (in_array($rec->state, array('closed', 'rejected'))) {
-                
-                return;
-            }
-            $me = cls::get(get_called_class());
-            
-            $rec->state = 'closed';
-            $me->save_($rec, 'state');
-            self::removeAllSetCloseTimes($rec->id);
-        } catch (core_exception_Expect $e) {
-            reportException($e);
-        }
-    }
-    
-    
-    /**
-     * Премахване на зададените времена за обновяване
-     *
-     * @param int $id
-     *
-     * @return void
-     */
-    private static function removeAllSetCloseTimes($id)
-    {
-        foreach (range(0, 2) as $i) {
-            $data = (object) array('id' => (string) $id, 'index' => (string) $i);
-            core_CallOnTime::remove(get_called_class(), 'closeAfterDate', $data);
-        }
-    }
-    
-    
-    /**
      * Извиква се след успешен запис в модела
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        // Ако линията е активна ще се опреснят времената за затваряне
-        if ($rec->state == 'active') {
-            $mvc->setCloseTimes[$rec->id] = $rec;
-        }
-        
         // При промяна на състоянието да се инвалидира, кеша на документите от нея
         if (in_array($rec->state, array('active', 'closed', 'rejected'))) {
             $dQuery = trans_LineDetails::getQuery();
@@ -614,44 +563,6 @@ class trans_Lines extends core_Master
             while($dRec = $dQuery->fetch()){
                 doc_DocumentCache::cacheInvalidation($dRec->containerId);
             }
-        }
-    }
-    
-    
-    /**
-     * След изпълнение на скрипта, обновява записите, които са за ъпдейт
-     */
-    public static function on_Shutdown($mvc)
-    {
-        // Задаване на времена за затваряне
-        if (is_array($mvc->setCloseTimes)) {
-            foreach ($mvc->setCloseTimes as $rec) {
-                $mvc->setAutoClose($rec);
-            }
-        }
-    }
-    
-    
-    /**
-     * Задаване на следващи времена, когато линията да бъде затворена
-     *
-     * @param stdClass $rec
-     *
-     * @return void
-     */
-    private function setAutoClose($rec)
-    {
-        self::removeAllSetCloseTimes($rec->id);
-        $closeTime = ($rec->start) ? $rec->start : $this->fetchField($rec->id, 'start');
-        if (!strpos($closeTime, ' ')) {
-            $closeTime .= ' 23:59:59';
-        }
-        
-        foreach (range(0, 2) as $i) {
-            $closeTime = dt::addSecs(7200, $closeTime);
-            $data = (object) array('id' => (string) $rec->id, 'index' => (string) $i);
-            
-            core_CallOnTime::setOnce($this->className, 'closeAfterDate', $data, $closeTime);
         }
     }
     
@@ -666,6 +577,47 @@ class trans_Lines extends core_Master
                 $requiredRoles = 'no_one';
             } elseif (self::countDocumentsByState($rec->id, 'pending,draft,rejected')) {
                 $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * Затваряне на транспортни линии по разписание
+     */
+    public function cron_CloseTransLines()
+    {
+        $activeTime = trans_Setup::get('LINES_ACTIVATED_AFTER');
+        $pendingTime = trans_Setup::get('LINES_PENDING_AFTER');
+
+        $activeFrom = dt::addSecs(-1 * $activeTime);
+        $pendingFrom = dt::addSecs(-1 * $pendingTime);
+
+        $now = dt::now();
+        $query = $this->getQuery();
+        $query->where("#state = 'active' || #state = 'pending'");
+
+        while($rec = $query->fetch()){
+            if (self::countDocumentsByState($rec->id, 'draft')) continue;
+
+            // Затварят се активните и заявките, на които им е изтекло времето
+            if($rec->state == 'active'){
+                $date = !empty($rec->activatedOn) ? $rec->activatedOn : $rec->modifiedOn;
+                if($date <= $activeFrom){
+                    $rec->state = 'closed';
+                    $rec->brState = 'active';
+                    $this->save($rec, 'state,brState,modifiedOn,modifiedBy');
+                    $this->logWrite('Автоматично приключване на активна линия', $rec->id);
+                }
+            } else {
+
+                // Ако началото е в миналото, и не е бутана дълго време
+                if($rec->start <= $now && $rec->modifiedOn <= $pendingFrom){
+                    $rec->state = 'closed';
+                    $rec->brState = 'pending';
+                    $this->save($rec, 'state,brState,modifiedOn,modifiedBy');
+                    $this->logWrite('Автоматично приключване на линия на заявка', $rec->id);
+                }
             }
         }
     }

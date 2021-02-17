@@ -68,6 +68,32 @@ defIfNot('ESHOP_MAX_NEAR_PRODUCTS', '12');
 
 
 /**
+ * Запитванията и онлайн поръчките, може да се пускат от
+ */
+defIfNot('ESHOP_MANDATORY_INQUIRY_CONTACT_FIELDS', 'person');
+
+
+/**
+ * Изисквуемо ли е полето за ЕГН в запитванията и онлайн магазина
+ */
+defIfNot('ESHOP_MANDATORY_EGN', 'no');
+
+
+/**
+ * Изисквуемо ли е полето за ЕИК в запитванията и онлайн магазина
+ */
+defIfNot('ESHOP_MANDATORY_UIC_ID', 'no');
+
+
+/**
+ * Изисквуемо ли е полето за ДДС № в запитванията и онлайн магазина
+ */
+defIfNot('ESHOP_MANDATORY_VAT_ID', 'no');
+
+
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -153,11 +179,15 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_NOT_IN_STOCK_TEXT' => array('varchar', 'caption=Стрингове във външната част->Липса на наличност'),
         'ESHOP_SALE_DEFAULT_TPL_BG' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Български,optionsFunc=sales_Sales::getTemplateBgOptions'),
         'ESHOP_SALE_DEFAULT_TPL_EN' => array('key(mvc=doc_TplManager,allowEmpty)', 'caption=Шаблон за онлайн продажба->Английски,optionsFunc=sales_Sales::getTemplateEnOptions'),
-        'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
         'ESHOP_CART_ACCESS_SALT' => array('varchar', 'caption=Даване на достъп за присвояване на количка->Сол'),
         'ESHOP_PRODUCTS_PER_PAGE' => array('int(Min=0)', 'caption=Брой артикули на страница в групата->Брой'),
         'ESHOP_RATINGS_OLDER_THEN' => array('time', 'caption=Изчисляване на рейтинги за продажба->Изчисляване от'),
         'ESHOP_MAX_NEAR_PRODUCTS' => array('int(min=0)', 'caption=Максимален брой свързани артикули->Брой,callOnChange=eshop_Setup::updateNearProducts'),
+        'ESHOP_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за количката->Поле'),
+        'ESHOP_MANDATORY_INQUIRY_CONTACT_FIELDS' => array('enum(company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за'),
+        'ESHOP_MANDATORY_EGN' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕГН'),
+        'ESHOP_MANDATORY_UIC_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕИК'),
+        'ESHOP_MANDATORY_VAT_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ДДС №'),
     );
     
     

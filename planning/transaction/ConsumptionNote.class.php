@@ -59,7 +59,18 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
         
         $dQuery = planning_ConsumptionNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
-        while ($dRec = $dQuery->fetch()) {
+        $details = $dQuery->fetchAll();
+
+        if (Mode::get('saveTransaction')) {
+            $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
+            if($allowNegativeShipment == 'no'){
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->storeId, $rec->state)) {
+                    acc_journal_RejectRedirect::expect(false, $warning);
+                }
+            }
+        }
+
+        foreach ($details as $dRec) {
             $productsArr[$dRec->productId] = $dRec->productId;
             $debitArr = null;
             

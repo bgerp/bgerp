@@ -92,7 +92,7 @@
                                         <!--ET_END deadlineForBalancePayment-->
                                         <!--ET_BEGIN accountId-->
                                         <hr>
-                                        <div>
+                                        <div class="[#BANK_BLOCK_CLASS#]">
                                             <span class='quiet'>|Банкова с-ка|* / <i>Bank account</i>:</span> [#accountId#]
                                             <div class="smallData">
                                                 <!--ET_BEGIN bank-->

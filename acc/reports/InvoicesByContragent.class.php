@@ -416,8 +416,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $salesInvoiceNotPaid = $invDiff;
                             }
 
-                            if (('{$invAmount}' - '{$invPayout}') < 0) {
-                                $salesInvoiceOverPaid = -1 * $invDiff;
+                            if ($invDiff < 0) {
+                                $salesInvoiceOverPaid = $invDiff;
                             }
 
                             if ($iRec->dueDate && $invDiff > 0 &&

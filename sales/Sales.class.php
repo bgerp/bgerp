@@ -328,7 +328,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Допълнително->Цени,notChangeableByContractor');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
-        $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=От всички)', 'input=none');
+        $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
@@ -1228,8 +1228,11 @@ class sales_Sales extends deals_DealMaster
             if(empty($rec->visiblePricesByAllInThread) && in_array($rec->state, array('draft', 'pending'))){
                 $listId = isset($rec->priceListId) ? $rec->priceListId : price_ListToCustomers::getListForCustomer($rec->contragentClassId, $rec->contragentId, $rec->valior);
                 $visiblePrices = $mvc->getFieldType('visiblePricesByAllInThread')->toVerbal(price_Lists::fetchField($listId, 'visiblePricesByAnyone'));
-                $row->visiblePricesByAllInThread = ht::createHint($visiblePrices, 'Ще бъде записано след активиране, спрямо зададеното в ценовата политика за клиента');
+                $row->visiblePricesByAllInThread = $visiblePrices;
             }
+
+            $row->visiblePricesByAllInThread = ht::createHint("", "Цени и суми в нишката|*: |{$row->visiblePricesByAllInThread}|*");
+
 
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
@@ -1637,14 +1640,35 @@ class sales_Sales extends deals_DealMaster
                 $dQuery = sales_SalesDetails::getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
                 $dQuery->where("#saleId = {$rec->id}");
-                $dQuery->show('productId,quantity');
-                
+                $dQuery->show('productId,quantity,canStore');
                 $dQuery2 = clone $dQuery;
-                $dQuery->where("#canStore = 'yes'");
-                
-                $detailsStorable = $dQuery->fetchAll();
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsStorable, $rec->shipmentStoreId, $rec->state)) {
-                    $form->setWarning('action', $warning);
+
+                $detailsToCheck = array();
+                while($dRec = $dQuery->fetch()){
+                    $addProductToCheck = true;
+                    $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
+                    if(is_object($instantBomRec)){
+                        $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
+                        if(is_array($bomInfo['resources'])){
+                            foreach ($bomInfo['resources'] as $r){
+                                $detailsToCheck[] = (object)array('productId' => $r->productId, 'quantity' => $r->propQuantity);
+                                $addProductToCheck = false;
+                            }
+                        }
+                    }
+
+                    if($addProductToCheck){
+                        $detailsToCheck[] = $dRec;
+                    }
+                }
+
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsToCheck, $rec->shipmentStoreId, $rec->state)) {
+                    $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
+                    if($allowNegativeShipment == 'yes'){
+                        $form->setWarning('action', $warning);
+                    } else {
+                        $form->setError('action', $warning);
+                    }
                 }
                 
                 $detailsAll = $dQuery2->fetchAll();

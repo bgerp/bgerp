@@ -884,7 +884,7 @@ class planning_Tasks extends core_Master
             }
            
             if ($productRec->canStore == 'yes') {
-                $packs = cat_Products::getPacks($rec->productId);
+                $packs = cat_Products::getPacks($rec->productId, false, $originRec->secondMeasureId);
                 $form->setOptions('packagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
             }

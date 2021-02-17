@@ -14,6 +14,12 @@ defIfNot('HR_EC_MAX', '10000');
 
 
 /**
+ * Краен номер на фактурите
+ */
+defIfNot('HR_EMAIL_TO_PERSON', '');
+
+
+/**
  * class hr_Setup
  *
  * Инсталиране/Деинсталиране на човешки ресурси
@@ -66,6 +72,7 @@ class hr_Setup extends core_ProtoSetup
     public $configDescription = array(
         'HR_EC_MIN' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Долна граница'),
         'HR_EC_MAX' => array('int(min=0)', 'caption=Диапазон за номериране на трудовите договори->Горна граница'),
+        'HR_EMAIL_TO_PERSON' => array('key(mvc=crm_Persons,select=name, allowEmpty, where=#state !\\= \\\'rejected\\\')', 'caption=Изпращане на имейл към->Лице'),
     );
     
     
