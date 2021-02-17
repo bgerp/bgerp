@@ -5,7 +5,23 @@
   padding:0px;
   color:white;
   cursor: pointer;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
 }
+
+div.selected {
+   outline: dotted 4px black;
+   z-index:10000;
+}
+
+.floor {
+  margin: 5px;
+  position:fixed; 
+  display:table;
+  margin-top: 10px;
+}
+
 .ui-draggable-dragging {
     opacity:0.8;
     z-index:100000;
@@ -18,4 +34,9 @@
   font-weight:bold;
   overflow: hidden;
   color: #000;
+}
+
+body {
+	display: flex;
+	justify-content: center;
 }

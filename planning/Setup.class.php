@@ -20,6 +20,12 @@ defIfNot('PLANNING_TASK_WEIGHT_TOLERANCE_WARNING', 0.05);
 
 
 /**
+ * Допустим толеранс за втората мярка в протокола за производство
+ */
+defIfNot('PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING', 0.1);
+
+
+/**
  * Отчитане на теглото в ПО->Режим
  */
 defIfNot('PLANNING_TASK_WEIGHT_MODE', 'yes');
@@ -56,6 +62,24 @@ defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
 
 
 /**
+ * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
+ */
+defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
+
+
+/**
+ * Автоматично приключване на задание, изпълнени над
+ */
+defIfNot('PLANNING_JOB_AUTO_COMPLETION_PERCENT', '');
+
+
+/**
+ * Автоматично приключване на задание, да не са модифицирани от
+ */
+defIfNot('PLANNING_JOB_AUTO_COMPLETION_DELAY', '21600');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -63,7 +87,7 @@ defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
  * @package   planning
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -110,8 +134,12 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
         'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
-        'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent', 'caption=Отчитане на теглото в ПО->Предупреждение'),
+        'PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Толеранс за разминаване между очакваното съответствие в протоколите за производство->Предупреждение'),
+        'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Отчитане на теглото в ПО->Предупреждение'),
         'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
+
+        'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на заданието->Изпълнени над,callOnChange=planning_Setup::setJobAutoClose'),
+        'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на заданието->Без модификации от'),
     );
     
     
@@ -140,6 +168,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',
+        'migrate::updateSecondMeasure',
     );
     
     
@@ -189,5 +218,87 @@ class planning_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StageDriver', 'private');
         
         return $html;
+    }
+
+
+    /**
+     * След промяна на процента за приключване на задание
+     */
+    public static function setJobAutoClose($Type, $oldValue, $newValue)
+    {
+        $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
+        if(empty($newValue)){
+            if(is_object($exRec)){
+                $exRec->state = 'stopped';
+                core_Cron::save($exRec, 'state');
+            }
+        } elseif(empty($oldValue)) {
+            $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
+            if($exRec->state == 'stopped'){
+                $exRec->state = 'free';
+                core_Cron::save($exRec, 'state');
+            } else {
+                $rec = new stdClass();
+                $rec->systemId =  'Close Old Jobs';
+                $rec->description = 'Затваряне на стари задания';
+                $rec->controller = 'planning_Jobs';
+                $rec->action = 'CloseOldJobs';
+                $rec->period = 720;
+                $rec->offset = 60;
+                $rec->delay = 0;
+                $rec->timeLimit = 120;
+
+                core_Cron::addOnce($rec);
+            }
+        }
+    }
+
+
+    /**
+     * Миграция на втората мярка на заданията
+     */
+    public function updateSecondMeasure()
+    {
+        $Jobs = cls::get('planning_Jobs');
+        if(!$Jobs->count()) return;
+
+        $cubMeasureId = cat_UoM::fetchBySinonim('cub.m')->id;
+        $litreId = cat_UoM::fetchBySinonim('l')->id;
+
+        // Обновяване на заданията, които имат втора мярка
+        $updateNoSecondMeasure = $updateLitre = array();
+        $query = $Jobs->getQuery();
+        $query->where("#state != 'closed' AND #state != 'rejected' AND (#allowSecondMeasure = '' OR #allowSecondMeasure IS NULL)");
+
+        // За всяко
+        while($rec = $query->fetch()){
+
+            // Ако няма втора мярка, значи ще е без
+            if(empty($rec->secondMeasureId)){
+                $rec->allowSecondMeasure = 'no';
+                $updateNoSecondMeasure[$rec->id] = $rec;
+            } else {
+                $rec->allowSecondMeasure = 'yes';
+
+                // Ако втората мярка е кубичен метър подменя се с литър
+                if($rec->secondMeasureId == $cubMeasureId){
+                    $rec->secondMeasureId = $litreId;
+                    if(!empty($rec->secondMeasureQuantity)){
+                        $rec->secondMeasureQuantity = cat_UoM::convertValue($rec->secondMeasureQuantity, $cubMeasureId, $litreId);
+                    }
+                    $updateLitre[$rec->id] = $rec;
+                } else {
+                    $updateNoSecondMeasure[$rec->id] = $rec;
+                }
+            }
+        }
+
+        if(countR($updateNoSecondMeasure)){
+            $Jobs->saveArray($updateNoSecondMeasure, 'id,allowSecondMeasure');
+        }
+
+        if(countR($updateLitre)){
+            $Jobs->saveArray($updateLitre, 'id,allowSecondMeasure,secondMeasureId,secondMeasureQuantity');
+        }
     }
 }

@@ -131,7 +131,7 @@ abstract class deals_Helper
             if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
                 $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
             }
-            
+
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
             $price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
@@ -207,6 +207,7 @@ abstract class deals_Helper
 
         // "Просто" изчисляване на ДДС-то в документа, ако има само една ставка
         if (countR($vats) == 1 && ($masterRec->type == 'invoice' || $masterRec->type == 'dc_note')) {
+
             $vat = key($vats);
             $vats[$vat]->sum = round($vats[$vat]->sum, 2);
             $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
@@ -422,18 +423,20 @@ abstract class deals_Helper
 
         $stRec = store_Products::getQuantities($productId, $storeId);
         $quantity = $stRec->free;
-        
-        $Double = cls::get('type_Double');
-        $Double->params['smartRound'] = 'smartRound';
-        
+        $quantityInStock = $stRec->quantity;
+
+        $Double = core_Type::getByName('double(smartRound)');
+
         $pInfo = cat_Products::getProductInfo($productId);
         $shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
         $storeName = isset($storeId) ? (" |в|* " . store_Stores::getTitleById($storeId)) : '';
         $verbalQuantity = $Double->toVerbal($quantity);
+        $verbalQuantityInStock = $Double->toVerbal($quantityInStock);
+
         $verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
         $foundQuantity = $quantity;
         
-        $text = "|Разполагаемо|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
+        $text = "|Налично|* <b>{$storeName}</b> : {$verbalQuantityInStock} {$shortUom}, |Разполагаемо|* : {$verbalQuantity} {$shortUom}";
         if (!empty($stRec->reserved)) {
             $verbalReserved = $Double->toVerbal($stRec->reserved);
             $text .= ' ' . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
@@ -483,10 +486,11 @@ abstract class deals_Helper
      *
      * @return void
      */
-    public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
+    public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack = null)
     {
         if ($packRec = cat_products_Packagings::getPack($productId, $packagingId)) {
             if (cat_UoM::fetchField($packagingId, 'showContents') == 'yes') {
+                $quantityInPack = isset($quantityInPack) ? $quantityInPack : $packRec->quantity;
                 $measureId = cat_Products::fetchField($productId, 'measureId');
                 $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack, $packRec);
             }
@@ -724,16 +728,18 @@ abstract class deals_Helper
      * @param int   $productId
      * @param int   $storeId
      * @param float $quantity
-     * @param string state
+     * @param string $state
+     * @param datetime $date
+     * @param int $ignoreFirstDocumentPlannedInThread
      *
      * @return void
      */
-    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state, $date = null)
+    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state, $date = null, $ignoreFirstDocumentPlannedInThread = null)
     {
         if (!in_array($state, array('draft', 'pending'))) {
             return;
         }
-        
+
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if ($canStore != 'yes') {
             return;
@@ -742,8 +748,28 @@ abstract class deals_Helper
         $date = isset($date) ? $date : null;
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
         $stRec = store_Products::getQuantities($productId, $storeId, $date);
-        $freeQuantityOriginal = $stRec->free;
 
+        // Ако има посочена нишка, чийто първи документ да се игнорира от хоризонтите,
+        if(isset($ignoreFirstDocumentPlannedInThread)){
+            if($firstDocument = doc_Threads::getFirstDocument($ignoreFirstDocumentPlannedInThread)){
+
+                $iQuery = store_StockPlanning::getQuery();
+                $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that}");
+                $iQuery->show('quantityIn,quantityOut');
+                $iRec = $iQuery->fetch();
+
+                // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
+                if(is_object($iRec) && is_object($stRec)){
+                    $stRec->reserved -= $iRec->quantityOut;
+                    $stRec->reserved = abs($stRec->reserved);
+                    $stRec->expected -= $iRec->quantityIn;
+                    $stRec->expected = abs($stRec->expected);
+                    $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                }
+            }
+        }
+
+        $freeQuantityOriginal = $stRec->free;
         $Double = core_Type::getByName('double(smartRound)');
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
         $futureQuantity = $stRec->quantity - $quantity;
@@ -766,11 +792,18 @@ abstract class deals_Helper
         
         if (!empty($hint)) {
             $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
-            
+
+            //  Показване на хоризонта при нужда
+            $productName = cat_Products::getVerbal($productId, 'name');
+            $url = array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName);
+            if(isset($date)){
+                $diff = dt::secsBetween(dt::verbal2mysql($date, false), dt::today());
+                $url['horizon'] = $diff;
+            }
+
             // Линк към наличното в склада ако има права
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
-                $productName = cat_Products::getVerbal($productId, 'name');
-                $html = ht::createLinkRef($html, array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName));
+                $html = ht::createLinkRef($html, $url);
             }
         }
     }
@@ -1762,22 +1795,18 @@ abstract class deals_Helper
     {
         $warning = null;
         $productsWithNegativeQuantity = array();
-        if (!is_array($arr) || !countR($arr)) {
-            return;
-        }
-        
+        if (!is_array($arr) || !countR($arr)) return;
+
         foreach ($arr as $obj) {
             $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
-            if ($canStore != 'yes') {
-                return;
-            }
-            
+            if ($canStore != 'yes') continue;
+
             $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
             }
         }
-        
+
         if (countR($productsWithNegativeQuantity)) {
             $warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ' . implode(', ', $productsWithNegativeQuantity) . ', |в склад|* ' . store_Stores::getTitleById($storeId);
         }

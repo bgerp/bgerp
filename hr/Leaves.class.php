@@ -40,8 +40,8 @@ class hr_Leaves extends core_Master
      */
     public $loadList = 'plg_RowTools2, hr_Wrapper, doc_plg_TransferDoc,bgerp_plg_Blank,plg_Sorting, 
     				 doc_DocumentPlg, acc_plg_DocumentSummary, doc_ActivatePlg,
-    				 plg_Printing,doc_SharablePlg,plg_Search';
-    
+    				 plg_Printing,doc_SharablePlg,plg_Search, hr_EmailCreatePlg';
+
     
     /**
      * Полета, които ще се показват в листов изглед

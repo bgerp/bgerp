@@ -42,7 +42,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         if (countR($entries)) {
             $result->entries = $entries;
         }
-        
+
         if (Mode::get('saveTransaction')) {
             $productArr = arr::extractValuesFromArray($rec->_details, 'productId');
             if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canConvert', null, 'трябва да са вложими')){
@@ -59,6 +59,29 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     acc_journal_RejectRedirect::expect(false, $redirectError);
                 }
             }
+
+            if (Mode::get('saveTransaction')) {
+                $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
+
+                // Ако е забранено да се изписва на минус, прави се проверка
+                if($allowNegativeShipment == 'no'){
+                    $shippedProductsFromStores = array();
+                    foreach ($rec->_details as $d){
+                        if(isset($d->storeId)){
+                            $shippedProductsFromStores[$d->storeId][] = $d;
+                        }
+                    }
+
+                    foreach ($shippedProductsFromStores as $storeId => $arr){
+                        if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($arr, $storeId, $rec->state)) {
+                            acc_journal_RejectRedirect::expect(false, $warning);
+                        }
+                    }
+                }
+            }
+
+
+
         }
         
         return $result;

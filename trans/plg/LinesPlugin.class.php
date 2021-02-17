@@ -10,7 +10,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -106,8 +106,16 @@ class trans_plg_LinesPlugin extends core_Plugin
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
         $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт' . ($exLineId ? '' : ''));
         $form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки,after=volume');
-        
-        $form->setOptions('lineId', array('' => '') + trans_Lines::getSelectableLines());
+        $linesArr = trans_Lines::getSelectableLines();
+        if(isset($exLineId) && !array_key_exists($exLineId, $linesArr)){
+            $linesArr[$exLineId] = trans_Lines::getRecTitle($exLineId, true);
+        }
+
+        if(!countR($linesArr)){
+            $form->info = tr("Няма транспортни линии на заявка с бъдеща дата");
+        }
+
+        $form->setOptions('lineId', array('' => '') + $linesArr);
         $form->setDefault('lineId', $rec->{$mvc->lineFieldName});
         $form->setDefault('lineNotes', $rec->lineNotes);
         

@@ -26,7 +26,7 @@ class floor_Objects extends core_Detail {
    /**
      * Необходими плъгини
      */
-    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper,plg_SaveAndNew';
+    public $loadList = 'plg_Created, plg_RowTools2, plg_State2, plg_Rejected, floor_Wrapper, plg_SaveAndNew';
     
     
     /**
@@ -103,9 +103,77 @@ class floor_Objects extends core_Detail {
 
         $this->FLD('image', 'fileman_FileType(bucket=pictures)', 'caption=Фон->Изображение');
         $this->FLD('backgroundColor', 'color_Type', 'caption=Фон->Цвят');
+        $this->FLD('opacity', 'percent(min=0.0,max=1.0)', 'caption=Фон->Непрозрачност');
 
         $this->FLD('text', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
 
         $this->setDbUnique('name');
     }
+
+
+    /**
+     * @TODO описание
+     *
+     * След потготовка на формата за добавяне / редактиране.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     *
+     * @return bool|null
+     */
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
+ 
+        if($rec->id) {
+            $form->toolbar->addSbBtn('Дубликат', 'duplicate', 'id=duplicate,order=10.0002,ef_icon=img/16/duplicate.png');
+            if($form->isSubmitted()) {
+                 if($form->cmd == 'duplicate') { 
+                    $form->cmd = 'save';
+                    $rec->_duplicate = true;
+                    if(!strlen($rec->name)) {
+                        $rec->name = 'Obj1';
+                    }
+                    while(self::fetch(array("#name = '[#1#]'", $rec->name))) {
+                        self::increaseName($rec->name);  
+                    }
+                    $rec->_duplicate = $rec->name;
+                }
+            }
+         }
+    }
+
+
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if(isset($rec->_duplicate)) {
+            unset($rec->id);
+            $rec->name = $rec->_duplicate;
+        }
+    }
+
+
+    /**
+     * Инкрементира с 1 стоящата накрая числова част на стринга
+     */
+    static function increaseName(&$name)
+    {
+        preg_match("/^(.*[^0-9]+|)(\\d+)$/", $name, $matches);
+        if(count($matches)) {
+            $name = $matches[1] . ($matches[2]+1);
+        } else {
+            $name = $name . '_1';
+        }
+    }
+
 }

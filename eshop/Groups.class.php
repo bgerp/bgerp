@@ -31,7 +31,7 @@ class eshop_Groups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search,plg_StructureAndOrder';
+    public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, cms_plg_ContentSharable, eshop_Wrapper, plg_State2, cms_VerbalIdPlg,plg_Search,plg_StructureAndOrder';
     
     
     /**
@@ -117,8 +117,8 @@ class eshop_Groups extends core_Master
      */
     public function description()
     {
-        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm,mandatory');
-        $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,refreshForm');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,removeAndRefreshForm,mandatory');
+        $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,removeAndRefreshForm');
         
         $this->FLD('name', 'varchar(64)', 'caption=Група->Наименование, mandatory,width=100%');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Група->Описание');
@@ -139,40 +139,8 @@ class eshop_Groups extends core_Master
      */
     protected function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $classId = core_Classes::getId($mvc->className);
-        $domainId = cms_Domains::getCurrent();
-        if (isset($data->form->rec) && ($menuId = $data->form->rec->menuId)) {
-            $cond = "(#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}) || (#id = ${menuId})";
-        } else {
-            $cond = "#source = {$classId} AND #state = 'active' AND #domainId = {$domainId}";
-        }
-        
-        $cQuery = cms_Content::getQuery();
-        $egId = core_Classes::getId('eshop_Groups');
-        $cQuery->where("#source = {$egId}");
-        
-        if ($menuId) {
-            $cQuery->where("#id != {$menuId}");
-        }
-        
-        $menuArr = array();
-        while ($cRec = $cQuery->fetch()) {
-            $menuArr[$cRec->id] = cms_Content::getVerbal($cRec, 'menu') . ' (' . cms_Content::getVerbal($cRec, 'domainId') . ')';
-        }
-        $data->form->setSuggestions('sharedMenus', $menuArr);
-        
-        $cQuery = cms_Content::getQuery();
-        $opt = array();
-        while ($rec = $cQuery->fetch($cond)) {
-            $opt[$rec->id] = cms_Content::getVerbal($rec, 'menu');
-        }
-        
-        if (countR($opt) == 1) {
-            $data->form->setReadOnly('menuId');
-        }
-        
-        $data->form->setOptions('menuId', $opt);
-        $data->form->setField('perPage', 'placeholder=' . eshop_Setup::get('PRODUCTS_PER_PAGE'));
+        $form = &$data->form;
+        $form->setField('perPage', 'placeholder=' . eshop_Setup::get('PRODUCTS_PER_PAGE'));
     }
     
     
@@ -395,7 +363,7 @@ class eshop_Groups extends core_Master
         core_Lg::pop();
         
         $layout->push('css/no-sass.css', 'CSS');
-        
+
         return $layout;
     }
     

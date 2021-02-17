@@ -252,7 +252,39 @@ class email_Spam extends email_ServiceEmails
                 $score += $aScore;
             }
         }
-        
+
+        // Ако има комуникация с имейла, намаляме точники
+        $fromEmail = $mime->getFromEmail();
+        $fromEmail = trim($fromEmail);
+        $fromEmail = mb_strtolower($fromEmail);
+
+        if ($fromEmail) {
+//            // Ако има друг входящ имейл, намаляме резултата
+//            if (email_Incomings::fetch(array("#fromEml = '[#1#]' AND #state != 'rejected'", $fromEmail))) {
+//                $score -= 1;
+//            }
+
+            // Ако има друг изходящ имейл, намаляме резултата
+            $oQuery = email_Outgoings::getQuery();
+//            $oQuery->where("#state != 'rejected'");
+            $oQuery->where("#state = 'closed'");
+            $oQuery->like('email', $fromEmail);
+            $oQuery->orLike('emailCc', $fromEmail);
+            $oQuery->show('email, emailCc');
+
+            while ($oRec = $oQuery->fetch()) {
+                $emails = $oRec->email . ' ' . $oRec->emailCc;
+                $emailsArr = type_Emails::toArray(mb_strtolower($emails));
+                $emailsArr = arr::make($emailsArr, true);
+                if ($emailsArr[$fromEmail]) {
+
+                    $score -= 4;
+
+                    break;
+                }
+            }
+        }
+
         return $score;
     }
     

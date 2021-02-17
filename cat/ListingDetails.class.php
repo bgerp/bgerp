@@ -15,6 +15,13 @@
  */
 class cat_ListingDetails extends doc_Detail
 {
+
+    /**
+     * @var string
+     */
+    public $exportToMaster = 'price, reff, productId=code|name';
+
+
     /**
      * Кой  може да изтрива?
      */

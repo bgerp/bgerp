@@ -1173,6 +1173,10 @@ div.acc-detail {
 	   .aright{
 	       padding-right: 5px;
 	   }
+		&.left {
+			right: 0;
+			left: auto;
+		}
 	   td{
 	       white-space: nowrap;
 	       border: none !important;
@@ -5976,6 +5980,14 @@ div.location.public {
 
 .blast_ListDetails .listToolbar, .dec_DeclarationDetails .listToolbar, .distro_Files  .listToolbar{
     border-bottom: none !important;
+}
+.declarationApprovedText {
+	margin-top: 2px;
+}
+.declarationApproved .richtext {
+	background: url("../img/16/checkbox_yes.png") 20px 2px no-repeat;
+	padding-left: 40px;
+	margin-bottom: 2px;
 }
 
 .distro-tools a {

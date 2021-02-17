@@ -132,7 +132,13 @@ function showTooltip() {
             if($(element).closest('.overflow-scroll').length && $(element).parent().offset().top - 150 < $(element).closest('.overflow-scroll').offset().top){
                 $(element).addClass('bottom');
             }
+            var iconLeftOffset = $(element).parent().offset().left - $(element).closest('table').offset().left;
+            var iconRightOffset = $(element).closest('table').width() - iconLeftOffset;
 
+            // ако е при скролиране и отляво от иконката има повече място отколкото вдясно, показваме попъпа напред
+            if ($(element).closest('.scrolling-holder').length && iconLeftOffset > iconRightOffset) {
+                $(element).addClass('left');
+            }
             if($(element).parent().offset().left < 200){
                 $(element).addClass('right');
             }
@@ -5537,6 +5543,100 @@ function focusOnHeader() {
 
 
 /**
+ * Групово маркиране на чекбоксове при натиснат шрифт
+ */
+function markSelectedChecboxes()
+{
+    var checkboxIdName = null;
+    var checkboxIdNameTime = null;
+    var isChecked = null;
+    var checkboxParent = null;
+    $('input[type="checkbox"]').click(function(e){
+
+        if (e.shiftKey && e.originalEvent) {
+            var currentTableInst = $('#' + $(this).attr('id')).parents("table:first");
+
+            if (checkboxIdName && ((checkboxParent[0].innerText === currentTableInst[0].innerText))) {
+                var diff = Date.now() - checkboxIdNameTime;
+                diff = Math.floor(diff / 1000);
+
+                var currentSelectId = $(this).attr('id');
+
+                if (diff <= 30) {
+                    var parentTable = $('#' + checkboxIdName).parents("table:first");
+
+                    var allCheckboxes = $('input[type="checkbox"]', parentTable);
+
+                    var isRightWay = true;
+                    for (var i = 0; i < allCheckboxes.length; i++) {
+                        var idName = $(allCheckboxes[i]).attr('id');
+
+                        if (idName == checkboxIdName) {
+
+                            break;
+                        }
+
+                        if (currentSelectId == idName) {
+
+                            isRightWay = false;
+
+                            break;
+                        }
+                    }
+
+                    // Ако първо сме натиснали в края
+                    if (!isRightWay) {
+                        var tempCheckbox = checkboxIdName;
+                        checkboxIdName = currentSelectId;
+                        currentSelectId = tempCheckbox;
+                    }
+
+                    var mark = false
+                    for (var i = 0; i < allCheckboxes.length; i++) {
+                        var idName = $(allCheckboxes[i]).attr('id');
+
+                        if (idName == checkboxIdName) {
+
+                            mark = true;
+                        }
+
+                        if (mark) {
+                            $(allCheckboxes[i])[0].checked = isChecked;
+                            if ((currentSelectId != idName) && (idName != checkboxIdName)) {
+                                if (allCheckboxes[i].onclick) {
+                                    allCheckboxes[i].onclick();
+                                }
+                            }
+                        }
+
+                        if (currentSelectId == idName) {
+
+                            break;
+                        }
+                    }
+                }
+
+                checkboxIdName = null;
+                checkboxIdNameTime = null;
+                isChecked = null;
+                checkboxParent = null;
+            } else {
+                checkboxIdName = $(this).attr('id');
+                checkboxIdNameTime = Date.now();
+                isChecked = $(this).is(":checked");
+
+                checkboxParent = currentTableInst;
+            }
+        } else {
+            checkboxIdName = null;
+            checkboxIdNameTime = null;
+            isChecked = null;
+        }
+    });
+}
+
+
+/**
  * Fix за IE7
  * implement JSON.parse de-serialization
  *
@@ -5617,6 +5717,8 @@ function syncServiceWorker() {
 
 })(jQuery,'smartresize');
 
+
+runOnLoad(markSelectedChecboxes);
 runOnLoad(maxSelectWidth);
 runOnLoad(onBeforeUnload);
 runOnLoad(reloadOnPageShow);

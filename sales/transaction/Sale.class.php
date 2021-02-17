@@ -501,15 +501,11 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
      * @param stdClass $rec
      * @return array $entries
      */
-    public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId')
+    public static function getProductionEntries($rec, $class, $storeField = 'shipmentStoreId', &$instantProducts = array())
     {
         $entries = array();
         if(is_array($rec->details)){
             foreach ($rec->details as $dRec){
-                
-                // Всички производими артикули
-                $canManifacture = cat_Products::fetchField($dRec->productId, 'canManifacture');
-                if($canManifacture != 'yes') continue;
                 
                 // Ако имат моментна рецепта
                 $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
@@ -527,6 +523,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     $prodArr = planning_transaction_DirectProductionNote::getProductionEntries($dRec->productId, $dRec->quantity, $rec->{$storeField}, null, $class, $rec->id, null, $rec->valior, $bomInfo['expenses'], $bomInfo['resources']);
                     
                     if(countR($prodArr)){
+                        $instantProducts[$dRec->productId] = $dRec->productId;
                         $entries = array_merge($entries, $prodArr);
                     }
                 }

@@ -221,6 +221,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             
             $pQuery->EXT('valior', "${master}", 'externalName=valior,externalKey=noteId');
             $pQuery->EXT('state', "${master}", 'externalName=state,externalKey=noteId');
+            if ($master == 'planning_DirectProductionNote'){
+                $pQuery->EXT('inputStoreId', "${master}", 'externalName=inputStoreId,externalKey=noteId');
+            }
+
             $pQuery->EXT('threadId', "${master}", 'externalName=threadId,externalKey=noteId');
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
@@ -251,6 +255,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             }
             
             while ($pRec = $pQuery->fetch()) {
+
+                if ($master == 'planning_DirectProductionNote' && !$pRec->inputStoreId)continue;
+
                 $consumedQuantity = $returnedQuantity = $pRec->quantity;
                 
                 if ($master == 'planning_ReturnNotes') {
@@ -286,7 +293,8 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 
                 //Себестойност на артикула
                 $selfPrice = self::getProductPrice($pRec, $master, $rec->pricesType);
-               
+                $arrS[]=$selfPrice;
+                $arrC[]=$consumedQuantity;
                 // Запис в масива
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object) array(
@@ -320,10 +328,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 }
             }
         }
-        
+
         foreach ($recs as $key => $val) {
             $val->totalQuantity = $val->consumedQuantity - $val->returnedQuantity;
-            $val->totalAmount = ($val->consumedQuantity - $val->returnedQuantity) * $val->selfPrice;
+            $val->totalAmount = ($val->consumedAmount - $val->returnedAmount);
         }
         
         //Подредба на резултатите
@@ -334,7 +342,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             
             arr::sortObjects($recs, $orderBy, $orderType, $order);
         }
-        
+
         return $recs;
     }
     

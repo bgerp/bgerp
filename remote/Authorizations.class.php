@@ -229,8 +229,40 @@ class remote_Authorizations extends embed_Manager
             return $tpl;
         }
     }
-    
-    
+
+
+    /**
+     * Връща наличните оторизирани системи, като опции
+     *
+     * @param string $driver  - системи с кой драйвер
+     * @param null $userId    - ид на потребител
+     * @return array $options - опции за избор
+     */
+    public static function getSystemOptions($driver = 'remote_BgerpDriver', $userId = null)
+    {
+        $options = array();
+
+        // Ако не е инсталиран пакета, или няма потребител не се прави нищо
+        if (!core_Packs::isInstalled('remote')) return $options;
+        $userId = isset($userId) ? $userId : core_Users::getCurrent();
+        if(!isset($userId)) return $options;
+
+        // Филтър на оторизираните системи по драйвер и потребител
+        $Driver = cls::get($driver);
+        $query = self::getQuery();
+        $query->where("#userId = {$userId} AND #driverClass = {$Driver->getClassId()}");
+
+        // Ако има такива с даден достъп, добавят се към опциите
+        while ($rec = $query->fetch()){
+            if(is_object($rec->data) && $rec->data->lKeyCC) {
+                $options[$rec->id] = type_Varchar::escape($rec->url);
+            }
+        }
+
+        return $options;
+    }
+
+
     /**
      * Връща първата система, за която посочения потребител има оторизация и тя отговаря на критериите
      */

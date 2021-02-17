@@ -38,6 +38,7 @@
     <!--ET_BEGIN INFO_BLOCK-->
     <div class="antetka" style="display: inline-block; clear: both;">
         [#INFO_BLOCK#]
+        [#ERROR_BLOCK#]
     </div>
     <!--ET_END INFO_BLOCK-->
 </div>

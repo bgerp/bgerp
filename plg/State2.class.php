@@ -166,38 +166,32 @@ class plg_State2 extends core_Plugin
      * @param stdClass     $row Това ще се покаже
      * @param stdClass     $rec Това е записа в машинно представяне
      */
-    public function on_AfterRecToVerbal($mvc, &$row, $rec)
+    public function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->STATE_CLASS = "state-{$rec->state}";
         $row->ROW_ATTR['class'] .= " state-{$rec->state}";
         
         if ($mvc->haveRightFor('changeState', $rec)) {
             $this->getActiveAndClosedState($mvc);
-            
-            $newState = ($rec->state == $this->activeState) ? $this->closedState : $this->activeState;
-            $warning = $mvc->getChangeStateWarning($rec, $newState);
-            $warning = !empty($warning) ? $warning : false;
-            $warningToolbar = !empty($warning) ? ",warning={$warning}" : '';
-            
-            $add = '<img src=' . sbf('img/16/lightbulb_off.png') . " width='16' height='16'>";
-            $cancel = '<img src=' . sbf('img/16/lightbulb.png') . " width='16' height='16'>";
-            
+
             if ($rec->state == $this->activeState || $rec->state == $this->closedState) {
-                $row->state = ht::createLink(
-                    $rec->state == $this->activeState ? $cancel : $add,
-                    array($mvc, 'changeState', $rec->id, 'ret_url' => true),
-                    $warning,
-                    array('title' => $rec->state == $this->activeState ? 'Деактивиране' : 'Активиране')
-                );
-                
-                $row->state = ht::createElement(
-                    
-                    'div',
-                    array('style' => 'text-align:center;'),
-                    
-                    $row->state
-                
-                );
+                $newState = ($rec->state == $this->activeState) ? $this->closedState : $this->activeState;
+                $warning = $mvc->getChangeStateWarning($rec, $newState);
+                $warning = !empty($warning) ? $warning : false;
+                $warningToolbar = !empty($warning) ? ",warning={$warning}" : '';
+
+                $add = '<img src=' . sbf('img/16/lightbulb_off.png') . " width='16' height='16'>";
+                $cancel = '<img src=' . sbf('img/16/lightbulb.png') . " width='16' height='16'>";
+
+                if(!isset($fields['-single'])){
+                    $row->state = ht::createLink(
+                        $rec->state == $this->activeState ? $cancel : $add,
+                        array($mvc, 'changeState', $rec->id, 'ret_url' => true),
+                        $warning,
+                        array('title' => $rec->state == $this->activeState ? 'Деактивиране' : 'Активиране')
+                    );
+                    $row->state = ht::createElement('div', array('style' => 'text-align:center;'), $row->state);
+                }
                 
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $singleTitle = tr($mvc->singleTitle);

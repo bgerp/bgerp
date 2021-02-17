@@ -196,7 +196,7 @@ abstract class deals_DealBase extends core_Master
         }
         
         if ($action == 'changerate' && isset($rec)) {
-            if ($rec->currencyId == 'BGN' || $rec->currencyId == 'EUR') {
+            if ($rec->currencyId == 'BGN') {
                 $res = 'no_one';
             } elseif ($rec->state == 'closed' || $rec->state == 'rejected') {
                 $res = 'no_one';

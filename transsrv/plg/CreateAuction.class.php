@@ -31,9 +31,13 @@ class transsrv_plg_CreateAuction extends core_Plugin
                 $d = $mvc->getLogisticData($rec);
                 $d['maxWeight'] = $d['totalWeight'];
                 $d['maxVolume'] = $d['totalVolume'];
+
+                $selfUrl = core_App::getSelfURL();
+                $selfUrl = str_replace($_SERVER['REQUEST_URI'], '', $selfUrl);
+
+                $d['ourReffDomainUrl'] = $selfUrl;
                 $d = base64_encode(gzcompress(json_encode($d)));
-                
-                //$url = array('transbid_Auctions', 'Add', 'd' => $d);
+
                 $url = remote_Authorizations::getRemoteUrl($systemId, array('transbid_Auctions', 'Add', 'd' => $d));
                 $data->toolbar->addBtn('Търг', $url, 'ef_icon = img/16/view.png,title=Създаване на търг в trans.bid,row=2');
             }

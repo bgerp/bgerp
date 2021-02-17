@@ -72,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin';
+    public $listFields = 'history,code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin';
     
     
     /**
@@ -85,8 +85,14 @@ class store_Products extends core_Detail
      * Задължително филтър по склад
      */
     protected $mandatoryStoreFilter = false;
-    
-    
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'history';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -127,11 +133,7 @@ class store_Products extends core_Detail
     protected static function on_AfterPrepareListRows($mvc, $data)
     {
         // Ако няма никакви записи - нищо не правим
-        if (!countR($data->recs)) {
-            
-            return;
-        }
-        $isDetail = isset($data->masterMvc);
+        if (!countR($data->recs)) return;
         
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
@@ -143,33 +145,36 @@ class store_Products extends core_Detail
             $row->code = cat_Products::getVerbal($pRec, 'code');
             $rec->measureId = cat_Products::fetchField($rec->productId, 'measureId');
 
-            if ($isDetail) {
-                   
-                // Показване на запазеното количество
-                if($data->masterMvc instanceof cat_Products){
-                    $basePack = key(cat_Products::getPacks($rec->productId));
-                    if ($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)) {
-                        $rec->quantity /= $pRec->quantity;
-                        $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
-                        foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin') as $fld){
-                            if (isset($rec->{$fld})) {
-                                $rec->{$fld} /= $pRec->quantity;
-                            }
+            if(isset($data->masterMvc) && $data->masterMvc instanceof cat_Products){
+                $measureType = 'basePack';
+            } else {
+                $measureType = $data->listFilter->rec->setting;
+            }
+
+            // Ако ще се показва в основна опаковка, показва се в нея и к-та се конвертират
+            if($measureType == 'basePack'){
+                $basePack = key(cat_Products::getPacks($rec->productId));
+                if ($pRec = cat_products_Packagings::getPack($rec->productId, $basePack)) {
+                    $rec->quantity /= $pRec->quantity;
+                    $row->quantity = $mvc->getFieldType('quantity')->toVerbal($rec->quantity);
+                    foreach (array('reservedQuantity', 'expectedQuantity', 'reservedQuantityMin', 'expectedQuantityMin') as $fld){
+                        if (isset($rec->{$fld})) {
+                            $rec->{$fld} /= $pRec->quantity;
                         }
                     }
-                    $rec->measureId = $basePack;
                 }
-                
-                // Линк към хронологията
-                if (acc_BalanceDetails::haveRightFor('history')) {
-                    $to = dt::today();
-                    $from = dt::mysql2verbal($to, 'Y-m-1', null, false);
-                    $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $from, 'toDate' => $to, 'accNum' => 321);
-                    $histUrl['ent1Id'] = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
-                    $histUrl['ent2Id'] = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
-                    $histUrl['ent3Id'] = null;
-                    $row->history = ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
-                }
+                $rec->measureId = $basePack;
+            }
+
+            // Линк към хронологията
+            if (acc_BalanceDetails::haveRightFor('history')) {
+                $to = dt::today();
+                $from = dt::mysql2verbal($to, 'Y-m-1', null, false);
+                $histUrl = array('acc_BalanceHistory', 'History', 'fromDate' => $from, 'toDate' => $to, 'accNum' => 321);
+                $histUrl['ent1Id'] = acc_Items::fetchItem('store_Stores', $rec->storeId)->id;
+                $histUrl['ent2Id'] = acc_Items::fetchItem('cat_Products', $rec->productId)->id;
+                $histUrl['ent3Id'] = null;
+                $row->history = ht::createLink('', $histUrl, null, 'title=Хронологична справка,ef_icon=img/16/clock_history.png');
             }
             
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
@@ -206,7 +211,7 @@ class store_Products extends core_Detail
             
             return;
         }
-        
+
         // Подготвяме формата
         cat_Products::expandFilter($data->listFilter);
         $orderOptions = arr::make('all=Всички,active=Активни,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,closed=Изчерпани,reserved=Запазени,free=Разполагаеми');
@@ -215,8 +220,9 @@ class store_Products extends core_Detail
         }
         
         $data->listFilter->setOptions('order', $orderOptions);
-        $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input');
+        $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input,class=w30');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
+        $data->listFilter->FNC('setting', 'enum(productMeasureId=Основна мярка,basePack=Основна опаковка)', 'caption=Настройка,input,silent,recently');
 
         $hKey = 'productHorizonFilter' . core_Users::getCurrent();
         if ($lastHorizon = core_Permanent::get($hKey)) {
@@ -252,14 +258,23 @@ class store_Products extends core_Detail
         if (isset($data->masterMvc)) {
             $data->listFilter->setDefault('order', 'all');
             $data->listFilter->showFields = 'horizon,search,groupId';
+
+            if($data->masterMvc instanceof store_Stores){
+                $data->listFilter->setDefault('setting', $data->masterData->rec->displayStockMeasure);
+            }
         } else {
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('order', 'active');
-            $data->listFilter->showFields = 'search,storeId,order,groupId,horizon';
+            $data->listFilter->showFields = 'search,storeId,order,groupId,horizon,setting';
             unset($data->listFilter->view);
+
+            $sKey = "stockSettingFilter" . core_Users::getCurrent();
+            if ($lastHorizon = core_Permanent::get($sKey)) {
+                $data->listFilter->setDefault('setting', $lastHorizon);
+            }
         }
-        
-        $data->listFilter->input('horizon,storeId,order,groupId,search', 'silent');
+        $data->listFilter->setDefault('setting', 'productMeasureId');
+        $data->listFilter->input('horizon,storeId,order,groupId,search,setting', 'silent');
 
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
@@ -352,6 +367,9 @@ class store_Products extends core_Detail
             if (!empty($rec->groupId)) {
                 $data->query->where("LOCATE('|{$rec->groupId}|', #groups)");
             }
+
+            $filterCaption = isset($data->masterMvc) ? '' : 'Филтрирай';
+            $data->listFilter->toolbar->addSbBtn($filterCaption, 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         }
     }
 
@@ -476,11 +494,9 @@ class store_Products extends core_Detail
         $query = self::getQuery();
         $query->where("#productId = {$productId}");
         $query->XPR('quantityTotal', 'double', 'SUM(#quantity)');
-        $query->XPR('reservedTotal', 'double', 'SUM(#reservedQuantity)');
-        $query->XPR('expectedTotal', 'double', 'SUM(#expectedQuantity)');
         $query->XPR('reservedTotalMin', 'double', 'SUM(#reservedQuantityMin)');
         $query->XPR('expectedTotalMin', 'double', 'SUM(#expectedQuantityMin)');
-        $query->show('quantityTotal,reservedTotal,expectedTotal,reservedTotalMin,expectedTotalMin');
+        $query->show('quantityTotal,reservedTotalMin,expectedTotalMin');
 
         if (isset($storeId)) {
             $query->where("#storeId = {$storeId}");
@@ -535,10 +551,10 @@ class store_Products extends core_Detail
             } else {
                 unset($data->listFields['storeId']);
             }
-            
-            if (acc_BalanceDetails::haveRightFor('history')) {
-                arr::placeInAssocArray($data->listFields, array('history' => ' '), $historyBefore);
-            }
+        }
+
+        if (acc_BalanceDetails::haveRightFor('history')) {
+            arr::placeInAssocArray($data->listFields, array('history' => ' '), $historyBefore);
         }
     }
     
@@ -618,7 +634,7 @@ class store_Products extends core_Detail
     public function cron_CalcReservedQuantity()
     {
         $plannedCount = store_StockPlanning::count();
-        core_App::setTimeLimit($plannedCount * 0.7, 300);
+        core_App::setTimeLimit($plannedCount * 0.7, false,200);
 
         // Синхронизират се новите със старите записи
         $storeQuery = static::getQuery();

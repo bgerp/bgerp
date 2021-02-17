@@ -102,6 +102,7 @@ class blogm_Setup extends core_ProtoSetup
         'blogm_Categories',
         'blogm_Comments',
         'blogm_Links',
+        'migrate::updateCategories',
     );
     
     
@@ -126,21 +127,6 @@ class blogm_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         
-        // Ако няма категории, създаваме някакви
-        if (!blogm_Categories::fetch('1=1')) {
-            $cat = array('Новини' => 'Новостите за нашата фирма',
-                'Интересно' => 'Интересни неща за бизнеса и около него',
-                'Политика' => 'Позиция по въпроси касаещи България, Европа и света',
-                'Наука' => 'Достиженията на науката в нашия бизнес',
-                'Изкуство' => 'Творческото начало в бизнеса',
-                'Статистика' => 'Отчети и доклади, за любителите на цифрите',
-            );
-            foreach ($cat as $title => $d) {
-                $rec = (object) array('title' => $title, 'description' => $d);
-                blogm_Categories::save($rec);
-            }
-        }
-        
         $Bucket = cls::get('fileman_Buckets');
         $html .= $Bucket->createBucket(blogm_Articles::FILE_BUCKET, 'Файлове към блог-статиите', '', '10MB', 'every_one', 'every_one');
         
@@ -156,8 +142,7 @@ class blogm_Setup extends core_ProtoSetup
         $rec->period = 5;
         $rec->offset = 3;
         $html .= core_Cron::addOnce($rec);
-        
-        
+
         // Изтриване на СПАМ коментари
         $rec = new stdClass();
         $rec->systemId = 'Delete SPAM comments';
@@ -172,5 +157,29 @@ class blogm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         return $html;
+    }
+
+
+    /**
+     * Мигриране на категориите
+     */
+    public function updateCategories()
+    {
+        if(!blogm_Categories::count()) return;
+        $Categories = cls::get('blogm_Categories');
+        $Categories->setupMvc();
+        $sourceId = blogm_Articles::getClassId();
+
+        $cQuery = $Categories->getQuery();
+        $cQuery->where("#menuId IS NULL");
+        while ($rec = $cQuery->fetch()){
+            $contQuery = cms_Content::getQuery();
+            $contQuery->where("#domainId = {$rec->domainId} AND #source = {$sourceId}");
+            $contQuery->orderBy('state,id', 'asc');
+
+            $foundRec = $contQuery->fetch();
+            $rec->menuId = $foundRec->id;
+            $Categories->save($rec, 'menuId');
+        }
     }
 }

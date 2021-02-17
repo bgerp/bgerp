@@ -86,7 +86,7 @@
                                         <div><span class='quiet'>Краен срок за плащане:</span> [#dueDate#]</div>
                                         <!--ET_END dueDate-->
                                         <!--ET_BEGIN accountId-->
-                                        <div>
+                                        <div class="[#BANK_BLOCK_CLASS#]">
                                             <span class='quiet'>Банкова с-ка:</span> [#accountId#]
                                             <!--ET_BEGIN bankInfo-->
                                             [#bankInfo#]

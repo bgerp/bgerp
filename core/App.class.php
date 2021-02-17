@@ -1,5 +1,7 @@
 <?php
 
+defIfNot('EF_DEFAULT_ACT_NAME', 'default');
+defIfNot('EF_DEFAULT_CTR_NAME', 'index');
 
 class core_App
 {
@@ -431,6 +433,7 @@ class core_App
     {
         $memUsagePercentLimit = 80;
         $executionTimePercentLimit = 70;
+        $dbTimePercentLimit = 50;
         
         $memoryLimit = core_Os::getBytesFromMemoryLimit();
         
@@ -439,7 +442,7 @@ class core_App
         $peakMemUsage = memory_get_peak_usage($realUsage);
         if (is_numeric($memoryLimit) && $memoryLimit) {
             $peakMemUsagePercent = ($peakMemUsage / $memoryLimit) * 100;
-            
+
             // Ако сме доближили до ограничението на паметта
             if ($peakMemUsagePercent > $memUsagePercentLimit) {
                 wp();
@@ -466,6 +469,17 @@ class core_App
                 // Ако сме доближили до ограничението за времето
                 if ($maxExecutionTimePercent > $executionTimePercentLimit) {
                     wp();
+                }
+
+                $qTime = core_Debug::getWorkingTime('DB::query()');
+                if ($qTime) {
+                    $dbTimePercent = ($qTime / $executionTime) * 100;
+
+                    if ($dbTimePercent >= $dbTimePercentLimit) {
+                        if ($executionTime > 0.8) {
+                            wp('Много заявки към БД', (int) $dbTimePercent, $dbTimePercentLimit, $qTime, $executionTime);
+                        }
+                    }
                 }
             }
         }

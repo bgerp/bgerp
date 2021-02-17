@@ -86,7 +86,7 @@
                 <div><span class='quiet'>Finally till: </span>[#deadlineForBalancePayment#]</div>
                 <!--ET_END deadlineForBalancePayment-->
                 <!--ET_BEGIN accountId-->
-                <div>
+                <div class="[#BANK_BLOCK_CLASS#]">
                     <span class='quiet'>Bank Account:</span> [#accountId#]
                     <!--ET_BEGIN bankInfo-->
                     [#bankInfo#]
