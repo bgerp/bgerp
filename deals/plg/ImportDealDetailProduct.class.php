@@ -337,10 +337,15 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             // Проверка за точност на к-то
             if (isset($obj->quantity)) {
                 if ($pRec) {
-                    $packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
-                    $warning = null;
-                    if (!deals_Helper::checkQuantity($packagingId, $obj->quantity, $warning)) {
-                        $err[$i][] = $warning;
+                    $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
+                    if (!$obj->quantity) {
+                        $err[$i][] = $obj->code . '|Грешно количество|*';
+                    } else {
+                        $packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
+                        $warning = null;
+                        if (!deals_Helper::checkQuantity($packagingId, $obj->quantity, $warning)) {
+                            $err[$i][] = $warning;
+                        }
                     }
                 }
             }
