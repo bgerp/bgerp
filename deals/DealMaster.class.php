@@ -555,6 +555,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
                 break;
         }
+
+        $query->orWhere("#state = 'rejected'");
     }
     
     
