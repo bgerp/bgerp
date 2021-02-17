@@ -161,6 +161,11 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
         $mvc->fetchFieldsBeforeDelete = 'containerId';
+
+        $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('createdOn'))));
+        if (!$mvc->dbIndexes[$indexName]) {
+            $mvc->setDbIndex('createdOn');
+        }
     }
     
     
