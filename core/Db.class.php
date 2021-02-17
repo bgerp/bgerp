@@ -271,7 +271,7 @@ class core_Db
 
         $eTime = $eTimeAfter - $eTimeBefore;
 
-        if (defined('CORE_DB_REPORT_SLOW_QUERY_TIME') && ($eTime >= CORE_DB_REPORT_SLOW_QUERY_TIME)) {
+//        if (defined('CORE_DB_REPORT_SLOW_QUERY_TIME') && ($eTime >= CORE_DB_REPORT_SLOW_QUERY_TIME)) {
 //            wp("Бавна заявка", $eTime, $sqlQuery);
 //        }
 
