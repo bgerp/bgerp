@@ -61,14 +61,17 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         //Период
-        $fieldset->FLD('from', 'date', 'caption=Период->От,after=title,single=none,mandatory');
-        $fieldset->FLD('to', 'date', 'caption=Период->До,after=from,single=none,mandatory');
-        
+        $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
+        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
+
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=to,removeAndRefreshForm,placeholder=Всички,silent,single=none');
+
+
         //Групиране на резултата
-        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране,after=to');
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=group');
         
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Подреждане по,after=groupBy');
+        $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
         
         $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=orderBy,input=hiden,single=none');
     }
@@ -131,15 +134,21 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $planningQuery->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
         $planningQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         $planningQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
-        
-        
+
         $planningQuery->where("#state = 'active'");
         
         //Филтриране на периода
         $planningQuery->where(array(
             "#valior >= '[#1#]' AND #valior <= '[#2#]'",
             $rec->from .' 00:00:00',$rec->to . ' 23:59:59'));
-        
+
+        //Филтър по групи артикули
+        if($rec->groups){
+
+            $planningQuery->likeKeylist('groupMat', $rec->groups);
+
+        }
+
         $montArr = array();
         while ($planningRec = $planningQuery->fetch()) {
             
