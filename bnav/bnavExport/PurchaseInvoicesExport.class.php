@@ -94,6 +94,19 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
+
+        //Ако има регистрирана "ОСНОВНА ГРУПА", вадим групите, които са едно ниво под нея
+        if(core_Packs::getConfig('bnav')->BASE_GROUP != ''){
+
+            $baseGroupId = (trim(core_Packs::getConfig('bnav')->BASE_GROUP,'|'));
+            $gQuery = cat_Groups::getQuery();
+            $gQuery->where("#parentId = $baseGroupId");
+            expect($gQuery->count(),'Липсват регистрирани групи в основната група');
+
+            //масив с групи, които са едно ниво под основната
+            $flGroups = arr::extractValuesFromArray($gQuery->fetchAll(),'id');
+
+        }
         
         $pQuery = purchase_Invoices::getQuery();
         
@@ -171,6 +184,20 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             $id = $dRec->id;
             
             $prodRec = cat_Products::fetch($dRec->productId);
+            //Ако има регистрирана "ОСНОВНА ГРУПА", определяме група на артикула спрямо нея
+            if(core_Packs::getConfig('bnav')->BASE_GROUP != ''){
+
+                $gArr = explode('|',trim($prodRec->groups,'|'));
+                if(empty(array_intersect($gArr,$flGroups))){
+
+                    $group = 'n.a.';
+                }else{
+                    expect(countR(array_intersect($gArr,$flGroups)) < 2, "Има регистрирани повече от една група на първо ниво след  ОСНОВНАТА за артикул $pRec->name");
+                    $group = implode(',',array_intersect($gArr,$flGroups));
+                }
+
+            }
+
             $erpCode = $prodRec->code ? $prodRec->code : 'Art'.$prodRec->id;
             $prodCode = $prodRec->bnavCode ? $prodRec->bnavCode : $erpCode;
             $measure = cat_UoM::getShortName($prodRec->measureId);
@@ -181,6 +208,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
                 $recs[$id] = (object) array(
                     'invoice' => $invoices[$dRec->invoiceId],
                     'prodCode' => $prodCode,
+                    'group' => $group,
                     'quantity' => $dRec->quantity,
                     'price' => $dRec->price,
                     'vatAmount' => '',
@@ -222,6 +250,9 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             $fld->FLD('rate', 'double', 'caption=Курс на валутата');
             $fld->FLD('dealValue', 'double', 'caption=Обща стойност->без ДДС');
             $fld->FLD('prodCode', 'varchar', 'caption=Код на стоката');
+            if(core_Packs::getConfig('bnav')->BASE_GROUP != ''){
+                $fld->FLD('group', 'varchar', 'caption=Група');
+            }
             $fld->FLD('quantity', 'double', 'caption=Количество');
             $fld->FLD('price', 'double', 'caption=Ед цена');
             $fld->FLD('measure', 'varchar', 'caption=Мерна единица,tdClass=centered');
@@ -239,6 +270,9 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
             $fld->FLD('rate', 'double', 'caption=Курс');
             $fld->FLD('dealValue', 'double', 'caption=без ДДС');
             $fld->FLD('prodCode', 'varchar', 'caption=Код прод.');
+            if(core_Packs::getConfig('bnav')->BASE_GROUP != ''){
+                $fld->FLD('group', 'varchar', 'caption=Група');
+            }
             $fld->FLD('quantity', 'double', 'caption=Кол');
             $fld->FLD('price', 'double', 'caption=Цена');
             $fld->FLD('measure', 'varchar', 'caption=Мерна ед.,tdClass=centered');
@@ -281,6 +315,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $row->rate = core_Type::getByName('double(decimals=4)')->toVerbal($dRec->invoice->rate);
         $row->dealValue = $Double->toVerbal($dRec->invoice->dealValue);
         $row->prodCode = $dRec->prodCode;
+        $row->group = cat_Groups::getTitleById($dRec->group);
         $row->quantity = core_Type::getByName('double(decimals=3)')->toVerbal($dRec->quantity);
         $row->price = core_Type::getByName('double(decimals=6)')->toVerbal($dRec->price);
         $row->measure = $dRec->measure;
@@ -320,6 +355,7 @@ class bnav_bnavExport_PurchaseInvoicesExport extends frame2_driver_TableData
         $res->rate = core_Type::getByName('double(decimals=4)')->toVerbal($dRec->invoice->rate);
         $res->dealValue = $Double->toVerbal($dRec->invoice->dealValue);
         $res->prodCode = $dRec->prodCode;
+        $res->group = cat_Groups::getTitleById($dRec->group);
         $res->quantity = core_Type::getByName('double(decimals=3)')->toVerbal($dRec->quantity);
         $res->price = core_Type::getByName('double(decimals=6)')->toVerbal($dRec->price);
         $res->measure = $dRec->measure;
