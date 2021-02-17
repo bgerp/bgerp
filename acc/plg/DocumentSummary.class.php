@@ -130,6 +130,38 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         setIfNot($mvc->filterAutoDate, true);
         $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
+
+        if (!$mvc->fields['createdOn']) {
+            $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created->На, notNull, input=none');
+        }
+
+        if (!$mvc->fields['createdBy']) {
+            $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване||Created->От||By, notNull, input=none');
+        }
+
+        $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('createdOn'))));
+        if (!$mvc->dbIndexes[$indexName]) {
+            $mvc->setDbIndex('createdOn');
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди запис
+     */
+    public function on_BeforeSave($mvc, $id, $rec, $fields = null)
+    {
+        // Ако създаваме нов документ и ...
+        if (!$rec->id) {
+            // Задаваме стойностите на created полетата
+            if (!isset($rec->createdBy)) {
+                $rec->createdBy = Users::getCurrent() ? Users::getCurrent() : 0;
+            }
+
+            if (!isset($rec->createdOn)) {
+                $rec->createdOn = dt::verbal2Mysql();
+            }
+        }
     }
     
     
@@ -189,7 +221,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
         
         $flds = $dateFields + $userFields;
-        
+
         if (countR($flds)) {
             $opt = array();
             $defaultFilterDateField = null;
@@ -375,7 +407,16 @@ class acc_plg_DocumentSummary extends core_Plugin
 
                     $nullCond = " OR (#{$fromField} IS NULL AND #{$toField} IS NULL)";
                 }
-                
+
+                if (($fromField == 'createdOn') || ($toField == 'createdOn')) {
+                    $fF = $mvc->filterDateFrom ? $mvc->filterDateFrom : 'from';
+                    $fT = $mvc->filterDateTo ? $mvc->filterDateTo : 'to';
+                    if ($data->listFilter->rec->{$fF} || $data->listFilter->rec->{$fT}) {
+                        $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('createdOn'))));
+                        $data->query->useIndex($indexName);
+                    }
+                }
+
                 // NULL записите се показват само ако изрично се изисква
                 if($mvc->showNullDateFields === true){
                     $where .= $nullCond;
