@@ -283,13 +283,13 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             
             if ($obj->price) {
                 if ($isPartner === false) {
-                    $obj->price = cls::get('type_Varchar')->fromVerbal($obj->price);
+                    $obj->price = cls::get('type_Double')->fromVerbal($obj->price);
                     if (!$obj->price) {
                         $err[$i][] = $obj->code . '|Грешна цена|*';
                     }
                 }
             }
-            
+
             if (!isset($obj->price)) {
                 $Cover = doc_Folders::getCover($folderId);
                 $Policy = (isset($mvc->Policy)) ? $mvc->Policy : cls::get('price_ListToCustomers');
