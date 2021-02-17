@@ -176,13 +176,13 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
             
             $quantityRemaining = $jobsRec->quantity - $jobsRec->quantityProduced;
             
-            $materialsArr = cat_Products::getMaterialsForProduction($jobsRec->productId, $quantityRemaining);
+            $materialsArr = cat_Products::getMaterialsForProduction($jobsRec->productId, (double)$quantityRemaining);
             
             $totalmaterialQuantiry = 0;
             
             if (!empty($materialsArr)) {
                 foreach ($materialsArr as $val) {
-                    $matRec = cat_Products::fetch($val[productId]);
+                    $matRec = cat_Products::fetch($val['productId']);
                     
                     //Филтрира само складируеми материали
                     if ($matRec->canStore == 'no') {
@@ -206,9 +206,9 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                     
                     $doc = ($jobsRec->id) ? 'planning_Jobs'.'|'.$jobsRec->id : 'sales_Sales'.'|'.$jobsRec->saleId;
                     
-                    $recsKey = $week .' | '.$val[productId];
+                    $recsKey = $week .' | '.$val['productId'];
                     
-                    $totalmaterialQuantiry += $val[quantity];
+                    $totalmaterialQuantiry += $val['quantity'];
                     
                     // Запис в масива
                     if (!array_key_exists($recsKey, $recs)) {
@@ -220,30 +220,30 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                             'jobProductId' => $jobsRec->productId,                                           //Id на артикула
                             'quantityRemaining' => $quantityRemaining,                                       // Оставащо количество
                             
-                            'materialId' => $val[productId],
-                            'materialQuantiry' => $val[quantity],
+                            'materialId' => $val['productId'],
+                            'materialQuantiry' => $val['quantity'],
                         
                         );
                     } else {
                         $obj = &$recs[$recsKey];
                         
                         $obj->quantityRemaining += $quantityRemaining;
-                        $obj->materialQuantiry += $val[quantity];
+                        $obj->materialQuantiry += $val['quantity'];
                         array_push($obj->originDoc, $doc);
                     }
                     
                     
-                    if (!array_key_exists($val[productId], $totalQuantity)) {
-                        $totalQuantity[$val[productId]] = (object) array(
+                    if (!array_key_exists($val['productId'], $totalQuantity)) {
+                        $totalQuantity[$val['productId']] = (object) array(
                             
-                            'materialId' => $val[productId],
-                            'materialQuantiry' => $val[quantity],
+                            'materialId' => $val['productId'],
+                            'materialQuantiry' => $val['quantity'],
                         
                         );
                     } else {
-                        $obj = &$totalQuantity[$val[productId]];
+                        $obj = &$totalQuantity[$val['productId']];
                         
-                        $obj->materialQuantiry += $val[quantity];
+                        $obj->materialQuantiry += $val['quantity'];
                     }
                 }
             }
