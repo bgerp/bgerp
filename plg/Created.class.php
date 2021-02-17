@@ -34,11 +34,6 @@ class plg_Created extends core_Plugin
         // По подразбиране никой не може да редактира данни, записани от системата
         setIfNot($invoker->canEditsysdata, 'no_one');
         setIfNot($invoker->canDeletesysdata, 'no_one');
-
-        $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('createdOn'))));
-        if (!$invoker->dbIndexes[$indexName]) {
-            $invoker->setDbIndex('createdOn');
-        }
     }
     
     
