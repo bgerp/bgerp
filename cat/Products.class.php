@@ -2869,9 +2869,9 @@ class cat_Products extends embed_Manager
                 if ($rRec->type != 'input') {
                     continue;
                 }
-                
+
                 // Добавяме материала в масива
-                $quantity1 = $rRec->baseQuantity + $rRec->propQuantity;
+                $quantity1 = (double)$rRec->baseQuantity + (double)$rRec->propQuantity;
                 if (!array_key_exists($rRec->productId, $res)) {
                     $res[$rRec->productId] = array('productId' => $rRec->productId, 'quantity' => $quantity1);
                 } else {
