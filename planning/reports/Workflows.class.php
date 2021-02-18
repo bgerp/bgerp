@@ -142,7 +142,7 @@
          }
          
          //Крайна дата / 'към дата'
-         if ($rec->start) {
+         if ($rec->to) {
              $query->where(array(
                  "#createdOn <= '[#1#]'",
                  $rec->to . ' 23:59:59'
