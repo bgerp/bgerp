@@ -725,7 +725,7 @@ class acc_Journal extends core_Master
         $query->groupBy('docId,docType');
         
         $recs = $query->fetchAll();
-        
+
         // За всеки запис ако има
         if (countR($recs)) {
             foreach ($recs as $rec) {
@@ -753,6 +753,12 @@ class acc_Journal extends core_Master
                 // Добавен фикс ако има контиращи документи без контировка поради някаква причина
                 $Doc = cls::get($type);
                 $query = $Doc->getQuery();
+
+                // Ако е приключване на сделка, да се взимат само тези записи от този мениджър
+                if($Doc instanceof deals_ClosedDeals){
+                    $query->where("#classId = {$type}");
+                }
+
                 $query->EXT('journalId', 'acc_Journal', array('externalName' => 'id', 'onCond' => "#acc_Journal.docId = #id AND #acc_Journal.docType = {$type}", 'join' => 'right'));
                 $query->where("#journalId IS NULL AND (#state = 'active' || #state = 'closed')");
                 $query->where("#{$Doc->valiorFld} BETWEEN '{$from}' AND '{$to}'");
