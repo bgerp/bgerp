@@ -419,7 +419,7 @@ class sales_Invoices extends deals_InvoiceMaster
         // Ако има дефолтен текст за фактура добавяме и него
         if(in_array($rec->selectInvoiceText, array('private', 'both'))){
             if ($invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')) {
-                $defInfo .= "\n" .$invTextPrivate;
+                $defInfo .= "\n" . $invTextPrivate;
             }
         }
 
@@ -427,9 +427,12 @@ class sales_Invoices extends deals_InvoiceMaster
         if(in_array($rec->selectInvoiceText, array('public', 'both'))) {
             if ($invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText')) {
                 if(md5($invTextPrivate) != md5($invTextPublic)){
-                    $defInfo .= "\n" .$invTextPublic;
+                    $defInfo .= "\n";
+                    if(!empty($invTextPrivate)){
+                        $defInfo .= "\n";
+                    }
+                    $defInfo .= $invTextPublic;
                 }
-
             }
         }
 

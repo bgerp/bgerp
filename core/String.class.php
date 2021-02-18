@@ -569,7 +569,7 @@ class core_String
         if (is_string($str)) {
 
             // Ако целия стринг е число, инкрементираме го
-            if (is_numeric($str)) {
+            if (is_numeric($str) && $str[0] != '0' && mb_strlen($str) > 1) {
                 ++$str;
 
                 return (string) $str;
