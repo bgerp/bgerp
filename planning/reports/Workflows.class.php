@@ -46,7 +46,7 @@
          $fieldset->FLD('start', 'datetime', 'caption=От,after=title,single=none,mandatory');
          $fieldset->FLD('to', 'datetime', 'caption=До,after=start,single=none,mandatory');
          
-         $fieldset->FLD('centre', 'key(mvc=planning_Centers,title=name)', 'caption=Център,refreshForm,after=to,silent');
+         $fieldset->FLD('centre', 'key(mvc=planning_Centers,title=name)', 'caption=Център,removeAndRefreshForm,after=to,silent');
          $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,title=title)', 'caption=Машини,placeholder=Всички,after=centre,single=none');
          $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none');
          
@@ -79,7 +79,10 @@
          
          
          if ($rec->centre) {
+
+             $suggestions = array();
              $suggestions = planning_Hr::getByFolderId(planning_Centers::fetch($rec->centre)->folderId);
+
              foreach ($suggestions as $key => $val) {
                  $suggestions[$key] = crm_Persons::fetch($key)->name;
              }
@@ -130,9 +133,10 @@
          $query = planning_ProductionTaskDetails::getQuery();
          
          $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
+         $query->EXT('folderId', 'planning_Tasks', 'externalName=folderId,externalKey=taskId');
          
          $query->where("#state != 'rejected' ");
-         
+
          // Ако е посочена начална дата на период
          if ($rec->start) {
              $query->where(array(
@@ -147,6 +151,12 @@
                  "#createdOn <= '[#1#]'",
                  $rec->to . ' 23:59:59'
              ));
+         }
+
+         //Филтър по център на дейност
+         if ($rec->centre) {
+             $cFolderId = planning_Centers::fetch($rec->centre)->folderId;
+             $query->where("#folderId = $cFolderId");
          }
          
          //Филтър по служители
