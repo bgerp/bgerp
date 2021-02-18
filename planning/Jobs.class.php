@@ -1463,6 +1463,11 @@ class planning_Jobs extends core_Master
         $rec = $this->fetch($id, '*', false);
         $date = $rec->dueDate;
 
+        if(!in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
+
+            return $res;
+        }
+
         $productRec = cat_Products::fetch($rec->productId, 'canStore,canConvert');
         $quantityToProduce = round($rec->quantity - $rec->quantityProduced, 4);
 
