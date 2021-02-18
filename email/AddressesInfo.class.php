@@ -5,7 +5,7 @@
  *
  *
  * @category  bgerp
- * @package   blast
+ * @package   email
  *
  * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2014 Experta OOD
@@ -13,60 +13,62 @@
  *
  * @since     v 0.1
  */
-class blast_BlockedEmails extends core_Manager
+class email_AddressesInfo extends core_Manager
 {
+
+
     /**
      * Заглавие
      */
-    public $title = 'Имейли, на които не се изпращат циркулярни имейли';
+    public $title = 'Информация за имейл адресите';
     
     
     /**
      * Кой има право да чете?
      */
-    protected $canRead = 'ceo, blast, admin';
+    protected $canRead = 'ceo, blast, email, admin';
     
     
     /**
      * Кой има право да променя?
      */
-    protected $canEdit = 'ceo, blast, admin';
+    protected $canEdit = 'ceo, blast, email, admin';
     
     
     /**
      * Кой има право да добавя?
      */
-    protected $canAdd = 'ceo, blast, admin';
+    protected $canAdd = 'ceo, blast, email, admin';
     
     
     /**
      * Кой може да го види?
      */
-    protected $canView = 'ceo, blast, admin';
+    protected $canView = 'ceo, blast, email, admin';
     
     
     /**
      * Кой може да го разглежда?
      */
-    protected $canList = 'ceo, blast, admin';
+    protected $canList = 'ceo, blast, email, admin';
     
     
     /**
      * Кой може да го изтрие?
      */
-    protected $canDelete = 'ceo, blast, admin';
+    protected $canDelete = 'ceo, blast, email, admin';
     
     
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'blast_Wrapper, plg_RowTools2, plg_Sorting, bgerp_plg_Import';
+    public $loadList = 'email_Wrapper, plg_RowTools2, plg_Sorting, bgerp_plg_Import';
     
     
     /**
      * За конвертиране на съществуващи MySQL таблици от предишни версии
      */
-    public $oldClassName = 'blast_Blocked';
+    public $oldClassName = 'blast_BlockedEmails';
     
     
     /**
@@ -94,7 +96,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      *
      *
-     * @param blast_BlockedEmails $mvc
+     * @param email_AddressesInfo $mvc
      * @param array               $fields
      *
      * @see bgerp_plg_Import
@@ -110,7 +112,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      *
      *
-     * @param blast_BlockedEmails $mvc
+     * @param email_AddressesInfo $mvc
      * @param stdClass            $rec
      *
      * @return bool
@@ -393,7 +395,7 @@ class blast_BlockedEmails extends core_Manager
     /**
      * Преди запис в модела
      *
-     * @param blast_BlockedEmails $mvc
+     * @param email_AddressesInfo $mvc
      * @param NULL|int            $rec
      * @param stdClass            $rec
      */
@@ -463,21 +465,20 @@ class blast_BlockedEmails extends core_Manager
      */
     public function cron_CheckEmails()
     {
-        $conf = core_Packs::getConfig('blast');
         $query = self::getQuery();
         
         // Ако е изпратен преди посоченото време да не се проверява
-        $stopCheckingPeriod = dt::subtractSecs($conf->BLAST_STOP_CHECKING_EMAILS_PERIOD);
+        $stopCheckingPeriod = dt::subtractSecs(email_Setup::get('STOP_CHECKING_EMAILS_PERIOD'));
         $query->where("#lastSent >= '{$stopCheckingPeriod}'");
         
         $query->where("#state != 'blocked'");
         $query->orWhere('#state IS NULL');
         
         // Ако е проверяван скоро, да не се проверява повторно
-        $recheckAfter = dt::subtractSecs((int) $conf->BLAST_RECHECK_EMAILS_AFTER);
+        $recheckAfter = dt::subtractSecs((int) email_Setup::get(RECHECK_EMAILS_AFTER));
         $query->where("#lastChecked <= '{$recheckAfter}'");
         $query->orWhere('#lastChecked IS NULL');
-        $query->limit((int) $conf->BLAST_RECHECK_EMAILS_LIMIT);
+        $query->limit((int) email_Setup::get('RECHECK_EMAILS_LIMIT'));
         
         $query->orderBy('lastChecked', 'ASC');
         

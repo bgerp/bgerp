@@ -137,7 +137,7 @@ class email_Spam extends email_ServiceEmails
             // Ако има друг входящ или изходящ имейл, да не се третира като СПАМ
             if (!email_Incomings::fetchField(array("#fromEml = '[#1#]' AND #state != 'rejected'", $fromEmail))) {
                 // Ако има друг изходящ имейл, намаляме резултата
-                if (!blast_BlockedEmails::fetchField(array("#email = '[#1#]'", $fromEmail))) {
+                if (!email_AddressesInfo::fetchField(array("#email = '[#1#]'", $fromEmail))) {
                     $isSpam = true;
                 }
             }
@@ -253,7 +253,7 @@ class email_Spam extends email_ServiceEmails
 //                }
 
                 // Ако има друг изходящ имейл, намаляме резултата
-                if (blast_BlockedEmails::fetchField(array("#email = '[#1#]'", $fromEmail))) {
+                if (email_AddressesInfo::fetchField(array("#email = '[#1#]'", $fromEmail))) {
                     $score -= 4;
                 }
             }
