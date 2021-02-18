@@ -258,29 +258,32 @@ class email_Spam extends email_ServiceEmails
         $fromEmail = trim($fromEmail);
         $fromEmail = mb_strtolower($fromEmail);
 
-        if ($fromEmail) {
-//            // Ако има друг входящ имейл, намаляме резултата
-//            if (email_Incomings::fetch(array("#fromEml = '[#1#]' AND #state != 'rejected'", $fromEmail))) {
-//                $score -= 1;
-//            }
+        if (isset($score) && $fromEmail) {
+            if (($score >= email_Setup::get('REJECT_SPAM_SCORE')) || ($score >= email_Setup::get('HARD_SPAM_SCORE'))) {
 
-            // Ако има друг изходящ имейл, намаляме резултата
-            $oQuery = email_Outgoings::getQuery();
-//            $oQuery->where("#state != 'rejected'");
-            $oQuery->where("#state = 'closed'");
-            $oQuery->like('email', $fromEmail);
-            $oQuery->orLike('emailCc', $fromEmail);
-            $oQuery->show('email, emailCc');
+//                // Ако има друг входящ имейл, намаляме резултата
+//                if (email_Incomings::fetch(array("#fromEml = '[#1#]' AND #state != 'rejected'", $fromEmail))) {
+//                    $score -= 1;
+//                }
 
-            while ($oRec = $oQuery->fetch()) {
-                $emails = $oRec->email . ' ' . $oRec->emailCc;
-                $emailsArr = type_Emails::toArray(mb_strtolower($emails));
-                $emailsArr = arr::make($emailsArr, true);
-                if ($emailsArr[$fromEmail]) {
+                // Ако има друг изходящ имейл, намаляме резултата
+                $oQuery = email_Outgoings::getQuery();
+//                $oQuery->where("#state != 'rejected'");
+                $oQuery->where("#state = 'closed'");
+                $oQuery->like('email', $fromEmail);
+                $oQuery->orLike('emailCc', $fromEmail);
+                $oQuery->show('email, emailCc');
 
-                    $score -= 4;
+                while ($oRec = $oQuery->fetch()) {
+                    $emails = $oRec->email . ' ' . $oRec->emailCc;
+                    $emailsArr = type_Emails::toArray(mb_strtolower($emails));
+                    $emailsArr = arr::make($emailsArr, true);
+                    if ($emailsArr[$fromEmail]) {
 
-                    break;
+                        $score -= 4;
+
+                        break;
+                    }
                 }
             }
         }
