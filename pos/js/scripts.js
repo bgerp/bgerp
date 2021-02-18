@@ -65,7 +65,7 @@ function posActions() {
 		}
 
 		// Хак да не се тригърва ивента при натискане на ентър или при навигацията на страницата за избор на селектиран елемент
-		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
+		if(e.key == "Enter" || e.key == "ArrowRight" || e.key == "ArrowLeft" || e.key == 'Shift' || e.key == "ArrowUp" || e.key == "ArrowDown"  || e.key == "PageUp" || e.key == "PageDown" || e.key == 'Alt' || e.key == 'Control' || e.key == 'Escape' || e.key == 'F2') return;
 
 		activeInput = true;
 
@@ -805,7 +805,13 @@ function render_afterload()
 }
 
 function enter(){
-	if (openedModal) return;
+
+	// Ако е отворен модал да се игнорира ентера
+	if (openedModal) {
+		console.log('ENTER STOPPED OPEN MODAL');
+
+		return;
+	}
 
 	clearTimeout(timeout);
 	var value = $("input[name=ean]").val();
@@ -826,7 +832,7 @@ function enter(){
 			return;
 		}
 	}
-
+	console.log('enter');
 	submitInputString();
 }
 
@@ -1394,17 +1400,13 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 	var inpVal = element.val();
 	var operation = getSelectedOperation();
 
+	// Ако е засечен микроформат няма да се търси, ще се чака потребителя да направи нещо
 	if(isMicroformat(inpVal) && (operation == 'add' || operation == 'edit')){
+		console.log('MICROFORMAT waiting');
+		return;
+	}
+	console.log('trigger SEARCH');
 
-		var selectedRecId = getSelectedRowId();
-		doOperation(operation, selectedRecId, true);
-		return;
-	}
-	
-	if(inpVal.startsWith("*")){
-		return;
-	}
-	
 	var selectedElement = $(".highlighted.productRow");
 	var selectedRecId = selectedElement.attr("data-id");
 

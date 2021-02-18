@@ -116,7 +116,7 @@ class email_ServiceEmails extends core_Manager
         expect($rec && $rec->data);
 
         $mime = cls::get('email_Mime');
-        ;
+
         $data = $mime->parseAll($rec->data);
 
         $Incomings = cls::get('email_Incomings');

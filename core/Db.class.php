@@ -48,6 +48,13 @@ defIfNot('BGERP_SQL_LOG_PATH', false);
 
 
 /**
+ * Бавните заявки над колко секунди да се репортват
+ */
+defIfNot('CORE_DB_REPORT_SLOW_QUERY_TIME', 1);
+
+
+
+/**
  * Клас 'core_Db' - Манипулиране на MySQL-ски бази данни
  *
  *
@@ -69,8 +76,8 @@ class core_Db
      * @var string
      */
     public $dbName;
-    
-    
+
+
     /**
      * Потребителя към БД
      *
@@ -254,11 +261,20 @@ class core_Db
         
         DEBUG::startTimer('DB::query()');
         DEBUG::log("${sqlQuery}");
-        
+
         $link = $this->connect();
         $this->query = $sqlQuery;
+
+        $eTimeBefore = DEBUG::getExecutionTime();
         $dbRes = $link->query($sqlQuery);
-        
+        $eTimeAfter = DEBUG::getExecutionTime();
+
+        $eTime = $eTimeAfter - $eTimeBefore;
+
+//        if (defined('CORE_DB_REPORT_SLOW_QUERY_TIME') && ($eTime >= CORE_DB_REPORT_SLOW_QUERY_TIME)) {
+//            wp("Бавна заявка", $eTime, $sqlQuery);
+//        }
+
         $this->checkForErrors('изпълняване на заявка', $silent, $link);
         DEBUG::stopTimer('DB::query()');
         

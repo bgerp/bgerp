@@ -196,7 +196,7 @@ abstract class deals_DealBase extends core_Master
         }
         
         if ($action == 'changerate' && isset($rec)) {
-            if ($rec->currencyId == 'BGN' || $rec->currencyId == 'EUR') {
+            if ($rec->currencyId == 'BGN') {
                 $res = 'no_one';
             } elseif ($rec->state == 'closed' || $rec->state == 'rejected') {
                 $res = 'no_one';
@@ -639,12 +639,13 @@ abstract class deals_DealBase extends core_Master
                     'measureId' => cat_UoM::getShortName($expRec->measureId),
                     'productId' => cat_Products::getShortHyperLink($productId),
                 );
-                
+
                 if ($pRec->canStore == 'yes') {
-                    $expRec->inStock = store_Products::getQuantity($productId, null, true);
+                    $expRec->free = store_Products::getQuantities($productId)->free;
+                    $expRec->inStock = store_Products::getQuantities($productId)->quantity;
                 }
                 
-                foreach (array('quantity', 'shipQuantity', 'blQuantity', 'inStock') as $q) {
+                foreach (array('quantity', 'shipQuantity', 'blQuantity', 'inStock', 'free') as $q) {
                     if (!isset($expRec->{$q})) {
                         continue;
                     }
@@ -672,7 +673,7 @@ abstract class deals_DealBase extends core_Master
         // проверяваме дали може да се сложи на страницата
         $data->DealReport = array_slice($report, $start, $end - $start + 1);
         $data->DealReportCsv = $dealReportCSV;
-        $data->reportFields = arr::make('code=Код,productId=Артикул,measureId=Мярка,quantity=Количество->Поръчано,shipQuantity=Количество->Доставено,blQuantity=Количество->Остатък,inStock=Количество->Разполагаемо', true);
+        $data->reportFields = arr::make('code=Код,productId=Артикул,measureId=Мярка,quantity=Количество->Поръчано,shipQuantity=Количество->Доставено,blQuantity=Количество->Остатък,inStock=Количество->Налично,free=Количество->Разполагаемо', true);
         
         $data->reportTableMvc = new core_Mvc;
         $data->reportTableMvc->FLD('code', 'varchar');
@@ -682,6 +683,7 @@ abstract class deals_DealBase extends core_Master
         $data->reportTableMvc->FLD('shipQuantity', 'double', 'tdClass=aright');
         $data->reportTableMvc->FLD('blQuantity', 'double', 'tdClass=aright');
         $data->reportTableMvc->FLD('inStock', 'double', 'tdClass=aright');
+        $data->reportTableMvc->FLD('free', 'double', 'tdClass=aright');
     }
     
     

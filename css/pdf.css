@@ -1,46 +1,54 @@
-.document {
-  min-width: 850px; }
+.document{
+  min-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: Helvetica, Arial, Verdana, Sans-serif;
+}
 
 .linkWithIcon {
-  background-position: 3px bottom !important; }
+  background-position: 3px bottom !important;
+}
 
 .docBgIcon {
-  background-position: 3px 7px !important; }
+  background-position: 3px 7px !important;
+}
 
 div.richtextHide {
-  display: block !important; }
+  display:block !important;
+}
 
-code,
-kbd,
-pre,
-samp {
-  font-family: Courier New, serif !important; }
+code, kbd, pre, samp {
+  font-family: Courier New, serif !important;
+}
 
-.footerDocBlock {
+.footerDocBlock{
   display: block !important;
-  border-top: 1px solid #666666 !important; }
-
+  border-top: 1px solid #666 !important;
+}
 .footerDocInfo {
-  display: table-row !important; }
-
+  display: table-row !important;
+}
 .footerDocTable {
-  display: table !important; }
-
-.footer-notes {
-  page-break-inside: auto; }
+  display: table !important;
+}
+.footer-notes{
+  page-break-inside: auto;
+}
 
 thead {
-  display: table-row-group; }
+  display: table-row-group;
+}
 
 .versionNumber {
-  margin-left: 5px; }
+  margin-left: 5px;
+}
 
 .staticFormView .formFieldValue {
-  border: solid 1px #bbbbbb; }
+  border: solid 1px #bbbbbb;
+}
 
-.products-table,
-.quote-header {
-  border: 1px solid #cccccc;
+.products-table, .quote-header{
+  border: 1px solid #ccc;
   padding: 5px !important;
-  vertical-align: top; }
-
+  vertical-align: top;
+}

@@ -95,10 +95,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $fieldset->FLD('engName', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Име EN,after=seeByContragent,single=none');
         $fieldset->FLD('seeDelta', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи делти,after=engName,single=none');
+        $fieldset->FLD('seeWeight', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи тегло,after=seeDelta,single=none');
         
         
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=seeDelta');
+        $fieldset->FLD('orderBy', 'enum(code=Код, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=seeWeight');
         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
     }
     
@@ -183,6 +184,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('firstMonth', 'input');
             $form->setField('secondMonth', 'input');
         }
+
+        if ($rec->compare != 'no') {
+            $form->setField('seeWeight', 'input=hidden');
+        }
         $form->input('typeOfGroups');
         if ($rec->typeOfGroups == 'category') {
             $form->setField('group', 'input=hidden');
@@ -235,6 +240,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setDefault('engName', 'no');
         
         $form->setDefault('seeDelta', 'no');
+
+        $form->setDefault('seeWeight', 'no');
         
         $form->setDefault('orderBy', 'primeCost');
         
@@ -348,11 +355,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        //Код и Id  на основната валота в края на периода
+        //Код и Id  на основната валута в края на периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->to);
         $baseCurrencyId = currency_Currencies::getIdByCode($baseCurrency);
-        
-        //При групиране по кои крупи да работи: групи артикули или цатегории артикули
+
+        //При групиране по кои крупи да работи: групи артикули или категории артикули
         if ($rec->typeOfGroups == 'art') {
             $checkForGruping = 'group';
         } elseif (($rec->typeOfGroups == 'category')) {
@@ -365,7 +372,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (is_null($rec->seeDelta)) {
             $rec->seeDelta = 'no';
         }
-        
+
         //Показването да бъде ли ГРУПИРАНО
         if (($rec->grouping == 'no') && ($rec->group || $rec->category)) {
             if ($rec->typeOfGroups == 'art') {
@@ -375,22 +382,22 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             $this->groupByField = $groupByField;
         }
-        
+
         if ($rec->seeByContragent == 'yes') {
             $this->groupByField = 'contragent';
         }
-        
+
         $recs = $invProd = array();
-        
-        
+
+
         //Ако има избрано разбивка "Артикули по контрагент"
         //Подготвяме масив с фактурираните артикули през избрания период
         //разбити по контрагент
         if ($rec->seeByContragent == 'yes') {
             $invDetQuery = sales_InvoiceDetails::getQuery();
-            
+
             $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
-            
+
             $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
             
             $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
@@ -450,15 +457,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
             }
         }
-        
-        
+
+
         if ($rec->quantityType == 'shipped') {
             $query = sales_PrimeCostByDocument::getQuery();
             
             //не е бърза продажба//
             $query->where('#sellCost IS NOT NULL');
         } else {
-            
+
             //За заявени количества
             $query = sales_SalesDetails::getQuery();
             
@@ -628,10 +635,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             //Код на артикула
             $artCode = $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}";
-            
+
             //Мярка на артикула
-            $measureArt = cat_Products::getProductInfo($recPrime->productId)->productRec->measureId;
-            
+            $measureArt = cat_Products::fetch($recPrime->productId)->measureId;
+
             //Данни за ПРЕДХОДЕН ПЕРИОД или МЕСЕЦ
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                 if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
@@ -970,7 +977,20 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $changeDelta = 'changeGroupDeltaLastYear';
             }
         }
-        
+
+        //Добавяне на колона за теглото
+        if ($rec->seeWeight == 'yes' && $rec->grouping == 'no' && $rec->compare == 'no'){
+
+            foreach ($recs as $val){
+                $prodRec = cat_Products::fetch($val->productId);
+                $prodWeight = self::getProductWeight($prodRec);
+                $val->weight =(is_numeric($prodWeight)) ? $prodWeight*$val->quantity : 'n.a.';
+
+            }
+
+
+        }
+
         //Подредба на резултатите
         if (!is_null($recs)) {
             $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
@@ -984,7 +1004,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->orderBy == 'changeCost') {
                 $orderBy = $changePrimeCost;
             }
-            
+
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
         }
         
@@ -999,7 +1019,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         );
         
         array_unshift($recs, $totalArr['total']);
-        
+
+
         return $recs;
     }
     
@@ -1074,6 +1095,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     if ($rec->seeDelta == 'yes') {
                         $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
+                    }
+
+                    if ($rec->seeWeight == 'yes') {
+                        $fld->FLD('weight', 'double(smartRound,decimals=2)', 'smartCenter,caption=Тегло->[кг]');
                     }
                 }
             } else {
@@ -1345,7 +1370,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 'primeCost',
                 'delta',
                 'invQuantity',
-                'invAmount'
+                'invAmount',
+                'weight'
             ) as $fld) {
                 if (!isset($dRec->{$fld})) {
                     continue;
@@ -1689,5 +1715,36 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         return $foldersInGroups;
+    }
+
+    /**
+     * Връща единично тегло на артикула
+     *
+     * @param stdClass $rec
+     *
+     * @return double
+     */
+    public static function getProductWeight($rec)
+    {
+        //id на мярката 'килограм'
+        $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
+
+        //Взема единичното тегло на целия продукт
+        $singleProductWeight = null;
+        $singleProductWeight = cat_Products::getParams($rec->id, 'weight');
+
+        if ($singleProductWeight) {
+            $singleProductWeight = $singleProductWeight / 1000;
+        } else {
+            $singleProductWeight = cat_Products::getParams($rec->id, 'weightKg');
+        }
+
+        if ($rec->measureId == $kgMeasureId) {
+            $singleProductWeight = 1;
+        }
+
+        $singleProductWeight = $singleProductWeight ? $singleProductWeight : 'n.a.';
+
+        return $singleProductWeight;
     }
 }

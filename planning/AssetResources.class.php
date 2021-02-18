@@ -299,7 +299,7 @@ class planning_AssetResources extends core_Master
             while ($fRec = $fQuery->fetch()) {
                 $fArr[$fRec->folderId] = array('folderId' => $fRec->folderId, 'users' => $fRec->users, 'rec' => $fRec);
             }
-            
+
             $row->systemFolderId = '';
             $row->assetFolderId = '';
             foreach ($fArr as $f) {
@@ -331,20 +331,17 @@ class planning_AssetResources extends core_Master
                         $sQuery = cal_Tasks::getQuery();
                         $sQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
                         $sQuery->where("#state != 'rejected'");
-                        $sQuery->where(array("#{$driverClassField} = '[#1#]'", support_TaskType::getClassId()));
+                        $sQuery->where(array("#assetResourceId = '[#1#]'", $rec->id));
+//                        $sQuery->where(array("#{$driverClassField} = '[#1#]'", support_TaskType::getClassId()));
                         
                         $sQuery->orderBy('state', 'ASC');
                         $sQuery->orderBy('modifiedOn', 'DESC');
-                        
+
+                        $sQuery->limit($limitForDocs);
+
                         $cnt = 0;
                         while ($sRec = $sQuery->fetch()) {
-                            if ($sRec->assetResourceId != $rec->id) {
-                                continue;
-                            }
-                            if (++$cnt > $limitForDocs) {
-                                break;
-                            }
-                            
+
                             $linkTitle = cal_Tasks::getVerbal($sRec->id, 'progress');
                             $linkTitle .= ' ' . cal_Tasks::getVerbal($sRec->id, 'title');
                             
@@ -373,7 +370,7 @@ class planning_AssetResources extends core_Master
                         }
                         $row->assetFolderId .= ')';
                     }
-                    
+
                     $jobs = '';
                     if (doc_Folders::haveRightFor('single', $f['folderId'])) {
                         $pQuery = planning_Tasks::getQuery();
@@ -386,6 +383,19 @@ class planning_AssetResources extends core_Master
                         
                         while ($pRec = $pQuery->fetch()) {
                             $jobs .= "<div class='state-{$pRec->state}'>" . planning_Tasks::getHyperlink($pRec->id, true) . '</div>';
+                        }
+
+                        // Показваме  и задачите
+                        $tQuery = cal_Tasks::getQuery();
+                        $tQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
+                        $tQuery->where(array("#assetResourceId = '[#1#]'", $rec->id));
+                        $tQuery->where("#state != 'rejected'");
+                        $tQuery->orderBy('state', 'ASC');
+                        $tQuery->orderBy('modifiedOn', 'DESC');
+                        $tQuery->limit($limitForDocs);
+
+                        while ($tRec = $tQuery->fetch()) {
+                            $jobs .= "<div class='state-{$tRec->state}'>" . cal_Tasks::getHyperlink($tRec->id, true) . '</div>';
                         }
                     }
                     

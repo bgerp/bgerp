@@ -153,7 +153,7 @@ class doc_plg_TplManager extends core_Plugin
         // Ако ще се замества целия сингъл, подменяме го елегантно
         if (!$mvc->templateFld) {
             if (Request::get('asClient')) {
-                $data->singleLayout = getTplFromFile($mvc->printAsClientLayaoutFile);
+                $data->singleLayout = getTplFromFile($mvc->printAsClientLayoutFile);
             } else {
                 $data->singleLayout = doc_TplManager::getTemplate($data->rec->template);
             }
@@ -216,7 +216,7 @@ class doc_plg_TplManager extends core_Plugin
         // Ако има посочен плейсхолдър където да отива шаблона, то той се използва
         if ($mvc->templateFld) {
             if (Request::get('asClient')) {
-                $content = getTplFromFile($mvc->printAsClientLayaoutFile);
+                $content = getTplFromFile($mvc->printAsClientLayoutFile);
             } else {
                 $content = doc_TplManager::getTemplate($data->rec->template);
             }
@@ -532,7 +532,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'asclient') {
-            if (!$mvc->printAsClientLayaoutFile || $rec->state == 'rejected') {
+            if (!$mvc->printAsClientLayoutFile || $rec->state == 'rejected') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -555,7 +555,7 @@ class doc_plg_TplManager extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
     {
         if ($mvc->haveRightFor('asClient', $data->rec)) {
-            $data->toolbar->addBtn('П Клиент', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'asClient' => true), "id=btnClientPrint{$data->rec->containerId},target=_blank,row=2", 'ef_icon = img/16/print_go.png,title=Печатане с данните на клиента');
+            $data->toolbar->addBtn('Печат DN', array($mvc, 'single', $data->rec->id, 'Printing' => 'yes', 'asClient' => true), "id=btnClientPrint{$data->rec->containerId},target=_blank,row=2", 'ef_icon = img/16/print_go.png,title=Печатане с данните на клиента (Delivery note: Клиентът като Доставчик)');
         }
     }
     

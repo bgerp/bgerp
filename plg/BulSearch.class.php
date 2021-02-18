@@ -22,9 +22,11 @@ class plg_BulSearch extends core_Plugin
      */
     public static function on_AfterParseSearchQuery(&$mvc, &$words)
     {
-        foreach ($words as &$w) {
-            $w = preg_replace('/^([\\p{Cyrillic}]{5,})(и|ен|ът|ав|ан|ов|ят|ев|ащ)$/ui', '$1', $w);
-            $w = preg_replace('/^([\\p{Cyrillic}]{4,})(а|о|у|е|я|и|че|нце)$/ui', '$1', $w);
+        if ($words !== false) {
+            foreach ($words as &$w) {
+                $w = preg_replace('/^([\\p{Cyrillic}]{5,})(и|ен|ът|ав|ан|ов|ят|ев|ащ)$/ui', '$1', $w);
+                $w = preg_replace('/^([\\p{Cyrillic}]{4,})(а|о|у|е|я|и|че|нце)$/ui', '$1', $w);
+            }
         }
     }
 }

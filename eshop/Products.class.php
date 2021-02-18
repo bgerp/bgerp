@@ -755,7 +755,8 @@ class eshop_Products extends core_Master
         $data->productId = Request::get('id', 'int');
         
         if (!$data->productId) {
-            $opt = cms_Content::getMenuOpt('eshop_Groups');
+            $domainId = cms_Domains::getPublicDomain('id');
+            $opt = cms_Content::getMenuOpt('eshop_Groups', $domainId);
             if (countR($opt)) {
                 return new Redirect(array('cms_Content', 'Show', key($opt)));
             }
@@ -1912,5 +1913,17 @@ class eshop_Products extends core_Master
         $res = array_values($res);
         
         return $res;
+    }
+
+
+    /**
+     * Какво е заглавието на източника
+     *
+     * @param $id     - ид на запис
+     * @return string - заглавие
+     */
+    public function getSourceTitle($id)
+    {
+        return $this->getHyperlink($id, true);
     }
 }

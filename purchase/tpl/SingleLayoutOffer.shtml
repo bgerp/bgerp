@@ -1,0 +1,36 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
+<table class="styled-table" style="margin-top: 20px;">
+    <!--ET_BEGIN product-->
+    <tr>
+        <td class='dt'>|Продукт|*:</td>
+        <td> <b>[#product#]</b></td>
+    </tr>
+    <!--ET_END product-->
+    <!--ET_BEGIN sum-->
+    <tr>
+        <td class='dt'>|Цена|*:</td>
+        <td>[#sum#]</td>
+    </tr>
+    <!--ET_END sum-->
+    <!--ET_BEGIN date-->
+    <tr>
+        <td class='dt'>|Дата|*:</td>
+        <td>[#date#]</td>
+    </tr>
+    <!--ET_END date-->
+    <!--ET_BEGIN offer-->
+    <tr>
+        <td class='dt'>|Детайли|*:</td>
+        <td>[#offer#]</td>
+    </tr>
+    <!--ET_END offer-->
+    <!--ET_BEGIN offer-->
+    <tr>
+        <td class='dt'>|Документ|*:</td>
+        <td>[#documentId#]</td>
+    </tr>
+    <!--ET_END offer-->
+</table>
+<div style="margin-top: 20px;"><span class="quiet">|Модифициране|*: </span>|от|* [#modifiedBy#] |на|* [#modifiedOn#] </div>
+<div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>

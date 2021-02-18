@@ -514,8 +514,26 @@ div.folder-cover {
 .leftAlign {
 	text-align: left !important;
 }
+.nameCell {
+	text-align: left !important;
+	min-width: 300px;
+	max-width: 460px !important;
+}
+
+.doc_Containers table.listTable .totalRow td, .folder-cover  .portal table.listTable  .totalRow td{
+	vertical-align: baseline !important;
+	padding: 2px 3px 5px !important;
+	&.horizonCol {
+		top: 0 !important;
+	}
+}
+
 .public.folder-cover {
 	margin: 0;
+}
+
+.folder-cover .store_Products .listRowsDetail {
+	overflow: auto;
 }
 
 .special-title {
@@ -1146,6 +1164,7 @@ div.acc-detail {
        width: auto;
 	   border-radius: 5px;
 	   font-size: 15px;
+		color: #000;
         &.bottom{
             bottom: auto;
             top: 0;
@@ -1154,6 +1173,10 @@ div.acc-detail {
 	   .aright{
 	       padding-right: 5px;
 	   }
+		&.left {
+			right: 0;
+			left: auto;
+		}
 	   td{
 	       white-space: nowrap;
 	       border: none !important;
@@ -2224,6 +2247,28 @@ td.rowtools-column {
 	min-width: 300px;
 }
 
+.horizonCol {
+	position: relative;
+	top: 2px;
+	font-size: 0.85em;
+	.anchor-arrow,  .endTooltip{
+		width: 10px;
+		height: 10px;
+		img {
+			width: 12px;
+			height: 12px;
+		}
+	}
+	.additionalInfo-holder {
+		position: relative;
+		top:1px;
+	}
+}
+
+.lighter-color {
+	opacity: 0.6;
+}
+
 .listAction table.listTable>tbody>tr>td, table.listTable.listAction>tbody>tr>td.wideColumn {
 	max-width: none !important;
 }
@@ -2600,13 +2645,14 @@ pre.document {
 	ul{
 		margin-top: 5px;
 		margin-bottom: 0;
+		margin-left: 25px;
 		li {
-			padding-bottom: 10px;
+			padding-bottom: 5px;
 		}
 	}
 	.richtext {
 	   color: #000;
-	   line-height: 1em;
+	   line-height: 1.5em;
 	   ul {
 	       margin-left: 10px;
 	   }
@@ -4703,6 +4749,9 @@ table .eshop-btn {
 	&.defaultTheme.topPageNewsbar {
 		top: 0;
 	}
+	&.bottomContentNewsbar {
+		margin: 20px 0 10px;
+	}
 }
 
 .narrow .newsbar.topPageNewsbar {
@@ -5931,6 +5980,14 @@ div.location.public {
 
 .blast_ListDetails .listToolbar, .dec_DeclarationDetails .listToolbar, .distro_Files  .listToolbar{
     border-bottom: none !important;
+}
+.declarationApprovedText {
+	margin-top: 2px;
+}
+.declarationApproved .richtext {
+	background: url("../img/16/checkbox_yes.png") 20px 2px no-repeat;
+	padding-left: 40px;
+	margin-bottom: 2px;
 }
 
 .distro-tools a {

@@ -157,13 +157,9 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
             $jQuery2 = clone $jQuery;
             
             if($type == 'all' || $type == 'debit'){
-                $where = "#debitAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}'";
-                
-                if($type == 'debit'){
-                    $where .= " AND #debitQuantity >= 0";
-                }
-                
-                // Кои пера на артикули са участвали в дебитирането на склад след посочената дата
+                $where = "#debitAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #debitQuantity >= 0";
+
+                // Кои пера на артикули са участвали в дебитирането на склад след посочената дата, с неотрицателно количество
                 $jQuery->where($where);
                 $jQuery->show('debitItem2');
                 $jQuery->groupBy('debitItem2');
@@ -178,11 +174,9 @@ abstract class price_interface_BaseCostPolicy extends core_BaseClass
             
             // Кои пера на артикули са участвали в кредитирането на склад след посочената дата
             if($type == 'all' || $type == 'credit'){
-                $where = "#creditAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}'";
-                if($type == 'credit'){
-                    $where .= " AND #creditQuantity >= 0";
-                }
-                
+                $where = "#creditAccId = {$storeAccId} AND #journalCreatedOn >= '{$beforeDate}' AND #creditQuantity >= 0";
+
+                // Кои пера на артикули са участвали в кредитирането на склад след посочената дата, с неотрицателно количество
                 $jQuery2->where($where);
                 $jQuery2->show('creditItem2');
                 $jQuery2->groupBy('creditItem2');

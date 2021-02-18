@@ -83,8 +83,11 @@ env.sunpos.enabled,bool,true|false,Environment,system,false,Enable software calc
 env.enabled,bool,true|false,Environment,system,false,Plugin enabled
 hvac.adjust_temp_1,float,-50.0/50.0,HVAC,system,0.0,Adjust temperature
 hvac.air_temp_cent_1.settings,str,,HVAC,system,temp/DS18B20/28FFFCD0001703AE,Air temperature sensor center settings
+hvac.air_temp_cent_1.value,float,/,HVAC,system,0.0,Air temperature sensor center value
 hvac.air_temp_lower_1.settings,str,,HVAC,system,temp/DS18B20/28FFC4EE00170349,Air temperature sensor lower settings
+hvac.air_temp_lower_1.value,float,/,HVAC,system,0.0,Air temperature sensor lower value
 hvac.air_temp_upper_1.settings,str,,HVAC,system,temp/DS18B20/28FF2B70C11604B7,Air temperature sensor upper settings
+hvac.air_temp_upper_1.value,float,/,HVAC,system,0.0,Air temperature sensor upper value
 hvac.convector_1.settings,str,,HVAC,system,silpa/klimafan,Convector settings
 hvac.convector_1.stage_1.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO0,Convector stage 1 output
 hvac.convector_1.stage_2.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO1,Convector stage 2 output
@@ -99,6 +102,8 @@ hvac.loop1_1.fan.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,HVAC,system,
 hvac.loop1_1.fan.min_speed,float,0.0/100.0,HVAC,system,0.0,Loop 1 fan minimum speed [%]
 hvac.loop1_1.fan.max_speed,float,0.0/100.0,HVAC,system,30.0,Loop 1 fan maximum speed [%]
 hvac.loop1_1.temp.settings,str,,HVAC,system,temp/DS18B20/28FF2B70C11604B7,Loop 1 temperature sensor settings
+hvac.loop1_1.temp.value,float,/,HVAC,system,0.0,Loop 1 temperature sensor value
+hvac.loop1_1.temp.down_limit,int,0.0/,HVAC,system,15,Loop 1 temperature down limit
 hvac.loop1_1.valve.settings,str,,HVAC,system,TONHE/a20m15b2c,Loop 1 valve settings
 hvac.loop1_1.valve.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO4,Loop 1 valve output
 hvac.loop1_1.valve.feedback,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AI1,Loop 1 valve feedback
@@ -111,6 +116,7 @@ hvac.loop2_1.fan.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,HVAC,system,
 hvac.loop2_1.fan.min_speed,float,0.0/100.0,HVAC,system,0.0,Loop 2 fan minimum speed [%]
 hvac.loop2_1.fan.max_speed,float,0.0/100.0,HVAC,system,30.0,Loop 2 fan maximum speed [%]
 hvac.loop2_1.temp.settings,str,,HVAC,system,temp/DS18B20/28FFC4EE00170349,Loop 2 temperature sensor settings
+hvac.loop2_1.temp.value,float,/,HVAC,system,0.0,Loop 1 temperature sensor value
 hvac.loop2_1.valve.settings,str,,HVAC,system,TONHE/a20m15b2c,Loop 2 valve settings
 hvac.loop2_1.valve.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO3,Loop 2 valve output
 hvac.loop2_1.valve.feedback,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AI2,Loop 2 valve feedback

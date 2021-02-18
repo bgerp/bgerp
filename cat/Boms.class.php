@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class cat_Boms extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'showInProduct, expenses, isComplete';
+    public $changableFields = 'title,showInProduct, expenses, isComplete';
     
     
     /**
@@ -53,16 +53,16 @@ class cat_Boms extends core_Master
     
     
     /**
-     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
-     */
-    public $rowToolsSingleField = 'title';
-    
-    
-    /**
      * Детайла, на модела
      */
     public $details = 'cat_BomDetails';
-    
+
+
+    /**
+     * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
+     */
+    public $rowToolsSingleField = 'name';
+
     
     /**
      * Кой е основния детайл
@@ -194,13 +194,22 @@ class cat_Boms extends core_Master
      * Опашка от спрените рецепти
      */
     private static $stoppedActiveBoms = array();
-    
-    
+
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'title,hash';
+
+
     /**
      * Описание на модела
      */
     public function description()
     {
+        $this->FLD('title', 'varchar(124)', 'caption=Заглавие,tdClass=nameCell');
         $this->FLD('quantity', 'double(smartRound,Min=0)', 'caption=За,silent,mandatory');
         $this->FLD('type', 'enum(sales=Търговска,production=Работна,instant=Моментна)', 'caption=Вид,input=hidden,silent');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пълна рецепта,notNull,value=auto,mandatory');
@@ -213,6 +222,8 @@ class cat_Boms extends core_Master
         $this->FLD('hash', 'varchar', 'input=none');
         
         $this->setDbIndex('productId');
+        $this->setDbIndex('productId,state,type');
+        $this->setDbUnique('productId,title');
     }
     
     
@@ -443,7 +454,7 @@ class cat_Boms extends core_Master
     {
         if(countR(static::$activatedBoms)){
             foreach (static::$activatedBoms as $rec){
-                
+
                 // Намираме всички останали активни рецепти
                 $query = static::getQuery();
                 $query->where("#state = 'active' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
@@ -464,6 +475,14 @@ class cat_Boms extends core_Master
                 if ($idCount) {
                     core_Statuses::newStatus("|Затворени са|* {$idCount} |рецепти|*");
                 }
+
+                // Ако има задания към артикула да се обновят запазените им количества
+                $jQuery = planning_Jobs::getQuery();
+                $jQuery->where("#productId = {$rec->productId} AND #state IN ('active', 'stopped', 'wakeup')");
+                $jQuery->show('id');
+                while($jRec = $jQuery->fetch()){
+                    store_StockPlanning::updateByDocument('planning_Jobs', $jRec->id);
+                }
             }
         }
         
@@ -472,6 +491,9 @@ class cat_Boms extends core_Master
                 if ($nextId = $mvc->activateLastBefore($rec)) {
                     core_Statuses::newStatus("|Активирана е рецепта|* #Bom{$nextId}");
                 }
+
+                // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
+                store_StockPlanning::recalcByReff($mvc, $rec->id);
             }
         }
     }
@@ -567,9 +589,13 @@ class cat_Boms extends core_Master
         
         if ($action == 'add' && isset($rec->originId)) {
             $origin = doc_Containers::getDocument($rec->originId);
+            $threadId = $origin->fetchField('threadId');
+
             if($origin->isInstanceOf('planning_Tasks')){
                 $res = 'no_one';
             } elseif(in_array($origin->fetchField('state'), array('draft', 'rejected'))) {
+                $res = 'no_one';
+            } elseif(!doc_Threads::haveRightFor('single', $threadId)){
                 $res = 'no_one';
             }
         }
@@ -646,8 +672,10 @@ class cat_Boms extends core_Master
             $shortUom = cat_UoM::getShortName($measureId);
             $row->quantity .= ' ' . $shortUom;
         }
-        
+
+        $row->title = $mvc->getHyperlink($rec, true);
         if ($fields['-single'] && !doc_HiddenContainers::isHidden($rec->containerId)) {
+            $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
             $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
             $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
             
@@ -937,7 +965,7 @@ class cat_Boms extends core_Master
     public function prepareBoms(&$data)
     {
         $data->rows = array();
-        
+
         // Намираме неоттеглените задания
         $query = cat_Boms::getQuery();
         $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
@@ -945,6 +973,11 @@ class cat_Boms extends core_Master
         $query->where("#productId = {$data->masterId}");
         $query->where("#state != 'rejected'");
         $query->orderBy('orderByState', 'ASC');
+
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $data->Pager->setPageVar('cat_Products', $data->masterId, 'cat_Boms');
+        $data->Pager->setLimit($query);
+
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec);
@@ -987,17 +1020,25 @@ class cat_Boms extends core_Master
         }
         
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        $title = tr('Технологични рецепти');
-        $tpl->append($title, 'title');
+        if(!$data->fromConvertable){
+            $title = tr('Технологични рецепти');
+            $tpl->append($title, 'title');
+        }
         
         $data->listFields = arr::make('title=Рецепта,type=Вид,quantity=Количество,createdBy=От||By,createdOn=На');
         $table = cls::get('core_TableView', array('mvc' => $this));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $details = $table->get($data->rows, $data->listFields);
-        
+        if ($data->Pager) {
+            $details->append($data->Pager->getHtml());
+        }
+
         // Ако артикула не е производим, показваме в детайла
         if ($data->notManifacturable === true) {
             $tpl->append(" <span class='red small'>(" . tr('Артикулът не е производим') . ')</span>', 'title');
+            $tpl->append('state-rejected', 'TAB_STATE');
+        } elseif($data->fromConvertable && $data->masterData->rec->canConvert != 'yes'){
+            $tpl->replace(" <span class='red small'>(" . tr('Артикулът не е вложим') . ')</span>', 'title');
             $tpl->append('state-rejected', 'TAB_STATE');
         }
         $tpl->append($details, 'content');
@@ -1718,7 +1759,7 @@ class cat_Boms extends core_Master
             
             // Ако има склад се отсяват артикулите, които имат нулева наличност
             if (isset($storeId)) {
-                $quantity = store_Products::getQuantity($pRec->productId, $storeId);
+                $quantity = store_Products::getQuantities($pRec->productId, $storeId)->free;
                 if (empty($quantity)) {
                     continue;
                 }
@@ -1732,24 +1773,21 @@ class cat_Boms extends core_Master
         
         return $res;
     }
-    
-    
+
+
     /**
-     * Обновява modified стойностите
-     *
-     * @param core_Master $mvc
-     * @param bool|NULL   $res
-     * @param int         $id
+     * Връща разбираемо за човека заглавие, отговарящо на записа
      */
-    public static function on_AfterTouchRec($mvc, &$res, $id)
+    public static function getRecTitle($rec, $escaped = true)
     {
-        $rec = $mvc->fetchRec($id);
-        
-        if ($rec) {
-            if ($rec->state == 'rejected') {
-                // @todo - премахване след ремонт
-                wp('cat_Boms::afterTouchRejected', $res, $rec);
-            }
+        $rec = static::fetchRec($rec);
+        $title = static::getHandle($rec);
+        if(!empty($rec->title)){
+            $title .= "/" . static::getVerbal($rec, 'title');
         }
+        $title .= "/" . cat_Products::getTitleById($rec->productId);
+        $title = str::limitLen($title, 94);
+
+        return $title;
     }
 }

@@ -176,7 +176,7 @@ class core_Debug
      */
     public static function log($name)
     {
-        if (!isDebug() || !core_Debug::$isLogging) {
+        if ((!isDebug() && !defined('DEBUG_FATAL_ERRORS_FILE')) || !core_Debug::$isLogging) {
             
             return ;
         }
@@ -288,6 +288,24 @@ class core_Debug
         
         return $html;
     }
+
+
+    /**
+     * Поомощна функция за вземане на времето на изпълнение
+     *
+     * @param sting $name
+     *
+     * @return null|double
+     */
+    public static function getWorkingTime($name)
+    {
+        $time = core_Debug::$timers[$name];
+
+        if ($time) {
+
+            return $time->workingTime;
+        }
+    }
     
     
     /**
@@ -314,7 +332,7 @@ class core_Debug
         }
         
         $errHtml = self::getErrorHtml($html, $stack, $type);
-        
+
         $errHtml .= core_Debug::getLog();
         
         core_Os::requireDir(EF_TEMP_PATH);

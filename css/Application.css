@@ -433,8 +433,24 @@ div.folder-cover {
 .leftAlign {
   text-align: left !important; }
 
+.nameCell {
+  text-align: left !important;
+  min-width: 300px;
+  max-width: 460px !important; }
+
+.doc_Containers table.listTable .totalRow td,
+.folder-cover  .portal table.listTable  .totalRow td {
+  vertical-align: baseline !important;
+  padding: 2px 3px 5px !important; }
+  .doc_Containers table.listTable .totalRow td.horizonCol,
+  .folder-cover  .portal table.listTable  .totalRow td.horizonCol {
+    top: 0 !important; }
+
 .public.folder-cover {
   margin: 0; }
+
+.folder-cover .store_Products .listRowsDetail {
+  overflow: auto; }
 
 .special-title {
   padding: 10px !important;
@@ -1014,12 +1030,16 @@ div.acc-detail {
     background: #ffffee;
     width: auto;
     border-radius: 5px;
-    font-size: 15px; }
+    font-size: 15px;
+    color: black; }
     .additionalInfo-holder .additionalInfo.bottom {
       bottom: auto;
       top: 0; }
     .additionalInfo-holder .additionalInfo .aright {
       padding-right: 5px; }
+    .additionalInfo-holder .additionalInfo.left {
+      right: 0;
+      left: auto; }
     .additionalInfo-holder .additionalInfo td {
       white-space: nowrap;
       border: none !important;
@@ -1928,6 +1948,25 @@ td.rowtools-column {
 .narrow .largeNarrowCell {
   min-width: 300px; }
 
+.horizonCol {
+  position: relative;
+  top: 2px;
+  font-size: 0.85em; }
+  .horizonCol .anchor-arrow,
+  .horizonCol .endTooltip {
+    width: 10px;
+    height: 10px; }
+    .horizonCol .anchor-arrow img,
+    .horizonCol .endTooltip img {
+      width: 12px;
+      height: 12px; }
+  .horizonCol .additionalInfo-holder {
+    position: relative;
+    top: 1px; }
+
+.lighter-color {
+  opacity: 0.6; }
+
 .listAction table.listTable>tbody>tr>td,
 table.listTable.listAction>tbody>tr>td.wideColumn {
   max-width: none !important; }
@@ -2230,12 +2269,13 @@ pre.document {
   font-size: 0.95em; }
   .dec-document ul {
     margin-top: 5px;
-    margin-bottom: 0; }
+    margin-bottom: 0;
+    margin-left: 25px; }
     .dec-document ul li {
-      padding-bottom: 10px; }
+      padding-bottom: 5px; }
   .dec-document .richtext {
     color: black;
-    line-height: 1em; }
+    line-height: 1.5em; }
     .dec-document .richtext ul {
       margin-left: 10px; }
   .dec-document .inner-text {
@@ -4026,6 +4066,8 @@ table .eshop-btn {
     margin-top: 30px; }
   .newsbar.defaultTheme.topPageNewsbar {
     top: 0; }
+  .newsbar.bottomContentNewsbar {
+    margin: 20px 0 10px; }
 
 .narrow .newsbar.topPageNewsbar {
   position: static; }
@@ -5214,6 +5256,14 @@ div.location.public {
 .dec_DeclarationDetails .listToolbar,
 .distro_Files  .listToolbar {
   border-bottom: none !important; }
+
+.declarationApprovedText {
+  margin-top: 2px; }
+
+.declarationApproved .richtext {
+  background: url("../img/16/checkbox_yes.png") 20px 2px no-repeat;
+  padding-left: 40px;
+  margin-bottom: 2px; }
 
 .distro-tools a {
   margin: 0 5px 0;

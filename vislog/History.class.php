@@ -83,6 +83,8 @@ class vislog_History extends core_Manager
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt,allowEmpty)', 'caption=Домейн,notNull,autoFilter');
 
         $this->setDbIndex('ip');
+        $this->setDbIndex('createdOn');
+        $this->setDbIndex('HistoryResourceId');
     }
     
 

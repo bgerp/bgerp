@@ -97,7 +97,8 @@ class cat_products_PriceDetails extends core_Manager
      */
     private function preparePriceInfo($data)
     {
-        $validFrom = dt::now();
+        $btns = '';
+        $minPriceValidFrom = $validFrom = dt::now();
         $hideIcons = false;
         if (Mode::isReadOnly()) {
             $hideIcons = true;
@@ -125,14 +126,12 @@ class cat_products_PriceDetails extends core_Manager
             $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $data->masterData->rec->proto, null, $now, $validFrom);
             $primeCostIsFromTemplate = true;
         }
-        
-        if (isset($primeCost)) {
-            $primeCostDate = $validFrom;
-        }
+
+        $primeCostDate = (isset($primeCost)) ? $validFrom : null;
         
         $catalogListId = cat_Setup::get('DEFAULT_PRICELIST');
         $catalogCost = price_ListRules::getPrice($catalogListId, $data->masterId, null, $now, $validFrom);
-        
+
         if(is_null($catalogCost) && isset($data->masterData->rec->proto)){
             $catalogCost = price_ListRules::getPrice($catalogListId, $data->masterData->rec->proto, null, $now, $validFrom);
             $catalogCostIsFromTemplate = true;
@@ -144,7 +143,8 @@ class cat_products_PriceDetails extends core_Manager
         if (isset($catalogCost)) {
             $catalogCostDate = $validFrom;
         }
-        
+
+        $futurePrimeCostDate = null;
         $lQuery = price_ListRules::getQuery();
         $lQuery->where("#listId = {$primeCostListId} AND #type = 'value' AND #productId = {$data->masterId} AND #validFrom > '{$now}'");
         $lQuery->orderBy('validFrom', 'ASC');
@@ -174,7 +174,6 @@ class cat_products_PriceDetails extends core_Manager
         
         if (haveRole('priceDealer,ceo')) {
             if (price_ListRules::haveRightFor('add', (object) array('productId' => $data->masterId, 'listId' => $primeCostListId))) {
-                $btns = '';
                 $newCost = null;
                 if (isset($uRec->costValue)) {
                     $newCost = $uRec->costValue;
@@ -208,7 +207,7 @@ class cat_products_PriceDetails extends core_Manager
                 $threadId = price_Lists::fetchField(price_ListRules::PRICE_LIST_COST, 'threadId');
                 
                 if (doc_Threads::haveRightFor('single', $threadId)) {
-                    $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
+                    $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId, 'ret_url' => true));
                 }
                 
                 $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($primeCost);
@@ -218,18 +217,18 @@ class cat_products_PriceDetails extends core_Manager
                 
                 $priceRow = (is_null($primeCost)) ? $verbPrice : '<b>' . $verbPrice . "</b>";
                 $primeCostRows[] = (object) array('type' => $type,
-                    'modifiedOn' => $DateTime->toVerbal($primeCostDate),
-                    'price' => $priceRow,
-                    'buttons' => $btns,
-                    'ROW_ATTR' => array('class' => 'state-active'));
+                                                  'updatedOn' => $DateTime->toVerbal($primeCostDate),
+                                                  'price' => $priceRow,
+                                                  'buttons' => $btns,
+                                                  'ROW_ATTR' => array('class' => 'state-active'));
             }
             
             if (isset($futurePrimeCost)) {
                 $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($futurePrimeCost);
                 $primeCostRows[] = (object) array('type' => tr('|Бъдеща|* |себестойност|*'),
-                    'modifiedOn' => $DateTime->toVerbal($futurePrimeCostDate),
-                    'price' => '<b>' . $verbPrice . "</b>",
-                    'ROW_ATTR' => array('class' => 'state-draft'));
+                                                  'updatedOn' => $DateTime->toVerbal($futurePrimeCostDate),
+                                                  'price' => '<b>' . $verbPrice . "</b>",
+                                                  'ROW_ATTR' => array('class' => 'state-draft'));
             }
         }
         
@@ -261,7 +260,7 @@ class cat_products_PriceDetails extends core_Manager
             $threadId = price_Lists::fetchField($catalogListId, 'threadId');
             
             if (doc_Threads::haveRightFor('single', $threadId)) {
-                $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId));
+                $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId, 'ret_url' => true));
             }
             
             // Ако каталожната цена е от прототипа, показва се тази информация
@@ -271,11 +270,28 @@ class cat_products_PriceDetails extends core_Manager
             }
             
             $primeCostRows[] = (object) array('type' => $type,
-                'modifiedOn' => $DateTime->toVerbal($catalogCostDate),
-                'price' => '<b>' . $verbPrice . "</b>",
-                'ROW_ATTR' => array('class' => 'state-active'));
+                                              'updatedOn' => $DateTime->toVerbal($catalogCostDate),
+                                              'price' => '<b>' . $verbPrice . "</b>",
+                                              'ROW_ATTR' => array('class' => 'state-active'));
         }
-        
+
+        // Ако има цена по политиката за минимални цени да се показва и тя
+        if($minListId = sales_Setup::get('MIN_PRICE_POLICY')){
+            if($minCost = price_ListRules::getPrice($minListId, $data->masterId, null, $now, $minPriceValidFrom)){
+                $type = tr('Политика|* "' . price_Lists::getTitleById($minListId) . '"');
+                $threadId = price_Lists::fetchField($minListId, 'threadId');
+                if (doc_Threads::haveRightFor('single', $threadId)) {
+                    $type = ht::createLink($type, array('doc_Containers', 'list', 'threadId' => $threadId, 'product' => $data->masterId, 'ret_url' => true));
+                }
+
+                $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($minCost);
+                $primeCostRows[] = (object) array('type' => $type,
+                                                  'updatedOn' => $DateTime->toVerbal($minPriceValidFrom),
+                                                  'price' => '<b>' . $verbPrice . "</b>",
+                                                  'ROW_ATTR' => array('class' => 'state-active'));
+            }
+        }
+
         $data->primeCostRows = $primeCostRows;
     }
     

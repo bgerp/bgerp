@@ -92,7 +92,7 @@ class cms_Feeds extends core_Manager
     /**
      *  Създаваме нова кофа за логото
      */
-    public static function on_AfterSetupMvc($mvc, &$res)
+    protected static function on_AfterSetupMvc($mvc, &$res)
     {
         // Кофа за логото
         $Bucket = cls::get('fileman_Buckets');
@@ -121,13 +121,6 @@ class cms_Feeds extends core_Manager
         
         // Взависимост от посоченият вид, инстанцираме определения клас хранилка
         switch ($rec->type) {
-            case 'rss':
-                 
-                 // Инстанцираме нова хранилка от тип RSS 1
-                 $feed = new RSS1FeedWriter();
-                 $feed->setChannelAbout(toUrl(array($this, 'get', $rec->id), 'absolute'));
-                 break;
-            
             case 'rss2':
                  
                  // Инстанцираме нова хранилка от тип RSS 2.0
@@ -148,6 +141,12 @@ class cms_Feeds extends core_Manager
                 $feed = new ATOMFeedWriter();
                 $feed->setChannelElement('updated', date(DATE_ATOM, time()));
                 $feed->setChannelElement('author', array('name' => 'bgerp'));
+                break;
+            default:
+
+                // Инстанцираме нова хранилка от тип RSS 1
+                $feed = new RSS1FeedWriter();
+                $feed->setChannelAbout(toUrl(array($this, 'get', $rec->id), 'absolute'));
                 break;
         }
         
@@ -272,7 +271,7 @@ class cms_Feeds extends core_Manager
     /**
      * Модификация по вербалните записи
      */
-    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
+    protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         // Подготвяме адреса на хранилката
         $rssLink = array($mvc, 'get', $rec->id);
@@ -363,7 +362,7 @@ class cms_Feeds extends core_Manager
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
         
@@ -386,7 +385,7 @@ class cms_Feeds extends core_Manager
     /**
      * След инпут на формата
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             $fld = $form->selectFields('#fromSource');

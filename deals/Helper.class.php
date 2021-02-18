@@ -131,7 +131,7 @@ abstract class deals_Helper
             if ($masterRec->{$map['chargeVat']} == 'yes' || $masterRec->{$map['chargeVat']} == 'separate') {
                 $vat = cat_Products::getVat($rec->{$map['productId']}, $masterRec->{$map['valior']});
             }
-            
+
             // Калкулира се цената с и без ддс и се показва една от тях взависимост трябвали да се показва ддс-то
             $price = self::calcPrice($rec->{$map['priceFld']}, $vat, $masterRec->{$map['rateFld']});
             $rec->{$map['priceFld']} = ($hasVat) ? $price->withVat : $price->noVat;
@@ -207,6 +207,7 @@ abstract class deals_Helper
 
         // "Просто" изчисляване на ДДС-то в документа, ако има само една ставка
         if (countR($vats) == 1 && ($masterRec->type == 'invoice' || $masterRec->type == 'dc_note')) {
+
             $vat = key($vats);
             $vats[$vat]->sum = round($vats[$vat]->sum, 2);
             $vats[$vat]->amount = round($vats[$vat]->sum * $vat, 2);
@@ -419,24 +420,25 @@ abstract class deals_Helper
         if (empty($packQuantity)) {
             $packQuantity = 1;
         }
-        
-        $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}", 'quantity,reservedQuantity');
-        
-        $quantity = $stRec->quantity - $stRec->reservedQuantity;
-        
-        $Double = cls::get('type_Double');
-        $Double->params['smartRound'] = 'smartRound';
-        
+
+        $stRec = store_Products::getQuantities($productId, $storeId);
+        $quantity = $stRec->free;
+        $quantityInStock = $stRec->quantity;
+
+        $Double = core_Type::getByName('double(smartRound)');
+
         $pInfo = cat_Products::getProductInfo($productId);
         $shortUom = cat_UoM::getShortName($pInfo->productRec->measureId);
-        $storeName = store_Stores::getTitleById($storeId);
+        $storeName = isset($storeId) ? (" |в|* " . store_Stores::getTitleById($storeId)) : '';
         $verbalQuantity = $Double->toVerbal($quantity);
+        $verbalQuantityInStock = $Double->toVerbal($quantityInStock);
+
         $verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
         $foundQuantity = $quantity;
         
-        $text = "|Разполагаемо в|* <b>{$storeName}</b> : {$verbalQuantity} {$shortUom}";
-        if (!empty($stRec->reservedQuantity)) {
-            $verbalReserved = $Double->toVerbal($stRec->reservedQuantity);
+        $text = "|Налично|* <b>{$storeName}</b> : {$verbalQuantityInStock} {$shortUom}, |Разполагаемо|* : {$verbalQuantity} {$shortUom}";
+        if (!empty($stRec->reserved)) {
+            $verbalReserved = $Double->toVerbal($stRec->reserved);
             $text .= ' ' . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
         }
         
@@ -484,10 +486,11 @@ abstract class deals_Helper
      *
      * @return void
      */
-    public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack)
+    public static function getPackInfo(&$packagingRow, $productId, $packagingId, $quantityInPack = null)
     {
         if ($packRec = cat_products_Packagings::getPack($productId, $packagingId)) {
             if (cat_UoM::fetchField($packagingId, 'showContents') == 'yes') {
+                $quantityInPack = isset($quantityInPack) ? $quantityInPack : $packRec->quantity;
                 $measureId = cat_Products::fetchField($productId, 'measureId');
                 $packagingRow .= ' ' . self::getPackMeasure($measureId, $quantityInPack, $packRec);
             }
@@ -725,26 +728,49 @@ abstract class deals_Helper
      * @param int   $productId
      * @param int   $storeId
      * @param float $quantity
-     * @param string state
+     * @param string $state
+     * @param datetime $date
+     * @param int $ignoreFirstDocumentPlannedInThread
      *
      * @return void
      */
-    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state)
+    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state, $date = null, $ignoreFirstDocumentPlannedInThread = null)
     {
         if (!in_array($state, array('draft', 'pending'))) {
             return;
         }
-        
+
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if ($canStore != 'yes') {
             return;
         }
-        
-        $hint = '';
-        $stRec = store_Products::fetch("#productId = {$productId} AND #storeId = {$storeId}");
+
+        $date = isset($date) ? $date : null;
+        $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
+        $stRec = store_Products::getQuantities($productId, $storeId, $date);
+
+        // Ако има посочена нишка, чийто първи документ да се игнорира от хоризонтите,
+        if(isset($ignoreFirstDocumentPlannedInThread)){
+            if($firstDocument = doc_Threads::getFirstDocument($ignoreFirstDocumentPlannedInThread)){
+
+                $iQuery = store_StockPlanning::getQuery();
+                $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that}");
+                $iQuery->show('quantityIn,quantityOut');
+                $iRec = $iQuery->fetch();
+
+                // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
+                if(is_object($iRec) && is_object($stRec)){
+                    $stRec->reserved -= $iRec->quantityOut;
+                    $stRec->reserved = abs($stRec->reserved);
+                    $stRec->expected -= $iRec->quantityIn;
+                    $stRec->expected = abs($stRec->expected);
+                    $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                }
+            }
+        }
+
+        $freeQuantityOriginal = $stRec->free;
         $Double = core_Type::getByName('double(smartRound)');
-        
-        $freeQuantityOriginal = $stRec->quantity - $stRec->reservedQuantity + $stRec->expectedQuantity;
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
@@ -753,12 +779,12 @@ abstract class deals_Helper
         $makeLink = true;
         
         if ($futureQuantity < 0 && $freeQuantity < 0) {
-            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*!";
+            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
             $class = 'doc-negative-quantiy';
             $makeLink = false;
         } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност в склада|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+            $hint = "Недостатъчна |*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
         } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
             $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
             $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
@@ -766,11 +792,18 @@ abstract class deals_Helper
         
         if (!empty($hint)) {
             $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
-            
+
+            //  Показване на хоризонта при нужда
+            $productName = cat_Products::getVerbal($productId, 'name');
+            $url = array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName);
+            if(isset($date)){
+                $diff = dt::secsBetween(dt::verbal2mysql($date, false), dt::today());
+                $url['horizon'] = $diff;
+            }
+
             // Линк към наличното в склада ако има права
             if ($makeLink === true && store_Stores::haveRightFor('select', $storeId) && store_Products::haveRightFor('list') && !Mode::isReadOnly()) {
-                $productName = cat_Products::getVerbal($productId, 'name');
-                $html = ht::createLinkRef($html, array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName));
+                $html = ht::createLinkRef($html, $url);
             }
         }
     }
@@ -1762,22 +1795,18 @@ abstract class deals_Helper
     {
         $warning = null;
         $productsWithNegativeQuantity = array();
-        if (!is_array($arr) || !countR($arr)) {
-            return;
-        }
-        
+        if (!is_array($arr) || !countR($arr)) return;
+
         foreach ($arr as $obj) {
             $canStore = cat_Products::fetchField($obj->{$productFld}, 'canStore');
-            if ($canStore != 'yes') {
-                return;
-            }
-            
+            if ($canStore != 'yes') continue;
+
             $available = self::getAvailableQuantityAfter($obj->{$productFld}, $storeId, ($state == 'pending' ? 0 : $obj->{$quantityFld}));
             if ($available < 0) {
                 $productsWithNegativeQuantity[] = cat_Products::getTitleById($obj->{$productFld}, false);
             }
         }
-        
+
         if (countR($productsWithNegativeQuantity)) {
             $warning = 'Контирането на документа ще доведе до отрицателни количества по|*: ' . implode(', ', $productsWithNegativeQuantity) . ', |в склад|* ' . store_Stores::getTitleById($storeId);
         }
@@ -2026,9 +2055,10 @@ abstract class deals_Helper
      * Проверка дали цената е под очакваната за клиента
      *
      * @param int           $productId
-     * @param float         $price
-     * @param float         $discount
-     * @param float         $quantity
+     * @param double        $price
+     * @param double        $discount
+     * @param double        $quantity
+     * @param double        $quantityInPack
      * @param int           $contragentClassId
      * @param int           $contragentId
      * @param datetime|null $valior
@@ -2036,14 +2066,16 @@ abstract class deals_Helper
      *
      * @return stdClass|null $obj
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true)
     {
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
-        if ($minListId) {
+        $isPublic = cat_Products::fetchField($productId, 'isPublic');
+        $foundMinPrice = null;
+        if ($minListId && $isPublic == 'yes') {
             $foundMinPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $minListId, $useQuotationPrice);
         }
-        
+
         $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
         
         foreach (array($foundMinPrice, $foundPrice) as $i => $var){
@@ -2056,7 +2088,6 @@ abstract class deals_Helper
                 $toleranceDiff = !empty($toleranceDiff) ? $toleranceDiff * 100 : 1;
                 $foundPrice = $var->price * (1 - $var->discount);
                 
-                $diff = abs(round($price - $foundPrice, 5));
                 $price1Round = round($price, 5);
                 $price2Round = round($foundPrice, 5);
                 
@@ -2066,16 +2097,20 @@ abstract class deals_Helper
                     
                     if ($diff > $toleranceDiff) {
                         $obj = array();
-                        
+
                         if($i == 0 && $percent >= 0){
-                            $obj['hint'] ='Крайната цена е под минималната за клиента|*!';
+                            $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
+                            $obj['hint'] ='Цената е под минималната за клиента';
+                            $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
                             $obj['hintType'] = 'error';
                             
                             return $obj;
                         } 
                         
                         if($i == 1){
-                            $obj['hint'] = ($percent < 0) ? 'Крайната цена е над очакваната за клиента|*!' : 'Крайната цена е под очакваната за клиента|*!';
+                            $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
+                            $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
+                            $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
                         
                             return $obj;
@@ -2094,45 +2129,67 @@ abstract class deals_Helper
      *
      * @param core_Mvc $mvc
      * @param stdClass $rec
+     * @param null|string $msg
      *
      * @return bool
      */
-    public static function hasProductsBellowMinPrice($mvc, $rec)
+    public static function hasProductsBellowMinPrice($mvc, $rec, &$msg = null)
     {
         $minPolicyId = sales_Setup::get('MIN_PRICE_POLICY');
-        
+
+        $products = array();
         if (isset($mvc->mainDetail) && !empty($minPolicyId)) {
             $rec = $mvc->fetchRec($rec);
             $Detail = cls::get($mvc->mainDetail);
             
             $dQuery = $Detail::getQuery();
-            $dQuery->EXT('isPublic', 'cat_Products', "externalName=isPublic,externalKey={$Detail->productFld}");
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
             $priceDate = ($rec == 'draft') ? null : $rec->valior;
-            
+
             if($mvc instanceof sales_Sales){
-                $useQuotationPrice = isset($rec->originId) ? true : false;
+                $useQuotationPrice = isset($rec->originId);
+            } elseif($mvc instanceof sales_Quotations){
+                $useQuotationPrice = false;
             } elseif($mvc instanceof store_ShipmentOrders){
                 $useQuotationPrice = false;
                 if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
                     if($firstDocument->isInstanceOf('sales_Sales')){
                         $firstDocumentOrigin = $firstDocument->fetchField('originId');
-                        $useQuotationPrice = isset($firstDocumentOrigin) ? true : false;
+                        $useQuotationPrice = isset($firstDocumentOrigin);
                     }
                 }
             }
-            
+
             while ($dRec = $dQuery->fetch()) {
                 $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice)){
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice)){
                     if($checkedObject['hintType'] == 'error'){
-                        
-                        return true;
+                        $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
                 }
+            }
+
+            if(countR($products)){
+                $msg = "Следните артикули са с продажни цени под минималната|*: " . implode(', ', $products);
+                return true;
             }
         }
         
         return false;
+    }
+
+
+    /**
+     * Канонизиране на нац. номер/ЕИК
+     *
+     * @param string $number
+     * @param int $countryId
+     * @return string
+     */
+    public static function canonizeUicNumber($number, $countryId)
+    {
+        $canonize = preg_replace('/[^a-z\d]/i', '', $number);
+
+        return strtoupper($canonize);
     }
 }

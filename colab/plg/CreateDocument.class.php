@@ -81,7 +81,8 @@ class colab_plg_CreateDocument extends core_Plugin
         
         $mvc->currentTab = 'Нишка';
         plg_ProtoWrapper::changeWrapper($mvc, 'cms_ExternalWrapper');
-        
+        Mode::set('wrapper', 'cms_page_External');
+
         // Контракторите да не могат да споделят потребители
         if (core_Users::haveRole('partner')) {
             if ($mvc->getField('sharedUsers', false)) {

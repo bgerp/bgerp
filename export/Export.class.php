@@ -162,7 +162,12 @@ class export_Export extends core_Mvc
             $intfCls = cls::getInterface('export_ExportTypeIntf', $type);
             $intfCls->addParamFields($form, $classId, $docId);
         }
-        
+
+        $pKey = 'docExportType_' . core_Users::getCurrent();
+        if (($docExportType = core_Permanent::get($pKey)) && (isset($exportFormats[$docExportType]))) {
+            $form->setDefault('type', $docExportType);
+        }
+
         $form->input();
         
         if ($form->isSubmitted()) {
@@ -174,7 +179,11 @@ class export_Export extends core_Mvc
             $intfCls = cls::getInterface('export_ExportTypeIntf', $form->rec->type);
             
             $eRes = $intfCls->makeExport($form, $classId, $docId);
-            
+
+            if ($form->rec->type) {
+                core_Permanent::set($pKey, $form->rec->type, 43200);
+            }
+
             if (is_object($eRes) && $eRes instanceof core_Redirect) {
                 
                 return $eRes;

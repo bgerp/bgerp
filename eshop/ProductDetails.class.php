@@ -491,7 +491,8 @@ class eshop_ProductDetails extends core_Detail
         
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
         if (isset($settings->storeId) && $canStore == 'yes') {
-            $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
+            $quantity = store_Products::getQuantities($rec->productId, $settings->storeId)->free;
+
             if ($quantity < $rec->quantityInPack) {
                 if(empty($rec->deliveryTime)){
                     $notInStock = !empty($settings->notInStockText) ? $settings->notInStockText : tr(eshop_Setup::get('NOT_IN_STOCK_TEXT'));
@@ -784,5 +785,22 @@ class eshop_ProductDetails extends core_Detail
         );
         
         return $res;
+    }
+
+
+    /**
+     * Какво е заглавието на източника
+     *
+     * @param $id     - ид на запис
+     * @return string - заглавие
+     */
+    public function getSourceTitle($id)
+    {
+        $rec = $this->fetch($id);
+        $url = eshop_Products::getSingleUrlArray($rec->eshopProductId);
+        $title = self::getPublicProductTitle($rec->eshopProductId, $rec->productId);
+        $title = ht::createLink($title, $url, false, 'ef_icon=img/16/globe.png');
+
+        return $title;
     }
 }

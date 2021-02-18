@@ -523,7 +523,6 @@ select.tabHolder {
 	display: grid;
 	align-items: center;
 	text-align: center;
-	grid-gap: 0.8rem;
 	margin-bottom:10px;
 }
 .posResultContragent {
@@ -792,20 +791,20 @@ select.tabHolder {
 }
 
 .pos-photo-field{
-    width: 64px;
-	height: 64px;
+    width: 70px;
+	height: 70px;
 	background: #fff;
 	border: 1px solid #000;
 	display: inline-block;
 	margin-right: 10px;
 	img {
-		width: 64px;
-		max-height: 64px;
+		width: 70px;
+		max-height: 70px;
 	}
 }
 
 .pos-price-field {
-	font-size: 1.05em;
+	font-size: 1.02em;
 }
 
 .measureResult {
@@ -816,25 +815,25 @@ select.tabHolder {
 	text-align: left;
 	padding: 9px;
 	box-sizing: border-box;
-	border: 2px solid #999;
-	border-radius: 5px;
-	height: 113px;
+	border: 1px solid #999;
+	height: 118px;
 	background: #f1f1f1;
 	user-select: none;
 	opacity: 0.7;
 	&:focus, &.selected {
 		box-shadow: 0px 0px 10px rgb(252, 164, 11) !important;
 		border: 3px solid #fa0606;
-		padding: 8px !important;
+		padding: 7px !important;
 		opacity: 1;
 	}
 	.pos-title {
-		text-indent: -75px;
-		height: 72px;
+		margin-top: -1px;
+		text-indent: -82px;
+		height: 80px;
 		line-height: 130%;
 	}
 	.pos-photo-field {
-		margin-top: 22px;
+		margin-top: 25px;
 	}
 	.pos-add-res-btn{
 		color:#333;

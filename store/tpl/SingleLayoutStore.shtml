@@ -52,6 +52,10 @@
 	                            <td>[#ShowDocumentsAsButtons#]</td>
 	                        </tr>
 	                        <!--ET_END ShowDocumentsAsButtons-->
+                            <tr>
+                                <td class='dt'>|Мярка на наличностите|*:</td>
+                                <td>[#displayStockMeasure#]</td>
+                            </tr>
                         </table>
                     </div>
                 </fieldset>
@@ -96,12 +100,11 @@
                 </div>
             </fieldset>
             <!--ET_END SELECT_FIELD-->
-            
+
             <!--ET_BEGIN store_Products-->
-            <fieldset class="detail-info">
-                <legend class="groupTitle">|Артикули в наличност|*</legend>
-            	[#store_Products#]
-            </fieldset>
+                <div style="margin-top:10px">
+                    [#store_Products#]
+                </div>
             <!--ET_END store_Products-->
             
             <!--ET_END SELECT_FIELD-->

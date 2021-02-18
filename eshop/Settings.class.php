@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -181,14 +181,14 @@ class eshop_Settings extends core_Master
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила->До,remember');
        
-        $this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Условия на плащане->Методи,mandatory');
+        $this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Условия на плащане->Методи,placeholder=Автоматично');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,removeAndRefreshForm=freeDelivery|freeDeliveryByBus,silent');
         $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Условия на плащане->ДДС режим');
         
-        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика->Политика,mandatory');
+        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика->Политика,placeholder=Автоматично');
         $this->FLD('discountType', 'set(percent=Процент,amount=Намалена сума)', 'caption=Показване на отстъпки спрямо "Каталог"->Като,mandatory');
         
-        $this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условия,mandatory');
+        $this->FLD('terms', 'keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Доставка->Условия,placeholder=Автоматично');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държави');
         $this->FLD('freeDelivery', 'double(min=0)', 'caption=Безплатна доставка->Сума');
         $this->FLD('freeDeliveryByBus', 'double(min=0)', 'caption=Безплатна доставка->За маршрут');
@@ -219,14 +219,18 @@ class eshop_Settings extends core_Master
         $this->FLD('lifetimeForNoUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На анонимни');
         $this->FLD('lifetimeForUserDraftCarts', 'time', 'caption=Изтриване на неизползвани колички->На потребители');
         $this->FLD('timeBeforeDelete', 'time', 'caption=Нотификация за незавършена поръчка->Изпращане,unit=преди изтриване');
-        
-        
         $this->FLD('expectedDeliveryText', 'text(rows=3)', 'caption=Текст за очаквана доставка->Текст');
         
         $this->FLD('defaultMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Дефолти за анонимни потребители->Плащане');
         $this->FLD('defaultTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Дефолти за анонимни потребители->Доставка');
         $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty,rolesForAll=eshop|ceo|admin,rolesForTeam=eshop|ceo|admin)', 'caption=Продажби създадени от онлайн магазина->Търговец');
-        
+
+        $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Онлайн поръчки->Допустимост,notNull,value=auto');
+        $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допустимост,notNull,value=auto');
+        $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕГН');
+        $this->FLD('mandatoryUicId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕИК');
+        $this->FLD('mandatoryVatId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ДДС №');
+
         $this->setDbIndex('classId, objectId');
     }
     
@@ -320,16 +324,20 @@ class eshop_Settings extends core_Master
                 unset($alreadyIn[$rec->objectId]);
             }
             $options = array_diff_key($domainArr, $alreadyIn);
-            
+
             if(countR($options)){
+                $currentDomainId = cms_Domains::getCurrent('id', false);
                 $form->setOptions('objectId', $options);
-                $form->setDefault('objectId', cms_Domains::getCurrent('id', false));
+
+                if(array_key_exists($currentDomainId, $options)){
+                    $form->setDefault('objectId', $currentDomainId);
+                }
+                $form->setDefault('objectId', key($options));
             } else {
                 $form->setReadOnly('objectId');
             }
         }
-        
-        $form->setDefault('listId', price_ListRules::PRICE_LIST_CATALOG);
+
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         $form->setDefault('discountType', $mvc->getFieldType('discountType')->fromVerbal('percent'));
         
@@ -348,6 +356,7 @@ class eshop_Settings extends core_Master
             $cartQuery = eshop_CartDetails::getQuery();
             $cartQuery->EXT('domainId', 'eshop_Carts', 'externalName=domainId,externalKey=cartId');
             $cartQuery->where("#domainId = '{$rec->objectId}'");
+
             if ($cartQuery->count()) {
                 $form->setReadOnly('currencyId');
                 $form->setReadOnly('chargeVat');
@@ -394,6 +403,9 @@ class eshop_Settings extends core_Master
         $form->setField('lifetimeForNoUserDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_NO_USER_CARTS));
         $form->setField('lifetimeForEmptyDraftCarts', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_LIFETIME_EMPTY_CARTS));
         $form->setField('timeBeforeDelete', 'placeholder=' . core_Type::getByName('time')->toVerbal(self::DEFAULT_SEND_NOTIFICAION_BEFORE_DELETION));
+
+        $form->setDefault('mandatoryEcartContactFields', 'auto');
+        $form->setDefault('mandatoryInquiryContactFields', 'auto');
     }
     
     
@@ -503,6 +515,10 @@ class eshop_Settings extends core_Master
             }
             
             $settingRec->showNavigation = (in_array($settingRec->showNavigation, array('yes', 'no'))) ? $settingRec->showNavigation : eshop_Setup::get('SHOW_NAVIGATION');
+            $fldArr = array('mandatoryEcartContactFields' => 'MANDATORY_CONTACT_FIELDS', 'mandatoryInquiryContactFields' => 'MANDATORY_INQUIRY_CONTACT_FIELDS', 'mandatoryEGN' => 'MANDATORY_EGN', 'mandatoryUicId' => 'MANDATORY_UIC_ID', 'mandatoryVatId' => 'MANDATORY_VAT_ID', 'listId' => 'DEFAULT_POLICY_ID', 'payments' => 'DEFAULT_PAYMENTS', 'terms' => 'DEFAULT_DELIVERY_TERMS');
+            foreach ($fldArr as $fld => $const){
+                $settingRec->{$fld} = (empty($settingRec->{$fld}) || $settingRec->{$fld} == 'auto') ? eshop_Setup::get($const) : $settingRec->{$fld};
+            }
         }
         
         return $settingRec;

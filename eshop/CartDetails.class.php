@@ -361,7 +361,7 @@ class eshop_CartDetails extends core_Detail
         $settings = cms_Domains::getSettings();
         if (isset($settings->storeId) && $canStore == 'yes') {
             $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
-            $quantityInStore = store_Products::getQuantity($productId, $settings->storeId, true);
+            $quantityInStore = store_Products::getQuantities($productId, $settings->storeId)->free;
             
             if(isset($deliveryTime) && $quantityInStore <= 0) return $maxQuantity;
             
@@ -451,7 +451,7 @@ class eshop_CartDetails extends core_Detail
         
         $productRec = cat_Products::fetch($rec->productId, 'canStore');
         if (isset($settings->storeId) && $productRec->canStore == 'yes') {
-            $quantity = store_Products::getQuantity($rec->productId, $settings->storeId, true);
+            $quantity = store_Products::getQuantities($rec->productId, $settings->storeId)->free;
             $eshopProductRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}", 'deliveryTime');
             
             if (is_null($maxQuantity) && $maxQuantity <= 0) {
@@ -504,6 +504,7 @@ class eshop_CartDetails extends core_Detail
                 vislog_History::add("Изтриване на количката");
             }
         } else {
+            $msg = '|Количката е изчистена|*!';
             $deleteCart = true;
         }
         

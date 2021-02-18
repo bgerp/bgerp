@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -74,8 +74,14 @@ class planning_GenericMapper extends core_Manager
      * Работен кеш
      */
     protected static $cache = array();
-    
-    
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'id,productId';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -187,16 +193,41 @@ class planning_GenericMapper extends core_Manager
      */
     public function prepareResources(&$data)
     {
-        if (!haveRole('ceo,planning')) {
+        if (!haveRole('ceo,planning' || $data->masterData->rec->canConvert != 'yes')) {
             $data->notConvertableAnymore = true;
-            
-            return;
         }
-        
+
+        // Подготовка на заместващите артикули
+        $data->genData = clone $data;
+        $this->prepareGenericData($data->genData);
+
+        // Подготовка на рецептите където участва
+        $data->recData = clone $data;
+        $this->prepareBoms($data->recData);
+
+        if($data->notConvertableAnymore && !countR($data->genData->rows) && !countR($data->recData->rows)){
+            $data->hide = true;
+
+            return $data;
+        }
+
+        $data->TabCaption = 'Влагане';
+        $data->Tab = 'top';
+    }
+
+
+    /**
+     * Подготвя данните на заместващите артикули
+     *
+     * @param $data
+     * @return void
+     */
+    private function prepareGenericData($data)
+    {
         $data->isGeneric = $data->masterData->rec->generic;
         $data->rows = array();
         $query = $this->getQuery();
-        
+
         if($data->isGeneric == 'yes'){
             $listFields = "productId=Заместващ артикул,productMeasureId=Мярка,created=Създаване";
             $query->where("#genericProductId = {$data->masterId}");
@@ -204,27 +235,12 @@ class planning_GenericMapper extends core_Manager
             $listFields = "genericProductId=Генеричен артикул,genericProductMeasureId=Мярка,created=Създаване";
             $query->where("#productId = {$data->masterId}");
         }
-        
         while ($rec = $query->fetch()) {
             $data->rows[$rec->id] = $this->recToVerbal($rec);
         }
-       
-        $pInfo = $data->masterMvc->getProductInfo($data->masterId);
-        if (!isset($pInfo->meta['canConvert'])) {
-            $data->notConvertableAnymore = true;
-        }
-        
-        if (!(countR($data->rows) || isset($pInfo->meta['canConvert']))) {
-            
-            return;
-        }
-        
-        $data->TabCaption = 'Влагане';
-        $data->Tab = 'top';
+
         $data->listFields = arr::make($listFields, true);
-        
         if (!Mode::is('printing') && !Mode::is('inlineDocument')) {
-            
             if($data->isGeneric == 'yes'){
                 if (self::haveRightFor('add', (object) array('genericProductId' => $data->masterId))) {
                     $data->addUrl = array($this, 'add', 'genericProductId' => $data->masterId, 'fromGeneric' => true, 'ret_url' => true);
@@ -236,21 +252,18 @@ class planning_GenericMapper extends core_Manager
             }
         }
     }
-    
-    
+
+
     /**
-     * Рендира показването на ресурси
+     * Рендира данните на заместващите артикули
+     *
+     * @param $data
+     * @return core_ET $tpl
      */
-    public function renderResources(&$data)
+    private function renderGenericData($data)
     {
-        // Ако няма записи и вече не е вложим да не се показва
-        if (!countR($data->rows) && $data->notConvertableAnymore) {
-            
-            return;
-        }
-        
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-        
+
         if ($data->notConvertableAnymore === true) {
             $title = tr('Артикулът вече не е вложим');
             $title = "<small class='red'>{$title}</small>";
@@ -259,18 +272,74 @@ class planning_GenericMapper extends core_Manager
         } else {
             $tpl->append(tr('Влагане'), 'title');
         }
-        
+
         $listTableMvc = clone $this;
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        
+
         $tpl->append($table->get($data->rows, $data->listFields), 'content');
-        
+
         if (isset($data->addUrl)) {
             $addLink = ht::createLink('', $data->addUrl, false, 'ef_icon=img/16/add.png,title=Добавяне на информация за влагане');
             $tpl->append($addLink, 'title');
         }
-        
+
+        return $tpl;
+    }
+
+
+    /**
+     * Подготвяне на рецептите за един артикул
+     *
+     * @param stdClass $data
+     * @return void
+     */
+    public function prepareBoms(&$data)
+    {
+        $data->rows = array();
+        $data->fromConvertable = true;
+
+        // Намираме Рецептите където се използва
+        $query = cat_BomDetails::getQuery();
+        $query->EXT('state', 'cat_Boms', 'externalName=state,externalKey=bomId');
+        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'closed' THEN 2 ELSE 3 END)");
+        $query->where("#resourceId = {$data->masterId}");
+        $query->where("#state != 'rejected'");
+        $query->groupBy('bomId');
+        $query->orderBy('orderByState', 'ASC');
+        $data->recs = $query->fetchAll();
+
+        // Странициране на записите
+        $data->Pager = cls::get('core_Pager', array('itemsPerPage' => 20));
+        $data->Pager->setPageVar('cat_Products', $data->masterId, 'cat_Boms');
+        $data->Pager->itemsCount = countR($data->recs);
+
+        foreach ($data->recs as $rec) {
+            if (!$data->Pager->isOnPage()) continue;
+            $bomRec = cat_Boms::fetch($rec->bomId);
+            $data->rows[$rec->id] = cat_Boms::recToVerbal($bomRec);
+        }
+    }
+
+
+    /**
+     * Рендира показването на ресурси
+     *
+     * @param stdClass $data
+     * @return core_ET $tpl
+     */
+    public function renderResources(&$data)
+    {
+        if($data->hide) return;
+
+        $tpl = new core_ET("[#generic#]<div style='margin-top:10px'>[#boms#]</div>");
+        $genTpl = $this->renderGenericData($data->genData);
+        $tpl->replace($genTpl, 'generic');
+
+        $recTpl = cls::get('cat_Boms')->renderBoms($data->recData);
+        $recTpl->append(tr('Технологични рецепти, в които участва'), 'title');
+        $tpl->replace($recTpl, 'boms');
+
         return $tpl;
     }
     
@@ -477,6 +546,65 @@ class planning_GenericMapper extends core_Manager
         }
         
         return $selfValue;
+    }
+
+
+    /**
+     * Извиква се преди вкарване на запис в таблицата на модела
+     */
+    protected function on_BeforeSave(&$mvc, &$id, &$rec, $fields = null)
+    {
+        if(empty($rec->id)){
+            $rec->_updateHorizons = true;
+        } else {
+            $oldRec = $mvc->fetch($rec->id, '*', false);
+            if($oldRec->genericProductId != $rec->genericProductId || $oldRec->productId != $rec->productId){
+                $rec->_updateHorizons = true;
+            }
+        }
+    }
+
+
+    /**
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     */
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        foreach ($query->getDeletedRecs() as $rec) {
+            self::updateStocksPlanningByProductId($rec);
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    protected static function on_AfterSave($mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if($rec->_updateHorizons) {
+            self::updateStocksPlanningByProductId($rec);
+        }
+    }
+
+
+    /**
+     * Обновяване на себестойностите
+     *
+     * @param $rec
+     * @return void
+     */
+    private static function updateStocksPlanningByProductId($rec)
+    {
+        // В хоризонтите се обновява генеричния артикул на зададения
+        $Stocks = cls::get('store_StockPlanning');
+        $tableName = $Stocks->dbTableName;
+        $productIdColName = str::phpToMysqlName('productId');
+        $genericProductIdColName = str::phpToMysqlName('genericProductId');
+
+        $genericProductId = !empty($rec->genericProductId) ? $rec->genericProductId : "NULL";
+        $query = "UPDATE {$tableName} SET {$genericProductIdColName} = {$genericProductId} WHERE {$tableName}.{$productIdColName} = {$rec->productId}";
+
+        $Stocks->db->query($query);
     }
 }
     
