@@ -91,6 +91,28 @@ defIfNot('ESHOP_MANDATORY_UIC_ID', 'no');
 defIfNot('ESHOP_MANDATORY_VAT_ID', 'no');
 
 
+/**
+ * Дефолтна ценова политика
+ */
+defIfNot('ESHOP_DEFAULT_POLICY_ID', price_ListRules::PRICE_LIST_CATALOG);
+
+
+/**
+ * Дефолтен ДДС режим
+ */
+defIfNot('ESHOP_CHARGE_VAT_ID', '');
+
+
+/**
+ * Условия на доставка
+ */
+defIfNot('ESHOP_DEFAULT_DELIVERY_TERMS', '');
+
+
+/**
+ * Методи на плащане
+ */
+defIfNot('ESHOP_DEFAULT_PAYMENTS', '');
 
 
 /**
@@ -188,6 +210,10 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_MANDATORY_EGN' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕГН'),
         'ESHOP_MANDATORY_UIC_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ЕИК'),
         'ESHOP_MANDATORY_VAT_ID' => array('enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчики->ДДС №'),
+
+        'ESHOP_DEFAULT_POLICY_ID' => array('key(mvc=price_Lists,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Политика'),
+        'ESHOP_DEFAULT_DELIVERY_TERMS' => array('keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Дефолти в настройките а онлайн магазина->Условия на доставка'),
+        'ESHOP_DEFAULT_PAYMENTS' => array('keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Методи на плащане'),
     );
     
     

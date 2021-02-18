@@ -270,6 +270,7 @@ class planning_Jobs extends core_Master
         $this->setDbIndex('productId');
         $this->setDbIndex('oldJobId');
         $this->setDbIndex('saleId');
+        $this->setDbIndex('createdOn');
     }
 
 

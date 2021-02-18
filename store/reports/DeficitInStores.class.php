@@ -357,6 +357,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
          */
         while ($jobses = $jobsQuery->fetch()) {
             $jobsProdId = $jobses->productId;
+            $jobsQuantity = (!is_null($jobses->quantity)) ? (double)$jobses->quantity : 0;
             
             if (! array_key_exists($jobsProdId, $productsForJobs)) {
                 $productsForJobs[$jobsProdId] =
@@ -365,17 +366,17 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                     
                     'productId' => $jobsProdId,
                     
-                    'quantity' => $jobses->quantity
+                    'quantity' => $jobsQuantity
                 );
             } else {
                 $obj = &$productsForJobs[$jobses->productId];
                 
-                $obj->quantity += $jobses->quantity;
+                $obj->quantity += $jobsQuantity;
             }
         }
-        
+
         // Извлича материалите и количествата им по филтрираните задания за производство
-        
+
         if (is_array($productsForJobs)) {
             foreach ($productsForJobs as $v) {
                 $lastActivBomm = cat_Products::getLastActiveBom($v->productId);
@@ -383,11 +384,11 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
                 if ($lastActivBomm) {
                     $bommMaterials = cat_Boms::getBomMaterials($lastActivBomm->id, $lastActivBomm->quantity);
                 }
-                
+
                 // Масив артикули и количество необходими за изпълнение на заданията //
                 if (is_array($bommMaterials)) {
                     foreach ($bommMaterials as $material) {
-                        $jobsQuantityMaterial = $material->quantity * $v->quatity;
+                        $jobsQuantityMaterial = (double)$material->quantity * $v->quantity;
                         
                         if (! array_key_exists($material->productId, $bommsMaterials)) {
                             $bommsMaterials[$material->productId] =

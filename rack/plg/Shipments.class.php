@@ -38,7 +38,12 @@ class rack_plg_Shipments extends core_Plugin
         $form = &$data->form;
         
         if(isset($form->rec->id)){
-            if (rack_Zones::fetch("#containerId = {$form->rec->containerId}")){
+            $cid = $form->rec->containerId;
+            if (!$cid) {
+                $cid = $mvc->fetchField($form->rec->id, 'containerId');
+            }
+
+            if ($cid && rack_Zones::fetch("#containerId = {$cid}")){
                 $form->setReadOnly($mvc->storeFieldName);
             }
         }
