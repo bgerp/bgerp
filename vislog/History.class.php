@@ -84,6 +84,7 @@ class vislog_History extends core_Manager
 
         $this->setDbIndex('ip');
         $this->setDbIndex('createdOn');
+        $this->setDbIndex('HistoryResourceId');
     }
     
 
