@@ -58,7 +58,7 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $listFields = 'tools=Пулт, title=Документ, docId=Сделка, createdOn, createdBy';
+    protected $listFields = 'tools=Пулт, title=Документ, valior=Вальор, docId=Сделка, createdOn, createdBy';
     
     
     /**
@@ -101,6 +101,12 @@ abstract class deals_ClosedDeals extends core_Master
      * Кратък баланс на записите от журнала засегнали сделката
      */
     protected $shortBalance;
+    
+    
+     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, valior';
     
     
     /**
