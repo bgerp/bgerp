@@ -458,7 +458,7 @@
       */
      protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
      {
-         $Date = cls::get('type_Date');
+         $Date = cls::get('type_Datetime');
          {
             $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
