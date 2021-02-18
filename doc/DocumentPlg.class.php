@@ -84,9 +84,14 @@ class doc_DocumentPlg extends core_Plugin
         }
         
         // Добавяне на полета за created
-        $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created->На, notNull, input=none');
-        $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване||Created->От||By, notNull, input=none');
-        
+        if (!$mvc->fields['createdOn']) {
+            $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created->На, notNull, input=none');
+        }
+
+        if (!$mvc->fields['createdBy']) {
+            $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване||Created->От||By, notNull, input=none');
+        }
+
         // Добавяне на полета за modified
         $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none');
         $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране||Modified->От||By,input=none');

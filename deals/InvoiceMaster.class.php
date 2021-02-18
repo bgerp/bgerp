@@ -240,8 +240,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 $groupCountries = keylist::toArray($groupCountries);
                 $data->query->in('contragentCountryId', $groupCountries);
             }
+
+            $data->query->orWhere("#state = 'rejected'");
         }
-        
+
         $data->query->orderBy('#number', 'DESC');
     }
     
