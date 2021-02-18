@@ -103,12 +103,6 @@ abstract class deals_ClosedDeals extends core_Master
     protected $shortBalance;
     
     
-     /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior';
-    
-    
     /**
      * Описание на модела (таблицата)
      */
