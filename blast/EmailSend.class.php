@@ -156,7 +156,7 @@ class blast_EmailSend extends core_Detail
             
             // Добавяме първия имейл, който не е списъка с блокирани
             foreach ((array) $emailsArr as $email) {
-                if (blast_BlockedEmails::isBlocked($email)) {
+                if (email_AddressesInfo::isBlocked($email)) {
                     continue;
                 }
                 
@@ -194,7 +194,7 @@ class blast_EmailSend extends core_Detail
             
             if ($id) {
                 $addCnt++;
-                blast_BlockedEmails::addEmail($toEmail, false);
+                email_AddressesInfo::addEmail($toEmail, false);
             }
             
             $allCnt++;

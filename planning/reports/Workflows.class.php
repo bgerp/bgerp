@@ -33,7 +33,7 @@
      /**
       * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
       */
-     protected $changeableFields = 'from,to,resultsOn,centre,assetResources,employees';
+     protected $changeableFields = 'start,to,resultsOn,centre,assetResources,employees';
      
      
      /**
@@ -43,10 +43,10 @@
       */
      public function addFields(core_Fieldset &$fieldset)
      {
-         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
-         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
+         $fieldset->FLD('start', 'datetime', 'caption=От,after=title,single=none,mandatory');
+         $fieldset->FLD('to', 'datetime', 'caption=До,after=start,single=none,mandatory');
          
-         $fieldset->FLD('centre', 'key(mvc=planning_Centers,title=name)', 'caption=Център,refreshForm,after=to,silent');
+         $fieldset->FLD('centre', 'key(mvc=planning_Centers,title=name)', 'caption=Център,removeAndRefreshForm,after=to,silent');
          $fieldset->FLD('assetResources', 'keylist(mvc=planning_AssetResources,title=title)', 'caption=Машини,placeholder=Всички,after=centre,single=none');
          $fieldset->FLD('employees', 'keylist(mvc=crm_Persons,title=name,allowEmpty)', 'caption=Служители,placeholder=Всички,after=assetResources,single=none');
          
@@ -79,7 +79,10 @@
          
          
          if ($rec->centre) {
+
+             $suggestions = array();
              $suggestions = planning_Hr::getByFolderId(planning_Centers::fetch($rec->centre)->folderId);
+
              foreach ($suggestions as $key => $val) {
                  $suggestions[$key] = crm_Persons::fetch($key)->name;
              }
@@ -108,8 +111,8 @@
          if ($form->isSubmitted()) {
             
             // Проверка на периоди
-             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
-                 $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
+             if (isset($form->rec->start, $form->rec->to) && ($form->rec->start > $form->rec->to)) {
+                 $form->setError('start,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
              }
          }
      }
@@ -130,23 +133,30 @@
          $query = planning_ProductionTaskDetails::getQuery();
          
          $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
+         $query->EXT('folderId', 'planning_Tasks', 'externalName=folderId,externalKey=taskId');
          
          $query->where("#state != 'rejected' ");
-         
+
          // Ако е посочена начална дата на период
-         if ($rec->from) {
+         if ($rec->start) {
              $query->where(array(
                  "#createdOn >= '[#1#]'",
-                 $rec->from . ' 00:00:00'
+                 $rec->start . ' 00:00:00'
              ));
          }
          
          //Крайна дата / 'към дата'
-         if ($rec->from) {
+         if ($rec->to) {
              $query->where(array(
                  "#createdOn <= '[#1#]'",
                  $rec->to . ' 23:59:59'
              ));
+         }
+
+         //Филтър по център на дейност
+         if ($rec->centre) {
+             $cFolderId = planning_Centers::fetch($rec->centre)->folderId;
+             $query->where("#folderId = $cFolderId");
          }
          
          //Филтър по служители
@@ -207,7 +217,7 @@
                          'detailId' => $tRec->id,
                          'indTime' => $iRec->indTime,
                          'indTimeSum' => $indTimeSum,
-                         'indPackagingId' => $irec->indPackagingId,
+                         'indPackagingId' => $iRec->indPackagingId,
                          'indTimeAllocation' => $iRec->indTimeAllocation,
                          'quantityInPack' => $iRec->quantityInPack,
                          
@@ -448,20 +458,20 @@
       */
      protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
      {
-         $Date = cls::get('type_Date');
+         $Date = cls::get('type_Datetime');
          {
             $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN start--><div>|От|*: [#start#]</div><!--ET_END start-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN employees--><div>|Служители|*: [#employees#]</div><!--ET_END employees-->
                                         <!--ET_BEGIN assetResources--><div>|Оборудване|*: [#assetResources#]</div><!--ET_END assetResources-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
             
-            if (isset($data->rec->from)) {
-                $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->from) . '</b>', 'from');
+            if (isset($data->rec->start)) {
+                $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->start) . '</b>', 'start');
             }
             
             if (isset($data->rec->to)) {
@@ -598,7 +608,7 @@
             case 'machines':$key = $tRec->taskId.'|'.$tRec->productId.'|'.$tRec->fixedAsset; break;
         
         }
-         
+
          return $key;
      }
  }

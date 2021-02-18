@@ -147,7 +147,7 @@ class email_Sent
         if ($emailsTo) {
             $toArr = type_Emails::toArray($emailsTo);
             foreach ($toArr as $to) {
-                blast_BlockedEmails::addEmail($to);
+                email_AddressesInfo::addEmail($to);
                 $PML->AddAddress($to);
             }
         }
@@ -155,7 +155,7 @@ class email_Sent
         if ($emailsCc) {
             $ccArr = type_Emails::toArray($emailsCc);
             foreach ($ccArr as $cc) {
-                blast_BlockedEmails::addEmail($cc);
+                email_AddressesInfo::addEmail($cc);
                 $PML->AddCC($cc);
             }
         }

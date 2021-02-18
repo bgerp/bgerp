@@ -98,7 +98,7 @@ class dec_Declarations extends core_Master
      * В кой плейсхолдер да се сложи шаблона
      */
     public $templateFld = 'content';
-    
+
     
     /**
      * Абревиатура
@@ -163,6 +163,9 @@ class dec_Declarations extends core_Master
         
         // допълнителен текст
         $this->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Бележки->Допълнения');
+        
+        // поле събирателно за плейсхолдерите
+        $this->FLD('formatParams', 'blob(serialize, compress)', 'caption=Параметри, title=Параметри за конвертиране на шаблона, input=none');
     }
 
 
@@ -174,6 +177,51 @@ class dec_Declarations extends core_Master
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
+        $form = &$data->form;
+   
+        // Масива, който ще връщаме
+        static $placesArr = array();
+        
+        // Проверяваме имаме ли зареден шаблон
+        if($data->form->rec->template) {
+            // зареждаме шаблонха
+            $tpl = doc_TplManager::getTemplate($data->form->rec->template);
+            // взимаме всичките плейсхолдери на шаблона
+            $allPlaceholders = label_Templates::getPlaceholders($tpl->content);
+       
+            // обхождаме плейсхолдерите
+            if(is_array($allPlaceholders)) {
+                foreach ($allPlaceholders as $pA) {
+                    // Правим имената на плейсхолдерите с главна буква,
+                    // за да нямаме дублиране с FLD
+                    $p = mb_strtoupper($pA);
+                    
+                    // При показване името на полето "_" я заменяме с интервал
+                    $p1 = str_replace("_", " ", $p);
+                 
+                    // Правим функционални (виртуални) полета
+                    $form->FNC("{$p}", 'varchar(255)', "caption=Параметри->{$p1},input=input, silent,recently");
+                    $form->input();
+
+                    $placesArr[$pA] = $form->rec->{$p};
+                }
+            } 
+        }
+
+        // Записваме blob полето
+        $data->form->rec->formatParams  = (array) $placesArr;
+       
+        // Вземаме данните от предишния запис
+        $dataArr = $data->form->rec->formatParams;
+        
+        // Обхождаме масива
+        foreach ((array) $dataArr as $fieldName => $value) {
+            
+            // Добавяме данните от записите
+            $data->form->rec->$fieldName = $value;
+        }
+        
+       
         // Записваме оригиналното ид, ако имаме такова
         if ($data->form->rec->originId) {
             $data->form->setDefault('doc', $data->form->rec->originId);
@@ -196,7 +244,7 @@ class dec_Declarations extends core_Master
             $data->form->setDefault('inv', $rec->id);
         }
 
-        // сладаме Управители
+        // слагаме Управители
         $hr = cls::get('hr_EmployeeContracts');
 
         $managers = $mvc->getManagers();
@@ -210,13 +258,14 @@ class dec_Declarations extends core_Master
             $data->form->setDefault('date', dt::now(false));
         }
     }
-
-
+    
+    
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
+
         try {
             $row->doc = doc_Containers::getLinkForSingle($rec->doc);
         } catch (core_exception_Expect $e) {
@@ -224,14 +273,13 @@ class dec_Declarations extends core_Master
         }
 
         $rec->tplLang = $mvc->pushTemplateLg($rec->template);
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
-
-        // Зареждаме данните за собствената фирма
-        $ownCompanyData = crm_Companies::fetchOwnCompany();
-
+        
         if (!$rec->documentTitle) {
             $row->documentTitle = doc_TplManager::getTitleByid($rec->template);
         }
+  
+        // Зареждаме данните за собствената фирма
+        $ownCompanyData = crm_Companies::fetchOwnCompany();
 
         // Адреса на фирмата
         $address = trim($ownCompanyData->place . ' ' . $ownCompanyData->pCode);
@@ -385,6 +433,14 @@ class dec_Declarations extends core_Master
         // ако има допълнителни бележки
         if ($rec->note) {
             $row->note = $mvc->getVerbal($rec, 'note');
+        }
+        
+        // Ако имаме въведени стойности във FNC полетата
+        // ще ги покажем в шаблона
+        if(!is_array($rec->formatParams)) { 
+            foreach ($rec->formatParams as $placeholder => $value) {
+                $row->$placeholder = $Varchar->toVerbal($value);
+            }
         }
 
         core_Lg::pop();
