@@ -1966,6 +1966,13 @@ td.rowtools-column {
     position: relative;
     top: 1px; }
 
+.secondMeasure .endTooltip {
+  width: 10px;
+  height: 10px; }
+  .secondMeasure .endTooltip img {
+    width: 12px;
+    height: 12px; }
+
 .lighter-color {
   opacity: 0.6; }
 

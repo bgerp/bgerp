@@ -792,7 +792,7 @@ class planning_Jobs extends core_Master
                 $hint = " 1 {$measureName} " . tr('е') . " {$coefficientVerbal} {$secondMeasureNameHint}";
                 $secondMeasureName = ht::createHint($secondMeasureName, $hint);
             }
-            $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
+            $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-style:italic;' class='secondMeasure'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
         } else {
 
             // Ако няма втора мярка, всичко се конвертира в опаковката
