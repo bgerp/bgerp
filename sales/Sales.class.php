@@ -1169,8 +1169,41 @@ class sales_Sales extends deals_DealMaster
     public static function getThreadState_($id)
     {
     }
-    
-    
+
+
+    /**
+     * Дефолтно дали да са видими цените в нишката от всички
+     *
+     * @param stdClass $rec
+     * @return boolean
+     */
+    private function areThePricesInThreadVisibleByAll($rec)
+    {
+        $listId = isset($rec->priceListId) ? $rec->priceListId : price_ListToCustomers::getListForCustomer($rec->contragentClassId, $rec->contragentId, $rec->valior);
+        $visiblePrices = price_Lists::fetchField($listId, 'visiblePricesByAnyone');
+
+        if($visiblePrices == 'no') return false;
+
+        // Ако продажбата или някоя от обединените е към оферта
+        $documents = array($rec->id);
+        if(!empty($rec->closedDocuments)) {
+            $documents += keylist::toArray($rec->closedDocuments);
+        }
+        foreach ($documents as $docId) {
+            if($docOriginId = $this->fetchField($docId, 'originId')){
+                $origin = doc_Containers::getDocument($docOriginId);
+                if($origin->isInstanceOf('sales_Quotations')){
+
+                    // Няма да са видими
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
     /**
      * След вербализиране на записа
      */
@@ -1226,9 +1259,8 @@ class sales_Sales extends deals_DealMaster
 
             // Показване на дефолт дали цените ще са видими
             if(empty($rec->visiblePricesByAllInThread) && in_array($rec->state, array('draft', 'pending'))){
-                $listId = isset($rec->priceListId) ? $rec->priceListId : price_ListToCustomers::getListForCustomer($rec->contragentClassId, $rec->contragentId, $rec->valior);
-                $visiblePrices = $mvc->getFieldType('visiblePricesByAllInThread')->toVerbal(price_Lists::fetchField($listId, 'visiblePricesByAnyone'));
-                $row->visiblePricesByAllInThread = $visiblePrices;
+                $visiblePrices = ($mvc->areThePricesInThreadVisibleByAll($rec)) ? 'yes' : 'no';
+                $row->visiblePricesByAllInThread =  $mvc->getFieldType('visiblePricesByAllInThread')->toVerbal($visiblePrices);
             }
 
             $row->visiblePricesByAllInThread = ht::createHint("", "Цени и суми в нишката|*: |{$row->visiblePricesByAllInThread}|*");
@@ -1698,11 +1730,8 @@ class sales_Sales extends deals_DealMaster
 
         // След активиране се обновява полето за видимост на цените
         if(empty($rec->visiblePricesByAllInThread)){
-            $listId = isset($rec->priceListId) ? $rec->priceListId : price_ListToCustomers::getListForCustomer($rec->contragentClassId, $rec->contragentId, $rec->valior);
-            if($visiblePrices = price_Lists::fetchField($listId, 'visiblePricesByAnyone')){
-                $rec->visiblePricesByAllInThread = $visiblePrices;
-                $mvc->save_($rec, 'visiblePricesByAllInThread');
-            }
+            $rec->visiblePricesByAllInThread = ($mvc->areThePricesInThreadVisibleByAll($rec)) ? 'yes' : 'no';
+            $mvc->save_($rec, 'visiblePricesByAllInThread');
         }
 
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
