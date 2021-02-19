@@ -437,7 +437,7 @@ class dec_Declarations extends core_Master
         
         // Ако имаме въведени стойности във FNC полетата
         // ще ги покажем в шаблона
-        if(!is_array($rec->formatParams)) { 
+        if(is_array($rec->formatParams)) {
             foreach ($rec->formatParams as $placeholder => $value) {
                 $row->$placeholder = $Varchar->toVerbal($value);
             }
