@@ -1385,7 +1385,7 @@ class core_Users extends core_Manager
             $autoUser->ps5enc = core_Users::encodePwd(str::getRand(), $napUser->nick);
             $autoUser->state = 'closed';
 
-            core_Users::save($autoUser);
+            cls::get('core_Users')->save_($autoUser);
 
             sleep(1);
 
