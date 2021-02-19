@@ -1112,6 +1112,8 @@ div.acc-detail {
 
 .smallerText {
   font-size: 0.9em; }
+  .smallerText.offsetTop {
+    margin-top: 20px; }
 
 /*
  * детайли
