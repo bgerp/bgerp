@@ -68,9 +68,9 @@ class acs_Permissions extends core_Master
      */
     public function description()
     {
-        $this->FLD('companyId', 'key2(mvc=crm_Companies, select=name, allowEmpty, allowEmpty)', 'caption=Фирма, refreshForm');
-        // @todo - може и да има група
-        $this->FLD('personId', 'key2(mvc=crm_Persons, select=name, allowEmpty, allowEmpty)', 'caption=Лице, refreshForm');
+        $groupSysId = acs_ContragentGroupsPlg::$sysId;
+        $this->FLD('companyId', "key2(mvc=crm_Companies, select=name, allowEmpty, group={$groupSysId})", 'caption=Фирма, refreshForm');
+        $this->FLD('personId', "key2(mvc=crm_Persons, select=name, allowEmpty, group={$groupSysId})", 'caption=Лице, refreshForm');
         
         // @todo - може да е наш тип наследник на varchar. Там може да е логиката за преобразуване на id'то на картата
         $this->FLD('cardId', 'varchar', 'caption=Карта, refreshForm');
