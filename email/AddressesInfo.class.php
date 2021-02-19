@@ -475,7 +475,7 @@ class email_AddressesInfo extends core_Manager
         $query->orWhere('#state IS NULL');
         
         // Ако е проверяван скоро, да не се проверява повторно
-        $recheckAfter = dt::subtractSecs((int) email_Setup::get(RECHECK_EMAILS_AFTER));
+        $recheckAfter = dt::subtractSecs((int) email_Setup::get('RECHECK_EMAILS_AFTER'));
         $query->where("#lastChecked <= '{$recheckAfter}'");
         $query->orWhere('#lastChecked IS NULL');
         $query->limit((int) email_Setup::get('RECHECK_EMAILS_LIMIT'));
