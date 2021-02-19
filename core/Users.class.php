@@ -1373,7 +1373,25 @@ class core_Users extends core_Manager
     public static function sudo($id)
     {
         $userRec = self::fetch((int) $id);
-        
+
+        if (!is_object($userRec) && ($id > 0)) {
+            $rolesArr = array(core_Roles::fetchByName('admin'), core_Roles::fetchByName(doc_Setup::get('BGERP_ROLE_HEADQUARTER', true)));
+
+            $autoUser = new stdClass();
+            $autoUser->id = (int) $id;
+            $autoUser->nick = 'Auto_' . str::getRand();
+            $autoUser->names = 'Автоматично';
+            $autoUser->rolesInput = type_Keylist::fromArray(arr::make($rolesArr, true));
+            $autoUser->ps5enc = core_Users::encodePwd(str::getRand(), $napUser->nick);
+            $autoUser->state = 'closed';
+
+            core_Users::save($autoUser);
+
+            sleep(1);
+
+            $userRec = self::fetch((int) $id);
+        }
+
         if (is_object($userRec)) {
             $userRecS = clone($userRec);
             $userRecS->_isSudo = true;
