@@ -1405,8 +1405,11 @@ class core_Users extends core_Manager
         if ($id !== true) {
             expect($id == core_Users::getCurrent());
         }
-        
-        core_Mode::pop('currentUserRec');
+
+        $userRec = self::fetch((int) $id);
+        if (is_object($userRec)) {
+            core_Mode::pop('currentUserRec');
+        }
     }
     
     
