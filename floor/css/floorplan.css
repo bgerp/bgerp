@@ -13,6 +13,7 @@
 div.selected {
    outline: dotted 4px black;
    z-index:10000;
+   outline-offset: 3px;
 }
 
 .floor {
@@ -39,4 +40,5 @@ div.selected {
 body {
 	display: flex;
 	justify-content: center;
+	background-color:black;
 }

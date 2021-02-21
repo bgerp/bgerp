@@ -52,7 +52,7 @@ function editFloorplan()
 			var topOffset = parseInt(floorObject.css("top"));
 
 
-			if (e.shiftKey == 1) {
+			if (e.ctrlKey == 1) {
 				var flag = true;
 				switch(e.which) {
 					case 37: // left
@@ -75,30 +75,53 @@ function editFloorplan()
 						flag = false;
 						break;
 				}
-			} else if (e.ctrlKey == 1){
+			} else if (e.altKey == 1){
 				var flag = true;
 				switch(e.which) {
 					case 37: // left
-						width -= 10;
+						width -= 5;
 						break;
 
 					case 38: // up
-						height -=10;
+						height -=5;
 						break;
 
 					case 39: // right
-						width += 10;
+						width += 5;
 						break;
 
 					case 40: // down
-						height += 10;
+						height += 5;
 						break;
 
 					default:
 						flag = false;
 						break;
 				}
-			} else if (e.altKey == 1){
+			} else if (e.shiftKey == 1){
+				var flag = true;
+				switch(e.which) {
+					case 37: // left
+						leftOffset -= 1;
+						break;
+
+					case 38: // up
+						topOffset -= 1;
+						break;
+
+					case 39: // right
+						leftOffset +=1;
+						break;
+
+					case 40: // down
+						topOffset +=1;
+						break;
+
+					default:
+						flag = false;
+						break;
+				}
+			} else {
 				var flag = true;
 				switch(e.which) {
 					case 37: // left

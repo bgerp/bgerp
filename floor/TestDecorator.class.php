@@ -34,7 +34,7 @@ class floor_TestDecorator extends core_BaseClass
     public static function decorate($name, &$stuleArr, &$html)
     {
         if(substr(md5( (floor(time()/3) ) . $name), -1) == '5') {
-            $html = "<font color='red' size=20>{$html}</font>";
+            $html = "<div style='background-color:red;color:white;padding:5px;display:inline;'>{$html}</div>";
         }
     }
     

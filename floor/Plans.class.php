@@ -130,10 +130,10 @@ class floor_Plans extends core_Master {
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $url = array($mvc, 'View', $data->rec->id);
-        $data->toolbar->addBtn('Покажи', $url, "ef_icon={$mvc->singleIcon}, target=_blank,title =Покажи плана");
+        $data->toolbar->addBtn('Покажи', $url, "ef_icon={$mvc->singleIcon}, target=_blank,title=Покажи плана");
         
         $url = array($mvc, 'Design', $data->rec->id);
-        $data->toolbar->addBtn('Редактирай', $url, "ef_icon=img/16/shape_move_back.png, target=_blank,title =Покажи плана");
+        $data->toolbar->addBtn('Дизайн', $url, "ef_icon=img/16/shape_move_back.png, target=_blank,title=Дизайн на плана");
     }
 
 
@@ -166,7 +166,7 @@ class floor_Plans extends core_Master {
             $style[] = "background-size: {$width}px {$height}px";
         }
 
-        $style[] = $design ? "outline:dotted 4px green" : "outline:solid 4px #666";
+        $style[] = $design ? "outline:dotted 4px yellow" : "outline:solid 4px #666";
         
         if(count($style)) {
             $styleStr = implode(';', $style);
@@ -202,16 +202,14 @@ class floor_Plans extends core_Master {
             $style = array();
 
             if($oRec->backgroundColor) {
-                $style[] = "background-color:" . $oRec->backgroundColor;
+                $o = $oRec->opacity ? $oRec->opacity : 1;
+                list($r, $g, $b) = color_Object::hexToRgbArr($oRec->backgroundColor);
+                $style[] = "background-color:rgba($r, $g, $b, $o)";
             }
             
             if($oRec->image) {
                 $style[] = "background-image:url('" . trim(fileman_Download::getDownloadUrl($oRec->image)) . "')";
-                $style[] = "background-size: {$w}px;";
-            }
-
-            if($oRec->opacity) {
-                $style[] = 'opacity:' . $oRec->opacity;
+                $style[] = "background-size: {$w}px";
             }
 
             if($pRec->decorator && (!$design)) {
@@ -219,11 +217,17 @@ class floor_Plans extends core_Master {
                 $d->decorate($oRec->name, $style, $text);
             }
 
+            if($design) {
+                $url = toUrl(array('floor_Objects', 'edit', $oRec->id, 'ret_url' => true));
+                $dblClick = "ondblclick='document.location=\"{$url}\"'";
+            } else {
+                $dblClick = '';
+            }
+
             $styleStr = implode(';', $style);
 
             $r = round(min($w, $h) * $oRec->round);
-            $url = toUrl(array('floor_Objects', 'edit', $oRec->id, 'ret_url' => true));
-            $tpl->append("<div id='{$oRec->id}' class='floor-object' ondblclick='document.location=\"{$url}\"' style=\"left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;border: {$borderWidth}px solid {$borderColor};{$styleStr};\">
+            $tpl->append("<div id='{$oRec->id}' class='floor-object' {$dblClick} style=\"left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;border: {$borderWidth}px solid {$borderColor};{$styleStr};\">
                 <div class='floor-obj'>{$text}</div></div>", 'OBJECTS');
         }
 
