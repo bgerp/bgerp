@@ -276,18 +276,30 @@ class floor_Plans extends core_Master {
     { 
         $objId = Request::get('objId', 'int');
         
-        $height = Request::get('height', 'int');
-
         if($rec = floor_Objects::fetch($objId)) {
             $this->requireRightfor('edit', $rec->planId);
             $pRec = self::fetch($rec->planId);
-            $width = self::fromPix(Request::get('width', 'int'), $pRec->zoom);
-            $height = self::fromPix(Request::get('height', 'int'), $pRec->zoom);
-            if($width > 0 && $height>0) {
-                $rec->width = $width;
-                $rec->height = $height;
-                floor_Objects::save($rec, 'width,height');
-            }
+
+            $x = self::fromPix(Request::get('x', 'int'), $pRec->zoom);
+            $y = self::fromPix(Request::get('y', 'int'), $pRec->zoom);
+            $w = self::fromPix(Request::get('w', 'int'), $pRec->zoom);
+            $h = self::fromPix(Request::get('h', 'int'), $pRec->zoom);
+            
+            list($x1, $y1, $w1, $h1) = self::getInRect($pRec->width, $pRec->height, $x, $y, $w, $h);
+            
+            $rec->x = $x1;
+            $rec->y = $y1;
+            $rec->width = $w1;
+            $rec->height = $h1;
+            floor_Objects::save($rec, 'width,height,x,y');
+
+            $res = new stdClass();
+            $res->x = self::toPix($x1, $pRec->zoom);
+            $res->y = self::toPix($y1, $pRec->zoom);
+            $res->w = self::toPix($w1, $pRec->zoom);
+            $res->h = self::toPix($h1, $pRec->zoom);
+            
+            core_App::outputJson($res);
         }
 
         shutdown();
@@ -335,6 +347,21 @@ class floor_Plans extends core_Master {
         $y = round($x/(40*$zoom), 6);
 
         return $y;
+    }
+
+
+    /**
+     * Връща координати x1, y1, w1, h1 които са възможни за правоъгилник, 
+     * така, че той да се намира в правоъгълник с размери W и H
+     */
+    public static function getInRect($W, $H, $x, $y, $w, $h)
+    {
+        $w1 = min($w, $W);
+        $h1 = min($h, $H);
+        $x1 = min(max($x, 0), $W-$w);
+        $y1 = min(max($y, 0), $H-$h);
+
+        return array($x1, $y1, $w1, $h1);
     }
 
 }

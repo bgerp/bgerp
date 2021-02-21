@@ -46,7 +46,7 @@ function editFloorplan()
 				});
 			}
 
-			var width  = floorObject.outerWidth();
+			var width = wSave = floorObject.outerWidth();
 			var height = floorObject.outerHeight();
 			var leftOffset = parseInt(floorObject.css("left"));
 			var topOffset = parseInt(floorObject.css("top"));
@@ -79,19 +79,19 @@ function editFloorplan()
 				var flag = true;
 				switch(e.which) {
 					case 37: // left
-						width -= 5;
+						width -= 10;
 						break;
 
 					case 38: // up
-						height -=5;
+						height -= 10;
 						break;
 
 					case 39: // right
-						width += 5;
+						width += 10;
 						break;
 
 					case 40: // down
-						height += 5;
+						height += 10;
 						break;
 
 					default:
@@ -125,19 +125,19 @@ function editFloorplan()
 				var flag = true;
 				switch(e.which) {
 					case 37: // left
-						leftOffset -= 5;
+						leftOffset -= 10;
 						break;
 
 					case 38: // up
-						topOffset -= 5;
+						topOffset -= 10;
 						break;
 
 					case 39: // right
-						leftOffset +=5;
+						leftOffset += 10;
 						break;
 
 					case 40: // down
-						topOffset +=5;
+						topOffset += 10;
 						break;
 
 					default:
@@ -149,11 +149,17 @@ function editFloorplan()
 			if(flag) {
 				e.preventDefault();
 				e.stopPropagation();
-				$.post( "/floor_Plans/ChangeSize",  {objId: floorObject.attr('id'), "width": width, "height": height}, function() {
-					floorObject.outerWidth(width);
-					floorObject.outerHeight(height);
-					floorObject.css("left",leftOffset);
-					floorObject.css("top", topOffset);
+				$.post( "/floor_Plans/ChangeSize",  {
+					"objId": floorObject.attr('id'), 
+					"w": width, 
+					"h": height, 
+					"x":leftOffset, 
+					"y":topOffset}, 
+					function(data) {
+						floorObject.outerWidth(data.w);
+						floorObject.outerHeight(data.h);
+						floorObject.css("left",data.x);
+						floorObject.css("top", data.y);
 				});
 			}
 			return false;
