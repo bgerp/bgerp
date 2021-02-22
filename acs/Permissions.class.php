@@ -91,55 +91,6 @@ class acs_Permissions extends core_Master
     
     
     /**
-     * Временен тестов екшън
-     * 
-     * @todo - премахване
-     */
-    function act_Test()
-    {
-        requireRole('admin');
-        requireRole('debug');
-        
-        $res = "";
-        
-        $query = self::getQuery();
-        $query->groupBy('cardId');
-        $query->orderBy('createdOn', 'DESC');
-        $zones = '';
-        $cArr = array();
-        while ($rec = $query->fetch()) {
-            $cArr[$rec->cardId] = $rec->cardId;
-            $zones = type_Keylist::merge($zones, $rec->zones);
-        }
-        
-        $zArr = type_Keylist::toArray($zones);
-        foreach ($cArr as $cId) {
-            $res .= "<li style='color: black;'>cardId: {$cId}</li>";
-            foreach ($zArr as $zId) {
-                $styleColor = 'red';
-                
-                if ($this->isCardHaveAccessToZone($cId, $zId)) {
-                    $styleColor = 'green';
-                }
-                
-                $zoneName = acs_Zones::getVerbal($zId, 'name');
-                
-                $res .= "<li style='color: {$styleColor};'>zoneId: {$zId}|{$zoneName} </li>";
-            }
-            $res .= "<hr>";
-        }
-        
-        echo $res;
-        
-        echo "<pre>";
-        var_dump($this->getRelationsMap('card'));
-        var_dump($this->getRelationsMap('zone'));
-        
-        shutdown();
-    }
-    
-    
-    /**
      * Проверява дали за подадено време, съответната карта има достъп до зоната
      * 
      * @param string  $cardId
