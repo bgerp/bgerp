@@ -144,8 +144,6 @@ class eshop_ProductDetails extends core_Detail
         $form = &$data->form;
         $rec = $form->rec;
 
-
-
         if (isset($rec->productId)) {
             $productRec = cat_Products::fetch($rec->productId, 'canStore,measureId,state');
             $defaultTitle = eshop_ProductDetails::getPublicProductTitle($rec->eshopProductId, $rec->productId);
@@ -270,6 +268,8 @@ class eshop_ProductDetails extends core_Detail
         
         if($action == 'delete' && isset($rec)){
             if(eshop_CartDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}")){
+                $requiredRoles = 'no_one';
+            } elseif (marketing_Inquiries2::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}")){
                 $requiredRoles = 'no_one';
             }
         }
@@ -797,9 +797,13 @@ class eshop_ProductDetails extends core_Detail
     public function getSourceTitle($id)
     {
         $rec = $this->fetch($id);
-        $url = eshop_Products::getSingleUrlArray($rec->eshopProductId);
-        $title = self::getPublicProductTitle($rec->eshopProductId, $rec->productId);
-        $title = ht::createLink($title, $url, false, 'ef_icon=img/16/globe.png');
+        try{
+            $url = eshop_Products::getSingleUrlArray($rec->eshopProductId);
+            $title = self::getPublicProductTitle($rec->eshopProductId, $rec->productId);
+            $title = ht::createLink($title, $url, false, 'ef_icon=img/16/globe.png');
+        } catch(core_exception_Expect $e){
+            $title = null;
+        }
 
         return $title;
     }
