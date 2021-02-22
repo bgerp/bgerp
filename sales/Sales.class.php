@@ -1190,13 +1190,12 @@ class sales_Sales extends deals_DealMaster
             $documents += keylist::toArray($rec->closedDocuments);
         }
         foreach ($documents as $docId) {
-            if($docOriginId = $this->fetchField($docId, 'originId')){
-                $origin = doc_Containers::getDocument($docOriginId);
-                if($origin->isInstanceOf('sales_Quotations')){
+            if($docRec = $this->fetchField($docId, 'originId,visiblePricesByAllInThread')){
+                $origin = doc_Containers::getDocument($docRec->originId);
 
-                    // Няма да са видими
-                    return false;
-                }
+                // Ако поне една от продажбите е към оферта или е със скрита политика тогава и обединената няма да е
+                if($origin->isInstanceOf('sales_Quotations')) return false;
+                if($docRec->visiblePricesByAllInThread == 'no') return false;
             }
         }
 
