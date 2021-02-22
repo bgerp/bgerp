@@ -66,10 +66,11 @@ class acs_Logs extends core_Manager
     /**
      * 
      * @var string
+     *
      */
-    public $allowedTypes = 'allowed=Разрешен достъп,denied=Забранен достъп,movement=Движение в зоната,empty=Зоната е празна,
-                                openedDoor=Отворена врата,closedDoor=Затворена врата,openedWindow=Отворен прозорец, closedWindow=Затворен прозорец,
-                                floor=Наводнение,fire=Пожар,unknown=Непознат';
+    public $allowedActionsArr = 'allowed=Разрешен достъп,denied=Отказан достъп,unknownId=Неразпознат ID, movement=Забелязано движение,
+                                suspiciousMovement=Подозрително движение,authErr=Грешна оторизация,empty=Липсва присъствие,
+                                openedDoor=Отворена врата,openedWindow=Отворен прозорец,floor=Наводнение,fire=Пожар,technicalErr=Технически проблем,unknown=Неразпознат';
     
     /**
      * Описание на модела
@@ -80,8 +81,8 @@ class acs_Logs extends core_Manager
         $this->FLD('companyId', 'key(mvc=crm_Companies, select=name, allowEmpty)', 'caption=Фирма');
         $this->FLD('personId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Лице');
         $this->FLD('cardId', 'varchar(128)', 'caption=Карта'); //@todo
+        $this->FLD('action', 'enum(,' .$this->allowedActionsArr . ')', 'caption=Действие, oldFieldName=type');
         $this->FLD('zoneId', 'key(mvc=acs_Zones, select=name, allowEmpty)', 'caption=Зона');
-        $this->FLD('type', 'enum(,' .$this->allowedTypes . ')', 'caption=Вид');
         $this->FLD('readerId', 'varchar(64)', 'caption=Четец');
 
         $this->setDbIndex('time');
@@ -89,7 +90,7 @@ class acs_Logs extends core_Manager
         $this->setDbIndex('personId');
         $this->setDbIndex('cardId');
         $this->setDbIndex('zoneId');
-        $this->setDbIndex('type');
+        $this->setDbIndex('action');
 
         $this->setDbUnique('cardId, time');
     }
@@ -100,21 +101,21 @@ class acs_Logs extends core_Manager
      * 
      * @param string  $cardId
      * @param integer $zoneId
-     * @param string  $type
+     * @param string  $action
      * @param null|integer|double $timestamp
      * @param string $readerId
      * @param null|integer $companyId
      * @param null|integer $personId
      */
-    public static function add($cardId, $zoneId, $type, $timestamp = null, $readerId = '', $companyId = null, $personId = null)
+    public static function add($cardId, $zoneId, string $action, $timestamp = null, $readerId = '', $companyId = null, $personId = null)
     {
         $me = cls::get(get_called_class());
         
-        $allowedTypeArr = arr::make($me->allowedTypes);
+        $allowedActArr = arr::make($me->allowedActionsArr);
         
-        if (!isset($allowedTypeArr[$type])) {
-            wp($allowedTypeArr, $type);
-            $type = 'unknown';
+        if (!isset($allowedActArr[$action])) {
+            wp($allowedActArr, $action);
+            $action = 'unknown';
         }
         
         if (!isset($timestamp)) {
@@ -135,13 +136,13 @@ class acs_Logs extends core_Manager
         $rec->personId = $personId;
         $rec->cardId = $cardId;
         $rec->zoneId = $zoneId;
-        $rec->type = $type;
+        $rec->action = $action;
         $rec->readerId = $readerId;
 
         self::save($rec, null, 'IGNORE');
         
         if (!isset($companyId) && !isset($personId)) {
-            self::logErr('Карта "' . $cardId . '" без собственик в зона "' . acs_Zones::getVerbal($zoneId, 'nameLoc') . '" с действие ' . mb_strtolower($allowedTypeArr[$type]), $rec->id);
+            self::logErr('Карта "' . $cardId . '" без собственик в зона "' . acs_Zones::getVerbal($zoneId, 'nameLoc') . '" с действие ' . mb_strtolower($allowedActArr[$action]), $rec->id);
         }
         
         return $rec->id;
@@ -174,7 +175,7 @@ class acs_Logs extends core_Manager
         $data->listFilter->fields['selectPeriod']->formOrder = -10;
         
         // Да се показва полето за търсене
-        $data->listFilter->showFields .= ',companyId, personId, cardId, zoneId, type';
+        $data->listFilter->showFields .= ',companyId, personId, cardId, zoneId, action';
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->view = 'vertical';
         
@@ -196,7 +197,7 @@ class acs_Logs extends core_Manager
             $data->query->where(array("#time <= '[#1#]'", $to));
         }
         
-        foreach (array('companyId', 'personId', 'cardId', 'zoneId', 'type') as $fName) {
+        foreach (array('companyId', 'personId', 'cardId', 'zoneId', 'action') as $fName) {
             if ($rec->{$fName}) {
                 $data->query->where(array("#{$fName} = '[#1#]'", $rec->{$fName}));
             }
@@ -211,7 +212,7 @@ class acs_Logs extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->ROW_ATTR['class'] = "type-{$rec->type}";
+        $row->ROW_ATTR['class'] = "action-{$rec->action}";
 
         if ($rec->companyId) {
             if (crm_Companies::haveRightFor('single', $rec->companyId)) {
