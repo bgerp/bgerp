@@ -27,7 +27,7 @@ class acs_ContragentGroupsPlg extends core_Plugin
                 $Persons = cls::get('crm_Persons');
                 $pRec = $Persons->fetch($rec->personId);
                 $gId = self::getGroupId();
-                if ($gId) {
+                if ($gId && $pRec) {
                     $pRec->groupListInput = type_Keylist::addKey($pRec->groupListInput, $gId);
 
                     $inputArr = type_Keylist::toArray($pRec->groupListInput);
@@ -37,6 +37,23 @@ class acs_ContragentGroupsPlg extends core_Plugin
                     $pRec->groupList = type_Keylist::fromArray($resArr);
 
                     $Persons->save_($pRec, 'groupListInput, groupList');
+
+                    if ($pRec->buzCompanyId) {
+                        $Companies = cls::get('crm_Companies');
+                        $cRec = $Companies->fetch($pRec->buzCompanyId);
+
+                        if ($cRec) {
+                            $cRec->groupListInput = type_Keylist::addKey($cRec->groupListInput, $gId);
+
+                            $inputArr = type_Keylist::toArray($cRec->groupListInput);
+
+                            $resArr = $Persons->expandInput($inputArr);
+
+                            $cRec->groupList = type_Keylist::fromArray($resArr);
+
+                            $Companies->save_($cRec, 'groupListInput, groupList');
+                        }
+                    }
                 }
             }
         }
