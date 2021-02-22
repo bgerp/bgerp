@@ -142,10 +142,10 @@ class dec_Declarations extends core_Master
         $this->FLD('date', 'date', 'caption=Дата');
         
         // декларатор
-        $this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, recently, mandatory,remember');
+        $this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, mandatory,recently,remember,');
 
         // позицията на декларатора
-        $this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, recently, mandatory,remember');
+        $this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, mandatory,recently,remember');
 
         // допълнителни пояснения
         $this->FLD('explanation', 'varchar', 'caption=Представлявана от->Допълнително, recently, remember');
@@ -194,7 +194,7 @@ class dec_Declarations extends core_Master
                 foreach ($allPlaceholders as $pA) {
                     // Правим имената на плейсхолдерите с главна буква,
                     // за да нямаме дублиране с FLD
-                    $p = mb_strtoupper($pA);
+                    $p = "_".($pA);
                     
                     // При показване името на полето "_" я заменяме с интервал
                     $p1 = str_replace("_", " ", $p);
@@ -203,7 +203,7 @@ class dec_Declarations extends core_Master
                     $form->FNC("{$p}", 'varchar(255)', "caption=Параметри->{$p1},input=input, silent,recently");
                     $form->input();
 
-                    $placesArr[$pA] = $form->rec->{$p};
+                    $placesArr[$p] = $form->rec->{$p};
                 }
             } 
         }
@@ -215,13 +215,12 @@ class dec_Declarations extends core_Master
         $dataArr = $data->form->rec->formatParams;
         
         // Обхождаме масива
-        foreach ((array) $dataArr as $fieldName => $value) {
+        foreach ((array) $dataArr as $fieldName => $value) { 
             
             // Добавяме данните от записите
             $data->form->rec->$fieldName = $value;
         }
-        
-       
+                
         // Записваме оригиналното ид, ако имаме такова
         if ($data->form->rec->originId) {
             $data->form->setDefault('doc', $data->form->rec->originId);
@@ -265,7 +264,7 @@ class dec_Declarations extends core_Master
      */
     public function on_AfterRecToVerbal($mvc, $row, $rec)
     {
-
+    
         try {
             $row->doc = doc_Containers::getLinkForSingle($rec->doc);
         } catch (core_exception_Expect $e) {
@@ -434,12 +433,18 @@ class dec_Declarations extends core_Master
         if ($rec->note) {
             $row->note = $mvc->getVerbal($rec, 'note');
         }
-        
+      
         // Ако имаме въведени стойности във FNC полетата
         // ще ги покажем в шаблона
         if(is_array($rec->formatParams)) {
-            foreach ($rec->formatParams as $placeholder => $value) {
-                $row->$placeholder = $Varchar->toVerbal($value);
+            foreach ($rec->formatParams as $placeholder => $value) { 
+                if(strlen($value) !== 0) {
+                    if(strpos($placeholder, "_") == 0) {
+                        $placeholder = substr($placeholder, 1);
+                    }
+                   
+                    $row->$placeholder = $Varchar->toVerbal($value);
+                }
             }
         }
 

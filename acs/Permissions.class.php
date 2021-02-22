@@ -91,55 +91,6 @@ class acs_Permissions extends core_Master
     
     
     /**
-     * Временен тестов екшън
-     * 
-     * @todo - премахване
-     */
-    function act_Test()
-    {
-        requireRole('admin');
-        requireRole('debug');
-        
-        $res = "";
-        
-        $query = self::getQuery();
-        $query->groupBy('cardId');
-        $query->orderBy('createdOn', 'DESC');
-        $zones = '';
-        $cArr = array();
-        while ($rec = $query->fetch()) {
-            $cArr[$rec->cardId] = $rec->cardId;
-            $zones = type_Keylist::merge($zones, $rec->zones);
-        }
-        
-        $zArr = type_Keylist::toArray($zones);
-        foreach ($cArr as $cId) {
-            $res .= "<li style='color: black;'>cardId: {$cId}</li>";
-            foreach ($zArr as $zId) {
-                $styleColor = 'red';
-                
-                if ($this->isCardHaveAccessToZone($cId, $zId)) {
-                    $styleColor = 'green';
-                }
-                
-                $zoneName = acs_Zones::getVerbal($zId, 'name');
-                
-                $res .= "<li style='color: {$styleColor};'>zoneId: {$zId}|{$zoneName} </li>";
-            }
-            $res .= "<hr>";
-        }
-        
-        echo $res;
-        
-        echo "<pre>";
-        var_dump($this->getRelationsMap('card'));
-        var_dump($this->getRelationsMap('zone'));
-        
-        shutdown();
-    }
-    
-    
-    /**
      * Проверява дали за подадено време, съответната карта има достъп до зоната
      * 
      * @param string  $cardId
@@ -151,7 +102,7 @@ class acs_Permissions extends core_Master
     public static function isCardHaveAccessToZone($cardId, $zoneId, $timestamp = null)
     {
         $mArr = self::getAllowedZonesForCard($cardId);
-        
+
         if (empty($mArr)) {
             
             return false;
@@ -275,6 +226,21 @@ class acs_Permissions extends core_Master
         $nTimestamp = dt::mysql2timestamp();
         
         while ($rec = $query->fetch()) {
+
+            // Ако лицето не е активно
+            if ($rec->personId) {
+                if (crm_Persons::fetchField($rec->personId, 'state') != 'active') {
+                    unset($rec->personId);
+                }
+            }
+
+            // Ако фирмата не е активна
+            if ($rec->companyId) {
+                if (crm_Companies::fetchField($rec->companyId, 'state') != 'active') {
+                    unset($rec->companyId);
+                }
+            }
+
             $nActiveTime = self::getNextActiveTime($rec);
             
             if ($nTimestamp < $nActiveTime['activeUntil']) {
@@ -296,11 +262,23 @@ class acs_Permissions extends core_Master
             }
             
             $zArr = type_Keylist::toArray($rec->zones);
-            
+
             // Пълним масива със стойности, като най-малкото е с по-голям приоритет, ако са попълнени повечето
             foreach (array('cardId', 'personId', 'companyId') as $cName) {
                 if ($rec->{$cName}) {
                     foreach ($zArr as $zId) {
+                        if (!$zId) {
+
+                            continue ;
+                        }
+
+                        // Да не може да се достъпват деактивираните зони
+                        $zRec = acs_Zones::fetch($zId);
+                        if (!$zRec || $zRec->state != 'active') {
+
+                            continue ;
+                        }
+
                         $res[$cName][$rec->{$cName}][$zId] = $nActiveTime['activeUntil'];
                     }
                     
@@ -364,7 +342,7 @@ class acs_Permissions extends core_Master
         }
         
         $cardsArr = (array)$res['cardId'];
-        
+
         core_Cache::set($cacheType, $cacheHandler, $cardsArr, $keepMinutes, $depends);
         
         return $cardsArr;
@@ -428,7 +406,15 @@ class acs_Permissions extends core_Master
         $query->show('personId, companyId');
         
         $rec = $query->fetch();
-        
+
+        // Ако фирмата или лицето не са активни - не ги връщаме
+        if (crm_Companies::fetchField($rec->companyId, 'state') != 'active') {
+            unset($rec->companyId);
+        }
+        if (crm_Persons::fetchField($rec->personId, 'state') != 'active') {
+            unset($rec->personId);
+        }
+
         return array('companyId' => $rec->companyId, 'personId' => $rec->personId);
     }
     

@@ -65,6 +65,7 @@ class acs_Setup extends core_ProtoSetup
         'acs_Zones',
         'acs_Permissions',
         'acs_Logs',
+        'acs_Tests',
         'migrate::updateUsersGroups2119',
     );
     
