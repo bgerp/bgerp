@@ -46,11 +46,15 @@ function editFloorplan()
 				});
 			}
 
-			var width = wSave = floorObject.outerWidth();
-			var height = floorObject.outerHeight();
+			var width = parseInt(floorObject.outerWidth());
+			var height = parseInt(floorObject.outerHeight());
 			var leftOffset = parseInt(floorObject.css("left"));
 			var topOffset = parseInt(floorObject.css("top"));
 
+			var bWidth = width;
+			var bHeight = height;
+			var bLeftOffset = leftOffset;
+			var bTopOffset = topOffset;
 
 			if (e.ctrlKey == 1) {
 				var flag = true;
@@ -154,12 +158,34 @@ function editFloorplan()
 					"w": width, 
 					"h": height, 
 					"x":leftOffset, 
-					"y":topOffset}, 
+					"y":topOffset},
+
 					function(data) {
-						floorObject.outerWidth(data.w);
-						floorObject.outerHeight(data.h);
-						floorObject.css("left",data.x);
-						floorObject.css("top", data.y);
+						if (bWidth != data.w) {
+							floorObject.outerWidth(data.w);
+							width = parseInt(floorObject.outerWidth());
+							if (bWidth == width) {
+								data.w++;
+								floorObject.outerWidth(data.w);
+							}
+						}
+
+						if (bHeight != data.h) {
+							floorObject.outerHeight(data.h);
+							height = parseInt(floorObject.outerHeight());
+							if (bHeight == height) {
+								data.h++;
+								floorObject.outerHeight(data.h);
+							}
+						}
+
+						if (bLeftOffset != data.x) {
+							floorObject.css("left",data.x);
+						}
+
+						if (bTopOffset != data.y) {
+							floorObject.css("top", data.y);
+						}
 				});
 			}
 			return false;
