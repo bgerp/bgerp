@@ -269,7 +269,7 @@ class eshop_ProductDetails extends core_Detail
         if($action == 'delete' && isset($rec)){
             if(eshop_CartDetails::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}")){
                 $requiredRoles = 'no_one';
-            } elseif (marketing_Inquiries2::fetchField("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}")){
+            } elseif (marketing_Inquiries2::fetchField("#sourceClassId = {$mvc->getClassId()} AND #sourceId = {$rec->id}")){
                 $requiredRoles = 'no_one';
             }
         }
