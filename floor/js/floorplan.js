@@ -46,13 +46,17 @@ function editFloorplan()
 				});
 			}
 
-			var width  = floorObject.outerWidth();
-			var height = floorObject.outerHeight();
+			var width = parseInt(floorObject.outerWidth());
+			var height = parseInt(floorObject.outerHeight());
 			var leftOffset = parseInt(floorObject.css("left"));
 			var topOffset = parseInt(floorObject.css("top"));
 
+			var bWidth = width;
+			var bHeight = height;
+			var bLeftOffset = leftOffset;
+			var bTopOffset = topOffset;
 
-			if (e.shiftKey == 1) {
+			if (e.ctrlKey == 1) {
 				var flag = true;
 				switch(e.which) {
 					case 37: // left
@@ -75,7 +79,7 @@ function editFloorplan()
 						flag = false;
 						break;
 				}
-			} else if (e.ctrlKey == 1){
+			} else if (e.altKey == 1){
 				var flag = true;
 				switch(e.which) {
 					case 37: // left
@@ -83,7 +87,7 @@ function editFloorplan()
 						break;
 
 					case 38: // up
-						height -=10;
+						height -= 10;
 						break;
 
 					case 39: // right
@@ -98,23 +102,46 @@ function editFloorplan()
 						flag = false;
 						break;
 				}
-			} else if (e.altKey == 1){
+			} else if (e.shiftKey == 1){
 				var flag = true;
 				switch(e.which) {
 					case 37: // left
-						leftOffset -= 5;
+						leftOffset -= 1;
 						break;
 
 					case 38: // up
-						topOffset -= 5;
+						topOffset -= 1;
 						break;
 
 					case 39: // right
-						leftOffset +=5;
+						leftOffset +=1;
 						break;
 
 					case 40: // down
-						topOffset +=5;
+						topOffset +=1;
+						break;
+
+					default:
+						flag = false;
+						break;
+				}
+			} else {
+				var flag = true;
+				switch(e.which) {
+					case 37: // left
+						leftOffset -= 10;
+						break;
+
+					case 38: // up
+						topOffset -= 10;
+						break;
+
+					case 39: // right
+						leftOffset += 10;
+						break;
+
+					case 40: // down
+						topOffset += 10;
 						break;
 
 					default:
@@ -126,11 +153,39 @@ function editFloorplan()
 			if(flag) {
 				e.preventDefault();
 				e.stopPropagation();
-				$.post( "/floor_Plans/ChangeSize",  {objId: floorObject.attr('id'), "width": width, "height": height}, function() {
-					floorObject.outerWidth(width);
-					floorObject.outerHeight(height);
-					floorObject.css("left",leftOffset);
-					floorObject.css("top", topOffset);
+				$.post( "/floor_Plans/ChangeSize",  {
+					"objId": floorObject.attr('id'), 
+					"w": width, 
+					"h": height, 
+					"x":leftOffset, 
+					"y":topOffset},
+
+					function(data) {
+						if (bWidth != data.w) {
+							floorObject.outerWidth(data.w);
+							width = parseInt(floorObject.outerWidth());
+							if (bWidth == width) {
+								data.w++;
+								floorObject.outerWidth(data.w);
+							}
+						}
+
+						if (bHeight != data.h) {
+							floorObject.outerHeight(data.h);
+							height = parseInt(floorObject.outerHeight());
+							if (bHeight == height) {
+								data.h++;
+								floorObject.outerHeight(data.h);
+							}
+						}
+
+						if (bLeftOffset != data.x) {
+							floorObject.css("left",data.x);
+						}
+
+						if (bTopOffset != data.y) {
+							floorObject.css("top", data.y);
+						}
 				});
 			}
 			return false;

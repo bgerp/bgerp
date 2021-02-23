@@ -1340,7 +1340,14 @@ class crm_Companies extends core_Master
         }
         
         $query->show('id,searchFieldXpr');
-        
+
+        if ($params['group']) {
+            $gId = crm_Groups::getIdFromSysId($params['group']);
+            expect($gId);
+
+            $query->likeKeylist('groupList', $gId);
+        }
+
         $res = array();
         
         while ($rec = $query->fetch()) {

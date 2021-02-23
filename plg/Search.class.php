@@ -658,7 +658,8 @@ class plg_Search extends core_Plugin
     {
         $i = 0;
         setIfNot($mvc->fillSearchKeywordsOnSetup, true);
-        if ($mvc->fillSearchKeywordsOnSetup !== false && !$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+
+        if ($mvc->fillSearchKeywordsOnSetup !== false && !$mvc->fetchField("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
             try {
                 $query = $mvc->getQuery();
                 while ($rec = $query->fetch()) {

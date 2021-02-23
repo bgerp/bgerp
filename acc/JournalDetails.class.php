@@ -122,6 +122,7 @@ class acc_JournalDetails extends core_Detail
         $this->setDbIndex('creditItem1');
         $this->setDbIndex('creditItem2');
         $this->setDbIndex('creditItem3');
+        $this->setDbIndex('createdOn');
     }
     
     

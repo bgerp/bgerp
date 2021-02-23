@@ -26,7 +26,8 @@ class acs_Wrapper extends plg_ProtoWrapper
         $this->TAB('acs_Zones', 'Зони', 'acs, admin');
         $this->TAB('acs_Permissions', 'Разрешения', 'acs, admin');
         $this->TAB('acs_Logs', 'Логове', 'acs, admin');
-        
+        $this->TAB('acs_Tests', 'Тестване', 'debug');
+
         $this->title = 'Контрол на достъп';
     }
 }

@@ -792,7 +792,7 @@ class planning_Jobs extends core_Master
                 $hint = " 1 {$measureName} " . tr('е') . " {$coefficientVerbal} {$secondMeasureNameHint}";
                 $secondMeasureName = ht::createHint($secondMeasureName, $hint);
             }
-            $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-size:15px;font-style:italic;'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
+            $row->quantityProduced = "{$row->quantityProduced} <span style='font-weight:normal;color:darkblue;font-style:italic;' class='secondMeasure'>({$secondMeasureQuantityVerbal} {$secondMeasureName}) </span>";
         } else {
 
             // Ако няма втора мярка, всичко се конвертира в опаковката
@@ -1463,6 +1463,11 @@ class planning_Jobs extends core_Master
         $rec = $this->fetch($id, '*', false);
         $date = $rec->dueDate;
 
+        if(!in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
+
+            return $res;
+        }
+
         $productRec = cat_Products::fetch($rec->productId, 'canStore,canConvert');
         $quantityToProduce = round($rec->quantity - $rec->quantityProduced, 4);
 
@@ -1617,6 +1622,8 @@ class planning_Jobs extends core_Master
         // Всяко едно се приключва
         Mode::push('preventNotifications', true);
         while($rec = $query->fetch()){
+            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) continue;
+
             $rec->brState = $rec->state;
             $rec->state = 'closed';
 

@@ -3097,7 +3097,14 @@ class crm_Persons extends core_Master
         $query->show('id, buzCompanyId, ' . $titleFld);
         
         $res = array();
-        
+
+        if ($params['group']) {
+            $gId = crm_Groups::getIdFromSysId($params['group']);
+            expect($gId);
+
+            $query->likeKeylist('groupList', $gId);
+        }
+
         while ($rec = $query->fetch()) {
             $str = trim($rec->{$titleFld});
             
@@ -3109,7 +3116,7 @@ class crm_Persons extends core_Master
             
             $res[$rec->id] = $str;
         }
-        
+
         return $res;
     }
     

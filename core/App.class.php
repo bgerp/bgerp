@@ -476,7 +476,7 @@ class core_App
                     $dbTimePercent = ($qTime / $executionTime) * 100;
 
                     if ($dbTimePercent >= $dbTimePercentLimit) {
-                        if ($executionTime > 2) {
+                        if ($executionTime > 7) {
                             wp('Голям брой заявки, които минават бавно', (int) $dbTimePercent, $dbTimePercentLimit, $qTime, $executionTime);
                         }
                     }

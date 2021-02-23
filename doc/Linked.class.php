@@ -240,7 +240,8 @@ class doc_Linked extends core_Manager
         
         if ($viewType == 'table') {
             $table = cls::get('core_TableView');
-            $table->tableClass = 'listTable smallerText';
+            $table->tableClass = 'listTable smallerText offsetTop';
+            $table->style = 'margin-top: 20px;';
             $res = $table->get($rowArr, '_rowTools=✍,
                                           docLink=Връзка,
 	                                      comment=Коментар');

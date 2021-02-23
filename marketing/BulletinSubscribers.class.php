@@ -132,7 +132,7 @@ class marketing_BulletinSubscribers extends core_Detail
         }
         
         // Разблокираме имейла, ако е бил блокиран
-        blast_BlockedEmails::addEmail($email, 'force', 'ok');
+        email_AddressesInfo::addEmail($email, 'force', 'ok');
     }
     
     

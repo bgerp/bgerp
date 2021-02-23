@@ -43,23 +43,6 @@ defIfNot('BLAST_EMAILS_CRON_PERIOD', '60');
 defIfNot('BLAST_EMAILS_CRON_TIME_LIMIT', '50');
 
 
-/**
- * Повторна проверка за валидност на имейли след - 1 седмица
- */
-defIfNot('BLAST_RECHECK_EMAILS_AFTER', 604800);
-
-
-/**
- * Брой имейли за проверка при всяко извикване
- */
-defIfNot('BLAST_RECHECK_EMAILS_LIMIT', 5);
-
-
-/**
- * След колко време, ако няма комуникация с имейла да се спре да се проверява
- */
-defIfNot('BLAST_STOP_CHECKING_EMAILS_PERIOD', 15778476);
-
 
 /**
  * class blast_Setup
@@ -124,10 +107,6 @@ class blast_Setup extends core_ProtoSetup
         
         'BLAST_EMAILS_CRON_PERIOD' => array('time(suggestions=1 мин.|2 мин.|5 мин.|10 мин.)', 'caption=Период на изпращане на информационни съобщения по крон->Време'),
         'BLAST_EMAILS_CRON_TIME_LIMIT' => array('time(suggestions=30 сек.|50 сек.|1 мин.|2 мин.|3 мин.)', 'caption=Ограничение на времето при изпращане по крон->Време'),
-        
-        'BLAST_RECHECK_EMAILS_AFTER' => array('time(suggestions=15 дни|1 месец|2 месеца)', 'caption=Повторна проверка за валидност на имейли след->Време'),
-        'BLAST_RECHECK_EMAILS_LIMIT' => array('int', 'suggestions=3|5|10, caption=Лимит за проверка на имейли за всяко извикване->Брой'),
-        'BLAST_STOP_CHECKING_EMAILS_PERIOD' => array('time(suggestions=3 месеца|6 месеца|1 година)', 'caption=Колко време след последната комуникация да се спре проверката на имейла->Време'),
     );
     
     
@@ -138,7 +117,6 @@ class blast_Setup extends core_ProtoSetup
         'blast_Lists',
         'blast_ListDetails',
         'blast_Emails',
-        'blast_BlockedEmails',
         'blast_BlockedDomains',
         'blast_Letters',
         'blast_LetterDetails',
