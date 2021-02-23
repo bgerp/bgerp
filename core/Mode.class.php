@@ -78,7 +78,7 @@ class core_Mode
     public static function pop($name = null, $force = null)
     {
         do {
-            expect($rec = array_shift(self::$stack));
+            expect($rec = array_shift(self::$stack), self::$stack);
         } while ($force && $rec->name != $name && count(self::$stack));
         
         

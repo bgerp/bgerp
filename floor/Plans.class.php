@@ -130,10 +130,10 @@ class floor_Plans extends core_Master {
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $url = array($mvc, 'View', $data->rec->id);
-        $data->toolbar->addBtn('Покажи', $url, "ef_icon={$mvc->singleIcon}, target=_blank,title =Покажи плана");
+        $data->toolbar->addBtn('Покажи', $url, "ef_icon={$mvc->singleIcon}, target=_blank,title=Покажи плана");
         
         $url = array($mvc, 'Design', $data->rec->id);
-        $data->toolbar->addBtn('Редактирай', $url, "ef_icon=img/16/shape_move_back.png, target=_blank,title =Покажи плана");
+        $data->toolbar->addBtn('Дизайн', $url, "ef_icon=img/16/shape_move_back.png, target=_blank,title=Дизайн на плана");
     }
 
 
@@ -166,7 +166,7 @@ class floor_Plans extends core_Master {
             $style[] = "background-size: {$width}px {$height}px";
         }
 
-        $style[] = $design ? "outline:dotted 4px green" : "outline:solid 4px #666";
+        $style[] = $design ? "outline:dotted 4px yellow" : "outline:solid 4px #666";
         
         if(count($style)) {
             $styleStr = implode(';', $style);
@@ -202,16 +202,14 @@ class floor_Plans extends core_Master {
             $style = array();
 
             if($oRec->backgroundColor) {
-                $style[] = "background-color:" . $oRec->backgroundColor;
+                $o = $oRec->opacity ? $oRec->opacity : 1;
+                list($r, $g, $b) = color_Object::hexToRgbArr($oRec->backgroundColor);
+                $style[] = "background-color:rgba($r, $g, $b, $o)";
             }
             
             if($oRec->image) {
                 $style[] = "background-image:url('" . trim(fileman_Download::getDownloadUrl($oRec->image)) . "')";
-                $style[] = "background-size: {$w}px;";
-            }
-
-            if($oRec->opacity) {
-                $style[] = 'opacity:' . $oRec->opacity;
+                $style[] = "background-size: {$w}px";
             }
 
             if($pRec->decorator && (!$design)) {
@@ -219,11 +217,17 @@ class floor_Plans extends core_Master {
                 $d->decorate($oRec->name, $style, $text);
             }
 
+            if($design) {
+                $url = toUrl(array('floor_Objects', 'edit', $oRec->id, 'ret_url' => true));
+                $dblClick = "ondblclick='document.location=\"{$url}\"'";
+            } else {
+                $dblClick = '';
+            }
+
             $styleStr = implode(';', $style);
 
             $r = round(min($w, $h) * $oRec->round);
-            $url = toUrl(array('floor_Objects', 'edit', $oRec->id, 'ret_url' => true));
-            $tpl->append("<div id='{$oRec->id}' class='floor-object' ondblclick='document.location=\"{$url}\"' style=\"left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;border: {$borderWidth}px solid {$borderColor};{$styleStr};\">
+            $tpl->append("<div id='{$oRec->id}' class='floor-object' {$dblClick} style=\"left:{$x}px;top:{$y}px;width:{$w}px;height:{$h}px;border-radius:{$r}px;border: {$borderWidth}px solid {$borderColor};{$styleStr};\">
                 <div class='floor-obj'>{$text}</div></div>", 'OBJECTS');
         }
 
@@ -272,18 +276,30 @@ class floor_Plans extends core_Master {
     { 
         $objId = Request::get('objId', 'int');
         
-        $height = Request::get('height', 'int');
-
         if($rec = floor_Objects::fetch($objId)) {
             $this->requireRightfor('edit', $rec->planId);
             $pRec = self::fetch($rec->planId);
-            $width = self::fromPix(Request::get('width', 'int'), $pRec->zoom);
-            $height = self::fromPix(Request::get('height', 'int'), $pRec->zoom);
-            if($width > 0 && $height>0) {
-                $rec->width = $width;
-                $rec->height = $height;
-                floor_Objects::save($rec, 'width,height');
-            }
+
+            $x = self::fromPix(Request::get('x', 'int'), $pRec->zoom);
+            $y = self::fromPix(Request::get('y', 'int'), $pRec->zoom);
+            $w = self::fromPix(Request::get('w', 'int'), $pRec->zoom);
+            $h = self::fromPix(Request::get('h', 'int'), $pRec->zoom);
+            
+            list($x1, $y1, $w1, $h1) = self::getInRect($pRec->width, $pRec->height, $x, $y, $w, $h);
+            
+            $rec->x = $x1;
+            $rec->y = $y1;
+            $rec->width = $w1;
+            $rec->height = $h1;
+            floor_Objects::save($rec, 'width,height,x,y');
+
+            $res = new stdClass();
+            $res->x = self::toPix($x1, $pRec->zoom);
+            $res->y = self::toPix($y1, $pRec->zoom);
+            $res->w = self::toPix($w1, $pRec->zoom);
+            $res->h = self::toPix($h1, $pRec->zoom);
+            
+            core_App::outputJson($res);
         }
 
         shutdown();
@@ -331,6 +347,21 @@ class floor_Plans extends core_Master {
         $y = round($x/(40*$zoom), 6);
 
         return $y;
+    }
+
+
+    /**
+     * Връща координати x1, y1, w1, h1 които са възможни за правоъгилник, 
+     * така, че той да се намира в правоъгълник с размери W и H
+     */
+    public static function getInRect($W, $H, $x, $y, $w, $h)
+    {
+        $w1 = min($w, $W);
+        $h1 = min($h, $H);
+        $x1 = min(max($x, 0), $W-$w);
+        $y1 = min(max($y, 0), $H-$h);
+
+        return array($x1, $y1, $w1, $h1);
     }
 
 }

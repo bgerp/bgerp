@@ -268,7 +268,7 @@ class blast_ListDetails extends doc_Detail
         $keyField = $masterRec->keyField;
         
         if ($keyField == 'email') {
-            $emailState = blast_BlockedEmails::getState($rec->key);
+            $emailState = email_AddressesInfo::getState($rec->key);
             
             if ($emailState == 'error') {
                 $row->ROW_ATTR['class'] .= ' state-error-email';
@@ -370,7 +370,7 @@ class blast_ListDetails extends doc_Detail
         while ($fRec = $query->fetch()) {
             $dObj = (object) unserialize($fRec->data);
             
-            if (blast_BlockedEmails::isBlocked($dObj->email)) {
+            if (email_AddressesInfo::isBlocked($dObj->email)) {
                 
                 continue;
             }

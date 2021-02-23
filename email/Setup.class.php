@@ -242,6 +242,24 @@ defIfNot('EMAIL_CLOSEST_EMAIL_PERCENT', 80);
 
 
 /**
+ * Повторна проверка за валидност на имейли след - 1 седмица
+ */
+defIfNot('EMAIL_RECHECK_EMAILS_AFTER', 604800);
+
+
+/**
+ * Брой имейли за проверка при всяко извикване
+ */
+defIfNot('EMAIL_RECHECK_EMAILS_LIMIT', 5);
+
+
+/**
+ * След колко време, ако няма комуникация с имейла да се спре да се проверява
+ */
+defIfNot('EMAIL_STOP_CHECKING_EMAILS_PERIOD', 15778476);
+
+
+/**
  * class email_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -268,7 +286,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Мениджър - входна точка в пакета
      */
-    public $startCtr = 'email_Incomings';
+    public $startCtr = 'email_Inboxes';
     
     
     /**
@@ -374,6 +392,10 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_SERVICEMAILS_KEEP_DAYS' => array('time(suggestions=3 месеца|6 месеца|1 година,unit=days)', 'caption=Време за съхранение на сервизните имейли->Време'),
         
         'EMAIL_CLOSEST_EMAIL_PERCENT' => array('int(min=0,max=100)', 'caption=Съвпадание в имената на имейлите|*&comma;|ако липсват->Процент'),
+
+        'EMAIL_RECHECK_EMAILS_AFTER' => array('time(suggestions=15 дни|1 месец|2 месеца)', 'caption=Повторна проверка за валидност на имейли след->Време'),
+        'EMAIL_RECHECK_EMAILS_LIMIT' => array('int', 'suggestions=3|5|10, caption=Лимит за проверка на имейли за всяко извикване->Брой'),
+        'EMAIL_STOP_CHECKING_EMAILS_PERIOD' => array('time(suggestions=3 месеца|6 месеца|1 година)', 'caption=Колко време след последната комуникация да се спре проверката на имейла->Време'),
     );
     
     
@@ -400,6 +422,7 @@ class email_Setup extends core_ProtoSetup
         'email_SpamRules',
         'email_ServiceRules',
         'email_ServiceRulesData',
+        'email_AddressesInfo',
         'migrate::repairSpamScore1219',
     );
     
@@ -420,7 +443,7 @@ class email_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(1.23, 'Документи', 'Имейли', 'email_Outgoings', 'default', 'powerUser'),
+        array(1.23, 'Документи', 'Имейли', 'email_Inboxes', 'default', 'powerUser'),
     );
     
     
