@@ -1090,9 +1090,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             }
 
-            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue * $dRec->rate) . ' лв.';
+            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' лв.';
             if ($dRec->totalInvoiceOverPaid > 0.01) {
-                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid * $dRec->rate;
+                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
             }
             if ($dRec->type != 'invoice') {
                 foreach ((array) $dRec->dcPay as $k => $val) {
@@ -1115,13 +1115,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
 
         if ($rec->unpaid == 'unpaid') {
-            $row->contragent = $dRec->contragent . '</br>' . "<span class= 'quiet'>" . ' Общо фактури: ' . '</span>' . $Double->toVerbal($dRec->totalInvoiceValue * $dRec->rate)
-                . ' »  ' . "<span class= 'quiet'>" . ' Платено: ' . '</span>' . $Double->toVerbal($dRec->totalInvoicePayout * $dRec->rate)
-                . ' »  ' . "<span class= 'quiet'>" . 'Недоплатено:' . '</span>' . $Double->toVerbal($dRec->totalInvoiceNotPayd * $dRec->rate);
+            $row->contragent = $dRec->contragent . '</br>' . "<span class= 'quiet'>" . ' Общо фактури: ' . '</span>' . $Double->toVerbal($dRec->totalInvoiceValue)
+                . ' »  ' . "<span class= 'quiet'>" . ' Платено: ' . '</span>' . $Double->toVerbal($dRec->totalInvoicePayout)
+                . ' »  ' . "<span class= 'quiet'>" . 'Недоплатено:' . '</span>' . $Double->toVerbal($dRec->totalInvoiceNotPayd);
 
 
             if ($dRec->totalInvoiceOverPaid > 0.01) {
-                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid * $dRec->rate;
+                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
             }
 
             $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
