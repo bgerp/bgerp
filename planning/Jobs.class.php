@@ -1622,6 +1622,8 @@ class planning_Jobs extends core_Master
         // Всяко едно се приключва
         Mode::push('preventNotifications', true);
         while($rec = $query->fetch()){
+            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) continue;
+
             $rec->brState = $rec->state;
             $rec->state = 'closed';
 
