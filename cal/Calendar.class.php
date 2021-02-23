@@ -199,7 +199,10 @@ class cal_Calendar extends core_Master
         }
         
         $query    = self::getQuery();
-        
+
+        $fromDate = (empty($fromDate)) ? '0000-00-00' : $fromDate;
+        $toDate = (empty($toDate)) ? '0000-00-00' : $toDate;
+
         $fromTime = $fromDate . ' 00:00:00';
         $toTime   = $toDate   . ' 23:59:59';
         

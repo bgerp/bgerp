@@ -374,7 +374,13 @@ class cat_UoM extends core_Manager
         
         expect($fromRec, "Неразпозната мярка: {$from}", $fromRec);
         expect($toRec, "Неразпозната мярка: {$to}", $toRec);
-        
+
+        // Ако двете мерки са една и съща
+        if($fromRec->id == $toRec->id){
+
+            return $value;
+        }
+
         ($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
         ($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
         

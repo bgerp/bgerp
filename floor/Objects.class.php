@@ -158,6 +158,9 @@ class floor_Objects extends core_Detail {
     {
         if(isset($rec->_duplicate)) {
             unset($rec->id);
+            $rec->modifiedOn = $rec->createdOn = dt::now();
+            $rec->modifiedBy = $rec->createdBy = core_Users::getCurrent();
+
             $rec->name = $rec->_duplicate;
         }
     }
