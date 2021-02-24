@@ -1033,7 +1033,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = 'd.m.Y');
 
                 if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-                    $dueDate = ht::createHint($dueDate, 'фактурата е просрочена', 'warning');
+                    $dueDate = "<span class='smallHintHolder'>" . ht::createHint($dueDate, 'фактурата е просрочена', 'warning') . "</span>";
                 }
             } else {
                 $dueDate = '';
