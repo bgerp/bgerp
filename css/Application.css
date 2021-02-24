@@ -2471,7 +2471,7 @@ table.mc-calendar {
     text-align: right;
     padding-right: 3px; }
   table.mc-calendar td.mc-sunday {
-    color: green; }
+    color: #006030; }
   table.mc-calendar td.mc-saturday {
     color: #006030; }
   table.mc-calendar td.mc-today {
