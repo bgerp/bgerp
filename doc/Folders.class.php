@@ -488,7 +488,7 @@ class doc_Folders extends core_Master
     /**
      * Връща линк към папката
      */
-    public static function getFolderTitle($rec, $title = null)
+    public static function getFolderTitle($rec, $title = null, $limitLen = null)
     {
         $mvc = cls::get('doc_Folders');
         
@@ -503,9 +503,10 @@ class doc_Folders extends core_Master
             $title = $mvc->getVerbal($rec, 'title');
         }
 
-        if (mb_strlen($title) > self::maxLenTitle) {
+        $maxLenTitle = isset($limitLen) ? $limitLen : self::maxLenTitle;
+        if (mb_strlen($title) > $maxLenTitle) {
             $attr['title'] = $title;
-            $title = str::limitLen($title, self::maxLenTitle);
+            $title = str::limitLen($title, $maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
         
