@@ -1136,10 +1136,11 @@ class planning_Jobs extends core_Master
         if ($rec->state == 'closed') {
             $count = 0;
             $tQuery = planning_Tasks::getQuery();
-            $tQuery->where("#originId = '{$rec->containerId}' AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
+            $tQuery->where("#originId = '{$rec->containerId}' AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped' AND #state != 'closed'");
             while ($tRec = $tQuery->fetch()) {
                 $tRec->state = 'closed';
-                cls::get('planning_Tasks')->save_($tRec, 'state');
+                $tRec->timeClosed = dt::now();
+                cls::get('planning_Tasks')->save_($tRec, 'state,timeClosed');
                 planning_Tasks::logWrite("Приключване на задача, след приключване на заданието", $tRec->id);
                 $count++;
             }
