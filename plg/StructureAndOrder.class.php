@@ -192,11 +192,15 @@ class plg_StructureAndOrder extends core_Plugin
             
             return;
         }
-        
-        if ($rec->saoLevel > 3) {
+
+        if($mvc->canHaveSubLevel === false) {
             $res = false;
         } else {
-            $res = true;
+            if ($rec->saoLevel > 3) {
+                $res = false;
+            } else {
+                $res = true;
+            }
         }
     }
     

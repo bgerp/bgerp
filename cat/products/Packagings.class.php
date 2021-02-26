@@ -748,7 +748,8 @@ class cat_products_Packagings extends core_Detail
         }
 
         // Детайли в които ще проверяваме
-        $details = array('sales_SalesDetails',
+        $details = array(
+            'sales_SalesDetails',
             'purchase_PurchasesDetails',
             'store_ShipmentOrderDetails',
             'store_ReceiptDetails',
@@ -759,18 +760,24 @@ class cat_products_Packagings extends core_Detail
             'planning_ConsumptionNoteDetails',
             'cat_BomDetails',
             'planning_Jobs',
-            'planning_Jobs',
             'planning_DirectProductionNote',
             'sales_ProformaDetails',
             'sales_ServicesDetails',
             'purchase_ServicesDetails',
+            'cat_ListingDetails',
+            'pos_ReceiptDetails',
             'store_ConsignmentProtocolDetailsReceived',
             'store_ConsignmentProtocolDetailsSend');
         
         // За всеки от изброените документи проверяваме дали е избран артикула с мярката
         $isUsed = false;
         foreach ($details as $Detail) {
-            if($Detail == 'planning_Jobs'){
+            if($Detail == 'pos_ReceiptDetails') {
+                if ($Detail::fetch("#productId = {$productId} AND #action = 'sale|code' AND #value = {$uomId}", 'id')) {
+                    $isUsed = true;
+                    break;
+                }
+            } elseif($Detail == 'planning_Jobs'){
                 if ($Detail::fetch("#productId = {$productId} AND (#packagingId = '{$uomId}' OR #secondMeasureId = '{$uomId}')", 'id')) {
                     $isUsed = true;
                     break;
