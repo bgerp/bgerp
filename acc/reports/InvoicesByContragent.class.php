@@ -429,20 +429,20 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             if (!array_key_exists($iRec->id, $sRecs)) {
                                 if (!array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
                                     $totalInvoiceContragent[$iRec->contragentName] = (object)array(
-                                        'totalInvoiceValue' => $paydocs->amount,                            //общо стойност на фактурите за контрагента
-                                        'totalInvoicePayout' => $paydocs->payout,                           //плащания по фактурите за контрагента
-                                        'totalInvoiceNotPaid' => $salesInvoiceNotPaid,                      //стойност на НЕДОплатените суми по фактурите за контрагента
-                                        'totalInvoiceOverPaid' => $salesInvoiceOverPaid,                    //стойност на НАДплатените суми по фактурите за контрагента
-                                        'totalInvoiceOverDue' => $salesInvoiceOverDue,                      //стойност за плащане по просрочените фактури за контрагента
+                                        'totalInvoiceValue' => $paydocs->amount* $iRec->rate,                            //общо стойност на фактурите за контрагента
+                                        'totalInvoicePayout' => $paydocs->payout* $iRec->rate,                           //плащания по фактурите за контрагента
+                                        'totalInvoiceNotPaid' => $salesInvoiceNotPaid* $iRec->rate,                      //стойност на НЕДОплатените суми по фактурите за контрагента
+                                        'totalInvoiceOverPaid' => $salesInvoiceOverPaid* $iRec->rate,                    //стойност на НАДплатените суми по фактурите за контрагента
+                                        'totalInvoiceOverDue' => $salesInvoiceOverDue* $iRec->rate,                      //стойност за плащане по просрочените фактури за контрагента
                                     );
                                 } else {
                                     $obj = &$totalInvoiceContragent[$iRec->contragentName];
 
-                                    $obj->totalInvoiceValue += $paydocs->amount;
-                                    $obj->totalInvoicePayout += $paydocs->payout;
-                                    $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid;
-                                    $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid;
-                                    $obj->totalInvoiceOverDue += $salesInvoiceOverDue;
+                                    $obj->totalInvoiceValue += $paydocs->amount* $iRec->rate;
+                                    $obj->totalInvoicePayout += $paydocs->payout* $iRec->rate;
+                                    $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid* $iRec->rate;
+                                    $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid* $iRec->rate;
+                                    $obj->totalInvoiceOverDue += $salesInvoiceOverDue* $iRec->rate;
                                 }
                             }
 
@@ -720,16 +720,16 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             // Масив с данни за сумите от фактурите  обединени по контрагенти
                             if (!array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
                                 $totalInvoiceContragent[$iRec->contragentName] = (object)array(
-                                    'totalInvoiceValue' => $paydocs->amount, //общо стойност на фактурите за контрагента
-                                    'totalInvoicePayout' => $paydocs->payout,//плащания по фактурите за контрагента
+                                    'totalInvoiceValue' => $paydocs->amount* $iRec->rate, //общо стойност на фактурите за контрагента
+                                    'totalInvoicePayout' => $paydocs->payout* $iRec->rate,//плащания по фактурите за контрагента
                                     'totalInvoiceNotPaid' => $purchaseInvoiceNotPaid * $iRec->rate,//стойност за плащане по фактурите за контрагента
                                     'totalInvoiceOverDue' => $purchaseInvoiceOverDue * $iRec->rate,//стойност за плащане по просрочените фактури за контрагента
                                 );
                             } else {
                                 $obj = &$totalInvoiceContragent[$iRec->contragentName];
 
-                                $obj->totalInvoiceValue += $paydocs->amount;
-                                $obj->totalInvoicePayout += $paydocs->payout;
+                                $obj->totalInvoiceValue += $paydocs->amount* $iRec->rate;
+                                $obj->totalInvoicePayout += $paydocs->payout* $iRec->rate;
                                 $obj->totalInvoiceNotPaid += $purchaseInvoiceNotPaid * $iRec->rate;
                                 $obj->totalInvoiceOverDue += $purchaseInvoiceOverDue * $iRec->rate;
                             }
@@ -1033,7 +1033,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = 'd.m.Y');
 
                 if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
-                    $dueDate = ht::createHint($dueDate, 'фактурата е просрочена', 'warning');
+                    $dueDate = "<span class='smallHintHolder'>" . ht::createHint($dueDate, 'фактурата е просрочена', 'warning') . "</span>";
                 }
             } else {
                 $dueDate = '';
@@ -1090,9 +1090,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             }
 
-            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue * $dRec->rate) . ' лв.';
+            $row->contragent = $dRec->contragent . ' »  ' . "<span class= 'quiet'>" . ' Общо стойност: ' . '</span>' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->totalInvoiceValue) . ' лв.';
             if ($dRec->totalInvoiceOverPaid > 0.01) {
-                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid * $dRec->rate;
+                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
             }
             if ($dRec->type != 'invoice') {
                 foreach ((array) $dRec->dcPay as $k => $val) {
@@ -1115,13 +1115,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         }
 
         if ($rec->unpaid == 'unpaid') {
-            $row->contragent = $dRec->contragent . '</br>' . "<span class= 'quiet'>" . ' Общо фактури: ' . '</span>' . $Double->toVerbal($dRec->totalInvoiceValue * $dRec->rate)
-                . ' »  ' . "<span class= 'quiet'>" . ' Платено: ' . '</span>' . $Double->toVerbal($dRec->totalInvoicePayout * $dRec->rate)
-                . ' »  ' . "<span class= 'quiet'>" . 'Недоплатено:' . '</span>' . $Double->toVerbal($dRec->totalInvoiceNotPayd * $dRec->rate);
+            $row->contragent = $dRec->contragent . '</br>' . "<span class= 'quiet'>" . ' Общо фактури: ' . '</span>' . $Double->toVerbal($dRec->totalInvoiceValue)
+                . ' »  ' . "<span class= 'quiet'>" . ' Платено: ' . '</span>' . $Double->toVerbal($dRec->totalInvoicePayout)
+                . ' »  ' . "<span class= 'quiet'>" . 'Недоплатено:' . '</span>' . $Double->toVerbal($dRec->totalInvoiceNotPayd);
 
 
             if ($dRec->totalInvoiceOverPaid > 0.01) {
-                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid * $dRec->rate;
+                $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
             }
 
             $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
@@ -1178,6 +1178,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+
         $fieldTpl = new core_ET(
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]

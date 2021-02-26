@@ -683,7 +683,7 @@ class eshop_ProductDetails extends core_Detail
             }
             
         } else {
-            $data->listFields = arr::make('eshopProductId=Е-артикул,domainId=Домейн,title=Заглавие,packagings=Опаковки/Мерки,deliveryTime=Доставка,created=Добавено');
+            $data->listFields = arr::make('eshopProductId=Е-артикул,title=Заглавие,packagings=Опаковки/Мерки,domainId=Домейн,deliveryTime=Доставка,created=Добавено');
             $data->info = tr('Артикулът може да бъде продаван в Е-маг');
             
             // Извличане и вербализиране на записите
