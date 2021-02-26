@@ -50,8 +50,14 @@ class rack_Pallets extends core_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,rack';
-    
-    
+
+
+    /**
+     * Кой може да сваля всичко на пода?
+     */
+    public $canMovealltofloor = 'debug';
+
+
     /**
      * Кой може да го изтрие?
      */
@@ -750,6 +756,10 @@ class rack_Pallets extends core_Manager
         if (rack_Movements::haveRightFor('add')) {
             $data->toolbar->addBtn('Палетиране', array('rack_Movements', 'add', 'movementType' => 'floor2rack', 'ret_url' => true), 'ef_icon=img/16/arrow_up.png,title=Палетиране от под-а');
         }
+
+        if ($mvc->haveRightFor('movealltofloor')) {
+            $data->toolbar->addBtn('Изтриване', array($mvc, 'movealltofloor', 'ret_url' => true), 'ef_icon=img/16/delete.png,title=Изтриване на палети,warning=Наистина ли желаете да изтриете всички палети в склада');
+        }
     }
     
     
@@ -914,5 +924,51 @@ class rack_Pallets extends core_Manager
         }
         
         return false;
+    }
+
+
+    /**
+     * Екшън за сваляне всичко на пода
+     */
+    public function act_Movealltofloor()
+    {
+        $this->requireRightFor('movealltofloor');
+
+        $form = cls::get('core_Form');
+        $form->title = "Сваляне на всички палети на пода";
+        $form->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,mandatory');
+        $form->setDefault('storeId', store_Stores::getCurrent());
+        $form->input();
+
+        if($form->isSubmitted()){
+
+            $products = array();
+            $pQuery = rack_Pallets::getQuery();
+            $pQuery->where("#storeId = {$form->rec->storeId} AND #state = 'active'");
+            $pQuery->show('productId,storeId');
+
+            $count = $pQuery->count();
+            core_App::setTimeLimit($count * 0.5, false, 200);
+
+            while($pRec = $pQuery->fetch()){
+                $products[$pRec->productId] = $pRec->productId;
+                static::delete($pRec->id);
+            }
+
+            if(countR($products)){
+                foreach ($products as $productId){
+                    rack_Pallets::recalc($productId, $form->rec->storeId);
+                }
+            }
+
+            static::logWrite('Изтриване на палетите');
+            followRetUrl(null, 'Успешно премахване на палетите');
+        }
+
+        $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        // Рендираме опаковката
+        return $this->renderWrapping($form->renderHtml());
     }
 }
