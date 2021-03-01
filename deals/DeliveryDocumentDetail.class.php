@@ -371,6 +371,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             
         }
         
-        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId);
+        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);
     }
 }
