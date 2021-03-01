@@ -506,8 +506,8 @@ abstract class deals_DealDetail extends doc_Detail
             $masterRec = $Master->fetch($masterId);
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
-        
-        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId);
+
+        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);
     }
     
     
