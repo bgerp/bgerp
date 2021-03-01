@@ -1973,6 +1973,9 @@ td.rowtools-column {
       width: 14px;
       height: 14px; }
 
+.sale-summary .secondMeasure {
+  font-size: 15px; }
+
 .secondMeasure .endTooltip {
   width: 10px;
   height: 10px; }
