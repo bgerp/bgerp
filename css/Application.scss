@@ -2268,6 +2268,18 @@ td.rowtools-column {
 	}
 }
 
+.smallHintHolder {
+	.endTooltip {
+		width: 11px;
+		height: 11px;
+
+		img {
+			width: 14px;
+			height: 14px;
+		}
+	}
+}
+
 .secondMeasure .endTooltip {
 	width: 10px;
 	height: 10px;
@@ -2877,7 +2889,7 @@ table.mc-calendar {
 		padding-right: 3px;
     }
     td.mc-sunday {
-        color: green;
+		color: #006030;
     }
 	td.mc-saturday {
 	    color: #006030;

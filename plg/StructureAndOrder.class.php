@@ -38,8 +38,7 @@ class plg_StructureAndOrder extends core_Plugin
         $mvc->FLD('saoLevel', 'int', 'caption=Структура и подредба->Ниво,input=none,column=none,order=100000');
         
         $mvc->listItemsPerPage = max($mvc->listItemsPerPage, 1000);
-        
-        //expect($mvc->posTitleField);
+        setIfNot($mvc->saoOrderPrioriy, -100);
     }
     
     
@@ -192,11 +191,15 @@ class plg_StructureAndOrder extends core_Plugin
             
             return;
         }
-        
-        if ($rec->saoLevel > 3) {
+
+        if($mvc->canHaveSubLevel === false) {
             $res = false;
         } else {
-            $res = true;
+            if ($rec->saoLevel > 3) {
+                $res = false;
+            } else {
+                $res = true;
+            }
         }
     }
     
@@ -306,7 +309,7 @@ class plg_StructureAndOrder extends core_Plugin
      */
     public function on_AfterGetQuery($mvc, $query)
     {
-        $query->orderBy('#saoOrder', 'ASC', -100);
+        $query->orderBy('#saoOrder', 'ASC', $mvc->saoOrderPrioriy);
     }
     
     

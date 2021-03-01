@@ -1136,10 +1136,11 @@ class planning_Jobs extends core_Master
         if ($rec->state == 'closed') {
             $count = 0;
             $tQuery = planning_Tasks::getQuery();
-            $tQuery->where("#originId = '{$rec->containerId}' AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped'");
+            $tQuery->where("#originId = '{$rec->containerId}' AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped' AND #state != 'closed'");
             while ($tRec = $tQuery->fetch()) {
                 $tRec->state = 'closed';
-                cls::get('planning_Tasks')->save_($tRec, 'state');
+                $tRec->timeClosed = dt::now();
+                cls::get('planning_Tasks')->save_($tRec, 'state,timeClosed');
                 planning_Tasks::logWrite("Приключване на задача, след приключване на заданието", $tRec->id);
                 $count++;
             }
@@ -1613,6 +1614,7 @@ class planning_Jobs extends core_Master
         }
 
         // Намиране на всички задания готови над посочения процент
+        $now = dt::now();
         $query = planning_Jobs::getQuery();
         $query->XPR('progress', 'date', 'ROUND((#quantityProduced / #quantity), 2)');
         $query->in("state", array('active', 'wakeup', 'stopped'));
@@ -1622,10 +1624,13 @@ class planning_Jobs extends core_Master
         // Всяко едно се приключва
         Mode::push('preventNotifications', true);
         while($rec = $query->fetch()){
+
+            // Ако има документ на заявка в нишката, няма да се приключва заданието
             if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) continue;
 
             $rec->brState = $rec->state;
             $rec->state = 'closed';
+            $rec->timeClosed = $now;
 
             $this->save($rec);
             $this->invoke('AfterChangeState', array(&$rec,  $rec->state));
