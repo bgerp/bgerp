@@ -318,14 +318,16 @@ class blogm_Articles extends core_Master
         }
         
         $cMenuId = Request::get('cMenuId', 'int');
+        $categoryId = Request::get('category', 'int');
 
         // Създаваме празен $data обект
         $data = new stdClass();
         $data->query = $this->getQuery();
         $data->articleId = $id;
         $data->menuId = $cMenuId;
+        $data->category = $categoryId;
         $data->menuRec = cms_Content::fetch($data->menuId);
-        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId);
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category);
 
         // Трябва да има $rec за това $id
         $data->rec = $this->fetch($id);
@@ -564,6 +566,7 @@ class blogm_Articles extends core_Master
     {
         // Създаваме празен $data обект
         $data = new stdClass();
+        $data->categoryId = Request::get('category', 'int');
         $data->menuId = Request::get('cMenuId', 'int');
         $data->menuRec = cms_Content::fetch($data->menuId);
         cms_Domains::setPublicDomain($data->menuRec->domainId);
@@ -573,7 +576,7 @@ class blogm_Articles extends core_Master
         $data->query = $this->getQuery();
         $data->category = Request::get('category', 'int');
 
-        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId);
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId);
         $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
         $data->q = Request::get('q');
 

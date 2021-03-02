@@ -25,7 +25,7 @@ class blogm_Categories extends core_Manager
     /**
      * Зареждане на необходимите плъгини
      */
-    public $loadList = 'plg_RowTools2, cms_plg_ContentSharable, blogm_Wrapper';
+    public $loadList = 'plg_RowTools2, cms_plg_ContentSharable, blogm_Wrapper, plg_StructureAndOrder';
     
     
     /**
@@ -125,7 +125,7 @@ class blogm_Categories extends core_Manager
     /**
      * Връща категориите по текущия език
      */
-    public static function getCategoriesByDomain($domainId = null, $cMenuId = null)
+    public static function getCategoriesByDomain($domainId = null, $cMenuId = null, $categoryId = null)
     {
         $options = array();
         
@@ -134,6 +134,22 @@ class blogm_Categories extends core_Manager
         self::filterByDomain($query, $domainId);
         if(isset($cMenuId)){
             $query->where("#menuId = {$cMenuId} OR LOCATE('|{$cMenuId}|', #sharedMenus)");
+        }
+
+        if (isset($categoryId)) {
+            $fRec = self::fetch($categoryId, 'id,saoParentId');
+            $parentGroupsArr = array($fRec->id);
+            $sisCond = ($fRec->saoParentId) ? " OR #saoParentId = {$fRec->saoParentId} " : '';
+
+            while ($fRec->saoLevel > 1) {
+                $parentGroupsArr[] = $fRec->id;
+                $fRec = self::fetch($fRec->saoParentId. 'id,saoParentId');
+            }
+
+            $parentGroupsList = implode(',', $parentGroupsArr);
+            $query->where("#id IN ({$parentGroupsList}) OR #saoParentId IN ({$parentGroupsList}) {$sisCond} OR #saoLevel <= 1");
+        } else {
+            $query->where('#saoLevel <= 1');
         }
 
         while ($rec = $query->fetch()) {
@@ -164,10 +180,13 @@ class blogm_Categories extends core_Manager
 
         // За всяка Категория, създаваме линк и го поставяме в списъка
         foreach ($cat as $id => $title) {
+            $saoLevel = static::fetchField($id, 'saoLevel');
+            $num = ($saoLevel) ? $saoLevel : 1;
+
             if ($data->selectedCategories[$id] || (!$id && !countR($data->selectedCategories))) {
-                $attr = array('class' => 'nav_item sel_page level2');
+                $attr = array('class' => "nav_item sel_page level{$num}");
             } else {
-                $attr = array('class' => 'nav_item level2');
+                $attr = array('class' => "nav_item level{$num}");
             }
             
             // Създаваме линк, който ще покаже само статиите от избраната категория
@@ -194,5 +213,40 @@ class blogm_Categories extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         self::filterByDomain($data->query, cms_Domains::getCurrent());
+    }
+
+
+    /**
+     * Имплементация на метод, необходим за plg_StructureAndOrder
+     */
+    public function saoCanHaveSublevel($rec, $newRec = null)
+    {
+        return $rec->saoLevel <= 3;
+    }
+
+
+    /**
+     * Необходим метод за подреждането
+     */
+    public static function getSaoItems($rec)
+    {
+        $res = array();
+        $query = self::getQuery();
+        $menuId = Request::get('menuId', 'int');
+        if (!$menuId || strpos($rec->sharedMenus, "|{$menuId}|") === false) {
+            $menuId = (int) $rec->menuId;
+        }
+        if (!$menuId) {
+            $menuId = cms_Content::getDefaultMenuId('blogm_Articles');
+        }
+        if (!$menuId) {
+            return $res;
+        }
+        $query->where("#menuId = {$menuId}");
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $rec;
+        }
+
+        return $res;
     }
 }
