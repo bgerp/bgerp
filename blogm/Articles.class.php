@@ -167,10 +167,16 @@ class blogm_Articles extends core_Master
         }
         
         $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');
-        
-        
+
         if ($fields['-list']) {
-            $row->title = ht::createLink($row->title, self::getUrl($rec), null, 'ef_icon=img/16/monitor.png');
+            $categogiesArr = keylist::toArray($rec->categories);
+            $firstCategoryId = key($categogiesArr);
+            $menuId = blogm_Categories::fetchField($firstCategoryId, 'menuId');
+
+            $url = self::getUrl($rec);
+            $url['cMenuId'] = $menuId;
+
+            $row->title = ht::createLink($row->title, $url, null, 'ef_icon=img/16/monitor.png');
         }
     }
     
@@ -245,8 +251,7 @@ class blogm_Articles extends core_Master
         }
         
         $mvc->setMenuIdByRec($form->rec, false);
-        
-        $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent()));
+        $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent(), null, null, true));
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
