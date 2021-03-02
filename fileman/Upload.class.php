@@ -225,18 +225,22 @@ class fileman_Upload extends core_Manager
         if ($allowMultiUpload) {
             $multiple = 'multiple';
         }
-        
+        $message = tr("Изберете, поставете (Ctrl+V) или провлачете файл");
         $allowMultiUpload = (int) $allowMultiUpload;
         
         $tpl = new ET('
             <div id="uploads" class="uploads-holder"><div id="uploadsTitle" style="display: none;"><b><i>' . $uploadStr . '</i></b></div></div>
             <form id="uploadform" enctype="multipart/form-data" method="post">
                 <span class="uploaded-filenames"> </span>
-                <div id="inputDiv">
-                    <input id="ulfile" class="ulfile" name="ulfile[]" ' . $multiple . ' type="file" size="1" onchange="afterSelectFile(this, ' . $allowMultiUpload . ', ' . (int) $maxAllowedFileSize . ');" [#ACCEPT#]>
-                    <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
+                
+                    <div class="uploadBox"> 
+                        <input id="ulfile" class="ulfile" name="ulfile[]" ' . $multiple . ' type="file" size="1" onchange="afterSelectFile(this, ' . $allowMultiUpload . ', ' . (int) $maxAllowedFileSize . ');" [#ACCEPT#]>
+                        <span class="uploadMessage">' . $message. '</span>
+                 
+                    </div>
                     <input type="button" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
-                </div>
+                    
+               
             </form>');
         
         $currUrl = getCurrentUrl();
