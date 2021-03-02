@@ -298,7 +298,7 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
 		}
 		
 		// Добавяме бутона
-    	newBtnInput += ' > <button class="btn-ulfile" id="btn-ulfile' + btnCntId + '">' + btnText + '</button>';
+    	newBtnInput += ' > ';
     	
     	// Добавяме новия бутон
         $(inputInst).parent().prepend(newBtnInput);
