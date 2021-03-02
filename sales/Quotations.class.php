@@ -1191,6 +1191,7 @@ class sales_Quotations extends core_Master
             'deliveryTime' => $rec->deliveryTime,
             'deliveryTermTime' => $rec->deliveryTermTime,
             'deliveryData' => $rec->deliveryData,
+            'deliveryCalcTransport' => $rec->deliveryCalcTransport,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
         
