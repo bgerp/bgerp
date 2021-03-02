@@ -473,7 +473,7 @@ class blogm_Articles extends core_Master
         // Поставяме данните от реда
         $layout->placeObject($data->row);
         
-        $layout->append($this->getPrevNextLink($data->rec), 'prevNextLinks');
+        $layout->append($this->getPrevNextLink($data), 'prevNextLinks');
         
         $layout = blogm_Comments::renderComments($data, $layout);
         
@@ -491,10 +491,11 @@ class blogm_Articles extends core_Master
     /**
      * Връща линкове за предишен и/или следващ постинг от същите категории
      */
-    public function getPrevNextLink($rec)
+    private function getPrevNextLink($data)
     {
         $res = '';
-        
+        $rec = $data->rec;
+
         if ($rec->categories) {
             $query = self::getQuery();
             $query->XPR('calcDate', 'datetime', "COALESCE(#publishedOn, #createdOn)");
@@ -521,10 +522,14 @@ class blogm_Articles extends core_Master
             // Линкове за следваща/предишна статия
             $prevLink = $nextLink = '';
             if ($prev) {
-                $prevLink = ht::createLink('«&nbsp;' . $prev->title, self::getUrl($prev));
+                $prevUrl = self::getUrl($prev);
+                $prevUrl['cMenuId'] = $data->menuId;
+                $prevLink = ht::createLink('«&nbsp;' . $prev->title, $prevUrl);
             }
             if ($next) {
-                $nextLink = ht::createLink($next->title . '&nbsp;»', self::getUrl($next));
+                $nextUrl = self::getUrl($next);
+                $nextUrl['cMenuId'] = $data->menuId;
+                $nextLink = ht::createLink($next->title . '&nbsp;»', $nextUrl);
             }
             
             if ($prevLink || $nextLink) {
