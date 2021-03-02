@@ -2280,6 +2280,10 @@ td.rowtools-column {
 	}
 }
 
+.sale-summary .secondMeasure {
+	font-size: 15px;
+}
+
 .secondMeasure .endTooltip {
 	width: 10px;
 	height: 10px;
@@ -2287,6 +2291,11 @@ td.rowtools-column {
 		width: 12px;
 		height: 12px;
 	}
+}
+
+.listTable td .endTooltip img{
+	width: 14px !important;
+	height: 14px !important;
 }
 
 .lighter-color {

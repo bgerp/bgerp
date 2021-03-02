@@ -1815,10 +1815,12 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
      * @param string $term         - срок (не е задължителен)
      * @param string $notes        - забележки
+     *@param  string $batch        - партида
+     *
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null)
+    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch = null)
     {
         $me = cls::get(get_called_class());
         $Detail = cls::get($me->mainDetail);
@@ -1888,7 +1890,7 @@ abstract class deals_DealMaster extends deals_DealBase
         );
 
         // Проверяваме дали въвдения детайл е уникален
-        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
+        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes, $batch);
         
         if (is_object($exRec)) {
             
@@ -1910,9 +1912,12 @@ abstract class deals_DealMaster extends deals_DealBase
             // Ъпдейтваме съществуващия запис
             $id = $Detail->save($exRec);
         } else {
-            
+
             // Ако е уникален, добавяме го
             $id = $Detail->save($dRec);
+            if(!empty($batch) && core_Packs::isInstalled('batch')){
+                batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
+            }
         }
         
         // Връщаме резултата от записа

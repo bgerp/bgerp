@@ -541,27 +541,26 @@ class crm_Companies extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = $data->form;
-        
+
         if (empty($form->rec->name)) {
-            $form->setField('vatId', 'removeAndRefreshForm=name|address|pCode|country|place');
-            $form->setField('uicId', 'removeAndRefreshForm=name|address|pCode|country|place');
-            
-            if(empty($form->rec->name)){
-                $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
-                
-                // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
-                if(!empty($cDataSource)){
-                    if($cData = self::getCompanyDataFromString($cDataSource)){
-                        
-                        foreach (array('name', 'country', 'pCode', 'place', 'address', 'vatId', 'uicId') as $cFld){
-                            if(!empty($cData->{$cFld})){
-                                $form->setDefault($cFld, $cData->{$cFld});
-                            }
+
+            $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
+            // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
+            if(!empty($cDataSource)){
+                if($cData = self::getCompanyDataFromString($cDataSource)){
+                    foreach (array('name', 'country', 'pCode', 'place', 'address', 'vatId', 'uicId') as $cFld){
+                        if(!empty($cData->{$cFld})){
+                            $form->setDefault($cFld, $cData->{$cFld});
                         }
                     }
                 }
             }
-            
+
+            if(empty($form->rec->name)){
+                $form->setField('vatId', 'removeAndRefreshForm=name|address|pCode|country|place');
+                $form->setField('uicId', 'removeAndRefreshForm=name|address|pCode|country|place');
+            }
+
             // Дефолтната държава е същата, като на "Моята фирма"
             $myCompany = self::fetchOwnCompany();
             $form->setDefault('country', $myCompany->countryId);

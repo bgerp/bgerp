@@ -92,6 +92,31 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
+     * Помощен масив за всички детайли и класове, в които може да се съдържа
+     */
+    protected static $detailsArr = array(
+        'sales_SalesDetails',
+        'purchase_PurchasesDetails',
+        'store_ShipmentOrderDetails',
+        'store_ReceiptDetails',
+        'sales_QuotationsDetails',
+        'sales_InvoiceDetails',
+        'purchase_InvoiceDetails',
+        'planning_DirectProductNoteDetails',
+        'planning_ConsumptionNoteDetails',
+        'cat_BomDetails',
+        'planning_Jobs',
+        'planning_DirectProductionNote',
+        'sales_ProformaDetails',
+        'sales_ServicesDetails',
+        'purchase_ServicesDetails',
+        'cat_ListingDetails',
+        'pos_ReceiptDetails',
+        'store_ConsignmentProtocolDetailsReceived',
+        'store_ConsignmentProtocolDetailsSend');
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -107,7 +132,10 @@ class cat_products_Packagings extends core_Detail
         $this->FLD('sizeHeight', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Широчина,autohide=any');
         $this->FLD('sizeDepth', 'cat_type_Size(min=0,unit=cm)', 'caption=Подробно->Височина,autohide=any');
         $this->FLD('tareWeight', 'cat_type_Weight(min=0)', 'caption=Подробно->Тара,autohide=any');
-        
+
+        $this->FLD('firstClassId', 'class', 'input=none');
+        $this->FLD('firstDocId', 'int', 'input=none');
+
         $this->setDbUnique('productId,packagingId');
         $this->setDbIndex('eanCode');
         $this->setDbIndex('productId');
@@ -706,19 +734,238 @@ class cat_products_Packagings extends core_Detail
     {
         cat_PackParams::sync($rec->packagingId, $rec->sizeWidth, $rec->sizeHeight, $rec->sizeDepth, $rec->tareWeight);
     }
-    
-    
+
+
+    /**
+     * Обновява първия документ, в който се използва опаковката
+     *
+     * @param core_Master $Master
+     * @param stdClass $rec
+     * @param boolean $remove
+     *
+     * @return false|null
+     */
+    public static function updateFirstDocument($Master, $rec, $remove = false)
+    {
+        $Master = cls::get($Master);
+
+        $masterClassId = $Master->getClassId();
+        $docId = $rec->id;
+
+        if (is_object($rec)) {
+            $cRec = $Master->fetch($rec->id);
+        } else {
+            $cRec = $Master->fetch($rec);
+        }
+
+        if (!$cRec->id) {
+
+            return false;
+        }
+
+        $detArr = arr::make(self::$detailsArr, true);
+
+        $mDetailsArr = arr::make($Master->details);
+
+        $allClsArr = array($Master);
+        $allClsArr += $mDetailsArr;
+
+        $allClsName = array();
+        $inClsName = false;
+        foreach ($allClsArr as $cls) {
+            $cls = cls::get($cls);
+
+            if (!$cls->fields['packagingId']) {
+
+                continue;
+            }
+
+            $allClsName[$cls->className] = $cls->className;
+            $productIdFld = $packagingIdFld = false;
+
+            foreach ($cls->fields as $fName => $field) {
+                if (($field->type instanceof type_Key) || (($field->type instanceof type_Key2))) {
+                    if ($field->type->params['mvc'] == 'cat_Products') {
+                        $productIdFld = $fName;
+                    }
+
+                    if ($field->type->params['mvc'] == 'cat_UoM') {
+                        $packagingIdFld = $fName;
+                    }
+                }
+            }
+
+            if (($productIdFld !== false) && ($packagingIdFld !== false)) {
+                $inClsName = $cls->className;
+
+                break;
+            }
+        }
+
+        if ($inClsName === false) {
+            foreach ($mDetailsArr as $dName) {
+                if ($allClsName[$dName]) {
+                    wp('Използван пакет, който е прескочен', $mDetailsArr, $dName);
+                }
+            }
+
+            return ;
+        }
+
+        if (!$detArr[$inClsName]) {
+            wp('Пропуснат клас за използван пакет', $detArr, $inClsName);
+        }
+
+        $productIdFld = 'productId';
+        $packagingIdFld = 'packagingId';
+
+        $pArr = array();
+
+        // В мастера
+        if ($Master->className == $inClsName) {
+            $productId = $rec->{$productIdFld};
+            $packagingId = $rec->{$packagingIdFld};
+
+            if ($productId && $packagingId) {
+                $pArr[] = array('productId' => $productId, 'packagingId' => $packagingId);
+            }
+        } else {
+            $Detail = cls::get($inClsName);
+            $masterKey = $Detail->masterKey;
+
+            if ($masterKey) {
+                $dQuery = $Detail->getQuery();
+                $dQuery->where(array("#{$masterKey} = '[#1#]'", $rec->id));
+
+                while ($dRec = $dQuery->fetch()) {
+                    $productId = $dRec->{$productIdFld};
+                    $packagingId = $dRec->{$packagingIdFld};
+
+                    if ($productId && $packagingId) {
+                        $pArr[] = array('productId' => $productId, 'packagingId' => $packagingId);
+                    }
+                }
+            } else {
+                wp('Липсва masterKey', $Detail, $Master, $detArr, $inClsName, $mDetailsArr);
+            }
+        }
+
+        foreach ($pArr as $pVal) {
+            $productId = $pVal['productId'];
+            $packagingId = $pVal['packagingId'];
+
+            $pRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $packagingId));
+
+            if (!$pRec) {
+
+                continue ;
+            }
+
+            $saveArr = array('firstClassId', 'firstDocId');
+
+            if ($remove) {
+
+                // Ако този документ е първи
+                if (($pRec->firstClassId == $masterClassId) || ($pRec->firstDocId == $docId)) {
+                    // При оттегляне - премахваме текущото и намираме друго подходящо
+
+                    $pRec->firstClassId = null;
+                    $pRec->firstDocId = null;
+
+                    self::save($pRec, $saveArr);
+                }
+            }
+
+            $dRecArr = array();
+            self::isUsed($productId, $packagingId, false, array('active', 'closed'), $dRecArr, true);
+
+            if ($dRecArr) {
+                $pRec->firstClassId = $dRecArr['classId'];
+                $pRec->firstDocId = $dRecArr['id'];
+
+                self::save($pRec, $saveArr);
+            }
+        }
+    }
+
+
+    /**
+     * Проверява за разлика в записаните количества
+     *
+     * @param core_Master $mvc
+     * @param stdClass $rec
+     *
+     * @return array
+     */
+    public static function checkQuantity($mvc, $rec)
+    {
+        $mvc = cls::get($mvc);
+
+        $notMatchArr = array();
+        if (!$mvc->fields['packagingId'] && !$rec->quantityInPack && !$rec->packagingId) {
+            $dArr = arr::make($mvc->details);
+            foreach ($dArr as $detail) {
+                $Detail = cls::get($detail);
+
+                if (!$Detail->fields['packagingId']) {
+
+                    continue;
+                }
+
+                $masterKey = $Detail->masterKey;
+                $dQuery = $Detail->getQuery();
+                $dQuery->where(array("#{$masterKey} = '[#1#]'", $rec->id));
+
+                while ($dRec = $dQuery->fetch()) {
+                    if ($dRec->packagingId && $dRec->productId) {
+                        $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $dRec->productId, $dRec->packagingId), 'quantity');
+                        if (isset($quantity)) {
+                            if ($quantity != $dRec->quantityInPack) {
+                                $notMatchArr[$dRec->productId] = $quantity;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if ($rec->packagingId && $rec->productId) {
+                $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId), 'quantity');
+                if (isset($quantity)) {
+                    if ($quantity != $rec->quantityInPack) {
+                        $notMatchArr[$rec->productId] = $quantity;
+                    }
+                }
+            }
+        }
+
+        return $notMatchArr;
+    }
+
+
     /**
      * Дали в бизнес документите е използван артикула с посочената опаковка
      *
      * @param int  $productId - ид на артикул
      * @param int  $uomId     - мярка на артикула
      * @param bool $cache     - дали искаме данните да се кешират при използване или не
+     * @param array $stateArr - масив с позволените състояния
+     * @param array $dRecArr  - масив с най-добрият резултат, който откриваме
+     * @param bool $checkAll  - дали да се проверят всичките резултати
      *
      * @return bool $isUsed -използван или не
      */
-    public static function isUsed($productId, $uomId, $cache = false)
+    public static function isUsed($productId, $uomId, $cache = false, $stateArr = array(), &$dRecArr = array(), $checkAll = false)
     {
+        // Подобрение за бързодействие при проверка - да се използват новите полета
+        if (!$checkAll) {
+            $pRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
+
+            if ($pRec && $pRec->firstClassId) {
+
+                return true;
+            }
+        }
+
         $cacheKey = "{$productId}|{$uomId}";
         
         // Ако искаме кеширани данни
@@ -732,7 +979,7 @@ class cat_products_Packagings extends core_Detail
             if ($hasCache !== 'y' && $hasCache !== 'n') {
                 
                 // Ако няма проверяваме дали е използван с тази опаковка (без кеш)
-                if (self::isUsed($productId, $uomId)) {
+                if (self::isUsed($productId, $uomId, false, $stateArr, $checkAll)) {
                     core_Cache::set('cat_Products', $cacheKey, 'y', 10080);
                     $isUsed = true;
                 } else {
@@ -748,48 +995,81 @@ class cat_products_Packagings extends core_Detail
         }
 
         // Детайли в които ще проверяваме
-        $details = array(
-            'sales_SalesDetails',
-            'purchase_PurchasesDetails',
-            'store_ShipmentOrderDetails',
-            'store_ReceiptDetails',
-            'sales_QuotationsDetails',
-            'sales_InvoiceDetails',
-            'purchase_InvoiceDetails',
-            'planning_DirectProductNoteDetails',
-            'planning_ConsumptionNoteDetails',
-            'cat_BomDetails',
-            'planning_Jobs',
-            'planning_DirectProductionNote',
-            'sales_ProformaDetails',
-            'sales_ServicesDetails',
-            'purchase_ServicesDetails',
-            'cat_ListingDetails',
-            'pos_ReceiptDetails',
-            'store_ConsignmentProtocolDetailsReceived',
-            'store_ConsignmentProtocolDetailsSend');
-        
+        $details = self::$detailsArr;
+
+        $firstDocTime = false;
+
         // За всеки от изброените документи проверяваме дали е избран артикула с мярката
         $isUsed = false;
         foreach ($details as $Detail) {
-            if($Detail == 'pos_ReceiptDetails') {
-                if ($Detail::fetch("#productId = {$productId} AND #action = 'sale|code' AND #value = {$uomId}", 'id')) {
-                    $isUsed = true;
-                    break;
-                }
-            } elseif($Detail == 'planning_Jobs'){
-                if ($Detail::fetch("#productId = {$productId} AND (#packagingId = '{$uomId}' OR #secondMeasureId = '{$uomId}')", 'id')) {
-                    $isUsed = true;
-                    break;
-                }
-            } elseif ($Detail == 'cat_BomDetails') {
-                if ($Detail::fetch("#resourceId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
-                    $isUsed = true;
-                    break;
+            $dInst = cls::get($Detail);
+
+            $dQuery = $dInst->getQuery();
+
+            $dQuery->limit(1);
+
+            $haveModified = false;
+            if (!$dInst->fields['modifiedOn']) {
+                if ($dInst->Master && $dInst->masterKey) {
+                    $mInst = cls::get($dInst->Master);
+                    if ($mInst->fields['modifiedOn']) {
+                        $dQuery->EXT('modifiedOn', $dInst->Master, "externalName=modifiedOn,externalKey={$dInst->masterKey}");
+                        $haveModified = true;
+                    }
                 }
             } else {
-                if ($Detail::fetch("#productId = {$productId} AND #packagingId = '{$uomId}'", 'id')) {
-                    $isUsed = true;
+                $haveModified = true;
+            }
+
+            if ($haveModified) {
+                $dQuery->orderBy('modifiedOn', 'ASC');
+            } else {
+                $dQuery->orderBy('id', 'ASC');
+            }
+
+            if (!empty($stateArr)) {
+
+                $haveState = false;
+                if (!$dInst->fields['state']) {
+                    if ($dInst->Master && $dInst->masterKey) {
+                        $mInst = cls::get($dInst->Master);
+                        if ($mInst->fields['state']) {
+                            $dQuery->EXT('state', $dInst->Master, "externalName=state,externalKey={$dInst->masterKey}");
+                            $haveState = true;
+                        }
+                    }
+                } else {
+                    $haveState = true;
+                }
+
+                if ($haveState) {
+                    $dQuery->orWhereArr('state', $stateArr);
+                }
+            }
+
+            if($Detail == 'pos_ReceiptDetails') {
+                $dQuery->where(array("#productId = '[#1#]' AND #action = 'sale|code' AND #value = '[#2#]'", $productId, $uomId));
+            } elseif($Detail == 'planning_Jobs'){
+                $dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
+            } elseif ($Detail == 'cat_BomDetails') {
+                $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
+            } else {
+                $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
+            }
+
+            $dRec = $dQuery->fetch();
+
+            if ($dRec) {
+                $isUsed = true;
+
+                if (!$firstDocTime || ($firstDocTime > $dRec->modifiedOn)) {
+                    $firstDocTime = $dRec->modifiedOn;
+
+                    $dRecArr['classId'] = cls::get($Detail)->getClassId();
+                    $dRecArr['id'] = $dRec->id;
+                }
+
+                if (!$checkAll) {
                     break;
                 }
             }
