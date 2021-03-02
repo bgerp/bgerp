@@ -174,8 +174,6 @@ class blogm_Categories extends core_Manager
             $data->categories = array();
         }
 
-        if(countR($data->categories) == 1) return;
-
         $Lg = cls::get('core_Lg');
         $allCaption = $Lg->translate('Всички', false, cms_Content::getLang());
         $cat = array('' => $allCaption) + $data->categories;
