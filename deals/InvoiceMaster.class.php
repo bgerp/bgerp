@@ -662,7 +662,7 @@ abstract class deals_InvoiceMaster extends core_Master
         if($rec->contragentId == crm_Persons::getClassId()){
             $mvc->setFieldType('uicNo', 'bglocal_EgnType');
         } else {
-            $mvc->setFieldType('uicNo', 'drdata_type_Uic');
+            $mvc->setFieldType('uicNo', "drdata_type_Uic(countryId={$rec->contragentCountryId})");
         }
     }
 
