@@ -645,15 +645,38 @@ select.tabHolder {
   .is-reverted .receipt-payment {
     background: #feb7b7; }
 
+.inputHolder {
+  position: relative; }
+
 .large-field {
   clear: both;
   width: 100%;
   height: 2.2em !important;
   font-size: 1.2em !important;
   border: 1px solid #aaaaaa;
+  box-sizing: border-box !important;
   margin: 0 0 10px !important;
   border-radius: 4px !important;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25), 2px 2px 2px rgba(0, 0, 0, 0.2); }
+
+.close-icon {
+  border: 1px solid rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0);
+  display: inline-block;
+  vertical-align: middle;
+  outline: 0;
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  z-index: 1;
+  right: 10px;
+  top: 12px;
+  font-size: 20px;
+  color: #12008a; }
+
+.large-field:placeholder-shown +  .close-icon {
+  display: none; }
 
 .narrow .large-field {
   height: 1.6em !important; }

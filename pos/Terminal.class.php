@@ -625,7 +625,8 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на полето за търсене и клавиатурата
         $input = ht::createElement('input', $params);
-        $holder = ht::createElement('div', array('class' => 'inputHolder'), $input, true);
+        $reset = ht::createElement('span', array("class" => "close-icon"), "&#10006;", true);
+        $holder = ht::createElement('div', array('class' => 'inputHolder'), $input . $reset, true);
         $block->append($holder, 'INPUT_FLD');
         
         // Добавяне на цифрова клавиатура
