@@ -1340,11 +1340,7 @@ class pos_Terminal extends peripheral_Terminal
         $count = 0;
         foreach ($packs as $packagingId => $packName){
             $packRec = cat_products_Packagings::getPack($selectedRec->productId, $packagingId);
-            $packName = cat_UoM::getTitleById($packagingId);
-            if(mb_strlen($packName) == 1){
-                $packName = cat_UoM::getVerbal($packagingId, 'name');
-            }
-
+            $packName = cat_UoM::getVerbal($packagingId, 'name');
             $btnCaption = tr($packName);
             if(is_object($packRec)){
                 $baseMeasureId = $measureId;
