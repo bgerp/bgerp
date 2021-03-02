@@ -729,8 +729,8 @@ abstract class deals_InvoiceMaster extends core_Master
                 $paymentType = ($aggregateInfo->get('paymentType')) ? $aggregateInfo->get('paymentType') : cond_PaymentMethods::fetchField($paymentMethodId, 'type');
                 $form->setDefault('paymentType', $paymentType);
             }
-            
-            $form->rec->deliveryId = $aggregateInfo->get('deliveryTerm');
+
+            $form->setDefault('deliveryId', $aggregateInfo->get('deliveryTerm'));
             if ($aggregateInfo->get('deliveryLocation')) {
                 $form->setDefault('deliveryPlaceId', $aggregateInfo->get('deliveryLocation'));
             }
