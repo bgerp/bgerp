@@ -132,7 +132,7 @@ class backup_Start extends core_Manager
         $metaArr['backupInfo']['CORE_LAST_DB_VERSION'] = core_Setup::get('LAST_DB_VERSION');
         $metaArr['backupInfo']['CORE_CODE_VERSION'] = core_Setup::get('CODE_VERSION');
         $metaArr['backupInfo']['BGERP_GIT_BRANCH'] = BGERP_GIT_BRANCH;
-        if(defined(BGERP_PRIVATE_GIT_BRANCH)) {
+        if(defined('BGERP_PRIVATE_GIT_BRANCH')) {
             $metaArr['backupInfo']['PRIVATE_GIT_BRANCH'] = BGERP_PRIVATE_GIT_BRANCH;
         }
         $metaArr['backupInfo']['EF_DB_NAME'] = EF_DB_NAME;
