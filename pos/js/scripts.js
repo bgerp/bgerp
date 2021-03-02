@@ -52,10 +52,12 @@ function posActions() {
 		processUrl(url, params);
 	});
 
-
 	//  ресет бутона на изтрива текста в инпута
 	$(document.body).on('click', ".close-icon", function(e){
 		$('.large-field').val("");
+
+		// След изтриване, се тригърва, че все едно ръчно е изтрито
+		triggerSearchInput($(".large-field"), 0, true);
 	});
 
 	/**
