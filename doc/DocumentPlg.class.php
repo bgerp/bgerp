@@ -4641,7 +4641,42 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
-    
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $notMatchArr = cat_products_Packagings::checkRemoteQuantity($mvc, $rec);
+
+        if (!empty($notMatchArr)) {
+            cat_products_Packagings::showNotMatchErr($notMatchArr);
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Функция, която се извиква преди активирането на документа
+     *
+     * @param cal_Tasks $mvc
+     * @param stdClass  $rec
+     */
+    public static function on_BeforeActivation($mvc, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        $notMatchArr = cat_products_Packagings::checkRemoteQuantity($mvc, $rec);
+
+        if (!empty($notMatchArr)) {
+            cat_products_Packagings::showNotMatchErr($notMatchArr);
+
+            return false;
+        }
+    }
+
     
     /**
      * Метод по подразбиране на детайлите за клониране
