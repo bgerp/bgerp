@@ -42,7 +42,7 @@ class cms_ExternalWrapper extends plg_ProtoWrapper
     /**
      * Какви табове да се добавят ако потребителя е контрактор
      */
-    private function getContractorTabs()
+    public function getContractorTabs_()
     {
         $threadsUrl = $containersUrl = array();
         
