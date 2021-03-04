@@ -1,5 +1,6 @@
 function editFloorplan()
 {
+	scaleFloor();
 	$(".floor-object").draggable({"stop": 
             function(event) {
                 $.post( "/floor_Plans/UpdatePossition",  {
@@ -194,9 +195,39 @@ function editFloorplan()
 }
 
 function refreshFloor() {
-  var floorId = $("#floor").attr('data-id');
-  $.post("/floor_Plans/RefreshFloor",  {'floorId': floorId}, function(result) {
-						$("body").html(result.html);
-					});
-  setTimeout(refreshFloor, 3000);
+	var floorId = $("#floor").attr('data-id');
+	$.post("/floor_Plans/RefreshFloor",  {'floorId': floorId}, function(result) {
+		$("body").html(result.html);
+	});
+	setTimeout(refreshFloor, 3000);
+}
+
+/**
+ * функция за скалиране на екрана при по-малък екран
+ */
+function scaleFloor() {
+
+	var width = $(window).outerWidth();
+	var objWidth = $(".floor").outerWidth() + 10;
+	var scaleW = width/objWidth ;
+
+	var height = $(window).outerHeight();
+	var objHeight = $(".floor").height();
+	var scaleH = height/objHeight ;
+	var scale = Math.min(scaleH,scaleW);
+
+	$(".floor").css('margin-top',  (height - objHeight)/2 );
+	if(scale < 1) {
+		$(".floor").css('transform-origin', "top left");
+		$(".floor").css('transform', "scale(" + scale + ")" );
+		$(".floor").css('margin', "3px" );
+
+		var sObjHeight = $(".floor")[0].getBoundingClientRect().height;
+		$(".floor").css('margin-top',  (height - sObjHeight)/2 );
+		$("body").css('display', "block" );
+	}
+
+	$(window).smartresize(function(){
+		scaleFloor();
+	});
 }
