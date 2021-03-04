@@ -1730,7 +1730,7 @@ class crm_Profiles extends core_Master
         $rec = self::fetch("#userId = {$userId}");
         if ($rec) {
             
-            return $rec->peronId;
+            return $rec->personId;
         }
     }
 }
