@@ -547,11 +547,11 @@ class core_String
             // Инкрементираме числото
             $string = substr_replace($string, $number, $startTagPos);
         } else {
-            
+
             // Ако не е открит стринга добавяме `{$prefix}{$startNum}` в края му
             $string .= "{$prefix}{$startNum}";
         }
-        
+
         return $string;
     }
     
@@ -569,7 +569,7 @@ class core_String
         if (is_string($str)) {
 
             // Ако целия стринг е число, инкрементираме го
-            if (is_numeric($str) && $str[0] != '0' && mb_strlen($str) > 1) {
+            if (is_numeric($str) && $str[0] != '0' && mb_strlen($str) >= 1) {
                 ++$str;
 
                 return (string) $str;
