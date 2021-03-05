@@ -338,10 +338,10 @@ class transsrv_ProductDrv extends cat_ProductDriver
                 }
             }
         }
-        
+
         if (!empty($data->rec->ourReff)) {
             $ourRefDomainId = !empty($data->rec->ourReffDomainUrl) ? $data->rec->ourReffDomainUrl : '';
-            wp($ourRefDomainId, $data->rec, $row->ourReff);
+            wp($ourRefDomainId, $data->rec, $row->ourReff, remote_Authorizations::getSystemId($ourRefDomainId));
             if($systemId = remote_Authorizations::getSystemId($ourRefDomainId)) {
                 $reff = str_replace('#', '', $data->rec->ourReff);
                 $url = remote_Authorizations::getRemoteUrl($systemId, array('doc_Search', 'list', 'search' => "#{$reff}"));
