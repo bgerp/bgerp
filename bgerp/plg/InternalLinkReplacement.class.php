@@ -121,12 +121,12 @@ class bgerp_plg_InternalLinkReplacement extends core_Plugin
             
             // Ако функцията не върне FALSE
             if ($boardRes === false) {
+                $notAccessMsg = null;
                 if(cls::existsMethod($params['Ctr'], 'getNotAccessMsgInRichtext')){
-                    $boardRes = $params['Ctr']::getNotAccessMsgInRichtext($params['id']);
-                } else {
-                    // Текста указващ, че нямаме достъп до системата
-                    $boardRes = $rt->getNotAccessMsg();
+                    $notAccessMsg = $params['Ctr']::getNotAccessMsgInRichtext($params['id']);
                 }
+
+                $boardRes =  !(empty($notAccessMsg)) ? $notAccessMsg : $rt->getNotAccessMsg();
             }
             
             // Добавяме в борда
