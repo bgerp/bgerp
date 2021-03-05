@@ -343,7 +343,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
             $ourRefDomainId = !empty($data->rec->ourReffDomainUrl) ? $data->rec->ourReffDomainUrl : '';
             wp($ourRefDomainId, $data->rec, $row->ourReff);
             if($systemId = remote_Authorizations::getSystemId($ourRefDomainId)) {
-                $url = remote_Authorizations::getRemoteUrl($systemId, array('doc_Search', 'list', 'search' => "#{$data->rec->ourReff}"));
+                $reff = str_replace('#', '', $data->rec->ourReff);
+                $url = remote_Authorizations::getRemoteUrl($systemId, array('doc_Search', 'list', 'search' => "#{$reff}"));
                 $row->ourReff = ht::createLink($row->ourReff, $url);
             }
         }
