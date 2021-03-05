@@ -11,7 +11,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -225,7 +225,7 @@ class sales_Sales extends deals_DealMaster
         'caseId' => 'sessionValue|lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
     );
@@ -332,6 +332,7 @@ class sales_Sales extends deals_DealMaster
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
+        $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
     }
     
     
