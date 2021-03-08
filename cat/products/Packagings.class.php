@@ -1061,7 +1061,7 @@ class cat_products_Packagings extends core_Detail
                 $cRec = clone $packRec;
                 $cRec->quantity = $rQuantity;
                 $msg = "|Разминаване на количествата в опаковка|* \"" . cat_UoM::getVerbal($packRec->packagingId, 'name') .  "\" на артикула|* " . cat_Products::getLinkToSingle($packRec->productId, 'name');
-                $msg .= '<br>|В основната система|* ' . ' |е променено на|* ' . self::getVerbal($cRec, 'quantity') . ' |от|* ' . self::getVerbal($packRec, 'quantity');
+                $msg .= '<br>|В основната система е|* ' . self::getVerbal($cRec, 'quantity');
                 $msg .= '<br>|Трябва да се оправи, за да може да се активира/контира.';
                 status_Messages::newStatus($msg, 'error');
 
