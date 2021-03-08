@@ -579,7 +579,8 @@ if ($step == 2) {
             
             if ($checkoutMaxVersion) {
                 checkoutMaxVersion($log);
-                
+                // $links[] = $log;
+                $links[] = "inf|{$nextUrl}|Продължете »";
                 break;
             }
             
