@@ -103,6 +103,7 @@ class blogm_Setup extends core_ProtoSetup
         'blogm_Comments',
         'blogm_Links',
         'migrate::updateCategories',
+        'migrate::updateCategories2',
     );
     
     
@@ -180,6 +181,22 @@ class blogm_Setup extends core_ProtoSetup
             $foundRec = $contQuery->fetch();
             $rec->menuId = $foundRec->id;
             $Categories->save($rec, 'menuId');
+        }
+    }
+
+
+    /**
+     * Мигриране на категориите
+     */
+    public function updateCategories2()
+    {
+        if(!blogm_Categories::count()) return;
+        $Categories = cls::get('blogm_Categories');
+        $Categories->setupMvc();
+
+        $cQuery = $Categories->getQuery();
+        while ($rec = $cQuery->fetch()){
+            $Categories->save($rec);
         }
     }
 }

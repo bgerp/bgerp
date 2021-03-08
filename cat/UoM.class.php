@@ -430,14 +430,19 @@ class cat_UoM extends core_Manager
      * 
      * @param mixed $id
      * @param int|null $count
+     * @param int|null $minLen
      * @return string
      */
-    public static function getSmartName($id, $count = null)
+    public static function getSmartName($id, $count = null, $minLen = null)
     {
         $rec = static::fetchRec($id);
         if($rec->type == 'uom'){
             
-            return static::getShortName($rec->id);
+            $name = static::getShortName($rec->id);
+            if(empty($minLen) || mb_strlen($name) >= $minLen){
+
+                return $name;
+            }
         }
         
         $name = static::getVerbal($rec, 'name');

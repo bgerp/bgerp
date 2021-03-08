@@ -18,12 +18,18 @@
   height: 30px; }
 
 #uploadBtn {
-  top: 9px;
-  background-image: url('../img/upload.gif');
+  background-image: url('../img/upload.png');
+  background-size: 24px;
+  background-color: #0f3c4b;
+  color: white;
+  font-size: 17px;
   background-position: 5px center;
-  z-index: 50;
-  position: absolute;
-  left: 70px; }
+  margin: 10px auto 0;
+  display: block;
+  width: 120px;
+  height: 40px;
+  z-index: 5000;
+  position: relative; }
 
 #uploadBtn.btn-disabled {
   opacity: 0.5;
@@ -61,12 +67,12 @@
  */
 .ulfile {
   position: absolute;
-  width: 67px !important;
-  height: 28px !important;
   overflow: hidden;
   z-index: 1000;
-  top: 9px;
-  left: -1px;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
   opacity: 0;
   -moz-opacity: 0;
   filter: alpha(100);
@@ -77,15 +83,20 @@
 /*
  * бутона файл
  */
-.btn-ulfile {
-  padding-left: 20px !important;
-  background-repeat: no-repeat;
-  background-position: 3px center;
-  position: absolute;
-  width: 66px;
-  z-index: 2;
-  top: 9px;
-  background-color: #dddddd !important; }
+.uploadBox {
+  outline: 2px dashed #92b0b3;
+  outline-offset: -10px;
+  -webkit-transition: outline-offset 0.15s ease-in-out, background-color 0.15s linear;
+  transition: outline-offset 0.15s ease-in-out, background-color 0.15s linear;
+  position: relative;
+  padding: 70px 20px 20px;
+  background: #c8dadf url('../img/download2.png') center 20px no-repeat;
+  background-size: 40px;
+  margin-top: 10px; }
+
+.uploadMessage {
+  display: block;
+  text-align: center; }
 
 #add-file-info {
   max-height: 206px;
@@ -258,7 +269,7 @@
   background-image: url('../../img/16/tick-circle-frame.png'); }
 
 .btn-ulfile {
-  background-image: url('../../img/16/paper_clip.png'); }
+  background-image: url('../img/download.png'); }
 
 .disabledRow {
   background-color: #e0e0e0 !important;

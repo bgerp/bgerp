@@ -1091,6 +1091,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 case 'separate':
                     $fld = 'sepVat';
                     break;
+                case 'exempt':
+                    $fld = 'exemptVat';
+                    break;
                 default:
                     $fld = 'noVat';
                     break;

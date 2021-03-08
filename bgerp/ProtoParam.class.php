@@ -273,6 +273,10 @@ abstract class bgerp_ProtoParam extends embed_Manager
                 $rec->roles = core_Roles::getRolesAsKeylist($rec->csv_roles);
             }
         }
+
+        if (!empty($rec->csv_options)) {
+            $rec->options = cond_type_abstract_Proto::options2text($rec->csv_options);
+        }
     }
     
     

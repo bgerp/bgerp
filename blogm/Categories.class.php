@@ -125,7 +125,7 @@ class blogm_Categories extends core_Manager
     /**
      * Връща категориите по текущия език
      */
-    public static function getCategoriesByDomain($domainId = null, $cMenuId = null, $categoryId = null)
+    public static function getCategoriesByDomain($domainId = null, $cMenuId = null, $categoryId = null, $showAll = false)
     {
         $options = array();
         
@@ -136,20 +136,22 @@ class blogm_Categories extends core_Manager
             $query->where("#menuId = {$cMenuId} OR LOCATE('|{$cMenuId}|', #sharedMenus)");
         }
 
-        if (isset($categoryId)) {
-            $fRec = self::fetch($categoryId, 'id,saoParentId');
-            $parentGroupsArr = array($fRec->id);
-            $sisCond = ($fRec->saoParentId) ? " OR #saoParentId = {$fRec->saoParentId} " : '';
+        if(!$showAll){
+            if (isset($categoryId)) {
+                $fRec = self::fetch($categoryId, 'id,saoParentId');
+                $parentGroupsArr = array($fRec->id);
+                $sisCond = ($fRec->saoParentId) ? " OR #saoParentId = {$fRec->saoParentId} " : '';
 
-            while ($fRec->saoLevel > 1) {
-                $parentGroupsArr[] = $fRec->id;
-                $fRec = self::fetch($fRec->saoParentId. 'id,saoParentId');
+                while ($fRec->saoLevel > 1) {
+                    $parentGroupsArr[] = $fRec->id;
+                    $fRec = self::fetch($fRec->saoParentId. 'id,saoParentId');
+                }
+
+                $parentGroupsList = implode(',', $parentGroupsArr);
+                $query->where("#id IN ({$parentGroupsList}) OR #saoParentId IN ({$parentGroupsList}) {$sisCond} OR #saoLevel <= 1");
+            } else {
+                $query->where('#saoLevel <= 1');
             }
-
-            $parentGroupsList = implode(',', $parentGroupsArr);
-            $query->where("#id IN ({$parentGroupsList}) OR #saoParentId IN ({$parentGroupsList}) {$sisCond} OR #saoLevel <= 1");
-        } else {
-            $query->where('#saoLevel <= 1');
         }
 
         while ($rec = $query->fetch()) {
@@ -171,8 +173,6 @@ class blogm_Categories extends core_Manager
         if (!$data->categories) {
             $data->categories = array();
         }
-
-        if(countR($data->categories) == 1) return;
 
         $Lg = cls::get('core_Lg');
         $allCaption = $Lg->translate('Всички', false, cms_Content::getLang());

@@ -174,7 +174,7 @@ class sales_Quotations extends core_Master
         'validFor' => 'lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
-        'chargeVat' => 'lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
         'others' => 'lastDocUser|lastDoc',
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'deliveryPlaceId' => 'lastDocUser|lastDoc|',
@@ -233,7 +233,7 @@ class sales_Quotations extends core_Master
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
-        $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС,oldFieldName=vat');
+        $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС,salecondSysId=quotationChargeVat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress|deliveryCalcTransport');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
@@ -266,19 +266,7 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
-        $cData = doc_Folders::getContragentData($rec->folderId);
-        $bgId = drdata_Countries::getIdByName('Bulgaria');
-        if(empty($cData->countryId) || $bgId == $cData->countryId){
-            $defaultChargeVat = sales_Setup::get("QUOTATION_DEFAULT_CHARGE_VAT_BG");
-            if($defaultChargeVat != 'auto'){
-                
-                return $defaultChargeVat;
-            }
-        }
-        
-        $defaultChargeVat = deals_Helper::getDefaultChargeVat($rec->folderId);
-        
-        return $defaultChargeVat;
+        return deals_Helper::getDefaultChargeVat($rec->folderId);
     }
     
     
@@ -1191,6 +1179,7 @@ class sales_Quotations extends core_Master
             'deliveryTime' => $rec->deliveryTime,
             'deliveryTermTime' => $rec->deliveryTermTime,
             'deliveryData' => $rec->deliveryData,
+            'deliveryCalcTransport' => $rec->deliveryCalcTransport,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
         

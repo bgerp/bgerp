@@ -890,6 +890,188 @@ class cat_products_Packagings extends core_Detail
 
 
     /**
+     * Помощна функция за проверка на количествата в отдалечената машина
+     *
+     * @param $mvc
+     * @param $rec
+     *
+     * @return array
+     */
+    public static function  checkRemoteQuantity($mvc, $rec)
+    {
+        $notMatchArr = array();
+
+        if (core_Packs::isInstalled('sync')) {
+            $exportDomain = sync_Setup::get('EXPORT_URL');
+            if ($exportDomain) {
+                $mvc = cls::get($mvc);
+
+                $resArr = array();
+
+                if (!$mvc->fields['packagingId'] && !$rec->quantityInPack && !$rec->packagingId) {
+                    $dArr = arr::make($mvc->details);
+                    foreach ($dArr as $detail) {
+                        $Detail = cls::get($detail);
+
+                        if (!$Detail->fields['packagingId']) {
+
+                            continue;
+                        }
+
+                        $masterKey = $Detail->masterKey;
+                        $dQuery = $Detail->getQuery();
+                        $dQuery->where(array("#{$masterKey} = '[#1#]'", $rec->id));
+
+                        while ($dRec = $dQuery->fetch()) {
+
+                            if ($dRec->packagingId && $dRec->productId) {
+                                $packRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $dRec->productId, $dRec->packagingId));
+
+                                if ($packRec && !$packRec->firstClassId && !$packRec->firstDocId) {
+                                    $packRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_UoM::getClassId(), $dRec->packagingId), 'remoteId');
+                                    $prodRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_Products::getClassId(), $dRec->productId), 'remoteId');
+                                    $quantity = $packRec->quantity;
+
+                                    $resArr[] = array('packRemoteId' => $packRemoteId, 'prodRemoteId' => $prodRemoteId, 'quantity' => $quantity, 'packId' => $dRec->packagingId, 'prodId' => $dRec->productId);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if ($rec->packagingId && $rec->productId) {
+                        $packRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId));
+
+                        if ($packRec && !$packRec->firstClassId && !$packRec->firstDocId) {
+                            $packRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_UoM::getClassId(), $rec->packagingId), 'remoteId');
+                            $prodRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_Products::getClassId(), $rec->productId), 'remoteId');
+                            $quantity = $packRec->quantity;
+
+                            $resArr[] = array('packRemoteId' => $packRemoteId, 'prodRemoteId' => $prodRemoteId, 'quantity' => $quantity, 'packId' => $rec->packagingId, 'prodId' => $rec->productId);
+                        }
+                    }
+                }
+
+                $remoteIds = '';
+
+                $lArr = array();
+                foreach ($resArr as $r) {
+                    if (!$r['prodRemoteId'] || !$r['packRemoteId']) {
+
+                        continue;
+                    }
+
+                    $rStr = $r['prodRemoteId'] . '_' . $r['packRemoteId'];
+                    $lStr = $r['prodId'] . '_' . $r['packId'];
+                    $lArr[$rStr] = array('quantity' => $r['quantity'], 'lStr' => $lStr);
+                    $remoteIds .= $remoteIds ? '|' : '';
+                    $remoteIds .= $rStr;
+                }
+
+                if (empty($lArr)) {
+
+                    return $notMatchArr;
+                }
+
+                $options = array('http' => array(
+                    'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                    'method'  => 'POST'));
+
+                $context  = stream_context_create($options);
+                $exportUrl = rtrim($exportDomain, '/');
+                $exportUrl .= "/cat_products_Packagings/getRemoteQuality/?exportIds={$remoteIds}";
+
+                @$data = file_get_contents($exportUrl, false, $context);
+
+                if ($data === 'FALSE' || $data === FALSE) {
+                    $mvc->logWarning('Проблем при проверка на отдалечените количества', $rec->id);
+
+                    return $notMatchArr;
+                }
+
+                $dArr = json_decode($data, true);
+                if (is_array($dArr)) {
+                    foreach ($dArr as $rId => $rQuantity) {
+                        if ($lArr[$rId]['quantity'] != $rQuantity) {
+                            list($prodId, $packId) = explode('_', $lArr[$rId]['lStr']);
+
+                            $packId = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $prodId, $packId), 'id');
+
+                            if ($packId) {
+                                $notMatchArr[$packId] = $rQuantity;
+                            }
+                        }
+                    }
+                } else {
+                    wp($dArr, $data);
+                }
+            }
+        }
+
+        return $notMatchArr;
+    }
+
+
+    /**
+     * Екшън за вземане на количествата на опаковката за артикула
+     * За sync
+     *
+     * @throws core_exception_Expect
+     *
+     * @return json
+     */
+    function act_getRemoteQuality()
+    {
+        sync_Helper::requireRight('export');
+        expect($ids = Request::get('exportIds'));
+
+        try{
+            $dArr = explode('|', $ids);
+            foreach ($dArr as $rId) {
+                list($prodId, $packId) = explode('_', $rId);
+
+                $packQuantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $prodId, $packId), 'quantity');
+
+                if (isset($packQuantity) && ($packQuantity !== false)) {
+                    $resArr[$rId] = $packQuantity;
+                }
+            }
+        } catch(core_exception_Expect $e){
+            cat_Products::logErr("Грешка подготовка на данни за експорт");
+            reportException($e);
+            echo 'FALSE';
+
+            shutdown();
+        }
+
+        core_App::outputJson($resArr);
+    }
+
+
+    /**
+     * Масив с грешните данни
+     *
+     * @param array $notMatchArr
+     */
+    public static function showNotMatchErr($notMatchArr)
+    {
+        foreach ($notMatchArr as $packId => $rQuantity) {
+            $packRec = self::fetch($packId);
+
+            if ($packRec && $packRec->productId && $packRec->packagingId) {
+                $cRec = clone $packRec;
+                $cRec->quantity = $rQuantity;
+                $msg = "|Разминаване на количествата в опаковка|* \"" . cat_UoM::getVerbal($packRec->packagingId, 'name') .  "\" на артикула|* " . cat_Products::getLinkToSingle($packRec->productId, 'name');
+                $msg .= '<br>|В основната система е|* ' . self::getVerbal($cRec, 'quantity');
+                $msg .= '<br>|Трябва да се оправи, за да може да се активира/контира.';
+                status_Messages::newStatus($msg, 'error');
+
+                self::logErr('Разминаване на количествата в опаковката', $packId);
+            }
+        }
+    }
+
+
+    /**
      * Проверява за разлика в записаните количества
      *
      * @param core_Master $mvc

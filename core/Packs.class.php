@@ -912,7 +912,7 @@ class core_Packs extends core_Manager
         $rec = static::fetch("#name = '{$packName}'");
         $setup = cls::get("{$packName}_Setup");
         
-        // В Setup-a се очаква $configDesctiption в следната структура:
+        // В Setup-a се очаква $configDescription в следната структура:
         // Полета за конфигурационни променливи на пакета
         // Описание на конфигурацията:
         // array('CONSTANT_NAME' => array($type,
