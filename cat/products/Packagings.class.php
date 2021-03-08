@@ -1033,7 +1033,9 @@ class cat_products_Packagings extends core_Detail
         } catch(core_exception_Expect $e){
             cat_Products::logErr("Грешка подготовка на данни за експорт");
             reportException($e);
-            $data = 'FALSE';
+            echo 'FALSE';
+
+            shutdown();
         }
 
         core_App::outputJson($resArr);
