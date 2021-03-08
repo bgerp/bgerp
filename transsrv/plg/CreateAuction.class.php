@@ -36,6 +36,7 @@ class transsrv_plg_CreateAuction extends core_Plugin
                 $selfUrl = str_replace($_SERVER['REQUEST_URI'], '', $selfUrl);
 
                 $d['ourReffDomainUrl'] = $selfUrl;
+                wp($d);
                 $d = base64_encode(gzcompress(json_encode($d)));
 
                 $url = remote_Authorizations::getRemoteUrl($systemId, array('transbid_Auctions', 'Add', 'd' => $d));

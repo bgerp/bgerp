@@ -171,7 +171,8 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
-        'migrate::updateBoms'
+        'migrate::updateBoms',
+        'migrate::updatePackFirsDoc2108'
     );
     
     
@@ -304,5 +305,102 @@ class cat_Setup extends core_ProtoSetup
         $isCompleteColName = str::phpToMysqlName('isComplete');
         $query = "UPDATE {$Bom->dbTableName} SET {$isCompleteColName} = 'auto'";
         $Bom->db->query($query);
+    }
+
+
+    /**
+     *
+     */
+    public function updatePackFirsDoc2108()
+    {
+        core_CallOnTime::setCall(get_called_class(), 'addFirstDoc2108', null, dt::addSecs(120));
+    }
+
+
+    /**
+     * Обновяване на първия документ, в който е използва по крон
+     */
+    function callback_AddFirstDoc2108()
+    {
+        $pKey = $this->className . '|AddFirstDoc2108';
+
+        $maxTime = dt::addSecs(40);
+
+        $kVal = core_Permanent::get($pKey);
+
+        $query = cat_products_Packagings::getQuery();
+
+        if (isset($kVal)) {
+            $query->where(array("#id < '[#1#]'", $kVal));
+        }
+
+        $cnt = $query->count();
+
+        if (!$cnt) {
+            if (!is_null($kVal)) {
+                core_Permanent::set($pKey, $kVal, 200);
+            } else {
+                core_Permanent::remove($pKey);
+            }
+
+            cat_products_Packagings::logDebug('Приключи поправката на първи документ в опаковките');
+
+            return ;
+        }
+
+        $query->orderBy('id', 'DESC');
+
+        $isFirst = true;
+
+        $query->limit(10000);
+
+        $lastId = $kVal;
+
+        try {
+            $pPackaging = cls::get('cat_products_Packagings');
+
+            while ($rec = $query->fetch()) {
+
+                if (dt::now() >= $maxTime) {
+                    break;
+                }
+
+                if ($isFirst) {
+                    cat_products_Packagings::logDebug("Поправка на първия документ на опаковките: {$rec->id}");
+                    $isFirst = false;
+                }
+
+                $lastId = $rec->id;
+
+                try {
+                    $dRecArr = array();
+                    cat_products_Packagings::isUsed($rec->productId, $rec->packagingId, false, array('active', 'closed'), $dRecArr, true);
+
+                    if ($dRecArr) {
+                        $rec->firstClassId = $dRecArr['classId'];
+                        $rec->firstDocId = $dRecArr['id'];
+
+                        $pPackaging->save_($rec, 'firstClassId, firstDocId');
+                    }
+                } catch (Exception $e) {
+                    reportException($e);
+                } catch (Throwable  $e) {
+                    reportException($e);
+                }
+            }
+        } catch (Exception $e) {
+            reportException($e);
+        } catch (Throwable  $e) {
+            reportException($e);
+        }
+
+        $callOn = dt::addSecs(55);
+        core_CallOnTime::setCall(get_called_class(), 'AddFirstDoc2108', null, $callOn);
+
+        cat_products_Packagings::logDebug('Поправка на първия документ на опаковките до id=' . $lastId);
+
+        if (!is_null($lastId)) {
+            core_Permanent::set($pKey, $lastId, 1000);
+        }
     }
 }

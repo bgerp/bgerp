@@ -18,3 +18,6 @@
 Списък от предишни продажби,cond_type_YesOrNo,autoSalesMakeList,Продажба,,,
 Корекция за делти,cond_type_Percent,deltaCorrect,Продажба,,"ceo,salesMaster",
 Отговорно пазене,cond_type_YesOrNo,consignmentContragents,,,,
+Минимална надценка,cond_type_Percent,minSurplusCharge,Продажба,,,
+Режим на ДДС,cond_type_Enum,saleChargeVat,Продажба,,,"yes=Включено ДДС в цените,separate=Отделен ред за ДДС,exempt=Освободено от ДДС,no=Без начисляване на ДДС"
+Режим на ДДС,cond_type_Enum,quotationChargeVat,Оферта,,,"yes=Включено ДДС в цените,separate=Отделен ред за ДДС,exempt=Освободено от ДДС,no=Без начисляване на ДДС"

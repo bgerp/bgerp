@@ -1618,6 +1618,9 @@ class doc_DocumentPlg extends core_Plugin
         if($rec->brState == 'active' && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
             acc_plg_Contable::notifyUsersForReject($mvc, $rec);
         }
+
+        // Обновяваме първия документ в продуктите
+        cat_products_Packagings::updateFirstDocument($mvc, $rec, true);
     }
     
     
@@ -1649,6 +1652,19 @@ class doc_DocumentPlg extends core_Plugin
         doc_Files::recalcFiles($rec->containerId);
         
         bgerp_Notifications::showNotificationsForSingle($mvc->className, $rec->id);
+
+        // Обновяваме първия документ в продуктите
+        cat_products_Packagings::updateFirstDocument($mvc, $rec);
+
+        // Проверка дали има разлика в опаковките
+        $notMatchArr = cat_products_Packagings::checkQuantity($mvc, $rec);
+        foreach ($notMatchArr as $pId => $qnt) {
+            $msg = "|Количеството в опаковката на артикула|* " . cat_Products::getLinkToSingle($pId, 'name') . " |е променено на|* {$qnt}";
+
+            status_Messages::newStatus($msg, 'warning');
+
+            $mvc->logWarning($msg, $rec->id);
+        }
     }
     
     
@@ -4625,7 +4641,42 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
-    
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $notMatchArr = cat_products_Packagings::checkRemoteQuantity($mvc, $rec);
+
+        if (!empty($notMatchArr)) {
+            cat_products_Packagings::showNotMatchErr($notMatchArr);
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Функция, която се извиква преди активирането на документа
+     *
+     * @param cal_Tasks $mvc
+     * @param stdClass  $rec
+     */
+    public static function on_BeforeActivation($mvc, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        $notMatchArr = cat_products_Packagings::checkRemoteQuantity($mvc, $rec);
+
+        if (!empty($notMatchArr)) {
+            cat_products_Packagings::showNotMatchErr($notMatchArr);
+
+            return false;
+        }
+    }
+
     
     /**
      * Метод по подразбиране на детайлите за клониране
@@ -4649,6 +4700,19 @@ class doc_DocumentPlg extends core_Plugin
             $rec->activatedBy = core_Users::getCurrent();
             
             $mvc->save_($rec, 'activatedOn,activatedBy');
+        }
+
+        // Обновяваме първия документ в продуктите
+        cat_products_Packagings::updateFirstDocument($mvc, $rec);
+
+        // Проверка дали има разлика в опаковките
+        $notMatchArr = cat_products_Packagings::checkQuantity($mvc, $rec);
+        foreach ($notMatchArr as $pId => $qnt) {
+            $msg = "|Количеството в опаковката на артикула|* " . cat_Products::getLinkToSingle($pId, 'name') . " |е променено на|* {$qnt}";
+
+            status_Messages::newStatus($msg, 'warning');
+
+            $mvc->logWarning($msg, $rec->id);
         }
     }
     

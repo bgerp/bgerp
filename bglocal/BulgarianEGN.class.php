@@ -199,7 +199,7 @@ class bglocal_BulgarianEGN
         $sum = 0;
         
         foreach (self::$parity_weights as $k => $weight) {
-            $sum += $egn_string{$k} * $weight;
+            $sum += $egn_string[$k] * $weight;
         }
         
         return ($sum % 11) % 10;

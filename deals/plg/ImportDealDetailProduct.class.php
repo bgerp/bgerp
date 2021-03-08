@@ -55,12 +55,16 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
             // Подготвяме формата
             $form->FLD($mvc->masterKey, "key(mvc={$mvc->Master->className})", 'input=hidden,silent');
+            if($mvc instanceof sales_QuotationsDetails){
+                $form->FLD('optional', 'enum(yes,no)', 'silent,input=hidden');
+            }
+
             $form->input(null, 'silent');
             $form->title = 'Импортиране на артикули към|*' . ' <b>' . $mvc->Master->getFormTitleLink($masterRec) . '</b>';
             $form->FLD('folderId', 'int', 'input=hidden');
             $form->setDefault('folderId', $masterRec->folderId);
             
-            self::prepareForm($form);
+            self::prepareForm($form, $mvc);
 
             if (isset($form->rec->fromClipboard)) {
                 list($isFromClipboard) = explode('_', $form->rec->fromClipboard);
@@ -110,7 +114,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
 
                     $fields = array('code' => $rec->codecol, 'quantity' => $rec->quantitycol, 'price' => $rec->pricecol, 'pack' => $rec->packcol);
                     
-                    if (core_Packs::isInstalled('batch')) {
+                    if (core_Packs::isInstalled('batch') && !($mvc instanceof sales_QuotationsDetails)) {
                         $fields['batch'] = $rec->batchcol;
                     }
                     
@@ -164,7 +168,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         }
 
                         if (!$form->gotErrors()) {
-                            
+                            if($mvc instanceof sales_QuotationsDetails){
+                                array_walk($rows, function($a) use ($form){ $a->optional = $form->rec->optional;});
+                            }
+
                             // Импортиране на данните от масива в зададените полета
                             $msg = self::importRows($mvc, $rec->{$mvc->masterKey}, $rows, $fields);
                             
@@ -445,7 +452,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
      *
      * @param core_Form $form
      */
-    private static function prepareForm(&$form)
+    private static function prepareForm(&$form, $mvc)
     {
         // Полета за орпеделяне на данните
         $form->info = tr('Въведете данни или качете csv файл');
@@ -529,7 +536,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $fields[] = 'pricecol';
         }
         
-        if (core_Packs::isInstalled('batch')) {
+        if (core_Packs::isInstalled('batch') && !($mvc instanceof sales_QuotationsDetails)) {
             $form->FLD('batchcol', $type, "caption=Съответствие в данните->Партида{$unit}");
             $fields[] = 'batchcol';
         }
@@ -597,10 +604,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $data->toolbar->addBtn(
                 'Импортиране',
                 array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => true),
-            "id=btnAdd-import,{$error},title=Импортиране на артикули",
-                'ef_icon = img/16/import.png,order=15'
+            "id=btnAdd-import,title=Импортиране на артикули",
+                "ef_icon = img/16/import.png,order=15,{$error}"
             );
-        }//bp($masterRec,$data->toolbar);
+        }
     }
     
     
