@@ -89,6 +89,9 @@
                             <!--ET_BEGIN sepVat-->
                             <li>Prices are with separate VAT[#sepVat#]</li>
                             <!--ET_END sepVat-->
+                            <!--ET_BEGIN exemptVat-->
+                            <li>Exempt from VAT[#exemptVat#]</li>
+                            <!--ET_END exemptVat-->
                             <!--ET_BEGIN noVat-->
                             <li>Prices are without VAT[#noVat#]</li>
                             <!--ET_END noVat-->
