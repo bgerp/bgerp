@@ -955,6 +955,11 @@ class cat_products_Packagings extends core_Detail
 
                 $lArr = array();
                 foreach ($resArr as $r) {
+                    if (!$r['prodRemoteId'] || !$r['packRemoteId']) {
+
+                        continue;
+                    }
+
                     $rStr = $r['prodRemoteId'] . '_' . $r['packRemoteId'];
                     $lStr = $r['prodId'] . '_' . $r['packId'];
                     $lArr[$rStr] = array('quantity' => $r['quantity'], 'lStr' => $lStr);
