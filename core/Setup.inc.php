@@ -576,12 +576,14 @@ if ($step == 2) {
             $update = $_GET['update'];
             $revert = $_GET['revert'];
             $checkoutMaxVersion = isset($_GET['checkoutMaxVersion']);
+            
             if ($checkoutMaxVersion) {
                 checkoutMaxVersion($log);
+                
+                break;
             }
             
             // Масив - лог за извършените действия
-        
             $newVer = 0;
             $changed = 0;
     
