@@ -928,7 +928,7 @@ class cat_products_Packagings extends core_Detail
                                 $packRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $dRec->productId, $dRec->packagingId));
 
                                 if ($packRec && !$packRec->firstClassId && !$packRec->firstDocId) {
-                                    $packRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_products_Packagings::getClassId(), $dRec->packagingId), 'remoteId');
+                                    $packRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_UoM::getClassId(), $dRec->packagingId), 'remoteId');
                                     $prodRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_Products::getClassId(), $dRec->productId), 'remoteId');
                                     $quantity = $packRec->quantity;
 
@@ -942,7 +942,7 @@ class cat_products_Packagings extends core_Detail
                         $packRec = self::fetch(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId));
 
                         if ($packRec && !$packRec->firstClassId && !$packRec->firstDocId) {
-                            $packRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_products_Packagings::getClassId(), $rec->packagingId), 'remoteId');
+                            $packRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_UoM::getClassId(), $rec->packagingId), 'remoteId');
                             $prodRemoteId = sync_Map::fetchField(array("#classId = '[#1#]' AND #localId = '[#2#]'", cat_Products::getClassId(), $rec->productId), 'remoteId');
                             $quantity = $packRec->quantity;
 
@@ -1060,12 +1060,12 @@ class cat_products_Packagings extends core_Detail
             if ($packRec && $packRec->productId && $packRec->packagingId) {
                 $cRec = clone $packRec;
                 $cRec->quantity = $rQuantity;
-                $msg = "|Разминаване на количествата в опковка|* \"" . cat_UoM::getVerbal($packRec->packagingId, 'name') .  "\" на артикула|* " . cat_Products::getLinkToSingle($packRec->productId, 'name');
-                $msg .= '<br>|В отдалечената машина|* ' . ' |е промено на|* ' . self::getVerbal($cRec, 'quantity') . ' |от|* ' . self::getVerbal($packRec, 'quantity');
+                $msg = "|Разминаване на количествата в опаковка|* \"" . cat_UoM::getVerbal($packRec->packagingId, 'name') .  "\" на артикула|* " . cat_Products::getLinkToSingle($packRec->productId, 'name');
+                $msg .= '<br>|В основната система|* ' . ' |е променено на|* ' . self::getVerbal($cRec, 'quantity') . ' |от|* ' . self::getVerbal($packRec, 'quantity');
                 $msg .= '<br>|Трябва да се оправи, за да може да се активира/контира.';
                 status_Messages::newStatus($msg, 'error');
 
-                self::logErr('Разминаване на количествата в опковката', $packId);
+                self::logErr('Разминаване на количествата в опаковката', $packId);
             }
         }
     }
