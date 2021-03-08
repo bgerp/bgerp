@@ -984,18 +984,20 @@ class cat_products_Packagings extends core_Detail
                 }
 
                 $dArr = json_decode($data, true);
-                foreach ($dArr as $rId => $rQuantity) {
-                    if ($lArr[$rId]['quantity'] != $rQuantity) {
-                        list($prodId, $packId) = explode('_', $lArr[$rId]['lStr']);
+                if (is_array($dArr)) {
+                    foreach ($dArr as $rId => $rQuantity) {
+                        if ($lArr[$rId]['quantity'] != $rQuantity) {
+                            list($prodId, $packId) = explode('_', $lArr[$rId]['lStr']);
 
-                        $packId = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $prodId, $packId), 'id');
+                            $packId = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $prodId, $packId), 'id');
 
-                        if ($packId) {
-                            $notMatchArr[$packId] = $rQuantity;
+                            if ($packId) {
+                                $notMatchArr[$packId] = $rQuantity;
+                            }
                         }
-
-
                     }
+                } else {
+                    wp($dArr, $data);
                 }
             }
         }
