@@ -254,7 +254,7 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $this->FLD('sourceClassId', 'class(interface=marketing_InquirySourceIntf)', 'caption=Източник клас,input=none');
-        $this->FLD('sourceId', 'int', 'caption=Източник id,input=none,tdClass=leftAlign');
+        $this->FLD('sourceId', 'varchar', 'caption=Източник id,input=none,tdClass=leftAlign');
         $this->FLD('customizeProto', 'enum(no=Не,yes=Да)', 'caption=Заглавие,silent,input=hidden,notNull,value=yes');
 
         if (!acc_plg_DocumentSummary::$rolesAllMap[$this->className]) {
