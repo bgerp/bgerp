@@ -1468,7 +1468,7 @@ class planning_Jobs extends core_Master
 
             return $res;
         }
-        core_Statuses::newStatus('love', 'warning');
+
         $productRec = cat_Products::fetch($rec->productId, 'canStore,canConvert');
         $quantityToProduce = round($rec->quantity - $rec->quantityProduced, 4);
 
