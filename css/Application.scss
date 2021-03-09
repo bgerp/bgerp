@@ -4482,6 +4482,9 @@ table .eshop-btn {
 }
 .narrow .contractorExtHolder {
 	padding-top: 40px;
+	input[type="button"], input[type="submit"], button, a.button {
+		padding-left: 5px !important;
+	}
 }
 .narrow #login-form {
 	max-width:17em !important;
