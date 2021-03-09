@@ -1480,7 +1480,7 @@ class planning_Jobs extends core_Master
 
         // Ако има протокол за производство на заявка с по-голяма ефективна дата от заданието, ще се използва тя
         $dnQuery = planning_DirectProductionNote::getQuery();
-        $dnQuery->XPR('date', 'date', 'DATE(COALESCE(#deadline, #valior))');
+        $dnQuery->XPR('date', 'date', 'DATE(COALESCE(#deadline, #valior, #createdOn))');
         $dnQuery->where("#state = 'pending' AND #date > '{$date}'");
         $dnQuery->in('threadId', $threadsArr);
         $dnQuery->show('date');
