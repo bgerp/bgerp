@@ -1468,7 +1468,7 @@ class planning_Jobs extends core_Master
 
             return $res;
         }
-
+        core_Statuses::newStatus('love', 'warning');
         $productRec = cat_Products::fetch($rec->productId, 'canStore,canConvert');
         $quantityToProduce = round($rec->quantity - $rec->quantityProduced, 4);
 
@@ -1480,10 +1480,13 @@ class planning_Jobs extends core_Master
 
         // Ако има протокол за производство на заявка с по-голяма ефективна дата от заданието, ще се използва тя
         $dnQuery = planning_DirectProductionNote::getQuery();
-        $dnQuery->XPR('date', 'date', 'MIN(DATE(COALESCE(#deadline, #valior)))');
+        $dnQuery->XPR('date', 'date', 'DATE(COALESCE(#deadline, #valior))');
         $dnQuery->where("#state = 'pending' AND #date > '{$date}'");
         $dnQuery->in('threadId', $threadsArr);
         $dnQuery->show('date');
+        $dnQuery->orderBy('date', 'ASC');
+        $dnQuery->limit(1);
+
         if($dRec = $dnQuery->fetch()){
             $date = $dRec->date;
         }
