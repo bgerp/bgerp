@@ -1642,4 +1642,37 @@ class planning_Jobs extends core_Master
             core_Users::cancelSystemUser();
         }
     }
+
+
+    /**
+     * @see crm_ContragentAccRegIntf::getItemRec
+     *
+     * @param int $objectId
+     */
+    public static function getItemRec($objectId)
+    {
+        $self = cls::get(__CLASS__);
+        $result = null;
+
+        if ($rec = $self->fetch($objectId)) {
+            $result = (object) array(
+                'num' => $rec->id . ' jb',
+                'title' => static::getRecTitle($rec, false),
+                //'features' => 'foobar' // @todo!
+            );
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * @see crm_ContragentAccRegIntf::itemInUse
+     *
+     * @param int $objectId
+     */
+    public static function itemInUse($objectId)
+    {
+        // @todo!
+    }
 }
