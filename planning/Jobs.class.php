@@ -1478,6 +1478,16 @@ class planning_Jobs extends core_Master
         $tQuery->show("threadId");
         $threadsArr = array($rec->threadId => $rec->threadId) + arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
 
+        // Ако има протокол за производство на заявка с по-голяма ефективна дата от заданието, ще се използва тя
+        $dnQuery = planning_DirectProductionNote::getQuery();
+        $dnQuery->XPR('date', 'date', 'MIN(DATE(COALESCE(#deadline, #valior)))');
+        $dnQuery->where("#state = 'pending' AND #date > '{$date}'");
+        $dnQuery->in('threadId', $threadsArr);
+        $dnQuery->show('date');
+        if($dRec = $dnQuery->fetch()){
+            $date = $dRec->date;
+        }
+
         // Какви количества има вече запазени по заданието
         $products = $productsIn = array();
         $sQuery = store_StockPlanning::getQuery();
