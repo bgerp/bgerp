@@ -1671,8 +1671,17 @@ class planning_Jobs extends core_Master
             $result = (object) array(
                 'num' => $rec->id . ' jb',
                 'title' => static::getRecTitle($rec, false),
-                //'features' => 'foobar' // @todo!
+                'features' => array(),
             );
+
+            // Добавяне на свойства
+            $result->features['Артикул'] = cat_Products::getTitleById($rec->productId);
+            if(isset($rec->saleId)){
+                $result->features['Продажба'] = sales_Sales::getTitleById($rec->saleId);
+            }
+            if(isset($rec->department)){
+                $result->features['Център на дейност'] = planning_Centers::getTitleById($rec->department);
+            }
         }
 
         return $result;
