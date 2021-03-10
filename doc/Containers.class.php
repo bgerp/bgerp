@@ -2676,10 +2676,9 @@ class doc_Containers extends core_Manager
     {
         // При възстановяване на треда, гледаме кои контейнери са били оттеглени със него
         $rejectedInThread = doc_Threads::fetchField($threadId, 'rejectedContainersInThread');
-        
-        /* @var $query core_Query */
+        $rejectedInThread = arr::make($rejectedInThread, true);
+
         $query = static::getQuery();
-        
         $query->where("#threadId = {$threadId}");
         $query->where("#state = 'rejected'");
         $query->orderBy('#id', 'ASC');
