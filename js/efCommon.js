@@ -143,14 +143,6 @@ function showTooltip() {
                 $(element).addClass('right');
             }
 
-
-
-            setTimeout(function (){
-                if ($(element).getHiddenOffsetWidth() > 320) {
-                    console.log($(element).getHiddenOffsetWidth());
-                    $(element).css('max-width', '320');
-                }
-            },10);
             $(element).css('display', 'block');
         } else {
             // при кликане в бодито затвавяме отворения тултип, ако има такъв
@@ -168,18 +160,6 @@ function showTooltip() {
     });
 };
 
-$.fn.getHiddenOffsetWidth = function () {
-    // save a reference to a cloned element that can be measured
-    var $hiddenElement = $(this).clone().appendTo($(this).parent());
-
-    // calculate the width of the clone
-    var width = $hiddenElement.outerWidth();
-
-    // remove the clone from the DOM
-    $hiddenElement.remove();
-
-    return width;
-};
 
 /**
  * действие на дървовидната структура
