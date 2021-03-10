@@ -2593,12 +2593,13 @@ function prepareContextHtmlFromAjax() {
     $( ".ajaxContext").parent().css('position', 'relative');
     $( ".ajaxContext").each(function() {
         var holder = document.createElement('div');
+        var minHeight = $(this).parent().hasClass('fileHolder') ? "160px" : "60px";
         $(holder).addClass('modal-toolbar');
         $(holder).attr('id', $(this).attr("data-id"));
         $(holder).attr('data-sizestyle', 'context');
-        $(holder).css('min-height', '60px');
+        $(holder).attr('data-position', 'context');
+        $(holder).css('min-height', minHeight);
         $(holder).css('min-width', '140px');
-
 
         $(holder).appendTo('body');
     });
