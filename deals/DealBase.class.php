@@ -242,7 +242,11 @@ abstract class deals_DealBase extends core_Master
         $dealQuery->where("#currencyId = '{$rec->currencyId}'");
         $dealQuery->where("#currencyRate = '{$rec->currencyRate}'");
         if($this->getField('deliveryTermId', false)){
-            $dealQuery->where("#deliveryTermId = '{$rec->deliveryTermId}'");
+            if(isset($rec->deliveryTermId)){
+                $dealQuery->where("#deliveryTermId = '{$rec->deliveryTermId}'");
+            } else {
+                $dealQuery->where("#deliveryTermId IS NULL");
+            }
         }
         $dealQuery->where("#state = 'active'");
         $dealQuery->where("#closedDocuments = ''");
