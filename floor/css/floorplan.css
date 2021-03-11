@@ -17,10 +17,7 @@ div.selected {
 }
 
 .floor {
-  margin: 5px;
-  position:fixed; 
-  display:table;
-  margin-top: 10px;
+    position: relative;
 }
 
 .ui-draggable-dragging {
@@ -37,8 +34,15 @@ div.selected {
   color: #000;
 }
 
-body {
-	display: flex;
-	justify-content: center;
+body.wide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 	background-color:black;
+    height: 100vh;
+}
+
+body.narrow {
+    min-height: 100vh;
+    background-color:black;
 }
