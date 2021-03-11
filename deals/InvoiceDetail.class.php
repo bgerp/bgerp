@@ -418,8 +418,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
         $modeLg = Mode::get('tplManagerLg');
         $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');
+
+        core_Lg::push($lang);
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, false);
-        
+        core_Lg::pop();
+
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
