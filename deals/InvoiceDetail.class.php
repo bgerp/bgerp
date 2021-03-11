@@ -527,6 +527,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
+            $productInfo = cat_Products::getProductInfo($rec->productId);
             if (!isset($rec->quantity) && $masterRec->type != 'dc_note') {
                 $form->setDefault('quantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
                 if (empty($rec->quantity)) {
@@ -547,11 +548,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning) && $masterRec->type != 'dc_note') {
                 $form->setWarning('quantity', $warning);
             }
-            
+
+            $productInfo = cat_Products::getProductInfo($rec->productId);
             if ($masterRec->type != 'dc_note') {
                 $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             }
-            
+
             // Ако няма въведена цена
             if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {
                 $autoPrice = true;
