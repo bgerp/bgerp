@@ -347,7 +347,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
             $reff = str_replace('#', '', $data->rec->ourReff);
 
             $url = array();
-            if($ourRefDomainId == $selfUrl){
+            if($ourRefDomainId == $selfUrl || empty($ourRefDomainId)){
                 if(doc_Search::haveRightFor('list')){
                     $url = array('doc_Search', 'list', 'search' => "#{$reff}");
                 }
