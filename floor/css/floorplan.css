@@ -19,7 +19,9 @@ div.selected {
 .floor {
     position: relative;
 }
-
+.narrow{
+    padding: 4px;
+}
 .ui-draggable-dragging {
     opacity:0.8;
     z-index:100000;
