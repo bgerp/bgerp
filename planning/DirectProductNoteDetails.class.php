@@ -104,7 +104,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->setField('quantity', 'caption=Количества');
         $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
-        
+        $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
+
         $this->setDbIndex('productId');
         $this->setDbIndex('noteId,type');
     }
@@ -124,13 +125,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
         
         if (isset($rec->productId)) {
-            $storable = cat_Products::fetchField($rec->productId, 'canStore');
-            if ($storable == 'yes') {
+            $prodRec = cat_Products::fetch($rec->productId, 'canStore');
+            if ($prodRec->canStore == 'yes') {
                 $form->setField('storeId', 'input');
-                
                 if (empty($rec->id) && isset($data->masterRec->inputStoreId)) {
                     $form->setDefault('storeId', $data->masterRec->inputStoreId);
                 }
+            } else {
+                $options = array('' => '', '61102' => 'Без детайли');
+                $form->setOptions('fromAccId', $options);
+                $form->setField('fromAccId', 'input');
             }
         }
         
@@ -166,6 +170,14 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                     if (!isset($selfValue)) {
                         $form->setError('productId', 'Отпадъкът няма себестойност');
                     }
+                }
+
+                if(!empty($rec->fromAccId)){
+                    $rec->storeId = null;
+                }
+
+                if(!empty($rec->storeId)){
+                    $rec->fromAccId = null;
                 }
             }
         }
@@ -246,7 +258,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
             if (empty($rec->storeId)) {
-                $row->storeId = "<span class='quiet'>"  . tr('Незавършено производство') . '</span>';
+                $emptyPlaceholder = tr('Незавършено производство');
+                if(!empty($rec->fromAccId)){
+                    $emptyPlaceholder = tr('Незавършено производство без детайли');
+                }
+
+                $row->storeId = "<span class='quiet'>{$emptyPlaceholder}</span>";
             } elseif($rec->type != 'pop') {
                 $threadId = $origin->fetchField('threadId');
                 $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;

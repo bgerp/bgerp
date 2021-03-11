@@ -186,8 +186,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         $prodRec = cat_Products::fetch($productId, 'fixedAsset,canStore');
         
         if ($prodRec->canStore == 'yes') {
-            $array = array('321', array('store_Stores', $storeId),
-                array('cat_Products', $productId));
+            $array = array('321', array('store_Stores', $storeId), array('cat_Products', $productId));
         } else {
             if ($prodRec->fixedAsset == 'yes') {
                 $expenseItem = array('cat_Products', $productId);
@@ -241,6 +240,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                                      'quantity' => $dRec->quantity),
                                            'reason' => 'Влагане на материал в производството');
                         } else {
+                            if(empty($dRec->fromAccId)) continue;
+
                             $item = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
                             $entry = array('debit' => array('61101',
                                                       array('cat_Products', $dRec->productId),
