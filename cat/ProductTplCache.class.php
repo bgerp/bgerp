@@ -214,7 +214,14 @@ class cat_ProductTplCache extends core_Master
         
         Mode::push('text', 'plain');
         $cacheRec->cache = cat_Products::getVerbal($rec->id, 'name');
-        
+
+        // Репорт ако е на кирилица, а езикът е друг
+        if($lang == 'en' && preg_match('/[\p{Cyrillic}]/u', $cacheRec->cache)){
+            $cl = core_Lg::getCurrent();
+            $modeLg = Mode::get('tplManagerLg');
+            wp("грешен език", $cacheRec->cache, $rec, $time, $documentType, $lang, $cl, $modeLg);
+        }
+
         if ($Driver = cat_Products::getDriver($rec->id)) {
             $additionalNotes = $Driver->getAdditionalNotesToDocument($rec->id, $documentType);
             if (!empty($additionalNotes)) {
