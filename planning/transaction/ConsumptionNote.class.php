@@ -104,7 +104,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
             
             // Проверка на артикулите
             if (countR($productsArr)) {
-                $msg = "трябва да са складируеми";
+                $msg = "трябва да са складируеми и/или вложими";
                 if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canConvert', null, $msg)){
                     
                     acc_journal_RejectRedirect::expect(false, $redirectError);

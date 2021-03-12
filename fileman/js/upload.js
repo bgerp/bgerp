@@ -34,8 +34,8 @@ $(document).ready(function() {
                     $(this).hide().remove();
                 });
                 
-                // Деактивираме бутона за качване
-                $('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled');
+                // Скриваме бутона за качване
+                $('#uploadBtn').addClass('hidden');
                 $('#inputDiv').hide();
                 
                 // За всеки файл, добавяме по една таблица
@@ -156,7 +156,7 @@ function showButtonsAfterUpload()
         $('#uploadsTitle').css('display', 'none');
         
         if (!allowMultiupload) {
-        	$('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled').removeClass('only-one-file');
+        	$('#uploadBtn').addClass('hidden').removeClass('only-one-file');
     		$('#ulfile').removeClass('hidden-input');
     		$("#btn-ulfile").show();
         }
@@ -308,8 +308,8 @@ function afterSelectFile(inputInst, multiUpload, maxFileSize)
     	$('#uploadBtn').addClass('only-one-file');
 	}
     
-    // Даваме възможност на бутона да се натисне
-    $('#uploadBtn').removeAttr('disabled').removeClass('btn-disabled');
+    // Показваме бутона за качване
+    $('#uploadBtn').removeClass('hidden');
     
     // Скролира до последния качен файл
 	$('.uploaded-filenames').scrollTop($(this).height());
@@ -373,8 +373,8 @@ function unsetFile(id, multiUpload, len, filePath)
 		// Ако няма нито един избран файл
 		if (!$('.uploaded-file').length) {
 			
-			// Деактивираме бутона
-			$('#uploadBtn').attr('disabled', 'disabled').addClass('btn-disabled').removeClass('only-one-file');
+			// Скриваме бутона
+			$('#uploadBtn').addClass('hidden').removeClass('only-one-file');
 		}
 	});
 }

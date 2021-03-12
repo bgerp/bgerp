@@ -23,9 +23,9 @@
 }
 
 #uploadBtn {
-	background-image:url('../img/upload.png');
+	background-image:url('../img/upload2.png');
 	background-size: 24px;
-	background-color: #0f3c4b;
+	background-color: #337AB7;
 	color: #fff;
 	font-size: 17px;
 	background-position:5px center;
@@ -35,14 +35,9 @@
 	height: 40px;
 	z-index: 5000;
 	position: relative;
-}
-
-#uploadBtn.btn-disabled{
-	opacity: 0.5;
-	-moz-opacity: 0.5;
-	filter: alpha(opacity=50);
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
-    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=50);
+	&.hidden {
+		display: none;
+	}
 }
 
 #uploadBtn.only-one-file{
@@ -100,7 +95,7 @@
 	transition: outline-offset .15s ease-in-out, background-color .15s linear;
 	position: relative;
 	padding: 70px 20px 20px;
-	background:  #c8dadf url('../img/download2.png') center 20px no-repeat;
+	background:  #c7dcef url('../img/download2.png') center 20px no-repeat;
 	background-size: 40px;
 	margin-top: 10px;
 }
