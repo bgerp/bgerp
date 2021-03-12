@@ -418,8 +418,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $date = ($masterRec->state == 'draft') ? null : $masterRec->modifiedOn;
         $modeLg = Mode::get('tplManagerLg');
         $lang = isset($modeLg) ? $modeLg : doc_TplManager::fetchField($masterRec->template, 'lang');
+
+        core_Lg::push($lang);
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, false);
-        
+        core_Lg::pop();
+
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
@@ -527,6 +530,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         }
         
         if ($form->isSubmitted() && !$form->gotErrors()) {
+            $productInfo = cat_Products::getProductInfo($rec->productId);
             if (!isset($rec->quantity) && $masterRec->type != 'dc_note') {
                 $form->setDefault('quantity', $rec->_moq ? $rec->_moq : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId));
                 if (empty($rec->quantity)) {
@@ -547,11 +551,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
             if (!deals_Helper::checkQuantity($rec->packagingId, $rec->quantity, $warning) && $masterRec->type != 'dc_note') {
                 $form->setWarning('quantity', $warning);
             }
-            
+
+            $productInfo = cat_Products::getProductInfo($rec->productId);
             if ($masterRec->type != 'dc_note') {
                 $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             }
-            
+
             // Ако няма въведена цена
             if (!isset($rec->packPrice) && $masterRec->type != 'dc_note') {
                 $autoPrice = true;

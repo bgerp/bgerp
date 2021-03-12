@@ -854,8 +854,11 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     public static function isPriceBellowPrimeCost($price, $productId, $packagingId, $quantity, $containerId, $valior, &$primeCost = null)
     {
-        $primeCost = self::getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId);
-       
+        $calcLiveSoDelta = sales_Setup::get('LIVE_CALC_SO_DELTAS');
+        if($calcLiveSoDelta != 'yes') {
+            $primeCost = self::getPrimeCostFromSale($productId, $packagingId, $quantity, $containerId);
+        }
+
         if(empty($primeCost)){
             $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $valior);
         }

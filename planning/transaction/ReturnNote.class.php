@@ -61,44 +61,50 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
         $dQuery = planning_ReturnNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         while ($dRec = $dQuery->fetch()) {
+            $prodRec = cat_Products::fetch($dRec->productId, 'canStore,fixedAsset');
             $productsArr[$dRec->productId] = $dRec->productId;
             $creditArr = null;
             
             if ($rec->useResourceAccounts == 'yes') {
-                $creditArr = array('61101', array('cat_Products', $dRec->productId),
-                    'quantity' => $dRec->quantity);
-                
-                $reason = 'Връщане на материал от производството';
+                $creditArr = array('61101', array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
             }
             
             // Ако не е ресурс, кредитираме общата сметка за разходи '61102. Други разходи (общо)'
+            if($prodRec->canStore == 'yes'){
+                $debitArr = array(321, array('store_Stores', $rec->storeId), array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
+                $reason = 'Връщане на материал в производството';
+            } else {
+                $expenseItem = ($prodRec->fixedAsset == 'yes') ? array('cat_Products', $dRec->productId) : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+                $debitArr = array(60201, $expenseItem, array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
+                $reason = 'Връщане на услуга в производството';
+            }
+
             $averageAmount = null;
             if (empty($creditArr)) {
                 $creditArr = array('61102');
-                $reason = 'Връщане от производство без детайли';
-                
+
+                $type = ($prodRec->canStore == 'yes') ? 'материал' : 'услуга';
+                $reason = "Връщане от производство на {$type} без детайли";
+
                 // Сумата с която ще върнем артикула в склада е неговата средно претеглена
-                $averageAmount = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $rec->valior, $rec->storeId);
-                
-                if (!isset($averageAmount)) {
-                    $averageAmount = cat_Products::getPrimeCost($dRec->productId);
-                    if (isset($averageAmount)) {
-                        $averageAmount = $dRec->quantity * $averageAmount;
+                if($prodRec->canStore == 'yes'){
+                    $averageAmount = cat_Products::getWacAmountInStore($dRec->quantity, $dRec->productId, $rec->valior, $rec->storeId);
+
+                    if (!isset($averageAmount)) {
+                        $averageAmount = cat_Products::getPrimeCost($dRec->productId);
+                        if (isset($averageAmount)) {
+                            $averageAmount = $dRec->quantity * $averageAmount;
+                        }
+                    }
+
+                    if (!isset($averageAmount)) {
+                        $errorArr[] = cls::get('cat_Products')->getTitleById($dRec->productId);
+                        $averageAmount = 0;
                     }
                 }
-                
-                if (!isset($averageAmount)) {
-                    $errorArr[] = cls::get('cat_Products')->getTitleById($dRec->productId);
-                    $averageAmount = 0;
-                }
             }
-            
-            $entry = array('debit' => array(321,
-                array('store_Stores', $rec->storeId),
-                array('cat_Products', $dRec->productId),
-                'quantity' => $dRec->quantity),
-            'credit' => $creditArr,
-            'reason' => $reason);
+
+            $entry = array('debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
             
             if (!is_null($averageAmount)) {
                 $entry['amount'] = $averageAmount;
@@ -115,8 +121,8 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
                 acc_journal_RejectRedirect::expect(false, "Артикулите: |{$errorArr}|* не могат да бъдат върнати защото липсва себестойност");
             }
             
-            $msg = "трябва да са складируеми и вложими";
-            if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canConvert,canStore', null, $msg)){
+            $msg = "трябва да са вложими";
+            if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canConvert', null, $msg)){
                 
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
