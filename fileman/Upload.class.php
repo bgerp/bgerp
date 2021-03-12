@@ -232,15 +232,11 @@ class fileman_Upload extends core_Manager
             <div id="uploads" class="uploads-holder"><div id="uploadsTitle" style="display: none;"><b><i>' . $uploadStr . '</i></b></div></div>
             <form id="uploadform" enctype="multipart/form-data" method="post">
                 <span class="uploaded-filenames"> </span>
-                
+                <input type="button" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button hidden" id="uploadBtn"/>
                     <div class="uploadBox"> 
                         <input id="ulfile" class="ulfile" name="ulfile[]" ' . $multiple . ' type="file" size="1" onchange="afterSelectFile(this, ' . $allowMultiUpload . ', ' . (int) $maxAllowedFileSize . ');" [#ACCEPT#]>
                         <span class="uploadMessage">' . $message. '</span>
-                 
                     </div>
-                    <input type="button" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
-                    
-               
             </form>');
         
         $currUrl = getCurrentUrl();
