@@ -132,7 +132,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                     $form->setDefault('storeId', $data->masterRec->inputStoreId);
                 }
             } else {
-                $options = array('' => '', '61102' => 'Без детайли');
+                $options = array('' => '', '61102' => 'Разходи за услуги (всички)');
                 $form->setOptions('fromAccId', $options);
                 $form->setField('fromAccId', 'input');
             }
@@ -260,7 +260,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             if (empty($rec->storeId)) {
                 $emptyPlaceholder = tr('Незавършено производство');
                 if(!empty($rec->fromAccId)){
-                    $emptyPlaceholder = tr('Незавършено производство без детайли');
+                    $emptyPlaceholder = tr('Разходи за услуги (всички)');
                 }
 
                 $row->storeId = "<span class='quiet'>{$emptyPlaceholder}</span>";
