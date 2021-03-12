@@ -17,12 +17,11 @@ div.selected {
 }
 
 .floor {
-  margin: 5px;
-  position:fixed; 
-  display:table;
-  margin-top: 10px;
+    position: relative;
 }
-
+.narrow{
+    padding: 4px;
+}
 .ui-draggable-dragging {
     opacity:0.8;
     z-index:100000;
@@ -37,8 +36,15 @@ div.selected {
   color: #000;
 }
 
-body {
-	display: flex;
-	justify-content: center;
+body.wide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 	background-color:black;
+    height: 100vh;
+}
+
+body.narrow {
+    min-height: 100vh;
+    background-color:black;
 }

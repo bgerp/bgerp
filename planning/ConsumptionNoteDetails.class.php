@@ -93,7 +93,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Какви продукти да могат да се избират в детайла
      */
-    protected $defaultMeta = 'canConvert,canStore';
+    protected $defaultMeta = 'canConvert';
     
     
     /**

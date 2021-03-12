@@ -113,7 +113,7 @@ class planning_ReturnNoteDetails extends deals_ManifactureDetail
     /**
      * Какви продукти да могат да се избират в детайла
      */
-    protected $defaultMeta = 'canStore';
+    protected $defaultMeta = 'canConvert';
     
     
     /**

@@ -452,15 +452,13 @@ class doc_DocumentPlg extends core_Plugin
             $title = $mvc->getTitle();
             $title = tr($title);
             $title = mb_strtolower($title);
-            
+
+            $allUrl = $mvc->getAllBtnUrl($data->rec);
+            $allUrl['ret_url'] = $retUrl;
+
             // Бутон за листване на всички обекти от този вид
             $data->toolbar->addBtn(
-                'Всички',
-                array(
-                    $mvc,
-                    'list',
-                    'ret_url' => $retUrl
-                ),
+                'Всички', $allUrl,
                 "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички') . ' ' . $title
             );
         }
@@ -522,7 +520,18 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
-    
+
+
+    /**
+     * Връща урл-то към всички записи
+     */
+    public static function on_AfterGetAllBtnUrl($mvc, &$res, $rec)
+    {
+        if(empty($res)){
+            $res = array($mvc, 'list');
+        }
+    }
+
     
     /**
      * Добавя бутон за показване на оттеглените записи

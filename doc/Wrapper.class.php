@@ -33,7 +33,7 @@ class doc_Wrapper extends plg_ProtoWrapper
         $folderId = Request::get('folderId', 'key(mvc=doc_Folders,select=title)');
         
         if (!$threadId) {
-            $threadId = $invoker->threadId;
+            $threadId = $this->threadId;
         }
         
         if ($originId && !$threadId) {

@@ -112,6 +112,8 @@ class cat_products_Packagings extends core_Detail
         'purchase_ServicesDetails',
         'cat_ListingDetails',
         'pos_ReceiptDetails',
+        'planning_Tasks',
+        'planning_ProductionTaskProducts',
         'store_ConsignmentProtocolDetailsReceived',
         'store_ConsignmentProtocolDetailsSend');
 
