@@ -780,7 +780,7 @@ class draw_Designs extends core_Master
             $pen = draw_Pens::fetch(array("#name = '[#1#]'", ltrim($params[0], '#')));
             
             if (!$pen) {
-                $error = 'Липсващ молив: "' . $params[1] . '"';
+                $error = 'Липсващ молив: "' . $params[0] . '"';
                 
                 return false;
             }
@@ -1109,9 +1109,9 @@ class draw_Designs extends core_Master
         }
         
         if (!$data->error && !$data->canvas->errorMsg) {
-            $tpl->append($data->canvas->render(), 'DETAILS');
+            $tpl->append($data->canvas->render(), 'SVG');
         } else {
-            $tpl->append("<h3 style='color:red;'>" . $data->error . '</h3>', 'DETAILS');
+            $tpl->append("<h3 style='color:red;'>" . $data->error . '</h3>', 'SVG');
         }
         
         if ($data->canvas->info) {
@@ -1230,7 +1230,10 @@ class draw_Designs extends core_Master
         }
     }
     
-    
+
+    /**
+     *
+     */
     public static function prepareForm($script, &$error)
     {
         $sArr = self::parseScript($script);
