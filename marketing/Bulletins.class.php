@@ -870,7 +870,9 @@ class marketing_Bulletins extends core_Master
         $listTitle = $this->title. ' за домейн '. self::fetchField("#id = '{$rec->id}'", 'domain');
         
         $fileName = str_replace(' ', '_', Str::utf2ascii($listTitle));
-        
+
+        $this->logInAct('Експортиране', $rec);
+
         // правим CSV-то
         header('Content-type: application/csv');
         header("Content-Disposition: attachment; filename={$fileName}.csv");
