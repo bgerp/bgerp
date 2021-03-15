@@ -387,7 +387,9 @@ class blast_ListDetails extends doc_Detail
         $fileName = str_replace(' ', '_', Str::utf2ascii($this->title));
         
         $fileName = fileman_Files::normalizeFileName($listTitle);
-        
+
+        $this->logInAct('Експортиране', $rec);
+
         // правим CSV-то
         header('Content-type: application/csv');
         header("Content-Disposition: attachment; filename={$fileName}.csv");
