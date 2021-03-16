@@ -105,7 +105,7 @@ class email_AddressesInfo extends core_Manager
     {
         $fields['state'] = array('caption' => 'Статус за изпращане на циркулярни имейли->Изпращане', 'mandatory' => 'mandatory');
         $fields['state']['notColumn'] = true;
-        $fields['state']['type'] = 'enum(blocked=Разрешено, error=Забранено, ok=Дава грешка)';
+        $fields['state']['type'] = 'enum(blocked=Забранено, error=Дава грешка, ok=Разрешено)';
     }
     
     
