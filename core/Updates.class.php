@@ -134,6 +134,11 @@ class core_Updates extends core_Manager
         $localCommitObj = git_Lib::getLastCommit(EF_APP_PATH);
         $localBgerpCommitLastDate = $localCommitObj->date;
         
+        // Ако имаме по нов код в github-a сваляме всички тагове
+        if ($ghBgerpLastCommitLastDate > $localBgerpCommitLastDate) {
+            git_Lib::fetchTags(EF_APP_PATH);
+        }
+        
         if (defined('EF_PRIVATE_PATH')) {
             $rUrl = git_Lib::getRemoteUrl(EF_PRIVATE_PATH, $log);
             
@@ -339,6 +344,10 @@ class core_Updates extends core_Manager
         return $res;
     }
     
+    public function act_getReleases()
+    {
+        bp ($this->getReleases());
+    }
     
     /**
      * От масива с релийси извлича този, който отговаря на следващата версия, спрямо зададената
