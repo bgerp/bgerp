@@ -179,6 +179,7 @@ class planning_GenericMapper extends core_Manager
         $row->productMeasureId = cat_UoM::getVerbal(cat_Products::fetchField($rec->productId, 'measureId'), 'name');
         
         $canConvert = cat_Products::fetchField($rec->productId, 'canConvert');
+
         if($canConvert != 'yes'){
             $row->ROW_ATTR['class'] = 'state-closed';
             $row->productId = ht::createHint($row->productId, "Артикулът вече не е вложим", 'warning', false);
@@ -193,7 +194,7 @@ class planning_GenericMapper extends core_Manager
      */
     public function prepareResources(&$data)
     {
-        if (!haveRole('ceo,planning' || $data->masterData->rec->canConvert != 'yes')) {
+        if (!haveRole('ceo,planning') || $data->masterData->rec->canConvert != 'yes') {
             $data->notConvertableAnymore = true;
         }
 
