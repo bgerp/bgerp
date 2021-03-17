@@ -87,9 +87,21 @@ class tags_Logs extends core_Manager
         $this->FLD('userId', 'user', 'caption=Потребител');
 
         $this->setDbUnique('docClassId, docId, tagId, userId');
+
+        $this->setDbIndex('docClassId, docId, userId');
     }
 
 
+    /**
+     * Помощна функция за вземана на маркерите към документи
+     *
+     * @param mixed $docClassId
+     * @param integer $docId
+     * @param null|integer $userId
+     * @param bool $order
+     *
+     * @return array
+     */
     public static function getTagsFor($docClassId, $docId, $userId = null, $order = true)
     {
         if (!isset($userId)) {
