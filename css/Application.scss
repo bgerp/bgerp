@@ -2284,18 +2284,18 @@ td.rowtools-column {
 	font-size: 15px;
 }
 
-.secondMeasure .endTooltip {
+.listTable td .endTooltip img{
+	width: 14px !important;
+	height: 14px !important;
+}
+
+.secondMeasure .endTooltip, .listTable td .secondMeasure .endTooltip {
 	width: 10px;
 	height: 10px;
 	img {
 		width: 12px !important;
 		height: 12px !important;
 	}
-}
-
-.listTable td .endTooltip img{
-	width: 14px !important;
-	height: 14px !important;
 }
 
 .lighter-color {
