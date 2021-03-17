@@ -114,7 +114,7 @@ class ztm_Devices extends core_Master
      */
     public function description()
     {
-        $this->FLD('ident', 'varchar(32)', 'caption=Идентификатор');
+        $this->FLD('ident', 'varchar(64)', 'caption=Идентификатор');
         $this->FLD('model', 'varchar(32)', 'caption=Модел');
         $this->FLD('name', 'varchar(32)', 'caption=Име, mandatory');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация, mandatory');

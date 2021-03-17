@@ -557,7 +557,7 @@ class acc_CostAllocations extends core_Manager
             //... и да е активен
             $state = $origin->fetchField('state');
             
-            if ($state != 'active' && $state != 'draft') {
+            if ($state != 'active' && $state != 'draft' && $state != 'closed') {
                 $requiredRoles = 'no_one';
                 
                 return;

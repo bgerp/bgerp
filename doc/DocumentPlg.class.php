@@ -156,6 +156,11 @@ class doc_DocumentPlg extends core_Plugin
         if (!isset($plugins['acc_plg_Registry'])) {
             $mvc->load('acc_plg_Registry');
         }
+
+        // Закачане на плъгина за тагване
+        if (!isset($plugins['tags_plg_Add'])) {
+            $mvc->load('tags_plg_Add');
+        }
         
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';
