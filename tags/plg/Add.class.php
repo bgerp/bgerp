@@ -32,7 +32,7 @@ class tags_plg_Add extends core_Plugin
 
             if (tags_Logs::haveRightFor('tag', $rec)) {
                 $url = array('tags_Logs', 'Tag', 'id' => $rec->containerId, 'ret_url' => true);
-                $row->_rowTools->addLink('Маркер', $url, array('ef_icon' => 'img/16/mark.png', 'title' => 'Добавяне на маркер'));
+                $row->_rowTools->addLink('Маркер', $url, array('ef_icon' => 'img/16/mark.png', 'title' => 'Добавяне на маркер', 'order' => 19.999));
             }
         }
 
@@ -53,7 +53,7 @@ class tags_plg_Add extends core_Plugin
     {
         if (tags_Logs::haveRightFor('tag', $data->rec)) {
             $url = array('tags_Logs', 'Tag', 'id' => $data->rec->containerId, 'ret_url' => true);
-            $data->toolbar->addBtn('Маркер', $url, 'ef_icon=img/16/mark.png, title=Добавяне на маркер, row=2');
+            $data->toolbar->addBtn('Маркер', $url, 'ef_icon=img/16/mark.png, title=Добавяне на маркер, row=2, order=19.999');
         }
     }
 }
