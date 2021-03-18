@@ -20,7 +20,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, planning';
+    public $canSelectDriver = 'ceo, planning, acc';
     
     
     /**
