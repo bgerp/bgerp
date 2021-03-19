@@ -116,23 +116,11 @@ class tags_Logs extends core_Manager
         $resArr = array();
 
         while ($rec = $query->fetch()) {
-            $v = self::recToVerbal($rec, 'tagId')->tagId;
-            $resArr[$rec->id]['name'] = $v;
-            $span = '<span';
+            $tArr = tags_Tags::getTagNameArr($rec->tagId);
 
-            if ($rec->tagId) {
-                $tColor = tags_Tags::fetchField($rec->tagId, 'color');
-                if ($tColor) {
-                    $resArr[$rec->id]['color'] = $tColor;
-                    $color = phpcolor_Adapter::changeColor($tColor, 'dark') ? '#000' : '#fff';
-                    $span .= " style='background-color: {$tColor}; color: {$color}'";
-                }
-            }
-            $span .= '>' . $v;
+            $resArr[$rec->id]['name'] = $tArr['name'];
 
-            $span .= '</span>';
-
-            $resArr[$rec->id]['span'] = $span;
+            $resArr[$rec->id]['span'] = $tArr['span'];
         }
 
         if ($order) {
