@@ -39,7 +39,10 @@ class tags_plg_Add extends core_Plugin
         $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $rec->id);
 
         if (!empty($tagsArr)) {
-            $tags = implode(', ', $tagsArr);
+            $tags = '';
+            foreach ($tagsArr as $tag) {
+                $tags .= '<span>' . $tag . '</span>';
+            }
             $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
             $row->DocumentSettingsLeft->prepend("<span class='documentTags'>{$tags}</span>");
         }
