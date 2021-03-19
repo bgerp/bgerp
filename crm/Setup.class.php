@@ -41,6 +41,13 @@ defIfNot('CRM_REGISTRY_USE_BRRA', 'yes');
  */
 defIfNot('CRM_ALPHABET_FILTER', 'standart');
 
+
+/**
+ * "Свързани" фирми
+ */
+defIfNot('CRM_CONNECTED_COMPANIES', '');
+
+
 /**
  * Клас 'crm_Setup' -
  *
@@ -49,7 +56,7 @@ defIfNot('CRM_ALPHABET_FILTER', 'standart');
  * @package   crm
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -100,7 +107,8 @@ class crm_Setup extends core_ProtoSetup
         'CRM_REGISTRY_USE_BRRA' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->Търговски регистър'),
         'CRM_REGISTRY_USE_VIES' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->VIES'),
         'CRM_ALPHABET_FILTER' => array('enum(none=Без,standart=Стандартен,twoRows=Двоен)', 'caption=Вид на азбучника->Избор, customizeBy=powerUser'),
-    );
+        'CRM_CONNECTED_COMPANIES' => array('keylist(mvc=crm_Companies,select=name)', 'caption="Свързани" фирми'),
+        );
     
     
     /**

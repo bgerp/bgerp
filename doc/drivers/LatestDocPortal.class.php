@@ -32,6 +32,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     {
         $fieldset->FLD('tCnt', 'int(min=1, max=25)', 'caption=Брой нишки, mandatory');
         $fieldset->FLD('docClassId', 'classes(interface=doc_DocumentIntf, select=title, allowEmpty)', 'caption=Първи документ в нишката->Вид');
+        $fieldset->FLD('tags', 'keylist(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Маркер');
     }
     
     
@@ -45,6 +46,21 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     protected static function on_AfterPrepareEditForm($Driver, embed_Manager $Embedder, &$data)
     {
         $data->form->setDefault('tCnt', 20);
+    }
+
+
+    /**
+     * След вербализирането на данните
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager     $Embedder
+     * @param stdClass          $row
+     * @param stdClass          $rec
+     * @param array             $fields
+     */
+    protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+    {
+        $row->tags = tags_Tags::decorateTags($rec->tags);
     }
     
     
@@ -94,7 +110,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                 $tQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
                 $tQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
             }
-            
+
             $tQuery->where("#state != 'rejected'");
             
             $tQuery->limit(min(20 * $tCnt, 200));
@@ -120,11 +136,33 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                 $docRowArr = array();
                 foreach ($tArr as $tId => $tRec) {
                     $tUnsighted = '';
-                    
+
                     $cQuery = doc_Containers::getQuery();
                     $cQuery->where(array("#threadId = '[#1#]'", $tId));
                     $cQuery->where("#state != 'rejected'");
-                    
+
+                    if ($dRec->tags) {
+                        $tagsArr = type_Keylist::toArray($dRec->tags);
+
+                        $tagsQuery = tags_Logs::getQuery();
+                        $tagsQuery->in('tagId', $tagsArr);
+                        $tagsQuery->where("#containerId IS NOT NULL");
+
+                        $tagsQuery->show('containerId');
+                        $tagsQuery->limit(1000);
+
+                        $tagsCidArr = array();
+                        while ($tagRec = $tagsQuery->fetch()) {
+                            $tagsCidArr[$tagRec->containerId] = $tagRec->containerId;
+                        }
+
+                        if (!empty($tagsCidArr)) {
+                            $cQuery->in('id', $tagsCidArr);
+                        } else {
+                            $cQuery->where("1=2");
+                        }
+                    }
+
                     // Вземаме последното вижда не нишката от текущия потребител
                     $rQuery = bgerp_Recently::getQuery();
                     $rQuery->where(array("#threadId = '[#1#]'", $tId));
@@ -195,7 +233,15 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             
             $resData->data = $data;
         }
-        
+
+
+        $resData->blockTitle = '|Най-новото|*';
+
+        $tags = tags_Tags::decorateTags($dRec->tags);
+        if ($tags) {
+            $resData->blockTitle .= $tags;
+        }
+
         return $resData;
     }
     
@@ -210,7 +256,8 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     public function render($data)
     {
         if (!$data->tpl) {
-            $data->tpl = new ET(tr('|*<div class="clearfix21 portal"> <div class="legend">|Най-новото|*</div><div class="portalNews"> [#LATEST#]</div></div>'));
+
+            $data->tpl = new ET(tr('|*<div class="clearfix21 portal"> <div class="legend">' . $data->blockTitle . '</div><div class="portalNews"> [#LATEST#]</div></div>'));
             
             $data->tpl->replace($data->data->res, 'LATEST');
             

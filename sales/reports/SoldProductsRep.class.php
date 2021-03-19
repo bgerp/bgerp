@@ -766,7 +766,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $v->changeDeltaLastYear = $v->delta - $v->deltaLastYear;
         }
         
-        $groupValues = $groupPrimeCostPrevious = $groupPrimeCostLastYear = array();
+        $groupValues=$groupQuantity = $groupPrimeCostPrevious = $groupPrimeCostLastYear = array();
         $groupDeltas = $groupDeltaPrevious = $groupDeltaLastYear = array();
         $tempArr = array();
         $totalArr = array();
@@ -799,6 +799,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 foreach ($v->$typeGroup as $k => $gro) {
                     //За този артикул
                     $groupValues[$gro] += $v->primeCost;                        //Стойност на продажбите за текущ период
+                    $groupQuantity[$gro] += $v->quantity;                        //Стойност на продажбите за текущ период
                     $groupDeltas[$gro] += $v->delta;                            //Стойност на делтите за текущ период
                     $groupPrimeCostPrevious[$gro] += $v->primeCostPrevious;     //Стойност на продажбите за предходен период
                     $groupDeltaPrevious[$gro] += $v->deltaPrevious;             //Стойност на делтите за предходен период
@@ -857,6 +858,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 //Един артикул може да го има в няколко групи
                 foreach ($tempArr[$tempArrKey]->$typeGroup as $gro) {
                     $groupValues[$gro] += $v->primeCost;
+                    $groupQuantity[$gro] += $v->quantity;
                     $groupDeltas[$gro] += $v->delta;
                     $groupPrimeCostPrevious[$gro] += $v->primeCostPrevious;
                     $groupDeltaPrevious[$gro] += $v->deltaPrevious;
@@ -901,6 +903,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             foreach ($recs as $v) {
                 $v->groupValues = $groupValues[$v->$typeGroup];
+                $v->groupQuantity = $groupQuantity[$v->$typeGroup];
                 $v->groupDeltas = $groupDeltas[$v->$typeGroup];
                 $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$v->$typeGroup];
                 $v->groupDeltaPrevious = $groupDeltaPrevious[$v->$typeGroup];
@@ -912,6 +915,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             foreach ($recs as $v) {
                 foreach ($v->$typeGroup as $gro) {
                     $v->groupValues = $groupValues[$gro];
+                    $v->groupQuantity = $groupQuantity[$gro];
                     $v->groupDeltas = $groupDeltas[$gro];
                     
                     $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$gro];
@@ -939,7 +943,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Когато имаме избрано групирано показване правим нов масив
         if ($rec->grouping == 'yes') {
             $recs = array();
-            
+
             if ($rec->typeOfGroups == 'category') {
                 foreach ($groupValues as $key => $val) {
                     if (cat_Categories::fetch($key) === false) {
@@ -1019,7 +1023,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         );
         
         array_unshift($recs, $totalArr['total']);
-
 
         return $recs;
     }
@@ -1199,11 +1202,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
                 
                 $groupName = $groupClass::getVerbal($dRec->$typeGroup, 'name');
+                $price = $dRec->groupValues / $dRec->groupQuantity;
                 
-                
-                $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . $grouping . ' )'. '</span>';
+                $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата (количество:'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupQuantity).' ; '.'стойност: '. core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) .' ; '.'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . $grouping . ' )'. '</span>';
             } else {
-                $group = $dRec->group . "<span class= 'fright'>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas) . ' )' . '</span>';
+                $price = $dRec->groupValues / $dRec->groupQuantity;
+                $group = $dRec->group . "<span class= 'fright'>" . 'Общо за групата (количество:'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupQuantity) .' ; '.'стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues).' ; '.'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas) . ' )' . '</span>';
             }
         } else {
             if (!is_numeric($dRec->group)) {

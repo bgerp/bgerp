@@ -344,10 +344,6 @@ class core_Updates extends core_Manager
         return $res;
     }
     
-    public function act_getReleases()
-    {
-        bp ($this->getReleases());
-    }
     
     /**
      * От масива с релийси извлича този, който отговаря на следващата версия, спрямо зададената

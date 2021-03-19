@@ -116,8 +116,11 @@ class tags_Logs extends core_Manager
         $resArr = array();
 
         while ($rec = $query->fetch()) {
-            $v = self::recToVerbal($rec, 'tagId')->tagId;
-            $resArr[$rec->id] = $v;
+            $tArr = tags_Tags::getTagNameArr($rec->tagId);
+
+            $resArr[$rec->id]['name'] = $tArr['name'];
+
+            $resArr[$rec->id]['span'] = $tArr['span'];
         }
 
         if ($order) {
