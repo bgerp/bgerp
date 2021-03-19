@@ -153,8 +153,13 @@ sys.enabled,bool,true|false,System,system,false,Plugin enabled
 sys.col.info_message.enable,bool,true|false,System,system,true,Enable info messages
 sys.col.warning_message.enable,bool,true|false,System,system,true,Enable warning messages
 sys.col.error_message.enable,bool,true|false,System,system,true,Enable error messages
-ecc.enabled,bool,true|false,Energy Center Common,system,true,Plugin enabled
-ecd.enabled,bool,true|false,Energy Center Distribution,system,true,Plugin enabled
+ecc.enabled,bool,true|false,Energy Center Common,system,false,Plugin enabled
+ecd.pool_heating.output_fw,str,,Energy Center Distribution,system,U3.M4.DO0,Pool heating valve output.
+ecd.pool_heating.output_rev,str,,Energy Center Distribution,system,U3.M4.DO1,Pool heating valve output.
+ecd.pool_heating.feedback,str,,Energy Center Distribution,system,U3.M4.DI0,Pool heating valve feedback.
+ecd.pool_heating.max_pos,int,0/100,Energy Center Distribution,system,100,Pool heating valve max position.
+ecd.pool_heating.min_pos,int,0/100,Energy Center Distribution,system,0,Pool heating valve min position.
+ecd.enabled,bool,true|false,Energy Center Distribution,system,false,Plugin enabled
 echp.hp.count,int,0/,ECHP,system,3,Energy Center Heat Pump machines count
 echp.hp.index,int,0/,ECHP,system,0,Energy Center Heat Pump machine index
 echp.hp.cold_min,float,3.0/8.0,ECHP,system,5.0,Energy Center Heat Pump cold minimum
@@ -164,4 +169,4 @@ echp.hp.hot_max,float,40.0/47.0,ECHP,system,46.0,Energy Center Heat Pump hot max
 echp.hp.power,int,-100/100,ECHP,system,0,The power of machine
 echp.hp.mode,int,,ECHP,system,0,The mode of the machine
 echp.hp.run,int,,ECHP,device,0,The state of the machine
-echp.enabled,bool,true|false,Energy Center Heat Pump,system,true,Plugin enabled
+echp.enabled,bool,true|false,Energy Center Heat Pump,system,false,Plugin enabled
