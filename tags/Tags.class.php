@@ -95,6 +95,76 @@ class tags_Tags extends core_Manager
 
 
     /**
+     * Връща името на тага и span с цвета
+     *
+     * @param integer $tagId
+     * @return array
+     */
+    public static function getTagNameArr($tagId)
+    {
+        $resArr = array();
+
+        if (!$tagId) {
+
+            return $resArr;
+        }
+
+        $rec = self::fetch($tagId);
+
+        if (!$rec) {
+
+            return $resArr;
+        }
+
+        $resArr['name'] = self::recToVerbal($rec, 'name')->name;
+
+        $resArr['span'] = '<span';
+
+        if ($rec->color) {
+            $resArr['color'] = $rec->color;
+            $color = phpcolor_Adapter::changeColor($rec->color, 'dark') ? '#000' : '#fff';
+            $resArr['span'] .= " style='background-color: {$rec->color}; color: {$color}'";
+        }
+        $resArr['span'] .= '>' . $resArr['name'];
+
+        $resArr['span'] .= '</span>';
+
+        return $resArr;
+    }
+
+
+    /**
+     * Помощна фунцкия за декорира и вземане на маркерите
+     *
+     * @param stdClass $rec
+     *
+     * @return string
+     */
+    public static function decorateTags($tArr)
+    {
+        $tags = '';
+
+        if (!is_array($tArr)) {
+            $tArr = type_Keylist::toArray($tArr);
+        }
+
+        if (empty($tArr)) {
+
+            return $tArr;
+        }
+
+        foreach ($tArr as $tId) {
+            $tRecArr = tags_Tags::getTagNameArr($tId);
+            $tags .= $tRecArr['span'];
+        }
+
+        $tags = "<span class='documentTags'>" . $tags . "</span>";
+
+        return $tags;
+    }
+
+
+    /**
      * Подготовка на формата за добавяне
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
