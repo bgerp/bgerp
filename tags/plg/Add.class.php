@@ -40,8 +40,9 @@ class tags_plg_Add extends core_Plugin
 
         if (!empty($tagsArr)) {
             $tags = '';
-            foreach ($tagsArr as $tag) {
-                $tags .= '<span>' . $tag . '</span>';
+
+            foreach ($tagsArr as $tagArr) {
+                $tags .= $tagArr['span'];
             }
             $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
             $row->DocumentSettingsLeft->prepend("<span class='documentTags'>{$tags}</span>");
