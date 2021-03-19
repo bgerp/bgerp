@@ -1753,6 +1753,19 @@ a.tOld {
 		color: #999;
 	}
 }
+.documentTags {
+	margin: 0 1px 0 2px;
+	position: relative;
+	top: -4px;
+	span {
+		opacity: 0.8;
+		font-size: 0.75em;
+		border: 1px solid #999;
+		border-radius: 3px;
+		padding: 1px 2px;
+		margin: 0 2px;
+	}
+}
 
 .narrow .document {
 	span.state {

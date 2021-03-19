@@ -34,6 +34,12 @@ class tags_Tags extends core_Manager
 
 
     /**
+     * Кой има право да променя?
+     */
+    public $canEditsysdata = 'ceo, admin';
+
+
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, admin';
@@ -82,6 +88,7 @@ class tags_Tags extends core_Manager
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, translate=user|tr|transliterate');
         $this->FLD('userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin)', 'caption=Потребител, mandatory');
+        $this->FLD('color', 'color_Type', 'caption=Цвят');
 
         $this->setDbUnique('userOrRole, name');
     }
@@ -93,6 +100,11 @@ class tags_Tags extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $data->form->setDefault('userOrRole', type_UserOrRole::getAllSysTeamId());
+
+        if ($data->form->rec->createdBy == '-1') {
+            $data->form->setReadonly('name');
+            $data->form->setReadonly('userOrRole');
+        }
     }
 
 
@@ -125,6 +137,7 @@ class tags_Tags extends core_Manager
         $file = 'tags/csv/Tags.csv';
         $fields = array(
             0 => 'name',
+            1 => 'color',
         );
 
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
