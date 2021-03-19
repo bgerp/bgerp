@@ -74,7 +74,7 @@ class bulmar_BankDocumentExport extends core_Manager
         $query->where("#state = 'active'");
         $query->between('valior', $filter->from, $filter->to);
         $query->in("ownAccount", $ownAccounts);
-        $query->orderBy('id', 'DESC');
+        $query->orderBy('valior', 'ASC');
         $recs = $query->fetchAll();
        
         $nonCashRecs = array();

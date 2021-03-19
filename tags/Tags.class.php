@@ -34,6 +34,12 @@ class tags_Tags extends core_Manager
 
 
     /**
+     * Кой има право да променя?
+     */
+    public $canEditsysdata = 'ceo, admin';
+
+
+    /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, admin';
@@ -82,8 +88,79 @@ class tags_Tags extends core_Manager
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, translate=user|tr|transliterate');
         $this->FLD('userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin)', 'caption=Потребител, mandatory');
+        $this->FLD('color', 'color_Type', 'caption=Цвят');
 
         $this->setDbUnique('userOrRole, name');
+    }
+
+
+    /**
+     * Връща името на тага и span с цвета
+     *
+     * @param integer $tagId
+     * @return array
+     */
+    public static function getTagNameArr($tagId)
+    {
+        $resArr = array();
+
+        if (!$tagId) {
+
+            return $resArr;
+        }
+
+        $rec = self::fetch($tagId);
+
+        if (!$rec) {
+
+            return $resArr;
+        }
+
+        $resArr['name'] = self::recToVerbal($rec, 'name')->name;
+
+        $resArr['span'] = '<span';
+
+        if ($rec->color) {
+            $resArr['color'] = $rec->color;
+            $color = phpcolor_Adapter::changeColor($rec->color, 'dark') ? '#000' : '#fff';
+            $resArr['span'] .= " style='background-color: {$rec->color}; color: {$color}'";
+        }
+        $resArr['span'] .= '>' . $resArr['name'];
+
+        $resArr['span'] .= '</span>';
+
+        return $resArr;
+    }
+
+
+    /**
+     * Помощна фунцкия за декорира и вземане на маркерите
+     *
+     * @param stdClass $rec
+     *
+     * @return string
+     */
+    public static function decorateTags($tArr)
+    {
+        $tags = '';
+
+        if (!is_array($tArr)) {
+            $tArr = type_Keylist::toArray($tArr);
+        }
+
+        if (empty($tArr)) {
+
+            return $tArr;
+        }
+
+        foreach ($tArr as $tId) {
+            $tRecArr = tags_Tags::getTagNameArr($tId);
+            $tags .= $tRecArr['span'];
+        }
+
+        $tags = "<span class='documentTags'>" . $tags . "</span>";
+
+        return $tags;
     }
 
 
@@ -93,6 +170,11 @@ class tags_Tags extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $data->form->setDefault('userOrRole', type_UserOrRole::getAllSysTeamId());
+
+        if ($data->form->rec->createdBy == '-1') {
+            $data->form->setReadonly('name');
+            $data->form->setReadonly('userOrRole');
+        }
     }
 
 
@@ -125,6 +207,7 @@ class tags_Tags extends core_Manager
         $file = 'tags/csv/Tags.csv';
         $fields = array(
             0 => 'name',
+            1 => 'color',
         );
 
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
