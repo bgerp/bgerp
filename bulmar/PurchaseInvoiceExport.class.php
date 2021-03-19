@@ -339,7 +339,9 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         $staticData->purchaseServiceOperation = $conf->BULMAR_PURINV_PURCHASE_SERVICES_OPER;
         $staticData->paymentOperation = $conf->BULMAR_PURINV_PAYMENT_OPERATION;
         $staticData->debitPayment = $conf->BULMAR_PURINV_DEBIT_PAYMENT;
-        
+
+        $staticData->debitConnectedPersons = $conf->BULMAR_PURINV_DEBIT_CONNECTED_PERSONS;
+        $staticData->creditConnectedPersons = $conf->BULMAR_PURINV_CREDIT_CONNECTED_PERSONS;
         $myCompany = crm_Companies::fetchOwnCompany();
         
         $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
