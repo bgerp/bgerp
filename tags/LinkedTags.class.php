@@ -201,6 +201,8 @@ class tags_LinkedTags extends core_Mvc
 
         tags_Logs::onSubmitFormForTag($form, $cId);
 
+        doc_Containers::logWrite('Промяна на маркер', $cId);
+
         return new Redirect($retUrl);
     }
 }

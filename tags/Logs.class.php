@@ -286,6 +286,8 @@ class tags_Logs extends core_Manager
 
             $this->onSubmitFormForTag($form, $cid);
 
+            doc_Containers::logWrite('Промяна на маркер', $cid);
+
             return new Redirect($retUrl);
         }
 
