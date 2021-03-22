@@ -89,6 +89,7 @@ class tags_Logs extends core_Manager
         $this->setDbUnique('docClassId, docId, tagId, userId');
 
         $this->setDbIndex('docClassId, docId, userId');
+
     }
 
 
@@ -231,11 +232,25 @@ class tags_Logs extends core_Manager
         foreach ($teamsArr as $teamId) {
             $tQuery->orWhere(array("#userOrRole = '[#1#]'", type_UserOrRole::getSysRoleId($teamId)));
         }
-        $tQuery->show('id, name');
+        $tQuery->show('id, name, color');
+
+        $tQuery->orderBy('name', 'ASC');
+
         $tagsArr = array();
         while ($tRec = $tQuery->fetch()) {
-            $tagsArr[$tRec->id] = $tRec->name;
+            $opt = new stdClass();
+            $opt->title = $tRec->name;
+            $color = $tRec->color;
+            if (!$color) {
+                $color = '#fff';
+            }
+
+            $opt->attr = array('data-color' => $color);
+            $optArr[$tRec->id] = $opt;
+
+            $tagsArr[$tRec->id] = $opt;
         }
+
         $form->setSuggestions('tags', $tagsArr);
 
         if (!empty($oldTagArr)) {
