@@ -480,7 +480,7 @@ class distro_Group extends core_Master
      *
      * @param int $id
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         // Ако няма id
         if (!$id) {

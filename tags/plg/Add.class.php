@@ -60,4 +60,32 @@ class tags_plg_Add extends core_Plugin
             $data->toolbar->addBtn('Маркер', $url, 'ef_icon=img/16/mark.png, title=Добавяне на маркер, row=2, order=19.999');
         }
     }
+
+
+    /**
+     * След вземане на документа
+     *
+     * @param $mvc
+     * @param $rowObj
+     * @param $id
+     */
+    public static function on_AfterGetDocumentRow($mvc, &$rowObj, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if (!isset($rowObj)) {
+            $rowObj = new stdClass();
+        }
+        if ($rec->id) {
+            $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $id);
+            if (!empty($tagsArr)) {
+                $rowObj->subTitle .= "<span class='documentTags'>";
+
+                foreach ($tagsArr as $tArr) {
+                    $rowObj->subTitle .= $tArr['span'];
+                }
+
+                $rowObj->subTitle .= "</span>";
+            }
+        }
+    }
 }

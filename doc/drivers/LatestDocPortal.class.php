@@ -215,8 +215,15 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         if (!$title) {
                             $title = '[' . tr('Липсва заглавие') . ']';
                         }
-                        
-                        $docRowArr[] = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . '</div>';
+
+                        $dRowStr = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . '</div>';
+
+                        $subTitle = $dRow->subTitle;
+                        if ($subTitle) {
+                            $dRowStr .= "<div class='threadSubTitle'>{$subTitle}</div>";
+                        }
+
+                        $docRowArr[] = $dRowStr;
                     } catch (core_exception_Expect $e) {
                         continue;
                     }
@@ -322,7 +329,22 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $tQuery->orderBy('id', 'DESC');
         $tQuery->show('last, id, firstContainerId');
         $tQuery->limit(1);
-        
+
+        if ($dRec->tags) {
+            $tagQuery = tags_Logs::getQuery();
+            $tagQuery->in('tagId', $dRec->tags);
+            $tagQuery->orderBy('id', 'DESC');
+
+            $tagQuery->show('createdOn, id, containerId');
+            $tagQuery->limit(1);
+            if ($tagRec = $tagQuery->fetch()) {
+                $cArr[] = $tagRec->id;
+                $cArr[] = $tagRec->createdOn;
+                $cArr[] = $tagRec->containerId;
+            }
+        }
+
+
         if ($tRec = $tQuery->fetch()) {
             $cArr[] = $tRec->id;
             $cArr[] = $tRec->last;
