@@ -45,7 +45,7 @@ class doc_DocumentIntf
      * - $docRow->authorEmail - името на автора на документа
      * - $docRow->state - състояние на документа
      */
-    public function getDocumentRow_($id)
+    public function getDocumentRow($id)
     {
         return $this->class->getDocumentRow($id);
     }
