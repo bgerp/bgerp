@@ -239,7 +239,7 @@ class tags_Logs extends core_Manager
         $tagsArr = array();
         while ($tRec = $tQuery->fetch()) {
             $opt = new stdClass();
-            $opt->title = $tRec->name;
+            $opt->title = tags_tags::getVerbal($tRec, 'name');
             $color = $tRec->color;
             if (!$color) {
                 $color = '#fff';
