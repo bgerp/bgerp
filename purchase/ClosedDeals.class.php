@@ -123,7 +123,7 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      *
      * @see deals_ClosedDeals::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $row = parent::getDocumentRow($id);
         $title = "Приключване на покупка #{$row->saleId}";

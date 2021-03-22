@@ -383,7 +383,7 @@ class store_Transfers extends core_Master
     /**
      * Връща информацията за документа в папката
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
