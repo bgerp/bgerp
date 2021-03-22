@@ -51,5 +51,6 @@ class tags_Setup extends core_ProtoSetup
     public $managers = array(
         'tags_Tags',
         'tags_Logs',
+        'tags_LinkedTags',
     );
 }

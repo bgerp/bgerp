@@ -1202,7 +1202,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
                 
                 $groupName = $groupClass::getVerbal($dRec->$typeGroup, 'name');
-                $price = $dRec->groupValues / $dRec->groupQuantity;
+                if ($dRec->groupQuantity != 0){
+                    $price = $dRec->groupValues / $dRec->groupQuantity;
+                }
+
                 
                 $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата (количество:'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupQuantity).' ; '.'стойност: '. core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) .' ; '.'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . $grouping . ' )'. '</span>';
             } else {

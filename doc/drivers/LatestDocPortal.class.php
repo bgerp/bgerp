@@ -97,39 +97,73 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
-        
+
         if (!$resData->tpl) {
             $tCnt = $dRec->tCnt ? $dRec->tCnt : 20;
             $resData->data = new stdClass();
-            
-            $tQuery = doc_Threads::getQuery();
-            $tQuery->orderBy('last', 'DESC');
-            $tQuery->orderBy('id', 'DESC');
-            $tQuery->show('id, folderId, firstContainerId, state, folderId, shared');
-            if ($dRec->docClassId) {
-                $tQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
-                $tQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
+
+            $resArr = array();
+
+            if ($dRec->tags) {
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->where("#state != 'rejected'");
+                if ($dRec->docClassId) {
+                    $cQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
+                }
+
+                $cQuery->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
+                $cQuery->in('tags', $dRec->tags);
+
+                $cQuery->limit(min(50 * $tCnt, 1000));
+
+                $cQuery->show('id, folderId, threadId');
+
+                while ($cRec = $cQuery->fetch()) {
+                    $doc = doc_Containers::getDocument($cRec->id);
+                    if (!$doc->haveRightFor('single')) {
+
+                        continue;
+                    }
+
+                    if ($resArr[$cRec->folderId][$cRec->threadId]) {
+
+                        continue;
+                    }
+
+                    $resArr[$cRec->folderId][$cRec->threadId] = doc_Threads::fetch($cRec->threadId);
+
+                    if (!--$tCnt) {
+                        break;
+                    }
+                }
+            } else {
+                $tQuery = doc_Threads::getQuery();
+                $tQuery->orderBy('last', 'DESC');
+                $tQuery->orderBy('id', 'DESC');
+                $tQuery->show('id, folderId, firstContainerId, state, folderId, shared');
+                if ($dRec->docClassId) {
+                    $tQuery->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=firstContainerId');
+                    $tQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
+                }
+
+                $tQuery->where("#state != 'rejected'");
+
+                $tQuery->limit(min(50 * $tCnt, 1000));
+
+                while ($tRec = $tQuery->fetch()) {
+                    if (!doc_Threads::haveRightFor('single', $tRec)) {
+                        continue;
+                    }
+
+                    $resArr[$tRec->folderId][$tRec->id] = $tRec;
+
+                    if (!--$tCnt) {
+                        break;
+                    }
+                }
             }
 
-            $tQuery->where("#state != 'rejected'");
-            
-            $tQuery->limit(min(20 * $tCnt, 200));
-            
-            $resArr = array();
-            while ($tRec = $tQuery->fetch()) {
-                if (!doc_Threads::haveRightFor('single', $tRec)) {
-                    continue;
-                }
-                
-                $resArr[$tRec->folderId][$tRec->id] = $tRec;
-                
-                if (!--$tCnt) {
-                    break;
-                }
-            }
-            
             $data = new stdClass();
-            $data->query = $tQuery;
             $data->res = new ET();
             
             foreach ($resArr as $fId => $tArr) {
@@ -142,25 +176,8 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $cQuery->where("#state != 'rejected'");
 
                     if ($dRec->tags) {
-                        $tagsArr = type_Keylist::toArray($dRec->tags);
-
-                        $tagsQuery = tags_Logs::getQuery();
-                        $tagsQuery->in('tagId', $tagsArr);
-                        $tagsQuery->where("#containerId IS NOT NULL");
-
-                        $tagsQuery->show('containerId');
-                        $tagsQuery->limit(1000);
-
-                        $tagsCidArr = array();
-                        while ($tagRec = $tagsQuery->fetch()) {
-                            $tagsCidArr[$tagRec->containerId] = $tagRec->containerId;
-                        }
-
-                        if (!empty($tagsCidArr)) {
-                            $cQuery->in('id', $tagsCidArr);
-                        } else {
-                            $cQuery->where("1=2");
-                        }
+                        $cQuery->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
+                        $cQuery->in('tags', $dRec->tags);
                     }
 
                     // Вземаме последното вижда не нишката от текущия потребител
@@ -215,8 +232,15 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         if (!$title) {
                             $title = '[' . tr('Липсва заглавие') . ']';
                         }
-                        
-                        $docRowArr[] = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . '</div>';
+
+                        $dRowStr = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . '</div>';
+
+                        $subTitle = $dRow->subTitle;
+                        if ($subTitle) {
+                            $dRowStr .= "<div class='threadSubTitle'>{$subTitle}</div>";
+                        }
+
+                        $docRowArr[] = $dRowStr;
                     } catch (core_exception_Expect $e) {
                         continue;
                     }
@@ -322,7 +346,22 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $tQuery->orderBy('id', 'DESC');
         $tQuery->show('last, id, firstContainerId');
         $tQuery->limit(1);
-        
+
+        if ($dRec->tags) {
+            $tagQuery = tags_Logs::getQuery();
+            $tagQuery->in('tagId', $dRec->tags);
+            $tagQuery->orderBy('id', 'DESC');
+
+            $tagQuery->show('createdOn, id, containerId');
+            $tagQuery->limit(1);
+            if ($tagRec = $tagQuery->fetch()) {
+                $cArr[] = $tagRec->id;
+                $cArr[] = $tagRec->createdOn;
+                $cArr[] = $tagRec->containerId;
+            }
+        }
+
+
         if ($tRec = $tQuery->fetch()) {
             $cArr[] = $tRec->id;
             $cArr[] = $tRec->last;

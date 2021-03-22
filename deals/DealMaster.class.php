@@ -677,7 +677,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see doc_DocumentIntf::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         expect($rec = $this->fetch($id));
         $title = static::getRecTitle($rec);

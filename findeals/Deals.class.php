@@ -789,7 +789,7 @@ class findeals_Deals extends deals_DealBase
      *
      * @see doc_DocumentIntf::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
