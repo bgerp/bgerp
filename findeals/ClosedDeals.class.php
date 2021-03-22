@@ -124,7 +124,7 @@ class findeals_ClosedDeals extends deals_ClosedDeals
      */
     public function getDocumentRow_($id)
     {
-        $row = parent::getDocumentRow($id);
+        $row = parent::getDocumentRow_($id);
         $title = "Приключване на сделка #{$row->saleId}";
         $row->title = $title;
         $row->recTitle = $title;
