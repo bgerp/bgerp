@@ -168,8 +168,28 @@ class crm_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', 'powerUser'),
     );
-    
-    
+
+
+    /**
+     * Менижиране на формата формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        $companyOptions = array();
+        $companyQuery = crm_Companies::getQuery();
+        $groupId = crm_Groups::getIdFromSysId('related');
+        $companyQuery->where("LOCATE('|{$groupId}|', #groupList)");
+        while($cRec = $companyQuery->fetch()){
+            $companyOptions[$cRec->id] = crm_Companies::getRecTitle($cRec, false);
+        }
+
+        $configForm->setSuggestions('CRM_CONNECTED_COMPANIES', $companyOptions);
+    }
+
+
     /**
      * Скрипт за инсталиране
      */

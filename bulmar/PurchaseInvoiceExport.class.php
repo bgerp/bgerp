@@ -155,7 +155,14 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
                 return null;
             }
         }
-        
+
+        if($rec->contragentClassId == crm_Companies::getClassId()){
+            $connectedCompanies = keylist::toArray(crm_Setup::get('CONNECTED_COMPANIES'));
+            if(array_key_exists($rec->contragentId, $connectedCompanies)){
+                $nRec->_isConnectedCompany = true;
+            }
+        }
+
         $nRec->contragent = $rec->contragentName;
         $nRec->invNumber = purchase_Invoices::getVerbal($rec, 'number');
         $nRec->date = dt::mysql2verbal($rec->date, 'd.m.Y');
@@ -266,13 +273,17 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
         $static = $data->static;
         $content = 'Text Export To BMScety V2.0' . "\r\n";
         $content .= "BULSTAT={$static->OWN_COMPANY_BULSTAT}" . "\r\n";
-        
+
         // Добавяме информацията за фактурите
         foreach ($data->recs as $rec) {
             
             $line = "{$rec->num}|{$rec->type}|{$rec->invNumber}|{$rec->date}|{$rec->contragentEik}|{$rec->date}|{$static->folder}|{$rec->contragent}|" . "\r\n";
             
             $creditAcc = $static->creditPurchase;
+            if($rec->_isConnectedCompany){
+                $creditAcc = $static->creditConnectedPersons;
+            }
+
             if ($rec->dpOperation == 'accrued') {
                 unset($rec->productsAmount);
                 
@@ -302,7 +313,12 @@ class bulmar_PurchaseInvoiceExport extends core_Manager
             $line .= "{$rec->num}|1|POK|{$rec->reason}|1||||{$rec->baseAmount}|{$rec->vat}|||||||||||||" . "\r\n";
             
             if ($rec->amountPaid) {
-                $line .= "{$rec->num}|2|{$static->paymentOp}|{$static->debitPayment}|PN|$|{$rec->amountPaid}||{$static->creditCase}|||{$rec->amountPaid}||" . "\r\n";
+                $debitPayment = $static->debitPayment;
+                if($rec->_isConnectedCompany){
+                    $debitPayment = $static->debitConnectedPersons;
+                }
+
+                $line .= "{$rec->num}|2|{$static->paymentOp}|{$debitPayment}|PN|$|{$rec->amountPaid}||{$static->creditCase}|||{$rec->amountPaid}||" . "\r\n";
             }
             
             
