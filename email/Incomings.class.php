@@ -1789,7 +1789,7 @@ class email_Incomings extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentIntf
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         

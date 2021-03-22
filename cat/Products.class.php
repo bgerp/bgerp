@@ -2436,7 +2436,7 @@ class cat_Products extends embed_Manager
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetchRec($id);
         $row = new stdClass();

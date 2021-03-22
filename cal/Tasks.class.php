@@ -1730,7 +1730,7 @@ class cal_Tasks extends embed_Manager
      *
      * @return stdClass $row
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
 

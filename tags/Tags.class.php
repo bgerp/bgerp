@@ -122,7 +122,9 @@ class tags_Tags extends core_Manager
 
         if ($rec->color) {
             $resArr['color'] = $rec->color;
-            $color = phpcolor_Adapter::changeColor($rec->color, 'dark') ? '#000' : '#fff';
+
+            $color = phpcolor_Adapter::checkColor($rec->color, 'dark') ? '#fff' : '#000';
+
             $resArr['span'] .= " style='background-color: {$rec->color}; color: {$color}'";
         }
         $resArr['span'] .= '>' . $resArr['name'];
@@ -130,6 +132,51 @@ class tags_Tags extends core_Manager
         $resArr['span'] .= '</span>';
 
         return $resArr;
+    }
+
+
+    /**
+     * Връща масив с таговоте за добавя в опциите
+     *
+     * @return array
+     */
+    public static function getTagsOptions($userId = null, $oldTagArr = array())
+    {
+        $tagsArr = array();
+        $tQuery = self::getQuery();
+        $tQuery->where("#state = 'active'");
+
+        if (!empty($oldTagArr)) {
+            $tQuery->in('id', $oldTagArr, false, true);
+        }
+
+        if (isset($userId)) {
+            $tQuery->where(array("#userOrRole = '[#1#]'", $userId));
+            $tQuery->orWhere(array("#userOrRole = '[#1#]'", type_UserOrRole::getAllSysTeamId()));
+
+            if (!empty($oldTagArr)) {
+                $tQuery->in('id', $oldTagArr, false, true);
+            }
+        }
+
+        $tQuery->orderBy('name', 'ASC');
+        $tQuery->show('id, name, color');
+
+        while ($tRec = $tQuery->fetch()) {
+            $opt = new stdClass();
+            $opt->title = tags_tags::getVerbal($tRec, 'name');
+            $color = $tRec->color;
+            if (!$color) {
+                $color = ' '; // Прозрачен `background`
+            }
+
+            $opt->attr = array('data-color' => $color);
+            $optArr[$tRec->id] = $opt;
+
+            $tagsArr[$tRec->id] = $opt;
+        }
+
+        return $tagsArr;
     }
 
 

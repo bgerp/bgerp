@@ -215,7 +215,7 @@ class acc_BalanceRepairs extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         

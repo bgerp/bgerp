@@ -251,7 +251,7 @@ abstract class deals_Document extends deals_PaymentDocument
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         $row = new stdClass();
