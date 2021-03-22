@@ -1518,17 +1518,22 @@ a.tOld {
     letter-spacing: 3px;
     color: #999999; }
 
-.documentTags {
-  margin: 0 1px 0 2px;
+.header .documentTags {
   position: relative;
   top: -4px; }
+
+.documentTags {
+  margin: 0 1px 0 2px; }
   .documentTags span {
     opacity: 0.8;
     font-size: 0.75em;
     border: 1px solid #999999;
     border-radius: 3px;
     padding: 1px 2px;
-    margin: 0 2px; }
+    margin: 0 2px;
+    height: 18px;
+    font-weight: normal;
+    box-sizing: border-box; }
 
   .narrow .document span.state {
     padding: 2px 5px;

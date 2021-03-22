@@ -1753,10 +1753,12 @@ a.tOld {
 		color: #999;
 	}
 }
-.documentTags {
-	margin: 0 1px 0 2px;
+.header .documentTags {
 	position: relative;
 	top: -4px;
+}
+.documentTags {
+	margin: 0 1px 0 2px;
 	span {
 		opacity: 0.8;
 		font-size: 0.75em;
@@ -1764,6 +1766,9 @@ a.tOld {
 		border-radius: 3px;
 		padding: 1px 2px;
 		margin: 0 2px;
+		height: 18px;
+		font-weight: normal;
+		box-sizing: border-box;
 	}
 }
 

@@ -173,6 +173,12 @@ span.all-users{
     border: 1px solid #000;
 }
 
+.select2 .color-preview {
+    height: 10px;
+    box-sizing: border-box;
+    margin-bottom: 0 !important;
+}
+
 .narrow .color-preview {
 	height: 3px;
 	vertical-align: top;

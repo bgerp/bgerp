@@ -133,6 +133,7 @@ light.max,float,0.0/10000.0,Light,system,10000.0,Maximum limit
 light.v1.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,Light,system,AO1,Analog output 1
 light.v2.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,Light,system,AO2,Analog output 2
 light.sensor.settings,str,,Light,system,1wdevice/26607314020000F8,Sensor settings
+light.target_illum,float,0.0/10000.0,Light,system,0.0,Target illumination
 light.enabled,bool,true|false,Light,system,false,Plugin enabled
 sys.last_update_errs,json,,System,device,"""[]""",Last update cycle error
 sys.ram.current,int,0/,System,device,0,Current consumed RAM
