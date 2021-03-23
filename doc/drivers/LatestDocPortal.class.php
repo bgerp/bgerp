@@ -32,7 +32,8 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
     {
         $fieldset->FLD('tCnt', 'int(min=1, max=25)', 'caption=Брой нишки, mandatory');
         $fieldset->FLD('docClassId', 'classes(interface=doc_DocumentIntf, select=title, allowEmpty)', 'caption=Първи документ в нишката->Вид');
-        $fieldset->FLD('tags', 'keylist(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Маркер');
+        $fieldset->FLD('tags', 'keylist(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Маркери в документите->Маркер');
+        $fieldset->FLD('tagsCreator', 'enum(,me=Мен, team=Екип)', 'caption=Маркери в документите->Създадени от');
     }
     
     
@@ -98,21 +99,37 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
 
+        $containerArr = array();
+
         if (!$resData->tpl) {
             $tCnt = $dRec->tCnt ? $dRec->tCnt : 20;
             $resData->data = new stdClass();
 
             $resArr = array();
 
-            if ($dRec->tags) {
+            if ($dRec->tags || $dRec->tagsCreator) {
                 $cQuery = doc_Containers::getQuery();
                 $cQuery->where("#state != 'rejected'");
                 if ($dRec->docClassId) {
                     $cQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
                 }
 
-                $cQuery->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
-                $cQuery->in('tags', $dRec->tags);
+                if ($dRec->tags) {
+                    $cQuery->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
+                    $cQuery->in('tags', $dRec->tags);
+                }
+
+                if ($dRec->tagsCreator) {
+                    if ($dRec->tagsCreator == 'team') {
+                        $uArr = type_Keylist::toArray(core_Users::getTeammates($userId));
+                    } else {
+                        $uArr[$userId] = $userId;
+                    }
+                    $cQuery->EXT('tagsCreatedBy', 'tags_Logs', 'externalName=createdBy, remoteKey=containerId');
+                    $cQuery->EXT('tagsCreatedOn', 'tags_Logs', 'externalName=createdOn, remoteKey=containerId');
+                    $cQuery->in('tagsCreatedBy', $uArr);
+                    $cQuery->orderBy('tagsCreatedOn', 'DESC');
+                }
 
                 $cQuery->limit(min(50 * $tCnt, 1000));
 
@@ -123,6 +140,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
 
                 while ($cRec = $cQuery->fetch()) {
                     $doc = doc_Containers::getDocument($cRec->id);
+
                     if (!$doc->haveRightFor('single')) {
 
                         continue;
@@ -134,6 +152,8 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     }
 
                     $resArr[$cRec->folderId][$cRec->threadId] = doc_Threads::fetch($cRec->threadId);
+
+                    $containerArr[$cRec->threadId][$cRec->id] = $cRec->id;
 
                     if (!--$tCnt) {
                         break;
@@ -178,9 +198,8 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     $cQuery->where(array("#threadId = '[#1#]'", $tId));
                     $cQuery->where("#state != 'rejected'");
 
-                    if ($dRec->tags) {
-                        $cQuery->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
-                        $cQuery->in('tags', $dRec->tags);
+                    if (!empty($containerArr[$tId])) {
+                        $cQuery->in('id', $containerArr[$tId]);
                     }
 
                     // Вземаме последното вижда не нишката от текущия потребител
