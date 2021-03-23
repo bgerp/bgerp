@@ -2425,6 +2425,13 @@ pre.document {
 	.quiet {
 		color: #ccc;
 	}
+	.documentTags {
+		position: relative;
+		top: 0;
+		span {
+			font-size: 0.95em;
+		}
+	}
 
 }
 

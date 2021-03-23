@@ -2095,6 +2095,11 @@ pre.document {
   color: #335533; }
   .threadSubTitle .quiet {
     color: #cccccc; }
+  .threadSubTitle .documentTags {
+    position: relative;
+    top: 0; }
+    .threadSubTitle .documentTags span {
+      font-size: 0.95em; }
 
 .narrow .block_title {
   font-size: 1.2em; }
