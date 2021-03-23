@@ -297,13 +297,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
             $resData->data = $data;
         }
 
-
-        $resData->blockTitle = '|Най-новото|*';
-
-        $tags = tags_Tags::decorateTags($dRec->tags);
-        if ($tags) {
-            $resData->blockTitle .= $tags;
-        }
+        $resData->blockTitle = '|*' . tags_Tags::decorateTags($dRec->tags, "<span class='portalHeaderTitle'>|Най-новото|*</span>");
 
         return $resData;
     }

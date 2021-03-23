@@ -178,7 +178,7 @@ class tags_Tags extends core_Manager
      *
      * @return string
      */
-    public static function decorateTags($tArr)
+    public static function decorateTags($tArr, $prevText = '')
     {
         $tags = '';
 
@@ -186,17 +186,12 @@ class tags_Tags extends core_Manager
             $tArr = type_Keylist::toArray($tArr);
         }
 
-        if (empty($tArr)) {
-
-            return $tArr;
-        }
-
         foreach ($tArr as $tId) {
             $tRecArr = tags_Tags::getTagNameArr($tId);
             $tags .= $tRecArr['span'];
         }
 
-        $tags = "<span class='documentTags'>" . $tags . "</span>";
+        $tags = "<span class='documentTags'>" . $prevText . $tags . "</span>";
 
         return $tags;
     }
