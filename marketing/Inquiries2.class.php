@@ -220,6 +220,12 @@ class marketing_Inquiries2 extends embed_Manager
         'place' => 'clientData|lastDocUser',
         'address' => 'clientData|lastDocUser',
     );
+
+
+    /**
+     * Дали да се добави subTitle в листовия изглед
+     */
+    public $addSubTitleToList = true;
     
     
     /**
@@ -507,14 +513,6 @@ class marketing_Inquiries2 extends embed_Manager
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
             $row->title = ht::createLink($row->title, array($mvc, 'single', $rec->id), null, $attr);
-
-            $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $rec->id);
-            if(countR($tagsArr)){
-                $tagsString = "<div class='documentTags'>";
-                array_walk($tagsArr, function ($o) use (&$tagsString) { $tagsString .= $o['span'];});
-                $tagsString .= '</div>';
-                $row->title .= $tagsString;
-            }
         }
         
         if(isset($rec->sourceClassId)){
