@@ -33,7 +33,6 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $fieldset->FLD('tCnt', 'int(min=1, max=25)', 'caption=Брой нишки, mandatory');
         $fieldset->FLD('docClassId', 'classes(interface=doc_DocumentIntf, select=title, allowEmpty)', 'caption=Първи документ в нишката->Вид');
         $fieldset->FLD('tags', 'keylist(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Маркери в документите->Маркер');
-        $fieldset->FLD('tagsCreator', 'enum(,me=Мен, team=Екип)', 'caption=Маркери в документите->Създадени от');
     }
     
     
@@ -100,40 +99,58 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
 
         $containerArr = array();
-
+$resData->tpl = false;
         if (!$resData->tpl) {
             $tCnt = $dRec->tCnt ? $dRec->tCnt : 20;
             $resData->data = new stdClass();
 
             $resArr = array();
 
-            if ($dRec->tags || $dRec->tagsCreator) {
+            if ($dRec->tags) {
                 $cQuery = doc_Containers::getQuery();
                 $cQuery->where("#state != 'rejected'");
                 if ($dRec->docClassId) {
                     $cQuery->in('docClass', type_Keylist::toArray($dRec->docClassId));
                 }
 
-                if ($dRec->tags) {
-                    $cQuery->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
-                    $cQuery->in('tags', $dRec->tags);
+                $tagsArr = type_Keylist::toArray($dRec->tags);
+
+                $personalTags = tags_Tags::getPersonalTags($tagsArr, false);
+
+                if (!empty($personalTags)) {
+                    foreach ($personalTags as $tagId) {
+                        unset($tagsArr[$tagId]);
+                    }
                 }
 
-                if ($dRec->tagsCreator) {
-                    if ($dRec->tagsCreator == 'team') {
-                        $uArr = type_Keylist::toArray(core_Users::getTeammates($userId));
-                    } else {
-                        $uArr[$userId] = $userId;
-                    }
-                    $cQuery->EXT('tagsCreatedBy', 'tags_Logs', 'externalName=createdBy, remoteKey=containerId');
-                    $cQuery->EXT('tagsCreatedOn', 'tags_Logs', 'externalName=createdOn, remoteKey=containerId');
-                    $cQuery->in('tagsCreatedBy', $uArr);
-                    $cQuery->orderBy('tagsCreatedOn', 'DESC');
+                $cQuery->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
+
+                $orIn = false;
+                if (!empty($tagsArr)) {
+                    $cQuery->in('tags', $tagsArr);
+                    $orIn = true;
                 }
+
+                if (!empty($personalTags)) {
+                    $cQuery->EXT('tagsCreatedBy', 'tags_Logs', 'externalName=createdBy, remoteKey=containerId');
+
+                    // Ескейпване на стойности
+                    array_walk($personalTags, function (&$a) {
+                        $a = "'" . $a . "'";
+                    });
+
+                    // Обръщане на масива в стринг
+                    $personalTagsVal = implode(',', $personalTags);
+
+                    $cQuery->where(array("(#tags IN ($personalTagsVal) AND #tagsCreatedBy = '[#1#]')", $userId), $orIn);
+                }
+
+                $cQuery->EXT('tagsCreatedOn', 'tags_Logs', 'externalName=createdOn, remoteKey=containerId');
+                $cQuery->orderBy('tagsCreatedOn', 'DESC');
 
                 $cQuery->limit(min(50 * $tCnt, 1000));
 
-                $cQuery->show('id, folderId, threadId');
+                $cQuery->show('id, folderId, threadId, tags');
 
                 $cQuery->orderBy('modifiedOn', 'DESC');
                 $cQuery->orderBy('id', 'DESC');

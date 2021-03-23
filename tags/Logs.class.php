@@ -203,7 +203,7 @@ class tags_Logs extends core_Manager
 
         $form->_oldTagArr = $oldTagArr;
 
-        $tagsArr = tags_Tags::getTagsOptions($userId, $oldTagArr);
+        $tagsArr = tags_Tags::getTagsOptions($oldTagArr);
 
         $form->setSuggestions('tags', $tagsArr);
 
