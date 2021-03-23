@@ -179,6 +179,13 @@ class tags_Logs extends core_Manager
             }
         }
     }
+
+
+    /**
+     *
+     * @param $form
+     * @param $cid
+     */
     public static function prepareFormForTag(&$form, $cid)
     {
         $document = doc_Containers::getDocument($cid);
@@ -203,7 +210,7 @@ class tags_Logs extends core_Manager
 
         $form->_oldTagArr = $oldTagArr;
 
-        $tagsArr = tags_Tags::getTagsOptions($userId, $oldTagArr);
+        $tagsArr = tags_Tags::getTagsOptions($oldTagArr);
 
         $form->setSuggestions('tags', $tagsArr);
 
@@ -213,6 +220,10 @@ class tags_Logs extends core_Manager
     }
 
 
+    /**
+     * @param $form
+     * @param $cid
+     */
     public static function onSubmitFormForTag($form, $cid)
     {
         $cQuery = $form->_cQuery;

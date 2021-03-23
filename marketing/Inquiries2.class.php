@@ -220,6 +220,12 @@ class marketing_Inquiries2 extends embed_Manager
         'place' => 'clientData|lastDocUser',
         'address' => 'clientData|lastDocUser',
     );
+
+
+    /**
+     * Дали да се добави subTitle в листовия изглед
+     */
+    public $addSubTitleToList = 'title';
     
     
     /**
@@ -502,7 +508,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         if ($fields['-list']) {
             $row->title = $mvc->getTitle($rec);
-            
+
             $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';

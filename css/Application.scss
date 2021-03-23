@@ -1757,9 +1757,12 @@ a.tOld {
 	position: relative;
 	top: -4px;
 }
+.portalHeaderTitle {
+	margin-right: 5px;
+}
 .documentTags {
 	margin: 0 1px 0 2px;
-	span {
+	.tags {
 		opacity: 0.8;
 		font-size: 0.75em;
 		border: 1px solid #999;
@@ -1770,6 +1773,15 @@ a.tOld {
 		font-weight: normal;
 		box-sizing: border-box;
 	}
+}
+
+.legend  .documentTags .tags{
+	white-space: nowrap;
+	display: inline-block;
+	height: 20px;
+	padding-top: 0px;
+	margin-top: 1px;
+	margin-bottom: 1px;
 }
 
 .narrow .document {
@@ -2149,14 +2161,21 @@ a.tOld {
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 	display: inline;
 	float: none;
+
 	.liked, .disliked, .linkWithIcon {
 		position: relative;
 		top: 2px;
 		margin-left: 0;
 	}
+
 	.document-settings .linkWithIcon, .eyeIcon {
 		margin-right: 5px;
 	}
+}
+
+.narrow .document-settings-left, .narrow .document-settings {
+	position: relative;
+	top: 3px;
 }
 
 .document-settings-left, .document-title-group {
@@ -2417,6 +2436,13 @@ pre.document {
 	color: #353;
 	.quiet {
 		color: #ccc;
+	}
+	.documentTags {
+		position: relative;
+		top: 0;
+		span {
+			font-size: 0.95em;
+		}
 	}
 
 }

@@ -10,13 +10,13 @@ defIfNot('STATUS_SALT', md5(EF_SALT . 'status'));
 /**
  * Колко време преди създаването да се показват статус съобщеният
  */
-defIfNot('STATUS_TIME_BEFORE', 2);
+defIfNot('STATUS_TIME_BEFORE', 1);
 
 
 /**
  * Време на бездействие на таба, преди което съобщението ще се маркира, като прочетено
  */
-defIfNot('STATUS_IDLE_TIME', 3);
+defIfNot('STATUS_IDLE_TIME', 10);
 
 
 /**

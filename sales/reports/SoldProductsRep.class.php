@@ -1204,6 +1204,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $groupName = $groupClass::getVerbal($dRec->$typeGroup, 'name');
                 if ($dRec->groupQuantity != 0){
                     $price = $dRec->groupValues / $dRec->groupQuantity;
+                }else{
+                    $price = 0;
                 }
 
                 
