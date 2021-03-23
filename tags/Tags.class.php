@@ -118,7 +118,7 @@ class tags_Tags extends core_Manager
 
         $resArr['name'] = self::recToVerbal($rec, 'name')->name;
 
-        $resArr['span'] = '<span';
+        $resArr['span'] = '<span class="tags"';
 
         if ($rec->color) {
             $resArr['color'] = $rec->color;
