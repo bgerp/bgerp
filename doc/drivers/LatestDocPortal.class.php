@@ -99,7 +99,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
 
         $containerArr = array();
-$resData->tpl = false;
+
         if (!$resData->tpl) {
             $tCnt = $dRec->tCnt ? $dRec->tCnt : 20;
             $resData->data = new stdClass();
