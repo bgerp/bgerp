@@ -118,6 +118,9 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
 
                 $cQuery->show('id, folderId, threadId');
 
+                $cQuery->orderBy('modifiedOn', 'DESC');
+                $cQuery->orderBy('id', 'DESC');
+
                 while ($cRec = $cQuery->fetch()) {
                     $doc = doc_Containers::getDocument($cRec->id);
                     if (!$doc->haveRightFor('single')) {
