@@ -2149,14 +2149,21 @@ a.tOld {
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 	display: inline;
 	float: none;
+
 	.liked, .disliked, .linkWithIcon {
 		position: relative;
 		top: 2px;
 		margin-left: 0;
 	}
+
 	.document-settings .linkWithIcon, .eyeIcon {
 		margin-right: 5px;
 	}
+}
+
+.narrow .document-settings-left, .narrow .document-settings {
+	position: relative;
+	top: 3px;
 }
 
 .document-settings-left, .document-title-group {

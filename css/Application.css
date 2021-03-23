@@ -1875,6 +1875,11 @@ a.tOld {
   .narrow .document-title-group .eyeIcon {
     margin-right: 5px; }
 
+.narrow .document-settings-left,
+.narrow .document-settings {
+  position: relative;
+  top: 3px; }
+
 .document-settings-left,
 .document-title-group {
   float: left;
