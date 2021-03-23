@@ -87,10 +87,10 @@ class tags_Tags extends core_Manager
     public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, translate=user|tr|transliterate');
-        $this->FLD('userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin)', 'caption=Потребител, mandatory');
+        $this->FLD('type', 'enum(common=Общ, personal=Личен)', 'caption=Тип, mandatory');
         $this->FLD('color', 'color_Type', 'caption=Цвят');
 
-        $this->setDbUnique('userOrRole, name');
+        $this->setDbUnique('name');
     }
 
 
@@ -118,7 +118,7 @@ class tags_Tags extends core_Manager
 
         $resArr['name'] = self::recToVerbal($rec, 'name')->name;
 
-        $resArr['span'] = '<span';
+        $resArr['span'] = '<span class="tags"';
 
         if ($rec->color) {
             $resArr['color'] = $rec->color;
@@ -140,7 +140,7 @@ class tags_Tags extends core_Manager
      *
      * @return array
      */
-    public static function getTagsOptions($userId = null, $oldTagArr = array())
+    public static function getTagsOptions($oldTagArr = array())
     {
         $tagsArr = array();
         $tQuery = self::getQuery();
@@ -148,15 +148,6 @@ class tags_Tags extends core_Manager
 
         if (!empty($oldTagArr)) {
             $tQuery->in('id', $oldTagArr, false, true);
-        }
-
-        if (isset($userId)) {
-            $tQuery->where(array("#userOrRole = '[#1#]'", $userId));
-            $tQuery->orWhere(array("#userOrRole = '[#1#]'", type_UserOrRole::getAllSysTeamId()));
-
-            if (!empty($oldTagArr)) {
-                $tQuery->in('id', $oldTagArr, false, true);
-            }
         }
 
         $tQuery->orderBy('name', 'ASC');
@@ -187,7 +178,7 @@ class tags_Tags extends core_Manager
      *
      * @return string
      */
-    public static function decorateTags($tArr)
+    public static function decorateTags($tArr, $prevText = '')
     {
         $tags = '';
 
@@ -195,19 +186,44 @@ class tags_Tags extends core_Manager
             $tArr = type_Keylist::toArray($tArr);
         }
 
-        if (empty($tArr)) {
-
-            return $tArr;
-        }
-
         foreach ($tArr as $tId) {
             $tRecArr = tags_Tags::getTagNameArr($tId);
             $tags .= $tRecArr['span'];
         }
 
-        $tags = "<span class='documentTags'>" . $tags . "</span>";
+        $tags = "<span class='documentTags'>" . $prevText . $tags . "</span>";
 
         return $tags;
+    }
+
+
+    /**
+     * От подадения масив връща всички активни персонални тагоаве
+     *
+     * @param array $pTagsArr
+     * @return array
+     */
+    public static function getPersonalTags($pTagsArr = array(), $onlyActive = true)
+    {
+        $query = self::getQuery();
+        $query->where("#type = 'personal'");
+
+        if ($onlyActive) {
+            $query->where("#state = 'active'");
+        }
+
+        if (!empty($pTagsArr)) {
+            $query->in('id', $pTagsArr);
+        }
+
+        $query->show('id');
+
+        $resArr = array();
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec->id;
+        }
+
+        return $resArr;
     }
 
 
@@ -216,11 +232,9 @@ class tags_Tags extends core_Manager
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $data->form->setDefault('userOrRole', type_UserOrRole::getAllSysTeamId());
-
         if ($data->form->rec->createdBy == '-1') {
             $data->form->setReadonly('name');
-            $data->form->setReadonly('userOrRole');
+            $data->form->setReadonly('type');
         }
     }
 
@@ -255,6 +269,7 @@ class tags_Tags extends core_Manager
         $fields = array(
             0 => 'name',
             1 => 'color',
+            2 => 'type',
         );
 
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
@@ -269,8 +284,8 @@ class tags_Tags extends core_Manager
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
-        if (!$rec->userOrRole) {
-            $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
+        if (!$rec->type) {
+            $rec->type = 'common';
         }
     }
 }
