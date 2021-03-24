@@ -83,6 +83,10 @@ class tags_plg_Add extends core_Plugin
      */
     public static function on_AfterGetDocumentRow($mvc, &$rowObj, $id)
     {
+        if (!isset($mvc->showTagsName)) {
+            $mvc->showTagsName = Mode::get('showTagsName');
+        }
+
         setIfNot($mvc->addTagsToSubtitle, 'after');
         setIfNot($mvc->showTagsName, true);
 
