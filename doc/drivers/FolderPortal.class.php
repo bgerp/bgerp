@@ -149,13 +149,14 @@ class doc_drivers_FolderPortal extends core_BaseClass
             $Threads->prepareListRows($data);
 
             foreach ($data->rows as $row) {
-                $txt = "<span class='portalAuthorTitle'><small>{$row->author}, {$row->last}</small></span>";
+                $subTitle = "\n<div class='threadSubTitle'>{$row->_subTitle}<span class='portalAuthorTitle'><small>{$row->author}, {$row->last}</small></span></div>";
+
+                $row->title = $row->_title;
+
                 if (is_string($row->title)) {
-                    $row->title = "<div class='portalTitleHolder'>" . $row->title .  $txt . '</div>';
+                    $row->title = $row->title .  $subTitle;
                 } elseif ($row->title instanceof core_Et) {
-                    $row->title->prepend("<div class='portalTitleHolder'>");
-                    $row->title->append($txt);
-                    $row->title->append('</div>');
+                    $row->title->append($subTitle);
                 }
             }
             
