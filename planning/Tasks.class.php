@@ -1001,7 +1001,20 @@ class planning_Tasks extends core_Master
             if (countR($notes)) {
                 $row->info .= "<div style='padding-bottom:7px'>" . implode(' | ', $notes) . "</div>";
             }
-            
+
+            // Линк към разходите, ако ПО е разходен обект
+            if(acc_Items::isItemInList($this, $rec->id, 'costObjects')){
+                $costsCount = doc_ExpensesSummary::fetchField("#containerId = {$rec->containerId}", 'count');
+
+                $costsCount = !empty($costsCount) ? $costsCount : 0;
+                $linkArr = array();
+                if (haveRole('ceo, acc, purchase, sales') && $this->haveRightFor('single')) {
+                    $linkArr = array($this, 'single', $rec->id, 'Sid' => $rec->containerId);
+                }
+                $costsCount = core_Type::getByName('int')->toVerbal($costsCount);
+                $row->costsCount = ht::createLinkRef($costsCount, $linkArr, 'false', 'title=Показване на разходите към документа');
+            }
+
             $row->modified = $row->modifiedOn . ' ' . tr('от||by') . ' ' . $row->modifiedBy;
             $row->modified = "<div style='text-align:center'> {$row->modified} </div>";
             $data->rows[$rec->id] = $row;
@@ -1037,9 +1050,12 @@ class planning_Tasks extends core_Master
         
         // Ако няма намерени записи, не се рендира нищо
         // Рендираме таблицата с намерените задачи
-        $table = cls::get('core_TableView', array('mvc' => $this));
-        $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart');
+        $listTableMvc = clone $this;
+        $listTableMvc->FNC('costsCount', 'int');
+
+        $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
+        $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart,costsCount');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         
         $tpl = $table->get($data->rows, $data->listFields);
