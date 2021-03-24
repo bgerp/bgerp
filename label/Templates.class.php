@@ -710,6 +710,7 @@ class label_Templates extends core_Master
         if ($tRec !== false) {
             label_TemplateFormats::delete("#templateId = {$tRec->id}");
             $arr = static::getPlaceholders($tRec->template);
+
             if (is_array($arr)) {
                 foreach ($arr as $placeholder) {
                     if (in_array($placeholder, self::$systemPlaceholders)) {
@@ -731,6 +732,9 @@ class label_Templates extends core_Master
                     } elseif($placeholder == 'BARCODE_WORK_CARDS'){
                         $params = array('Showing' => 'barcode', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '120', 'Height' => '60', 'Rotation' => 'no');
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif(is_array($array['htmlPlaceholders']) && in_array($placeholder, $array['htmlPlaceholders'])){
+                        $params = array();
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'html', $params);
                     } else {
                         $type = 'caption';
                         $params = array();

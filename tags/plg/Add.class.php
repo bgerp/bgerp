@@ -17,7 +17,6 @@ class tags_plg_Add extends core_Plugin
 {
 
 
-
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -35,8 +34,20 @@ class tags_plg_Add extends core_Plugin
                 $row->_rowTools->addLink('Маркер', $url, array('ef_icon' => 'img/16/mark.png', 'title' => 'Добавяне на маркер', 'order' => 19.999));
             }
         }
+    }
 
-        $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $rec->id);
+
+    /**
+     * Изпълнява се след подготовката на единичния изглед
+     * Подготвя иконата за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param object   $res
+     * @param object   $data
+     */
+    public function on_AfterPrepareSingle($mvc, &$res, &$data)
+    {
+        $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $data->rec->id);
 
         if (!empty($tagsArr)) {
             $tags = '';
@@ -44,8 +55,9 @@ class tags_plg_Add extends core_Plugin
             foreach ($tagsArr as $tagArr) {
                 $tags .= $tagArr['span'];
             }
-            $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
-            $row->DocumentSettingsLeft->prepend("<span class='documentTags'>{$tags}</span>");
+
+            $data->row->DocumentSettingsLeft = new ET($data->row->DocumentSettingsLeft);
+            $data->row->DocumentSettingsLeft->prepend("<span class='documentTags'>{$tags}</span>");
         }
     }
 
@@ -71,20 +83,46 @@ class tags_plg_Add extends core_Plugin
      */
     public static function on_AfterGetDocumentRow($mvc, &$rowObj, $id)
     {
+        if (!isset($mvc->showTagsName)) {
+            $mvc->showTagsName = Mode::get('showTagsName');
+        }
+
+        setIfNot($mvc->addTagsToSubtitle, 'after');
+        setIfNot($mvc->showTagsName, true);
+
+        if ($mvc->addTagsToSubtitle === false) {
+
+            return ;
+        }
+
         $rec = $mvc->fetchRec($id);
         if (!isset($rowObj)) {
             $rowObj = new stdClass();
         }
+
         if ($rec->id) {
             $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $id);
+
+            $sTitleStr = '';
             if (!empty($tagsArr)) {
-                $rowObj->subTitle .= "<span class='documentTags'>";
 
                 foreach ($tagsArr as $tArr) {
-                    $rowObj->subTitle .= $tArr['span'];
+                    if ($mvc->showTagsName) {
+                        $sTitleStr .= $tArr['span'];
+                    } else {
+                        $sTitleStr .= $tArr['spanNoName'];
+                    }
                 }
+            }
 
-                $rowObj->subTitle .= "</span>";
+            if ($rowObj->subTitle) {
+                $rowObj->subTitle = "<span class='otherSubtitleStr'>{$rowObj->subTitle}</span>";
+            }
+
+            if ($mvc->addTagsToSubtitle == 'after') {
+                $rowObj->subTitle = $rowObj->subTitle . $sTitleStr;
+            } else {
+                $rowObj->subTitle = $sTitleStr . $rowObj->subTitle;
             }
         }
     }
