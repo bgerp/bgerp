@@ -3923,7 +3923,7 @@ class cat_Products extends embed_Manager
 
     
     /**
-     * Дали артикула се среща в детайла на активни договори (Покупка и продажба)
+     * Дали артикула се среща в в активни документи
      *
      * @param int $productId
      *
@@ -3932,28 +3932,22 @@ class cat_Products extends embed_Manager
     private function isUsedInActiveDeal($productId)
     {
         $productId = (is_object($productId)) ? $productId->id : $productId;
-        
-        foreach (array('sales_SalesDetails', 'purchase_PurchasesDetails') as $Det) {
+        $arr = array('sales_SalesDetails', 'purchase_PurchasesDetails', 'sales_QuotationsDetails', 'planning_Jobs');
+
+        foreach ($arr as $Det) {
             $Detail = cls::get($Det);
             $dQuery = $Detail->getQuery();
-            $dQuery->EXT('state', $Detail->Master, "externalName=state,externalKey={$Detail->masterKey}");
-            $dQuery->where("#productId = {$productId} AND #state = 'active'");
+            if($Detail instanceof core_Detail){
+                $dQuery->EXT('state', $Detail->Master, "externalName=state,externalKey={$Detail->masterKey}");
+            }
+
+            $dQuery->where("#{$Detail->productFld} = {$productId} AND #state IN ('active', 'wakeup')");
             $dQuery->show('id');
             $dQuery->limit(1);
             
-            if ($dQuery->fetch()) {
-                return true;
-            }
+            if ($dQuery->fetch()) return true;
         }
-        
-        $jQuery = planning_Jobs::getQuery();
-        $jQuery->where("#productId = {$productId} AND #state IN ('active', 'wakeup', 'stopped')");
-        $jQuery->show('id');
-        $jQuery->limit(1);
-        if ($jQuery->fetch()) {
-            return true;
-        }
-        
+
         return false;
     }
     
@@ -3969,8 +3963,8 @@ class cat_Products extends embed_Manager
     public function getChangeStateWarning_($rec, $newState)
     {
         if ($newState == 'closed' && $this->isUsedInActiveDeal($rec)) {
-            $warning = 'Артикулът се използва в активни договори и/или задания. Сигурни ли сте, че искате да го закриете|*?';
-            
+            $warning = 'Артикулът се използва в активни договори и/или задания и/или оферти. Сигурни ли сте, че искате да го закриете|*?';
+
             return $warning;
         }
     }
@@ -3982,7 +3976,7 @@ class cat_Products extends embed_Manager
     protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
         if ($mvc->isUsedInActiveDeal($id)) {
-            core_Statuses::newStatus('Артикулът не може да бъде оттеглен, докато се използва в активни договори и/или задания', 'error');
+            core_Statuses::newStatus('Артикулът не може да бъде оттеглен, докато се използва в активни договори и/или задания и/или оферти', 'error');
             
             return false;
         }
