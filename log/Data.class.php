@@ -624,7 +624,29 @@ class log_Data extends core_Manager
         $data->listFilter->view = 'vertical';
         
         $data->listFilter->input($data->listFilter->showFields, 'silent');
-        
+
+        if (!$data->listFilter->rec->users) {
+            $usersId = Request::get('users');
+
+            if ($usersId && is_numeric($usersId)) {
+                $optArr = $data->listFilter->fields['users']->type->prepareOptions();
+
+                $uRec = core_Users::fetch($usersId);
+
+                $cUserObj = new stdClass();
+                $cUserObj->keylist = "|{$usersId}|";
+                $cUserObj->title = $uRec->nick . ' (' . $uRec->names . ')';;
+
+                $optArr = array($usersId => $cUserObj) + $optArr;
+
+                $data->listFilter->fields['users']->type->options = $optArr;
+
+                $data->listFilter->setDefault('users', $usersId);
+
+                $data->listFilter->input('users', 'silent');
+            }
+        }
+
         $rec = $data->listFilter->rec;
         $query = $data->query;
         
