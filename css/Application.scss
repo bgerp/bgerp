@@ -1760,25 +1760,50 @@ a.tOld {
 .portalHeaderTitle {
 	margin-right: 5px;
 }
-.documentTags {
-	margin: 0 1px 0 2px;
-	.tags {
-		opacity: 0.8;
-		font-size: 0.75em;
-		border: 1px solid #999;
-		border-radius: 3px;
-		padding: 1px 2px;
-		margin: 0 2px;
-		height: 18px;
-		font-weight: normal;
-		box-sizing: border-box;
-	}
+
+.tags {
+	font-size: 0.8em;
+	border: 1px solid #999;
+	border-radius: 3px;
+	padding: 1px 2px;
+	opacity: 0.9;
+	height: 18px;
+	font-weight: normal;
+	box-sizing: border-box;
+
 }
 
-.legend  .documentTags .tags{
+.portal .threadSubTitle .tags {
+	opacity: 1;
+	margin-left: 5px;
 	white-space: nowrap;
 	display: inline-block;
-	height: 20px;
+	width: 33px;
+	height: 9px;
+	overflow: hidden;
+	position: relative;
+	border-radius: 3px;
+	box-shadow: 1px 1px 0px rgba(0,0,0,0.3);
+}
+.otherSubtitleStr {
+	display: inline-block;
+}
+.doc_drivers_FolderPortal {
+	.threadSubTitle, .portalAuthorTitle {
+		clear: both;
+		display: block !important;
+	}
+}
+.portalAuthorTitle {
+	float: right;
+	font-size: 12px !important;
+}
+.legend  .documentTags .tags{
+	white-space: nowrap;
+	font-size: 11px;
+	display: inline-block;
+	height: 18px;
+	line-height: 16px;
 	padding-top: 0px;
 	margin-top: 1px;
 	margin-bottom: 1px;
@@ -7895,6 +7920,9 @@ body.narrow {
 	}
 	.tUnsighted {
 		font-weight: bold;
+	}
+	.threadSubTitle {
+		margin-left: 20px;
 	}
 }
 

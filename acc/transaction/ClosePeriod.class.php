@@ -649,7 +649,8 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         $reason60010 = 'Разходи за материали (неразпределени)';
         $reason603 = 'Разходи за амортизация (неразпределени)';
         $reason604 = $reason605 = 'Разходи за Труд (неразпределени)';
-        
+        $taskClassId = planning_Tasks::getClassId();
+
         $accs = array();
         foreach (array('601', '602', '603', '60010', '60020') as $sysId) {
             $id = acc_Accounts::getRecBySystemId($sysId)->id;
@@ -704,9 +705,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
             if ($pRec->canStore == 'yes' || $pRec->fixedAsset == 'yes' || $pRec->canConvert == 'yes') {
                 continue;
             }
-            
+
+            $costObjectClassId = acc_Items::fetchField($dRec->ent1Id, 'classId');
             // Ако разхода е отнесен към продажба, увеличава се прихода и
-            if (acc_Items::fetchField($dRec->ent1Id, 'classId') == $saleClassId) {
+            if ($costObjectClassId == $saleClassId) {
                 $saleId = acc_Items::fetchField($dRec->ent1Id, 'objectId');
                 $saleRec = sales_Sales::fetch($saleId, 'contragentId,contragentClassId');
                 $contragentItemId = acc_Items::fetchItem($saleRec->contragentClassId, $saleRec->contragentId)->id;
@@ -722,6 +724,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                         'debit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => abs($dRec->blQuantity)),
                         'credit' => array('700', array($saleRec->contragentClassId, $saleRec->contragentId), $dRec->ent1Id), 'reason' => 'Разходи за услуги и консумативи (неразпределени)');
                 }
+            } elseif($costObjectClassId == $taskClassId){
+
+                // Ако разходния обект е ПО - пропуска се
+                continue;
             } else {
                 
                 // Ако разхода не е към продажба, отива към Общите разходи

@@ -127,7 +127,12 @@ class tags_Tags extends core_Manager
 
             $resArr['span'] .= " style='background-color: {$rec->color}; color: {$color}'";
         }
-        $resArr['span'] .= '>' . $resArr['name'];
+
+        $name = $resArr['name'];
+
+        $resArr['spanNoName'] = $resArr['span'] . " title='{$name}'></span>";
+
+        $resArr['span'] .= '>' . $name;
 
         $resArr['span'] .= '</span>';
 

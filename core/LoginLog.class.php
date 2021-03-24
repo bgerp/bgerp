@@ -595,7 +595,7 @@ class core_LoginLog extends core_Manager
         
         // Поле за избор на потребител
         $data->listFilter->FNC('users', 'users(rolesForAll = admin, rolesForTeams = admin)', 'caption=Потребител,input,silent,autoFilter');
-        
+
         // Добавяме бутон
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -607,7 +607,29 @@ class core_LoginLog extends core_Manager
         
         // Инпутваме заявката
         $data->listFilter->input('users, status', 'silent');
-        
+
+        if (!$data->listFilter->rec->users) {
+            $usersId = Request::get('users');
+
+            if ($usersId && is_numeric($usersId)) {
+                $optArr = $data->listFilter->fields['users']->type->prepareOptions();
+
+                $uRec = core_Users::fetch($usersId);
+
+                $cUserObj = new stdClass();
+                $cUserObj->keylist = "|{$usersId}|";
+                $cUserObj->title = $uRec->nick . ' (' . $uRec->names . ')';;
+
+                $optArr = array($usersId => $cUserObj) + $optArr;
+
+                $data->listFilter->fields['users']->type->options = $optArr;
+
+                $data->listFilter->setDefault('users', $usersId);
+
+                $data->listFilter->input('users', 'silent');
+            }
+        }
+
         // Ако не избран потребител
         if (!$data->listFilter->rec->users) {
             

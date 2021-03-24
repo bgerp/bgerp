@@ -1086,7 +1086,10 @@ class doc_Threads extends core_Manager
                 $attr
             
             );
-            
+
+            $row->_title = $row->title;
+            $row->_subTitle = $docRow->subTitle;
+
             if ($docRow->subTitle) {
                 $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
             }
