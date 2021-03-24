@@ -71,6 +71,7 @@ class tags_plg_Add extends core_Plugin
     public static function on_AfterGetDocumentRow($mvc, &$rowObj, $id)
     {
         setIfNot($mvc->addTagsToSubtitle, 'after');
+        setIfNot($mvc->showTagsName, true);
 
         if ($mvc->addTagsToSubtitle === false) {
 
@@ -89,7 +90,11 @@ class tags_plg_Add extends core_Plugin
             if (!empty($tagsArr)) {
 
                 foreach ($tagsArr as $tArr) {
-                    $sTitleStr .= $tArr['span'];
+                    if ($mvc->showTagsName) {
+                        $sTitleStr .= $tArr['span'];
+                    } else {
+                        $sTitleStr .= $tArr['spanNoName'];
+                    }
                 }
             }
 
