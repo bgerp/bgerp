@@ -151,9 +151,11 @@ class doc_drivers_FolderPortal extends core_BaseClass
             foreach ($data->rows as $row) {
                 $txt = "<span class='portalAuthorTitle'><small>{$row->author}, {$row->last}</small></span>";
                 if (is_string($row->title)) {
-                    $row->title .= $txt;
+                    $row->title = "<div class='portalTitleHolder'>" . $row->title .  $txt . '</div>';
                 } elseif ($row->title instanceof core_Et) {
+                    $row->title->prepend("<div class='portalTitleHolder'>");
                     $row->title->append($txt);
+                    $row->title->append('</div>');
                 }
             }
             
