@@ -123,6 +123,10 @@ class tags_Logs extends core_Manager
             $resArr[$rec->id]['name'] = $tArr['name'];
 
             $resArr[$rec->id]['span'] = $tArr['span'];
+
+            $resArr[$rec->id]['spanNoName'] = $tArr['spanNoName'];
+
+            $resArr[$rec->id]['color'] = $tArr['color'];
         }
 
         if ($order) {

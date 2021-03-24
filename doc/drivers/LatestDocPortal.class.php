@@ -266,6 +266,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                     try {
                         $doc = doc_Containers::getDocument($lRec->id);
                         $dRow = $doc->getDocumentRow();
+
                         $title = $dRow->recTitle ? $dRow->recTitle: $dRow->title;
                         $title = trim($title);
                         if (!$title) {
