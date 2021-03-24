@@ -225,7 +225,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Дали да се добави subTitle в листовия изглед
      */
-    public $addSubTitleToList = true;
+    public $addSubTitleToList = 'title';
     
     
     /**

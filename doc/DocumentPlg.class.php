@@ -743,10 +743,10 @@ class doc_DocumentPlg extends core_Plugin
                 if ($subTitle) {
                     $subTitle = "<div class='threadSubTitle'>{$subTitle}</div>";
 
-                    if ($row->title instanceof core_ET) {
-                        $row->title->append($subTitle);
+                    if ($row->{$mvc->addSubTitleToList} instanceof core_ET) {
+                        $row->{$mvc->addSubTitleToList}->append($subTitle);
                     } else {
-                        $row->title .= $subTitle;
+                        $row->{$mvc->addSubTitleToList} .= $subTitle;
                     }
                 }
             }

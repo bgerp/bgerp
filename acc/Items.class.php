@@ -598,12 +598,6 @@ class acc_Items extends core_Manager
             $rec = new stdClass();
             $register = core_Cls::getInterface('acc_RegisterIntf', $classId);
             self::syncItemRec($rec, $register, $objectId);
-            
-            if (haveRole('debug')) {
-                $title = $Class->getTitleById($objectId);
-                $listName = acc_Lists::fetchField($listId, 'name');
-                core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listName}'");
-            }
         }
         
         $rec->classId = $classId;
