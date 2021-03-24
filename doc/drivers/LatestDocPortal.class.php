@@ -267,11 +267,10 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                         $doc = doc_Containers::getDocument($lRec->id);
                         if ($dRec->tags) {
                             $doc->instance->showTagsName = false;
-                        } else {
-                            $doc->instance->showTagsName = true;
                         }
-
                         $dRow = $doc->getDocumentRow();
+                        $doc->instance->showTagsName = true;
+
                         $title = $dRow->recTitle ? $dRow->recTitle: $dRow->title;
                         $title = trim($title);
                         if (!$title) {
