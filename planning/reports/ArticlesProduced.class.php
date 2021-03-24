@@ -64,16 +64,25 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=to,removeAndRefreshForm,placeholder=Всички,silent,single=none');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Произведени артикули->Групи артикули,after=to,removeAndRefreshForm,placeholder=Всички,silent,single=none');
 
 
         //Групиране на резултата
         $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=group');
 
+
+
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
 
         $fieldset->FLD('consumed', 'set(yes = )', 'caption=Покажи вложените материали,after=orderBy,single=none');
+
+        //Групи артикули
+        if (BGERP_GIT_BRANCH == 'dev') {
+            $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none');
+        } else {
+            $fieldset->FLD('groupsMat', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none');
+        }
 
         $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=orderBy,input=hiden,single=none');
 
@@ -200,7 +209,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
             //Вложени материали
             if ($rec->consumed == 'yes') {
-                $consumedItems = self::consumedItems($planningRec, $consumedItems);
+                $groupConsumedMat = $rec->groupsMat;
+                $consumedItems = self::consumedItems($planningRec, $consumedItems,$groupConsumedMat);
             }
 
 
@@ -459,7 +469,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
      * Намира вложените артикули по задание
      *
      */
-    private static function consumedItems($jobRec, $consumedItems)
+    private static function consumedItems($jobRec, $consumedItems,$groupConsumedMat)
     {
 
         $jobId = $jobRec->id;
@@ -484,8 +494,17 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $pQuery->EXT('threadId', "${master}", 'externalName=threadId,externalKey=noteId');
             $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
             $pQuery->EXT('valior', "${master}", 'externalName=valior,externalKey=noteId');
+            $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+
             $pQuery->where("#threadId = $jobRec->threadId");
             $pQuery->where("#state != 'rejected'");
+
+            if (!is_null($groupConsumedMat)){
+
+                $pQuery->likeKeylist('groups', $groupConsumedMat);
+
+            }
+
 
             while ($pRec = $pQuery->fetch()) {
 
