@@ -75,13 +75,14 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
 
-        $fieldset->FLD('consumed', 'set(yes = )', 'caption=Покажи вложените материали,after=orderBy,single=none');
+      //  $fieldset->FLD('consumed', 'set(yes = )', 'caption=Покажи вложените материали,after=orderBy,single=none');
 
+        $fieldset->FLD('consumed', 'enum(yes=ДА, no=НЕ)', 'caption=Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none');
+            $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
         } else {
-            $fieldset->FLD('groupsMat', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none');
+            $fieldset->FLD('groupsMat', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
         }
 
         $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=orderBy,input=hiden,single=none');
@@ -123,6 +124,14 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         $form->setDefault('groupBy', 'no');
         $form->setDefault('orderBy', 'code');
+
+        if ($rec->consumed == 'yes') {
+            $form->setField('groupsMat', 'input');
+            $form->setField('groups', 'input=hidden');
+            $form->setField('groupBy', 'input=hidden');
+
+        }
+
     }
 
 
