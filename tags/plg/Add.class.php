@@ -17,7 +17,6 @@ class tags_plg_Add extends core_Plugin
 {
 
 
-
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -71,20 +70,37 @@ class tags_plg_Add extends core_Plugin
      */
     public static function on_AfterGetDocumentRow($mvc, &$rowObj, $id)
     {
+        setIfNot($mvc->addTagsToSubtitle, 'after');
+
+        if ($mvc->addTagsToSubtitle === false) {
+
+            return ;
+        }
+
         $rec = $mvc->fetchRec($id);
         if (!isset($rowObj)) {
             $rowObj = new stdClass();
         }
+
         if ($rec->id) {
             $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $id);
+
+            $sTitleStr = '';
             if (!empty($tagsArr)) {
-                $rowObj->subTitle .= "<span class='documentTags'>";
 
                 foreach ($tagsArr as $tArr) {
-                    $rowObj->subTitle .= $tArr['span'];
+                    $sTitleStr .= $tArr['span'];
                 }
+            }
 
-                $rowObj->subTitle .= "</span>";
+            if ($rowObj->subTitle) {
+                $rowObj->subTitle = "<span class='otherSubtitleStr'>{$rowObj->subTitle}</span>";
+            }
+
+            if ($mvc->addTagsToSubtitle == 'after') {
+                $rowObj->subTitle = $rowObj->subTitle . $sTitleStr;
+            } else {
+                $rowObj->subTitle = $sTitleStr . $rowObj->subTitle;
             }
         }
     }
