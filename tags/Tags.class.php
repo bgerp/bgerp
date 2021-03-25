@@ -167,7 +167,7 @@ class tags_Tags extends core_Manager
             }
 
             $opt->attr = array('data-color' => $color);
-            $opt->labelStyle = "class='colorBox' style='background-color:{$color} !important;'";
+            $opt->insideLabel = "<span class='colorBox' style='background-color:{$color} !important;'></span>";
 
             $optArr[$tRec->id] = $opt;
 
