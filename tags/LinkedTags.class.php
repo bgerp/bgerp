@@ -178,7 +178,11 @@ class tags_LinkedTags extends core_Mvc
             
             return ;
         }
-        
+
+        if ($form->fields['comment']) {
+            $form->setField('comment', 'input=none');
+        }
+
         if (!$form->isSubmitted()) {
             
             return ;
