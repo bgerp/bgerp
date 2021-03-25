@@ -115,6 +115,8 @@ class tags_plg_Add extends core_Plugin
                 }
             }
 
+            $sTitleStr = "<span class='tagsHolder'>" . $sTitleStr . "</span>";
+
             if ($rowObj->subTitle) {
                 $rowObj->subTitle = "<span class='otherSubtitleStr'>{$rowObj->subTitle}</span>";
             }
