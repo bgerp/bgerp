@@ -1525,21 +1525,22 @@ a.tOld {
 .portalHeaderTitle {
   margin-right: 5px; }
 
-.legend  .documentTags .tags {
+.documentTags .tags {
   font-size: 0.7em;
   font-weight: normal !important;
   border: 1px solid #999999;
   border-radius: 3px;
-  padding: 1px 2px;
+  padding: 0px 2px 1px;
   opacity: 0.9;
   box-sizing: border-box;
   white-space: nowrap;
   display: inline-block;
   height: 18px;
   line-height: 16px;
-  padding-top: 0px;
-  margin: 1px 2px !important;
-  position: relative;
+  margin: 1px 3px !important;
+  position: relative; }
+
+.legend .documentTags .tags {
   top: -1px; }
 
 .portal .threadSubTitle .tags {
