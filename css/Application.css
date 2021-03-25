@@ -1046,9 +1046,9 @@ div.acc-detail {
       text-align: left !important; }
     .additionalInfo-holder .additionalInfo .aright {
       text-align: right !important; }
-  .additionalInfo-holder .tags {
+  .additionalInfo-holder .docTags {
     top: -1px !important; }
-    .additionalInfo-holder .tags .enTag {
+    .additionalInfo-holder .docTags .enTag {
       vertical-align: middle; }
   .additionalInfo-holder .anchor-arrow {
     cursor: pointer; }
