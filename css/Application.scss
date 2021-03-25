@@ -1761,52 +1761,105 @@ a.tOld {
 	margin-right: 5px;
 }
 
-.tags {
-	font-size: 0.8em;
-	border: 1px solid #999;
-	border-radius: 3px;
-	padding: 1px 2px;
-	opacity: 0.9;
-	height: 18px;
-	font-weight: normal;
-	box-sizing: border-box;
 
+.documentTags .tags{
+	font-size: 0.7em;
+	font-weight: normal !important;
+	border: 1px solid #999;
+	padding: 0px 2px 1px;
+	opacity: 0.9;
+	box-sizing: border-box;
+	white-space: nowrap;
+	display: inline-block;
+	height: 18px;
+	line-height: 16px;
+	margin: 1px 3px !important;
+	position: relative;
+	&.tagType-personal {
+		border-radius: 5px;
+	}
 }
 
+.doc_Threads .listTable .documentTags .tags{
+	font-size: 0.9em !important;
+	top: 0 !important
+}
+.doc_drivers_LatestDocPortal {
+	.portalLatestThreads.withoutSubtitle {
+		float: left;
+	}
+	.threadSubTitle.withoutSubtitle .tagsHolder {
+		position: relative;
+		top: 2px;
+		margin-bottom: 4px;
+	}
+
+	.portalLatestThreads, .portalLatestFoldes{
+		clear: both;
+	}
+}
+
+.narrow .portalAuthorTitle {
+	position: relative;
+	top: 2px;
+}
+
+.legend .documentTags .tags{
+	top: -1px;
+}
 .portal .threadSubTitle .tags {
 	opacity: 1;
 	margin-left: 5px;
 	white-space: nowrap;
 	display: inline-block;
-	width: 33px;
+	width: 9px;
 	height: 9px;
 	overflow: hidden;
 	position: relative;
-	border-radius: 3px;
-	box-shadow: 1px 1px 0px rgba(0,0,0,0.3);
-}
-.otherSubtitleStr {
-	display: inline-block;
-}
-.doc_drivers_FolderPortal {
-	.threadSubTitle, .portalAuthorTitle {
-		clear: both;
-		display: block !important;
+	border: 1px solid #999;
+	box-sizing: border-box;
+	top: 1px;
+	&.tagType-personal {
+		border-radius: 5px;
 	}
 }
-.portalAuthorTitle {
+
+.tagsHolder {
 	float: right;
-	font-size: 12px !important;
 }
-.legend  .documentTags .tags{
-	white-space: nowrap;
-	font-size: 11px;
-	display: inline-block;
-	height: 18px;
-	line-height: 16px;
-	padding-top: 0px;
-	margin-top: 1px;
-	margin-bottom: 1px;
+
+.doc_drivers_FolderPortal {
+	.threadSubTitle {
+		display: block !important;
+		clear: both;
+	}
+	.otherSubtitleStr {
+		clear: both;
+		float: left;
+		padding-top: 3px;
+	}
+	.portalAuthorTitle {
+		float: right;
+		display: block;
+		font-size: 12px !important;
+	}
+}
+
+.bgerp_drivers_Tasks {
+	.rightCol {
+		width: 38px;
+		.progress {
+			position: relative;
+			top: -2px;
+		}
+	}
+	.otherSubtitleStr {
+		display: inline-block;
+		padding-top: 3px !important;
+	}
+	.tagsHolder {
+		margin-right: -45px;
+	}
 }
 
 .narrow .document {

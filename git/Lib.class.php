@@ -96,7 +96,7 @@ class git_Lib
      *
      * @return  bool - FALSE при неуспех - или резултат от командата
      */
-    public static function fetchTags($repoPath, &$log)
+    public static function fetchTags($repoPath, &$log = null)
     {
         $command = 'fetch --tags 2>&1';
         $res = '';
