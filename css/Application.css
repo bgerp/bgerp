@@ -1573,7 +1573,7 @@ a.tOld {
   position: relative;
   border: 1px solid #999999;
   box-sizing: border-box;
-  box-sizing: border-box; }
+  top: 1px; }
   .portal .threadSubTitle .tags.tagType-personal {
     border-radius: 5px; }
 
