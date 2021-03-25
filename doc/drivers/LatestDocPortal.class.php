@@ -275,7 +275,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
 
                         $subTitle = $dRow->subTitle;
                         $subTitleClass = 'withoutSubtitle';
-                        if ($subTitle) {
+                        if (strip_tags($subTitle)) {
                             $subTitleClass = '';
                         }
 
