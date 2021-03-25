@@ -1766,7 +1766,6 @@ a.tOld {
 	font-size: 0.7em;
 	font-weight: normal !important;
 	border: 1px solid #999;
-	border-radius: 3px;
 	padding: 0px 2px 1px;
 	opacity: 0.9;
 	box-sizing: border-box;
@@ -1776,6 +1775,9 @@ a.tOld {
 	line-height: 16px;
 	margin: 1px 3px !important;
 	position: relative;
+	&.tagType-personal {
+		border-radius: 5px;
+	}
 }
 
 .doc_Threads .listTable .documentTags .tags{
@@ -1810,10 +1812,14 @@ a.tOld {
 	height: 9px;
 	overflow: hidden;
 	position: relative;
-	border-radius: 5px;
 	border: 1px solid #999;
 	box-sizing: border-box;
+	box-sizing: border-box;
+	&.tagType-personal {
+		border-radius: 5px;
+	}
 }
+
 .tagsHolder {
 	float: right;
 }
