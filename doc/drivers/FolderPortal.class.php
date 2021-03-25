@@ -147,12 +147,16 @@ class doc_drivers_FolderPortal extends core_BaseClass
             
             // Подготвяме редовете на таблицата
             $Threads->prepareListRows($data);
-            
+
             foreach ($data->rows as $row) {
+                $subTitle = "\n<div class='threadSubTitle'>{$row->_subTitle}<span class='portalAuthorTitle'>{$row->author}, {$row->last}</span></div>";
+
+                $row->title = $row->_title;
+
                 if (is_string($row->title)) {
-                    $row->title .= "<div style='float:right'><small>{$row->author}, {$row->last}</small></div>";
+                    $row->title = $row->title .  $subTitle;
                 } elseif ($row->title instanceof core_Et) {
-                    $row->title->append("<div style='float:right'><small>{$row->author}, {$row->last}</small></div>");
+                    $row->title->append($subTitle);
                 }
             }
             

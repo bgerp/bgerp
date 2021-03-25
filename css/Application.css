@@ -1518,6 +1518,70 @@ a.tOld {
     letter-spacing: 3px;
     color: #999999; }
 
+.header .documentTags {
+  position: relative;
+  top: -4px; }
+
+.portalHeaderTitle {
+  margin-right: 5px; }
+
+.documentTags .tags {
+  font-size: 0.7em;
+  font-weight: normal !important;
+  border: 1px solid #999999;
+  border-radius: 3px;
+  padding: 0px 2px 1px;
+  opacity: 0.9;
+  box-sizing: border-box;
+  white-space: nowrap;
+  display: inline-block;
+  height: 18px;
+  line-height: 16px;
+  margin: 1px 3px !important;
+  position: relative; }
+
+.legend .documentTags .tags {
+  top: -1px; }
+
+.portal .threadSubTitle .tags {
+  opacity: 1;
+  margin-left: 5px;
+  white-space: nowrap;
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 5px;
+  border: 1px solid #999999;
+  box-sizing: border-box; }
+
+.tagsHolder {
+  float: right; }
+
+  .doc_drivers_FolderPortal .threadSubTitle {
+    display: block !important;
+    clear: both; }
+  .doc_drivers_FolderPortal .otherSubtitleStr {
+    clear: both;
+    float: left;
+    padding-top: 3px; }
+  .doc_drivers_FolderPortal .portalAuthorTitle {
+    float: right;
+    display: block;
+    font-size: 12px !important; }
+
+  .bgerp_drivers_Tasks .rightCol {
+    width: 38px; }
+    .bgerp_drivers_Tasks .rightCol .progress {
+      position: relative;
+      top: -2px; }
+  .bgerp_drivers_Tasks .otherSubtitleStr {
+    display: inline-block;
+    padding-top: 3px !important; }
+  .bgerp_drivers_Tasks .tagsHolder {
+    margin-right: -45px; }
+
   .narrow .document span.state {
     padding: 2px 5px;
     border-radius: 3px;
@@ -1858,6 +1922,11 @@ a.tOld {
   .narrow .document-title-group .eyeIcon {
     margin-right: 5px; }
 
+.narrow .document-settings-left,
+.narrow .document-settings {
+  position: relative;
+  top: 3px; }
+
 .document-settings-left,
 .document-title-group {
   float: left;
@@ -2073,6 +2142,11 @@ pre.document {
   color: #335533; }
   .threadSubTitle .quiet {
     color: #cccccc; }
+  .threadSubTitle .documentTags {
+    position: relative;
+    top: 0; }
+    .threadSubTitle .documentTags span {
+      font-size: 0.95em; }
 
 .narrow .block_title {
   font-size: 1.2em; }
@@ -6927,6 +7001,8 @@ only screen and (max-width: 320px) {
       background-color: rgba(187, 255, 204, 0.6); }
   .portalNews .tUnsighted {
     font-weight: bold; }
+  .portalNews .threadSubTitle {
+    margin-left: 20px; }
 
 .document .reportHolder div.tab-control.alphabet div.tab-row .tab {
   padding: 4px 5px 5px !important;

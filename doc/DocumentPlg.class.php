@@ -166,6 +166,8 @@ class doc_DocumentPlg extends core_Plugin
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
         $mvc->fetchFieldsBeforeDelete = 'containerId';
+
+        setIfNot($mvc->addSubTitleToList, false);
     }
     
     
@@ -733,6 +735,22 @@ class doc_DocumentPlg extends core_Plugin
     public function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         Mode::pop('forListRows');
+
+        if ($mvc->addSubTitleToList !== false) {
+            foreach ($data->rows as $id => $row) {
+                $subTitle = $mvc->getDocumentRow($id)->subTitle;
+
+                if ($subTitle) {
+                    $subTitle = "<div class='threadSubTitle'>{$subTitle}</div>";
+
+                    if ($row->{$mvc->addSubTitleToList} instanceof core_ET) {
+                        $row->{$mvc->addSubTitleToList}->append($subTitle);
+                    } else {
+                        $row->{$mvc->addSubTitleToList} .= $subTitle;
+                    }
+                }
+            }
+        }
     }
     
     

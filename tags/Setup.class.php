@@ -36,14 +36,6 @@ class tags_Setup extends core_ProtoSetup
      */
     public $info = 'Тагове за документи';
 
-
-    /**
-     * Връзки от менюто, сочещи към модула
-     */
-    public $menuItems = array(
-        array(1.9899, 'Документи', 'Маркери', 'tags_Tags', 'default', 'ceo,admin'),
-    );
-
     
     /**
      * Списък с мениджърите, които съдържа пакета
@@ -51,5 +43,6 @@ class tags_Setup extends core_ProtoSetup
     public $managers = array(
         'tags_Tags',
         'tags_Logs',
+        'tags_LinkedTags',
     );
 }

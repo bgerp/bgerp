@@ -61,7 +61,7 @@ class ztm_Registers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'ztm_Wrapper, plg_Created, plg_State2, plg_RowTools2, plg_Modified, plg_Sorting';
+    public $loadList = 'ztm_Wrapper, plg_Created, plg_State2, plg_RowTools2, plg_Modified, plg_Sorting, plg_Search';
     
     
     /**
@@ -69,6 +69,12 @@ class ztm_Registers extends core_Master
      * @var string
      */
     public $listFields = 'id, name, type, range, plugin, scope, default, description';
+
+
+    /**
+     * @var string
+     */
+    public $searchFields = 'name, type, range, plugin, scope, default, description';
     
     
     /**
@@ -330,5 +336,25 @@ class ztm_Registers extends core_Master
                 $mvc->save($rec, 'state');
             }
         }
+    }
+
+
+    /**
+     * Изпълнява се след подготвянето на формата за филтриране
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     *
+     * @return bool
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
+    {
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        // Сортиране на записите по num
+        $data->query->orderBy('name', 'ASC');
     }
 }

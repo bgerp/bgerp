@@ -87,25 +87,31 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
-        
+
+        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Маркер, placeholder=Всички');
+
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
         $data->listFilter->setField('search', 'caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
         
         $data->listFilter->setDefault('author', 'all_users');
         
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, state, fromDate, toDate';
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, tags, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(null, 'silent');
         
         $filterRec = $data->listFilter->rec;
-        
+
+        $tagsArr = tags_Tags::getTagsOptions();
+        $data->listFilter->setSuggestions('tags', $tagsArr);
+
         $isFiltered =
         !empty($filterRec->search) ||
         !empty($filterRec->scopeFolderId) ||
         !empty($filterRec->docClass) ||
         !empty($filterRec->withMe) ||
+        !empty($filterRec->tags) ||
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate) ||
@@ -299,6 +305,11 @@ class doc_Search extends core_Manager
                     $data->query->where("#relation = 'shared'");
                     $data->query->where(array("#sharedBy = '[#1#]'", $currUserId));
                 }
+            }
+
+            if ($filterRec->tags) {
+                $data->query->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
+                $data->query->in('tags', $filterRec->tags);
             }
             
             if ($restrictAccess) {

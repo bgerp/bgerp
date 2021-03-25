@@ -1753,6 +1753,84 @@ a.tOld {
 		color: #999;
 	}
 }
+.header .documentTags {
+	position: relative;
+	top: -4px;
+}
+.portalHeaderTitle {
+	margin-right: 5px;
+}
+
+
+.documentTags .tags{
+	font-size: 0.7em;
+	font-weight: normal !important;
+	border: 1px solid #999;
+	border-radius: 3px;
+	padding: 0px 2px 1px;
+	opacity: 0.9;
+	box-sizing: border-box;
+	white-space: nowrap;
+	display: inline-block;
+	height: 18px;
+	line-height: 16px;
+	margin: 1px 3px !important;
+	position: relative;
+
+}
+.legend .documentTags .tags{
+	top: -1px;
+}
+.portal .threadSubTitle .tags {
+	opacity: 1;
+	margin-left: 5px;
+	white-space: nowrap;
+	display: inline-block;
+	width: 9px;
+	height: 9px;
+	overflow: hidden;
+	position: relative;
+	border-radius: 5px;
+	border: 1px solid #999;
+	box-sizing: border-box;
+}
+.tagsHolder {
+	float: right;
+}
+
+.doc_drivers_FolderPortal {
+	.threadSubTitle {
+		display: block !important;
+		clear: both;
+	}
+	.otherSubtitleStr {
+		clear: both;
+		float: left;
+		padding-top: 3px;
+	}
+	.portalAuthorTitle {
+		float: right;
+		display: block;
+		font-size: 12px !important;
+	}
+}
+
+.bgerp_drivers_Tasks {
+	.rightCol {
+		width: 38px;
+		.progress {
+			position: relative;
+			top: -2px;
+		}
+	}
+	.otherSubtitleStr {
+		display: inline-block;
+		padding-top: 3px !important;
+	}
+	.tagsHolder {
+		margin-right: -45px;
+	}
+}
 
 .narrow .document {
 	span.state {
@@ -2131,14 +2209,21 @@ a.tOld {
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 	display: inline;
 	float: none;
+
 	.liked, .disliked, .linkWithIcon {
 		position: relative;
 		top: 2px;
 		margin-left: 0;
 	}
+
 	.document-settings .linkWithIcon, .eyeIcon {
 		margin-right: 5px;
 	}
+}
+
+.narrow .document-settings-left, .narrow .document-settings {
+	position: relative;
+	top: 3px;
 }
 
 .document-settings-left, .document-title-group {
@@ -2399,6 +2484,13 @@ pre.document {
 	color: #353;
 	.quiet {
 		color: #ccc;
+	}
+	.documentTags {
+		position: relative;
+		top: 0;
+		span {
+			font-size: 0.95em;
+		}
 	}
 
 }
@@ -7851,6 +7943,9 @@ body.narrow {
 	}
 	.tUnsighted {
 		font-weight: bold;
+	}
+	.threadSubTitle {
+		margin-left: 20px;
 	}
 }
 

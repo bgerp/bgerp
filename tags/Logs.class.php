@@ -89,11 +89,14 @@ class tags_Logs extends core_Manager
         $this->setDbUnique('docClassId, docId, tagId, userId');
 
         $this->setDbIndex('docClassId, docId, userId');
+        $this->setDbIndex('docClassId, docId');
+        $this->setDbIndex('containerId');
+        $this->setDbIndex('tagId');
     }
 
 
     /**
-     * Помощна функция за вземана на маркерите към документи
+     * Помощна функция за вземана на таговете към документи
      *
      * @param mixed $docClassId
      * @param integer $docId
@@ -104,20 +107,26 @@ class tags_Logs extends core_Manager
      */
     public static function getTagsFor($docClassId, $docId, $userId = null, $order = true)
     {
-        if (!isset($userId)) {
-            $userId = core_Users::getCurrent();
-        }
-
         $query = self::getQuery();
         $query->where(array("#docClassId = '[#1#]'", $docClassId));
         $query->where(array("#docId = '[#1#]'", $docId));
-        $query->where(array("#userId = '[#1#]'", $userId));
+
+        if (isset($userId)) {
+            $query->where(array("#userId = '[#1#]'", $userId));
+        }
 
         $resArr = array();
 
         while ($rec = $query->fetch()) {
-            $v = self::recToVerbal($rec, 'tagId')->tagId;
-            $resArr[$rec->id] = $v;
+            $tArr = tags_Tags::getTagNameArr($rec->tagId);
+
+            $resArr[$rec->id]['name'] = $tArr['name'];
+
+            $resArr[$rec->id]['span'] = $tArr['span'];
+
+            $resArr[$rec->id]['spanNoName'] = $tArr['spanNoName'];
+
+            $resArr[$rec->id]['color'] = $tArr['color'];
         }
 
         if ($order) {
@@ -177,6 +186,88 @@ class tags_Logs extends core_Manager
 
 
     /**
+     *
+     * @param $form
+     * @param $cid
+     */
+    public static function prepareFormForTag(&$form, $cid)
+    {
+        $document = doc_Containers::getDocument($cid);
+        $docClassId = $document->getClassId();
+        $docId = $document->that;
+        $userId = core_Users::getCurrent();
+
+        $form->FNC('tags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28)', 'caption=Тагове, class=w100, input=input, silent');
+
+        $query = self::getQuery();
+        $query->where(array("#docClassId = '[#1#]'", $docClassId));
+        $query->where(array("#docId = '[#1#]'", $docId));
+
+        $query->show('tagId');
+
+        $form->_cQuery = clone $query;
+
+        $oldTagArr = array();
+        while ($oRec = $query->fetch()) {
+            $oldTagArr[$oRec->tagId] = $oRec->tagId;
+        }
+
+        $form->_oldTagArr = $oldTagArr;
+
+        $tagsArr = tags_Tags::getTagsOptions($oldTagArr);
+
+        $form->setSuggestions('tags', $tagsArr);
+
+        if (!empty($oldTagArr)) {
+            $form->setDefault('tags', $oldTagArr);
+        }
+    }
+
+
+    /**
+     * @param $form
+     * @param $cid
+     */
+    public static function onSubmitFormForTag($form, $cid)
+    {
+        $cQuery = $form->_cQuery;
+        $oldTagArr = $form->_oldTagArr;
+
+        $document = doc_Containers::getDocument($cid);
+        $docClassId = $document->getClassId();
+        $docId = $document->that;
+
+        $rec = $form->rec;
+
+        $tArr = type_Keylist::toArray($rec->tags);
+        foreach ($tArr as $tId) {
+
+            if (!$oldTagArr[$tId]) {
+                $rec = new stdClass();
+                $rec->docClassId = $docClassId;
+                $rec->docId = $docId;
+                $rec->tagId = $tId;
+                $rec->userId = core_Users::getCurrent();
+                $rec->containerId = $cid;
+
+                self::save($rec, null, 'IGNORE');
+            } else {
+                unset($oldTagArr[$tId]);
+            }
+        }
+
+        // Изтрива старите премахнати записи
+        if (!empty($oldTagArr)) {
+            $cQuery->in('tagId', $oldTagArr);
+
+            while ($oRec = $cQuery->fetch()) {
+                self::delete($oRec->id);
+            }
+        }
+    }
+
+
+    /**
      * Екшън за редакция на таговете
      *
      * @return Redirect
@@ -188,9 +279,6 @@ class tags_Logs extends core_Manager
         $cid = Request::get('id', 'int');
 
         $document = doc_Containers::getDocument($cid);
-        $docClassId = $document->getClassId();
-        $docId = $document->that;
-        $userId = core_Users::getCurrent();
 
         $dRec = $document->fetch();
 
@@ -198,46 +286,9 @@ class tags_Logs extends core_Manager
 
         $form = cls::get('core_Form');
 
-        $form->FLD('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Маркери');
-        $form->title = 'Промяна на маркери на документ';
+        $form->title = 'Промяна на таговете на документ';
 
-        $query = self::getQuery();
-        $query->where(array("#docClassId = '[#1#]'", $docClassId));
-        $query->where(array("#docId = '[#1#]'", $docId));
-        $query->where(array("#userId = '[#1#]'", $userId));
-
-        $query->show('tagId');
-
-        $cQuery = clone $query;
-
-        $oldTagArr = array();
-        while ($oRec = $query->fetch()) {
-            $oldTagArr[$oRec->tagId] = $oRec->tagId;
-        }
-
-        // Добавяме в избора само достъпните тагове
-        $tQuery = tags_Tags::getQuery();
-        $tQuery->where("#state = 'active'");
-        $tQuery->in('id', $oldTagArr, false, true);
-
-        $tQuery->where(array("#userOrRole = '[#1#]'", $userId));
-        $tQuery->orWhere(array("#userOrRole = '[#1#]'", type_UserOrRole::getAllSysTeamId()));
-        $tQuery->in('id', $oldTagArr, false, true);
-
-        $teamsArr = type_Keylist::toArray(core_Users::getUserRolesByType($userId, 'team'));
-        foreach ($teamsArr as $teamId) {
-            $tQuery->orWhere(array("#userOrRole = '[#1#]'", type_UserOrRole::getSysRoleId($teamId)));
-        }
-        $tQuery->show('id, name');
-        $tagsArr = array();
-        while ($tRec = $tQuery->fetch()) {
-            $tagsArr[$tRec->id] = $tRec->name;
-        }
-        $form->setSuggestions('tags', $tagsArr);
-
-        if (!empty($oldTagArr)) {
-            $form->setDefault('tags', $oldTagArr);
-        }
+        $this->prepareFormForTag($form, $cid);
 
         $rec = $form->input();
 
@@ -248,31 +299,9 @@ class tags_Logs extends core_Manager
 
         if ($form->isSubmitted()) {
 
-            $tArr = type_Keylist::toArray($rec->tags);
-            foreach ($tArr as $tId) {
+            $this->onSubmitFormForTag($form, $cid);
 
-                if (!$oldTagArr[$tId]) {
-                    $rec = new stdClass();
-                    $rec->docClassId = $docClassId;
-                    $rec->docId = $docId;
-                    $rec->tagId = $tId;
-                    $rec->userId = $userId;
-                    $rec->containerId = $cid;
-
-                    $this->save($rec, null, 'IGNORE');
-                } else {
-                    unset($oldTagArr[$tId]);
-                }
-            }
-
-            // Изтрива старите премахнати записи
-            if (!empty($oldTagArr)) {
-                $cQuery->in('tagId', $oldTagArr);
-
-                while ($oRec = $cQuery->fetch()) {
-                    $this->delete($oRec->id);
-                }
-            }
+            doc_Containers::logWrite('Промяна на таг', $cid);
 
             return new Redirect($retUrl);
         }
@@ -281,6 +310,28 @@ class tags_Logs extends core_Manager
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
 
         return $form->renderHtml();
+    }
+
+
+    /**
+     * Изпълнява се след запис на документ
+     *
+     * @param accda_Da $mvc
+     * @param integer $id
+     * @param stdClass $rec
+     * @param null|string|array $fields
+     */
+    public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
+    {
+        if ($rec->containerId) {
+            bgerp_Portal::invalidateCache(null, 'doc_drivers_FolderPortal');
+            bgerp_Portal::invalidateCache(null, 'doc_drivers_LatestDocPortal');
+            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Recently');
+            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Tasks');
+            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
+
+            doc_DocumentCache::cacheInvalidation($rec->containerId);
+        }
     }
 
 

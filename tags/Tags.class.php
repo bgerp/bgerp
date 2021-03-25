@@ -18,7 +18,7 @@ class tags_Tags extends core_Manager
     /**
      * Заглавие на модела
      */
-    public $title = 'Маркери';
+    public $title = 'Таг';
 
 
     /**
@@ -31,6 +31,12 @@ class tags_Tags extends core_Manager
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, admin';
+
+
+    /**
+     * Кой има право да променя?
+     */
+    public $canEditsysdata = 'ceo, admin';
 
 
     /**
@@ -81,9 +87,150 @@ class tags_Tags extends core_Manager
     public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, translate=user|tr|transliterate');
-        $this->FLD('userOrRole', 'userOrRole(rolesType=team, showRolesFirst=admin)', 'caption=Потребител, mandatory');
+        $this->FLD('type', 'enum(common=Общ, personal=Личен)', 'caption=Тип, mandatory');
+        $this->FLD('color', 'color_Type', 'caption=Цвят');
 
-        $this->setDbUnique('userOrRole, name');
+        $this->setDbUnique('name');
+    }
+
+
+    /**
+     * Връща името на тага и span с цвета
+     *
+     * @param integer $tagId
+     * @return array
+     */
+    public static function getTagNameArr($tagId)
+    {
+        $resArr = array();
+
+        if (!$tagId) {
+
+            return $resArr;
+        }
+
+        $rec = self::fetch($tagId);
+
+        if (!$rec) {
+
+            return $resArr;
+        }
+
+        $resArr['name'] = self::recToVerbal($rec, 'name')->name;
+
+        $resArr['span'] = '<span class="tags"';
+
+        if ($rec->color) {
+            $resArr['color'] = $rec->color;
+
+            $color = phpcolor_Adapter::checkColor($rec->color, 'dark') ? '#fff' : '#000';
+
+            $resArr['span'] .= " style='background-color: {$rec->color}; color: {$color}'";
+        }
+
+        $name = $resArr['name'];
+
+        $resArr['spanNoName'] = $resArr['span'] . " title='{$name}'></span>";
+
+        $resArr['span'] .= '>' . $name;
+
+        $resArr['span'] .= '</span>';
+
+        return $resArr;
+    }
+
+
+    /**
+     * Връща масив с таговоте за добавя в опциите
+     *
+     * @return array
+     */
+    public static function getTagsOptions($oldTagArr = array())
+    {
+        $tagsArr = array();
+        $tQuery = self::getQuery();
+        $tQuery->where("#state = 'active'");
+
+        if (!empty($oldTagArr)) {
+            $tQuery->in('id', $oldTagArr, false, true);
+        }
+
+        $tQuery->orderBy('name', 'ASC');
+        $tQuery->show('id, name, color');
+
+        while ($tRec = $tQuery->fetch()) {
+            $opt = new stdClass();
+            $opt->title = tags_tags::getVerbal($tRec, 'name');
+            $color = $tRec->color;
+            if (!$color) {
+                $color = ' '; // Прозрачен `background`
+            }
+
+            $opt->attr = array('data-color' => $color);
+            $opt->insideLabel = "<span class='colorBox' style='background-color:{$color} !important;'></span>";
+
+            $optArr[$tRec->id] = $opt;
+
+            $tagsArr[$tRec->id] = $opt;
+        }
+
+        return $tagsArr;
+    }
+
+
+    /**
+     * Помощна фунцкия за декорира и вземане на таговете
+     *
+     * @param stdClass $rec
+     *
+     * @return string
+     */
+    public static function decorateTags($tArr, $prevText = '')
+    {
+        $tags = '';
+
+        if (!is_array($tArr)) {
+            $tArr = type_Keylist::toArray($tArr);
+        }
+
+        foreach ($tArr as $tId) {
+            $tRecArr = tags_Tags::getTagNameArr($tId);
+            $tags .= $tRecArr['span'];
+        }
+
+        $tags = "<span class='documentTags'>" . $prevText . $tags . "</span>";
+
+        return $tags;
+    }
+
+
+    /**
+     * От подадения масив връща всички активни персонални тагоаве
+     *
+     * @param array $pTagsArr
+     * @return array
+     */
+    public static function getPersonalTags($pTagsArr = array(), $onlyActive = true)
+    {
+        $query = self::getQuery();
+        $query->where("#type = 'personal'");
+
+        if ($onlyActive) {
+            $query->where("#state = 'active'");
+        }
+
+        if (!empty($pTagsArr)) {
+            $query->in('id', $pTagsArr);
+        }
+
+        $query->show('id');
+
+        $resArr = array();
+        while ($rec = $query->fetch()) {
+            $resArr[$rec->id] = $rec->id;
+        }
+
+        return $resArr;
     }
 
 
@@ -92,7 +239,10 @@ class tags_Tags extends core_Manager
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
-        $data->form->setDefault('userOrRole', type_UserOrRole::getAllSysTeamId());
+        if ($data->form->rec->createdBy == '-1') {
+            $data->form->setReadonly('name');
+            $data->form->setReadonly('type');
+        }
     }
 
 
@@ -125,6 +275,8 @@ class tags_Tags extends core_Manager
         $file = 'tags/csv/Tags.csv';
         $fields = array(
             0 => 'name',
+            1 => 'color',
+            2 => 'type',
         );
 
         $cntObj = csv_Lib::importOnce($mvc, $file, $fields);
@@ -139,8 +291,8 @@ class tags_Tags extends core_Manager
      */
     public static function on_BeforeImportRec($mvc, &$rec)
     {
-        if (!$rec->userOrRole) {
-            $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
+        if (!$rec->type) {
+            $rec->type = 'common';
         }
     }
 }
