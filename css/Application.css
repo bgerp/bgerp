@@ -1555,6 +1555,10 @@ a.tOld {
   .doc_drivers_LatestDocPortal .portalLatestFoldes {
     clear: both; }
 
+.narrow .portalAuthorTitle {
+  position: relative;
+  top: 2px; }
+
 .legend .documentTags .tags {
   top: -1px; }
 
