@@ -695,7 +695,11 @@ select.combo {
 		color: blue !important;
 	}
 }
-
+label .colorBox {
+	position: relative;
+	top: 4px;
+	margin-right: 5px;
+}
 
 .checkbox, input[type=checkbox] {
 	margin: 3px 3px 3px 4px;

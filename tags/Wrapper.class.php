@@ -20,7 +20,7 @@ class tags_Wrapper extends plg_ProtoWrapper
      */
     public function description()
     {
-        $this->TAB('tags_Tags', 'Маркери', 'ceo,admin');
+        $this->TAB('tags_Tags', 'Тагове', 'ceo,admin');
         $this->TAB('tags_Logs', 'Логове', 'ceo,admin');
     }
 }
