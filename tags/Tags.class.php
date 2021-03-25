@@ -118,7 +118,7 @@ class tags_Tags extends core_Manager
 
         $resArr['name'] = self::recToVerbal($rec, 'name')->name;
 
-        $resArr['span'] = '<span class="tags"';
+        $resArr['span'] = "<span class='tags tagType-{$rec->type}'";
 
         if ($rec->color) {
             $resArr['color'] = $rec->color;
@@ -156,7 +156,7 @@ class tags_Tags extends core_Manager
         }
 
         $tQuery->orderBy('name', 'ASC');
-        $tQuery->show('id, name, color');
+        $tQuery->show('id, name, color, type');
 
         while ($tRec = $tQuery->fetch()) {
             $opt = new stdClass();
@@ -167,7 +167,7 @@ class tags_Tags extends core_Manager
             }
 
             $opt->attr = array('data-color' => $color);
-            $opt->insideLabel = "<span class='colorBox' style='background-color:{$color} !important;'></span>";
+            $opt->insideLabel = "<span class='colorBox tagType-{$tRec->type}' style='background-color:{$color} !important;'></span>";
 
             $optArr[$tRec->id] = $opt;
 
