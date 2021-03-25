@@ -1776,8 +1776,26 @@ a.tOld {
 	line-height: 16px;
 	margin: 1px 3px !important;
 	position: relative;
-
 }
+
+.doc_Threads .listTable .documentTags .tags{
+	font-size: 0.9em !important;
+	top: 0 !important
+}
+
+.portalLatestThreads.withoutSubtitle {
+	float: left;
+}
+
+.threadSubTitle.withoutSubtitle .tagsHolder {
+	position: relative;
+	top: 2px;
+}
+
+.portalLatestThreads, .portalLatestFoldes{
+	clear: both;
+}
+
 .legend .documentTags .tags{
 	top: -1px;
 }
