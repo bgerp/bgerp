@@ -273,9 +273,13 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
                             $title = '[' . tr('Липсва заглавие') . ']';
                         }
 
-                        $dRowStr = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . '</div>';
-
                         $subTitle = $dRow->subTitle;
+                        $subTitleClass = 'withoutSubtitle';
+                        if ($subTitle) {
+                            $subTitleClass = '';
+                        }
+
+                        $dRowStr = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted} {$subTitleClass}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . '</div>';
                         if ($subTitle) {
                             $dRowStr .= "<div class='threadSubTitle'>{$subTitle}</div>";
                         }
