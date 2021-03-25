@@ -1559,6 +1559,9 @@ a.tOld {
   position: relative;
   top: 2px; }
 
+.narrow .documentTags {
+  white-space: normal !important; }
+
 .legend .documentTags .tags {
   top: -1px; }
 
