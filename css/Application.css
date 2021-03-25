@@ -1544,16 +1544,14 @@ a.tOld {
   font-size: 0.9em !important;
   top: 0 !important; }
 
-.portalLatestThreads.withoutSubtitle {
-  float: left; }
-
-.threadSubTitle.withoutSubtitle .tagsHolder {
-  position: relative;
-  top: 2px; }
-
-.portalLatestThreads,
-.portalLatestFoldes {
-  clear: both; }
+  .doc_drivers_LatestDocPortal .portalLatestThreads.withoutSubtitle {
+    float: left; }
+  .doc_drivers_LatestDocPortal .threadSubTitle.withoutSubtitle .tagsHolder {
+    position: relative;
+    top: 2px; }
+  .doc_drivers_LatestDocPortal .portalLatestThreads,
+  .doc_drivers_LatestDocPortal .portalLatestFoldes {
+    clear: both; }
 
 .legend .documentTags .tags {
   top: -1px; }

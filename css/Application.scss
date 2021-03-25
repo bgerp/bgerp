@@ -1782,19 +1782,21 @@ a.tOld {
 	font-size: 0.9em !important;
 	top: 0 !important
 }
+.doc_drivers_LatestDocPortal {
+	.portalLatestThreads.withoutSubtitle {
+		float: left;
+	}
 
-.portalLatestThreads.withoutSubtitle {
-	float: left;
+	.threadSubTitle.withoutSubtitle .tagsHolder {
+		position: relative;
+		top: 2px;
+	}
+
+	.portalLatestThreads, .portalLatestFoldes{
+		clear: both;
+	}
 }
 
-.threadSubTitle.withoutSubtitle .tagsHolder {
-	position: relative;
-	top: 2px;
-}
-
-.portalLatestThreads, .portalLatestFoldes{
-	clear: both;
-}
 
 .legend .documentTags .tags{
 	top: -1px;
