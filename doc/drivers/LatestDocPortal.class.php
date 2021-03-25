@@ -281,7 +281,7 @@ class doc_drivers_LatestDocPortal extends core_BaseClass
 
                         $dRowStr = "<div class='portalLatestThreads state-{$tRec->state} {$tUnsighted} {$subTitleClass}'>" . ht::createLink(str::limitLen($title, 50), $doc->getSingleUrlArray(), null, array('ef_icon' => $doc->getIcon())) . '</div>';
                         if ($subTitle) {
-                            $dRowStr .= "<div class='threadSubTitle'>{$subTitle}</div>";
+                            $dRowStr .= "<div class='threadSubTitle {$subTitleClass}'>{$subTitle}</div>";
                         }
 
                         $docRowArr[] = $dRowStr;
