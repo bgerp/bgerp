@@ -314,6 +314,28 @@ class tags_Logs extends core_Manager
 
 
     /**
+     * Изпълнява се след запис на документ
+     *
+     * @param accda_Da $mvc
+     * @param integer $id
+     * @param stdClass $rec
+     * @param null|string|array $fields
+     */
+    public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
+    {
+        if ($rec->containerId) {
+            bgerp_Portal::invalidateCache(null, 'doc_drivers_FolderPortal');
+            bgerp_Portal::invalidateCache(null, 'doc_drivers_LatestDocPortal');
+            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Recently');
+            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Tasks');
+            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
+
+            doc_DocumentCache::cacheInvalidation($rec->containerId);
+        }
+    }
+
+
+    /**
      * Филтър на on_AfterPrepareListFilter()
      * Малко манипулации след подготвянето на формата за филтриране
      *
