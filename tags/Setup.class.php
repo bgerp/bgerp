@@ -44,5 +44,16 @@ class tags_Setup extends core_ProtoSetup
         'tags_Tags',
         'tags_Logs',
         'tags_LinkedTags',
+        'migrate::deleteBadTags'
     );
+
+
+    /**
+     * Премахва лошите данни
+     */
+    public function deleteBadTags()
+    {
+        tags_Tags::delete("#name = 'Стартирано'");
+        tags_Tags::delete("#name = 'Взето'");
+    }
 }

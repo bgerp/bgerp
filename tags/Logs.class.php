@@ -96,7 +96,7 @@ class tags_Logs extends core_Manager
 
 
     /**
-     * Помощна функция за вземана на маркерите към документи
+     * Помощна функция за вземана на таговете към документи
      *
      * @param mixed $docClassId
      * @param integer $docId
@@ -197,7 +197,7 @@ class tags_Logs extends core_Manager
         $docId = $document->that;
         $userId = core_Users::getCurrent();
 
-        $form->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Маркери, class=w100, input=input, silent');
+        $form->FNC('tags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове, class=w100, input=input, silent');
 
         $query = self::getQuery();
         $query->where(array("#docClassId = '[#1#]'", $docClassId));
@@ -286,7 +286,7 @@ class tags_Logs extends core_Manager
 
         $form = cls::get('core_Form');
 
-        $form->title = 'Промяна на маркери на документ';
+        $form->title = 'Промяна на таговете на документ';
 
         $this->prepareFormForTag($form, $cid);
 
@@ -301,7 +301,7 @@ class tags_Logs extends core_Manager
 
             $this->onSubmitFormForTag($form, $cid);
 
-            doc_Containers::logWrite('Промяна на маркер', $cid);
+            doc_Containers::logWrite('Промяна на таг', $cid);
 
             return new Redirect($retUrl);
         }
@@ -310,6 +310,28 @@ class tags_Logs extends core_Manager
         $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png');
 
         return $form->renderHtml();
+    }
+
+
+    /**
+     * Изпълнява се след запис на документ
+     *
+     * @param accda_Da $mvc
+     * @param integer $id
+     * @param stdClass $rec
+     * @param null|string|array $fields
+     */
+    public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
+    {
+        if ($rec->containerId) {
+            bgerp_Portal::invalidateCache(null, 'doc_drivers_FolderPortal');
+            bgerp_Portal::invalidateCache(null, 'doc_drivers_LatestDocPortal');
+            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Recently');
+            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Tasks');
+            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
+
+            doc_DocumentCache::cacheInvalidation($rec->containerId);
+        }
     }
 
 

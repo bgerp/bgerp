@@ -1947,7 +1947,7 @@ abstract class deals_Helper
                 }
             }
 
-            $string = '<style>' . $style . "</style><span class='tags'>" . $string . '</span>';
+            $string = '<style>' . $style . "</style><span class='docTags'>" . $string . '</span>';
 
             return $string;
         }
