@@ -115,7 +115,13 @@ class tags_plg_Add extends core_Plugin
                 }
             }
 
-            $sTitleStr = "<span class='tagsHolder'>" . $sTitleStr . "</span>";
+            if (!isset($mvc->tagsClassHolderName)) {
+                $mvc->tagsClassHolderName = Mode::get('tagsClassHolderName');
+            }
+
+            setIfNot($mvc->tagsClassHolderName, 'documentTags');
+
+            $sTitleStr = "<span class='{$mvc->tagsClassHolderName}'>" . $sTitleStr . "</span>";
 
             if ($rowObj->subTitle) {
                 $rowObj->subTitle = "<span class='otherSubtitleStr'>{$rowObj->subTitle}</span>";
