@@ -96,7 +96,7 @@ class tags_Logs extends core_Manager
 
 
     /**
-     * Помощна функция за вземана на маркерите към документи
+     * Помощна функция за вземана на таговете към документи
      *
      * @param mixed $docClassId
      * @param integer $docId
@@ -197,7 +197,7 @@ class tags_Logs extends core_Manager
         $docId = $document->that;
         $userId = core_Users::getCurrent();
 
-        $form->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Маркери, class=w100, input=input, silent');
+        $form->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Тагове, class=w100, input=input, silent');
 
         $query = self::getQuery();
         $query->where(array("#docClassId = '[#1#]'", $docClassId));
@@ -286,7 +286,7 @@ class tags_Logs extends core_Manager
 
         $form = cls::get('core_Form');
 
-        $form->title = 'Промяна на маркери на документ';
+        $form->title = 'Промяна на таговете на документ';
 
         $this->prepareFormForTag($form, $cid);
 
@@ -301,7 +301,7 @@ class tags_Logs extends core_Manager
 
             $this->onSubmitFormForTag($form, $cid);
 
-            doc_Containers::logWrite('Промяна на маркер', $cid);
+            doc_Containers::logWrite('Промяна на таг', $cid);
 
             return new Redirect($retUrl);
         }

@@ -18,7 +18,7 @@ class tags_Tags extends core_Manager
     /**
      * Заглавие на модела
      */
-    public $title = 'Маркери';
+    public $title = 'Таг';
 
 
     /**
@@ -177,7 +177,7 @@ class tags_Tags extends core_Manager
 
 
     /**
-     * Помощна фунцкия за декорира и вземане на маркерите
+     * Помощна фунцкия за декорира и вземане на таговете
      *
      * @param stdClass $rec
      *

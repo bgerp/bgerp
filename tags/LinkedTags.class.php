@@ -123,7 +123,7 @@ class tags_LinkedTags extends core_Mvc
         $resArr = array();
 
         if ($type) {
-            $resArr[get_called_class()] = 'Маркер';
+            $resArr[get_called_class()] = 'Таг';
         }
 
         return $resArr;
@@ -201,7 +201,7 @@ class tags_LinkedTags extends core_Mvc
 
         tags_Logs::onSubmitFormForTag($form, $cId);
 
-        doc_Containers::logWrite('Промяна на маркер', $cId);
+        doc_Containers::logWrite('Промяна на таг', $cId);
 
         return new Redirect($retUrl);
     }
