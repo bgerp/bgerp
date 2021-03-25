@@ -197,7 +197,7 @@ class tags_Logs extends core_Manager
         $docId = $document->that;
         $userId = core_Users::getCurrent();
 
-        $form->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Тагове, class=w100, input=input, silent');
+        $form->FNC('tags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28)', 'caption=Тагове, class=w100, input=input, silent');
 
         $query = self::getQuery();
         $query->where(array("#docClassId = '[#1#]'", $docClassId));
