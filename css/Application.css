@@ -1549,7 +1549,8 @@ a.tOld {
     float: left; }
   .doc_drivers_LatestDocPortal .threadSubTitle.withoutSubtitle .tagsHolder {
     position: relative;
-    top: 2px; }
+    top: 2px;
+    margin-bottom: 4px; }
   .doc_drivers_LatestDocPortal .portalLatestThreads,
   .doc_drivers_LatestDocPortal .portalLatestFoldes {
     clear: both; }
