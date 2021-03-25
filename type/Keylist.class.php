@@ -305,7 +305,14 @@ class type_Keylist extends core_Type
                     } else {
                         unset($attrCB['checked']);
                     }
-                    
+
+                    $labelStyle = '';
+                    if (is_object($v) && $v->labelStyle) {
+                        $labelStyle = $v->labelStyle;
+                    }
+
+                    $oldV = $v;
+
                     $v = type_Key::getOptionTitle($v);
                     
                     $cb = ht::createElement('input', $attrCB);
@@ -324,7 +331,7 @@ class type_Keylist extends core_Type
                         $v = "<span class='{$class}'>" . $v . '</span>';
                     }
                     
-                    $cb->append("<label {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
+                    $cb->append("<label {$labelStyle} {$title} data-colsInRow='" .$col   . "' for=\"" . $attrCB['id'] . "\">{$v}</label>");
                     
                     if ($i == 0 && $j > 0) {
                         $html .= "\n<tr class='row-" .$j . "'>";
