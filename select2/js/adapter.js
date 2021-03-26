@@ -18,12 +18,13 @@ function formatSelect2Data(data)
 	}
 
 	if (color = getDataAttr(data, 'data-color')) {
+		colorClass = getDataAttr(data, 'data-colorClass');
 		if(color == "#fd0203") {
 			colorfulClass = "colorful";
 		} else {
 			colorfulClass = "";
 		}
-		text = "<div class='color-preview " + colorfulClass + "' style='background-color:" + color + "'> </div>&nbsp;" + text;
+		text = "<div class='color-preview " + colorfulClass + " " + colorClass +  "' style='background-color:" + color + "'> </div>&nbsp;" + text;
 	}
 	
 	if (data.loading) return text;
@@ -54,14 +55,15 @@ function formatSelect2Data(data)
 function formatSelect2DataSelection(data)
 {
 	var text = data.text;
-	
+
 	if (color = getDataAttr(data, 'data-color')) {
+		colorClass = getDataAttr(data, 'data-colorClass');
 		if(color == "#fd0203") {
 			colorfulClass = "colorful";
 		} else {
 			colorfulClass = "";
 		}
-		text = "<span><div class='color-preview " + colorfulClass + "' style='background-color:" + color + " ; margin-bottom: 2px;'> </div>&nbsp;" + text + "</span>";
+		text = "<span><div class='color-preview " + colorfulClass + " " + colorClass + "' style='background-color:" + color + " ; margin-bottom: 2px;'> </div>&nbsp;" + text + "</span>";
 		
 		text = $(text);
 	}

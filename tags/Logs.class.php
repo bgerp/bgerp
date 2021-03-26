@@ -86,12 +86,33 @@ class tags_Logs extends core_Manager
         $this->FLD('tagId', 'key(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Таг, refreshForm');
         $this->FLD('userId', 'user', 'caption=Потребител');
 
-        $this->setDbUnique('docClassId, docId, tagId, userId');
+        $this->setDbUnique('containerId, tagId, userId');
 
         $this->setDbIndex('docClassId, docId, userId');
         $this->setDbIndex('docClassId, docId');
         $this->setDbIndex('containerId');
         $this->setDbIndex('tagId');
+    }
+
+
+    /**
+     * Добавя ограничение за типа
+     *
+     * @param $query
+     * @param $userId
+     */
+    protected static function restrictQueryByType(&$query, $userId = null)
+    {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+
+        $query->EXT('type', 'tags_Tags', 'externalKey=tagId');
+
+        if ($userId) {
+            $query->where("#type != 'personal'");
+            $query->orWhere(array("#type = 'personal' AND #createdBy = '[#1#]'", $userId));
+        }
     }
 
 
@@ -107,12 +128,20 @@ class tags_Logs extends core_Manager
      */
     public static function getTagsFor($docClassId, $docId, $userId = null, $order = true)
     {
+        if (!isset($userId)) {
+            $userId = core_Users::getCurrent();
+        }
+
         $query = self::getQuery();
         $query->where(array("#docClassId = '[#1#]'", $docClassId));
         $query->where(array("#docId = '[#1#]'", $docId));
 
-        if (isset($userId)) {
-            $query->where(array("#userId = '[#1#]'", $userId));
+        self::restrictQueryByType($query, $userId);
+
+        if ($order) {
+            $query->orderBy('type', 'DESC');
+            $query->EXT('name', 'tags_Tags', 'externalKey=tagId');
+            $query->orderBy('name', 'ASC');
         }
 
         $resArr = array();
@@ -129,10 +158,6 @@ class tags_Logs extends core_Manager
             $resArr[$rec->id]['color'] = $tArr['color'];
         }
 
-        if ($order) {
-            asort($resArr);
-        }
-
         return $resArr;
     }
 
@@ -144,7 +169,7 @@ class tags_Logs extends core_Manager
      * @param stdClass     $row Това ще се покаже
      * @param stdClass     $rec Това е записа в машинно представяне
      */
-    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         if (cls::load($rec->docClassId)) {
             $inst = cls::get($rec->docClassId);
@@ -155,6 +180,13 @@ class tags_Logs extends core_Manager
 
         if (!$row->docLink) {
             $row->docLink = tr('Липсващ документ');
+        }
+
+        if ($fields['-list']) {
+            if ($rec->tagId) {
+                $tArr = tags_Tags::getTagNameArr($rec->tagId);
+                $row->tagId = "<span class='documentTags'>" . $tArr['spanNoName'] . $row->tagId . '</span>';
+            }
         }
     }
 
@@ -197,15 +229,18 @@ class tags_Logs extends core_Manager
         $docId = $document->that;
         $userId = core_Users::getCurrent();
 
-        $form->FNC('tags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове, class=w100, input=input, silent');
+        $form->FNC('personalTags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове->Персонални, class=w100, input=input, silent');
+        $form->FNC('commonTags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове->Общи, class=w100, input=input, silent');
 
         $query = self::getQuery();
         $query->where(array("#docClassId = '[#1#]'", $docClassId));
         $query->where(array("#docId = '[#1#]'", $docId));
 
+        $form->_cQuery = clone $query;
+
         $query->show('tagId');
 
-        $form->_cQuery = clone $query;
+        self::restrictQueryByType($query, core_Users::getCurrent());
 
         $oldTagArr = array();
         while ($oRec = $query->fetch()) {
@@ -216,10 +251,12 @@ class tags_Logs extends core_Manager
 
         $tagsArr = tags_Tags::getTagsOptions($oldTagArr);
 
-        $form->setSuggestions('tags', $tagsArr);
+        $form->setSuggestions('personalTags', $tagsArr['personal']);
+        $form->setSuggestions('commonTags', $tagsArr['common']);
 
         if (!empty($oldTagArr)) {
-            $form->setDefault('tags', $oldTagArr);
+            $form->setDefault('personalTags', $oldTagArr);
+            $form->setDefault('commonTags', $oldTagArr);
         }
     }
 
@@ -239,7 +276,8 @@ class tags_Logs extends core_Manager
 
         $rec = $form->rec;
 
-        $tArr = type_Keylist::toArray($rec->tags);
+        $tArr = type_Keylist::toArray($rec->personalTags) + type_Keylist::toArray($rec->commonTags);
+
         foreach ($tArr as $tId) {
 
             if (!$oldTagArr[$tId]) {
@@ -260,10 +298,24 @@ class tags_Logs extends core_Manager
         if (!empty($oldTagArr)) {
             $cQuery->in('tagId', $oldTagArr);
 
+            $cu = core_Users::getCurrent();
+
             while ($oRec = $cQuery->fetch()) {
-                self::clearCache(self::fetchField($oRec->id, 'containerId'));
+
+                $tagType = tags_Tags::fetchField($oRec->tagId, 'type');
+
+                if ($tagType == 'personal') {
+                    if ($oRec->createdBy != $cu) {
+
+                        continue;
+                    }
+                }
+
+                $containerId = $oRec->containerId;
 
                 self::delete($oRec->id);
+
+                self::clearCache($containerId);
             }
         }
     }
@@ -360,6 +412,9 @@ class tags_Logs extends core_Manager
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'tagId';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $tagsArr = tags_Tags::getTagsOptions();
+        $data->listFilter->setOptions('tagId', $tagsArr['all']);
 
         $data->listFilter->input(null, 'silent');
 
