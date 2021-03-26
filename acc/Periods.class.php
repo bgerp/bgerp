@@ -560,11 +560,7 @@ class acc_Periods extends core_Manager
         $this->requireRightFor('close', $rec);
         
         // Новото състояние е 'Затворен';
-        if ($rec->state == 'closed') {
-				$rec->state = 'active';
-			} else {
-				$rec->state = 'closed';
-			}
+        $rec->state = 'closed';
         
         $this->save($rec);
         
