@@ -261,6 +261,8 @@ class tags_Logs extends core_Manager
             $cQuery->in('tagId', $oldTagArr);
 
             while ($oRec = $cQuery->fetch()) {
+                self::clearCache(self::fetchField($oRec->id, 'containerId'));
+
                 self::delete($oRec->id);
             }
         }
@@ -324,14 +326,25 @@ class tags_Logs extends core_Manager
     public static function on_AfterSave($mvc, &$id, $rec, $fields = null)
     {
         if ($rec->containerId) {
-            bgerp_Portal::invalidateCache(null, 'doc_drivers_FolderPortal');
-            bgerp_Portal::invalidateCache(null, 'doc_drivers_LatestDocPortal');
-            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Recently');
-            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Tasks');
-            bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
-
-            doc_DocumentCache::cacheInvalidation($rec->containerId);
+            $mvc->clearCache($rec->containerId);
         }
+    }
+
+
+    /**
+     * Изчистване на кеша
+     *
+     * @param $containerId
+     */
+    public static function clearCache($containerId)
+    {
+        bgerp_Portal::invalidateCache(null, 'doc_drivers_FolderPortal');
+        bgerp_Portal::invalidateCache(null, 'doc_drivers_LatestDocPortal');
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Recently');
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Tasks');
+        bgerp_Portal::invalidateCache(null, 'bgerp_drivers_Calendar');
+
+        doc_DocumentCache::cacheInvalidation($containerId);
     }
 
 

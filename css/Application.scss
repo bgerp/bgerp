@@ -1186,7 +1186,7 @@ div.acc-detail {
 	       text-align: right !important;
 	   }
 	}
-	.tags {
+	.docTags {
 		top: -1px !important;
 		.enTag {
 			vertical-align: middle;
@@ -1803,7 +1803,9 @@ a.tOld {
 	position: relative;
 	top: 2px;
 }
-
+.narrow .documentTags {
+	white-space: normal !important;
+}
 .legend .documentTags .tags{
 	top: -1px;
 }

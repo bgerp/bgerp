@@ -1046,9 +1046,9 @@ div.acc-detail {
       text-align: left !important; }
     .additionalInfo-holder .additionalInfo .aright {
       text-align: right !important; }
-  .additionalInfo-holder .tags {
+  .additionalInfo-holder .docTags {
     top: -1px !important; }
-    .additionalInfo-holder .tags .enTag {
+    .additionalInfo-holder .docTags .enTag {
       vertical-align: middle; }
   .additionalInfo-holder .anchor-arrow {
     cursor: pointer; }
@@ -1558,6 +1558,9 @@ a.tOld {
 .narrow .portalAuthorTitle {
   position: relative;
   top: 2px; }
+
+.narrow .documentTags {
+  white-space: normal !important; }
 
 .legend .documentTags .tags {
   top: -1px; }
