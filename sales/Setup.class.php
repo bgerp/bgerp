@@ -355,6 +355,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
+        'migrate::migrateValidFor',
     );
     
     
@@ -546,5 +547,23 @@ class sales_Setup extends core_ProtoSetup
         if ($query->count()) {
             cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
         }
+    }
+
+
+    /**
+     * Миграция на срока на валидност на офертите без
+     */
+    public function migrateValidFor()
+    {
+        core_App::setTimeLimit(250);
+        $Quotations = cls::get('sales_Quotations');
+        $validForColName = str::phpToMysqlName('validFor');
+        $secondsInYear = core_DateTime::SECONDS_IN_MONTH * 12;
+        $tableName = $Quotations->dbTableName;
+
+        // Тези без срок на валидност, променя се на 1 година
+        $query = "UPDATE {$tableName} SET {$validForColName} = {$secondsInYear} WHERE {$tableName}.{$validForColName} IS NULL";
+        $Quotations->db->query($query);
+        $Quotations->cron_CloseQuotations();
     }
 }
