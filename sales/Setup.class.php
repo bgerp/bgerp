@@ -564,6 +564,17 @@ class sales_Setup extends core_ProtoSetup
         // Тези без срок на валидност, променя се на 1 година
         $query = "UPDATE {$tableName} SET {$validForColName} = {$secondsInYear} WHERE {$tableName}.{$validForColName} IS NULL";
         $Quotations->db->query($query);
+
+        $cancelSystemUser = false;
+        if (!core_Users::isSystemUser()) {
+            core_Users::forceSystemUser();
+            $cancelSystemUser = true;
+        }
+
         $Quotations->cron_CloseQuotations();
+
+        if (core_Users::isSystemUser() && $cancelSystemUser) {
+            core_Users::cancelSystemUser();
+        }
     }
 }
