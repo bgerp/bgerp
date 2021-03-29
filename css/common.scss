@@ -2280,6 +2280,10 @@ table.keylist {
 	}
 }
 
+.keylist.twoCols td {
+	width: 50%;
+}
+
 .wide table.keylist.shrinked:not(.keylist-wide) {
 	width: auto !important;
 }
