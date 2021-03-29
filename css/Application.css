@@ -1351,9 +1351,6 @@ a.tUnsighted {
   a.tUnsighted:hover {
     color: #ee7700 !important; }
 
-a.tOld {
-  opacity: 0.8; }
-
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td {
   background-color: #fed7d6; }
