@@ -7019,10 +7019,9 @@ only screen and (max-width: 320px) {
     font-size: 0.95em;
     background: none !important; }
     .portalNews .portalLatestThreads a {
-      padding: 2px;
-      display: inline-block; }
+      padding: 2px; }
     .portalNews .portalLatestThreads.state-opened a {
-      background-color: rgba(187, 255, 204, 0.6); }
+      color: green; }
   .portalNews .tUnsighted {
     font-weight: bold; }
   .portalNews .threadSubTitle {

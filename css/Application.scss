@@ -7967,10 +7967,9 @@ body.narrow {
 		background: none !important;
 		a {
 			padding: 2px;
-			display: inline-block;
 		}
 		&.state-opened a{
-			background-color: rgba(187, 255, 204, 0.6);
+			color: green;
 		}
 	}
 	.tUnsighted {
