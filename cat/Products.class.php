@@ -2739,7 +2739,7 @@ class cat_Products extends embed_Manager
             $quoteQuery->EXT('qDate', 'sales_Quotations', "externalName=date,externalKey=quotationId");
             $quoteQuery->EXT('qCreatedOn', 'sales_Quotations', "externalName=createdOn,externalKey=quotationId");
             $quoteQuery->XPR('since', 'date', 'COALESCE(#qActivatedOn, #qDate,#qCreatedOn)');
-            $quoteQuery->where("#since >= '{$activeThen}'");
+            $quoteQuery->where("#since >= '{$activeThen}' AND #state = 'active'");
             $quoteQuery->in("productId", array_keys($saveArr));
             $quoteQuery->show('productId');
 
