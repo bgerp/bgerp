@@ -7964,6 +7964,7 @@ body.narrow {
 		background: none !important;
 		a {
 			padding: 2px;
+			display: inline-block;
 		}
 		&.state-opened a{
 			color: green;

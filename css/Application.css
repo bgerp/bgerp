@@ -7017,7 +7017,8 @@ only screen and (max-width: 320px) {
     font-size: 0.95em;
     background: none !important; }
     .portalNews .portalLatestThreads a {
-      padding: 2px; }
+      padding: 2px;
+      display: inline-block; }
     .portalNews .portalLatestThreads.state-opened a {
       color: green; }
   .portalNews .tUnsighted {
