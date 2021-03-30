@@ -355,6 +355,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
+        'migrate::migrateValidFor1',
     );
     
     
@@ -544,6 +545,50 @@ class sales_Setup extends core_ProtoSetup
         
         if ($query->count()) {
             cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
+        }
+    }
+
+
+    /**
+     * Миграция на срока на валидност на офертите без
+     */
+    public function migrateValidFor1()
+    {
+        core_App::setTimeLimit(250);
+        $Quotations = cls::get('sales_Quotations');
+        $validForColName = str::phpToMysqlName('validFor');
+
+        $secondsInYear = core_DateTime::SECONDS_IN_MONTH * 12;
+        $tableName = $Quotations->dbTableName;
+
+        // Тези без срок на валидност, променя се на 1 година
+        $query = "UPDATE {$tableName} SET {$validForColName} = {$secondsInYear} WHERE {$tableName}.{$validForColName} IS NULL";
+        $Quotations->db->query($query);
+
+        $saveArr = array();
+        $query = $Quotations->getQuery();
+        $query->XPR('cDate', 'date', 'DATE(COALESCE(#activatedOn,#createdOn))');
+        $query->where("#state = 'active' AND #date IS NULL");
+        $query->show('date,cDate');
+        while($rec = $query->fetch()){
+            $rec->date = $rec->cDate;
+            $saveArr[$rec->id] = $rec;
+        }
+
+        if(countR($saveArr)){
+            $Quotations->saveArray($saveArr, 'id,date');
+        }
+
+        $cancelSystemUser = false;
+        if (!core_Users::isSystemUser()) {
+            core_Users::forceSystemUser();
+            $cancelSystemUser = true;
+        }
+
+        $Quotations->cron_CloseQuotations();
+
+        if (core_Users::isSystemUser() && $cancelSystemUser) {
+            core_Users::cancelSystemUser();
         }
     }
 }

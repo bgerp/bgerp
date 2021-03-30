@@ -2679,6 +2679,7 @@ class cat_Products extends embed_Manager
         $productQuery1->show('id,state,brState,lastItemUsedOn,itemId,canStore');
         $productQuery1->where("#lastItemUsedOn IS NULL OR #lastItemUsedOn <= '{$olderThenDate}'");
         $count = $productQuery1->count();
+
         core_App::setTimeLimit($count * 0.9, 600);
         
         // Взимат се балансите от складовите сметки
@@ -2713,7 +2714,8 @@ class cat_Products extends embed_Manager
                     $close = true;
                 }
             }
-            
+
+
             // Ако нестандартния артикул отговаря на условията за затваряне затваря се
             if($close){
                 $pRec->brState = $pRec->state;
@@ -2726,7 +2728,28 @@ class cat_Products extends embed_Manager
                 }
             }
         }
-        
+
+        if(countR($saveArr)){
+            $activeThen = dt::addSecs(-1 * cat_Setup::get('CLOSE_UNUSED_PRIVATE_IN_ACTIVE_QUOTES_OLDER_THAN'), null, false);
+
+            // Активни оферти в които участват артикулите за затваряне
+            $quoteQuery = sales_QuotationsDetails::getQuery();
+            $quoteQuery->EXT('state', 'sales_Quotations', "externalName=state,externalKey=quotationId");
+            $quoteQuery->EXT('qActivatedOn', 'sales_Quotations', "externalName=activatedOn,externalKey=quotationId");
+            $quoteQuery->EXT('qDate', 'sales_Quotations', "externalName=date,externalKey=quotationId");
+            $quoteQuery->EXT('qCreatedOn', 'sales_Quotations', "externalName=createdOn,externalKey=quotationId");
+            $quoteQuery->XPR('since', 'date', 'COALESCE(#qActivatedOn, #qDate,#qCreatedOn)');
+            $quoteQuery->where("#since >= '{$activeThen}' AND #state = 'active'");
+            $quoteQuery->in("productId", array_keys($saveArr));
+            $quoteQuery->show('productId');
+
+            // Тези артикули, участващи в активна оферта не се затварят
+            while($qRec = $quoteQuery->fetch()){
+                unset($saveArr[$qRec->productId]);
+                unset($this->closeItems[$qRec->productId]);
+            }
+        }
+
         // Затварят се нестандартните артикули без пера създадени преди X месеца
         $this->saveArray($saveArr, 'id,state,brState,modifiedOn,modifiedBy');
         foreach ($saveArr as $sd) {

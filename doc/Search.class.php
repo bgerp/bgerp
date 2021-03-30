@@ -88,7 +88,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
 
-        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Маркер, placeholder=Всички');
+        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички');
 
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
         $data->listFilter->setField('search', 'caption=Ключови думи');
@@ -104,7 +104,7 @@ class doc_Search extends core_Manager
         $filterRec = $data->listFilter->rec;
 
         $tagsArr = tags_Tags::getTagsOptions();
-        $data->listFilter->setSuggestions('tags', $tagsArr);
+        $data->listFilter->setSuggestions('tags', $tagsArr['all']);
 
         $isFiltered =
         !empty($filterRec->search) ||
@@ -309,7 +309,24 @@ class doc_Search extends core_Manager
 
             if ($filterRec->tags) {
                 $data->query->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
-                $data->query->in('tags', $filterRec->tags);
+
+                $tagsArr = type_Keylist::toArray($filterRec->tags);
+
+                $personalTags = tags_Tags::getPersonalTags();
+
+                $cTags = array_diff($tagsArr, $personalTags);
+                $pTags = array_intersect($tagsArr, $personalTags);
+
+                $or = false;
+                if (!empty($cTags)) {
+                    $data->query->in('tags', $cTags);
+                    $or = true;
+                }
+
+                if (!empty($pTags)) {
+                    $data->query->EXT('tagsCreatedBy', 'tags_Logs', 'externalName=createdBy, remoteKey=containerId');
+                    $data->query->where(array('#tags IN (' . implode(',', $pTags) . ') AND #tagsCreatedBy = "[#1#]"', core_Users::getCurrent()), $or);
+                }
             }
             
             if ($restrictAccess) {
