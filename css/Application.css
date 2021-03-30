@@ -1351,9 +1351,6 @@ a.tUnsighted {
   a.tUnsighted:hover {
     color: #ee7700 !important; }
 
-a.tOld {
-  opacity: 0.8; }
-
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td {
   background-color: #fed7d6; }
@@ -2626,8 +2623,6 @@ table.mc-calendar {
     padding: 4px; }
     .portal-cal-day .subTitle small {
       padding-left: 7px; }
-    .portal-cal-day .subTitle a {
-      display: inline-block; }
   .portal-cal-day.portal-cal-today {
     background-color: #e1fba2; }
   .portal-cal-day.portal-cal-tomorrow {
@@ -7022,7 +7017,7 @@ only screen and (max-width: 320px) {
       padding: 2px;
       display: inline-block; }
     .portalNews .portalLatestThreads.state-opened a {
-      background-color: rgba(187, 255, 204, 0.6); }
+      color: green; }
   .portalNews .tUnsighted {
     font-weight: bold; }
   .portalNews .threadSubTitle {

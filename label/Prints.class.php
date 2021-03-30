@@ -1005,7 +1005,6 @@ class label_Prints extends core_Master
         if (!$rec->rows) {
             $pData->Label->params = array();
             
-            $params = $rec->params;
             if ($rec->objectId && $rec->classId) {
                 $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 
@@ -1019,6 +1018,7 @@ class label_Prints extends core_Master
                 core_Mode::pop('prepareLabel');
                 
                 foreach ($labelDataArr as $id => $lArr) {
+                    $params = $rec->params;
                     foreach ((array) $lArr as $key => $val) {
                         $keyNormalized = label_TemplateFormats::getPlaceholderFieldName($key);
                         
@@ -1030,11 +1030,12 @@ class label_Prints extends core_Master
                     $pData->Label->params[$id] = $params;
                 }
             } else {
+                $params = $rec->params;
                 for ($id = 0; $id < $pData->cnt; $id++) {
                     $pData->Label->params[$id] = $params;
                 }
             }
-            
+
             // Подготвяме данните за етикета
             $this->prepareLabel($pData);
         } else {

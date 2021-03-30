@@ -87,8 +87,10 @@ class tags_Tags extends core_Manager
     public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име, mandatory, translate=user|tr|transliterate');
-        $this->FLD('type', 'enum(common=Общ, personal=Личен)', 'caption=Тип, mandatory');
-        $this->FLD('color', 'color_Type', 'caption=Цвят');
+        $this->FLD('type', 'enum(common=Общ, personal=Персонален)', 'caption=Тип, mandatory');
+        $colorType = cls::get('color_Type');
+        $colorType->tdClass = null;
+        $this->FLD('color', $colorType, 'caption=Цвят');
 
         $this->setDbUnique('name');
     }
@@ -166,12 +168,13 @@ class tags_Tags extends core_Manager
                 $color = ' '; // Прозрачен `background`
             }
 
-            $opt->attr = array('data-color' => $color);
+            $opt->attr = array('data-color' => $color, 'data-colorClass' => 'tagType-' . $tRec->type);
             $opt->insideLabel = "<span class='colorBox tagType-{$tRec->type}' style='background-color:{$color} !important;'></span>";
 
             $optArr[$tRec->id] = $opt;
 
-            $tagsArr[$tRec->id] = $opt;
+            $tagsArr['all'][$tRec->id] = $opt;
+            $tagsArr[$tRec->type][$tRec->id] = $opt;
         }
 
         return $tagsArr;
@@ -235,6 +238,21 @@ class tags_Tags extends core_Manager
 
 
     /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if ($rec->color) {
+            $cObj = new color_Object($rec->color);
+
+            $bgColor = $cObj->getHex();
+
+            $row->color = "<span class='colorBox tagType-{$rec->type}' style=\"background-color:{$bgColor} !important;\">&nbsp;</span><span class='colorName'>" . tr($rec->color) . "</span>";
+        }
+    }
+
+
+    /**
      * Подготовка на формата за добавяне
      */
     protected static function on_AfterPrepareEditForm($mvc, $res, $data)
@@ -255,11 +273,20 @@ class tags_Tags extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->listFilter->FLD('tagId', 'key(mvc=tags_Tags, select=name, allowEmpty)', 'caption=Таг, refreshForm');
+
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->showFields = 'search,tagId';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list', 'show' => Request::get('show')), 'id=filter', 'ef_icon = img/16/funnel.png');
 
+        $tagsArr = tags_Tags::getTagsOptions();
+        $data->listFilter->setOptions('tagId', $tagsArr['all']);
+
         $data->listFilter->input(null, 'silent');
+
+        if ($data->listFilter->rec->tagId) {
+            $data->query->where(array("#id = '[#1#]'", $data->listFilter->rec->tagId));
+        }
 
         $data->query->orderBy('createdOn', 'DESC');
     }

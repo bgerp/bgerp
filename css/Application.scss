@@ -1553,10 +1553,6 @@ a.tUnsighted {
     }
 }
 
-a.tOld {
-	opacity: 0.8;
-}
-
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td{
 	background-color: #fed7d6;
@@ -3076,9 +3072,6 @@ table.mc-calendar {
 		padding: 4px;
 		small {
 			padding-left: 7px;
-		}
-		a {
-			display: inline-block;
 		}
 	}
 	&.portal-cal-today {
@@ -7970,7 +7963,7 @@ body.narrow {
 			display: inline-block;
 		}
 		&.state-opened a{
-			background-color: rgba(187, 255, 204, 0.6);
+			color: green;
 		}
 	}
 	.tUnsighted {
