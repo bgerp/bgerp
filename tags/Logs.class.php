@@ -229,8 +229,8 @@ class tags_Logs extends core_Manager
         $docId = $document->that;
         $userId = core_Users::getCurrent();
 
-        $form->FNC('personalTags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове->Персонални, class=w100, input=input, silent');
-        $form->FNC('commonTags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове->Общи, class=w100, input=input, silent');
+        $form->FNC('personalTags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове->Персонални, class=keylist-wide twoCols, input=input, silent');
+        $form->FNC('commonTags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове->Общи, class=keylist-wide twoCols, input=input, silent');
 
         $query = self::getQuery();
         $query->where(array("#docClassId = '[#1#]'", $docClassId));
