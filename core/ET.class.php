@@ -927,15 +927,19 @@ class core_ET extends core_BaseClass
         
         if ($pathArr) {
             foreach ($pathArr as $path) {
-
                 // Ако няма разширение, по подразбиране да има shtml
                 $pathPlaceholder = $path;
-                $pathInfoArr = pathinfo($path);
-                if (!$pathInfoArr['extension']) {
-                    $path .= '.shtml';
-                }
 
-                $resContent = self::loadFilesRecursively($path);
+                $resContent = '';
+
+                if (trim($path)) {
+                    $pathInfoArr = pathinfo($path);
+                    if (!$pathInfoArr['extension']) {
+                        $path .= '.shtml';
+                    }
+
+                    $resContent = self::loadFilesRecursively($path);
+                }
 
                 $content = strtr($content, array("[#{$pathPlaceholder}#]" => $resContent));
             }

@@ -1258,7 +1258,7 @@ div.acc-detail {
   .portal table.listTable {
     width: 100% !important;
     border: none;
-    font-size: 0.9em;
+    font-size: 0.95em;
     line-height: 1.1em !important;
     margin-bottom: 0; }
     .portal table.listTable td {
@@ -1589,8 +1589,7 @@ a.tUnsighted {
     padding-top: 3px; }
   .doc_drivers_FolderPortal .portalAuthorTitle {
     float: right;
-    display: block;
-    font-size: 12px !important; }
+    display: block; }
 
   .bgerp_drivers_Tasks .rightCol {
     width: 38px; }
@@ -2592,7 +2591,7 @@ table.mc-calendar {
 
 .portal-cal-day {
   color: #5f1f3e;
-  font-size: 0.9em;
+  font-size: 0.95em;
   padding-top: 3px;
   padding-left: 3px;
   border-top: 1px solid #cccccc; }

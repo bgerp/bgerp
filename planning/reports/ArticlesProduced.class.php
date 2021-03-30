@@ -526,22 +526,23 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         }
 
         $marker = 0;
-        if (isset($data->rec->groupsMat) && $data->rec->consumed == 'yes') {
-            foreach (type_Keylist::toArray($data->rec->groupsMat) as $groupMat) {
+        if ( $data->rec->consumed == 'yes') {
+            if (isset($data->rec->groupsMat)) {
+                foreach (type_Keylist::toArray($data->rec->groupsMat) as $groupMat) {
 
-                $marker++;
-                $groupVerb .= (cat_Groups::fetch($groupMat)->name);
+                    $marker++;
+                    $groupVerb .= (cat_Groups::fetch($groupMat)->name);
 
-                if ((countR((type_Keylist::toArray($data->rec->groupsMat))) - $marker) != 0) {
-                    $groupVerb .= ', ';
+                    if ((countR((type_Keylist::toArray($data->rec->groupsMat))) - $marker) != 0) {
+                        $groupVerb .= ', ';
+                    }
                 }
+
+                $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groupsMat');
+            } else {
+                  $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groupsMat');
             }
-
-            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groupsMat');
-        } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groupsMat');
         }
-
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
