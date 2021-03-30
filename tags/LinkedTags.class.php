@@ -207,6 +207,16 @@ class tags_LinkedTags extends core_Mvc
 
         doc_Containers::logWrite('Промяна на таг', $cId);
 
+        $lRec = new stdClass();
+        $lRec->outType = $type;
+        $lRec->outVal = $cId;
+        $lRec->inType = $type;
+        $lRec->inVal = $cId;
+        $lRec->state = 'active';
+        $lRec->actType = $activity;
+
+        doc_Linked::save($lRec, null, 'REPLACE');
+
         return new Redirect($retUrl);
     }
 }

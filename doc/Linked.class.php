@@ -203,7 +203,7 @@ class doc_Linked extends core_Manager
         $rowArr = array();
         
         $me = cls::get(get_called_class());
-        
+
         foreach ($recArr as $id => $rec) {
             $linkUrl = array();
             $comment = $me->getVerbal($rec, 'comment');
@@ -213,7 +213,13 @@ class doc_Linked extends core_Manager
             if ($rec->state == 'active') {
                 $getUrlWithAccess = true;
             }
-            
+
+            // Ако връзката е към себе си, да не се показва
+            if (($rec->outType == $rec->inType) && ($rec->outVal == $rec->inVal)) {
+
+                continue;
+            }
+
             if ($rec->outType == $type && $rec->outVal == $val) {
                 $icon = 'img/16/arrow_right.png';
                 $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->inType, $rec->inVal, $comment, $getUrlWithAccess, $linkUrl);
@@ -912,7 +918,7 @@ class doc_Linked extends core_Manager
                 $or = true;
             }
         }
-        
+
         // Същия тим документ или папка +
         // 1 - потребител и папка
         // 2 - потребител
