@@ -243,8 +243,12 @@ class doc_Prototypes extends core_Manager
     {
         if (isset($fields['-list'])) {
             $origin = doc_Containers::getDocument($rec->originId);
-            $row->titleCalc = $origin->getPrototypeTitle();
-            
+            if(cls::existsMethod($origin->getInstance(), 'getPrototypeTitle')){
+                $row->titleCalc = $origin->getPrototypeTitle();
+            } else {
+                $row->titleCalc = ht::createHint($origin->getTitleById(), 'Документа вече не може да бъде шаблонен', 'error', false);
+            }
+
             $row->docId = $origin->getLink(0);
             $row->ROW_ATTR['class'] = "state-{$rec->state}";
         }
