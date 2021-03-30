@@ -169,12 +169,8 @@ class blogm_Articles extends core_Master
         $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');
 
         if ($fields['-list']) {
-            $categogiesArr = keylist::toArray($rec->categories);
-            $firstCategoryId = key($categogiesArr);
-            $menuId = blogm_Categories::fetchField($firstCategoryId, 'menuId');
-
             $url = self::getUrl($rec);
-            $url['cMenuId'] = $menuId;
+            $url['cMenuId'] = static::getDefaultMenuId($rec);
 
             $row->title = ht::createLink($row->title, $url, null, 'ef_icon=img/16/monitor.png');
         }
@@ -300,8 +296,25 @@ class blogm_Articles extends core_Master
             $data->query->where("#state = 'active'");
         }
     }
-    
-    
+
+
+    /**
+     * Кое е дефолтното меню на статията
+     *
+     * @param mixed $id
+     * @return int $menuId
+     */
+    public function getDefaultMenuId($id)
+    {
+        $rec = static::fetchRec($id);
+
+        $categories = keylist::toArray($rec->categories);
+        $firstCategoryId = key($categories);
+        $menuId = blogm_Categories::fetchField($firstCategoryId, 'menuId');
+
+        return $menuId;
+    }
+
     /**
      *  Екшън за публично преглеждане и коментиране на блог-статия
      */
@@ -321,8 +334,19 @@ class blogm_Articles extends core_Master
             
             return $this->act_Browse();
         }
-        
+
+        // Извличане на записа на статията
+        $rec = $this->fetch($id);
+        if(!$rec){
+
+            return $this->act_Browse();
+        }
+
         $cMenuId = Request::get('cMenuId', 'int');
+        if(empty($cMenuId)){
+            $cMenuId = static::getDefaultMenuId($rec);
+        }
+
         $categoryId = Request::get('category', 'int');
 
         // Създаваме празен $data обект
@@ -333,14 +357,9 @@ class blogm_Articles extends core_Master
         $data->category = $categoryId;
         $data->menuRec = cms_Content::fetch($data->menuId);
         $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category);
-
-        // Трябва да има $rec за това $id
-        $data->rec = $this->fetch($id);
+        $data->rec = $rec;
         
-        if (!$data->rec) {
-            
-            return $this->act_Browse();
-        }
+
 
         cms_Content::setCurrent($cMenuId);
 
@@ -557,14 +576,7 @@ class blogm_Articles extends core_Master
     protected function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->haveRightFor('article', $data->rec)) {
-            $data->toolbar->addBtn(
-                'Преглед',
-                array(
-                    $this,
-                    'Article',
-                    $data->rec->id,
-                )
-             );
+            $data->toolbar->addBtn('Преглед', array($this, 'Article', $data->rec->id), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
         }
     }
 
