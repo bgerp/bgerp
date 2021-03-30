@@ -590,6 +590,11 @@ class blogm_Articles extends core_Master
         $data = new stdClass();
         $data->categoryId = Request::get('category', 'int');
         $data->menuId = Request::get('cMenuId', 'int');
+
+        if(empty($data->menuId) && isset($data->categoryId)){
+            $data->menuId = blogm_Categories::fetchField($data->categoryId, 'menuId');
+        }
+
         $data->menuRec = cms_Content::fetch($data->menuId);
         cms_Domains::setPublicDomain($data->menuRec->domainId);
         cms_Content::setCurrent($data->menuId);
