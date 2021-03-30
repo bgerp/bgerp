@@ -209,11 +209,14 @@ class tags_LinkedTags extends core_Mvc
 
         $lRec = doc_Linked::fetchRec(array("#outType = '[#1#]' AND #outVal = '[#2#]' AND #actType = '[#3#]'", $type, $cId, $activity));
 
-        $lRec = new stdClass();
-        $lRec->outType = $type;
-        $lRec->outVal = $cId;
+        if (!$lRec) {
+            $lRec = new stdClass();
+            $lRec->outType = $type;
+            $lRec->outVal = $cId;
+            $lRec->actType = $activity;
+        }
+
         $lRec->state = 'active';
-        $lRec->actType = $activity;
 
         doc_Linked::save($lRec);
 
