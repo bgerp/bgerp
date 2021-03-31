@@ -33,17 +33,19 @@ class cond_type_PriceList extends cond_type_abstract_Proto
         
         return $Type;
     }
-    
-    
+
+
     /**
      * Вербално представяне на стойноста
      *
-     * @param mixed $class
-     * @param int   $id
+     * @param stdClass $rec
+     * @param mixed    $domainClass - клас на домейна
+     * @param mixed    $domainId    - ид на домейна
+     * @param string   $value
      *
      * @return mixed
      */
-    public function toVerbal($id, $domainClass, $domainId, $value)
+    public function toVerbal($rec, $domainClass, $domainId, $value)
     {
         return price_Lists::getHyperlink($value, TRUE);
     }

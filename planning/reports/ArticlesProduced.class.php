@@ -50,7 +50,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,duration,compare,compareStart,seeCrmGroup,seeGroup,group,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
+    protected $changeableFields = 'from,duration,compare,compareStart,seeCrmGroup,seeGroup,group,groups,groupBy,orderBy,consumed,groupsMat,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
 
 
     /**
@@ -74,7 +74,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
 
-        $fieldset->FLD('consumed', 'enum(yes=ДА, no=НЕ)', 'caption=Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
+        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
             $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
@@ -374,7 +374,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         if ($rec->groupBy != 'month') {
 
             $fld->FLD('department', 'key(mvc=planning_Centers,select=name)', 'caption=Център на дейност');
-            $fld->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,tdClass=centered');
+            $fld->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
         } else {
             $monthArr = $rec->montsArr;
             sort($monthArr);
@@ -408,7 +408,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произведено', 'consum' => '')));
+        $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
 
         $row = new stdClass();
 
