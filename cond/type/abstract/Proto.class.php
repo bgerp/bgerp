@@ -162,20 +162,22 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     {
         $this->domainObjectReference = new core_ObjectReference($class, $id);
     }
-    
-    
+
+
     /**
      * Вербално представяне на стойноста
      *
-     * @param mixed $class
-     * @param int   $id
+     * @param stdClass $rec
+     * @param mixed    $domainClass - клас на домейна
+     * @param mixed    $domainId    - ид на домейна
+     * @param string   $value
      *
      * @return mixed
      */
-    public function toVerbal($id, $domainClass, $domainId, $value)
+    public function toVerbal($rec, $domainClass, $domainId, $value)
     {
         // Ако има тип, вербалното представяне според него
-        $Type = $this->getType($id, $domainClass, $domainId, $value);
+        $Type = $this->getType($rec, $domainClass, $domainId, $value);
         if ($Type) {
            
             return $Type->toVerbal(trim($value));
