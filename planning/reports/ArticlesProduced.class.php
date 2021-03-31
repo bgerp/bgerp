@@ -74,7 +74,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
 
-        $fieldset->FLD('consumed', 'enum(yes=ДА, no=НЕ)', 'caption=Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
+        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
             $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
