@@ -688,7 +688,7 @@ class label_Templates extends core_Master
         
         // Създаване/обновяване на шаблона
         static::save($exRec);
-        //bp();
+
         return $exRec;
     }
     
