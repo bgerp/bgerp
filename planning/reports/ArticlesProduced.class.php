@@ -50,7 +50,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,duration,compare,compareStart,seeCrmGroup,seeGroup,group,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
+    protected $changeableFields = 'from,duration,compare,compareStart,seeCrmGroup,seeGroup,group,groups,groupBy,orderBy,consumed,groupsMat,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
 
 
     /**
@@ -408,7 +408,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произведено', 'consum' => '')));
+        $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
 
         $row = new stdClass();
 
