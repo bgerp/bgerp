@@ -24,7 +24,7 @@ class cond_Texts extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Фрагменти';
+    public $title = 'Пасажи';
     
     
     /**
@@ -72,7 +72,7 @@ class cond_Texts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'body, createdOn,createdOn,createdBy';
+    public $listFields = 'body, createdOn,createdOn,createdBy, access, group';
     
     
     /**
@@ -83,7 +83,7 @@ class cond_Texts extends core_Manager
         $this->FLD('title', 'varchar(256)', 'caption=Заглавие, oldFieldName = name');
         $this->FLD('body', 'richtext(rows=10,bucket=Comments, passage)', 'caption=Описание, mandatory');
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
-        $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
+        $this->FLD('lang', 'enum(bg,en)', 'caption=Език');
         $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група, silent');
         $this->FNC('Protected', 'varchar', 'input=hidden, silent');
     }
@@ -226,16 +226,26 @@ class cond_Texts extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $form = $data->listFilter;
-        $form->FLD('author', 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
-        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
+        $form->FLD('author', 'users(roles=powerUser, rolesForTeams=powerUser, rolesForAll=powerUser)', 'caption=Автор, autoFilter');
+        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език, placeholder=Всички');
 
         Request::setProtected('groupName, callback');
         $group = Request::get('groupName');
 
         $cu = core_Users::getCurrent();
         if (!$form->cmd) {
-            if ($lastGroup = core_Permanent::get("condGroupFilter{$cu}")) {
-                $form->setDefault('group', $lastGroup);
+            if ($lastFilter = core_Permanent::get("condLastFilter{$cu}")) {
+                if ($lastFilter['group']) {
+                    $form->setDefault('group', $lastFilter['group']);
+                }
+
+                if ($lastFilter['author']) {
+                    $form->setDefault('author', $lastFilter['author']);
+                }
+
+                if ($lastFilter['langWithAllSelect']) {
+                    $form->setDefault('langWithAllSelect', $lastFilter['langWithAllSelect']);
+                }
             }
 
             if (isset($group)) {
@@ -258,14 +268,13 @@ class cond_Texts extends core_Manager
 
         if ($rec->author) {
             $authArr = type_Keylist::toArray($rec->author);
-            $or = false;
             if (mb_stripos($rec->author, '|-1|') === false) {
                 $data->query->in('createdBy', type_Keylist::toArray($rec->author));
-                $or = true;
             }
 
-            if ($authArr[$cu] && countR($authArr) == 1) {
-                $data->query->where("#access = 'public'", $or);
+            if (!haveRole('admin, ceo', $cu)) {
+                $data->query->where("#access = 'public'");
+                $data->query->orWhere(array("#createdBy = '[#1#]'", $cu));
             }
         }
         if ($rec->langWithAllSelect) {
@@ -274,11 +283,9 @@ class cond_Texts extends core_Manager
 
         if ($rec->group) {
             $data->query->likeKeylist('group', $rec->group);
-
-            core_Permanent::set("condGroupFilter{$cu}", $rec->group, 24 * 60 * 100);
-        } else {
-            core_Permanent::remove("condGroupFilter{$cu}");
         }
+
+        core_Permanent::set("condLastFilter{$cu}", array('group' => $rec->group, 'author' => $rec->author, 'langWithAllSelect' => $rec->langWithAllSelect), 24 * 60 * 100);
 
         $data->query->orderBy('#createdOn', 'DESC');
     }
