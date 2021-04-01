@@ -508,7 +508,7 @@ class dec_Declarations extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentInterface
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         $row = new stdClass();

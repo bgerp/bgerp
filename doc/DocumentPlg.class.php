@@ -156,11 +156,18 @@ class doc_DocumentPlg extends core_Plugin
         if (!isset($plugins['acc_plg_Registry'])) {
             $mvc->load('acc_plg_Registry');
         }
+
+        // Закачане на плъгина за тагване
+        if (!isset($plugins['tags_plg_Add'])) {
+            $mvc->load('tags_plg_Add');
+        }
         
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
         $mvc->fetchFieldsBeforeDelete = 'containerId';
+
+        setIfNot($mvc->addSubTitleToList, false);
     }
     
     
@@ -728,6 +735,22 @@ class doc_DocumentPlg extends core_Plugin
     public function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         Mode::pop('forListRows');
+
+        if ($mvc->addSubTitleToList !== false) {
+            foreach ($data->rows as $id => $row) {
+                $subTitle = $mvc->getDocumentRow($id)->subTitle;
+
+                if ($subTitle) {
+                    $subTitle = "<div class='threadSubTitle'>{$subTitle}</div>";
+
+                    if ($row->{$mvc->addSubTitleToList} instanceof core_ET) {
+                        $row->{$mvc->addSubTitleToList}->append($subTitle);
+                    } else {
+                        $row->{$mvc->addSubTitleToList} .= $subTitle;
+                    }
+                }
+            }
+        }
     }
     
     

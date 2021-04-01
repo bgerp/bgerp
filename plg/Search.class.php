@@ -856,16 +856,18 @@ class plg_Search extends core_Plugin
      * Форсира ръчно обновяване на ключовите думи на модела
      * (и на контейнера му ако е документ)
      *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
+     * @param mixed $mvc
+     * @param mixed $rec
      */
     public static function forceUpdateKeywords($mvc, $rec)
     {
+        $mvc = cls::get($mvc);
+        $rec = $mvc->fetchRec($rec);
+
         $fRec = $mvc->fetch("id = {$rec->id}", '*', false);
         $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
-        
         $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
-        
+
         $mvc->save_($rec, 'searchKeywords');
         if($rec->containerId){
             doc_Containers::update_($rec->containerId);

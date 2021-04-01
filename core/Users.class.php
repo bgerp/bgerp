@@ -2792,14 +2792,16 @@ class core_Users extends core_Manager
         $query->where("#state = 'active'");
         $query->orderBy('#names', 'ASC');
         $query->show('id,nick');
+
         $roles = core_Roles::getRolesAsKeylist($roles);
         $query->likeKeylist('roles', $roles);
-        
+
         if (isset($keylist)) {
             $keylistUsers = keylist::toArray($keylist);
-            $query->in('id', $keylistUsers, false, true);
+            $keylistUsers = implode(',', $keylistUsers);
+            $query->where("#id IN ({$keylistUsers})");
         }
-        
+
         $arr = array();
         while ($userRec = $query->fetch()) {
             $arr[$userRec->id] = $userRec->nick;

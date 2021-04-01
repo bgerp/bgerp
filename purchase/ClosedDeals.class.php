@@ -123,9 +123,9 @@ class purchase_ClosedDeals extends deals_ClosedDeals
      *
      * @see deals_ClosedDeals::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
-        $row = parent::getDocumentRow($id);
+        $row = parent::getDocumentRow_($id);
         $title = "Приключване на покупка #{$row->saleId}";
         $row->title = $title;
         $row->recTitle = $title;

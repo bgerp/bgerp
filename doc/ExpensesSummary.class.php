@@ -122,7 +122,13 @@ class doc_ExpensesSummary extends core_Manager
         $data->recs = self::updateSummary($rec->containerId, $itemRec);
      
         if (is_array($data->recs)) {
+            $count = 1;
             foreach ($data->recs as $index => $r) {
+                if($r->type == 'allocated'){
+                    $r->count = $count;
+                    $count++;
+                }
+
                 $data->rows[$index] = $this->getVerbalRow($r);
             }
         }
@@ -143,6 +149,9 @@ class doc_ExpensesSummary extends core_Manager
     private function getVerbalRow($rec)
     {
         $row = new stdClass();
+        if(isset($rec->count)){
+            $row->count = core_Type::getByName('int')->toVerbal($rec->count);
+        }
         if (isset($rec->docId)) {
             $row->docId = cls::get($rec->docType)->getLink($rec->docId, 0);
         }
@@ -239,11 +248,11 @@ class doc_ExpensesSummary extends core_Manager
         $currencyCode = acc_Periods::getBaseCurrencyCode();
         
         // Рендиране на таблицата
-        $tableHtml = $table->get($data->rows, "valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
+        $tableHtml = $table->get($data->rows, "count=№,valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
         
         if (countR($data->rows)) {
             $total = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($total);
-            $afterRow = "<tr style='background-color:#eee'><td colspan=4 style='text-align:right'><b>" . tr('Общо') . "</b></td><td style='text-align:right'><b>{$total}</b></td></tr>";
+            $afterRow = "<tr style='background-color:#eee'><td colspan=5 style='text-align:right'><b>" . tr('Общо') . "</b></td><td style='text-align:right'><b>{$total}</b></td></tr>";
             $tableHtml->append($afterRow, 'ROW_AFTER');
         }
         
@@ -331,7 +340,9 @@ class doc_ExpensesSummary extends core_Manager
                 }
             }
         }
-       
+
+        arr::sortObjects($recs, 'valior', 'ASC');
+
         $rec->count = count($recs);
         $notDistributed = $allocated;
         

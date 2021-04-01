@@ -113,7 +113,8 @@ class acc_CostAllocations extends core_Manager
     {
         try {
             $origin = doc_Containers::getDocument($rec->containerId);
-            if ($origin->fetchField('state') == 'active') {
+            $state = $origin->fetchField('state');
+            if (in_array($state, array('closed', 'active'))) {
                 acc_Journal::reconto($rec->containerId);
                 $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
             }
@@ -557,7 +558,7 @@ class acc_CostAllocations extends core_Manager
             //... и да е активен
             $state = $origin->fetchField('state');
             
-            if ($state != 'active' && $state != 'draft') {
+            if ($state != 'active' && $state != 'draft' && $state != 'closed') {
                 $requiredRoles = 'no_one';
                 
                 return;

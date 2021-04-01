@@ -152,6 +152,8 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $ppsQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
         
         $ppsQuery->EXT('saleServThreadId', 'sales_Services', 'externalName=threadId,externalKey=shipmentId');
+
+        $ppsArr = array();
         
         while ($ppsRec = $ppsQuery->fetch()) {
             $ppsArr[$ppsRec->saleServThreadId] += $ppsRec->price;

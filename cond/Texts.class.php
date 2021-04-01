@@ -42,7 +42,7 @@ class cond_Texts extends core_Manager
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,admin';
+    public $canRead = 'powerUser';
     
     
     /**
@@ -60,7 +60,7 @@ class cond_Texts extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,admin';
+    public $canList = 'powerUser';
     
     
     /**
@@ -213,12 +213,15 @@ class cond_Texts extends core_Manager
         
         if (isset($group)) {
             $groupId = cond_Groups::fetchField(array("#title = '[#1#]'", $group), 'id');
-            
             $default = type_Keylist::fromArray(array($groupId => $groupId));
-            
             $form->setDefault('group', $default);
         }
-        
+
+        $cu = core_Users::getCurrent();
+        if ($lastGroup = core_Permanent::get("condGroupFilter{$cu}")) {
+            $form->setDefault('group', $lastGroup);
+        }
+
         $form->showFields = 'search,author,langWithAllSelect, group';
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->view = 'vertical';
@@ -235,6 +238,7 @@ class cond_Texts extends core_Manager
         }
         if ($rec->group) {
             $data->query->likeKeylist('group', $rec->group);
+            core_Permanent::set("condGroupFilter{$cu}", $rec->group, 24 * 60 * 100);
         }
         $data->query->orderBy('#createdOn', 'DESC');
     }

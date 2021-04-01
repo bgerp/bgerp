@@ -173,13 +173,21 @@ span.all-users{
     border: 1px solid #000;
 }
 
+.select2-selection--multiple .color-preview {
+    height: 10px;
+    box-sizing: border-box;
+    margin-bottom: 0 !important;
+}
+
 .narrow .color-preview {
 	height: 3px;
 	vertical-align: top;
 	position: relative;
 	top:4px;
 }
-
+.narrow .select2-selection--multiple .color-preview {
+    top:2px;
+}
 .select2-container.contextCursor .select2-selection--single{
     cursor: context-menu !important;
 }

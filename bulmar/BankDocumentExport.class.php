@@ -74,7 +74,7 @@ class bulmar_BankDocumentExport extends core_Manager
         $query->where("#state = 'active'");
         $query->between('valior', $filter->from, $filter->to);
         $query->in("ownAccount", $ownAccounts);
-        $query->orderBy('id', 'DESC');
+        $query->orderBy('valior', 'ASC');
         $recs = $query->fetchAll();
        
         $nonCashRecs = array();
@@ -241,34 +241,42 @@ class bulmar_BankDocumentExport extends core_Manager
         // Добавяме информацията за фактурите
         foreach ($data->recs as $rec) {
             $line = "{$rec->num}|{$static->documentNumber}|{$rec->id}|{$rec->valior}|{$rec->EIC}|{$rec->endDate}|{$static->folder}|{$rec->contragentName}|" . "\r\n";
-           
+
             switch($rec->type){
                 case 'debitSupplier';
-                $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitSupplier}|PN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
+                    $debitAcc = $static->debitSupplier;
+                    if($rec->_isConnectedCompany){
+                        $debitAcc = $static->debitConnectedPersons;
+                    }
+
+                    $line .= "{$rec->num}|1|{$static->operationType}|{$debitAcc}|PN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
                 
                 break;
                 case 'creditSupplier';
-                $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$static->creditSupplier}|PN|{$rec->reason}|{$rec->amount}||" . "\r\n";
+                    $creditAcc = $static->creditSupplier;
+                    if($rec->_isConnectedCompany){
+                        $creditAcc = $static->creditConnectedPersons;
+                    }
+                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$creditAcc}|PN|{$rec->reason}|{$rec->amount}||" . "\r\n";
                 
                 break;
                 case 'creditClient';
-                $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$static->creditClient}|AN|{$rec->reason}|{$rec->amount}||" . "\r\n";
+                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$static->creditClient}|AN|{$rec->reason}|{$rec->amount}||" . "\r\n";
                 
                 break;
                 case 'debitClient';
-                $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitClient}|PN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
+                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitClient}|PN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
                 
                 break;
                 case 'creditUnknown';
-                $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$static->creditUnknown}|||{$rec->amount}||" . "\r\n";
+                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitBank}|{$rec->accountId}||{$rec->amount}||{$static->creditUnknown}|||{$rec->amount}||" . "\r\n";
                 break;
                 case 'debitUnknown';
-                $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitUnknown}|||{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
+                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitUnknown}|||{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
                 break;
             }
             
             $content .= $line;
-            
         }
        
         // Няма да се импортира ако не завършва на 0
@@ -298,7 +306,13 @@ class bulmar_BankDocumentExport extends core_Manager
         $staticData->debitUnknown = $conf->BULMAR_BANK_DOCUMENT_DEBIT_UNKNOWN;
         $staticData->creditUnknown = $conf->BULMAR_BANK_DOCUMENT_CREDIT_UNKNOWN;
         $staticData->mapAccounts = type_Table::toArray($conf->BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP);
-        
+
+        $staticData->debitUnknown = $conf->BULMAR_BANK_DOCUMENT_DEBIT_UNKNOWN;
+        $staticData->creditUnknown = $conf->BULMAR_BANK_DOCUMENT_CREDIT_UNKNOWN;
+
+        $staticData->debitConnectedPersons = $conf->BULMAR_PURINV_DEBIT_CONNECTED_PERSONS;
+        $staticData->creditConnectedPersons = $conf->BULMAR_PURINV_CREDIT_CONNECTED_PERSONS;
+
         $myCompany = crm_Companies::fetchOwnCompany();
         $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
         $staticData->OWN_COMPANY_BULSTAT = $num;
@@ -321,7 +335,15 @@ class bulmar_BankDocumentExport extends core_Manager
         } else {
             $amount = $rec->amount * $rec->rate;
         }
-        
+
+
+        if($rec->contragentClassId == crm_Companies::getClassId()){
+            $connectedCompanies = keylist::toArray(crm_Setup::get('CONNECTED_COMPANIES'));
+            if(array_key_exists($rec->contragentId, $connectedCompanies)){
+                $nRec->_isConnectedCompany = true;
+            }
+        }
+
         $nRec->id = $rec->id . (($this->mvc instanceOf bank_IncomeDocuments) ? "001" : "002");
         $nRec->num = $count;
         $nRec->amount = $amount;

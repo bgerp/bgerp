@@ -62,6 +62,18 @@ defIfNot('BULMAR_INV_CREDIT_PAYMENT', 'K411');
 
 
 /**
+ * Кредитна сметка за свързаните фирми в Bulmar Office
+ */
+defIfNot('BULMAR_PURINV_CREDIT_CONNECTED_PERSONS', 'K406');
+
+
+/**
+ * Дебитна сметка за свързаните фирми в Bulmar Office
+ */
+defIfNot('BULMAR_PURINV_DEBIT_CONNECTED_PERSONS', 'D406');
+
+
+/**
  * Дебитна сметка на плащането в Bulmar Office
  */
 defIfNot('BULMAR_INV_AV_OPERATION', '88');
@@ -287,7 +299,7 @@ class bulmar_Setup extends core_ProtoSetup
         'BULMAR_INV_DEBIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Дебитна сметка плащане'),
         'BULMAR_INV_CREDIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Кредитна сметка плащане'),
         'BULMAR_INV_CREDIT_AV' => array('varchar(10)', 'caption=Експорт на ИЗХОДЯЩИ фактури->Кредитна сметка за авансово плащане'),
-    
+
         'BULMAR_PURINV_CONTR_FOLDER' => array('double', 'caption=Експорт на ВХОДЯЩИ фактури->Папка'),
         'BULMAR_PURINV_PURCHASE_PRODUCTS_OPER' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Сч. Операция на покупка на стока №'),
         'BULMAR_PURINV_PURCHASE_SERVICES_OPER' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Сч. Операция на покупка на услуги №'),
@@ -300,7 +312,10 @@ class bulmar_Setup extends core_ProtoSetup
         'BULMAR_PURINV_CREDIT_CASE' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Кредитна сметка плащане'),
         'BULMAR_PURINV_DEBIT_PAYMENT' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Дебитна сметка плащане'),
         'BULMAR_PURINV_DEBIT_DOWNPAYMENT' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Дебитна сметка за авансово плащане'),
-        
+
+        'BULMAR_PURINV_DEBIT_CONNECTED_PERSONS' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Дебитна сметка за свързани фирми'),
+        'BULMAR_PURINV_CREDIT_CONNECTED_PERSONS' => array('varchar(10)', 'caption=Експорт на ВХОДЯЩИ фактури->Кредитна сметка за свързани фирми'),
+
         'BULMAR_BANK_DOCUMENT_FOLDER' => array('double', 'caption=Експорт на Приходни и разходни банкови документи->Папка'),
         'BULMAR_BANK_DOCUMENT_OPERATION_TYPE' => array('int', 'caption=Експорт на Приходни и разходни банкови документи->Операция №'),
         

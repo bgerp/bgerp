@@ -40,12 +40,6 @@ class acc_plg_Registry extends core_Plugin
             expect($autoListId = acc_Lists::fetchField(array("#systemId = '[#1#]'", $mvc->autoList), 'id'));
             $lists = keylist::addKey('', $autoListId);
             acc_Lists::updateItem($mvc, $rec->id, $lists);
-            
-            if (haveRole('debug')) {
-                $list = acc_Lists::fetchField("#systemId = '{$mvc->autoList}'", 'name');
-                $title = $mvc->getTitleById($rec->id);
-                core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$list}'");
-            }
         }
     }
     

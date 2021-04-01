@@ -1046,9 +1046,9 @@ div.acc-detail {
       text-align: left !important; }
     .additionalInfo-holder .additionalInfo .aright {
       text-align: right !important; }
-  .additionalInfo-holder .tags {
+  .additionalInfo-holder .docTags {
     top: -1px !important; }
-    .additionalInfo-holder .tags .enTag {
+    .additionalInfo-holder .docTags .enTag {
       vertical-align: middle; }
   .additionalInfo-holder .anchor-arrow {
     cursor: pointer; }
@@ -1258,7 +1258,7 @@ div.acc-detail {
   .portal table.listTable {
     width: 100% !important;
     border: none;
-    font-size: 0.9em;
+    font-size: 0.95em;
     line-height: 1.1em !important;
     margin-bottom: 0; }
     .portal table.listTable td {
@@ -1350,9 +1350,6 @@ a.tUnsighted {
   font-weight: bold; }
   a.tUnsighted:hover {
     color: #ee7700 !important; }
-
-a.tOld {
-  opacity: 0.8; }
 
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td {
@@ -1517,6 +1514,93 @@ a.tOld {
   .document .original {
     letter-spacing: 3px;
     color: #999999; }
+
+.header .documentTags {
+  position: relative;
+  top: -4px; }
+
+.portalHeaderTitle {
+  margin-right: 5px; }
+
+.documentTags .tags {
+  font-size: 0.7em;
+  font-weight: normal !important;
+  border: 1px solid #999999;
+  padding: 0px 2px 1px;
+  opacity: 0.9;
+  box-sizing: border-box;
+  white-space: nowrap;
+  display: inline-block;
+  height: 18px;
+  line-height: 16px;
+  margin: 1px 3px !important;
+  position: relative; }
+  .documentTags .tags.tagType-personal {
+    border-radius: 5px; }
+
+.doc_Threads .listTable .documentTags .tags {
+  font-size: 0.9em !important;
+  top: 0 !important; }
+
+  .doc_drivers_LatestDocPortal .portalLatestThreads.withoutSubtitle {
+    float: left; }
+  .doc_drivers_LatestDocPortal .threadSubTitle.withoutSubtitle .tagsHolder {
+    position: relative;
+    top: 2px;
+    margin-bottom: 4px; }
+  .doc_drivers_LatestDocPortal .portalLatestThreads,
+  .doc_drivers_LatestDocPortal .portalLatestFoldes {
+    clear: both; }
+
+.narrow .portalAuthorTitle {
+  position: relative;
+  top: 2px; }
+
+.narrow .documentTags {
+  white-space: normal !important; }
+
+.legend .documentTags .tags {
+  top: -1px; }
+
+.portal .threadSubTitle .tags {
+  opacity: 1;
+  margin-left: 5px;
+  white-space: nowrap;
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid #999999;
+  box-sizing: border-box;
+  top: 1px; }
+  .portal .threadSubTitle .tags.tagType-personal {
+    border-radius: 5px; }
+
+.tagsHolder {
+  float: right; }
+
+  .doc_drivers_FolderPortal .threadSubTitle {
+    display: block !important;
+    clear: both; }
+  .doc_drivers_FolderPortal .otherSubtitleStr {
+    clear: both;
+    float: left;
+    padding-top: 3px; }
+  .doc_drivers_FolderPortal .portalAuthorTitle {
+    float: right;
+    display: block; }
+
+  .bgerp_drivers_Tasks .rightCol {
+    width: 38px; }
+    .bgerp_drivers_Tasks .rightCol .progress {
+      position: relative;
+      top: -2px; }
+  .bgerp_drivers_Tasks .otherSubtitleStr {
+    display: inline-block;
+    padding-top: 3px !important; }
+  .bgerp_drivers_Tasks .tagsHolder {
+    margin-right: -45px; }
 
   .narrow .document span.state {
     padding: 2px 5px;
@@ -1858,6 +1942,11 @@ a.tOld {
   .narrow .document-title-group .eyeIcon {
     margin-right: 5px; }
 
+.narrow .document-settings-left,
+.narrow .document-settings {
+  position: relative;
+  top: 3px; }
+
 .document-settings-left,
 .document-title-group {
   float: left;
@@ -1976,16 +2065,18 @@ td.rowtools-column {
 .sale-summary .secondMeasure {
   font-size: 15px; }
 
-.secondMeasure .endTooltip {
-  width: 10px;
-  height: 10px; }
-  .secondMeasure .endTooltip img {
-    width: 12px;
-    height: 12px; }
-
 .listTable td .endTooltip img {
   width: 14px !important;
   height: 14px !important; }
+
+.secondMeasure .endTooltip,
+.listTable td .secondMeasure .endTooltip {
+  width: 10px;
+  height: 10px; }
+  .secondMeasure .endTooltip img,
+  .listTable td .secondMeasure .endTooltip img {
+    width: 12px !important;
+    height: 12px !important; }
 
 .lighter-color {
   opacity: 0.6; }
@@ -2071,6 +2162,11 @@ pre.document {
   color: #335533; }
   .threadSubTitle .quiet {
     color: #cccccc; }
+  .threadSubTitle .documentTags {
+    position: relative;
+    top: 0; }
+    .threadSubTitle .documentTags span {
+      font-size: 0.95em; }
 
 .narrow .block_title {
   font-size: 1.2em; }
@@ -2495,7 +2591,7 @@ table.mc-calendar {
 
 .portal-cal-day {
   color: #5f1f3e;
-  font-size: 0.9em;
+  font-size: 0.95em;
   padding-top: 3px;
   padding-left: 3px;
   border-top: 1px solid #cccccc; }
@@ -2526,8 +2622,6 @@ table.mc-calendar {
     padding: 4px; }
     .portal-cal-day .subTitle small {
       padding-left: 7px; }
-    .portal-cal-day .subTitle a {
-      display: inline-block; }
   .portal-cal-day.portal-cal-today {
     background-color: #e1fba2; }
   .portal-cal-day.portal-cal-tomorrow {
@@ -6922,9 +7016,11 @@ only screen and (max-width: 320px) {
       padding: 2px;
       display: inline-block; }
     .portalNews .portalLatestThreads.state-opened a {
-      background-color: rgba(187, 255, 204, 0.6); }
+      color: green; }
   .portalNews .tUnsighted {
     font-weight: bold; }
+  .portalNews .threadSubTitle {
+    margin-left: 20px; }
 
 .document .reportHolder div.tab-control.alphabet div.tab-row .tab {
   padding: 4px 5px 5px !important;

@@ -1186,7 +1186,7 @@ div.acc-detail {
 	       text-align: right !important;
 	   }
 	}
-	.tags {
+	.docTags {
 		top: -1px !important;
 		.enTag {
 			vertical-align: middle;
@@ -1434,7 +1434,7 @@ table.listTable > tbody > tr {
 	table.listTable {
 		width: 100% !important;
 		border: none;
-		font-size: 0.9em;
+		font-size: 0.95em;
 		line-height: 1.1em !important;
 		margin-bottom: 0;
 		td {
@@ -1551,10 +1551,6 @@ a.tUnsighted {
     &:hover {
         color: #e70 !important;
     }
-}
-
-a.tOld {
-	opacity: 0.8;
 }
 
 .listTable .change-selected-version td,
@@ -1751,6 +1747,115 @@ a.tOld {
 	.original {
 		letter-spacing: 3px;
 		color: #999;
+	}
+}
+.header .documentTags {
+	position: relative;
+	top: -4px;
+}
+.portalHeaderTitle {
+	margin-right: 5px;
+}
+
+
+.documentTags .tags{
+	font-size: 0.7em;
+	font-weight: normal !important;
+	border: 1px solid #999;
+	padding: 0px 2px 1px;
+	opacity: 0.9;
+	box-sizing: border-box;
+	white-space: nowrap;
+	display: inline-block;
+	height: 18px;
+	line-height: 16px;
+	margin: 1px 3px !important;
+	position: relative;
+	&.tagType-personal {
+		border-radius: 5px;
+	}
+}
+
+.doc_Threads .listTable .documentTags .tags{
+	font-size: 0.9em !important;
+	top: 0 !important
+}
+.doc_drivers_LatestDocPortal {
+	.portalLatestThreads.withoutSubtitle {
+		float: left;
+	}
+	.threadSubTitle.withoutSubtitle .tagsHolder {
+		position: relative;
+		top: 2px;
+		margin-bottom: 4px;
+	}
+
+	.portalLatestThreads, .portalLatestFoldes{
+		clear: both;
+	}
+}
+
+.narrow .portalAuthorTitle {
+	position: relative;
+	top: 2px;
+}
+.narrow .documentTags {
+	white-space: normal !important;
+}
+.legend .documentTags .tags{
+	top: -1px;
+}
+.portal .threadSubTitle .tags {
+	opacity: 1;
+	margin-left: 5px;
+	white-space: nowrap;
+	display: inline-block;
+	width: 9px;
+	height: 9px;
+	overflow: hidden;
+	position: relative;
+	border: 1px solid #999;
+	box-sizing: border-box;
+	top: 1px;
+	&.tagType-personal {
+		border-radius: 5px;
+	}
+}
+
+.tagsHolder {
+	float: right;
+}
+
+.doc_drivers_FolderPortal {
+	.threadSubTitle {
+		display: block !important;
+		clear: both;
+	}
+	.otherSubtitleStr {
+		clear: both;
+		float: left;
+		padding-top: 3px;
+	}
+	.portalAuthorTitle {
+		float: right;
+		display: block;
+	}
+}
+
+.bgerp_drivers_Tasks {
+	.rightCol {
+		width: 38px;
+		.progress {
+			position: relative;
+			top: -2px;
+		}
+	}
+	.otherSubtitleStr {
+		display: inline-block;
+		padding-top: 3px !important;
+	}
+	.tagsHolder {
+		margin-right: -45px;
 	}
 }
 
@@ -2131,14 +2236,21 @@ a.tOld {
 .narrow .document-settings, .narrow .document-settings-left, .narrow .document-title-group {
 	display: inline;
 	float: none;
+
 	.liked, .disliked, .linkWithIcon {
 		position: relative;
 		top: 2px;
 		margin-left: 0;
 	}
+
 	.document-settings .linkWithIcon, .eyeIcon {
 		margin-right: 5px;
 	}
+}
+
+.narrow .document-settings-left, .narrow .document-settings {
+	position: relative;
+	top: 3px;
 }
 
 .document-settings-left, .document-title-group {
@@ -2284,18 +2396,18 @@ td.rowtools-column {
 	font-size: 15px;
 }
 
-.secondMeasure .endTooltip {
-	width: 10px;
-	height: 10px;
-	img {
-		width: 12px;
-		height: 12px;
-	}
-}
-
 .listTable td .endTooltip img{
 	width: 14px !important;
 	height: 14px !important;
+}
+
+.secondMeasure .endTooltip, .listTable td .secondMeasure .endTooltip {
+	width: 10px;
+	height: 10px;
+	img {
+		width: 12px !important;
+		height: 12px !important;
+	}
 }
 
 .lighter-color {
@@ -2399,6 +2511,13 @@ pre.document {
 	color: #353;
 	.quiet {
 		color: #ccc;
+	}
+	.documentTags {
+		position: relative;
+		top: 0;
+		span {
+			font-size: 0.95em;
+		}
 	}
 
 }
@@ -2912,7 +3031,7 @@ table.mc-calendar {
 }
 .portal-cal-day {
 	color:#5f1f3e;
-	font-size: 0.9em;
+	font-size: 0.95em;
     padding-top:3px;
     padding-left:3px;
 	border-top: 1px solid #ccc;
@@ -2952,9 +3071,6 @@ table.mc-calendar {
 		padding: 4px;
 		small {
 			padding-left: 7px;
-		}
-		a {
-			display: inline-block;
 		}
 	}
 	&.portal-cal-today {
@@ -7846,11 +7962,14 @@ body.narrow {
 			display: inline-block;
 		}
 		&.state-opened a{
-			background-color: rgba(187, 255, 204, 0.6);
+			color: green;
 		}
 	}
 	.tUnsighted {
 		font-weight: bold;
+	}
+	.threadSubTitle {
+		margin-left: 20px;
 	}
 }
 

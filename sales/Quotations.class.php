@@ -873,7 +873,7 @@ class sales_Quotations extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         $row = new stdClass();
@@ -1463,11 +1463,12 @@ class sales_Quotations extends core_Master
         $query->where("#expireOn < '{$today}'");
         $query->show('id');
         
-        // Затваряме ги
+        // Затварят се
         while ($rec = $query->fetch()) {
             try {
                 $rec->state = 'closed';
                 $this->save_($rec, 'state');
+                $this->logWrite('Затваряне на изтекла оферта', $rec->id);
             } catch (core_exception_Expect $e) {
                 reportException($e);
             }

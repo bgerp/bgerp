@@ -687,7 +687,7 @@ class cal_Reminders extends core_Master
      *
      * @return stdClass $row
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         
