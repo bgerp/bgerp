@@ -483,11 +483,17 @@ class frame2_Reports extends embed_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = '???';
-        if($Driver = static::getDriver($rec)){
-            $title = $Driver->getTitle($rec);
+        $title = $rec->title;
+        if(empty($title)){
+            if($Driver = static::getDriver($rec)){
+                $title = $Driver->getTitle($rec);
+            }
         }
-        
+
+        if(empty($title)){
+            $title = '???';
+        }
+
         return "{$title} №{$rec->id}";
     }
     
@@ -501,7 +507,7 @@ class frame2_Reports extends embed_Manager
         
         $row = new stdClass();
         $row->title = $this->getRecTitle($rec);
-        
+
         $Driver = $this->getDriver($rec);
         if (is_object($Driver)) {
             $driverTitle = $Driver->getTitle($rec);
