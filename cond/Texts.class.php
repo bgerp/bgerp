@@ -226,7 +226,7 @@ class cond_Texts extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $form = $data->listFilter;
-        $form->FLD('author', 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
+        $form->FLD('author', 'users(roles=powerUser, rolesForTeams=powerUser, rolesForAll=powerUser)', 'caption=Автор, autoFilter');
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
 
         Request::setProtected('groupName, callback');
@@ -258,14 +258,15 @@ class cond_Texts extends core_Manager
 
         if ($rec->author) {
             $authArr = type_Keylist::toArray($rec->author);
-            $or = false;
             if (mb_stripos($rec->author, '|-1|') === false) {
                 $data->query->in('createdBy', type_Keylist::toArray($rec->author));
-                $or = true;
             }
 
-            if ($authArr[$cu] && countR($authArr) == 1) {
-                $data->query->where("#access = 'public'", $or);
+            if (countR($authArr) != 1) {
+                if (!haveRole('admin, ceo')) {
+                    $data->query->where("#access = 'public'");
+                    $data->query->orWhere(array("#createdBy = '[#1#]'", $cu));
+                }
             }
         }
         if ($rec->langWithAllSelect) {
