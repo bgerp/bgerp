@@ -60,7 +60,7 @@ class cond_Texts extends core_Manager
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,admin';
+    public $canList = 'powerUser';
     
     
     /**
