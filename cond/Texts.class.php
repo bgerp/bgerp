@@ -83,7 +83,7 @@ class cond_Texts extends core_Manager
         $this->FLD('title', 'varchar(256)', 'caption=Заглавие, oldFieldName = name');
         $this->FLD('body', 'richtext(rows=10,bucket=Comments, passage)', 'caption=Описание, mandatory');
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
-        $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
+        $this->FLD('lang', 'enum(bg,en)', 'caption=Език');
         $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група, silent');
         $this->FNC('Protected', 'varchar', 'input=hidden, silent');
     }
@@ -227,7 +227,7 @@ class cond_Texts extends core_Manager
     {
         $form = $data->listFilter;
         $form->FLD('author', 'users(roles=powerUser, rolesForTeams=powerUser, rolesForAll=powerUser)', 'caption=Автор, autoFilter');
-        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
+        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език, placeholder=Всички');
 
         Request::setProtected('groupName, callback');
         $group = Request::get('groupName');
