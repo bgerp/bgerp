@@ -36,7 +36,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $mvc->FNC('packQuantity', 'double', 'caption=Количество,smartCenter,input=input');
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
-        $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage=Общи)', 'caption=Допълнително->Забележки');
+        $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
     }
     
     
