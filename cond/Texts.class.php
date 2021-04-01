@@ -234,8 +234,18 @@ class cond_Texts extends core_Manager
 
         $cu = core_Users::getCurrent();
         if (!$form->cmd) {
-            if ($lastGroup = core_Permanent::get("condGroupFilter{$cu}")) {
-                $form->setDefault('group', $lastGroup);
+            if ($lastFilter = core_Permanent::get("condLastFilter{$cu}")) {
+                if ($lastFilter['group']) {
+                    $form->setDefault('group', $lastFilter['group']);
+                }
+
+                if ($lastFilter['author']) {
+                    $form->setDefault('author', $lastFilter['author']);
+                }
+
+                if ($lastFilter['langWithAllSelect']) {
+                    $form->setDefault('langWithAllSelect', $lastFilter['langWithAllSelect']);
+                }
             }
 
             if (isset($group)) {
@@ -273,11 +283,9 @@ class cond_Texts extends core_Manager
 
         if ($rec->group) {
             $data->query->likeKeylist('group', $rec->group);
-
-            core_Permanent::set("condGroupFilter{$cu}", $rec->group, 24 * 60 * 100);
-        } else {
-            core_Permanent::remove("condGroupFilter{$cu}");
         }
+
+        core_Permanent::set("condLastFilter{$cu}", array('group' => $rec->group, 'author' => $rec->author, 'langWithAllSelect' => $rec->langWithAllSelect), 24 * 60 * 100);
 
         $data->query->orderBy('#createdOn', 'DESC');
     }
