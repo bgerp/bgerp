@@ -349,6 +349,7 @@ class core_ET extends core_BaseClass
         $this->places = array();
         $this->once = array();
         $this->pending = array();
+        $this->removableBlocks = array();
     }
     
     
@@ -603,7 +604,6 @@ class core_ET extends core_BaseClass
                     $new = $str;
                     break;
             }
-            
             $this->content = str_replace($place, $new, $this->content);
         } else {
             if ($placeHolder == null) {
