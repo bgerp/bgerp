@@ -230,7 +230,7 @@ class doc_UnsortedFolders extends core_Master
     public function description()
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,mandatory');
-        $this->FLD('description', 'richtext(rows=3, passage=Общи,bucket=Notes)', 'caption=Описание');
+        $this->FLD('description', 'richtext(rows=3, passage,bucket=Notes)', 'caption=Описание');
         $this->FLD('contragentFolderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
         
