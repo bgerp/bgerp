@@ -262,11 +262,9 @@ class cond_Texts extends core_Manager
                 $data->query->in('createdBy', type_Keylist::toArray($rec->author));
             }
 
-            if (countR($authArr) != 1) {
-                if (!haveRole('admin, ceo')) {
-                    $data->query->where("#access = 'public'");
-                    $data->query->orWhere(array("#createdBy = '[#1#]'", $cu));
-                }
+            if (!haveRole('admin, ceo', $cu)) {
+                $data->query->where("#access = 'public'");
+                $data->query->orWhere(array("#createdBy = '[#1#]'", $cu));
             }
         }
         if ($rec->langWithAllSelect) {
