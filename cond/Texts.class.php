@@ -42,7 +42,7 @@ class cond_Texts extends core_Manager
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,admin';
+    public $canRead = 'powerUser';
     
     
     /**
