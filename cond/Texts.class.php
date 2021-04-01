@@ -72,7 +72,7 @@ class cond_Texts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'body, created=Автор';
+    public $listFields = 'body, createdOn,createdOn,createdBy';
     
     
     /**
@@ -207,7 +207,7 @@ class cond_Texts extends core_Manager
         $form = $data->listFilter;
         $form->FLD('author', 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
         $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
-        
+
         Request::setProtected('groupName, callback');
         $group = Request::get('groupName');
         
@@ -240,6 +240,7 @@ class cond_Texts extends core_Manager
             $data->query->likeKeylist('group', $rec->group);
             core_Permanent::set("condGroupFilter{$cu}", $rec->group, 24 * 60 * 100);
         }
+
         $data->query->orderBy('#createdOn', 'DESC');
     }
     
@@ -275,11 +276,8 @@ class cond_Texts extends core_Manager
             $string = substr_replace($string, '[hide]', 0, 0);
             $string = substr_replace($string, '[/hide]', strlen($string), 0);
             $string = $mvc->fields['body']->type->toVerbal($string);
-            $createdOn = $mvc->getVerbal($rec, 'createdOn');
-            $createdBy = $mvc->getVerbal($rec, 'createdBy');
-            
+
             $row->body = "<span class='passageHolder'>" . $title . $string . '</span>';
-            $row->created = $createdOn . '<br>' . $createdBy;
         }
     }
     
