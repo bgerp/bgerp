@@ -1360,12 +1360,6 @@ class eshop_Products extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-        
-        if ($action == 'changestate' && isset($rec)) {
-            if ($mvc->haveRightFor('delete', $rec)) {
-                $requiredRoles = 'no_one';
-            }
-        }
     }
     
     

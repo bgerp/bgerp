@@ -41,6 +41,8 @@ class bgerp_Index extends core_Manager
      */
     public function act_About()
     {
+        requireRole('powerUser');
+
         $resData = new stdClass();
         $resData->APP_TITLE = core_Setup::get('EF_APP_TITLE', true);
         $resData->INFO = tr('Интегрирана система за управление на бизнеса');
