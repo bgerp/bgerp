@@ -29,7 +29,7 @@ class cond_Wrapper extends plg_ProtoWrapper
         $this->TAB('cond_TaxAndFees', 'Данъци и такси', 'ceo,admin');
         $this->TAB('cond_Countries', 'Търг. условия->Условия', 'ceo,admin');
         $this->TAB('cond_Parameters', 'Търг. условия->Видове', 'ceo,admin');
-        $this->TAB('cond_Texts', 'Пасажи->Текстове', 'ceo,admin');
+        $this->TAB('cond_Texts', 'Пасажи->Текстове', 'ceo,admin, powerUser');
         $this->TAB('cond_Groups', 'Пасажи->Групи', 'ceo,admin');
         $this->TAB('cond_Ranges', 'Диапазони', 'ceo,admin');
         $this->TAB('uiext_Labels', 'Тагове', 'ceo,admin');
