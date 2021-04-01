@@ -24,7 +24,7 @@ class cond_Texts extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Фрагменти';
+    public $title = 'Пасажи';
     
     
     /**
@@ -72,7 +72,7 @@ class cond_Texts extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'body, createdOn,createdOn,createdBy';
+    public $listFields = 'body, createdOn,createdOn,createdBy, access, group';
     
     
     /**
