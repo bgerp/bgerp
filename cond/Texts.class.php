@@ -81,7 +81,7 @@ class cond_Texts extends core_Manager
     public function description()
     {
         $this->FLD('title', 'varchar(256)', 'caption=Заглавие, oldFieldName = name');
-        $this->FLD('body', 'richtext(rows=10,bucket=Comments, passage=Общи)', 'caption=Описание, mandatory');
+        $this->FLD('body', 'richtext(rows=10,bucket=Comments, passage)', 'caption=Описание, mandatory');
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
         $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
         $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група');
