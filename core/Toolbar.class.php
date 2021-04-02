@@ -293,10 +293,28 @@ class core_Toolbar extends core_BaseClass
                 $hiddenBtns++;
             }
         }
-        
+
         foreach ($this->buttons as $id => $btn) {
             $place = ($btn->attr['row'] == 2 && $onRow2 > 0) ? 'ROW2' : (($hiddenBtns > 1 && $btn->attr['row'] == 3) ? 'HIDDEN' : 'ROW1') ;
-            
+
+            // Ако няма да се показва текста в заглавието
+            if ($place == 'ROW1') {
+                if ($btn->attr['emptyInFirstRow']) {
+                    $t = str::utf2ascii($btn->title);
+                    $t = ucfirst($t);
+
+                    setIfNot($btn->attr['title'], $btn->title);
+                    setIfNot($btn->attr['id'], "btn{$t}_" . str::getRand('#####'));
+
+                    $btn->attr['class'] .= $btn->attr['class'] ? ' ' : '';
+
+                    $btn->attr['class'] .= 'onlyIcon';
+                    $btn->title = '';
+
+                    unset($btn->attr['emptyInFirstRow']);
+                }
+            }
+
             if ($place == 'ROW2' || $hiddenBtns) {
                 $flagRow2 = true;
             }
@@ -309,14 +327,14 @@ class core_Toolbar extends core_BaseClass
             } elseif ($btn->type == 'function') {
                 $layout->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr), $place);
             } elseif ($btn->type == 'select') {
-                $layout->append(ht::createSelectMenu($btn->options, $btn->selected, $btn->maxRadio, $params), $place);
+                $layout->append(ht::createSelectMenu($btn->options, $btn->selected, $btn->maxRadio, $attr), $place);
             } else {
                 $layout->append(ht::createBtn($btn->title, $btn->url, $btn->warning, $btn->newWindow, $attr), $place);
             }
             
             $btnCnt++;
         }
-        
+
         if ($flagRow2) {
             $this->appendSecondRow($layout, $rowId);
         }

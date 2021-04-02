@@ -102,7 +102,7 @@ class plg_Printing extends core_Plugin
                 $printBtnId = self::getPrintBtnId($mvc, $data->rec->id);
                 
                 // Бутон за отпечатване
-                $data->toolbar->addBtn('Печат', $url, "id={$printBtnId},target=_blank,row={$mvc->printBtnToolbarRow}", 'ef_icon = img/16/printer.png,title=Печат на документа');
+                $data->toolbar->addBtn('Печат', $url, "emptyInFirstRow,id={$printBtnId},target=_blank,row={$mvc->printBtnToolbarRow}", 'ef_icon = img/16/printer.png,title=Печат на документа');
             }
         }
     }

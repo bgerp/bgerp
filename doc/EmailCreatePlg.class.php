@@ -48,7 +48,7 @@ class doc_EmailCreatePlg extends core_Plugin
             $emailUrl = array('email_Outgoings', 'add', 'originId' => $data->rec->containerId, 'ret_url' => $retUrl);
             
             $data->toolbar->addBtn($emailButtonText,$emailUrl,
-                        'ef_icon = img/16/email_edit.png,title=Изпращане на документа по имейл',
+                        "emptyInFirstRow,ef_icon = img/16/email_edit.png,title=Изпращане на документа по имейл, id=btnEmail_{$data->rec->id}",
                         'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '");'
             );
         }
