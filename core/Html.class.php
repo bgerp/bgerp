@@ -695,7 +695,11 @@ class core_Html
         if (!Mode::is('screenMode', 'narrow')) {
             $attr = self::addBackgroundIcon($attr);
         } else {
-            unset($attr['ef_icon']);
+            if (trim($title)) {
+                unset($attr['ef_icon']);
+            } else {
+                $attr = self::addBackgroundIcon($attr);
+            }
         }
         
         // Ако нямаме JavaScript правим хипервръзка

@@ -309,11 +309,11 @@ class core_Toolbar extends core_BaseClass
                     $btn->attr['class'] .= $btn->attr['class'] ? ' ' : '';
 
                     $btn->attr['class'] .= 'onlyIcon';
-                    $btn->title = '';
-
-                    unset($btn->attr['emptyInFirstRow']);
+                    $btn->title = ' ';
                 }
             }
+
+            unset($btn->attr['emptyInFirstRow']);
 
             if ($place == 'ROW2' || $hiddenBtns) {
                 $flagRow2 = true;
