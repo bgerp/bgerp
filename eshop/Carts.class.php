@@ -1084,12 +1084,17 @@ class eshop_Carts extends core_Master
             $place = core_Type::getByName('varchar')->toVerbal($rec->deliveryPlace);
             $place = (!empty($pCode)) ? "{$pCode} {$place}" : $place;
             $deliveryAddress = core_Type::getByName('varchar')->toVerbal($rec->deliveryAddress);
+
             $body->replace($countryName, 'DELIVERY_COUNTRY');
             if (!empty($place)) {
                 $body->replace($place, 'PLACE');
             }
             if (!empty($rec->deliveryAddress)) {
                 $body->replace($deliveryAddress, 'ADDRESS');
+            }
+
+            if (!empty($rec->instruction)) {
+                $body->replace($rec->instruction, 'INSTRUCTIONS');
             }
         }
         
