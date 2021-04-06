@@ -11,7 +11,14 @@
             <td>[#parent#]</td>
         </tr>
         <!--ET_END parent-->
-        
+
+        <!--ET_BEGIN cId-->
+        <tr>
+            <td class="title-style">|Частна за|*</td>
+            <td>[#cId#]</td>
+        </tr>
+        <!--ET_END cId-->
+
         <!--ET_BEGIN defaultSurcharge-->
         <tr>
             <td class="title-style">|[#discountType#] по подразбиране|*</td>
