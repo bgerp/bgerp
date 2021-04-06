@@ -227,8 +227,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
 
 
 
-            //Проверка, дали артикула е от тип "Транспортна услуга"
-           // if (!cat_Products::haveDriver($detailRec-> productId,'transsrv_ProductDrv'))continue;
+
 
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
 
@@ -238,10 +237,11 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                     continue;
                 }
                 
-                if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
+                if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') === false) {
                     continue;
                 }
-                
+                //Проверка, дали артикула е от тип "Транспортна услуга"
+                if (!cat_Products::haveDriver($detailRec-> productId,'transsrv_ProductDrv'))continue;
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> requestId.'/'.$alocatedCost-> detailClassId.',';
             }
             
@@ -249,6 +249,9 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 if (in_array($masterClassName::fetchField($detailRec->shipmentId, 'state'), $stateArr)) {
                     continue;
                 }
+
+                //Проверка, дали артикула е от тип "Транспортна услуга"
+                if (!cat_Products::haveDriver($detailRec-> productId,'transsrv_ProductDrv'))continue;
                 
                 if (substr($className, 0, 5) == 'sales') {
                     $marker = -1;
