@@ -174,10 +174,6 @@ class email_Mime extends core_BaseClass
         }
 
         if (empty($fromEmlArr)) {
-            $fromEmlArr = type_Email::extractEmails($fromHeader);
-        }
-
-        if (empty($fromEmlArr)) {
             $fromEmlArr = type_Email::extractEmails($this->getHeader('Return-Path'));
         }
 
