@@ -535,7 +535,7 @@ class price_Lists extends core_Master
                 $row->discountCompared = price_Lists::getHyperlink($rec->discountCompared, true);
             }
             
-            if ($rec->public == 'yes' && $rec->id != cat_Setup::get('DEFAULT_PRICELIST')) {
+            if ($rec->id != cat_Setup::get('DEFAULT_PRICELIST')) {
                 $customerCount = price_ListToCustomers::count("#listId = {$rec->id} AND #state = 'active'");
                 $row->connectedClients = cls::get('type_Int')->toVerbal($customerCount);
                 if ($customerCount != 0) {
