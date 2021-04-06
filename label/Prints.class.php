@@ -804,10 +804,10 @@ class label_Prints extends core_Master
         
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
-            
+
             // Ако се търси по всички
             if (strpos($filter->author, '|-1|') !== false) {
-                if (!haveRole('labelMaster, ceo, admin')) {
+                if (!haveRole('labelMaster, ceo, admin, seeLabelAllGlobal')) {
                     $data->query->where('1=2');
                 }
             } else {
