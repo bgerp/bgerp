@@ -541,17 +541,19 @@ class frame2_Reports extends embed_Manager
         if ($mvc->haveRightFor('refresh', $rec)) {
             $data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на справката');
         }
-        
-        $url = array($mvc, 'single', $rec->id);
-        $icon = 'img/16/checked.png';
-        if (!Request::get('vId', 'int')) {
-            $url['vId'] = $rec->id;
-            $icon = 'img/16/checkbox_no.png';
-        }
-        
-        $vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
-        if ($vCount > 1) {
-            $data->toolbar->addBtn("Версии|* ({$vCount})", $url, null, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+
+        if(!core_Users::isContractor()){
+            $url = array($mvc, 'single', $rec->id);
+            $icon = 'img/16/checked.png';
+            if (!Request::get('vId', 'int')) {
+                $url['vId'] = $rec->id;
+                $icon = 'img/16/checkbox_no.png';
+            }
+
+            $vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
+            if ($vCount > 1) {
+                $data->toolbar->addBtn("Версии|* ({$vCount})", $url, null, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+            }
         }
     }
     
