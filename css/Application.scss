@@ -2095,7 +2095,7 @@ a.tUnsighted {
 }
 
 .dark-gray {
-	color: #555;
+	color: #444;
 }
 #packWrapper > .floatedElement {
 	float: left;
@@ -2560,7 +2560,15 @@ pre.document {
 .boldText {
 	font-weight: bold;
 }
-
+.italicText {
+	font-style: italic;
+}
+.underlineText {
+	text-decoration: underline;
+}
+.normalText {
+	font-weight: normal !important;
+}
 .cell {
 	border: 1px solid #999;
 	vertical-align: top;

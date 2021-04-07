@@ -208,8 +208,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $visibleTransportCost = $hiddenTransportCost = 0;
         }
-        
-        
+
         $cQuery = acc_CostAllocations::getQuery();
         
         $cQuery->in('expenseItemId', $salesItemsIds);
@@ -225,9 +224,17 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $detailRec = $className::fetch($alocatedCost-> detailRecId);
 
+            //Проверка, дали артикула е от тип "Транспортна услуга"
+            if (cat_Products::fetch($detailRec-> productId)->isPublic == 'no' &&
+                !cat_Products::haveDriver($detailRec-> productId,'transsrv_ProductDrv')){
+                continue;
+            }
+            if(cat_Products::fetch($detailRec-> productId)->isPublic == 'yes') {
+               $transIdArr = keylist::toArray(sales_Setup::get('TRANSPORT_PRODUCTS_ID'));
+               expect(!empty($transIdArr),'Липсва избран артикул за транспорт');
+               if (!in_array($detailRec-> productId,$transIdArr))continue;
 
-
-
+            }
 
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
 
@@ -240,8 +247,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') === false) {
                     continue;
                 }
-                //Проверка, дали артикула е от тип "Транспортна услуга"
-                if (!cat_Products::haveDriver($detailRec-> productId,'transsrv_ProductDrv'))continue;
+
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> requestId.'/'.$alocatedCost-> detailClassId.',';
             }
             
@@ -250,15 +256,12 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                     continue;
                 }
 
-                //Проверка, дали артикула е от тип "Транспортна услуга"
-                if (!cat_Products::haveDriver($detailRec-> productId,'transsrv_ProductDrv'))continue;
-                
                 if (substr($className, 0, 5) == 'sales') {
                     $marker = -1;
                 }
                  $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
             }
-            
+
             if (is_null($recs[$alocatedCost->expenseItemId]->countryId)) {
                 if (!is_null(cat_Products::fetch($detailRec-> productId)->toCountry)) {
                     $recs[$alocatedCost->expenseItemId]->countryId = cat_Products::fetch($detailRec-> productId)->toCountry;
