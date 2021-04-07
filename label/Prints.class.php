@@ -56,7 +56,7 @@ class label_Prints extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'label, admin, ceo';
+    public $canList = 'label, admin, ceo, seeLabelAll';
     
     
     /**
@@ -784,7 +784,7 @@ class label_Prints extends core_Master
         unset($data->listFilter->fields['mediaId']->mandatory);
         $data->listFilter->fields['mediaId']->type->params['allowEmpty'] = 'allowEmpty';
         
-        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От, refreshForm');
+        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin|seeLabelAllGlobal, rolesForTeams=label|ceo|admin|seeLabelAll)', 'caption=От, refreshForm');
         
         $data->listFilter->showFields = 'author, search, templateId, mediaId';
         
@@ -804,17 +804,12 @@ class label_Prints extends core_Master
         
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
-            
+
             // Ако се търси по всички
-            if (strpos($filter->author, '|-1|') !== false) {
-                if (!haveRole('labelMaster, ceo, admin')) {
-                    $data->query->where('1=2');
-                }
-            } else {
-                
+            if (strpos($filter->author, '|-1|') === false) {
                 // Масив с потребителите
                 $usersArr = type_Keylist::toArray($filter->author);
-                
+
                 $data->query->orWhereArr('createdBy', $usersArr);
                 $data->query->orWhereArr('modifiedBy', $usersArr, true);
             }

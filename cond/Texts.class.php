@@ -97,7 +97,9 @@ class cond_Texts extends core_Manager
         Request::setProtected('groupName, callback');
         
         Mode::set('wrapper', 'page_Dialog');
-        
+
+        $this->title = 'Добавяне на пасажи';
+
         // Вземаме callBack'а
         $callback = Request::get('callback', 'identifier');
         

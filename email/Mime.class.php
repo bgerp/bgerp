@@ -167,13 +167,16 @@ class email_Mime extends core_BaseClass
         $fromParser->ParseAddressList($fromHeader, $parseFrom);
         $fromEmlStr = $parseFrom[0]['address'] ? $parseFrom[0]['address'] : $parseFrom[1]['address'];
         $this->fromName = $parseFrom[0]['name'] . ' ' . $parseFrom[1]['name'];
-        
-        if (!$fromEmlStr) {
-            $fromEmlArr = type_Email::extractEmails($this->getHeader('Return-Path'));
-        } else {
+
+        $fromEmlArr = array();
+        if (trim($fromEmlStr)) {
             $fromEmlArr = type_Email::extractEmails($fromEmlStr);
         }
-        
+
+        if (empty($fromEmlArr)) {
+            $fromEmlArr = type_Email::extractEmails($this->getHeader('Return-Path'));
+        }
+
         $this->fromEmail = $fromEmlArr[0];
     }
     

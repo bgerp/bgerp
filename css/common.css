@@ -968,6 +968,15 @@ table .linkWithIcon {
   .linkWithIcon.nameday {
     background-image: url('../img/16/orthodox.png'); }
 
+.toolbar-first input.onlyIcon {
+  padding: 0.34em 5px 0.34em 5px !important;
+  box-sizing: border-box;
+  width: 26px;
+  background-position: center !important; }
+
+.narrow .toolbar-first input.onlyIcon {
+  width: 28px; }
+
 a.linkWithIcon.small-padding-icon {
   padding-left: 15px !important;
   background-position: 0px center; }
