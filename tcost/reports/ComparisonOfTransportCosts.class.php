@@ -226,7 +226,15 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
 
             //Проверка, дали артикула е от тип "Транспортна услуга"
             if (cat_Products::fetch($detailRec-> productId)->isPublic == 'no' &&
-                !cat_Products::haveDriver($detailRec-> productId,'transsrv_ProductDrv'))continue;
+                !cat_Products::haveDriver($detailRec-> productId,'transsrv_ProductDrv')){
+                continue;
+            }
+            if(cat_Products::fetch($detailRec-> productId)->isPublic == 'yes') {
+               $transIdArr = keylist::toArray(sales_Setup::get('TRANSPORT_PRODUCTS_ID'));
+               expect(!empty($transIdArr),'Липсва избран артикул за транспорт');
+               if (!in_array($detailRec-> productId,$transIdArr))continue;
+
+            }
 
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
 
