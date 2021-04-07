@@ -221,7 +221,7 @@ class doc_UnsortedFolders extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'folderId';
+    public $fieldsNotToClone = 'folderId,createdOn,createdBy';
     
     
     /**

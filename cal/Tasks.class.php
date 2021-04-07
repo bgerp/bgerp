@@ -399,7 +399,7 @@ class cal_Tasks extends embed_Manager
         }
         
         if (Mode::is('screenMode', 'narrow')) {
-            $data->form->fields[priority]->maxRadio = 2;
+            $data->form->fields['priority']->maxRadio = 2;
         }
         
         $rec = $data->form->rec;

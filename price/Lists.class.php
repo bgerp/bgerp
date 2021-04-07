@@ -219,8 +219,6 @@ class price_Lists extends core_Master
             } else {
                 $rec->public = 'no';
             }
-            
-            $rec->public = ($Cover->haveInterface('crm_ContragentAccRegIntf')) ? 'no' : 'yes';
         }
     }
     
@@ -529,7 +527,11 @@ class price_Lists extends core_Master
         if (isset($rec->parent)) {
             $row->parent = price_Lists::getHyperlink($rec->parent, true);
         }
-        
+
+        if(isset($rec->cClass) && isset($rec->cId)){
+            $row->cId = cls::get($rec->cClass)->getHyperlink($rec->cId, true);
+        }
+
         if (isset($fields['-single'])) {
             if (isset($rec->discountCompared)) {
                 $row->discountCompared = price_Lists::getHyperlink($rec->discountCompared, true);
@@ -775,10 +777,12 @@ class price_Lists extends core_Master
             $rec->cClass = null;
             $rec->cId = null;
         } else {
-            $Cover = doc_Folders::getCover($rec->folderId);
             $rec->public = 'no';
-            $rec->cClass = $Cover->getClassId();
-            $rec->cId = $Cover->that;
+            $clQuery = price_ListToCustomers::getQuery();
+            $clQuery->where("#listId = {$rec->id}");
+            $foundRec = $clQuery->fetch();
+            $rec->cClass = $foundRec->cClass;
+            $rec->cId = $foundRec->cId;
         }
         
         $this->save_($rec, 'public,cClass,cId');

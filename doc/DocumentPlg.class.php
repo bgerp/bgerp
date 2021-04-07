@@ -388,7 +388,7 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                "id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr('Оттегляне на документа'),
+                "emptyInFirstRow,id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr('Оттегляне на документа'),
                 'ef_icon = img/16/reject.png'
             );
         }
@@ -421,11 +421,11 @@ class doc_DocumentPlg extends core_Plugin
                         'ret_url' => $retUrl
                     ),
                         'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")',
-                    'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа')
+                    "emptyInFirstRow,id=btnComment_{$data->rec->id},ef_icon = img/16/comment_add.png,title=" . tr('Добавяне на коментар към документа')
                 );
             }
         }
-        
+
         if ($data->rec->state != 'rejected') {
             // Добавяме бутон за създаване на задача
             if ($data->rec->containerId && doc_Linked::haveRightFor('addlink')) {
@@ -440,7 +440,7 @@ class doc_DocumentPlg extends core_Plugin
                         'foreignId' => $data->rec->containerId,
                         'inType' => 'doc',
                         'ret_url' => $retUrl
-                    ), 'ef_icon = img/16/doc_tag.png, title=Връзка към документа');
+                    ), "emptyInFirstRow,id=btnLink_{$data->rec->id},ef_icon = img/16/doc_tag.png, title=Връзка към документа");
                 }
             }
         }

@@ -544,7 +544,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'closed' AND #closeWith IS NOT NULL");
                 break;
             case 'notClosedWith':
-                $query->where("(#state = 'active' || #state ='closed') AND #closeWith IS NULL");
+                $query->where("(#state = 'active' OR #state ='closed' OR #state = 'pending') AND #closeWith IS NULL");
                 break;
             case 'unionDeals':
                 $query->where("#state = 'active' OR #state = 'closed'");
@@ -2495,6 +2495,36 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         if(acc_plg_Contable::havePendingDocuments($rec->threadId, $rec->containerId)){
             followRetUrl(null, 'Сделката не може да се открие/закрие, защото има документи на заявка', 'error');
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        if(!core_Packs::isInstalled('rack')) return;
+
+        // Ако има, се спира оттеглянето
+        $rec = $mvc->fetchRec($id);
+
+        $errorDocuments = array();
+        $descendants = $mvc->getDescendants($rec->id);
+        if(is_array($descendants)){
+            foreach($descendants as $desc){
+                $descendantContainerId = $desc->fetchField('containerId');
+                if(rack_Zones::hasRackMovements($descendantContainerId)){
+                    $errorDocuments[] = $desc->getHandle();
+                }
+            }
+        }
+
+        if(countR($errorDocuments)){
+            $msg = implode(', ', $errorDocuments);
+            core_Statuses::newStatus( "Документа не може да се оттегли, докато следните документи имат нагласени количества в зона|*: {$msg}", 'error');
+
+            return false;
         }
     }
 }
