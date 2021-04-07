@@ -212,7 +212,7 @@ class price_Lists extends core_Master
     {
         if (isset($rec->folderId)) {
             $Cover = doc_Folders::getCover($rec->folderId);
-            if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {bp($Cover);
+            if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
                 $rec->public = 'yes';
                 $rec->cClass = $Cover->getClassId();
                 $rec->cId = $Cover->that;
