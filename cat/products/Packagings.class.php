@@ -1238,6 +1238,8 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
             } elseif ($Detail == 'cat_BomDetails') {
                 $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
+            } elseif ($Detail == 'store_TransfersDetails') {
+                $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             } else {
                 $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             }
