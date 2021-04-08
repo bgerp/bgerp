@@ -659,8 +659,8 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec)
     {
-        if($rec->contragentId == crm_Persons::getClassId()){
-            $mvc->setFieldType('uicNo', 'bglocal_EgnType');
+        if($rec->contragentClassId == crm_Persons::getClassId()){
+            $mvc->setFieldType('uicNo', 'bglocal_EgnType(onlyString)');
         } else {
             $mvc->setFieldType('uicNo', "drdata_type_Uic(countryId={$rec->contragentCountryId})");
         }
