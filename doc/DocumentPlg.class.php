@@ -388,7 +388,7 @@ class doc_DocumentPlg extends core_Plugin
                     'reject',
                     $data->rec->id
                 ),
-                "emptyInFirstRow,id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr('Оттегляне на документа'),
+                "id=btnDelete{$data->rec->containerId},class=fright,warning=Наистина ли желаете да оттеглите документа?, row=2, order=40,title=" . tr('Оттегляне на документа'),
                 'ef_icon = img/16/reject.png'
             );
         }
@@ -421,7 +421,7 @@ class doc_DocumentPlg extends core_Plugin
                         'ret_url' => $retUrl
                     ),
                         'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")',
-                    "emptyInFirstRow,id=btnComment_{$data->rec->id},ef_icon = img/16/comment_add.png,title=" . tr('Добавяне на коментар към документа')
+                    "id=btnComment_{$data->rec->id},ef_icon = img/16/comment_add.png,title=" . tr('Добавяне на коментар към документа')
                 );
             }
         }
@@ -440,7 +440,7 @@ class doc_DocumentPlg extends core_Plugin
                         'foreignId' => $data->rec->containerId,
                         'inType' => 'doc',
                         'ret_url' => $retUrl
-                    ), "emptyInFirstRow,id=btnLink_{$data->rec->id},ef_icon = img/16/doc_tag.png, title=Връзка към документа");
+                    ), "id=btnLink_{$data->rec->id},ef_icon = img/16/doc_tag.png, title=Връзка към документа");
                 }
             }
         }
@@ -2443,7 +2443,7 @@ class doc_DocumentPlg extends core_Plugin
             core_Users::exitSudo($sudoUser);
             expect(false, $e);
         }
-        
+
         // Възстановяване на текущия потребител
         core_Users::exitSudo($sudoUser);
         
