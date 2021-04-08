@@ -220,7 +220,7 @@ class eshop_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'eshop_driver_BankPayment';
+    public $defClasses = 'eshop_driver_BankPayment, eshop_reports_ReferersOfCarts';
     
     
     /**
