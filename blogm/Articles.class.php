@@ -2,14 +2,14 @@
 
 
 /**
- * Статии
+ * Блог Статии
  *
  *
  * @category  bgerp
  * @package   blogm
  *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -331,7 +331,7 @@ class blogm_Articles extends core_Master
         }
         
         if (!$id) {
-            
+
             return $this->act_Browse();
         }
 
