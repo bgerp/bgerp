@@ -591,8 +591,12 @@ class blogm_Articles extends core_Master
         $data->categoryId = Request::get('category', 'int');
         $data->menuId = Request::get('cMenuId', 'int');
 
-        if(empty($data->menuId) && isset($data->categoryId)){
-            $data->menuId = blogm_Categories::fetchField($data->categoryId, 'menuId');
+        if(empty($data->menuId)){
+            if(isset($data->categoryId)){
+                $data->menuId = blogm_Categories::fetchField($data->categoryId, 'menuId');
+            } else {
+                $data->menuId = cms_Content::getDefaultMenuId($this);
+            }
         }
 
         $data->menuRec = cms_Content::fetch($data->menuId);
