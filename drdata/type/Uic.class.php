@@ -115,8 +115,6 @@ class drdata_type_Uic extends type_Varchar
                 return true;
             }
 
-            $msg = 'Невалиден ЕИК';
-
             // Ако не е валидно и с 10 символа, се проверява дали не е ЕГН
             if (mb_strlen($uicNo) == 10) {
                 $Egn = cls::get('bglocal_EgnType');
@@ -126,6 +124,8 @@ class drdata_type_Uic extends type_Varchar
                     return true;
                 }
                 $msg = 'ДДС номер (9,10 или 13 символа): въведени са 10 символа, които не са валидно ЕИК/ЕГН';
+            } else {
+                $msg = 'Невалиден ЕИК';
             }
 
             $isError = true;
