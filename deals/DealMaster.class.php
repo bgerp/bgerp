@@ -2371,6 +2371,11 @@ abstract class deals_DealMaster extends deals_DealBase
         // Създаване на мастър на документа
         try{
             $masterId = static::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+            if(isset($productId)){
+                static::logWrite('Създаване от артикул', $masterId);
+            } else {
+                static::logWrite('Създаване', $masterId);
+            }
         } catch(core_exception_Expect $e){
             reportException($e);
             followRetUrl(null, "Проблем при създаване на|* " . mb_strtolower($this->singleTitle));
