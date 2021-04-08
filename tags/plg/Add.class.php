@@ -69,7 +69,7 @@ class tags_plg_Add extends core_Plugin
     {
         if (tags_Logs::haveRightFor('tag', $data->rec)) {
             $url = array('tags_Logs', 'Tag', 'id' => $data->rec->containerId, 'ret_url' => true);
-            $data->toolbar->addBtn('Таг', $url, "emptyInFirstRow,ef_icon=img/16/circle-icon.png, title=Добавяне на таг, order=19.999, id=btnTag_{$data->rec->id}");
+            $data->toolbar->addBtn('Таг', $url, "ef_icon=img/16/circle-icon.png, title=Добавяне на таг, order=19.999, id=btnTag_{$data->rec->id}");
         }
     }
 
