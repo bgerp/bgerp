@@ -362,7 +362,7 @@ class pos_Points extends core_Master
             $reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => true);
         }
         
-        $title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
+        $title = (countR($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
         
         $data->toolbar->addBtn('Отчет', $reportUrl, null, "title={$title},ef_icon=img/16/report.png");
     }

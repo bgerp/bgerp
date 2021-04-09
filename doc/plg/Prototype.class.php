@@ -112,7 +112,7 @@ class doc_plg_Prototype extends core_Plugin
             $fields = arr::make(array_keys($mvc->selectFields()), true);
             if ($mvc instanceof core_Embedder) {
                 $driverFields = cls::get($form->rec->{$mvc->innerClassField})->getDriverFields();
-                if (count($driverFields)) {
+                if (countR($driverFields)) {
                     $fields += $driverFields;
                 }
             } elseif ($mvc instanceof embed_Manager) {
@@ -120,7 +120,7 @@ class doc_plg_Prototype extends core_Plugin
                     if (cls::load($form->rec->{$mvc->driverClassField}, true)) {
                         if ($Driver = cls::get($form->rec->{$mvc->driverClassField})) {
                             $driverFields = arr::make(array_keys($mvc::getDriverFields($Driver)), true);
-                            if (count($driverFields)) {
+                            if (countR($driverFields)) {
                                 $fields += $driverFields;
                             }
                         }
@@ -135,7 +135,7 @@ class doc_plg_Prototype extends core_Plugin
             $fields = array_diff_key($fields, $unsetFields);
             
             // Добавяне на рефреш на полето
-            if (count($fields)) {
+            if (countR($fields)) {
                 $refresh = implode('|', array_keys($fields));
                 $form->setField($mvc->protoFieldName, "removeAndRefreshForm={$refresh}");
             }
@@ -155,7 +155,7 @@ class doc_plg_Prototype extends core_Plugin
                     $isCoreEmbedder = $mvc instanceof core_Embedder;
                     
                     // Данните му се зареждат
-                    if (count($fields)) {
+                    if (countR($fields)) {
                         foreach ($fields as $field) {
                             $value = ($isCoreEmbedder === false) ? $protoRec->{$field} : $protoRec->{$mvc->innerFormField}->{$field};
                             $form->rec->{$field} = $value;

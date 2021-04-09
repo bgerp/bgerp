@@ -229,8 +229,14 @@ class sales_Invoices extends deals_InvoiceMaster
      * Кои ключове да се тракват, кога за последно са използвани
      */
     public $lastUsedKeys = 'numlimit';
-    
-    
+
+
+    /**
+     * Стратегии за добавяне на артикули след създаване от източника
+     */
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от договора", 'shippedNotInvoiced' => 'Експедираните (Нефактурирани) артикули по договора');
+
+
     /**
      * Описание на модела
      */
@@ -338,6 +344,10 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         parent::prepareInvoiceForm($mvc, $data);
+        if(empty($rec->id)){
+            $form->setDefault('importProducts', 'shippedNotInvoiced');
+        }
+
         if(!empty($form->rec->contragentVatNo)){
             $Vats = cls::get('drdata_Vats');
             list(, $vies) = $Vats->check($form->rec->contragentVatNo);

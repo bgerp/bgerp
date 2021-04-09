@@ -2100,7 +2100,8 @@ class doc_Threads extends core_Manager
             } else {
                 $docRec->brState = 'stopped';
             }
-            
+
+            $Class->logWrite("Спиране на документа", $docRec);
             $Class->save($docRec, 'state,brState');
         }
     }
@@ -2134,6 +2135,8 @@ class doc_Threads extends core_Manager
             
             // Ако е спрян се активира, и се реконтира
             if ($docRec->state == 'stopped') {
+                $Class->logWrite("Пускане на документа", $cRec->docId);
+
                 try{
                     acc_Journal::saveTransaction($cRec->docClass, $cRec->docId);
                 } catch (acc_journal_RejectRedirect $e) {
@@ -2162,7 +2165,7 @@ class doc_Threads extends core_Manager
         }
         
         self::startDocuments($rec->id);
-        
+
         return new redirect($returnUrl, 'Бизнес документите в нишката са успешно пуснати');
     }
     

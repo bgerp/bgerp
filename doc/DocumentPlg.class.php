@@ -1218,6 +1218,7 @@ class doc_DocumentPlg extends core_Plugin
                 
                 // Редирект
                 if ($type == 'stopped') {
+
                     redirect(array($mvc, 'single', $rec->id));
                 } else {
                     redirect(array($mvc, 'reject', $rec->id, 'stop' => 1));

@@ -578,16 +578,18 @@ class store_ShipmentOrders extends store_DocumentMaster
             $res['toPersonPhones'] = !empty($rec->tel) ? $rec->tel : $res['toPersonPhones'];
         } elseif (empty($rec->locationId) && $rec->isReverse == 'no') {
             if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
-                $firstDocumentLogisticData = $firstDocument->getLogisticData();
-                $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
-                $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
-                $res['toPlace'] = $firstDocumentLogisticData['toPlace'];
-                $res['toAddress'] = $firstDocumentLogisticData['toAddress'];
-                $res['instructions'] = $firstDocumentLogisticData['instructions'];
-                $res['toCompany'] = $firstDocumentLogisticData['toCompany'];
-                $res['toPerson'] = $firstDocumentLogisticData['toPerson'];
-                $res['toPersonPhones'] = $firstDocumentLogisticData['toPersonPhones'];
-                $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                if($firstDocument->haveInterface('trans_LogisticDataIntf')){
+                    $firstDocumentLogisticData = $firstDocument->getLogisticData();
+                    $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
+                    $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
+                    $res['toPlace'] = $firstDocumentLogisticData['toPlace'];
+                    $res['toAddress'] = $firstDocumentLogisticData['toAddress'];
+                    $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                    $res['toCompany'] = $firstDocumentLogisticData['toCompany'];
+                    $res['toPerson'] = $firstDocumentLogisticData['toPerson'];
+                    $res['toPersonPhones'] = $firstDocumentLogisticData['toPersonPhones'];
+                    $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                }
             }
         }
 
@@ -663,11 +665,12 @@ class store_ShipmentOrders extends store_DocumentMaster
 
                 // Само ако условието на доставка позволява ЧМР да се добавя към документа
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-                $deliveryTermId = $firstDoc->fetchField('deliveryTermId');
-
                 $cmrRow = 2;
-                if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes') {
-                    $cmrRow = 1;
+                if($firstDoc->isInstanceOf('deals_DealMaster')){
+                    $deliveryTermId = $firstDoc->fetchField('deliveryTermId');
+                    if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes') {
+                        $cmrRow = 1;
+                    }
                 }
 
                 $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png,row={$cmrRow}");
