@@ -79,7 +79,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      *  При преминаването в кои състояния ще се обновяват планираните складови наличностти
      */
-    public $updatePlannedStockOnChangeStates = array('pending', 'active');
+    public $updatePlannedStockOnChangeStates = array('pending', 'active', 'stopped');
 
 
     /**
