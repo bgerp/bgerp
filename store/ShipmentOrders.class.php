@@ -578,16 +578,18 @@ class store_ShipmentOrders extends store_DocumentMaster
             $res['toPersonPhones'] = !empty($rec->tel) ? $rec->tel : $res['toPersonPhones'];
         } elseif (empty($rec->locationId) && $rec->isReverse == 'no') {
             if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
-                $firstDocumentLogisticData = $firstDocument->getLogisticData();
-                $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
-                $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
-                $res['toPlace'] = $firstDocumentLogisticData['toPlace'];
-                $res['toAddress'] = $firstDocumentLogisticData['toAddress'];
-                $res['instructions'] = $firstDocumentLogisticData['instructions'];
-                $res['toCompany'] = $firstDocumentLogisticData['toCompany'];
-                $res['toPerson'] = $firstDocumentLogisticData['toPerson'];
-                $res['toPersonPhones'] = $firstDocumentLogisticData['toPersonPhones'];
-                $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                if($firstDocument->haveInterface('trans_LogisticDataIntf')){
+                    $firstDocumentLogisticData = $firstDocument->getLogisticData();
+                    $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
+                    $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
+                    $res['toPlace'] = $firstDocumentLogisticData['toPlace'];
+                    $res['toAddress'] = $firstDocumentLogisticData['toAddress'];
+                    $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                    $res['toCompany'] = $firstDocumentLogisticData['toCompany'];
+                    $res['toPerson'] = $firstDocumentLogisticData['toPerson'];
+                    $res['toPersonPhones'] = $firstDocumentLogisticData['toPersonPhones'];
+                    $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                }
             }
         }
 
