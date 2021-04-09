@@ -4,6 +4,9 @@
 defIfNot('LOCATION_DEFAULT_REGION', '');
 
 
+defIfNot('GMAP3_VERSION', '6.0');
+
+
 /**
  *
  *
@@ -52,6 +55,7 @@ class location_Setup extends core_ProtoSetup
     public $configDescription = array(
 
         'LOCATION_DEFAULT_REGION' => array('varchar', 'mandatory, caption=Кой регион да се използва по подрабиране->Регион'),
+        'LOCATION_GMAP3_VERSION' => array('enum(4.1, 6.0, 7.2)', 'mandatory, caption=Версията на програмата->Версия')
     );
 
 
