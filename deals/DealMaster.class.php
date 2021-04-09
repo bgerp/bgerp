@@ -2030,14 +2030,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         return $tpl;
     }
-    
-    
+
+
     /**
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
      * @param mixed               $id     - ид или запис на документа
      * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @param string $strategy - стратегия за намиране
      *
      * @return array $details - масив с артикули готови за запис
      *               o productId      - ид на артикул
@@ -2047,7 +2048,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
      */
-    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
         $details = array();
         $rec = $this->fetchRec($id);
@@ -2058,8 +2059,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $agreed = $info->get('products');
         $invoiced = $info->get('invoicedProducts');
         $packs = $info->get('shippedPacks');
-        
-        if ($ForMvc instanceof sales_Proformas) {
+
+        if($strategy == 'onlyFromDeal') {
             $products = $agreed;
             $invoiced = array();
             foreach ($products as $product1) {
@@ -2069,9 +2070,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-        
+
         if (!countR($products)) {
-            
+
             return $details;
         }
         
