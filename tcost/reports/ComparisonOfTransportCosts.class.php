@@ -147,17 +147,17 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $iQuery->where(array("#saleActivatedOn >= '[#1#]' AND #saleActivatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
         
-        $ppsQuery = sales_ServicesDetails::getQuery();
-        
-        $ppsQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
-        
-        $ppsQuery->EXT('saleServThreadId', 'sales_Services', 'externalName=threadId,externalKey=shipmentId');
-
-        $ppsArr = array();
-        
-        while ($ppsRec = $ppsQuery->fetch()) {
-            $ppsArr[$ppsRec->saleServThreadId] += $ppsRec->price;
-        }
+//        $ppsQuery = sales_ServicesDetails::getQuery();
+//
+//        $ppsQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
+//
+//        $ppsQuery->EXT('saleServThreadId', 'sales_Services', 'externalName=threadId,externalKey=shipmentId');
+//
+//        $ppsArr = array();
+//
+//        while ($ppsRec = $ppsQuery->fetch()) {
+//            $ppsArr[$ppsRec->saleServThreadId] += $ppsRec->price;
+//        }
         
         while ($iRec = $iQuery->fetch()) {
             
@@ -183,13 +183,13 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $hiddenTransportCost = sales_TransportValues::calcInDocument('sales_Sales', $saleIdItem);
             
-            if (strpos($salecontoActions, 'ship') != false) {
+           // if (strpos($salecontoActions, 'ship') != false) {
                 $visibleTransportCost = self::getVisibleTransportCost($saleIdItem);
-            }
-            
-            if (in_array($threadIdItem, array_keys($ppsArr))) {
-                $visibleTransportCost += $ppsArr[$threadIdItem];
-            }
+          //  }
+
+            //if (in_array($threadIdItem, array_keys($ppsArr))) {
+                //$visibleTransportCost += $ppsArr[$threadIdItem];
+            //}
             
             
             // добавяме в масива

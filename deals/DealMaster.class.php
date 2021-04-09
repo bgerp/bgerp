@@ -79,7 +79,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      *  При преминаването в кои състояния ще се обновяват планираните складови наличностти
      */
-    public $updatePlannedStockOnChangeStates = array('pending', 'active');
+    public $updatePlannedStockOnChangeStates = array('pending', 'active', 'stopped');
 
 
     /**
@@ -544,7 +544,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'closed' AND #closeWith IS NOT NULL");
                 break;
             case 'notClosedWith':
-                $query->where("(#state = 'active' OR #state ='closed' OR #state = 'pending') AND #closeWith IS NULL");
+                $query->where("(#state = 'active' OR #state ='closed') AND #closeWith IS NULL");
                 break;
             case 'unionDeals':
                 $query->where("#state = 'active' OR #state = 'closed'");
@@ -2030,14 +2030,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         return $tpl;
     }
-    
-    
+
+
     /**
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
      * @param mixed               $id     - ид или запис на документа
      * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @param string $strategy - стратегия за намиране
      *
      * @return array $details - масив с артикули готови за запис
      *               o productId      - ид на артикул
@@ -2047,7 +2048,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
      */
-    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
         $details = array();
         $rec = $this->fetchRec($id);
@@ -2058,8 +2059,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $agreed = $info->get('products');
         $invoiced = $info->get('invoicedProducts');
         $packs = $info->get('shippedPacks');
-        
-        if ($ForMvc instanceof sales_Proformas) {
+
+        if($strategy == 'onlyFromDeal') {
             $products = $agreed;
             $invoiced = array();
             foreach ($products as $product1) {
@@ -2069,9 +2070,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-        
+
         if (!countR($products)) {
-            
+
             return $details;
         }
         
@@ -2371,6 +2372,11 @@ abstract class deals_DealMaster extends deals_DealBase
         // Създаване на мастър на документа
         try{
             $masterId = static::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+            if(isset($productId)){
+                static::logWrite('Създаване от артикул', $masterId);
+            } else {
+                static::logWrite('Създаване', $masterId);
+            }
         } catch(core_exception_Expect $e){
             reportException($e);
             followRetUrl(null, "Проблем при създаване на|* " . mb_strtolower($this->singleTitle));

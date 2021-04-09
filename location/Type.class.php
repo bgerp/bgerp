@@ -133,12 +133,13 @@ class location_Type extends type_Varchar
         if (isset($apiKey) && $apiKey != '') {
             $keyString = "key={$apiKey}&";
         }
-        
+        $conf = core_Packs::getConfig('location');
+
         $res = new ET("<div class='location-map'><div style='width:{$width}px;height:{$height}px;' id=\"{$id}\"></div></div>");
         
         $res->appendOnce("\n<script type=\"text/javascript\" src=\"https://maps.google.com/maps/api/js?". $keyString. 'language=' . core_Lg::getCurrent() . '"></script>', 'HEAD', true);
         
-        $res->push('location/' . GMAP3_VERSION . '/gmap3.js', 'JS');
+        $res->push('location/' .  $conf->LOCATION_GMAP3_VERSION . '/gmap3.js', 'JS');
         
         jquery_Jquery::run($res, "\$('#{$id}').gmap3(
                           {

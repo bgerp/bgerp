@@ -78,13 +78,12 @@
     top: 2px;
 }
 .select2-container .select2-selection--multiple .select2-selection__choice {
-    margin-top: 0 !important;
-}
-.select2-container .select2-selection--multiple .select2-selection__choice  span:not(.select2-selection__choice__remove) {
+    margin-top: 2px !important;
     font-size: 0.8em;
     position: relative;
     top: -1px;
 }
+
 .select2-container--default .select2-selection--multiple .select2-selection__clear {
     margin-top: 0 !important;
     margin-right: -2px ;
@@ -184,10 +183,11 @@ span.all-users{
 }
 
 .color-preview {
-    padding: 6px;
+    padding: 5px;
     vertical-align: bottom;
     display: inline-block;
     height: 6px;
+    margin-top: 1px;
     border: 1px solid #000;
 }
 

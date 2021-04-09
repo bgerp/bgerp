@@ -188,8 +188,14 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Кои полета да могат да се променят след активация
      */
     public $changableFields = 'journalDate,number,fileHnd,responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template';
-    
-    
+
+
+    /**
+     * Стратегии за добавяне на артикули след създаване от източника
+     */
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от сделката", 'shippedNotInvoiced' => 'Заскладените (Нефактурирани) артикули по сделката');
+
+
     /**
      * Описание на модела
      */
@@ -251,7 +257,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         parent::prepareInvoiceForm($mvc, $data);
-      
+        if(empty($rec->id)){
+            $form->setDefault('importProducts', 'shippedNotInvoiced');
+        }
+
         if ($data->aggregateInfo) {
             if ($data->aggregateInfo->get('bankAccountId')) {
                 $form->rec->accountId = $data->aggregateInfo->get('bankAccountId');

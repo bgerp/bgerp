@@ -2,14 +2,14 @@
 
 
 /**
- * Статии
+ * Блог Статии
  *
  *
  * @category  bgerp
  * @package   blogm
  *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -331,7 +331,7 @@ class blogm_Articles extends core_Master
         }
         
         if (!$id) {
-            
+
             return $this->act_Browse();
         }
 
@@ -591,8 +591,12 @@ class blogm_Articles extends core_Master
         $data->categoryId = Request::get('category', 'int');
         $data->menuId = Request::get('cMenuId', 'int');
 
-        if(empty($data->menuId) && isset($data->categoryId)){
-            $data->menuId = blogm_Categories::fetchField($data->categoryId, 'menuId');
+        if(empty($data->menuId)){
+            if(isset($data->categoryId)){
+                $data->menuId = blogm_Categories::fetchField($data->categoryId, 'menuId');
+            } else {
+                $data->menuId = cms_Content::getDefaultMenuId($this);
+            }
         }
 
         $data->menuRec = cms_Content::fetch($data->menuId);
@@ -1159,7 +1163,7 @@ class blogm_Articles extends core_Master
             $groupsArr[$gRec->id] = $gRec;
         }
         
-        if (count($groupsArr)) {
+        if (countR($groupsArr)) {
             $query = self::getQuery();
             $query->where("#state = 'active'");
             $query->likeKeylist('categories', keylist::fromArray($groupsArr));
