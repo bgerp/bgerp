@@ -186,7 +186,7 @@ class doc_plg_HidePrices extends core_Plugin
      */
     private static function unsetPriceFields(&$row, $fields)
     {
-        if (count($fields)) {
+        if (countR($fields)) {
             foreach ($fields as $name) {
                 unset($row->{$name});
             }

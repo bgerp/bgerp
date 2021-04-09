@@ -343,7 +343,7 @@ class doc_ExpensesSummary extends core_Manager
 
         arr::sortObjects($recs, 'valior', 'ASC');
 
-        $rec->count = count($recs);
+        $rec->count = countR($recs);
         $notDistributed = $allocated;
         
         // За всички отнесени разходи
@@ -358,7 +358,7 @@ class doc_ExpensesSummary extends core_Manager
             });
             
             // Ако има и коригиращи записи, добавят се след тях
-            if (count($foundArr)) {
+            if (countR($foundArr)) {
                 
                 // Преразпределяне на сумата спрямо тази, която е разпределена (не искаме усреднената сума)
                 foreach ($foundArr as &$f1) {
@@ -375,7 +375,7 @@ class doc_ExpensesSummary extends core_Manager
         }
         
         // Ако има останали неразпределени добавят се най-отдолу
-        if (count($notDistributed)) {
+        if (countR($notDistributed)) {
             $res[] = (object) array('type' => 'allocated');
             foreach ($notDistributed as &$nRec) {
                 $nRec->notDistributed = true;

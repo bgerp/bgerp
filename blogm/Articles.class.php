@@ -1163,7 +1163,7 @@ class blogm_Articles extends core_Master
             $groupsArr[$gRec->id] = $gRec;
         }
         
-        if (count($groupsArr)) {
+        if (countR($groupsArr)) {
             $query = self::getQuery();
             $query->where("#state = 'active'");
             $query->likeKeylist('categories', keylist::fromArray($groupsArr));

@@ -34,7 +34,7 @@ class doc_plg_HideMeasureAndQuantityColumns extends core_Plugin
     {
         $rows = &$data->rows;
         
-        if (!count($rows)) {
+        if (!countR($rows)) {
             
             return;
         }
