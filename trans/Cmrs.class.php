@@ -563,16 +563,16 @@ class trans_Cmrs extends core_Master
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
-    public static function on_AfterGetRequiredRoles11111($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'add' && isset($rec->originId)) {
             $origin = doc_Containers::getDocument($rec->originId);
             if (!$origin->isInstanceOf('store_ShipmentOrders')) {
-                //$requiredRoles = 'no_one';
+                $requiredRoles = 'no_one';
             } else {
                 $state = $origin->fetchField('state');
                 if (!in_array($state, array('active', 'pending'))) {
-                   // $requiredRoles = 'no_one';
+                    $requiredRoles = 'no_one';
                 }
             }
         }
