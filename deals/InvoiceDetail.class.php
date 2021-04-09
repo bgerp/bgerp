@@ -421,6 +421,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
         core_Lg::push($lang);
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, $date, 'short', 'invoice', $lang, 1, false);
+        if(isset($mvc->productInvoiceInfoParamName)){
+            $invoiceInfoVerbal = cat_Products::getParams($rec->productId, 'invoiceInfo', true);
+            if(!empty($invoiceInfoVerbal)){
+                $row->productId->append("<br><span class='classInvoiceParam small'>{$invoiceInfoVerbal}</span>");
+            }
+        }
         core_Lg::pop();
 
         // Показваме подробната информация за опаковката при нужда
