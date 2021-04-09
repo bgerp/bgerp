@@ -589,7 +589,7 @@ class pear_Vcard
         
         // parse a vCard file and store the data in $cardinfo
         $cardinfo = $parse->fromText($str);
-        
+
         return static::initFromParsed($cardinfo);
     }
     
@@ -634,8 +634,8 @@ class pear_Vcard
     protected static function initFromParsed($cardinfo)
     {
         $vcards = array();
-        
-        if ($cardinfo['VCARD']) {
+
+        if ($cardinfo && $cardinfo['VCARD']) {
             foreach ((array) $cardinfo['VCARD'] as $c) {
                 $vcards[] = new self($c);
             }
