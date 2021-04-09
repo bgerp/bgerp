@@ -183,10 +183,10 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $hiddenTransportCost = sales_TransportValues::calcInDocument('sales_Sales', $saleIdItem);
             
-            if (strpos($salecontoActions, 'ship') != false) {
+           // if (strpos($salecontoActions, 'ship') != false) {
                 $visibleTransportCost = self::getVisibleTransportCost($saleIdItem);
-            }
-            
+          //  }
+
             //if (in_array($threadIdItem, array_keys($ppsArr))) {
                 //$visibleTransportCost += $ppsArr[$threadIdItem];
             //}
