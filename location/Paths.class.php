@@ -1,9 +1,6 @@
 <?php
 
 
-defIfNot('GMAP3_VERSION', '6.0');
-
-
 /**
  * Клас 'location_Paths' - изчертаване на пътища по зададени координати
  *
@@ -49,12 +46,13 @@ class location_Paths
         if (isset($apiKey) && $apiKey != '') {
             $keyString = "key={$apiKey}&";
         }
-        
+        $conf = core_Packs::getConfig('location');
+
         $res = new ET("<div class='location-map'><div style='width:{$width}px;height:{$height}px;' id=\"{$id}\"></div></div>");
         
         $res->appendOnce("\n<script type=\"text/javascript\" src=\"https://maps.google.com/maps/api/js?". $keyString . 'language=' . core_Lg::getCurrent() . '"></script>', 'HEAD', true);
         $res->push('location/js/generateLocation.js', 'JS');
-        $res->push('location/' . GMAP3_VERSION . '/gmap3.js', 'JS');
+        $res->push('location/' . $conf->LOCATION_GMAP3_VERSION . '/gmap3.js', 'JS');
         
         $vArr = json_encode($vArr);
         jquery_Jquery::run($res, "generatePath({$vArr},{$id});");
