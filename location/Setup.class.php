@@ -4,7 +4,7 @@
 defIfNot('LOCATION_DEFAULT_REGION', '');
 
 
-defIfNot('GMAP3_VERSION', '6.0');
+defIfNot('LOCATION_GMAP3_VERSION', '6.0');
 
 
 /**
