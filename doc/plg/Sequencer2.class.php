@@ -67,13 +67,26 @@ class doc_plg_Sequencer2 extends core_Plugin
             
             if ($rec->state == 'active') {
                 if (empty($rec->{$mvc->numberFld})) {
-                    
+                    $errorMsg = null;
+
                     try{
                         $rec->{$mvc->numberFld} = cond_Ranges::getNextNumber($rec->{$mvc->rangeNumFld}, $mvc, $mvc->numberFld);
+
+                        if(isset($rec->id)){
+                            $exRec = $mvc->fetch("#id = {$rec->id}", 'state', false);
+                            if($exRec->state == 'active'){
+                                $errorMsg = 'Документа е вече активиран';
+                                expect(false, 'Не бива да се стига до тук');
+                            }
+                        }
+
                         $rec->_isNumberGenerated = true;
+
                     } catch(core_exception_Expect $e){
-                        
-                        return new Redirect(array($mvc, 'single', $rec->id), 'Изберете друг диапазон, този е запълнен', 'error');
+                        $errorMsg = ($errorMsg) ? $errorMsg : 'Изберете друг диапазон, този е запълнен';
+                        reportException($e);
+
+                        return new Redirect(array($mvc, 'single', $rec->id), $errorMsg, 'error');
                     }
                 }
             }
