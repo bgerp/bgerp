@@ -262,7 +262,7 @@ class cond_Ranges extends core_Manager
 
         $query = $mvc->getQuery();
         $query->between($numberField, $rec->min, $rec->max);
-        $query->orderBy('id', 'DESC');
+        $query->orderBy($numberField, 'DESC');
         $query->limit(1);
         $query->show($numberField);
 
