@@ -127,8 +127,9 @@ class tcost_FeeZones extends core_Master
         
         $this->FLD('addTax', 'double', 'caption=Надценки->Твърда, autohide');
         $this->FLD('addPerKg', 'double', 'caption=Надценки->За кг, autohide');
-        $this->FLD('volume2quantity', 'double(min=0)', 'caption=Надценки->Обем към кг, autohide');
-        
+        $this->FLD('volume2quantity', 'double(min=0)', 'caption=Конверсия->Обем към кг, autohide');
+        $this->FLD('volume2quantityValidForAbove', 'double(min=0,smartRound)', 'caption=Конверсия->Важи над,unit=кг, autohide');
+
         $this->setDbIndex('deliveryTermId');
     }
     
@@ -197,16 +198,22 @@ class tcost_FeeZones extends core_Master
         if (!empty($weight) || !empty($volume)) {
             $multiplier = self::V2C;
             if($zoneArr = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode'])){
-                $volume2quantity = tcost_FeeZones::fetchField($zoneArr['zoneId'], 'volume2quantity');
-                if($volume2quantity){
-                    $multiplier = $volume2quantity;
+                $zoneRec = tcost_FeeZones::fetch($zoneArr['zoneId'], 'volume2quantity,volume2quantityValidForAbove');
+                if($zoneRec->volume2quantity){
+                    $multiplier = $zoneRec->volume2quantity;
                 }
             }
-            
+
             if($volume * 33 < $weight) {
                 $multiplier *= 1000;
             }
-            
+
+            // Ако има тегло и има стойност за над и теглото е под нея, няма да се сметя обемното тегло
+            if(!empty($weight) && isset($zoneRec->volume2quantityValidForAbove) && $weight <= $zoneRec->volume2quantityValidForAbove){
+
+                return $weight;
+            }
+
             $volumicWeight = max($weight, $volume * $multiplier);
         }
         
