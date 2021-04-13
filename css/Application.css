@@ -1832,6 +1832,9 @@ a.tUnsighted {
   .productCell .halfTable.offsetLeft {
     margin-left: 20px; }
 
+.productName {
+  white-space: normal !important; }
+
 .narrow .halfTable {
   margin-top: 10px; }
   .narrow .halfTable.offsetLeft {
