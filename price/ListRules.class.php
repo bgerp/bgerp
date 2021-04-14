@@ -50,7 +50,7 @@ class price_ListRules extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Import';
     
     
     /**
@@ -890,6 +890,11 @@ class price_ListRules extends core_Detail
                     }
 
                     $toolbar->addBtn('Стойност', $url, null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
+                }
+
+                if ($this->haveRightFor('import')) {
+                    $url = array($this, 'import', 'listId' => $masterRec->id, 'ret_url' => true);
+                    $toolbar->addBtn('Импорт', $url, null, 'row=2,ef_icon=img/16/import.png,title=Импортиране на ' . mb_strtolower($mvc->title));
                 }
             } else {
                 $fields['domain'] = 'Група';
