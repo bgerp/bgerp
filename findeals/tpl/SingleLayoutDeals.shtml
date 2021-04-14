@@ -18,6 +18,7 @@
             <!--ET_BEGIN STATISTIC_BAR-->
             [#STATISTIC_BAR#]
             <div class="sale-summary">
+                <div style="margin-bottom:7px;font-weight:bold;font-size:1.2em">[#accountId#]</div>
                 <table class='paddingCells' style='width:100%;'>
                     <tr>
                         <td class = 'sum-th'>
@@ -88,7 +89,6 @@
 		        </tr>
 		        <!--ET_END closedDocuments-->
 		    </table>
-		    <div style='margin-bottom:5px'>[#accountId#]</div>
 		    <!--ET_BEGIN HISTORY-->
 		    [#HISTORY#]
 		    <!--ET_END HISTORY-->

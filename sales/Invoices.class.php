@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -142,12 +142,6 @@ class sales_Invoices extends deals_InvoiceMaster
      * Кой е основния детайл
      */
     public $mainDetail = 'sales_InvoiceDetails';
-    
-    
-    /**
-     * Дефолт диапазон за номерацията на фактурите от настройките на пакета
-     */
-    public $defaultNumRange = 1;
     
     
     /**
