@@ -44,7 +44,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,user=Потребител';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,user=Създаване';
     
     
     /**
@@ -57,8 +57,13 @@ class cat_products_Packagings extends core_Detail
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'ceo,sales,purchase,packEdit';
-    
-    
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canDeletesysdata = 'ceo,sales,purchase,packEdit';
+
+
     /**
      * Кой може да качва файлове
      */
@@ -587,11 +592,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         if($fields['-list']) {
-            if($rec->modifiedOn) {
-                $row->user = crm_Profiles::createLink($rec->modifiedBy) . ', ' . $mvc->getVerbal($rec, 'modifiedOn');
-            } else {
-                $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
-            }
+            $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
         }
     }
     

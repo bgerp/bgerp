@@ -363,7 +363,9 @@ class plg_Clone extends core_Plugin
                     $dRecs = $query->fetchAll();
                     
                     $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
-                    
+                    $dontCloneFields['createdOn'] = 'createdOn';
+                    $dontCloneFields['createdBy'] = 'createdBy';
+
                     if (is_array($dRecs)) {
                         foreach ($dRecs as $dRec) {
                             $oldRec = clone $dRec;
