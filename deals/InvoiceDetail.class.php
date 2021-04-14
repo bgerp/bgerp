@@ -293,13 +293,16 @@ abstract class deals_InvoiceDetail extends doc_Detail
         foreach ($data->rows as $id => &$row1) {
             $rec = $data->recs[$id];
 
+            // Ако под артикула ще се показва текста за ф-ра добавя се
             if(isset($mvc->productInvoiceInfoParamName)) {
-                $invoiceInfoVerbal = cat_Products::getParams($rec->productId, 'invoiceInfo', true);
-                if (!empty($invoiceInfoVerbal)) {
-                    if ($row1->productId instanceof core_ET) {
-                        $row1->productId->append("<div class='classInvoiceParam small'>{$invoiceInfoVerbal}</div>");
-                    } else {
-                        $row1->productId .= "<div class='classInvoiceParam small'>{$invoiceInfoVerbal}</div>";
+                if(isset($rec->productId)){
+                    $invoiceInfoVerbal = cat_Products::getParams($rec->productId, 'invoiceInfo', true);
+                    if (!empty($invoiceInfoVerbal) ) {
+                        if ($row1->productId instanceof core_ET) {
+                            $row1->productId->append("<div class='classInvoiceParam small'>{$invoiceInfoVerbal}</div>");
+                        } else {
+                            $row1->productId .= "<div class='classInvoiceParam small'>{$invoiceInfoVerbal}</div>";
+                        }
                     }
                 }
             }

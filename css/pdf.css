@@ -52,3 +52,6 @@ thead {
   padding: 5px !important;
   vertical-align: top;
 }
+.wrap {
+  white-space: normal !important;
+}
