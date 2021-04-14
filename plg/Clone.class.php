@@ -363,6 +363,8 @@ class plg_Clone extends core_Plugin
                     $dRecs = $query->fetchAll();
                     
                     $dontCloneFields = arr::make($Detail->fieldsNotToClone, true);
+                    $dontCloneFields['modifiedOn'] = 'modifiedOn';
+                    $dontCloneFields['modifiedBy'] = 'modifiedBy';
                     $dontCloneFields['createdOn'] = 'createdOn';
                     $dontCloneFields['createdBy'] = 'createdBy';
 
