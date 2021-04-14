@@ -71,7 +71,7 @@ abstract class bank_Document extends deals_PaymentDocument
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'bank, ceo';
+    public $canSingle = 'bank, ceo, purchase, sales';
     
     
     /**

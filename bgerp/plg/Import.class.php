@@ -123,15 +123,21 @@ class bgerp_plg_Import extends core_Plugin
                     core_App::setTimeLimit(countR($rows)/10 + 10);
                     ini_set('memory_limit', '2048M');
                     core_Debug::$isLogging = false;
-                    
+
                     Mode::push('importing', 'true');
                     // Импортиране на данните от масива в зададените полета
                     $msg = $Driver->import($rows, $fields);
                     Mode::pop('importing');
                     Mode::pop('onExist');
-                    
-                    // Редирект кум лист изгледа на мениджъра в който се импортира
-                    redirect(array($mvc, 'list'), false, $msg);
+
+                    if($mvc instanceof core_Detail){
+                        $masterId = Request::get($mvc->masterKey, 'int');
+                        redirect(array($mvc->Master, 'single', $masterId), false, $msg);
+                    } else {
+                        // Редирект кум лист изгледа на мениджъра в който се импортира
+                        redirect(array($mvc, 'list'), false, $msg);
+                    }
+
                 }
             }
             
@@ -166,8 +172,17 @@ class bgerp_plg_Import extends core_Plugin
         
         return $csv;
     }
-    
-    
+
+
+    /**
+     * Зарежда данни от посочен CSV файл, като се опитва да ги конвертира в UTF-8
+     */
+    public static function setDefaultValue($value)
+    {
+        return $value;
+    }
+
+
     /**
      * Подготовка на експерта за импортирането (@see expert_Expert)
      *
@@ -181,6 +196,7 @@ class bgerp_plg_Import extends core_Plugin
         $exp->functions['getcsvcolnames'] = 'csv_Lib::getCsvColNames';
         $exp->functions['getimportdrivers'] = 'bgerp_plg_Import::getImportDrivers';
         $exp->functions['verifydata'] = 'bgerp_plg_Import::verifyInputData';
+        $exp->functions['setdefault'] = 'bgerp_plg_Import::setDefaultValue';
         bgerp_plg_Import::$cache = get_class($exp->mvc);
         
         // Избиране на драйвър за импортиране
@@ -239,6 +255,10 @@ class bgerp_plg_Import extends core_Plugin
                     $nameEsc = str_replace(array('"', "'"), array('\\"', "\\'"), $name);
 
                     $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,TRUE, FALSE, '{$caption}', '{$nameEsc}')");
+                } elseif(isset($fld['default'])){
+
+                    $exp->ASSUME("#col{$name}", "setdefault('{$fld['default']}')");
+                    //bp();
                 }
 
                 
