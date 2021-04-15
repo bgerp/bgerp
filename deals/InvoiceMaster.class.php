@@ -115,7 +115,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function setInvoiceFields(core_Master &$mvc)
     {
-        $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory, silent,removeAndRefreshForm=dueDate|dueTime');
+        $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,silent');
         $mvc->FLD('contragentId', 'int', 'input=hidden,silent');
@@ -730,11 +730,12 @@ abstract class deals_InvoiceMaster extends core_Master
             
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
-
                 $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
+
                 if (!isset($form->rec->id)) {
                     if($plan['eventBalancePayment'] == 'invEndOfMonth'){
-                        $form->setDefault('dueDate', $plan['deadlineForBalancePayment']);
+                        $timeVerbal = core_Type::getByName('time')->toVerbal($plan['timeBalancePayment']);
+                        $form->setField('dueTime', "placeholder={$timeVerbal} след края на месеца,class=w50");
                     } else {
                         $form->setDefault('dueTime', $plan['timeBalancePayment']);
                     }
@@ -804,11 +805,18 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             if (isset($rec->dueDate) && $rec->dueDate < $rec->date) {
                 $form->setError('date,dueDate', 'Крайната дата за плащане трябва да е след вальора');
             }
-            
+
+            if(empty($rec->dueDate)){
+                $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $form->aggregateInfo->get('amount'), $rec->date);
+                if($plan['eventBalancePayment'] == 'invEndOfMonth'){
+                    $rec->dueDate = $plan['deadlineForBalancePayment'];
+                }
+            }
+
             if (!$rec->displayRate) {
                 $rec->displayRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if (!$rec->displayRate) {
