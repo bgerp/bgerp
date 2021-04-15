@@ -106,7 +106,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $pQuery = cat_Products::getQuery();
 
-        $pQuery->where("#state = 'active' AND #canStore = 'yes' AND #isPublic = 'yes'");
+        $pQuery->where("#state = 'active' AND #canStore = 'yes'");
+
+
 
         if ($rec->typeOfProducts == 'public'){
             $pQuery->where("#isPublic = 'yes'");
@@ -219,6 +221,11 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
         $row->prodWeight = $Double->toVerbal($dRec->prodWeight);
         $row->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
+
+        if (!$dRec->volumeWeight){
+
+            $row->ROW_ATTR['class'] = 'state-closed';
+        }
 
 
         return $row;
