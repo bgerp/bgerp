@@ -908,7 +908,11 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setError('date,dueDate,dueTime', 'Невъзможна стойност на датите');
                 }
             }
-            
+
+            if (empty($rec->dueDate) && !empty($rec->dueTime)) {
+                $rec->dueDate = dt::addSecs($rec->dueTime, $rec->dueDate);
+            }
+
             if ($rec->paymentType == 'cash' && isset($rec->accountId)) {
                 $form->setWarning('accountId', 'Избрана е банкова сметка при начин на плащане в брой');
             }
