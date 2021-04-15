@@ -55,7 +55,7 @@ class type_Combodate extends type_Varchar
             $value[1] = ltrim($value[1], '0');
         }
        
-        if (count($value) == 3) {
+        if (countR($value) == 3) {
             $y = $value[2];
             $m = $value[1];
             $d = $value[0];
