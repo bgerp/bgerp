@@ -115,7 +115,7 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function setInvoiceFields(core_Master &$mvc)
     {
-        $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
+        $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory, silent,removeAndRefreshForm=dueDate|dueTime');
         $mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,silent');
         $mvc->FLD('contragentId', 'int', 'input=hidden,silent');
@@ -730,9 +730,14 @@ abstract class deals_InvoiceMaster extends core_Master
             
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
+
                 $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
                 if (!isset($form->rec->id)) {
-                    $form->setDefault('dueTime', $plan['timeBalancePayment']);
+                    if($plan['eventBalancePayment'] == 'invEndOfMonth'){
+                        $form->setDefault('dueDate', $plan['deadlineForBalancePayment']);
+                    } else {
+                        $form->setDefault('dueTime', $plan['timeBalancePayment']);
+                    }
                 }
                 
                 $paymentType = ($aggregateInfo->get('paymentType')) ? $aggregateInfo->get('paymentType') : cond_PaymentMethods::fetchField($paymentMethodId, 'type');
