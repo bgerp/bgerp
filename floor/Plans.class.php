@@ -168,7 +168,7 @@ class floor_Plans extends core_Master {
 
         $style[] = $design ? "outline:dotted 4px yellow" : "outline:solid 4px #666";
         
-        if(count($style)) {
+        if(countR($style)) {
             $styleStr = implode(';', $style);
         } else {
             $styleStr = '';
