@@ -189,7 +189,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
         $fld->FLD('prodVolume', 'varchar', 'caption=Тр. обем');
-        $fld->FLD('prodweight', 'varchar', 'caption=Тр. тегло');
+        $fld->FLD('prodWeight', 'varchar', 'caption=Тр. тегло');
         $fld->FLD('volumeWeight', 'varchar', 'caption=Обемно тегло');
 
 
