@@ -108,7 +108,7 @@ class type_Url extends type_Varchar
         
         $res = parent::isValid($value);
         
-        if (count($res)) {
+        if (countR($res)) {
             
             return $res;
         }
@@ -129,12 +129,12 @@ class type_Url extends type_Varchar
         $pattern = '/^\b[a-z]*\b:\/\//';
         preg_match($pattern, $value, $match);
         
-        if (!count($match)) {
+        if (!countR($match)) {
             $pattern = '/^\b[a-z]*\b./';
             preg_match($pattern, $value, $matchSub);
             $scheme = 'http';
             
-            if (count($matchSub)) {
+            if (countR($matchSub)) {
                 $subDom = $matchSub[0];
                 
                 if ($subDom == 'ftp.') {
