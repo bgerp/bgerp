@@ -172,7 +172,7 @@ class floor_Objects extends core_Detail {
     static function increaseName(&$name)
     {
         preg_match("/^(.*[^0-9]+|)(\\d+)$/", $name, $matches);
-        if(count($matches)) {
+        if(countR($matches)) {
             $name = $matches[1] . ($matches[2]+1);
         } else {
             $name = $name . '_1';

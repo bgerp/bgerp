@@ -731,8 +731,14 @@ abstract class deals_InvoiceMaster extends core_Master
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
                 $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
+
                 if (!isset($form->rec->id)) {
-                    $form->setDefault('dueTime', $plan['timeBalancePayment']);
+                    if($plan['eventBalancePayment'] == 'invEndOfMonth'){
+                        $timeVerbal = core_Type::getByName('time')->toVerbal($plan['timeBalancePayment']);
+                        $form->setField('dueTime', "placeholder={$timeVerbal} след края на месеца,class=w50");
+                    } else {
+                        $form->setDefault('dueTime', $plan['timeBalancePayment']);
+                    }
                 }
                 
                 $paymentType = ($aggregateInfo->get('paymentType')) ? $aggregateInfo->get('paymentType') : cond_PaymentMethods::fetchField($paymentMethodId, 'type');
@@ -799,11 +805,18 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             if (isset($rec->dueDate) && $rec->dueDate < $rec->date) {
                 $form->setError('date,dueDate', 'Крайната дата за плащане трябва да е след вальора');
             }
-            
+
+            if(empty($rec->dueDate)){
+                $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $form->aggregateInfo->get('amount'), $rec->date);
+                if($plan['eventBalancePayment'] == 'invEndOfMonth'){
+                    $rec->dueDate = $plan['deadlineForBalancePayment'];
+                }
+            }
+
             if (!$rec->displayRate) {
                 $rec->displayRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if (!$rec->displayRate) {

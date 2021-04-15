@@ -1015,7 +1015,7 @@ class cms_Content extends core_Manager
         
         $res = null;
         
-        if (count($resArr) && $flag) {
+        if (countR($resArr) && $flag) {
             $res = implode(' ', $resArr);
         }
         

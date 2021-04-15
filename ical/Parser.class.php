@@ -109,7 +109,7 @@ class ical_Parser extends core_Mvc
                     $Richtext->_htmlBoard[$place] = new ET($text);
                 }
 
-                if (count($Richtext->_htmlBoard)) {
+                if (countR($Richtext->_htmlBoard)) {
                     $e->descriptionVrb = new ET($e->descriptionVrb);
                     $e->descriptionVrb->placeArray($Richtext->_htmlBoard);
                 }

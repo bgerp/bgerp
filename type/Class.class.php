@@ -53,7 +53,7 @@ class type_Class extends type_Key
         
         $this->options = $options;
         
-        if (count($this->options) > 1) {
+        if (countR($this->options) > 1) {
             $optionsWithoutGroup = $newOptions = array();
             
             // За всяка опция
@@ -64,7 +64,7 @@ class type_Class extends type_Key
                     $optArr = explode('»', $opt);
                     
                     // Ако стринга е разделен на точно две части (име на група и име на клас)
-                    if (count($optArr) == 2) {
+                    if (countR($optArr) == 2) {
                         
                         // Добавяме името като OPTGROUP
                         $newOptions[$optArr[0]] = (object) array(
@@ -81,10 +81,10 @@ class type_Class extends type_Key
             }
             
             // Ако има поне една намерена OPTGROUP на класовете, Иначе не правим нищо
-            if (count($newOptions)) {
+            if (countR($newOptions)) {
                 
                 // Ако все пак има класове без група, добавяме ги в началото на опциите
-                if (count($optionsWithoutGroup)) {
+                if (countR($optionsWithoutGroup)) {
                     $newOptions = $optionsWithoutGroup + $newOptions;
                 }
                 
