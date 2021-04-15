@@ -248,7 +248,7 @@ class drdata_PhoneType extends type_Varchar
             
             $parsedTel = static::toArray($val, $params);
             
-            if (is_array($parsedTel) && count($parsedTel)) {
+            if (is_array($parsedTel) && countR($parsedTel)) {
                 $val = $val1;
             } else {
                 $val = $save;
