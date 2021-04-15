@@ -51,8 +51,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
+        $fieldset->FLD('typeOfProducts', 'enum(public=Стандартни,npublic=Нестандартни)', 'caption=Тип артикули,maxRadio=2,columns=2,after=title,mandatory,single=none');
 
-        $fieldset->FLD('minVolWeight', 'varchar', 'notNull,caption=Минималнo тегло на куб. дециметър,after=date,single=none');
+        $fieldset->FLD('minVolWeight', 'varchar', 'notNull,caption=Минималнo тегло на куб. дециметър,after=typeOfProduckts,single=none');
         $fieldset->FLD('maxVolWeight', 'varchar', 'notNull,caption=Максималнo тегло на куб. дециметър,after=minVolWeight,single=none');
 
     }
@@ -85,6 +86,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
+        $form->setDefault('typeOfProducts', 'public');
 
     }
 
@@ -105,12 +107,21 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $pQuery = cat_Products::getQuery();
 
         $pQuery->where("#state = 'active' AND #canStore = 'yes' AND #isPublic = 'yes'");
+
+        if ($rec->typeOfProducts == 'public'){
+            $pQuery->where("#isPublic = 'yes'");
+        }else{
+            $pQuery->where("#isPublic = 'no'");
+        }
+
         // Синхронизира таймлимита с броя записи
         $timeLimit = $pQuery->count() * 0.05;
 
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
         }
+
+        $zeroProd = array();
 
         while ($pRec = $pQuery->fetch()){
 
@@ -125,7 +136,18 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             }
 
 
-            if (!$prodTransVolume || !$prodTransWeight)continue;
+            if (!$prodTransVolume || !$prodTransWeight){
+
+                $zeroProd[$id] = (object)array(
+                    'productId' => $pRec->id,                                      // Артикул
+                    'prodVolume' => $prodTransVolume*1000,                         // Транспортен обем
+                    'prodWeight' => $prodTransWeight,                              // Транспортно тегло
+
+
+                );
+
+                continue;
+            }
 
             $volumeWeight = $prodTransWeight/($prodTransVolume*1000);
 
@@ -135,7 +157,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
                     'productId' => $pRec->id,                                      // Артикул
-                    'prodVolume' => $prodTransVolume,                              // Транспортен обем
+                    'prodVolume' => $prodTransVolume*1000,                         // Транспортен обем
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
                     'volumeWeight' => $volumeWeight,                               // Обемно тегло
 
@@ -145,6 +167,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
 
         }
+        $recs = $recs+$zeroProd;
 
         return $recs;
     }
@@ -227,17 +250,22 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     {
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
+        $Double->params['decimals'] = 4;
+        $Enum = cls::get('type_Enum', array('options' => array('public' => 'Стандартни', 'npublic' => 'Нестандартни')));
 
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
 								    <div class='small'>
+								        <!--ET_BEGIN typeOfProducts--><div>|Тип артикули|*: [#typeOfProducts#]</div><!--ET_END typeOfProducts-->
                                         <!--ET_BEGIN minVolWeight--><div>|Минимално обемно тегло|*: [#minVolWeight#] kg</div><!--ET_END minVolWeight-->
                                         <!--ET_BEGIN maxVolWeight--><div>|Максимално обемно тегло|*: [#maxVolWeight#] kg</div><!--ET_END maxVolWeight-->
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
+        if ((isset($data->rec->typeOfProducts))) {
+            $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->typeOfProducts) . '</b>', 'typeOfProducts');
+        }
 
         if ((isset($data->rec->minVolWeight))) {
             $fieldTpl->append('<b>' . $Double->toverbal($data->rec->minVolWeight) . '</b>', 'minVolWeight');
