@@ -733,11 +733,11 @@ abstract class deals_InvoiceMaster extends core_Master
                 $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
 
                 if (!isset($form->rec->id)) {
-                    if($plan['eventBalancePayment'] == 'invEndOfMonth'){
+                    if($plan['eventBalancePayment'] != 'invEndOfMonth'){
+                        $form->setDefault('dueTime', $plan['timeBalancePayment']);
+                    } else {
                         $timeVerbal = core_Type::getByName('time')->toVerbal($plan['timeBalancePayment']);
                         $form->setField('dueTime', "placeholder={$timeVerbal} след края на месеца,class=w50");
-                    } else {
-                        $form->setDefault('dueTime', $plan['timeBalancePayment']);
                     }
                 }
                 
@@ -808,13 +808,6 @@ abstract class deals_InvoiceMaster extends core_Master
 
             if (isset($rec->dueDate) && $rec->dueDate < $rec->date) {
                 $form->setError('date,dueDate', 'Крайната дата за плащане трябва да е след вальора');
-            }
-
-            if(empty($rec->dueDate)){
-                $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $form->aggregateInfo->get('amount'), $rec->date);
-                if($plan['eventBalancePayment'] == 'invEndOfMonth'){
-                    $rec->dueDate = $plan['deadlineForBalancePayment'];
-                }
             }
 
             if (!$rec->displayRate) {
@@ -995,10 +988,23 @@ abstract class deals_InvoiceMaster extends core_Master
         
         if ($rec->state == 'active') {
             if (empty($rec->dueDate)) {
-                $dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
-                
-                if ($dueTime) {
-                    $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+
+                if(isset($rec->paymentMethodId)){
+                    if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                        $aggregateInfo = $firstDocument->getAggregateDealInfo();
+                        $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
+                        if($plan['eventBalancePayment'] == 'invEndOfMonth' && !empty($plan['deadlineForBalancePayment'])){
+                            $rec->dueDate = $plan['deadlineForBalancePayment'];
+                        }
+                    }
+                }
+
+                if (empty($rec->dueDate)) {
+                    $dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+
+                    if ($dueTime) {
+                        $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+                    }
                 }
             }
         }
@@ -1168,15 +1174,28 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if (empty($rec->dueDate)) {
-                $defTime = ($mvc instanceof purchase_Invoices) ? purchase_Setup::get('INVOICE_DEFAULT_VALID_FOR') : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
-                $dueTime = (isset($rec->dueTime)) ? $rec->dueTime : $defTime;
-                
-                if ($dueTime) {
-                    $dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
-                    $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
-                    if (!$rec->dueTime) {
-                        $time = cls::get('type_Time')->toVerbal($defTime);
-                        $row->dueDate = ht::createHint($row->dueDate, "Според срока за плащане по подразбиране|*: {$time}");
+                if(isset($rec->paymentMethodId)){
+                    $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+                    $aggregateInfo = $firstDocument->getAggregateDealInfo();
+
+                    $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
+                    if($plan['eventBalancePayment'] == 'invEndOfMonth'){
+                        $rec->dueDate = $plan['deadlineForBalancePayment'];
+                        $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($rec->dueDate);
+                        $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според избрания метод на плащане. Ще бъде записан при контиране");
+                    }
+                }
+
+                if (empty($rec->dueDate)) {
+                    $defTime = ($mvc instanceof purchase_Invoices) ? purchase_Setup::get('INVOICE_DEFAULT_VALID_FOR') : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+                    $dueTime = (isset($rec->dueTime)) ? $rec->dueTime : $defTime;
+                    if ($dueTime) {
+                        $dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+                        $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
+                        if (!$rec->dueTime) {
+                            $time = cls::get('type_Time')->toVerbal($defTime);
+                            $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според срока за плащане по подразбиране|*: {$time}. Ще бъде записан при контиране");
+                        }
                     }
                 }
             }
