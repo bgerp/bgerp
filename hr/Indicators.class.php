@@ -424,7 +424,7 @@ class hr_Indicators extends core_Manager
         $docArr = core_Classes::getOptionsByInterface('hr_IndicatorsSourceIntf');
         
         // Ако нямаме източници - нищо не правим
-        if (!is_array($docArr) || !count($docArr)) {
+        if (!is_array($docArr) || !countR($docArr)) {
             
             return;
         }

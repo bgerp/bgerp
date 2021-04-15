@@ -306,7 +306,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             arr::sortObjects($recs, $rec->orderBy, $order);
         }
 
-        $rec->totalProducts = (count($recs));
+        $rec->totalProducts = (countR($recs));
 
         return $recs;
     }

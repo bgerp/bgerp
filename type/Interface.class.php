@@ -52,7 +52,7 @@ class type_Interface extends type_Key
             
             $lenSuffix = strlen($suffix);
             
-            if (count($allInterfaces)) {
+            if (countR($allInterfaces)) {
                 foreach ($allInterfaces as $id => $name) {
                     if ((!$suffix) || (strrpos($name, $suffix) == (strlen($name) - $lenSuffix))) {
                         $mvc->fetchByName($name);

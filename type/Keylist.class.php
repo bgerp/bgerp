@@ -228,7 +228,7 @@ class type_Keylist extends core_Type
         
         $keyListClass = 'keylist';
         
-        $suggCnt = count($this->suggestions);
+        $suggCnt = countR($this->suggestions);
         
         if ($suggCnt) {
             if ($suggCnt < 4) {
@@ -238,7 +238,7 @@ class type_Keylist extends core_Type
             $groupOpen = 0;
             $addKeylistWide = false;
             
-            if (count($this->suggestions) == 1 && $this->params['mandatory'] && $emptyValue) {
+            if (countR($this->suggestions) == 1 && $this->params['mandatory'] && $emptyValue) {
                 $key = key($this->suggestions);
                 $values[$key] = $key;
             }
@@ -406,7 +406,7 @@ class type_Keylist extends core_Type
         $options = (array) $options;
         if (!$maxChars) {
             $maxChars = Mode::is('screenMode', 'wide') ? 100 : 50;
-            if (count($options) < 6) {
+            if (countR($options) < 6) {
                 $maxChars = $maxChars / 2;
             }
         }
