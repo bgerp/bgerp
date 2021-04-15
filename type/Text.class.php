@@ -118,7 +118,7 @@ class type_Text extends core_Type
             $splitLines = array_merge($splitLines, static::splitToLines(trim($line), $width));
         }
         
-        $splitLinesCnt = count($splitLines);
+        $splitLinesCnt = countR($splitLines);
         
         if ($splitLinesCnt > 1) {
             $padStr = str_repeat(' ', $firstLine);
