@@ -58,7 +58,7 @@ class core_Tabs extends core_BaseClass
                 $url = toUrl(array($tab));
             }
         } elseif (is_array($url)) {
-            if (count($url)) {
+            if (countR($url)) {
                 $url = toUrl($url);
             } else {
                 $url = false;
@@ -77,7 +77,7 @@ class core_Tabs extends core_BaseClass
     public function renderHtml_($body, $selectedTab = null, $hint = null, $hintBtn = null)
     {
         // Ако няма конфигурирани табове, рендираме само тялото
-        if (!count($this->tabs)) {
+        if (!countR($this->tabs)) {
             return $body;
         }
         

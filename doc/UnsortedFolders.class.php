@@ -574,7 +574,7 @@ class doc_UnsortedFolders extends core_Master
         $params = $others->otherParams;
         $header = $others->headerInfo;
         
-        $cntResTask = count($resTask);
+        $cntResTask = countR($resTask);
         
         for ($i = 0; $i <= ($cntResTask); $i++) {
             // Проверка дали ще има URL
@@ -600,7 +600,7 @@ class doc_UnsortedFolders extends core_Master
             switch ($form->rec->order) {
                 case 'start':
                     usort($resTask, function ($a, $b) {
-                        for ($i = 0; $i < count($a['timeline']); $i++) {
+                        for ($i = 0; $i < countR($a['timeline']); $i++) {
                             
                             return ($a['timeline'][$i]['startTime'] < $b['timeline'][$i]['startTime']) ? -1 : 1;
                         }
@@ -640,7 +640,7 @@ class doc_UnsortedFolders extends core_Master
                 case 'end':
                     
                     usort($resTask, function ($a, $b) {
-                        for ($i = 0; $i < count($a['timeline']); $i++) {
+                        for ($i = 0; $i < countR($a['timeline']); $i++) {
                             $cmpA = $a['timeline'][$i]['startTime'] + $a['timeline'][$i]['duration'];
                             $cmpB = $b['timeline'][$i]['startTime'] + $b['timeline'][$i]['duration'];
                             
@@ -805,7 +805,7 @@ class doc_UnsortedFolders extends core_Master
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }

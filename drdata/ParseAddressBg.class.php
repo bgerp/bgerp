@@ -35,7 +35,7 @@ class drdata_ParseAddressBg extends core_Manager
             if (strpos($city, ' ')) {
                 $cArr = explode(' ', $city);
                 foreach ($cArr as $i => $w) {
-                    if ($i == count($cArr) - 1) {
+                    if ($i == countR($cArr) - 1) {
                         $t1 .= ' ' . $w;
                         $t2 .= ' ' . $w;
                     } else {
@@ -136,14 +136,14 @@ class drdata_ParseAddressBg extends core_Manager
         
         $arr = explode(' ', $str);
         
-        while (count($arr)) {
+        while (countR($arr)) {
             // Вкарваме текущата фраза
             $p = implode(' ', $arr);
             $res[trim(strtolower(str::utf2ascii($p)))] = $p;
-            if (count($arr) == 2) {
+            if (countR($arr) == 2) {
                 $res[trim(strtolower(str::utf2ascii(implode('', $arr))))] = $p;
             }
-            unset($arr[count($arr) - 1]);
+            unset($arr[countR($arr) - 1]);
         }
         
         return $res;
@@ -320,9 +320,9 @@ class drdata_ParseAddressBg extends core_Manager
         
         // Подреждаме кавичките
         $partsArr = explode('"', $str);
-        if (count($partsArr) == 3) {
+        if (countR($partsArr) == 3) {
             $str = rtrim($partsArr[0]) . ' "' .mb_convert_case(trim($partsArr[1]), MB_CASE_TITLE) . '" ' . ltrim($partsArr[2]);
-        } elseif (count($partsArr) == 5) {
+        } elseif (countR($partsArr) == 5) {
             $str = rtrim($partsArr[0]) . ' "' .mb_convert_case(trim($partsArr[1]), MB_CASE_TITLE) . '" ' . trim($partsArr[2]) .
             ' "' .mb_convert_case(trim($partsArr[3]), MB_CASE_TITLE) . '" ' . ltrim($partsArr[4]);
         }

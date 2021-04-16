@@ -260,7 +260,7 @@ class core_page_InternalModern extends core_page_Active
         $html = '';
         $lastMenu = '';
         
-        if (($menuObj) && (count($menuObj))) {
+        if (($menuObj) && (countR($menuObj))) {
             foreach ($menuObj as $key => $rec) {
                 
                 // Определяме дали състоянието на елемента от менюто не е 'активно'

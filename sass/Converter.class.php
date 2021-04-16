@@ -31,7 +31,7 @@ class sass_Converter
         $isParsed = false;
         $baseName = basename($file);
         
-        if (core_Composer::isInUse() && false) {
+        if (core_Composer::isInUse()) {
             $dTimeName = 'sassConvert: ' . $baseName;
             core_Debug::startTimer($dTimeName);
             

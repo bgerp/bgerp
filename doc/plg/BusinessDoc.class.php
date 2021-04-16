@@ -91,7 +91,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         }
         
         // Ако няма поне едно поле key във формата
-        if (!count($form->selectFields('#key'))) {
+        if (!countR($form->selectFields('#key'))) {
             redirect(array($mvc, 'list'), false, '|Не може да се добави документ в папка, защото възможните списъци за избор са празни');
         }
         
@@ -142,7 +142,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         $interfaces = $mvc::getCoversAndInterfacesForNewDoc();
         
         // Ако няма корици се прескача плъгина
-        if (!count($interfaces)) {
+        if (!countR($interfaces)) {
             
             return;
         }
@@ -213,7 +213,7 @@ class doc_plg_BusinessDoc extends core_Plugin
                         $form->setOptions($coverName, $newOptions);
                     }
                     
-                    if (!count($newOptions)) {
+                    if (!countR($newOptions)) {
                         // Ако няма нито една достъпна корица, полето става readOnly
                         $form->FNC($coverName, 'varchar', "input,caption={$Class->singleTitle},width=100%");
                         $form->setReadOnly($coverName);
@@ -256,7 +256,7 @@ class doc_plg_BusinessDoc extends core_Plugin
         }
         
         // Ако има избран повече от един обект, се показва грешка
-        if (count($errFields)) {
+        if (countR($errFields)) {
             array_unshift($errFields, $selectedField);
             $form->setError(implode(',', $errFields), 'Попълнете само едно от посочените полета');
             

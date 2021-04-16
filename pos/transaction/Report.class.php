@@ -44,7 +44,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             $this->class->extractData($rec);
         }
        // bp($rec->details['receiptDetails']);
-        if (count($rec->details['receiptDetails'])) {
+        if (countR($rec->details['receiptDetails'])) {
             foreach ($rec->details['receiptDetails'] as $dRec) {
                 if ($dRec->action == 'sale') {
                     $productsArr[] = $dRec;
@@ -56,7 +56,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
         
         if (isset($rec->id)) {
             $entriesProduction = $this->getProductionEntries($rec, $productsArr);
-            if (count($entriesProduction)) {
+            if (countR($entriesProduction)) {
                 $entries = array_merge($entries, $entriesProduction);
             }
             
@@ -66,7 +66,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             $entries = array_merge($entries, $this->getPaymentPart($rec, $paymentsArr, $posRec));
             
             // Начисляване на ддс ако има и е разрешено
-            if (count($totalVat) && $rec->chargeVat != 'no') {
+            if (countR($totalVat) && $rec->chargeVat != 'no') {
                 $entries = array_merge($entries, $this->getVatPart($rec, $totalVat, $posRec));
             }
         }
@@ -91,7 +91,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             $productCheck = deals_Helper::checkProductForErrors($productsArr, 'canSell');
             
             // Проверка на артикулите
-            if(count($productCheck['notActive'])){
+            if(countR($productCheck['notActive'])){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['notActive']) . " |не са активни|*!");
             } elseif($productCheck['metasError']){
                 acc_journal_RejectRedirect::expect(false, "Артикулите|*: " . implode(', ', $productCheck['metasError']) . " |трябва да са продаваеми|*!");
@@ -301,7 +301,7 @@ class pos_transaction_Report extends acc_DocumentTransactionSource
             }
         }
         
-        if (count($nonCashPayments)) {
+        if (countR($nonCashPayments)) {
             foreach ($nonCashPayments as $payment1) {
                 $entries[] = array(
                     'amount' => currency_Currencies::round($payment1->amount),

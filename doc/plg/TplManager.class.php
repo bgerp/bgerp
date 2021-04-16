@@ -117,7 +117,7 @@ class doc_plg_TplManager extends core_Plugin
     {
         $templates = doc_TplManager::getTemplates($mvc->getClassId());
         
-        if (count($templates) >= 1) {
+        if (countR($templates) >= 1) {
             $data->form->setOptions('template', $templates);
         } else {
             $data->form->setError('template', 'Няма активен шаблон за документа');

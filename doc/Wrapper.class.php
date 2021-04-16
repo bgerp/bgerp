@@ -96,8 +96,12 @@ class doc_Wrapper extends plg_ProtoWrapper
         $this->TAB('doc_Search', 'Търсене', 'powerUser');
         
         $this->TAB('frame2_Reports', 'Справки', 'ceo, report, admin');
-        
-        $this->TAB('doc_Files', 'Файлове', 'powerUser');
+
+        $dFiles = 'doc_Files';
+        if ($folderId && (doc_Folders::haveRightFor('single', $folderId))) {
+            $dFiles = array('doc_Files', 'range' => doc_Files::getFolderRange($folderId));
+        }
+        $this->TAB($dFiles, 'Файлове', 'powerUser');
         
         $this->TAB('doc_UnsortedFolders', 'Проекти', 'admin,ceo');
         

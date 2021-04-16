@@ -64,7 +64,7 @@ class autosize_Setup extends core_ProtoSetup
     public $configDescription = array(
         
         'AUTOSIZE_VERSION' => array('enum(v1.18.4=v1.18.4,
-                                                 v1.18.9=v1.18.9,4.0.2)', 'mandatory, caption=Версията на програмата->Версия'),
+                                                 v1.18.9=v1.18.9)', 'mandatory, caption=Версията на програмата->Версия'),
     );
     
     

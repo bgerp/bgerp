@@ -147,13 +147,13 @@ class type_Emails extends type_Varchar
         $res = parent::isValid($value);
         
         //Ако има грешки връщаме резултата
-        if (count($res)) {
+        if (countR($res)) {
             
             return $res;
         }
         
         //
-        if (count($invalidEmails = self::getInvalidEmails($value))) {
+        if (countR($invalidEmails = self::getInvalidEmails($value))) {
             $res['error'] = parent::escape('Стойността не е валиден имейл|*: ' . implode(', ', $invalidEmails));
         }
         

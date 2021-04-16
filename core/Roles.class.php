@@ -332,7 +332,7 @@ class core_Roles extends core_Manager
             expect(is_array($roles));
         }
         
-        if (count($roles)) {
+        if (countR($roles)) {
             foreach ($roles as $id => $dummy) {
                 $type = self::fetchField($id, 'type');
                 
