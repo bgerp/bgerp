@@ -122,7 +122,7 @@ class doc_Log extends core_Manager
         }
         
         // Задаваме броя на документите
-        $data->itemsCnt = count((array) $docIdsArr);
+        $data->itemsCnt = countR((array) $docIdsArr);
         
         // Зададаваме лимита за странициране
         $this->setLimitAddDocDialogPager($data);

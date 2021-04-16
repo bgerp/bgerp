@@ -439,7 +439,7 @@ class doc_Search extends core_Manager
      */
     public function on_AfterPrepareListRecs($mvc, $data)
     {
-        if (count($data->recs) == 0) {
+        if (countR($data->recs) == 0) {
             
             return;
         }
@@ -460,7 +460,7 @@ class doc_Search extends core_Manager
      */
     public function on_AfterPrepareListRows($mvc, $data)
     {
-        if (count($data->recs) == 0) {
+        if (countR($data->recs) == 0) {
             
             return;
         }
