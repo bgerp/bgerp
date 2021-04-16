@@ -909,10 +909,6 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
 
-            if (empty($rec->dueDate) && !empty($rec->dueTime)) {
-                $rec->dueDate = dt::addSecs($rec->dueTime, $rec->dueDate);
-            }
-
             if ($rec->paymentType == 'cash' && isset($rec->accountId)) {
                 $form->setWarning('accountId', 'Избрана е банкова сметка при начин на плащане в брой');
             }
@@ -1178,27 +1174,32 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if (empty($rec->dueDate)) {
-                if(isset($rec->paymentMethodId)){
-                    $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
-                    $aggregateInfo = $firstDocument->getAggregateDealInfo();
+                if(!empty($rec->dueTime)){
+                    $dueDate = dt::addSecs($rec->dueTime, $rec->date);
+                    $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
+                } else {
+                    if(isset($rec->paymentMethodId)){
+                        $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+                        $aggregateInfo = $firstDocument->getAggregateDealInfo();
 
-                    $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
-                    if($plan['eventBalancePayment'] == 'invEndOfMonth'){
-                        $rec->dueDate = $plan['deadlineForBalancePayment'];
-                        $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($rec->dueDate);
-                        $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според избрания метод на плащане. Ще бъде записан при контиране");
+                        $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
+                        if($plan['eventBalancePayment'] == 'invEndOfMonth'){
+                            $rec->dueDate = $plan['deadlineForBalancePayment'];
+                            $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($rec->dueDate);
+                            $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според избрания метод на плащане. Ще бъде записан при контиране");
+                        }
                     }
-                }
 
-                if (empty($rec->dueDate)) {
-                    $defTime = ($mvc instanceof purchase_Invoices) ? purchase_Setup::get('INVOICE_DEFAULT_VALID_FOR') : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
-                    $dueTime = (isset($rec->dueTime)) ? $rec->dueTime : $defTime;
-                    if ($dueTime) {
-                        $dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
-                        $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
-                        if (!$rec->dueTime) {
-                            $time = cls::get('type_Time')->toVerbal($defTime);
-                            $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според срока за плащане по подразбиране|*: {$time}. Ще бъде записан при контиране");
+                    if (empty($rec->dueDate)) {
+                        $defTime = ($mvc instanceof purchase_Invoices) ? purchase_Setup::get('INVOICE_DEFAULT_VALID_FOR') : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+                        $dueTime = (isset($rec->dueTime)) ? $rec->dueTime : $defTime;
+                        if ($dueTime) {
+                            $dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+                            $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
+                            if (!$rec->dueTime) {
+                                $time = cls::get('type_Time')->toVerbal($defTime);
+                                $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според срока за плащане по подразбиране|*: {$time}. Ще бъде записан при контиране");
+                            }
                         }
                     }
                 }
