@@ -452,7 +452,8 @@ class sales_Sales extends deals_DealMaster
                 if (isset($rec->deliveryTermId)) {
                     $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                     $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
-                    $form->setReadOnly('deliveryCalcTransport', $calcCostDefault);
+                    $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
+                    $form->setReadOnly('deliveryCalcTransport');
                     
                     if ($deliveryCalcCost == 'yes') {
                         $form->setReadOnly('deliveryAdress');
