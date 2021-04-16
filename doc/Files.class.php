@@ -15,6 +15,14 @@
  */
 class doc_Files extends core_Manager
 {
+
+
+    /**
+     * @var Разширения, които да не се показват по подразбиране
+     */
+    protected $exludeFilesExt = array('eml');
+
+
     /**
      * Плъгини за зареждане
      */
@@ -444,7 +452,7 @@ class doc_Files extends core_Manager
 
         return "__folder__"  .$folderId;
     }
-    protected $exludeFilesExt = array('eml');
+
     
     /**
      *
