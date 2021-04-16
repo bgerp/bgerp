@@ -89,7 +89,7 @@ class doc_HiddenContainers extends core_Manager
      */
     public static function prepareDocsForHide($containerRecsArr)
     {
-        $cnt = count((array) $containerRecsArr);
+        $cnt = countR((array) $containerRecsArr);
         
         if (self::checkCntLimitForShow($cnt)) {
             

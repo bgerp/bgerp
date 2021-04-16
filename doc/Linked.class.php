@@ -1005,7 +1005,7 @@ class doc_Linked extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -1109,7 +1109,7 @@ class doc_Linked extends core_Manager
             $cQuery->where(array("#id != '[#1#]'", $params['unsetId']));
         }
         
-        $limit -= count($sArr);
+        $limit -= countR($sArr);
         $cQuery->limit($limit);
         
         $cQuery->orderBy('modifiedOn', 'DESC');
@@ -1166,7 +1166,7 @@ class doc_Linked extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -1306,7 +1306,7 @@ class doc_Linked extends core_Manager
         
         $query->show($show);
         
-        $limit -= count($res);
+        $limit -= countR($res);
         $query->orderBy('last', 'DESC');
         
         while ($rec = $query->fetch()) {
@@ -1381,7 +1381,7 @@ class doc_Linked extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -1465,7 +1465,7 @@ class doc_Linked extends core_Manager
         
         $query->show($show);
         
-        $limit -= count($res);
+        $limit -= countR($res);
         $query->orderBy('last', 'DESC');
         
         while ($rec = $query->fetch()) {
