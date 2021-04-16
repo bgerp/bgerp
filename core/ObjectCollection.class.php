@@ -101,7 +101,7 @@ class core_ObjectCollection implements Iterator
      */
     public function add($val)
     {
-        if (count($this->fields)) {
+        if (countR($this->fields)) {
             $args = func_get_args();
             
             $obj = new stdClass();
@@ -112,7 +112,7 @@ class core_ObjectCollection implements Iterator
             $this->container[] = $obj;
             
             if (!$obj->order) {
-                $obj->order = count($this->container);
+                $obj->order = countR($this->container);
             }
         } else {
             $this->container[] = $val;
