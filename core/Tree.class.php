@@ -43,7 +43,7 @@ class core_Tree extends core_BaseClass
         
         $pid = -1;
         
-        $nodesCnt = count($nodes);
+        $nodesCnt = countR($nodes);
         
         foreach ($nodes as $key => $node) {
             $currentPath .= ($currentPath ? '->' : '') . $node;
@@ -51,7 +51,7 @@ class core_Tree extends core_BaseClass
             if (!isset($this->nodes[$currentPath])) {
                 $n = new stdClass();
                 
-                $n->id = count($this->nodes);
+                $n->id = countR($this->nodes);
                 $n->pid = $pid;
                 $pid = $n->id;
                 $n->title = $node;
@@ -77,7 +77,7 @@ class core_Tree extends core_BaseClass
     public function renderHtml_($body, $selected = null)
     {
         // Ако нямаме дърво - връщаме съдържанието без промяна
-        if (!count($this->nodes)) {
+        if (!countR($this->nodes)) {
             
             return $body;
         }
