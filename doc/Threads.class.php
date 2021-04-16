@@ -446,7 +446,7 @@ class doc_Threads extends core_Manager
                     $fields[] = 'partnerDocLast';
                 }
                 $exRec = clone($rec);
-                if (!self::$updateQueue[$rec->id] && count($fields)) {
+                if (!self::$updateQueue[$rec->id] && countR($fields)) {
                     self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
                     $fieldsList = implode(',', $fields);
                     self::save($rec, $fieldsList);
@@ -805,7 +805,7 @@ class doc_Threads extends core_Manager
         $rejected = Request::get('Rejected');
         
         $documentsInThreadOptions = self::getDocumentTypesOptionsByFolder($folderId, false, $rejected);
-        if (count($documentsInThreadOptions)) {
+        if (countR($documentsInThreadOptions)) {
             $documentsInThreadOptions = array_map('tr', $documentsInThreadOptions);
             $data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
         } else {
@@ -1296,7 +1296,7 @@ class doc_Threads extends core_Manager
                 $selArr = arr::make($selected);
             }
             
-            if (!count($selArr)) {
+            if (!countR($selArr)) {
                 $selArr[] = $threadId;
             }
             
@@ -1307,7 +1307,7 @@ class doc_Threads extends core_Manager
             $errCnt = 0;
             
             $loggedToFolders = false;
-            $moveW = count($selArr) > 1 ? 'Преместени нишки' : 'Преместена нишка';
+            $moveW = countR($selArr) > 1 ? 'Преместени нишки' : 'Преместена нишка';
             
             foreach ($selArr as $threadId) {
                 try {
@@ -1362,7 +1362,7 @@ class doc_Threads extends core_Manager
             $exp->message = tr($message);
             
             // Ако преместваме само една нишка
-            if (count($selArr) == 1) {
+            if (countR($selArr) == 1) {
                 
                 // Ако имаме права за нишката, в преместената папка
                 if ($this->haveRightFor('single', $threadId)) {
@@ -2080,7 +2080,7 @@ class doc_Threads extends core_Manager
         }
         
         self::groupDocumentsInThread($rec->id, $contable, $notContable);
-        if (!count($contable)) {
+        if (!countR($contable)) {
             
             return;
         }
@@ -2120,7 +2120,7 @@ class doc_Threads extends core_Manager
         
         // Намиране на всички спрени контиращи документи в нишката
         self::groupDocumentsInThread($rec->id, $contable, $notContable, 'stopped');
-        if (!count($contable)) {
+        if (!countR($contable)) {
             
             return;
         }
@@ -2490,7 +2490,7 @@ class doc_Threads extends core_Manager
                 
                 // Имали контиращи спрени документи
                 self::groupDocumentsInThread($rec, $contable, $notContable, 'stopped', 1);
-                if (!count($contable)) {
+                if (!countR($contable)) {
                     $res = 'no_one';
                 }
             }
@@ -3261,7 +3261,7 @@ class doc_Threads extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }

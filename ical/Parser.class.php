@@ -30,8 +30,8 @@ class ical_Parser extends core_Mvc
         $ical->initString($ics);
         
         $events = $ical->events();
-        
-        
+
+
         foreach ($events as $id => $e) {
             if ($e->dtstart) {
                 $e->dtstart = dt::timestamp2mysql(strtotime($e->dtstart));
@@ -60,6 +60,7 @@ class ical_Parser extends core_Mvc
             
             if ($e->duration) {
                 $d = new \DateInterval($e->duration);
+                $t = '';
                 if ($d->y) {
                     $t .= $d->y . ' years ';
                 }
@@ -109,7 +110,7 @@ class ical_Parser extends core_Mvc
                     $Richtext->_htmlBoard[$place] = new ET($text);
                 }
 
-                if (count($Richtext->_htmlBoard)) {
+                if (countR($Richtext->_htmlBoard)) {
                     $e->descriptionVrb = new ET($e->descriptionVrb);
                     $e->descriptionVrb->placeArray($Richtext->_htmlBoard);
                 }

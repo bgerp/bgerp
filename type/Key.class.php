@@ -161,13 +161,13 @@ class type_Key extends type_Int
                 $selOptCache = unserialize(core_Cache::get($this->selectOpt, $this->handler));
             }
             
-            if (($field = $this->getSelectFld()) && (!count($options))) {
+            if (($field = $this->getSelectFld()) && (!countR($options))) {
                 $options = $this->prepareOptions();
             }
             
             $value = null;
             
-            if (($selOptCache !== false) && count((array) $selOptCache)) {
+            if (($selOptCache !== false) && countR((array) $selOptCache)) {
                 foreach ((array) $selOptCache as $id => $titleArr) {
                     if ($value == $titleArr['title']) {
                         $value = $id;
@@ -282,7 +282,7 @@ class type_Key extends type_Int
         Debug::startTimer('prepareOPT ' . $this->params['mvc']);
         
         // Ако опциите вече са генерирани - не ги подготвяме отново
-        if (!is_array($this->options) || !count($this->options)) {
+        if (!is_array($this->options) || !countR($this->options)) {
             $mvc = cls::get($this->params['mvc']);
             
             if ($this->getSelectFld() == '*') {
@@ -310,7 +310,7 @@ class type_Key extends type_Int
             
             $mvc->invoke('BeforePrepareKeyOptions', array(&$options, $this, $where));
             
-            if (!count($options)) {
+            if (!countR($options)) {
                 if (!is_array($this->options)) {
                     $keyIndex = $this->getKeyField();
                     
@@ -407,7 +407,7 @@ class type_Key extends type_Int
         $maxSuggestions = $this->getMaxSuggestions();
         
         // Ако трябва да показваме combo-box
-        if (count($options) <= $maxSuggestions) {
+        if (countR($options) <= $maxSuggestions) {
             
             return ;
         }
@@ -613,7 +613,7 @@ class type_Key extends type_Int
         
         $options = $this->options;
         
-        if (!is_array($options) || !count($options)) {
+        if (!is_array($options) || !countR($options)) {
             $options = $this->prepareOptions($value);
         }
         
@@ -621,8 +621,8 @@ class type_Key extends type_Int
             $options = ht::groupOptions($options, $div);
         }
         
-        if ($this->getSelectFld() || count($options)) {
-            $optionsCnt = count($options);
+        if ($this->getSelectFld() || countR($options)) {
+            $optionsCnt = countR($options);
             
             if ($this->params['allowEmpty']) {
                 $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' =>
@@ -690,7 +690,7 @@ class type_Key extends type_Int
                 
                 $tpl = ht::createCombo($name, $setVal, $attr, $selOpt);
             } else {
-                $optionsCnt = count($options);
+                $optionsCnt = countR($options);
                 
                 if (($optionsCnt == 0 || ($optionsCnt == 1 && isset($options['']) && $this->params['mandatory']))) {
                     $msg = tr('Липсва избор за');

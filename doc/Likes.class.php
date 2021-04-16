@@ -176,7 +176,7 @@ class doc_Likes extends core_Manager
     {
         $likedArr = self::prepareLikedArr($cid, $threadId);
         
-        return (int) count($likedArr);
+        return (int) countR($likedArr);
     }
     
     

@@ -128,7 +128,7 @@ class core_Toolbar extends core_BaseClass
             $btn->order = 10;
         }
         
-        $btn->order += count($this->buttons) / 10000;
+        $btn->order += countR($this->buttons) / 10000;
         
         $btn->attr = $params;
         
@@ -181,7 +181,7 @@ class core_Toolbar extends core_BaseClass
     public function setWarning($ids, $warning)
     {
         $ids = arr::make($ids, true);
-        expect(count($ids));
+        expect(countR($ids));
         
         $buttons = (isset($ids['*'])) ? $this->buttons : $ids;
         foreach ($buttons as $id => $btn) {
@@ -200,7 +200,7 @@ class core_Toolbar extends core_BaseClass
     public function setError($ids, $error)
     {
         $ids = arr::make($ids, true);
-        expect(count($ids));
+        expect(countR($ids));
         
         $buttons = (isset($ids['*'])) ? $this->buttons : $ids;
         foreach ($buttons as $id => $btn) {
@@ -249,7 +249,7 @@ class core_Toolbar extends core_BaseClass
     {
         $layout = new ET();
         
-        if (!count($this->buttons) > 0) {
+        if (!countR($this->buttons) > 0) {
             
             return $layout;
         }
@@ -359,7 +359,7 @@ class core_Toolbar extends core_BaseClass
      */
     public function getToolbarLayout_($rowId)
     {
-        if (count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') || count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')) {
+        if (countR($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') || countR($this->buttons) > 3 && Mode::is('screenMode', 'narrow')) {
             $layout = new ET("\n<div class='toolbar'><div class='toolbar-first clearfix21'>[#ROW0#][#ROW1#]</div>" .
                               
                               "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide clearfix21' id='Row2_{$rowId}'>[#ROW2#]<span style='display: block;margin-top: 5px;'> [#HIDDEN#]</span></div><!--ET_END ROW2--></div>");
@@ -396,7 +396,7 @@ class core_Toolbar extends core_BaseClass
     public function setUrlParam($id, $param, $value)
     {
         expect(!empty($this->buttons[$id]));
-        if (count($this->buttons[$id]->url)) {
+        if (countR($this->buttons[$id]->url)) {
             $this->buttons[$id]->url[$param] = $value;
         }
     }

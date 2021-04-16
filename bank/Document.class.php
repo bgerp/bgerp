@@ -555,7 +555,9 @@ abstract class bank_Document extends deals_PaymentDocument
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
         $form->setDefault('rate', $dealInfo->get('rate'));
-        
+
+        $exOptions = $form->getField('ownAccount')->options;
+
         if(isset($form->rec->fromContainerId)){
             $FromContainer = doc_Containers::getDocument($form->rec->fromContainerId);
             if($FromContainer->isInstanceOf('deals_InvoiceMaster')){
@@ -564,7 +566,9 @@ abstract class bank_Document extends deals_PaymentDocument
                         $iban = bank_Accounts::fetchField($bankId, 'iban');
                         $form->setDefault('contragentIban', $iban);
                     } else {
-                        $form->setDefault('ownAccount', $bankId);
+                        if(array_key_exists($bankId, $exOptions)){
+                            $form->setDefault('ownAccount', $bankId);
+                        }
                     }
                 }
             }
@@ -573,9 +577,11 @@ abstract class bank_Document extends deals_PaymentDocument
         if (empty($form->rec->id) && $form->cmd != 'refresh') {
             if($dealInfo->get('bankAccountId')){
                 $bankId = bank_OwnAccounts::fetchField("#bankAccountId = {$dealInfo->get('bankAccountId')}", 'id');
-                $form->setDefault('ownAccount', $bankId);
+                if(array_key_exists($bankId, $exOptions)){
+                    $form->setDefault('ownAccount', $bankId);
+                }
             }
-            
+
             $form->setDefault('ownAccount', bank_OwnAccounts::getCurrent('id', false));
         }
         

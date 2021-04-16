@@ -127,7 +127,7 @@ class doc_RichTextPlg extends core_Plugin
         // Проверяваме дали имаме достъп до някакъв еденичен изглед
         // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
         $singleUrl = $doc->getSingleUrlArray();
-        if (is_array($singleUrl) && !count($singleUrl)) {
+        if (is_array($singleUrl) && !countR($singleUrl)) {
             
             // Ако масива е празен значи няма достъп потребителя да преглежда документа
             return $match[0];
@@ -242,7 +242,7 @@ class doc_RichTextPlg extends core_Plugin
                 // Проверяваме дали имаме достъп до някакъв еденичен изглед
                 // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
                 $singleUrl = $doc->getSingleUrlArray();
-                if (is_array($singleUrl) && !count($singleUrl)) {
+                if (is_array($singleUrl) && !countR($singleUrl)) {
                         
                         // Ако масива е празен значи няма достъп потребителя да преглежда документа
                     continue;
@@ -314,7 +314,7 @@ class doc_RichTextPlg extends core_Plugin
             // Проверяваме дали имаме достъп до някакъв еденичен изглед
             // core_master::getSingleUrlArray връща празен масив ако потребителя няма достъп
             $singleUrl = $className::getSingleUrlArray($rec);
-            if (is_array($singleUrl) && count($singleUrl)) {
+            if (is_array($singleUrl) && countR($singleUrl)) {
                 
                 return $handleInfo;
             }

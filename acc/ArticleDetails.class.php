@@ -293,18 +293,24 @@ class acc_ArticleDetails extends doc_Detail
             }
             
             if (!$acc->isDimensional) {
-                $form->setField("{$type}Quantity", 'input=none');
-                $form->setField("{$type}Price", 'input=none');
+                if(!haveRole('debug')){
+                    $form->setField("{$type}Quantity", 'input=none');
+                    $form->setField("{$type}Price", 'input=none');
+                }
             }
             
             if ($quantityOnly) {
-                $form->setField("{$type}Price", 'input=none');
-                $form->setField("{$type}Quantity", 'mandatory');
+                if(!haveRole('debug')){
+                    $form->setField("{$type}Price", 'input=none');
+                    $form->setField("{$type}Quantity", 'mandatory');
+                }
             }
         }
         
         if ($quantityOnly) {
-            $form->setField('amount', 'input=none');
+            if(!haveRole('debug')){
+                $form->setField('amount', 'input=none');
+            }
         }
         
         if (!$dimensional && !$quantityOnly) {

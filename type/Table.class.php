@@ -233,7 +233,7 @@ class type_Table extends type_Blob
                 }
             }
             
-            if (count($errFld)) {
+            if (countR($errFld)) {
                 $res['error'] = 'Непопълнено задължително поле';
                 $this->errorFields = $res['errorFields'] = $errFld;
                 
@@ -407,7 +407,7 @@ class type_Table extends type_Blob
             $obj = new stdClass();
             $obj->caption = $captionArr[$i] ? $captionArr[$i] : $c;
             $obj->width = $widthsArr[$i];
-            $obj->mandatory = count($mandatoryArr) && in_array($c, $mandatoryArr) || $i == 0 && !count($mandatoryArr);
+            $obj->mandatory = countR($mandatoryArr) && in_array($c, $mandatoryArr) || $i == 0 && !countR($mandatoryArr);
             $res[$c] = $obj;
         }
         

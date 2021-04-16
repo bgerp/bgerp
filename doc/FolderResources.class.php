@@ -101,7 +101,7 @@ class doc_FolderResources extends core_Manager
         $objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
         
         $query = $Detail->getQuery();
-        if (count($objectIds)) {
+        if (countR($objectIds)) {
             $query->in('id', $objectIds);
         } else {
             $query->where('1=2');

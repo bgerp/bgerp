@@ -60,7 +60,7 @@ class type_Key2 extends type_Int
         
         $res = null;
         
-        if (count($resArr)) {
+        if (countR($resArr)) {
             $res = reset($resArr);
             $res = is_object($res) ? $res->title : $res;
             
@@ -98,10 +98,10 @@ class type_Key2 extends type_Int
             $resArr = $this->getOptions(1, "\"{$value}", true);
         }
         
-        if (count($resArr) == 1) {
+        if (countR($resArr) == 1) {
             
             return key($resArr);
-        } elseif (count($resArr) > 1) {
+        } elseif (countR($resArr) > 1) {
             $this->error = 'Нееднозначно определяне';
         } else {
             $this->error = 'Несъществуващ обект';
@@ -223,7 +223,7 @@ class type_Key2 extends type_Int
             }
         }
         
-        $optionsCnt = count($options);
+        $optionsCnt = countR($options);
         
         if ($this->params['allowEmpty']) {
             $placeHolder = array('' => (object) array('title' => $attr['placeholder'] ? $attr['placeholder'] : ' ', 'attr' =>

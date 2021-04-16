@@ -719,9 +719,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($restore === false) {
             $query->orderBy('date', 'DESC');
             $newDate = $query->fetch()->date;
-            
-            
-            
+
             if ($newDate > $rec->date) {
                 $newDate = dt::mysql2verbal($newDate, 'd.m.y');
                 $msg = "Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] ({$newDate})";

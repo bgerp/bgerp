@@ -52,7 +52,7 @@ class core_Type extends core_BaseClass
      */
     public function __construct($params = array())
     {
-        if (is_array($params) && count($params)) {
+        if (is_array($params) && countR($params)) {
             $this->params = $params;
         }
     }
@@ -377,7 +377,7 @@ class core_Type extends core_BaseClass
      */
     public function fromVerbalSuggestions($value)
     {
-        if (is_array($this->suggestions) && count($this->suggestions)) {
+        if (is_array($this->suggestions) && countR($this->suggestions)) {
             Mode::push('text', 'plain');
             
             if (isset($this->suggestions[''])) {
@@ -468,7 +468,7 @@ class core_Type extends core_BaseClass
                         $p[trim($key)] = trim($val);
                     } else {
                         $value = str_replace($toArr, $fromArr2, $value);
-                        if (count($p) == 0 && is_numeric($value) && ($typeName != 'type_Enum')) {
+                        if (countR($p) == 0 && is_numeric($value) && ($typeName != 'type_Enum')) {
                             $p[] = $value;
                         } else {
                             $p[$value] = $value;
@@ -534,7 +534,7 @@ class core_Type extends core_BaseClass
             }
             $r = "(${r}) {$openBracket}";
             
-            if (count($o)) {
+            if (countR($o)) {
                 
                 // Променлива, с която отбелязваме, че обикаляме за първи път масива
                 $firstTime = true;
