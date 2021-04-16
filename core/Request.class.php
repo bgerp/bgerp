@@ -299,7 +299,7 @@ class core_Request
         if ($name) {
             $element[$name] = $array;
         } else {
-            $element[count(self::$vars)] = $array;
+            $element[countR(self::$vars)] = $array;
         }
         
         if ($unShift) {
@@ -390,7 +390,7 @@ class core_Request
         
         $vars = arr::make($vars, true);
         
-        if (count($vars)) {
+        if (countR($vars)) {
             $Request->push($vars, $varsName);
             $mustPop = true;
         }

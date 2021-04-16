@@ -83,7 +83,7 @@ class core_RowToolbar extends core_BaseClass
             $btn->order = 10;
         }
         
-        $btn->order += count($this->links) / 10000;
+        $btn->order += countR($this->links) / 10000;
         
         $btn->attr = $params;
         
@@ -136,7 +136,7 @@ class core_RowToolbar extends core_BaseClass
     public function setWarning($ids, $warning)
     {
         $ids = arr::make($ids, true);
-        expect(count($ids));
+        expect(countR($ids));
         
         $buttons = (isset($ids['*'])) ? $this->links : $ids;
         foreach ($buttons as $id => $btn) {
@@ -155,7 +155,7 @@ class core_RowToolbar extends core_BaseClass
     public function setError($ids, $error)
     {
         $ids = arr::make($ids, true);
-        expect(count($ids));
+        expect(countR($ids));
         
         $buttons = (isset($ids['*'])) ? $this->links : $ids;
         foreach ($buttons as $id => $btn) {
@@ -183,7 +183,7 @@ class core_RowToolbar extends core_BaseClass
      */
     public function renderHtml_($showWithoutToolbar = null)
     {
-        if (!count($this->links) > 0) {
+        if (!countR($this->links) > 0) {
             
             return;
         }
@@ -194,7 +194,7 @@ class core_RowToolbar extends core_BaseClass
         }
         
         setIfNot($showWithoutToolbar, 1);
-        if (count($this->links) <= $showWithoutToolbar) {
+        if (countR($this->links) <= $showWithoutToolbar) {
             $layout = new core_ET('<span>[#ROW_TOOLS#]</span>');
             foreach ($this->links as $linkObj) {
                 setIfNot($linkObj->attr['hint'], $linkObj->title);

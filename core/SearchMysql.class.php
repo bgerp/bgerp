@@ -332,7 +332,7 @@ class core_SearchMysql extends core_BaseClass
          */
         $offset = 0;
         
-        $textChunksCnt = count($textChunks);
+        $textChunksCnt = countR($textChunks);
         
         for ($i = 0; $i < $textChunksCnt; $i++) {
             $origLength = strlen($textChunks[$i][0]);
