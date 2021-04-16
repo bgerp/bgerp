@@ -286,7 +286,7 @@ class doc_SharablePlg extends core_Plugin
             }
         }
         
-        if (count($users) > core_Setup::get('AUTOHIDE_SHARED_USERS')) {
+        if (countR($users) > core_Setup::get('AUTOHIDE_SHARED_USERS')) {
             $data->form->setField('sharedUsers', 'autohide');
         }
         
@@ -376,7 +376,7 @@ class doc_SharablePlg extends core_Plugin
         
         if (!empty($shareUsers)) {
             if (isset($vals['shareMaxCnt'])) {
-                if (count($shareUsers) > $vals['shareMaxCnt']) {
+                if (countR($shareUsers) > $vals['shareMaxCnt']) {
                     $shareUsers = array_slice($shareUsers, 0, $vals['shareMaxCnt'], true);
                 }
             }
