@@ -31,7 +31,7 @@ class core_Xml
             }
         }
         
-        if (count($children) == 0) {
+        if (countR($children) == 0) {
             $return[$path] = (string) $xml;
             
             return;
