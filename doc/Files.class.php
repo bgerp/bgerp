@@ -377,7 +377,7 @@ class doc_Files extends core_Manager
         }
         
         // Ако са останали файлоаве, които не са премахнати от записите
-        if (count($savedFh)) {
+        if (countR($savedFh)) {
             
             // Обхождаме всики останали файлове
             foreach ($savedFh as $fileHnd => $dummy) {

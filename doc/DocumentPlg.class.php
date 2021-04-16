@@ -921,7 +921,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-        if (count($mvc->pendingQueue)) {
+        if (countR($mvc->pendingQueue)) {
             foreach ($mvc->pendingQueue as $rec) {
                 $log = ($rec->state == 'pending') ? 'Документът става на заявка' : 'Документът се връща в чернова';
                 $mvc->logInAct($log, $rec);
@@ -2786,7 +2786,7 @@ class doc_DocumentPlg extends core_Plugin
                 } else {
                     // И да има активни контиращи документи и неконтиращи
                     doc_Threads::groupDocumentsInThread($rec->threadId, $contable, $notContable, 'active', 1);
-                    if (!(count($contable) && count($notContable))) {
+                    if (!(countR($contable) && countR($notContable))) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -3192,7 +3192,7 @@ class doc_DocumentPlg extends core_Plugin
                 //Имената на намерените документи
                 $names = doc_RichTextPlg::getAttachedDocs($rec->$fieldName);
                 
-                if (count($names)) {
+                if (countR($names)) {
                     foreach ($names as $name => $doc) {
                         $res += $doc['mvc']->getTypeConvertingsByClass($doc['rec']->id);
                     }
@@ -4398,7 +4398,7 @@ class doc_DocumentPlg extends core_Plugin
             // Ако бройката е под ограничението, няма да има втори ред
             $noSecondRow = false;
             
-            $headerArrCnt = count($headerArr);
+            $headerArrCnt = countR($headerArr);
             
             if ($headerArrCnt < $limitForSecondRow) {
                 $noSecondRow = true;
@@ -4435,7 +4435,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Ако имаме само един кандидат за втория ред, да не се показва сам
-            if ((count($secondRowArr) == 1)) {
+            if ((countR($secondRowArr) == 1)) {
                 $key = key($secondRowArr);
                 unset($headerArr[$key]['row']);
                 $haveSecondRow = false;
