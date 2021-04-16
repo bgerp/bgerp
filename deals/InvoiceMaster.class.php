@@ -732,13 +732,13 @@ abstract class deals_InvoiceMaster extends core_Master
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
                 $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
 
-                if (!isset($form->rec->id)) {
-                    if($plan['eventBalancePayment'] != 'invEndOfMonth'){
+                if($plan['eventBalancePayment'] != 'invEndOfMonth'){
+                    if (!isset($form->rec->id)) {
                         $form->setDefault('dueTime', $plan['timeBalancePayment']);
-                    } else {
-                        $timeVerbal = core_Type::getByName('time')->toVerbal($plan['timeBalancePayment']);
-                        $form->setField('dueTime', "placeholder={$timeVerbal} след края на месеца,class=w50");
                     }
+                } else {
+                    $timeVerbal = core_Type::getByName('time')->toVerbal($plan['timeBalancePayment']);
+                    $form->setField('dueTime', "placeholder={$timeVerbal} след края на месеца,class=w50");
                 }
                 
                 $paymentType = ($aggregateInfo->get('paymentType')) ? $aggregateInfo->get('paymentType') : cond_PaymentMethods::fetchField($paymentMethodId, 'type');
