@@ -1886,6 +1886,9 @@ a.tUnsighted {
 .frame2Table tr.group-by-field-row {
 	background: #ddd;
 	font-weight: bold;
+	&:hover {
+		background: #eee !important;
+	}
 }
 
 .CVTable {
