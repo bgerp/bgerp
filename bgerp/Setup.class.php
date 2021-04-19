@@ -243,11 +243,11 @@ class bgerp_Setup extends core_ProtoSetup
 
         // Спираме SQL лога, ако има такъв
         core_Db::$sqlLogEnebled = false;
-        
+
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         $html = $Plugins->repair();
-        
+
         $managers = array(
             'bgerp_Menu',
             'bgerp_Portal',
@@ -267,12 +267,12 @@ class bgerp_Setup extends core_ProtoSetup
         }
         
         core_SystemLock::block('Starting bgERP installation...');
-        
+
         // Инстанция на мениджъра на пакетите
         $Packs = cls::get('core_Packs');
 
         // Това първо инсталиране ли е?
-        $isFirstSetup = ($Packs->count() == 0);
+        $isFirstSetup = ($Packs->count() <= 5);
 
         // Списък на основните модули на bgERP
         $packs = 'core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,tags,help,acc,cond,uiext,currency,cms,ograph,
@@ -371,16 +371,21 @@ class bgerp_Setup extends core_ProtoSetup
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
         } while (!empty($haveError) && ($loop < 5));
-        
+
+        if ($isFirstSetup) {
+            $currentVersion = core_setup::CURRENT_VERSION;
+        } else {
+            $currentVersion = core_Updates::getNewVersionTag();
+        }
+
         // Записваме в конфигурацията, че базата е мигрирана към текущата версия
-        if ($currentVersion = core_Updates::getNewVersionTag()) {
+        if ($currentVersion) {
             core_Packs::setConfig('core', array('CORE_LAST_DB_VERSION' => $currentVersion));
         }
         
         // Започваме пак да записваме дебъг съобщенията
         core_Debug::$isLogging = true;
-        
-        
+
         core_SystemLock::block('Finishing bgERP Installation');
         
         $html .= implode("\n", $haveError);
