@@ -445,7 +445,7 @@ class sales_Sales extends deals_DealMaster
             // Ако метода за плащане не е банков само тогава се попълва касата
             if(isset($rec->paymentMethodId)){
                 $paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
-                if($paymentType != 'bank'){
+                if($paymentType == 'cash'){
                     $caseId = cond_plg_DefaultValues::getDefValue($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc');
                     $form->setDefault('caseId', $caseId);
                 }
