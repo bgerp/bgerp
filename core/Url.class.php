@@ -241,7 +241,7 @@ class core_Url
                 'fragment' => ''
             );
             
-            switch (count($match)) {
+            switch (countR($match)) {
                 case 10:
                     $parts['fragment'] = $match[9];
                     
@@ -520,7 +520,7 @@ class core_Url
                 foreach (explode("\n", $header_text) as $line) {
                     $parts = explode(': ', $line);
                     
-                    if (count($parts) == 2) {
+                    if (countR($parts) == 2) {
                         $headers[$parts[0]] = chop($parts[1]);
                     }
                 }
@@ -823,7 +823,7 @@ class core_Url
             foreach (explode("\n", $header_text) as $line) {
                 $parts = explode(': ', $line);
                 
-                if (count($parts) == 2) {
+                if (countR($parts) == 2) {
                     if (isset($headers[$parts[0]])) {
                         if (is_array($headers[$parts[0]])) {
                             $headers[$parts[0]][] = chop($parts[1]);
@@ -1064,7 +1064,7 @@ class core_Url
     {
         preg_match_all("/(((http(s?)):\/\/)|(www\.))([\%\_\-\.\p{L}0-9]+)/ui", $line, $matches);
         
-        if (count($matches[0])) {
+        if (countR($matches[0])) {
             foreach ($matches[0] as $id => &$w) {
                 if (!self::isValidTld($w)) {
                     unset($matches[0][$id]);
@@ -1092,7 +1092,7 @@ class core_Url
         $arr = @parse_url(strtolower($url));
         if (is_array($arr) && $h = $arr['host']) {
             $hArr = explode('.', $h);
-            if (($c = count($hArr)) >= 2) {
+            if (($c = countR($hArr)) >= 2) {
                 $domain = $hArr[$c - 2] . '.' . $hArr[$c - 1];
             }
         }
@@ -1161,7 +1161,7 @@ class core_Url
         }
         
         $urlArr = explode('/', $string);
-        $len = count($urlArr);
+        $len = countR($urlArr);
         
         $id = $urlArr[$len - 1];
         $cls = $urlArr[$len - 3];

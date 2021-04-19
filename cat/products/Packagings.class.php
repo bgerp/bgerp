@@ -44,7 +44,7 @@ class cat_products_Packagings extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,user=Потребител';
+    public $listFields = 'packagingId=Наименование, quantity=К-во, eanCode=EAN, netWeight=, tareWeight=, weight=Тегло, sizeWidth=, sizeHeight=, sizeDepth=, dimension=Габарити,user=Създаване';
     
     
     /**
@@ -57,8 +57,13 @@ class cat_products_Packagings extends core_Detail
      * Кой има право да променя системните данни?
      */
     public $canEditsysdata = 'ceo,sales,purchase,packEdit';
-    
-    
+
+    /**
+     * Кой има право да променя системните данни?
+     */
+    public $canDeletesysdata = 'ceo,sales,purchase,packEdit';
+
+
     /**
      * Кой може да качва файлове
      */
@@ -88,7 +93,7 @@ class cat_products_Packagings extends core_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'eanCode';
+    public $fieldsNotToClone = 'eanCode,firstClassId,firstDocId';
 
 
     /**
@@ -115,6 +120,7 @@ class cat_products_Packagings extends core_Detail
         'planning_Tasks',
         'planning_ProductionTaskProducts',
         'store_ConsignmentProtocolDetailsReceived',
+        'store_TransfersDetails',
         'store_ConsignmentProtocolDetailsSend');
 
 
@@ -586,11 +592,7 @@ class cat_products_Packagings extends core_Detail
         }
 
         if($fields['-list']) {
-            if($rec->modifiedOn) {
-                $row->user = crm_Profiles::createLink($rec->modifiedBy) . ', ' . $mvc->getVerbal($rec, 'modifiedOn');
-            } else {
-                $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
-            }
+            $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
         }
     }
     
@@ -1237,6 +1239,8 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
             } elseif ($Detail == 'cat_BomDetails') {
                 $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
+            } elseif ($Detail == 'store_TransfersDetails') {
+                $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             } else {
                 $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             }

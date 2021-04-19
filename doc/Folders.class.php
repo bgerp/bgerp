@@ -591,7 +591,7 @@ class doc_Folders extends core_Master
         // изпълнен.
         doc_Threads::doUpdateThread();
         
-        if (count($mvc->updateByContentOnShutdown)) {
+        if (countR($mvc->updateByContentOnShutdown)) {
             foreach ($mvc->updateByContentOnShutdown as $id) {
                 // Извличаме записа на папката
                 $rec = doc_Folders::fetch($id);
@@ -2148,7 +2148,7 @@ class doc_Folders extends core_Master
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }

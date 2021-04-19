@@ -100,7 +100,7 @@ class doc_ThreadUsers extends core_Manager
             $usersArr = keylist::toArray($users);
         }
         
-        if (count($usersArr)) {
+        if (countR($usersArr)) {
             foreach ($usersArr as $userId) {
                 if ($userId > 0) {
                     $rec = (object) array(

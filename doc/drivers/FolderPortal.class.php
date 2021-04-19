@@ -52,7 +52,7 @@ class doc_drivers_FolderPortal extends core_BaseClass
     {
         if ($data->form->rec->folderId) {
             $documentsInThreadOptions = doc_Threads::getDocumentTypesOptionsByFolder($data->form->rec->folderId);
-            if (count($documentsInThreadOptions)) {
+            if (countR($documentsInThreadOptions)) {
                 $documentsInThreadOptions = array_map('tr', $documentsInThreadOptions);
                 $data->form->setOptions('documentClassId', $documentsInThreadOptions);
             }

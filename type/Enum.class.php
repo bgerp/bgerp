@@ -88,8 +88,8 @@ class type_Enum extends core_Type
     public function renderInput_($name, $value = '', &$attr = array())
     {
         // TODO: да се махне хака със <style>
-        if (count($this->options)) {
-            if (count($this->options) == 2) {
+        if (countR($this->options)) {
+            if (countR($this->options) == 2) {
                 if ($this->options['off'] == 'off' && $this->options['off'] == 'off') {
                     $tpl = "<input type='checkbox' name='{$name}'  class='checkbox'" . ($value == 'on'? ' checked ' : '') . '>';
                     
@@ -110,7 +110,7 @@ class type_Enum extends core_Type
                 } else {
                     $t1 = explode('<style>', $title);
                     
-                    if (count($t1) == 2) {
+                    if (countR($t1) == 2) {
                         $arr[$id]->title = tr($t1[0]);
                         $arr[$id]->attr['style'] = $t1[1];
                     } else {

@@ -300,24 +300,6 @@ class trans_Cmrs extends core_Master
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            
-            // Подсигуряване че винаги след редакция ще е в чернова
-            if ($form->cmd == 'save') {
-                $form->rec->state = 'draft';
-            }
-        }
-    }
-    
-    
-    /**
      * Зарежда дефолтни данни от формата
      *
      * @param int       $originId - ориджин
@@ -509,7 +491,7 @@ class trans_Cmrs extends core_Master
     public static function canAddToThread($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if ($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster')) {
+        if ($firstDoc && $firstDoc->isInstanceOf('deals_DealBase')) {
             $state = $firstDoc->fetchField('state');
             if (in_array($state, array('active', 'closed', 'pending'))) {
                 

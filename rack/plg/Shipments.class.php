@@ -204,17 +204,10 @@ class rack_plg_Shipments extends core_Plugin
      */
     public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
-        $rec = $mvc->fetchRec($id);
-        
-        // Има ли нагласени количества за артикула в зоната?
-        $zQuery = rack_ZoneDetails::getQuery();
-        $zQuery->XPR('movementQuantityRound', 'varchar', 'ROUND(COALESCE(#movementQuantity, 0), 3)');
-        $zQuery->EXT('containerId', 'rack_Zones', 'externalName=containerId,externalKey=zoneId');
-        $zQuery->where("#containerId = {$rec->containerId} AND #movementQuantityRound != 0");
-        $zQuery->show('id');
-        
         // Ако има, се спира оттеглянето
-        if($zQuery->fetch()){
+        $rec = $mvc->fetchRec($id);
+
+        if(rack_Zones::hasRackMovements($rec->containerId)){
             core_Statuses::newStatus('Документа не може да се оттегли, докато има нагласени количества в зоната', 'error');
             return false;
         }

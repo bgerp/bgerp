@@ -1348,7 +1348,7 @@ class doc_Containers extends core_Manager
                 $otherNick = str::limitLen($otherNick, 50);
                 
                 // Броя на авторите, които са добавили нещо
-                $cntAuthorArr = count($authorArr);
+                $cntAuthorArr = countR($authorArr);
                 
                 // Ако има други, които са добавили документи
                 if ($cntAuthorArr > $maxUsersToShow) {
@@ -1725,7 +1725,7 @@ class doc_Containers extends core_Manager
         // Извличане на потенциалните класове на нови документи
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
-        if (is_array($docArr) && count($docArr)) {
+        if (is_array($docArr) && countR($docArr)) {
             $docArrSort = array();
             $i = 0;
             foreach ($docArr as $id => $class) {
@@ -2684,7 +2684,7 @@ class doc_Containers extends core_Manager
         $query->orderBy('#id', 'ASC');
         
         // Ако има документи оттеглени със треда
-        if (count($rejectedInThread)) {
+        if (countR($rejectedInThread)) {
             
             // Възстановяваме само тези контейнери от тях
             $query->in('id', $rejectedInThread);
@@ -2694,7 +2694,7 @@ class doc_Containers extends core_Manager
             $recs = $query->fetchAll();
         }
         
-        if (count($recs)) {
+        if (countR($recs)) {
             foreach ($recs as $rec) {
                 try {
                     $doc = static::getDocument($rec);
@@ -3074,7 +3074,7 @@ class doc_Containers extends core_Manager
             }
             
             // Ако има неактивирани бизнес документи
-            if (count($notArr)) {
+            if (countR($notArr)) {
                 foreach ($notArr as $clsId => $count) {
                     $customUrl = $url = array('doc_Search', 'docClass' => $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor, 'fromDate' => $fromDate);
                     
@@ -3591,7 +3591,7 @@ class doc_Containers extends core_Manager
         $likeQuery->where("#containerId = {$containerId}");
         $likeQuery->show('createdBy');
         $likedArray = arr::extractValuesFromArray($likeQuery->fetchAll(), 'createdBy');
-        if (count($likedArray)) {
+        if (countR($likedArray)) {
             $subscribed = $subscribed + $likedArray;
         }
         
@@ -3630,7 +3630,7 @@ class doc_Containers extends core_Manager
             $sharedUsers = doc_Containers::getSubscribedUsers($containerId, true, true);
         }
         
-        if (!count($sharedUsers)) {
+        if (!countR($sharedUsers)) {
             
             return;
         }

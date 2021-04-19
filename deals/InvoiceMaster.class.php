@@ -552,25 +552,25 @@ abstract class deals_InvoiceMaster extends core_Master
         if (!$Source) {
             return;
         }
-        
-        // Инвалидираме кеша на документа
-        doc_DocumentCache::cacheInvalidation($Source->fetchField('containerId'));
-        
+
         if ($rec->_isClone === true) {
             return;
         }
-        
+
         // Само ако записа е след редакция
         if ($rec->_edited !== true) {
             return;
         }
-        
+
         // И не се начислява аванс
         if ($rec->dpAmount && $rec->dpOperation == 'accrued') {
             return;
         }
         
-        // Ако е ДИ или КИ и има зададена сума не зареждаме нищо
+        // Инвалидираме кеша на документа
+        doc_DocumentCache::cacheInvalidation($Source->fetchField('containerId'));
+
+        // Ако е ДИ или КИ и има зададена сума не се  зарежда нищо
         if ($rec->type != 'invoice' && isset($rec->changeAmount)) {
             
             // Изтриване на детайлите на известието, ако е въведена сума на известието
@@ -588,9 +588,17 @@ abstract class deals_InvoiceMaster extends core_Master
         if ($Detail->fetch("#{$Detail->masterKey} = '{$rec->id}'")) {
             return;
         }
-        
-        if ($Source->haveInterface('deals_InvoiceSourceIntf')) {
-            $detailsToSave = $Source->getDetailsFromSource($mvc);
+
+        if($rec->importProducts){
+            if($rec->importProducts == 'fromSource'){
+                $Source = doc_Containers::getDocument($rec->sourceContainerId);
+            } else {
+                $Source = static::getOrigin($rec);
+            }
+        }
+
+        if ($Source && $Source->haveInterface('deals_InvoiceSourceIntf')) {
+            $detailsToSave = $Source->getDetailsFromSource($mvc, $rec->importProducts);
             if (is_array($detailsToSave)) {
                 foreach ($detailsToSave as $det) {
                     $det->{$Detail->masterKey} = $rec->id;
@@ -659,8 +667,8 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     protected static function on_BeforeRecToVerbal($mvc, &$row, $rec)
     {
-        if($rec->contragentId == crm_Persons::getClassId()){
-            $mvc->setFieldType('uicNo', 'bglocal_EgnType');
+        if($rec->contragentClassId == crm_Persons::getClassId()){
+            $mvc->setFieldType('uicNo', 'bglocal_EgnType(onlyString)');
         } else {
             $mvc->setFieldType('uicNo', "drdata_type_Uic(countryId={$rec->contragentCountryId})");
         }
@@ -673,6 +681,7 @@ abstract class deals_InvoiceMaster extends core_Master
     protected static function prepareInvoiceForm($mvc, &$data)
     {
         $form = &$data->form;
+        $rec = $form->rec;
         $form->setDefault('date', dt::today());
         if (empty($form->rec->id)) {
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
@@ -722,8 +731,14 @@ abstract class deals_InvoiceMaster extends core_Master
             if ($aggregateInfo->get('paymentMethodId') && !($mvc instanceof sales_Proformas)) {
                 $paymentMethodId = $aggregateInfo->get('paymentMethodId');
                 $plan = cond_PaymentMethods::getPaymentPlan($paymentMethodId, $aggregateInfo->get('amount'), $form->rec->date);
-                if (!isset($form->rec->id)) {
-                    $form->setDefault('dueTime', $plan['timeBalancePayment']);
+
+                if($plan['eventBalancePayment'] != 'invEndOfMonth'){
+                    if (!isset($form->rec->id)) {
+                        $form->setDefault('dueTime', $plan['timeBalancePayment']);
+                    }
+                } else {
+                    $timeVerbal = core_Type::getByName('time')->toVerbal($plan['timeBalancePayment']);
+                    $form->setField('dueTime', "placeholder={$timeVerbal} след края на месеца,class=w50");
                 }
                 
                 $paymentType = ($aggregateInfo->get('paymentType')) ? $aggregateInfo->get('paymentType') : cond_PaymentMethods::fetchField($paymentMethodId, 'type');
@@ -768,6 +783,18 @@ abstract class deals_InvoiceMaster extends core_Master
         $noReason2 = acc_Setup::get('VAT_REASON_IN_EU');
         $suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2);
         $form->setSuggestions('vatReason', $suggestions);
+
+        if(empty($rec->id) && $rec->type == 'invoice'){
+            $types = $mvc->autoAddProductStrategies;
+            if(isset($rec->sourceContainerId)){
+                $types += array('fromSource' => "Артикулите от #" . doc_Containers::getDocument($rec->sourceContainerId)->getHandle());
+            }
+
+            $data->form->FNC('importProducts', "enum(" . arr::fromArray($types) . ")", 'caption=Попълване на артикули след създаване->Избор, input,after=dpReason');
+            if(isset($rec->sourceContainerId)){
+                $form->setDefault('importProducts', 'fromSource');
+            }
+        }
     }
     
     
@@ -778,11 +805,11 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             if (isset($rec->dueDate) && $rec->dueDate < $rec->date) {
                 $form->setError('date,dueDate', 'Крайната дата за плащане трябва да е след вальора');
             }
-            
+
             if (!$rec->displayRate) {
                 $rec->displayRate = currency_CurrencyRates::getRate($rec->date, $rec->currencyId, null);
                 if (!$rec->displayRate) {
@@ -881,7 +908,7 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setError('date,dueDate,dueTime', 'Невъзможна стойност на датите');
                 }
             }
-            
+
             if ($rec->paymentType == 'cash' && isset($rec->accountId)) {
                 $form->setWarning('accountId', 'Избрана е банкова сметка при начин на плащане в брой');
             }
@@ -961,10 +988,23 @@ abstract class deals_InvoiceMaster extends core_Master
         
         if ($rec->state == 'active') {
             if (empty($rec->dueDate)) {
-                $dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
-                
-                if ($dueTime) {
-                    $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+
+                if(isset($rec->paymentMethodId)){
+                    if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                        $aggregateInfo = $firstDocument->getAggregateDealInfo();
+                        $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
+                        if($plan['eventBalancePayment'] == 'invEndOfMonth' && !empty($plan['deadlineForBalancePayment'])){
+                            $rec->dueDate = $plan['deadlineForBalancePayment'];
+                        }
+                    }
+                }
+
+                if (empty($rec->dueDate)) {
+                    $dueTime = ($rec->dueTime) ? $rec->dueTime : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+
+                    if ($dueTime) {
+                        $rec->dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+                    }
                 }
             }
         }
@@ -1134,15 +1174,33 @@ abstract class deals_InvoiceMaster extends core_Master
             }
             
             if (empty($rec->dueDate)) {
-                $defTime = ($mvc instanceof purchase_Invoices) ? purchase_Setup::get('INVOICE_DEFAULT_VALID_FOR') : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
-                $dueTime = (isset($rec->dueTime)) ? $rec->dueTime : $defTime;
-                
-                if ($dueTime) {
-                    $dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+                if(!empty($rec->dueTime)){
+                    $dueDate = dt::addSecs($rec->dueTime, $rec->date);
                     $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
-                    if (!$rec->dueTime) {
-                        $time = cls::get('type_Time')->toVerbal($defTime);
-                        $row->dueDate = ht::createHint($row->dueDate, "Според срока за плащане по подразбиране|*: {$time}");
+                } else {
+                    if(isset($rec->paymentMethodId)){
+                        $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+                        $aggregateInfo = $firstDocument->getAggregateDealInfo();
+
+                        $plan = cond_PaymentMethods::getPaymentPlan($rec->paymentMethodId, $aggregateInfo->get('amount'), $rec->date);
+                        if($plan['eventBalancePayment'] == 'invEndOfMonth'){
+                            $rec->dueDate = $plan['deadlineForBalancePayment'];
+                            $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($rec->dueDate);
+                            $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според избрания метод на плащане. Ще бъде записан при контиране");
+                        }
+                    }
+
+                    if (empty($rec->dueDate)) {
+                        $defTime = ($mvc instanceof purchase_Invoices) ? purchase_Setup::get('INVOICE_DEFAULT_VALID_FOR') : sales_Setup::get('INVOICE_DEFAULT_VALID_FOR');
+                        $dueTime = (isset($rec->dueTime)) ? $rec->dueTime : $defTime;
+                        if ($dueTime) {
+                            $dueDate = dt::verbal2mysql(dt::addSecs($dueTime, $rec->date), false);
+                            $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
+                            if (!$rec->dueTime) {
+                                $time = cls::get('type_Time')->toVerbal($defTime);
+                                $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според срока за плащане по подразбиране|*: {$time}. Ще бъде записан при контиране");
+                            }
+                        }
                     }
                 }
             }
@@ -1469,14 +1527,15 @@ abstract class deals_InvoiceMaster extends core_Master
         
         return static::getOrigin($rec);
     }
-    
-    
+
+
     /**
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
      * @param mixed               $id     - ид или запис на документа
      * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @param string $strategy - стратегия за намиране
      *
      * @return array $details - масив с артикули готови за запис
      *               o productId      - ид на артикул
@@ -1486,7 +1545,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
      */
-    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
         $details = array();
         $rec = static::fetchRec($id);

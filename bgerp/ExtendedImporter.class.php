@@ -113,6 +113,6 @@ class bgerp_ExtendedImporter extends core_Manager
      */
     public function isApplicable($className)
     {
-        return true;
+        return ($className != 'price_ListRules');
     }
 }

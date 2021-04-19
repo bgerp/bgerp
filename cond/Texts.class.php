@@ -24,7 +24,7 @@ class cond_Texts extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Фрагменти';
+    public $title = 'Пасажи';
     
     
     /**
@@ -48,13 +48,13 @@ class cond_Texts extends core_Manager
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,admin';
+    public $canEdit = 'powerUser';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,admin';
+    public $canAdd = 'powerUser';
     
     
     /**
@@ -66,13 +66,13 @@ class cond_Texts extends core_Manager
     /**
      * Кой може да го изтрие?
      */
-    public $canDelete = 'ceo,admin,trans';
+    public $canDelete = 'powerUser';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'body, created=Автор';
+    public $listFields = 'body, createdOn,createdOn,createdBy, access, group';
     
     
     /**
@@ -81,10 +81,10 @@ class cond_Texts extends core_Manager
     public function description()
     {
         $this->FLD('title', 'varchar(256)', 'caption=Заглавие, oldFieldName = name');
-        $this->FLD('body', 'richtext(rows=10,bucket=Comments, passage=Общи)', 'caption=Описание, mandatory');
+        $this->FLD('body', 'richtext(rows=10,bucket=Comments, passage)', 'caption=Описание, mandatory');
         $this->FLD('access', 'enum(private=Персонален,public=Публичен)', 'caption=Достъп, mandatory');
-        $this->FLD('lang', 'enum(bg,en)', 'caption=Език на пасажа');
-        $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група');
+        $this->FLD('lang', 'enum(bg,en)', 'caption=Език');
+        $this->FLD('group', 'keylist(mvc=cond_Groups,select=title)', 'caption=Група, silent');
         $this->FNC('Protected', 'varchar', 'input=hidden, silent');
     }
     
@@ -97,7 +97,9 @@ class cond_Texts extends core_Manager
         Request::setProtected('groupName, callback');
         
         Mode::set('wrapper', 'page_Dialog');
-        
+
+        $this->title = 'Добавяне на пасажи';
+
         // Вземаме callBack'а
         $callback = Request::get('callback', 'identifier');
         
@@ -135,6 +137,16 @@ class cond_Texts extends core_Manager
         if ($action == 'edit') {
             if (Mode::get('dialogOpened')) {
                 $res = 'no_one';
+            }
+        }
+
+        if ($rec) {
+            if ($action == 'edit' || $action == 'delete') {
+                if ($rec->createdBy != $userId) {
+                    if (!haveRole('ceo, admin')) {
+                        $res = 'no_one';
+                    }
+                }
             }
         }
     }
@@ -192,7 +204,18 @@ class cond_Texts extends core_Manager
             $rec->title = str::limitLen($title, 100);
         }
     }
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if (!haveRole('admin, ceo')) {
+            unset($data->form->fields['access']->type->options['public']);
+        }
+    }
+
     
     /**
      *
@@ -205,41 +228,67 @@ class cond_Texts extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $form = $data->listFilter;
-        $form->FLD('author', 'users(roles=powerUser, rolesForTeams=manager|ceo|admin, rolesForAll=ceo|admin)', 'caption=Автор, autoFilter');
-        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език на пасажа, placeholder=Всичко');
-        
+        $form->FLD('author', 'users(roles=powerUser, rolesForTeams=powerUser, rolesForAll=powerUser)', 'caption=Автор, autoFilter');
+        $form->FLD('langWithAllSelect', 'enum(,bg,en)', 'caption=Език, placeholder=Всички');
+
         Request::setProtected('groupName, callback');
         $group = Request::get('groupName');
-        
-        if (isset($group)) {
-            $groupId = cond_Groups::fetchField(array("#title = '[#1#]'", $group), 'id');
-            $default = type_Keylist::fromArray(array($groupId => $groupId));
-            $form->setDefault('group', $default);
-        }
 
         $cu = core_Users::getCurrent();
-        if ($lastGroup = core_Permanent::get("condGroupFilter{$cu}")) {
-            $form->setDefault('group', $lastGroup);
+        if (!$form->cmd) {
+            if ($lastFilter = core_Permanent::get("condLastFilter{$cu}")) {
+                if ($lastFilter['group']) {
+                    $form->setDefault('group', $lastFilter['group']);
+                }
+
+                if ($lastFilter['author']) {
+                    $form->setDefault('author', $lastFilter['author']);
+                }
+
+                if ($lastFilter['langWithAllSelect']) {
+                    $form->setDefault('langWithAllSelect', $lastFilter['langWithAllSelect']);
+                }
+            }
+
+            if (isset($group)) {
+                $groupId = cond_Groups::fetchField(array("#title = '[#1#]'", $group), 'id');
+                $default = type_Keylist::fromArray(array($groupId => $groupId));
+                $form->setDefault('group', $default);
+            }
         }
+
+        $form->setDefault('author', $cu);
 
         $form->showFields = 'search,author,langWithAllSelect, group';
         $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $form->view = 'vertical';
         $form->class = 'simpleForm';
         
-        $form->input();
-        
+        $form->input(null, 'silent');
+
         $rec = $form->rec;
+
         if ($rec->author) {
-            $data->query->where("'{$rec->author}' LIKE CONCAT ('%|', #createdBy , '|%')");
+            $authArr = type_Keylist::toArray($rec->author);
+            if (mb_stripos($rec->author, '|-1|') === false) {
+                $data->query->in('createdBy', type_Keylist::toArray($rec->author));
+            }
+
+            if (!haveRole('admin, ceo', $cu)) {
+                $data->query->where("#access = 'public'");
+                $data->query->orWhere(array("#createdBy = '[#1#]'", $cu));
+            }
         }
         if ($rec->langWithAllSelect) {
             $data->query->where(array("#lang = '[#1#]'", $rec->langWithAllSelect));
         }
+
         if ($rec->group) {
             $data->query->likeKeylist('group', $rec->group);
-            core_Permanent::set("condGroupFilter{$cu}", $rec->group, 24 * 60 * 100);
         }
+
+        core_Permanent::set("condLastFilter{$cu}", array('group' => $rec->group, 'author' => $rec->author, 'langWithAllSelect' => $rec->langWithAllSelect), 24 * 60 * 100);
+
         $data->query->orderBy('#createdOn', 'DESC');
     }
     
@@ -275,11 +324,8 @@ class cond_Texts extends core_Manager
             $string = substr_replace($string, '[hide]', 0, 0);
             $string = substr_replace($string, '[/hide]', strlen($string), 0);
             $string = $mvc->fields['body']->type->toVerbal($string);
-            $createdOn = $mvc->getVerbal($rec, 'createdOn');
-            $createdBy = $mvc->getVerbal($rec, 'createdBy');
-            
+
             $row->body = "<span class='passageHolder'>" . $title . $string . '</span>';
-            $row->created = $createdOn . '<br>' . $createdBy;
         }
     }
     

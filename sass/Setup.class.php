@@ -53,7 +53,7 @@ class sass_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('SASS файлове към CSS', 'sass_Plugin', 'core_Sbf', 'private');
         
         // Инсталираме компилатора
-        $html .= core_Composer::install('scssphp/scssphp', '1.0.2');
+        $html .= core_Composer::install('scssphp/scssphp', '1.0.4');
 
         return $html;
     }

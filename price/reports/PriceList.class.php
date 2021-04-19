@@ -65,7 +65,7 @@ class price_reports_PriceList extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('date', 'date(smartTime)', 'caption=Към дата,after=title,placeholder=Последна актуализация');
-        $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Цени->Политика, silent, mandatory,after=date');
+        $fieldset->FLD('policyId', 'key(mvc=price_Lists, select=title)', 'caption=Цени->Политика, silent, mandatory,after=date,removeAndRefreshForm=listingId');
         $fieldset->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Цени->Валута,input,after=policyId,single=none');
         $fieldset->FLD('vat', 'enum(yes=с включено ДДС,no=без ДДС)', 'caption=Цени->ДДС,after=currencyId,single=none');
         $fieldset->FLD('period', 'time(suggestions=1 ден|1 седмица|1 месец|6 месеца|1 година)', 'caption=Цени->Изменени цени,after=vat,single=none');
@@ -73,7 +73,8 @@ class price_reports_PriceList extends frame2_driver_TableData
         $fieldset->FLD('packType', 'enum(yes=Да,no=Не,base=Основна)', 'caption=Филтър->Опаковки,columns=3,after=round,single=none,silent,removeAndRefreshForm=packagings');
         $fieldset->FLD('packagings', 'keylist(mvc=cat_UoM,select=name)', 'caption=Филтър->Избор,columns=3,placeholder=Всички опаковки,after=packType,single=none');
         $fieldset->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Групи,columns=2,placeholder=Всички,after=packagings,single=none');
-        $fieldset->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Филтър->Подгрупи,columns=2,after=productGroups,single=none');
+        $fieldset->FLD('listingId', 'keylist(mvc=cat_Listings,select=id)', 'caption=Филтър->Листвани артикули,columns=2,after=productGroups,input=hidden');
+        $fieldset->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Филтър->Подгрупи,columns=2,after=listingId,single=none');
         $fieldset->FLD('notInGroups', 'keylist(mvc=cat_Groups,select=name,makeLinks,allowEmpty)', 'caption=Филтър->Без групи,after=expandGroups,single=none');
         $fieldset->FLD('displayDetailed', 'enum(no=Съкратен изглед,yes=Разширен изглед)', 'caption=Допълнително->Артикули,after=expandGroups,single=none');
         $fieldset->FLD('showMeasureId', 'enum(yes=Показване,no=Скриване)', 'caption=Допълнително->Основна мярка,after=displayDetailed');
@@ -108,6 +109,7 @@ class price_reports_PriceList extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
+        $rec = &$form->rec;
         $form->setField('round', 'placeholder=' . self::DEFAULT_ROUND);
         $form->setSuggestions('round', array('' => '', 2 => 2, 4 => 4));
         $form->setDefault('lang', 'auto');
@@ -145,6 +147,19 @@ class price_reports_PriceList extends frame2_driver_TableData
         if ($form->rec->packType != 'yes') {
             $form->setField('packagings', 'input=none');
         }
+
+        // Ако политиката е частна позволява се потребителя да избере само листваните артикули за клиента
+        if(isset($rec->policyId)){
+            $listRec = price_Lists::fetch($rec->policyId);
+            if($listRec->isPublic = 'no'){
+                if($foundRec = price_ListToCustomers::fetch("#listId = {$rec->policyId}")){
+                    if($listingId = cond_Parameters::getParameter($foundRec->cClass, $foundRec->cId, 'salesList')){
+                        $form->setField('listingId', 'input');
+                        $form->setOptions('listingId', array('' => '') + array("{$listingId}" => cat_Listings::getTitleById($listingId, false)));
+                    }
+                }
+            }
+        }
     }
     
     
@@ -162,11 +177,17 @@ class price_reports_PriceList extends frame2_driver_TableData
         $date = ($date == dt::today()) ? dt::now() : "{$date} 23:59:59";
         $dateBefore = (!empty($rec->period)) ? (dt::addSecs(-1 * $rec->period, $date, false) . ' 23:59:59') : null;
         $round = !empty($rec->round) ? $rec->round : self::DEFAULT_ROUND;
-        
+
         $sellableProducts = cat_Products::getProducts(null, null, null, 'canSell', null, null, false, $rec->productGroups, $rec->notInGroups, 'yes');
         $sellableProducts = array_keys($sellableProducts);
         unset($sellableProducts[0]);
-        
+
+        // Ако има избран списък с листвани артикули оставят се само тези от тях, които отговарят на филтъра
+        if(isset($rec->listingId)){
+            $listingProductIds = arr::extractValuesFromArray(cat_Listings::getAll($rec->listingId), 'productId');
+            $sellableProducts = array_values(array_intersect($sellableProducts, $listingProductIds));
+        }
+
         // Вдигане на времето за изпълнение, според броя записи
         $timeLimit = countR($sellableProducts) * 0.7;
         core_App::setTimeLimit($timeLimit, false, 600);
@@ -482,6 +503,10 @@ class price_reports_PriceList extends frame2_driver_TableData
      */
     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
+        if(isset($rec->listingId)) {
+            $row->listingId = cat_Listings::getHyperlink($rec->listingId, true);
+        }
+
         $row->policyId = price_Lists::getHyperlink($rec->policyId, true);
         $row->productGroups = (!empty($rec->productGroups)) ? implode(', ', cat_Groups::getLinks($rec->productGroups)) : tr('Всички');
         if(!empty($rec->notInGroups)){

@@ -202,7 +202,7 @@ class type_Classes extends type_Keylist
             if(strpos($title, '||')) {
                     $title = tr($title);
             } 
-            if(is_array($exOptions) && count($exOptions) && !isset($exOptions[$id])) continue;
+            if(is_array($exOptions) && countR($exOptions) && !isset($exOptions[$id])) continue;
             if($parent && !cls::isSubclass($id, $parent)) continue;
             
             if (!$flagRaw) {

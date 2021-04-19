@@ -98,7 +98,7 @@ class findeals_Setup extends core_ProtoSetup
             }
         }
         
-        if(count($toSave1)){
+        if(countR($toSave1)){
             cls::get('findeals_CreditDocuments')->saveArray($toSave1, 'id,dealId');
         }
         
@@ -111,7 +111,7 @@ class findeals_Setup extends core_ProtoSetup
             }
         }
         
-        if(count($toSave2)){
+        if(countR($toSave2)){
             cls::get('findeals_DebitDocuments')->saveArray($toSave2, 'id,dealId');
         }
     }

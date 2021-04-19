@@ -263,7 +263,7 @@ class type_Richtext extends type_Blob
         
         $html = core_ET::escape($html);
         
-        if (count($this->_htmlBoard)) {
+        if (countR($this->_htmlBoard)) {
             foreach ($this->_htmlBoard as $place => $cnt) {
                 $replaceFrom[] = core_ET::escape("[#${place}#]");
                 $replaceTo[] = "[#${place}#]";
@@ -401,7 +401,7 @@ class type_Richtext extends type_Blob
             $this->_htmlBoard[$place] = new ET($text);
         }
         
-        if (count($this->_htmlBoard)) {
+        if (countR($this->_htmlBoard)) {
             $html->placeArray($this->_htmlBoard);
             $html->placeArray($this->_htmlBoard);
         }
@@ -460,7 +460,7 @@ class type_Richtext extends type_Blob
         $textArr = explode('<br>', $text);
         
         // Броя на редовете
-        $cnt = count((array) $textArr);
+        $cnt = countR((array) $textArr);
         
         // Обхождаме всеки ред
         foreach ((array) $textArr as $n => $line) {
@@ -502,7 +502,7 @@ class type_Richtext extends type_Blob
         $textMode = Mode::get('text');
         $state = array();
         
-        $linesCnt = count($lines);
+        $linesCnt = countR($lines);
         
         for ($i = 0; $i < $linesCnt; $i++) {
             $l = $lines[$i];
@@ -542,12 +542,12 @@ class type_Richtext extends type_Blob
                 }
             }
             
-            while (($oldLevel = count($state)) < $level) {
+            while (($oldLevel = countR($state)) < $level) {
                 $state[$oldLevel] = $type;
                 $res .= "<{$type}>";
             }
             
-            while (($oldLevel = count($state)) > $level) {
+            while (($oldLevel = countR($state)) > $level) {
                 $oldType = $state[$oldLevel - 1];
                 unset($state[$oldLevel - 1]);
                 $res .= "</{$oldType}>" . '<br>';
@@ -1578,7 +1578,7 @@ class type_Richtext extends type_Blob
         $params = array();
         $anchor = '';
         
-        $lastPart = $restArr[count($restArr) - 1];
+        $lastPart = $restArr[countR($restArr) - 1];
         
         if ($lastPart && (strpos($lastPart, '#') !== false)) {
             $explodeArr = explode('#', $lastPart);
@@ -1600,7 +1600,7 @@ class type_Richtext extends type_Blob
         }
         
         if ($haveLastPart || $anchor) {
-            unset($restArr[count($restArr) - 1]);
+            unset($restArr[countR($restArr) - 1]);
         }
         
         setIfNot($params['Ctr'], $restArr[0]);
@@ -1613,7 +1613,7 @@ class type_Richtext extends type_Blob
         
         setIfNot($params['Act'], $restArr[1], 'default');
         
-        if (count($restArr) % 2) {
+        if (countR($restArr) % 2) {
             setIfNot($params['id'], $restArr[2]);
             $pId = 3;
         } else {

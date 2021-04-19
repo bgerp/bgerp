@@ -20,7 +20,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, cat';
+    public $canSelectDriver = 'ceo, cat, store';
 
 
     /**
@@ -306,7 +306,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             arr::sortObjects($recs, $rec->orderBy, $order);
         }
 
-        $rec->totalProducts = (count($recs));
+        $rec->totalProducts = (countR($recs));
 
         return $recs;
     }
@@ -324,7 +324,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
 
-        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
+        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered nowrap');
         $fld->FLD('productName', 'varchar', 'caption=Артикул');
         $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
 

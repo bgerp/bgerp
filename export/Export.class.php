@@ -134,7 +134,7 @@ class export_Export extends core_Mvc
         core_App::setTimeLimit(300);
 
         $form = $this->getForm();
-        $form->title = 'Експортиране на|*' . $inst->getFormTitleLink($docId);
+        $form->title = 'Експортиране на|* ' . $inst->getFormTitleLink($docId);
         
         $retUrl = getRetUrl();
         

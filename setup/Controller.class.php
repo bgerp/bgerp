@@ -342,11 +342,11 @@ class setup_Controller
             } else {
                 break;
             }
-        } while (!count((array) $res));
+        } while (!countR((array) $res));
         
         
         // Рендиране
-        if (count((array) $res)) {
+        if (countR((array) $res)) {
             $tpl = $this->getFormTpl($current);
             $res = (array) $res;
             if (!isset($res['back'])) {

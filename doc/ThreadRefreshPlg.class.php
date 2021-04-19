@@ -421,7 +421,7 @@ class doc_ThreadRefreshPlg extends core_Plugin
             $lastSend = Mode::get($threadLastSendName);
             
             // Намира всички документи, които са променени
-            if ($lastSend && count($data->recs)) {
+            if ($lastSend && countR($data->recs)) {
                 foreach ($data->recs as $id => $r) {
                     
                     // Ако са променени след последно изтегленото време

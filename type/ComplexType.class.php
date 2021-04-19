@@ -231,7 +231,7 @@ class type_ComplexType extends type_Varchar
         }
         
         // Трябва да са точно '2'
-        expect(count($parts) == 2);
+        expect(countR($parts) == 2);
         
         // Връщане на масива
         return $parts;

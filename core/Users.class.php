@@ -639,7 +639,7 @@ class core_Users extends core_Manager
         } else {
             $teamsList = core_Roles::getRolesByType('team');
             $teamsArr = type_Keylist::toArray($teamsList);
-            if (count($teamsArr) == 1) {
+            if (countR($teamsArr) == 1) {
                 $form->setDefault('rolesInput', $teamsArr);
             }
         }
@@ -691,7 +691,7 @@ class core_Users extends core_Manager
                         array('external' => (object) array('title' => 'Външен достъп', 'group' => true)),
                         $roleTypes['external']
                 );
-                if (count($roleTypes['external'])) {
+                if (countR($roleTypes['external'])) {
                     $form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
                     $form->setSuggestions('roleOthers', $otherRoles);
                 }
@@ -717,7 +717,7 @@ class core_Users extends core_Manager
                             $teams[$i] = $i;
                         }
                     }
-                    if (count($teams)) {
+                    if (countR($teams)) {
                         $form->setDefault('roleTeams', keylist::fromArray($teams));
                     }
                 }
@@ -732,7 +732,7 @@ class core_Users extends core_Manager
                         }
                     }
                 }
-                if (count($other)) {
+                if (countR($other)) {
                     $form->setDefault('roleOthers', keylist::fromArray($other));
                 }
             }
@@ -2094,7 +2094,7 @@ class core_Users extends core_Manager
             $requiredRoles = arr::make($roles);
         }
         
-        if (count($requiredRoles)) {
+        if (countR($requiredRoles)) {
             foreach ($requiredRoles as $role) {
                 
                 // Всеки потребител има роля 'every_one'
@@ -2565,7 +2565,7 @@ class core_Users extends core_Manager
         
         $html = $this->renderWrapping($form->renderHtml());
         
-        if ($cnt = count($res)) {
+        if ($cnt = countR($res)) {
             $html .= "<h2 style='margin-left:15px'>Мигрирани са ${cnt} папки</h2>";
             $html .= '<ul><li>' . implode('</li><li>', $res) . '</li></ul>';
         } elseif ($form->isSubmitted()) {
@@ -2624,7 +2624,7 @@ class core_Users extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }

@@ -116,17 +116,19 @@ class label_CounterItems extends core_Detail
     {
         // Вземаме най - голямата стойност на номера за съответния брояч
         $query = static::getQuery();
-        $query->XPR('maxVal', 'int', 'MAX(#number)');
+
+        $query->orderBy('number', 'DESC');
+
         $query->where(array("#counterId = '[#1#]'", $counterId));
         
-        $query->show('maxVal');
+        $query->show('number');
         
         $query->limit(1);
-        
+
         $rec = $query->fetch();
-        
+
         // Връщаме максималната стойност
-        return $rec->maxVal;
+        return $rec->number;
     }
     
     

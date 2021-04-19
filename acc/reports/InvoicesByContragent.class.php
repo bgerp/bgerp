@@ -916,7 +916,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             if ($rec->unpaid == 'all') {
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-                if (count($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
+                if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
                     $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност');
                 }
                 $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', 'caption=Стойност BGN');
@@ -926,7 +926,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             if ($rec->unpaid == 'unpaid') {
                 $fld->FLD('currencyId', 'varchar', 'caption=Валута,tdClass=centered');
-                if (count($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
+                if (countR($rec->data->recs) != arr::sumValuesArray($rec->data->recs, 'rate')) {
                     $fld->FLD('invoiceValue', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума->валута,smartCenter');
                 }
                 $fld->FLD('invoiceValueBaseCurr', 'double(smartRound,decimals=2)', 'caption=Стойност-> Сума-> лв.,smartCenter');

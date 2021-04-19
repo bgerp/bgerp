@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -137,11 +137,11 @@ class price_ListToCustomers extends core_Manager
         }
         
         $rec->listId = self::getListForCustomer($rec->cClass, $rec->cId);
-        
         $data->form->setOptions('listId', price_Lists::getAccessibleOptions($rec->cClass, $rec->cId));
         
         if (price_Lists::haveRightFor('add', (object) array('cClass' => $rec->cClass, 'cId' => $rec->cId))) {
-            $data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass, 'cId' => $rec->cId, 'ret_url' => true), null, 'order=10.00015,ef_icon=img/16/page_white_star.png');
+            $folderId = cls::get($rec->cClass)->forceCoverAndFolder($rec->cId);
+            $data->form->toolbar->addBtn('Нови правила', array('price_Lists', 'add', 'cClass' => $rec->cClass, 'cId' => $rec->cId, 'folderId' => $folderId, 'ret_url' => true), null, 'order=10.00015,ef_icon=img/16/page_white_star.png');
         }
     }
     

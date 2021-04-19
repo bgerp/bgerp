@@ -136,7 +136,7 @@ class core_Composer extends core_Mvc
             
             putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
 
-            $cmd = "{$phpCmd} {$path} {$dir} {$command}";
+            $cmd = "{$phpCmd} {$path} {$dir} {$command} 2>&1";
  
             exec($cmd, $lines, $result);
            

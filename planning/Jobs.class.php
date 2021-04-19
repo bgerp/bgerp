@@ -249,7 +249,7 @@ class planning_Jobs extends core_Master
         $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
-        $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage=Общи)', 'caption=Забележки');
+        $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Забележки');
 
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');

@@ -183,7 +183,7 @@ class bglocal_BulgarianEGN
      */
     public static function isValid($egn_string)
     {
-        return self::getParityDigit($egn_string) == $egn_string{9};
+        return self::getParityDigit($egn_string) == $egn_string[9];
     }
     
     

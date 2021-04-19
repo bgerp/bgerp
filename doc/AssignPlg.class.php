@@ -459,6 +459,7 @@ class doc_AssignPlg extends core_Plugin
             $mQuery->show('assign');
             
             if ($mQuery->count() >= $minLimit) {
+                $aArr = array();
                 while ($mRec = $mQuery->fetch()) {
                     if (!$mRec->assign) {
                         break;
@@ -472,7 +473,7 @@ class doc_AssignPlg extends core_Plugin
                     $aArr[$aStr]++;
                 }
                 
-                if (count($aArr) == 1) {
+                if (countR($aArr) == 1) {
                     $assignUsers = key($aArr);
                 }
             }

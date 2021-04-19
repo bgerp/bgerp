@@ -35,10 +35,9 @@ class sass_Converter
             $dTimeName = 'sassConvert: ' . $baseName;
             core_Debug::startTimer($dTimeName);
             
-            // Инстанция на класа
-            $parser = new Compiler();
-            
             try {
+                // Инстанция на класа
+                $parser = new Compiler();
                 // Парсираме и връщаме резултата
                 $res = $parser->compile(file_get_contents($file));
                 $isParsed = true;

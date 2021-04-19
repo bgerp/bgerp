@@ -1620,6 +1620,12 @@ a.tUnsighted {
     font-size: 0.8em;
     white-space: normal !important; }
 
+.frame2Table tr.group-by-field-row {
+  background: #dddddd;
+  font-weight: bold; }
+  .frame2Table tr.group-by-field-row:hover {
+    background: #eeeeee !important; }
+
 .CVTable {
   font-family: Arial, Helvetica;
   width: 100%; }
@@ -1791,7 +1797,7 @@ a.tUnsighted {
   white-space: nowrap; }
 
 .dark-gray {
-  color: #555555; }
+  color: #444444; }
 
 #packWrapper > .floatedElement {
   float: left; }
@@ -1831,6 +1837,9 @@ a.tUnsighted {
     vertical-align: top; }
   .productCell .halfTable.offsetLeft {
     margin-left: 20px; }
+
+.productName {
+  white-space: normal !important; }
 
 .narrow .halfTable {
   margin-top: 10px; }
@@ -2198,6 +2207,15 @@ pre.document {
 
 .boldText {
   font-weight: bold; }
+
+.italicText {
+  font-style: italic; }
+
+.underlineText {
+  text-decoration: underline; }
+
+.normalText {
+  font-weight: normal !important; }
 
 .cell {
   border: 1px solid #999999;

@@ -139,7 +139,7 @@ class refactor_Formater extends core_Manager
      */
     public function showProcess($files)
     {
-        set_time_limit(count($files) + 30);
+        set_time_limit(countR($files) + 30);
         
         // Променливи за метрика на кода
         $linesCnt = $filesCnt = $update = $skip = 0;
@@ -169,7 +169,7 @@ class refactor_Formater extends core_Manager
             // Зареждаме файла
             $fileStr = file_get_contents($file);
             $lines = explode("\n", $fileStr);
-            $linesCnt += count($lines);
+            $linesCnt += countR($lines);
             $filesCnt++;
             
             // Парсиране на файла
@@ -208,7 +208,7 @@ class refactor_Formater extends core_Manager
         foreach ($logs as $file => $res) {
             $fileEdit = core_debug::getEditLink($file);
             $html .= "\n<li>Файл: <strong>{$fileEdit}</strong>";
-            if (count($res)) {
+            if (countR($res)) {
                 $html .= '</li>';
                 $html .= "\n<ul><li>" . implode("</li>\n<li>", $res) . "</li>\n</ul>";
             } else {
@@ -218,7 +218,7 @@ class refactor_Formater extends core_Manager
         
         // Отделя и показва тези фрази, които не са преведени
         //$html .= self::showUntranslated($phrases);
-        if (count($phrases)) {
+        if (countR($phrases)) {
             $html .= '<li><strong>Фрази, които не са преведени:</strong></li><ul>';
             core_Lg::push('en');
             foreach ($phrases as $p => $cnt) {
@@ -412,7 +412,7 @@ class refactor_Formater extends core_Manager
             expect(is_array($tokens), $tokens);
             
             $class = '';
-            for ($i = 0; $i <= count($tokens); $i++) {
+            for ($i = 0; $i <= countR($tokens); $i++) {
                 // 361 == T_CLASS && 382 == T_WHITESPACE
                 if ($tokens[$i][0] == 361 && $tokens[$i + 1][0] == 382) {
                     $class = $tokens[$i + 2][1];
