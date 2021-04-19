@@ -446,7 +446,7 @@ class sales_Sales extends deals_DealMaster
             if(isset($rec->paymentMethodId)){
                 $paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
                 if($paymentType == 'cash'){
-                    $caseId = cond_plg_DefaultValues::getDefValue($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc');
+                    $caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc');
                     $form->setDefault('caseId', $caseId);
                 }
             }
