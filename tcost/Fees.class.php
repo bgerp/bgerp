@@ -218,7 +218,7 @@ class tcost_Fees extends core_Detail
             $finalPrice = $arrayOfWeightPrice[$minWeight];
         } elseif ($totalWeight > $maxWeight) {
             $finalPrice = $arrayOfWeightPrice[$maxWeight] * ($totalWeight / $maxWeight);
-        } elseif (isset($arrayOfWeightPrice[$totalWeight])) {
+        } elseif (isset($arrayOfWeightPrice[$totalWeight]) && (round($totalWeight) == $totalWeight)) {
             $finalPrice = $arrayOfWeightPrice[$totalWeight];
         } else {
             $x = $totalWeight;
