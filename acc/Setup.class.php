@@ -184,6 +184,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
+        'migrate::deleteUnusedFeatureTitles',
     );
     
     
@@ -526,5 +527,35 @@ class acc_Setup extends core_ProtoSetup
         $options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         
         return $options;
+    }
+
+
+    /**
+     * Изтрива неизползваните заглавия на свойства на пера
+     */
+    public static function deleteUnusedFeatureTitles()
+    {
+        $fQuery = acc_Features::getQuery();
+        $fQuery->show('featureTitleId');
+        $allFeatureTitle = arr::extractValuesFromArray($fQuery->fetchAll(), 'featureTitleId');
+        $count = countR($allFeatureTitle);
+
+        if(!$count) return;
+        core_App::setTimeLimit($count * 0.6, false, 300);
+
+        $deleteTitles = array();
+        $tQuery = acc_FeatureTitles::getQuery();
+        $tQuery->show('id');
+        while($tRec = $tQuery->fetch()){
+            if(!array_key_exists($tRec->id, $allFeatureTitle)){
+                $deleteTitles[$tRec->id] = $tRec->id;
+            }
+        }
+
+        if(countR($deleteTitles)){
+            foreach ($deleteTitles as $id){
+                acc_FeatureTitles::delete($id);
+            }
+        }
     }
 }
