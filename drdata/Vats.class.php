@@ -655,7 +655,10 @@ class drdata_Vats extends core_Manager
                                     $address = strip_tags(str_replace('<br/>', ' ', $addressHtml));
                                     
                                     $shortAddress = $address;
-                                    $shortAddress = str_replace('бул./ул.', 'ул.', $shortAddress);
+                                    $shortAddress = str_replace('бул./ул. ул.', 'ул. ', $shortAddress);
+                                    $shortAddress = str_replace('бул./ул.', 'ул. ', $shortAddress);
+                                    $shortAddress = str::removeWhiteSpace($shortAddress, ' ');
+
                                     $cutPos1 = mb_strpos($shortAddress, 'Населено място');
                                     if ($cutPos1 !== false) {
                                         $shortAddress = mb_substr($shortAddress, $cutPos1);
