@@ -111,7 +111,7 @@ class cond_plg_DefaultValues extends core_Plugin
                 
                 // За всяко поле със стратегия, му се намира стойността
                 foreach ($mvc::$defaultStrategies as $name => $strat) {
-                    $value = self::getDefValue($mvc, $rec, $name, $strat);
+                    $value = self::getDefValueByStrategy($mvc, $rec, $name, $strat);
                     if ($form->cmd != 'refresh') {
                         $form->setDefault($name, $value);
                     }
@@ -140,7 +140,7 @@ class cond_plg_DefaultValues extends core_Plugin
         }
         
         $rec = (object)array('folderId' => $folderId);
-        $value = self::getDefValue($mvc, $rec, $field, $strategy);
+        $value = self::getDefValueByStrategy($mvc, $rec, $field, $strategy);
       
         return $value;
     }
@@ -149,7 +149,7 @@ class cond_plg_DefaultValues extends core_Plugin
     /**
      *  Намира стойност по подразбиране на дадено поле
      */
-    private static function getDefValue(core_Mvc $mvc, $rec, $name, $strat)
+    public static function getDefValueByStrategy(core_Mvc $mvc, $rec, $name, $strat)
     {
         $strat = keylist::toArray($strat);
         if (countR($strat)) {

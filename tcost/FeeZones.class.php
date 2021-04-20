@@ -329,7 +329,10 @@ class tcost_FeeZones extends core_Master
         $form->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
         $form->FLD('singleWeight', 'double(Min=0)', 'caption=Единично тегло,mandatory');
         $form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.,mandatory');
-        
+
+        $countryId = crm_Companies::fetchOurCompany()->country;
+        $form->setDefault('countryId', $countryId);
+
         // Въвеждаме формата от Request (тази важна стъпка я бяхме пропуснали)
         $form->input();
         $form->setDefault('singleWeight', 1);

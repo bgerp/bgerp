@@ -330,6 +330,7 @@ class acc_JournalDetails extends core_Detail
     {
         // В кой баланс е влязъл записа
         $valior = $mvc->Master->fetchField($rec->journalId, 'valior');
+        $valior = (empty($valior)) ? '0000-00-00' : $valior;
         $balanceValior = acc_Balances::fetch("#fromDate <= '{$valior}' AND '{$valior}' <= #toDate");
         
         // Линкове към сметките в баланса
