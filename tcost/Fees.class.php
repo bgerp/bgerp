@@ -197,7 +197,8 @@ class tcost_Fees extends core_Detail
         while ($rec = $query->fetch()) {
             // Слагаме получените цени за по-късно ползване в асоциативния масив
             $price = self::getTotalPrice($rec);
-            $arrayOfWeightPrice["{$rec->weight}"] = $price;
+            $weightUp = $rec->weight * 1000;
+            $arrayOfWeightPrice["{$weightUp}"] = $price;
         }
         
         // дотук имаме масив Тегло -> Сума
@@ -213,7 +214,8 @@ class tcost_Fees extends core_Detail
         $minWeight = min($indexedArray);
         $maxWeight = max($indexedArray);
         $totalWeight = round($totalWeight, 3);
-        
+        $totalWeight = $totalWeight * 1000;
+
         if ($totalWeight < $minWeight) {
             $finalPrice = $arrayOfWeightPrice["{$minWeight}"];
         } elseif ($totalWeight > $maxWeight) {
@@ -222,6 +224,8 @@ class tcost_Fees extends core_Detail
             $finalPrice = $arrayOfWeightPrice["{$totalWeight}"];
         } else {
             $x = $totalWeight;
+            $finalPrice = null;
+
             foreach ($arrayOfWeightPrice as $x2 => $y2) {
                 if (isset($x1) && $x > $x1 && $x < $x2) {
                     $b = ($y1 - $y2) / ($x1 - $x2);
@@ -235,6 +239,8 @@ class tcost_Fees extends core_Detail
             }
         }
 
+        $totalWeight /= 1000;
+
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
         $finalPrice = round($finalPrice, 2);
         if ($totalWeight) {
@@ -242,7 +248,7 @@ class tcost_Fees extends core_Detail
         } else {
             $result = 0;
         }
-        
+
         // Връща се получената цена и отношението цена/тегло в определен $singleWeight и зоната към която принадлежи
         return array($finalPrice, $result, $zone['zoneId'], $zone['deliveryTime']);
     }
