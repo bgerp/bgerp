@@ -93,6 +93,7 @@ class core_Composer extends core_Mvc
             if (!is_dir(EF_VENDOR_PATH)) {
                 if (!@mkdir(EF_VENDOR_PATH)) {
                     self::$error = "Грешка: няма права за създаване на: " . EF_VENDOR_PATH;
+                    
                     return false;
                 }
             }
