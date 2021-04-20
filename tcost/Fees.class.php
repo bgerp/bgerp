@@ -197,7 +197,7 @@ class tcost_Fees extends core_Detail
         while ($rec = $query->fetch()) {
             // Слагаме получените цени за по-късно ползване в асоциативния масив
             $price = self::getTotalPrice($rec);
-            $arrayOfWeightPrice[round($rec->weight)] = $price;
+            $arrayOfWeightPrice["{$rec->weight}"] = $price;
         }
         
         // дотук имаме масив Тегло -> Сума
@@ -215,11 +215,11 @@ class tcost_Fees extends core_Detail
         $totalWeight = round($totalWeight, 3);
         
         if ($totalWeight < $minWeight) {
-            $finalPrice = $arrayOfWeightPrice[$minWeight];
+            $finalPrice = $arrayOfWeightPrice["{$minWeight}"];
         } elseif ($totalWeight > $maxWeight) {
-            $finalPrice = $arrayOfWeightPrice[$maxWeight] * ($totalWeight / $maxWeight);
-        } elseif (isset($arrayOfWeightPrice[$totalWeight]) && (round($totalWeight) == $totalWeight)) {
-            $finalPrice = $arrayOfWeightPrice[$totalWeight];
+            $finalPrice = $arrayOfWeightPrice["{$maxWeight}"] * ($totalWeight / $maxWeight);
+        } elseif (isset($arrayOfWeightPrice["{$totalWeight}"])) {
+            $finalPrice = $arrayOfWeightPrice["{$totalWeight}"];
         } else {
             $x = $totalWeight;
             foreach ($arrayOfWeightPrice as $x2 => $y2) {
@@ -234,7 +234,7 @@ class tcost_Fees extends core_Detail
                 $y1 = $y2;
             }
         }
-        
+
         // Резултата се получава, като получената цена разделяме на $totalweight и умножаваме по $singleWeight.
         $finalPrice = round($finalPrice, 2);
         if ($totalWeight) {
