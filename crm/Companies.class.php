@@ -574,6 +574,10 @@ class crm_Companies extends core_Master
         }
         
         $mvc->autoChangeFields($form);
+
+        if(empty($form->rec->id)){
+            $form->setField('name', 'formOrder=4');
+        }
     }
     
     
