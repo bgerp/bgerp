@@ -100,6 +100,9 @@
 // при които не е добре името на мениджъра да се вижда в URL-то
  # defIfNot('EF_CTR_NAME', 'FIXED_CONTROLER');
 
+   
+// Път до vendor директорията на composer-a, ако се използва    
+ # defIfNot('EF_VENDOR_PATH', '');
 
 /**
  * URL за отдалечено репортване на грешки
