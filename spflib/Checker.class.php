@@ -27,7 +27,7 @@ class spflib_Checker
      *
      * @return string - резултат от проверката
      */
-    public static function checker($ip = null, $heloDomain = null, $senderDomain = null)
+    public static function check($IP = '', $heloDomain = '', $senderDomain = '')
     {
         
         if (core_Composer::isInUse()) {
