@@ -655,6 +655,8 @@ class drdata_Vats extends core_Manager
                                     $address = strip_tags(str_replace('<br/>', ' ', $addressHtml));
 
                                     $shortAddress = $address;
+
+                                    $shortAddress = preg_replace('/(бул.\s*\/+)*(ул\.\s*)+(бул.\s*)/ui', 'бул. ', $shortAddress);
                                     $shortAddress = preg_replace('/(бул.\s*\/+)*(ул\.\s*)+/ui', 'ул. ', $shortAddress);
                                     $shortAddress = str::removeWhiteSpace($shortAddress, ' ');
 
