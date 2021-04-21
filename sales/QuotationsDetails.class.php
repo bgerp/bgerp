@@ -800,10 +800,20 @@ class sales_QuotationsDetails extends doc_Detail
                             $hasQuantityColOpt = true;
                         }
                     }
-                    
+
+                    if(empty($row->productId)){
+                        $rowTpl->removeBlock('productId');
+                    }
+                    if(empty($row->discount)){
+                        $rowTpl->removeBlock('discount');
+                    }
+                    if(empty($row->vatPackPrice)){
+                        $rowTpl->removeBlock('vatPackPrice');
+                    }
+
                     $row->index = $id++;
                     $rowTpl->placeObject($row);
-                    $rowTpl->removeBlocks();
+                    $rowTpl->removeBlocksAndPlaces();
                     $rowTpl->append2master();
                 }
             }
