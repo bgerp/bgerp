@@ -163,7 +163,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
 
-        if(!$rec->data->recs->values){
+        if(!$rec->data->recs['values']){
             $this->enableChartTab = false;
             $this->chartTabDefault = false;
         }
