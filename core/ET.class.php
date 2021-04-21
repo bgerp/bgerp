@@ -349,7 +349,7 @@ class core_ET extends core_BaseClass
         $this->places = array();
         $this->once = array();
         $this->pending = array();
-        $this->removableBlocks = array();
+        //$this->removableBlocks = array();
     }
     
     
