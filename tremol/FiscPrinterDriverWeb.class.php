@@ -293,7 +293,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             
             $fpSalePLU = $js->getBlock('fpSalePLU');
 
-            $pArr['PLU_NAME'] = mb_substr($pArr['PLU_NAME'], 0, 30);
+            $pArr['PLU_NAME'] = mb_substr($pArr['PLU_NAME'], 0, 22);
 
             $fpSalePLU->replace(json_encode($pArr['PLU_NAME']), 'PLU_NAME');
             $fpSalePLU->replace($pArr['VAT_CLASS'], 'VAT_CLASS');
