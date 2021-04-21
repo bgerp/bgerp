@@ -216,7 +216,5 @@ class sens2_ServMon extends sens2_ProtoDriver
     public function writeOutputs($outputs, $config, &$persistentState)
     {
     }
-    
-  
-    }
+ 
 } 
