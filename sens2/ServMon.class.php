@@ -217,16 +217,6 @@ class sens2_ServMon extends sens2_ProtoDriver
     {
     }
     
-    public function act_testSPF()
-    {
-        $config = new stdClass();
-        $config->IP_Domain = "87.120.200.90_experta.bg";
-        if (core_Packs::isInstalled('spflib')) {
-            list($ip, $domain) = explode('_', $config->IP_Domain);// bp($ip, $domain);
-            $res['spfCheck'] = spflib_Checker::check($ip, $domain);
-        } else {
-            $res['spfCheck'] = 'spflib not installed.';
-        }
-        bp($res, $ip, $domain);
+  
     }
 } 
