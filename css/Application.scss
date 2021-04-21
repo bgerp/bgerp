@@ -5691,7 +5691,10 @@ div.location.public {
 	min-width: 250px;
 }
 .productCell {
-	max-width: none !important;
+	max-width: 600px !important;
+	.productPreviewHolder img{
+		max-width: 200px;
+	}
 }
 
 .wide .inline-form {
