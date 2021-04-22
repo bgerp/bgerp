@@ -62,6 +62,7 @@ class dec_Setup extends core_ProtoSetup
         'dec_Declarations',
         'dec_Statements',
         'dec_Materials',
+        'migrate::fixDuplicateTitle2116',
     );
     
     
@@ -105,5 +106,42 @@ class dec_Setup extends core_ProtoSetup
         }
         
         return $res;
+    }
+
+
+    /**
+     * Поправка на имената на тврърденията, за да може да са еднакви
+     */
+    public static function fixDuplicateTitle2116()
+    {
+        $query = dec_Statements::getQuery();
+        $query->orderBy('id', 'ASC');
+        $dArr = array();
+        while ($rec = $query->fetch()) {
+            if ($dArr[$rec->title]) {
+                $n = 1000;
+                $i = 1;
+                while (true) {
+                    $newTitle = $rec->title . '_' . $i++;
+                    if (!dec_Statements::fetch(array("#title = '[#1#]'", $newTitle))) {
+
+                        $rec->title = $newTitle;
+
+                        dec_Statements::save($rec, 'title');
+
+                        break;
+                    }
+
+                    if (!$n--) {
+
+                        break;
+                    }
+                }
+            }
+
+            $dArr[$rec->title] = $rec->id;
+        }
+
+        return cls::get('dec_Statements')->setupMvc();
     }
 }
