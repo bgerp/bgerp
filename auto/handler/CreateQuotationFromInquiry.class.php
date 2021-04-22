@@ -187,7 +187,11 @@ class auto_handler_CreateQuotationFromInquiry
         $form->rec->originId = $marketingRec->containerId;
         $form->rec->threadId = $marketingRec->threadId;
         $form->rec->proto = $marketingRec->proto;
-        $form->rec->name = $marketingRec->title;
+        if(strpos($marketingRec->title, '||') !== false){
+            list($form->rec->name, $form->rec->nameEn) = explode('||', $marketingRec->title);
+        } else {
+            $form->rec->name = $marketingRec->title;
+        }
         $form->rec->driverRec = $marketingRec->title;
         
         $Driver->addFields($form);
