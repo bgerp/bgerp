@@ -192,7 +192,6 @@ class auto_handler_CreateQuotationFromInquiry
         } else {
             $form->rec->name = $marketingRec->title;
         }
-        $form->rec->driverRec = $marketingRec->title;
         
         $Driver->addFields($form);
         foreach ($form->fields as $name => $fld) {
