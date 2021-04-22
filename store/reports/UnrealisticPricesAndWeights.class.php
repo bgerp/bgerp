@@ -53,8 +53,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $fieldset->FLD('typeOfProducts', 'enum(public=Стандартни,npublic=Нестандартни)', 'caption=Тип артикули,maxRadio=2,columns=2,after=title,mandatory,single=none');
 
-        $fieldset->FLD('minVolWeight', 'varchar', 'notNull,caption=Минималнo тегло на куб. дециметър,after=typeOfProduckts,single=none');
-        $fieldset->FLD('maxVolWeight', 'varchar', 'notNull,caption=Максималнo тегло на куб. дециметър,after=minVolWeight,single=none');
+        $fieldset->FLD('minVolWeight', 'double', 'notNull,caption=Минималнo тегло на куб. дециметър,after=typeOfProduckts,single=none');
+        $fieldset->FLD('maxVolWeight', 'double', 'notNull,caption=Максималнo тегло на куб. дециметър,after=minVolWeight,single=none');
 
     }
 
