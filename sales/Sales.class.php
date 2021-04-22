@@ -11,7 +11,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -217,15 +217,13 @@ class sales_Sales extends deals_DealMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
         'bankAccountId' => 'lastDocUser|lastDoc',
-        'caseId' => 'sessionValue|lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
     );
@@ -331,7 +329,8 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
-        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
+        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,silent,removeAndRefreshForm=caseId|paymentType');
+        $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
     }
     
     
@@ -442,6 +441,15 @@ class sales_Sales extends deals_DealMaster
         
         if (empty($rec->id)) {
             $form->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
+
+            // Ако метода за плащане не е банков само тогава се попълва касата
+            if(isset($rec->paymentMethodId)){
+                $paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+                if($paymentType == 'cash'){
+                    $caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc');
+                    $form->setDefault('caseId', $caseId);
+                }
+            }
         } else {
             
             // Ако има поне един детайл
@@ -451,7 +459,8 @@ class sales_Sales extends deals_DealMaster
                 if (isset($rec->deliveryTermId)) {
                     $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                     $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
-                    $form->setReadOnly('deliveryCalcTransport', $calcCostDefault);
+                    $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
+                    $form->setReadOnly('deliveryCalcTransport');
                     
                     if ($deliveryCalcCost == 'yes') {
                         $form->setReadOnly('deliveryAdress');

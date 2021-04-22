@@ -537,7 +537,7 @@ class core_String
     public static function addIncrementSuffix($string, $prefix = '', $startNum = 1)
     {
         preg_match("/{$prefix}(\d+)$/", $string, $matches);
-        if (count($matches) == 2) {
+        if (countR($matches) == 2) {
             $number = $matches[1];
             $number = self::increment($number);
 
@@ -547,11 +547,11 @@ class core_String
             // Инкрементираме числото
             $string = substr_replace($string, $number, $startTagPos);
         } else {
-            
+
             // Ако не е открит стринга добавяме `{$prefix}{$startNum}` в края му
             $string .= "{$prefix}{$startNum}";
         }
-        
+
         return $string;
     }
     
@@ -569,7 +569,7 @@ class core_String
         if (is_string($str)) {
 
             // Ако целия стринг е число, инкрементираме го
-            if (is_numeric($str) && $str[0] != '0' && mb_strlen($str) > 1) {
+            if (is_numeric($str) && $str[0] != '0' && mb_strlen($str) >= 1) {
                 ++$str;
 
                 return (string) $str;
@@ -836,7 +836,7 @@ class core_String
     public static function prepareMathExpr($expr, $contex = array())
     {
         // Ако има променливи, заместваме ги в израза
-        if (count($contex)) {
+        if (countR($contex)) {
             uksort($contex, 'str::sortByLengthReverse');
             array_walk($contex, function (&$value, $key) {
                 $value = ($value < 0) ? '(' . $value . ')' : (($value === null || $value === '') ? '0' : $value);

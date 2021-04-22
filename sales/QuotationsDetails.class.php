@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -61,7 +61,7 @@ class sales_QuotationsDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument,plg_PrevAndNext,cat_plg_ShowCodes';
+    public $loadList = 'plg_RowTools2, sales_Wrapper, doc_plg_HidePrices, deals_plg_ImportDealDetailProduct, plg_SaveAndNew, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_CreateProductFromDocument,plg_PrevAndNext,cat_plg_ShowCodes';
     
     
     /**
@@ -607,6 +607,7 @@ class sales_QuotationsDetails extends doc_Detail
     {
         unset($data->toolbar->buttons['btnAdd']);
         unset($data->toolbar->buttons['btnNewProduct']);
+        unset($data->toolbar->buttons['btnAdd-import']);
     }
     
     
@@ -629,7 +630,7 @@ class sales_QuotationsDetails extends doc_Detail
     private function groupResultData(&$data)
     {
         $newRows = array();
-        
+        $error = '';
         // Подготвяме бутоните за добавяне на нов артикул
         if ($this->haveRightFor('add', (object) array('quotationId' => $data->masterId))) {
             $products = cat_Products::getProducts($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId, $data->masterData->rec->date, 'canSell', null, 1);
@@ -645,7 +646,12 @@ class sales_QuotationsDetails extends doc_Detail
                 $data->addNewProductOptionalBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
             }
         }
-        
+
+        if ($this->haveRightFor('import', (object) array("quotationId" => $data->masterId))) {
+            $data->addImportProductBtn = ht::createBtn('Импортиране', array($this, 'import', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => true), false, false, 'id=btnAdd-import,title=Импортиране на артикули,ef_icon=img/16/import.png');
+            $data->addImportProductOptionalBtn = ht::createBtn('Импортиране', array($this, 'import', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, 'id=btnAdd-import,title=Импортиране на артикули,ef_icon = img/16/import.png');
+        }
+
         // Ако няма записи не правим нищо
         if (!$data->rows) {
             
@@ -794,10 +800,10 @@ class sales_QuotationsDetails extends doc_Detail
                             $hasQuantityColOpt = true;
                         }
                     }
-                    
+
                     $row->index = $id++;
                     $rowTpl->placeObject($row);
-                    $rowTpl->removeBlocks();
+                    $rowTpl->removeBlocksAndPlaces();
                     $rowTpl->append2master();
                 }
             }
@@ -866,7 +872,11 @@ class sales_QuotationsDetails extends doc_Detail
             if (isset($data->addNewProductBtn)) {
                 $dTpl->append($data->addNewProductBtn, 'ADD_BTN');
             }
-            
+
+            if (isset($data->addImportProductBtn)) {
+                $dTpl->append($data->addImportProductBtn, 'ADD_BTN');
+            }
+
             $dTpl->removeBlocks();
             $tpl->append($dTpl, 'MANDATORY');
         }
@@ -882,7 +892,11 @@ class sales_QuotationsDetails extends doc_Detail
             if (isset($data->addNewProductOptionalBtn)) {
                 $oTpl->append($data->addNewProductOptionalBtn, 'ADD_BTN');
             }
-            
+
+            if (isset($data->addImportProductOptionalBtn)) {
+                $oTpl->append($data->addImportProductOptionalBtn, 'ADD_BTN');
+            }
+
             $oTpl->removePlaces();
             $oTpl->removeBlocks();
             $tpl->append($oTpl, 'OPTIONAL');
@@ -1138,5 +1152,42 @@ class sales_QuotationsDetails extends doc_Detail
                 $rec->price = $oldRec->price;
             }
         }
+    }
+
+
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param array $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *
+     * @return mixed - резултата от експорта
+     */
+    public function import($masterId, $row)
+    {
+        $pRec = cat_Products::getByCode($row->code);
+        $pRec->packagingId = (isset($pRec->packagingId)) ? $pRec->packagingId : $row->pack;
+        $meta = cat_Products::fetchField($pRec->productId, 'canSell');
+        if ($meta != 'yes') return;
+        $price = null;
+
+        // Ако има цена я обръщаме в основна валута без ддс, спрямо мастъра на детайла
+        if ($row->price) {
+            $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
+            $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+            $row->price /= $quantityInPack;
+
+            $masterRec = sales_Quotations::fetch($masterId);
+            $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
+        }
+
+        $optionalReq = Request::get('optional');
+        $optional = ($optionalReq == 'yes');
+
+        return sales_Quotations::addRow($masterId, $pRec->productId, $row->quantity, $row->pack, $price, $optional);
     }
 }

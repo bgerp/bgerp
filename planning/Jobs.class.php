@@ -249,7 +249,7 @@ class planning_Jobs extends core_Master
         $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
-        $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
+        $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Забележки');
 
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
@@ -963,7 +963,7 @@ class planning_Jobs extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         $row = new stdClass();
@@ -1477,6 +1477,19 @@ class planning_Jobs extends core_Master
         $tQuery->where("#originId = {$rec->containerId}");
         $tQuery->show("threadId");
         $threadsArr = array($rec->threadId => $rec->threadId) + arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
+
+        // Ако има протокол за производство на заявка с по-голяма ефективна дата от заданието, ще се използва тя
+        $dnQuery = planning_DirectProductionNote::getQuery();
+        $dnQuery->XPR('date', 'date', 'DATE(COALESCE(#deadline, #valior, #createdOn))');
+        $dnQuery->where("#state = 'pending' AND #date > '{$date}'");
+        $dnQuery->in('threadId', $threadsArr);
+        $dnQuery->show('date');
+        $dnQuery->orderBy('date', 'ASC');
+        $dnQuery->limit(1);
+
+        if($dRec = $dnQuery->fetch()){
+            $date = $dRec->date;
+        }
 
         // Какви количества има вече запазени по заданието
         $products = $productsIn = array();

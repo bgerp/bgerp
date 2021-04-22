@@ -307,7 +307,7 @@ class frame_Reports extends core_Embedder
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         
@@ -445,7 +445,9 @@ class frame_Reports extends core_Embedder
         header("Content-Disposition: attachment; filename={$fileName}.csv");
         header('Pragma: no-cache');
         header('Expires: 0');
-        
+
+        $this->logInAct('Експортиране', $rec);
+
         echo $csv;
         
         shutdown();

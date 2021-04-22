@@ -160,8 +160,14 @@ class sales_Proformas extends deals_InvoiceMaster
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
-    
-    
+
+
+    /**
+     * Стратегии за добавяне на артикули след създаване от източника
+     */
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от договора", 'onlyShipped' => 'Експедираните артикули по договора');
+
+
     /**
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
@@ -217,7 +223,10 @@ class sales_Proformas extends deals_InvoiceMaster
     {
         $form = &$data->form;
         parent::prepareInvoiceForm($mvc, $data);
-        
+        if(empty($rec->id)){
+            $form->setDefault('importProducts', 'onlyFromDeal');
+        }
+
         $form->setField('paymentType', 'input=none');
         foreach (array('deliveryPlaceId', 'vatDate') as $fld) {
             $form->setField($fld, 'input=hidden');

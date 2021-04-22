@@ -286,19 +286,19 @@ class core_Packs extends core_Manager
             }
         }
         
-        if (count($migrations)) {
+        if (countR($migrations)) {
             $form->setSuggestions('migrations', $migrations);
         } else {
             $form->setField('migrations', 'input=none');
         }
         
-        if (count($nonValid)) {
+        if (countR($nonValid)) {
             $form->setSuggestions('nonValid', $nonValid);
         } else {
             $form->setField('nonValid', 'input=none');
         }
         
-        if (count($migrations) || count($nonValid)) {
+        if (countR($migrations) || countR($nonValid)) {
             $form->toolbar->addSbBtn('Инвалидирай');
         } else {
             $form->info = 'Все още няма минали миграции';
@@ -431,7 +431,7 @@ class core_Packs extends core_Manager
         $reposArr = core_App::getRepos();
         foreach (array_keys($reposArr) as $dir) {
             $appDirs = $this->getSubDirs($dir);
-            if (count($appDirs)) {
+            if (countR($appDirs)) {
                 foreach ($appDirs as $subDir => $dummy) {
                     $path = rtrim($dir, '/\\') . '/' . $subDir . '/' . 'Setup.class.php';
                     if (file_exists($path)) {
@@ -912,7 +912,7 @@ class core_Packs extends core_Manager
         $rec = static::fetch("#name = '{$packName}'");
         $setup = cls::get("{$packName}_Setup");
         
-        // В Setup-a се очаква $configDesctiption в следната структура:
+        // В Setup-a се очаква $configDescription в следната структура:
         // Полета за конфигурационни променливи на пакета
         // Описание на конфигурацията:
         // array('CONSTANT_NAME' => array($type,
@@ -1214,7 +1214,7 @@ class core_Packs extends core_Manager
             $exData = array();
         }
         
-        if (count($data)) {
+        if (countR($data)) {
             foreach ($data as $key => $value) {
                 $exData[$key] = $value;
             }

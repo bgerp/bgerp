@@ -590,7 +590,7 @@ class pos_ReceiptDetails extends core_Detail
                 
                 Mode::setPermanent("lastEditedRow", array('id' => $rec->id, 'action' => 'setquantity'));
             } elseif(empty($receiptRec->revertId)) {
-                expect($rec->quantity >= 0, 'При добавяне количеството трябва да е положително');
+                expect($rec->quantity > 0, 'При добавяне количеството трябва да е положително');
             }
             
             if($rec->_canStore == 'yes'){
@@ -752,7 +752,7 @@ class pos_ReceiptDetails extends core_Detail
                     $row->batch = "<span class='quiet'>" . tr('Без партида') . "</span>";
                 } else {
                     $batchesInStore = batch_Items::getBatchQuantitiesInStore($rec->productId, $rec->storeId, $receiptDate);
-                    if(!count($batchesInStore)){
+                    if(!countR($batchesInStore)){
                         $row->CLASS .= 'noBatch';
                     }
                 }
@@ -817,7 +817,7 @@ class pos_ReceiptDetails extends core_Detail
         $actionArr = explode('|', $string);
         $allowed = array('sale', 'discount', 'payment');
         expect(in_array($actionArr[0], $allowed), 'Не е позволена такава операция');
-        expect(count($actionArr) == 2, 'Стрингът не е в правилен формат');
+        expect(countR($actionArr) == 2, 'Стрингът не е в правилен формат');
         
         $action = new stdClass();
         $action->type = $actionArr[0];

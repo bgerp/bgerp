@@ -342,7 +342,7 @@ class core_UserTranslates extends core_Manager
                 $data->buttons->nextId = $selArr[$selId + 1];
             }
             
-            $data->prevAndNextIndicator = ++$selId . '/' . count($selArr);
+            $data->prevAndNextIndicator = ++$selId . '/' . countR($selArr);
         }
     }
     

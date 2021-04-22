@@ -368,10 +368,10 @@ class doc_Setup extends core_ProtoSetup
         }
         
         // Ако няма потребител с роля 'ceo', добавяме я към всички администратори
-        if (!count(core_Users::getByRole('ceo'))) {
+        if (!countR(core_Users::getByRole('ceo'))) {
             $admins = core_Users::getByRole('admin');
             
-            if (count($admins)) {
+            if (countR($admins)) {
                 foreach ($admins as $userId) {
                     $uTitle = core_Users::getTitleById($userId);
                     core_Users::addRole($userId, 'ceo');

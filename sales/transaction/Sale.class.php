@@ -517,6 +517,7 @@ class sales_transaction_Sale extends acc_DocumentTransactionSource
                     foreach ($bomInfo['resources'] as &$resRec){
                         $resRec->quantity = $resRec->propQuantity;
                         $resRec->storeId = $rec->{$storeField};
+                        $resRec->fromAccId = '61102';
                     }
                    
                     // Извличане на записите за производството

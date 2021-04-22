@@ -2,14 +2,14 @@
 
 
 /**
- * Статии
+ * Блог Статии
  *
  *
  * @category  bgerp
  * @package   blogm
  *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -167,10 +167,12 @@ class blogm_Articles extends core_Master
         }
         
         $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');
-        
-        
+
         if ($fields['-list']) {
-            $row->title = ht::createLink($row->title, self::getUrl($rec), null, 'ef_icon=img/16/monitor.png');
+            $url = self::getUrl($rec);
+            $url['cMenuId'] = static::getDefaultMenuId($rec);
+
+            $row->title = ht::createLink($row->title, $url, null, 'ef_icon=img/16/monitor.png');
         }
     }
     
@@ -245,8 +247,7 @@ class blogm_Articles extends core_Master
         }
         
         $mvc->setMenuIdByRec($form->rec, false);
-        
-        $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent()));
+        $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent(), null, null, true));
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
@@ -295,8 +296,25 @@ class blogm_Articles extends core_Master
             $data->query->where("#state = 'active'");
         }
     }
-    
-    
+
+
+    /**
+     * Кое е дефолтното меню на статията
+     *
+     * @param mixed $id
+     * @return int $menuId
+     */
+    public function getDefaultMenuId($id)
+    {
+        $rec = static::fetchRec($id);
+
+        $categories = keylist::toArray($rec->categories);
+        $firstCategoryId = key($categories);
+        $menuId = blogm_Categories::fetchField($firstCategoryId, 'menuId');
+
+        return $menuId;
+    }
+
     /**
      *  Екшън за публично преглеждане и коментиране на блог-статия
      */
@@ -313,27 +331,35 @@ class blogm_Articles extends core_Master
         }
         
         if (!$id) {
-            
+
             return $this->act_Browse();
         }
-        
+
+        // Извличане на записа на статията
+        $rec = $this->fetch($id);
+        if(!$rec){
+
+            return $this->act_Browse();
+        }
+
         $cMenuId = Request::get('cMenuId', 'int');
+        if(empty($cMenuId)){
+            $cMenuId = static::getDefaultMenuId($rec);
+        }
+
+        $categoryId = Request::get('category', 'int');
 
         // Създаваме празен $data обект
         $data = new stdClass();
         $data->query = $this->getQuery();
         $data->articleId = $id;
         $data->menuId = $cMenuId;
+        $data->category = $categoryId;
         $data->menuRec = cms_Content::fetch($data->menuId);
-        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId);
-
-        // Трябва да има $rec за това $id
-        $data->rec = $this->fetch($id);
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category);
+        $data->rec = $rec;
         
-        if (!$data->rec) {
-            
-            return $this->act_Browse();
-        }
+
 
         cms_Content::setCurrent($cMenuId);
 
@@ -466,7 +492,7 @@ class blogm_Articles extends core_Master
         // Поставяме данните от реда
         $layout->placeObject($data->row);
         
-        $layout->append($this->getPrevNextLink($data->rec), 'prevNextLinks');
+        $layout->append($this->getPrevNextLink($data), 'prevNextLinks');
         
         $layout = blogm_Comments::renderComments($data, $layout);
         
@@ -484,10 +510,11 @@ class blogm_Articles extends core_Master
     /**
      * Връща линкове за предишен и/или следващ постинг от същите категории
      */
-    public function getPrevNextLink($rec)
+    private function getPrevNextLink($data)
     {
         $res = '';
-        
+        $rec = $data->rec;
+
         if ($rec->categories) {
             $query = self::getQuery();
             $query->XPR('calcDate', 'datetime', "COALESCE(#publishedOn, #createdOn)");
@@ -514,10 +541,14 @@ class blogm_Articles extends core_Master
             // Линкове за следваща/предишна статия
             $prevLink = $nextLink = '';
             if ($prev) {
-                $prevLink = ht::createLink('«&nbsp;' . $prev->title, self::getUrl($prev));
+                $prevUrl = self::getUrl($prev);
+                $prevUrl['cMenuId'] = $data->menuId;
+                $prevLink = ht::createLink('«&nbsp;' . $prev->title, $prevUrl);
             }
             if ($next) {
-                $nextLink = ht::createLink($next->title . '&nbsp;»', self::getUrl($next));
+                $nextUrl = self::getUrl($next);
+                $nextUrl['cMenuId'] = $data->menuId;
+                $nextLink = ht::createLink($next->title . '&nbsp;»', $nextUrl);
             }
             
             if ($prevLink || $nextLink) {
@@ -545,14 +576,7 @@ class blogm_Articles extends core_Master
     protected function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->haveRightFor('article', $data->rec)) {
-            $data->toolbar->addBtn(
-                'Преглед',
-                array(
-                    $this,
-                    'Article',
-                    $data->rec->id,
-                )
-             );
+            $data->toolbar->addBtn('Преглед', array($this, 'Article', $data->rec->id), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
         }
     }
 
@@ -564,7 +588,17 @@ class blogm_Articles extends core_Master
     {
         // Създаваме празен $data обект
         $data = new stdClass();
+        $data->categoryId = Request::get('category', 'int');
         $data->menuId = Request::get('cMenuId', 'int');
+
+        if(empty($data->menuId)){
+            if(isset($data->categoryId)){
+                $data->menuId = blogm_Categories::fetchField($data->categoryId, 'menuId');
+            } else {
+                $data->menuId = cms_Content::getDefaultMenuId($this);
+            }
+        }
+
         $data->menuRec = cms_Content::fetch($data->menuId);
         cms_Domains::setPublicDomain($data->menuRec->domainId);
         cms_Content::setCurrent($data->menuId);
@@ -573,7 +607,7 @@ class blogm_Articles extends core_Master
         $data->query = $this->getQuery();
         $data->category = Request::get('category', 'int');
 
-        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId);
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId);
         $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
         $data->q = Request::get('q');
 
@@ -1129,7 +1163,7 @@ class blogm_Articles extends core_Master
             $groupsArr[$gRec->id] = $gRec;
         }
         
-        if (count($groupsArr)) {
+        if (countR($groupsArr)) {
             $query = self::getQuery();
             $query->where("#state = 'active'");
             $query->likeKeylist('categories', keylist::fromArray($groupsArr));

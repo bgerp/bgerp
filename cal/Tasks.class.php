@@ -282,7 +282,7 @@ class cal_Tasks extends embed_Manager
 
         $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, refreshForm, silent, after=typeId, changable');
 
-        $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
+        $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
 
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable,autohide');
@@ -399,7 +399,7 @@ class cal_Tasks extends embed_Manager
         }
         
         if (Mode::is('screenMode', 'narrow')) {
-            $data->form->fields[priority]->maxRadio = 2;
+            $data->form->fields['priority']->maxRadio = 2;
         }
         
         $rec = $data->form->rec;
@@ -1730,7 +1730,7 @@ class cal_Tasks extends embed_Manager
      *
      * @return stdClass $row
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
 

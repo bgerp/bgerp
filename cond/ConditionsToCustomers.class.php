@@ -528,7 +528,7 @@ class cond_ConditionsToCustomers extends core_Manager
                 }
             }
             
-            $count = count($update);
+            $count = countR($update);
             if($count){
                 cls::get('cond_ConditionsToCustomers')->saveArray($update);
             }

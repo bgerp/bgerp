@@ -15,6 +15,14 @@
  */
 class doc_Files extends core_Manager
 {
+
+
+    /**
+     * @var Разширения, които да не се показват по подразбиране
+     */
+    protected $exludeFilesExt = array('eml');
+
+
     /**
      * Плъгини за зареждане
      */
@@ -369,7 +377,7 @@ class doc_Files extends core_Manager
         }
         
         // Ако са останали файлоаве, които не са премахнати от записите
-        if (count($savedFh)) {
+        if (countR($savedFh)) {
             
             // Обхождаме всики останали файлове
             foreach ($savedFh as $fileHnd => $dummy) {
@@ -432,7 +440,19 @@ class doc_Files extends core_Manager
         
         return $resArr;
     }
-    
+
+
+    /**
+     * Връща `id` на папката, която ще се използва в `range`
+     *
+     * @param $folderId
+     */
+    public static function getFolderRange($folderId)
+    {
+
+        return "__folder__"  .$folderId;
+    }
+
     
     /**
      *
@@ -531,12 +551,26 @@ class doc_Files extends core_Manager
                 fileman_Files::prepareFilesQuery($data->query, $usersArr);
             }
         }
-        
+
+        $fSearch = '';
+        foreach ($mvc->exludeFilesExt as $fExt) {
+            $fExt = preg_quote($fExt, '/');
+            if (!$filter->search || !preg_match("/(\.|\s|^|\-)+({$fExt})(\.|\s|$)+/i", $filter->search)) {
+                $fSearch .= " -.eml";
+            }
+        }
+
+        // Премахваме нашите файлове
+        $ourImgArr = core_Permanent::get('ourImgEmailArr');
+        if ($ourImgArr) {
+            $data->query->notIn('dataId', $ourImgArr);
+        }
+
         // Налагане на условията за търсене
-        if (!empty($filter->search)) {
+        if (!empty($filter->search) || !empty($fSearch)) {
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
-            
-            plg_Search::applySearch($filter->search, $data->query, 'searchKeywords');
+
+            plg_Search::applySearch($filter->search . $fSearch, $data->query, 'searchKeywords');
         }
     }
     

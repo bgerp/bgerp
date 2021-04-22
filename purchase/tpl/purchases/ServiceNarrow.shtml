@@ -91,6 +91,9 @@
                         <!--ET_BEGIN sepVat-->
                         <li>|Цените са с отделно ДДС|*[#sepVat#]</li>
                         <!--ET_END sepVat-->
+                        <!--ET_BEGIN exemptVat-->
+                        <li>|Освободено от ДДС|*[#exemptVat#]</li>
+                        <!--ET_END exemptVat-->
                         <!--ET_BEGIN noVat-->
                         <li>|Цените са без ДДС|*[#noVat#]</li>
                         <!--ET_END noVat-->

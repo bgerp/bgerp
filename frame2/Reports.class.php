@@ -483,11 +483,17 @@ class frame2_Reports extends embed_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = '???';
-        if($Driver = static::getDriver($rec)){
-            $title = $Driver->getTitle($rec);
+        $title = $rec->title;
+        if(empty($title)){
+            if($Driver = static::getDriver($rec)){
+                $title = $Driver->getTitle($rec);
+            }
         }
-        
+
+        if(empty($title)){
+            $title = '???';
+        }
+
         return "{$title} №{$rec->id}";
     }
     
@@ -495,13 +501,13 @@ class frame2_Reports extends embed_Manager
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         
         $row = new stdClass();
         $row->title = $this->getRecTitle($rec);
-        
+
         $Driver = $this->getDriver($rec);
         if (is_object($Driver)) {
             $driverTitle = $Driver->getTitle($rec);
@@ -535,17 +541,19 @@ class frame2_Reports extends embed_Manager
         if ($mvc->haveRightFor('refresh', $rec)) {
             $data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на справката');
         }
-        
-        $url = array($mvc, 'single', $rec->id);
-        $icon = 'img/16/checked.png';
-        if (!Request::get('vId', 'int')) {
-            $url['vId'] = $rec->id;
-            $icon = 'img/16/checkbox_no.png';
-        }
-        
-        $vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
-        if ($vCount > 1) {
-            $data->toolbar->addBtn("Версии|* ({$vCount})", $url, null, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+
+        if(!core_Users::isContractor()){
+            $url = array($mvc, 'single', $rec->id);
+            $icon = 'img/16/checked.png';
+            if (!Request::get('vId', 'int')) {
+                $url['vId'] = $rec->id;
+                $icon = 'img/16/checkbox_no.png';
+            }
+
+            $vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
+            if ($vCount > 1) {
+                $data->toolbar->addBtn("Версии|* ({$vCount})", $url, null, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+            }
         }
     }
     

@@ -567,14 +567,14 @@ class core_Backup extends core_Mvc
             
             // Наливаме съдържанието от всички налични CSV файлове
             // Извличаме от CSV последователно всички таблици
-            $tablesCnt = count($description->files);
+            $tablesCnt = countR($description->files);
             $log[] = 'msg: Извличанне на ' . $tablesCnt . ' таблици';
             foreach ($description->files as $file) {
                 self::runRestoreTable($file, $sess);
                 $log[] = 'msg: Възстановяване на: ' . $file;
                 do {
                     $runned = self::getRuningProcess($tempRestoreDir);
-                    $runnedCnt = count($runned);
+                    $runnedCnt = countR($runned);
                     if($runnedCnt) {
                         core_SystemLock::block('Възстановяване на <li>' . implode("</li>\n<li>", $runned), ($cnt--) * 4 + 240);
                     }
@@ -588,7 +588,7 @@ class core_Backup extends core_Mvc
             $files = glob($dir . 'log.*.sql.zip');
             asort($files);
             
-            $cnt = count($files);
+            $cnt = countR($files);
             foreach ($files as $src) {
                 $time = self::getTimeFromFilename(basename($src));
                 if ($time <= $description->time) {

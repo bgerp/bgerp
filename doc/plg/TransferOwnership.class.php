@@ -27,7 +27,7 @@ class doc_plg_TransferOwnership extends core_Plugin
     {
         // Намираме всички класове, които са корици на папки
         $options = core_Classes::getOptionsByInterface('doc_FolderIntf');
-        if (count($options)) {
+        if (countR($options)) {
             foreach ($options as $name) {
                 
                 // За всяка корица прехвърляме празните отговорници на първия потребител

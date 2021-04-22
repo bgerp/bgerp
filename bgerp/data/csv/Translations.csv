@@ -1792,7 +1792,7 @@ en,Сайт,Site
 en,Сайт/Блог,Site/Blog
 en,Салдо,Balance
 en,Само лица,Persons only
-en,Само моите,Only mine
+en,Само моите,Only my documents
 en,Само фирми,Companies only
 en,Самостоятелна,Separate
 en,Свален файл,Downloaded file
@@ -1960,8 +1960,8 @@ en,Съдилище,Court
 en,Съдържа се в,Contained in
 en,Съдържание,Content
 en,Създаване на н_9b9a7,Create a new authorization for online service
-en,Създаване на,Creating a
-en,Създаване,Create
+en,Създаване на,Create a
+en,Създаване,Created
 en,Създаване->На,Created->On
 en,Създаване->От,Created->By
 en,Създаден на,Created on
@@ -1977,7 +1977,7 @@ en,Съобщения от сензорите,Messages from sensors
 en,Съобщения,Messages
 en,Съответствие,Conformity
 en,Сървър,Server
-en,Сървъра на, The server
+en,Сървъра на,The server
 en,Сърдечни поздр_2049,Best regards
 en,Сърце,Heart
 en,Съставил,Prepared by
@@ -2924,3 +2924,8 @@ en,Количка за пазаруване,Shopping cart
 en,Кошница за пазаруване,Shopping basket
 en,Очаква се доставка,Expected delivery
 en,Адресът трябва да съдържа държава и пощенски код,Address must contain country and zip code
+en,Пътуване,Travel
+en,Започнато,Started
+en,За по-късно,For later
+en,Важно,Important
+en,В обработка,In processing

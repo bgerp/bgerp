@@ -220,6 +220,12 @@ class marketing_Inquiries2 extends embed_Manager
         'place' => 'clientData|lastDocUser',
         'address' => 'clientData|lastDocUser',
     );
+
+
+    /**
+     * Дали да се добави subTitle в листовия изглед
+     */
+    public $addSubTitleToList = 'title';
     
     
     /**
@@ -254,7 +260,7 @@ class marketing_Inquiries2 extends embed_Manager
         $this->FLD('browser', 'varchar(80)', 'caption=UA String,input=none');
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $this->FLD('sourceClassId', 'class(interface=marketing_InquirySourceIntf)', 'caption=Източник клас,input=none');
-        $this->FLD('sourceId', 'int', 'caption=Източник id,input=none,tdClass=leftCol');
+        $this->FLD('sourceId', 'varchar', 'caption=Източник id,input=none,tdClass=leftAlign');
         $this->FLD('customizeProto', 'enum(no=Не,yes=Да)', 'caption=Заглавие,silent,input=hidden,notNull,value=yes');
 
         if (!acc_plg_DocumentSummary::$rolesAllMap[$this->className]) {
@@ -502,7 +508,7 @@ class marketing_Inquiries2 extends embed_Manager
         
         if ($fields['-list']) {
             $row->title = $mvc->getTitle($rec);
-            
+
             $attr = array();
             $attr['class'] = 'linkWithIcon';
             $attr['style'] = 'background-image:url(' . sbf($mvc->singleIcon) . ');';
@@ -858,7 +864,7 @@ class marketing_Inquiries2 extends embed_Manager
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         

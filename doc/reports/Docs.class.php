@@ -191,7 +191,7 @@ class doc_reports_Docs extends frame_BaseDriver
             $pager->setPageVar($this->EmbedderRec->className, $this->EmbedderRec->that);
             $pager->addToUrl = array('#' => $this->EmbedderRec->instance->getHandle($this->EmbedderRec->that));
             
-            $pager->itemsCount = count($data->docCnt, COUNT_RECURSIVE);
+            $pager->itemsCount = countR($data->docCnt, COUNT_RECURSIVE);
             
             $pager->calc();
             $data->pager = $pager;

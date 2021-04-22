@@ -128,7 +128,7 @@ class core_Toolbar extends core_BaseClass
             $btn->order = 10;
         }
         
-        $btn->order += count($this->buttons) / 10000;
+        $btn->order += countR($this->buttons) / 10000;
         
         $btn->attr = $params;
         
@@ -181,7 +181,7 @@ class core_Toolbar extends core_BaseClass
     public function setWarning($ids, $warning)
     {
         $ids = arr::make($ids, true);
-        expect(count($ids));
+        expect(countR($ids));
         
         $buttons = (isset($ids['*'])) ? $this->buttons : $ids;
         foreach ($buttons as $id => $btn) {
@@ -200,7 +200,7 @@ class core_Toolbar extends core_BaseClass
     public function setError($ids, $error)
     {
         $ids = arr::make($ids, true);
-        expect(count($ids));
+        expect(countR($ids));
         
         $buttons = (isset($ids['*'])) ? $this->buttons : $ids;
         foreach ($buttons as $id => $btn) {
@@ -249,7 +249,7 @@ class core_Toolbar extends core_BaseClass
     {
         $layout = new ET();
         
-        if (!count($this->buttons) > 0) {
+        if (!countR($this->buttons) > 0) {
             
             return $layout;
         }
@@ -293,10 +293,28 @@ class core_Toolbar extends core_BaseClass
                 $hiddenBtns++;
             }
         }
-        
+
         foreach ($this->buttons as $id => $btn) {
             $place = ($btn->attr['row'] == 2 && $onRow2 > 0) ? 'ROW2' : (($hiddenBtns > 1 && $btn->attr['row'] == 3) ? 'HIDDEN' : 'ROW1') ;
-            
+
+            // Ако няма да се показва текста в заглавието
+            if ($place == 'ROW1') {
+                if ($btn->attr['emptyInFirstRow']) {
+                    $t = str::utf2ascii($btn->title);
+                    $t = ucfirst($t);
+
+                    setIfNot($btn->attr['title'], $btn->title);
+                    setIfNot($btn->attr['id'], "btn{$t}_" . str::getRand('#####'));
+
+                    $btn->attr['class'] .= $btn->attr['class'] ? ' ' : '';
+
+                    $btn->attr['class'] .= 'onlyIcon';
+                    $btn->title = ' ';
+                }
+            }
+
+            unset($btn->attr['emptyInFirstRow']);
+
             if ($place == 'ROW2' || $hiddenBtns) {
                 $flagRow2 = true;
             }
@@ -309,14 +327,14 @@ class core_Toolbar extends core_BaseClass
             } elseif ($btn->type == 'function') {
                 $layout->append(ht::createFnBtn($btn->title, $btn->fn, $btn->warning, $attr), $place);
             } elseif ($btn->type == 'select') {
-                $layout->append(ht::createSelectMenu($btn->options, $btn->selected, $btn->maxRadio, $params), $place);
+                $layout->append(ht::createSelectMenu($btn->options, $btn->selected, $btn->maxRadio, $attr), $place);
             } else {
                 $layout->append(ht::createBtn($btn->title, $btn->url, $btn->warning, $btn->newWindow, $attr), $place);
             }
             
             $btnCnt++;
         }
-        
+
         if ($flagRow2) {
             $this->appendSecondRow($layout, $rowId);
         }
@@ -341,7 +359,7 @@ class core_Toolbar extends core_BaseClass
      */
     public function getToolbarLayout_($rowId)
     {
-        if (count($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') || count($this->buttons) > 3 && Mode::is('screenMode', 'narrow')) {
+        if (countR($this->buttons) > 5 && !Mode::is('screenMode', 'narrow') || countR($this->buttons) > 3 && Mode::is('screenMode', 'narrow')) {
             $layout = new ET("\n<div class='toolbar'><div class='toolbar-first clearfix21'>[#ROW0#][#ROW1#]</div>" .
                               
                               "<!--ET_BEGIN ROW2--><div style='display:none' class='toolbarHide clearfix21' id='Row2_{$rowId}'>[#ROW2#]<span style='display: block;margin-top: 5px;'> [#HIDDEN#]</span></div><!--ET_END ROW2--></div>");
@@ -378,7 +396,7 @@ class core_Toolbar extends core_BaseClass
     public function setUrlParam($id, $param, $value)
     {
         expect(!empty($this->buttons[$id]));
-        if (count($this->buttons[$id]->url)) {
+        if (countR($this->buttons[$id]->url)) {
             $this->buttons[$id]->url[$param] = $value;
         }
     }

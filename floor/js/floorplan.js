@@ -194,9 +194,9 @@ function editFloorplan()
 }
 
 function refreshFloor() {
-  var floorId = $("#floor").attr('data-id');
-  $.post("/floor_Plans/RefreshFloor",  {'floorId': floorId}, function(result) {
-						$("body").html(result.html);
-					});
-  setTimeout(refreshFloor, 3000);
+	var floorId = $("#floor").attr('data-id');
+	$.post("/floor_Plans/RefreshFloor",  {'floorId': floorId}, function(result) {
+		$("body").html(result.html);
+	});
+	setTimeout(refreshFloor, 3000);
 }

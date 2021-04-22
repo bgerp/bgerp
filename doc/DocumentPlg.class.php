@@ -156,11 +156,18 @@ class doc_DocumentPlg extends core_Plugin
         if (!isset($plugins['acc_plg_Registry'])) {
             $mvc->load('acc_plg_Registry');
         }
+
+        // Закачане на плъгина за тагване
+        if (!isset($plugins['tags_plg_Add'])) {
+            $mvc->load('tags_plg_Add');
+        }
         
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
         $mvc->fetchFieldsBeforeDelete = 'containerId';
+
+        setIfNot($mvc->addSubTitleToList, false);
     }
     
     
@@ -414,11 +421,11 @@ class doc_DocumentPlg extends core_Plugin
                         'ret_url' => $retUrl
                     ),
                         'onmouseup=saveSelectedTextToSession("' . $mvc->getHandle($data->rec->id) . '")',
-                    'ef_icon = img/16/comment_add.png,title=' . tr('Добавяне на коментар към документа')
+                    "id=btnComment_{$data->rec->id},ef_icon = img/16/comment_add.png,title=" . tr('Добавяне на коментар към документа')
                 );
             }
         }
-        
+
         if ($data->rec->state != 'rejected') {
             // Добавяме бутон за създаване на задача
             if ($data->rec->containerId && doc_Linked::haveRightFor('addlink')) {
@@ -433,7 +440,7 @@ class doc_DocumentPlg extends core_Plugin
                         'foreignId' => $data->rec->containerId,
                         'inType' => 'doc',
                         'ret_url' => $retUrl
-                    ), 'ef_icon = img/16/doc_tag.png, title=Връзка към документа');
+                    ), "id=btnLink_{$data->rec->id},ef_icon = img/16/doc_tag.png, title=Връзка към документа");
                 }
             }
         }
@@ -452,15 +459,13 @@ class doc_DocumentPlg extends core_Plugin
             $title = $mvc->getTitle();
             $title = tr($title);
             $title = mb_strtolower($title);
-            
+
+            $allUrl = $mvc->getAllBtnUrl($data->rec);
+            $allUrl['ret_url'] = $retUrl;
+
             // Бутон за листване на всички обекти от този вид
             $data->toolbar->addBtn(
-                'Всички',
-                array(
-                    $mvc,
-                    'list',
-                    'ret_url' => $retUrl
-                ),
+                'Всички', $allUrl,
                 "class=btnAll,ef_icon=img/16/application_view_list.png, order=18, row={$mvc->allBtnToolbarRow}, title=" . tr('Всички') . ' ' . $title
             );
         }
@@ -522,7 +527,18 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
-    
+
+
+    /**
+     * Връща урл-то към всички записи
+     */
+    public static function on_AfterGetAllBtnUrl($mvc, &$res, $rec)
+    {
+        if(empty($res)){
+            $res = array($mvc, 'list');
+        }
+    }
+
     
     /**
      * Добавя бутон за показване на оттеглените записи
@@ -719,6 +735,22 @@ class doc_DocumentPlg extends core_Plugin
     public function on_AfterPrepareListRows($mvc, &$res, $data)
     {
         Mode::pop('forListRows');
+
+        if ($mvc->addSubTitleToList !== false) {
+            foreach ($data->rows as $id => $row) {
+                $subTitle = $mvc->getDocumentRow($id)->subTitle;
+
+                if ($subTitle) {
+                    $subTitle = "<div class='threadSubTitle'>{$subTitle}</div>";
+
+                    if ($row->{$mvc->addSubTitleToList} instanceof core_ET) {
+                        $row->{$mvc->addSubTitleToList}->append($subTitle);
+                    } else {
+                        $row->{$mvc->addSubTitleToList} .= $subTitle;
+                    }
+                }
+            }
+        }
     }
     
     
@@ -889,7 +921,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
-        if (count($mvc->pendingQueue)) {
+        if (countR($mvc->pendingQueue)) {
             foreach ($mvc->pendingQueue as $rec) {
                 $log = ($rec->state == 'pending') ? 'Документът става на заявка' : 'Документът се връща в чернова';
                 $mvc->logInAct($log, $rec);
@@ -1186,6 +1218,7 @@ class doc_DocumentPlg extends core_Plugin
                 
                 // Редирект
                 if ($type == 'stopped') {
+
                     redirect(array($mvc, 'single', $rec->id));
                 } else {
                     redirect(array($mvc, 'reject', $rec->id, 'stop' => 1));
@@ -1618,6 +1651,9 @@ class doc_DocumentPlg extends core_Plugin
         if($rec->brState == 'active' && cls::haveInterface('acc_TransactionSourceIntf', $mvc)){
             acc_plg_Contable::notifyUsersForReject($mvc, $rec);
         }
+
+        // Обновяваме първия документ в продуктите
+        cat_products_Packagings::updateFirstDocument($mvc, $rec, true);
     }
     
     
@@ -1649,6 +1685,19 @@ class doc_DocumentPlg extends core_Plugin
         doc_Files::recalcFiles($rec->containerId);
         
         bgerp_Notifications::showNotificationsForSingle($mvc->className, $rec->id);
+
+        // Обновяваме първия документ в продуктите
+        cat_products_Packagings::updateFirstDocument($mvc, $rec);
+
+        // Проверка дали има разлика в опаковките
+        $notMatchArr = cat_products_Packagings::checkQuantity($mvc, $rec);
+        foreach ($notMatchArr as $pId => $qnt) {
+            $msg = "|Количеството в опаковката на артикула|* " . cat_Products::getLinkToSingle($pId, 'name') . " |е променено на|* {$qnt}";
+
+            status_Messages::newStatus($msg, 'warning');
+
+            $mvc->logWarning($msg, $rec->id);
+        }
     }
     
     
@@ -2395,7 +2444,7 @@ class doc_DocumentPlg extends core_Plugin
             core_Users::exitSudo($sudoUser);
             expect(false, $e);
         }
-        
+
         // Възстановяване на текущия потребител
         core_Users::exitSudo($sudoUser);
         
@@ -2737,7 +2786,7 @@ class doc_DocumentPlg extends core_Plugin
                 } else {
                     // И да има активни контиращи документи и неконтиращи
                     doc_Threads::groupDocumentsInThread($rec->threadId, $contable, $notContable, 'active', 1);
-                    if (!(count($contable) && count($notContable))) {
+                    if (!(countR($contable) && countR($notContable))) {
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -3143,7 +3192,7 @@ class doc_DocumentPlg extends core_Plugin
                 //Имената на намерените документи
                 $names = doc_RichTextPlg::getAttachedDocs($rec->$fieldName);
                 
-                if (count($names)) {
+                if (countR($names)) {
                     foreach ($names as $name => $doc) {
                         $res += $doc['mvc']->getTypeConvertingsByClass($doc['rec']->id);
                     }
@@ -4349,7 +4398,7 @@ class doc_DocumentPlg extends core_Plugin
             // Ако бройката е под ограничението, няма да има втори ред
             $noSecondRow = false;
             
-            $headerArrCnt = count($headerArr);
+            $headerArrCnt = countR($headerArr);
             
             if ($headerArrCnt < $limitForSecondRow) {
                 $noSecondRow = true;
@@ -4386,7 +4435,7 @@ class doc_DocumentPlg extends core_Plugin
             }
             
             // Ако имаме само един кандидат за втория ред, да не се показва сам
-            if ((count($secondRowArr) == 1)) {
+            if ((countR($secondRowArr) == 1)) {
                 $key = key($secondRowArr);
                 unset($headerArr[$key]['row']);
                 $haveSecondRow = false;
@@ -4625,7 +4674,42 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
     }
-    
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $notMatchArr = cat_products_Packagings::checkRemoteQuantity($mvc, $rec);
+
+        if (!empty($notMatchArr)) {
+            cat_products_Packagings::showNotMatchErr($notMatchArr);
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Функция, която се извиква преди активирането на документа
+     *
+     * @param cal_Tasks $mvc
+     * @param stdClass  $rec
+     */
+    public static function on_BeforeActivation($mvc, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        $notMatchArr = cat_products_Packagings::checkRemoteQuantity($mvc, $rec);
+
+        if (!empty($notMatchArr)) {
+            cat_products_Packagings::showNotMatchErr($notMatchArr);
+
+            return false;
+        }
+    }
+
     
     /**
      * Метод по подразбиране на детайлите за клониране
@@ -4649,6 +4733,19 @@ class doc_DocumentPlg extends core_Plugin
             $rec->activatedBy = core_Users::getCurrent();
             
             $mvc->save_($rec, 'activatedOn,activatedBy');
+        }
+
+        // Обновяваме първия документ в продуктите
+        cat_products_Packagings::updateFirstDocument($mvc, $rec);
+
+        // Проверка дали има разлика в опаковките
+        $notMatchArr = cat_products_Packagings::checkQuantity($mvc, $rec);
+        foreach ($notMatchArr as $pId => $qnt) {
+            $msg = "|Количеството в опаковката на артикула|* " . cat_Products::getLinkToSingle($pId, 'name') . " |е променено на|* {$qnt}";
+
+            status_Messages::newStatus($msg, 'warning');
+
+            $mvc->logWarning($msg, $rec->id);
         }
     }
     

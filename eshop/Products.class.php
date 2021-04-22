@@ -1112,8 +1112,11 @@ class eshop_Products extends core_Master
         $form->setDefault('code', ($productRec->code) ? $productRec->code : "Art{$productRec->id}");
         $form->setField('packagings', 'input');
         $form->setSuggestions('packagings', cat_Products::getPacks($productRec->id));
-        
+
+        Mode::push('text', 'plain');
         $description = cat_Products::getDescription($productRec->id, 'public')->getContent();
+        Mode::pop();
+
         $description = html2text_Converter::toRichText($description);
         $description = cls::get('type_Richtext')->fromVerbal($description);
         $description = str_replace("\n\n", "\n", $description);
@@ -1354,12 +1357,6 @@ class eshop_Products extends core_Master
             if (eshop_CartDetails::fetchField("#eshopProductId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             } elseif (marketing_Inquiries2::fetchField("#sourceClassId = {$mvc->getClassId()} AND #sourceId = {$rec->id}")) {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        if ($action == 'changestate' && isset($rec)) {
-            if ($mvc->haveRightFor('delete', $rec)) {
                 $requiredRoles = 'no_one';
             }
         }

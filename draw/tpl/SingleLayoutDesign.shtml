@@ -4,11 +4,13 @@
     <h3>
         <div style="padding:5px;" class=" [#STATE_CLASS#]">|Скрипт|* <b style="color:green;display:inline-block;">[#name#]</b></div>
     </h3>
+	<a href="javascript:toggleDisplay('code')" style="display: block; margin: 10px 0; background-repeat: no-repeat; font-weight:bold; background-image:url('/sbf/bgerp/img/16/toggle1_1024175902.png');" class="plus-icon more-btn">Покажи кода</a>
 
+	<div id='code' style='display:none'>
     [#hiddenScript#]
     [#CODE#]
     [#hiddenEndScript#]
-
+	</div>
 
     [#hiddenMeta#]
     <br>
@@ -42,4 +44,8 @@
     </div>
     <!--ET_END INFO_BLOCK-->
 </div>
-    [#DETAILS#]
+<div style='width:100%'>[#DETAILS#]</div>
+<style>
+svg {width: 100% !important; height: auto;}
+</style>
+<div>[#SVG#]</div>

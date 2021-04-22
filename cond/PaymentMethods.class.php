@@ -280,11 +280,12 @@ class cond_PaymentMethods extends embed_Manager
      * 		['paymentAfterInvoice']       - сума за плащане след фактуриране
      * 		['deadlineForBalancePayment'] - крайна дата за окончателно плащане
      * 		['timeBalancePayment']        - срок за окончателно плащане
+     *      ['eventBalancePayment']       - тип на плащането
      */
     public static function getPaymentPlan($pmId, $amount, $invoiceDate)
     {
         expect($rec = self::fetch($pmId));
-        $res = array();
+        $res = array('eventBalancePayment' => $rec->eventBalancePayment);
         
         if ($rec->downpayment) {
             $res['downpayment'] = $rec->downpayment * $amount;
@@ -297,7 +298,11 @@ class cond_PaymentMethods extends embed_Manager
         if ($rec->paymentOnDelivery) {
             $res['paymentOnDelivery'] = $rec->paymentOnDelivery * $amount;
         }
-        
+
+        if($rec->eventBalancePayment == 'invEndOfMonth'){
+            $invoiceDate = dt::getLastDayOfMonth($invoiceDate);
+        }
+
         $paymentAfterInvoice = 1 - $rec->paymentOnDelivery - $rec->paymentBeforeShipping - $rec->downpayment;
         $paymentAfterInvoice = round($paymentAfterInvoice * $amount, 4);
         $res['timeBalancePayment'] = $rec->timeBalancePayment;
@@ -306,12 +311,12 @@ class cond_PaymentMethods extends embed_Manager
             $res['paymentAfterInvoice'] = $paymentAfterInvoice;
             $res['deadlineForBalancePayment'] = dt::addSecs($rec->timeBalancePayment, $invoiceDate, false);
         }
-        
+
         // Ако плащането е на момента, крайната дата за плащане е подадената дата
         if ($rec->sysId == 'COD') {
             $res['deadlineForBalancePayment'] = dt::verbal2mysql($invoiceDate, false);
         }
-        
+
         return $res;
     }
     

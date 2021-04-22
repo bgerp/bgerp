@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -145,12 +145,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Дефолт диапазон за номерацията на фактурите от настройките на пакета
-     */
-    public $defaultNumRange = 1;
-    
-    
-    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -229,8 +223,14 @@ class sales_Invoices extends deals_InvoiceMaster
      * Кои ключове да се тракват, кога за последно са използвани
      */
     public $lastUsedKeys = 'numlimit';
-    
-    
+
+
+    /**
+     * Стратегии за добавяне на артикули след създаване от източника
+     */
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички от договора", 'shippedNotInvoiced' => 'Нефактурираните експедирани');
+
+
     /**
      * Описание на модела
      */
@@ -338,6 +338,10 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         parent::prepareInvoiceForm($mvc, $data);
+        if(empty($rec->id)){
+            $form->setDefault('importProducts', 'shippedNotInvoiced');
+        }
+
         if(!empty($form->rec->contragentVatNo)){
             $Vats = cls::get('drdata_Vats');
             list(, $vies) = $Vats->check($form->rec->contragentVatNo);
@@ -715,9 +719,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($restore === false) {
             $query->orderBy('date', 'DESC');
             $newDate = $query->fetch()->date;
-            
-            
-            
+
             if ($newDate > $rec->date) {
                 $newDate = dt::mysql2verbal($newDate, 'd.m.y');
                 $msg = "Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] ({$newDate})";

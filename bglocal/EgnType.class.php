@@ -92,7 +92,12 @@ class bglocal_EgnType extends type_Varchar
             $color = 'black';
             $type = 'ЕГН';
         }
-        
+
+        if(isset($this->params['onlyString'])){
+
+            return $value;
+        }
+
         return "<span style=\"color:{$color}\">" . tr($type) . " {$value}</span>";
     }
 }

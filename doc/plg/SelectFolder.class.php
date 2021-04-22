@@ -227,7 +227,7 @@ class doc_plg_SelectFolder extends core_Plugin
         $interfaces = arr::make($mvc::getCoversAndInterfacesForNewDoc());
         
         // Ако няма корици се прескача плъгина
-        if (!count($interfaces)) {
+        if (!countR($interfaces)) {
             
             return;
         }

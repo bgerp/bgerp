@@ -487,7 +487,13 @@ class bgerp_Portal extends embed_Manager
         
         $prepareDebugName = 'prepare_' . $debugName;
         core_Debug::startTimer($prepareDebugName);
+        $showTagsName = Mode::get('showTagsName');
+        $tagsClassHolderName = Mode::get('tagsClassHolderName');
+        Mode::set('showTagsName', false);
+        Mode::set('tagsClassHolderName', 'tagsHolder');
         $data = $intf->prepare($rec, $cu);
+        Mode::set('tagsClassHolderName', $tagsClassHolderName);
+        Mode::set('showTagsName', $showTagsName);
         core_Debug::stopTimer($prepareDebugName);
         
         // Добавяме URL за страниране

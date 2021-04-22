@@ -543,8 +543,14 @@ if ($step == 2) {
                 $reposLastDate .= "<tr><td align='right'>" . basename($repoPath).": </td><td style='font-weight: bold;'>" . gitLastCommitDate($repoPath, $log) . ' (' . gitCurrentBranch($repoPath, $log) . ')</td></tr> ';
             }
             $reposLastDate .= '</table>';
+
             // Показваме бутони за ъпдейтване и информация за състоянието
-            $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »||";
+            $verTag = core_Updates::getNewVersionTag();
+            if ($verTag) {
+                $links[] = "inf|{$selfUrl}&amp;update&amp;checkoutMaxVersion|Превключване на следваща версия $verTag »||";
+            } else {
+                $links[] = "inf|{$selfUrl}&amp;update|Проверка за по-нова версия »||";
+            }
             $links[] = "wrn|{$nextUrl}|Продължаване без обновяване »";
             break;
         case true:
@@ -569,9 +575,16 @@ if ($step == 2) {
             // Парамерти от Request, команди => репозиторита
             $update = $_GET['update'];
             $revert = $_GET['revert'];
-        
+            $checkoutMaxVersion = isset($_GET['checkoutMaxVersion']);
+            
+            if ($checkoutMaxVersion) {
+                checkoutMaxVersion($log);
+                // $links[] = $log;
+                $links[] = "inf|{$nextUrl}|Продължете »";
+                break;
+            }
+            
             // Масив - лог за извършените действия
-        
             $newVer = 0;
             $changed = 0;
     
@@ -631,9 +644,6 @@ if ($step == 3) {
 
     $log = array();
 
-    // Ако има по-нова версия, към която да се мигрира базата данни - правим чекаут на нейния таг
-    checkoutMaxVersion($log);
-    
     // Проверяваме дали имаме достъп за четене/запис до следните директории
     $log[] = 'h:Проверка и създаване на работните директории:';
 

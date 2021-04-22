@@ -49,12 +49,6 @@ class fileman_DialogWrapper extends core_Plugin
             
             $tpl->append('<small><li>' . tr('Разширения') . ": {$this->info->extensions}</li></small></ul>");
 
-            $tpl->append('<ul><small>' . tr('Може да използвате|*: ') . "</small>");
-
-            $tpl->append('<small><li>' . tr('Добавяне от клипборда') . "</li></small>");
-
-            $tpl->append('<small><li>' . tr('Качване с влачене (драг и дроп)') . "</li></small></ul>");
-
             if ($this->info->accept) {
                 $tpl->replace("accept=\"{$this->info->accept}\"", 'ACCEPT');
             }

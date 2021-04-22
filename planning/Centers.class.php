@@ -215,7 +215,16 @@ class planning_Centers extends core_Master
             $result = (object) array(
                 'title' => $rec->name . ' ac',
                 'num' => 'Ac' . $rec->id,
+                'features' => array(),
             );
+
+            if(isset($rec->departmentId)){
+                $result->features['В състава на'] = hr_Departments::getTitleById($rec->departmentId);
+                $departmentLocationId = hr_Departments::fetchField($rec->departmentId, 'locationId');
+                if(isset($departmentLocationId)){
+                    $result->features['Локация'] = crm_Locations::getTitleById($departmentLocationId);
+                }
+            }
         }
         
         return $result;

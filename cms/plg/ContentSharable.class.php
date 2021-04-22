@@ -67,4 +67,62 @@ class cms_plg_ContentSharable extends core_Plugin
 
         $form->setOptions($mvc->contentMenuFld, $currentMenuOpt);
     }
+
+
+    /**
+     * Изпълнява се след подготовката на формата за филтриране
+     */
+    public function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $form = $data->listFilter;
+
+        // В хоризонтален вид
+        $form->view = 'horizontal';
+
+        // Добавяме бутон
+        $domains = cms_Domains::getDomainOptions(false, core_Users::getCurrent());
+        $form->FLD('domainId', 'key(mvc=cms_Domains,select=title)', 'caption=Домейн,silent,autoFilter,forceField');
+        if (countR($domains) == 1) {
+            $form->setField('domainId', 'input=hidden');
+        } else {
+            $form->setOptions('domainId', $domains);
+        }
+
+        $form->setDefault('domainId', cms_Domains::getCurrent());
+        $form->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        // Показваме само това поле. Иначе и другите полета
+        // на модела ще се появят
+        if($mvc->hasPlugin('plg_Search')){
+            $form->showFields = "search, {$mvc->contentMenuFld}, domainId";
+            $form->input("search, {$mvc->contentMenuFld}, domainId", "silent");
+        } else {
+            $form->showFields = "{$mvc->contentMenuFld}, domainId";
+            $form->input("{$mvc->contentMenuFld}, domainId", "silent");
+        }
+
+        cms_Domains::selectCurrent($form->rec->domainId);
+        $menuOptions = cms_Content::getMenuOpt($mvc->sharableToContentSourceClass, $form->rec->domainId);
+        $form->setOptions($mvc->contentMenuFld, $menuOptions);
+        $form->setField($mvc->contentMenuFld, 'refreshForm');
+
+        if (countR($menuOptions) == 0) {
+            redirect(array('cms_Content'), false, 'Моля въведете поне една точка от менюто с източник');
+        }
+
+        if ($form->rec->{$mvc->contentMenuFld} && !$menuOptions[$form->rec->{$mvc->contentMenuFld}]) {
+            $form->rec->{$mvc->contentMenuFld} = key($menuOptions);
+        }
+
+        if (countR($menuOptions) && !$form->isSubmitted()) {
+            $form->rec->{$mvc->contentMenuFld} = key($menuOptions);
+        }
+
+        if ($form->rec->menuId) {
+            $data->query->where(array("#{$mvc->contentMenuFld} = '[#1#]' OR #{$mvc->contentMenuSharedFld} LIKE '%|[#1#]|%'", $form->rec->{$mvc->contentMenuFld}));
+            $data->query->XPR('_isShared', 'enum(no,yes)', "(CASE #menuId WHEN {$form->rec->{$mvc->contentMenuFld}} THEN 'no' ELSE 'yes' END)");
+        }
+
+        $data->query->orderBy('#menuId');
+    }
 }

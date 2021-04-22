@@ -292,7 +292,7 @@ class tremol_FiscPrinterDriverWeb extends tremol_FiscPrinterDriverParent
             expect(is_numeric($pArr['PRICE']) && is_numeric($pArr['QTY']) && (is_numeric($pArr['DISC_ADD_P']) || $pArr['DISC_ADD_P'] == '') && (is_numeric($pArr['DISC_ADD_V']) || $pArr['DISC_ADD_V'] == ''));
             
             $fpSalePLU = $js->getBlock('fpSalePLU');
-            
+
             $fpSalePLU->replace(json_encode($pArr['PLU_NAME']), 'PLU_NAME');
             $fpSalePLU->replace($pArr['VAT_CLASS'], 'VAT_CLASS');
             $fpSalePLU->replace(json_encode($pArr['PRICE']), 'PRICE');

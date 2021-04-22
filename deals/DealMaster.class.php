@@ -59,7 +59,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith';
     
     
     /**
@@ -79,7 +79,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      *  При преминаването в кои състояния ще се обновяват планираните складови наличностти
      */
-    public $updatePlannedStockOnChangeStates = array('pending', 'active');
+    public $updatePlannedStockOnChangeStates = array('pending', 'active', 'stopped');
 
 
     /**
@@ -544,7 +544,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'closed' AND #closeWith IS NOT NULL");
                 break;
             case 'notClosedWith':
-                $query->where("(#state = 'active' || #state ='closed') AND #closeWith IS NULL");
+                $query->where("(#state = 'active' OR #state ='closed') AND #closeWith IS NULL");
                 break;
             case 'unionDeals':
                 $query->where("#state = 'active' OR #state = 'closed'");
@@ -677,7 +677,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see doc_DocumentIntf::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         expect($rec = $this->fetch($id));
         $title = static::getRecTitle($rec);
@@ -1090,6 +1090,9 @@ abstract class deals_DealMaster extends deals_DealBase
                     break;
                 case 'separate':
                     $fld = 'sepVat';
+                    break;
+                case 'exempt':
+                    $fld = 'exemptVat';
                     break;
                 default:
                     $fld = 'noVat';
@@ -2027,14 +2030,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         return $tpl;
     }
-    
-    
+
+
     /**
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
      * @param mixed               $id     - ид или запис на документа
      * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @param string $strategy - стратегия за намиране
      *
      * @return array $details - масив с артикули готови за запис
      *               o productId      - ид на артикул
@@ -2044,7 +2048,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
      */
-    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
         $details = array();
         $rec = $this->fetchRec($id);
@@ -2055,8 +2059,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $agreed = $info->get('products');
         $invoiced = $info->get('invoicedProducts');
         $packs = $info->get('shippedPacks');
-        
-        if ($ForMvc instanceof sales_Proformas) {
+
+        if($strategy == 'onlyFromDeal') {
             $products = $agreed;
             $invoiced = array();
             foreach ($products as $product1) {
@@ -2066,9 +2070,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-        
+
         if (!countR($products)) {
-            
+
             return $details;
         }
         
@@ -2368,6 +2372,11 @@ abstract class deals_DealMaster extends deals_DealBase
         // Създаване на мастър на документа
         try{
             $masterId = static::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+            if(isset($productId)){
+                static::logWrite('Създаване от артикул', $masterId);
+            } else {
+                static::logWrite('Създаване', $masterId);
+            }
         } catch(core_exception_Expect $e){
             reportException($e);
             followRetUrl(null, "Проблем при създаване на|* " . mb_strtolower($this->singleTitle));
@@ -2492,6 +2501,36 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         if(acc_plg_Contable::havePendingDocuments($rec->threadId, $rec->containerId)){
             followRetUrl(null, 'Сделката не може да се открие/закрие, защото има документи на заявка', 'error');
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        if(!core_Packs::isInstalled('rack')) return;
+
+        // Ако има, се спира оттеглянето
+        $rec = $mvc->fetchRec($id);
+
+        $errorDocuments = array();
+        $descendants = $mvc->getDescendants($rec->id);
+        if(is_array($descendants)){
+            foreach($descendants as $desc){
+                $descendantContainerId = $desc->fetchField('containerId');
+                if(rack_Zones::hasRackMovements($descendantContainerId)){
+                    $errorDocuments[] = $desc->getHandle();
+                }
+            }
+        }
+
+        if(countR($errorDocuments)){
+            $msg = implode(', ', $errorDocuments);
+            core_Statuses::newStatus( "Документа не може да се оттегли, докато следните документи имат нагласени количества в зона|*: {$msg}", 'error');
+
+            return false;
         }
     }
 }

@@ -147,15 +147,17 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         $iQuery->where(array("#saleActivatedOn >= '[#1#]' AND #saleActivatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
         
-        $ppsQuery = sales_ServicesDetails::getQuery();
-        
-        $ppsQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
-        
-        $ppsQuery->EXT('saleServThreadId', 'sales_Services', 'externalName=threadId,externalKey=shipmentId');
-        
-        while ($ppsRec = $ppsQuery->fetch()) {
-            $ppsArr[$ppsRec->saleServThreadId] += $ppsRec->price;
-        }
+//        $ppsQuery = sales_ServicesDetails::getQuery();
+//
+//        $ppsQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
+//
+//        $ppsQuery->EXT('saleServThreadId', 'sales_Services', 'externalName=threadId,externalKey=shipmentId');
+//
+//        $ppsArr = array();
+//
+//        while ($ppsRec = $ppsQuery->fetch()) {
+//            $ppsArr[$ppsRec->saleServThreadId] += $ppsRec->price;
+//        }
         
         while ($iRec = $iQuery->fetch()) {
             
@@ -181,13 +183,13 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $hiddenTransportCost = sales_TransportValues::calcInDocument('sales_Sales', $saleIdItem);
             
-            if (strpos($salecontoActions, 'ship') != false) {
+           // if (strpos($salecontoActions, 'ship') != false) {
                 $visibleTransportCost = self::getVisibleTransportCost($saleIdItem);
-            }
-            
-            if (in_array($threadIdItem, array_keys($ppsArr))) {
-                $visibleTransportCost += $ppsArr[$threadIdItem];
-            }
+          //  }
+
+            //if (in_array($threadIdItem, array_keys($ppsArr))) {
+                //$visibleTransportCost += $ppsArr[$threadIdItem];
+            //}
             
             
             // добавяме в масива
@@ -206,8 +208,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             
             $visibleTransportCost = $hiddenTransportCost = 0;
         }
-        
-        
+
         $cQuery = acc_CostAllocations::getQuery();
         
         $cQuery->in('expenseItemId', $salesItemsIds);
@@ -222,19 +223,31 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $className = cls::get($alocatedCost-> detailClassId)->className;
             
             $detailRec = $className::fetch($alocatedCost-> detailRecId);
-            
+
+            //Проверка, дали артикула е от тип "Транспортна услуга"
+            if (cat_Products::fetch($detailRec-> productId)->isPublic == 'no' &&
+                !cat_Products::haveDriver($detailRec-> productId,'transsrv_ProductDrv')){
+                continue;
+            }
+            if(cat_Products::fetch($detailRec-> productId)->isPublic == 'yes') {
+               $transIdArr = keylist::toArray(sales_Setup::get('TRANSPORT_PRODUCTS_ID'));
+               expect(!empty($transIdArr),'Липсва избран артикул за транспорт');
+               if (!in_array($detailRec-> productId,$transIdArr))continue;
+
+            }
+
             $masterClassName = cls::get($alocatedCost-> detailClassId)->Master->className;
-            
+
             
             if ($className == 'purchase_PurchasesDetails') {
                 if (in_array($masterClassName::fetchField($detailRec->requestId, 'state'), $stateArr)) {
                     continue;
                 }
                 
-                if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') == false) {
+                if (strpos($masterClassName::fetchField($detailRec->requestId, 'contoActions'), 'ship') === false) {
                     continue;
                 }
-                
+
                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> requestId.'/'.$alocatedCost-> detailClassId.',';
             }
             
@@ -242,14 +255,13 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 if (in_array($masterClassName::fetchField($detailRec->shipmentId, 'state'), $stateArr)) {
                     continue;
                 }
-                
+
                 if (substr($className, 0, 5) == 'sales') {
                     $marker = -1;
                 }
-                
-                $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
+                 $recs[$alocatedCost->expenseItemId]->purchaseId .= $detailRec-> shipmentId.'/'.$alocatedCost-> detailClassId.',';
             }
-            
+
             if (is_null($recs[$alocatedCost->expenseItemId]->countryId)) {
                 if (!is_null(cat_Products::fetch($detailRec-> productId)->toCountry)) {
                     $recs[$alocatedCost->expenseItemId]->countryId = cat_Products::fetch($detailRec-> productId)->toCountry;
@@ -262,7 +274,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             $recs[$alocatedCost->expenseItemId]->amount = $detailRec-> amount;
             $recs[$alocatedCost->expenseItemId]->amountPart += $detailRec-> price * $alocatedCost-> quantity * $marker;
         }
-        
+
         foreach ($recs as $key => $val) {
             
             //филтър по държава

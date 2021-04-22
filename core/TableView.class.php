@@ -115,7 +115,7 @@ class core_TableView extends core_BaseClass
         
         $fieldList = array();
         
-        if (count($fields)) {
+        if (countR($fields)) {
             foreach ($fields as $name => $dummy) {
                 if (!$dummy) {
                     unset($fields[$name]);
@@ -132,12 +132,12 @@ class core_TableView extends core_BaseClass
                 }
             }
             
-            if (count($fieldList)) {
+            if (countR($fieldList)) {
                 asort($fieldList);
             }
         }
         
-        if (count($fieldList)) {
+        if (countR($fieldList)) {
             foreach ($fieldList as $place => $columnOrder) {
                 $colHeaders = $fields[$place];
                 
@@ -145,7 +145,7 @@ class core_TableView extends core_BaseClass
                     $colHeaders = explode('->', $colHeaders);
                 }
                 
-                $maxColHeaders = max(count($colHeaders), $maxColHeaders);
+                $maxColHeaders = max(countR($colHeaders), $maxColHeaders);
                 
                 $fields[$place] = $colHeaders;
             }
@@ -244,14 +244,14 @@ class core_TableView extends core_BaseClass
         
         $curTH = 0;
         
-        if (count($header)) {
+        if (countR($header)) {
             foreach ($header as $i => $headerRow) {
-                if ($i == count($header) - 1) {
+                if ($i == countR($header) - 1) {
                     $lastRowStart = $curTH;     // Започва последният хедър
                     $lastRowFlag = true;
                 }
                 
-                $headerRowCnt = count($headerRow);
+                $headerRowCnt = countR($headerRow);
                 $j = 0;
                 foreach ($headerRow as $h) {
                     $attr = array();

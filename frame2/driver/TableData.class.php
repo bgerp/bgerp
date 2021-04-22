@@ -163,7 +163,7 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         $data->listFields = $this->getListFields($rec);
         $data->rows = array();
 
-        if(!$rec->data->recs->values){
+        if(!$rec->data->recs['values']){
             $this->enableChartTab = false;
             $this->chartTabDefault = false;
         }
@@ -357,7 +357,8 @@ abstract class frame2_driver_TableData extends frame2_driver_Proto
         // Рендиране на лист таблицата
         $fld = $this->getTableFieldSet($rec);
         $table = cls::get('core_TableView', array('mvc' => $fld));
-        
+        $table->tableClass = 'listTable frame2Table ' . cls::getClassName($this);
+
         // Показване на тагове
         if (core_Packs::isInstalled('uiext')) {
             uiext_Labels::showLabels($this, 'frame2_Reports', $rec->id, $data->recs, $data->rows, $data->listFields, $this->hashField, 'Таг', $tpl, $fld);

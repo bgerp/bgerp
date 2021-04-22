@@ -625,7 +625,8 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на полето за търсене и клавиатурата
         $input = ht::createElement('input', $params);
-        $holder = ht::createElement('div', array('class' => 'inputHolder'), $input, true);
+        $reset = ht::createElement('span', array("class" => "close-icon"), "&#10006;", true);
+        $holder = ht::createElement('div', array('class' => 'inputHolder'), $input . $reset, true);
         $block->append($holder, 'INPUT_FLD');
         
         // Добавяне на цифрова клавиатура
@@ -1339,8 +1340,7 @@ class pos_Terminal extends peripheral_Terminal
         $count = 0;
         foreach ($packs as $packagingId => $packName){
             $packRec = cat_products_Packagings::getPack($selectedRec->productId, $packagingId);
-            $packName = cat_UoM::getTitleById($packagingId);
-            
+            $packName = cat_UoM::getVerbal($packagingId, 'name');
             $btnCaption = tr($packName);
             if(is_object($packRec)){
                 $baseMeasureId = $measureId;
@@ -1369,7 +1369,7 @@ class pos_Terminal extends peripheral_Terminal
             $quantity = core_Type::getByName('double(smartRound)')->toVerbal($detailRec->quantity);
             Mode::pop('text', 'plain');
             if(!$detailRec->value)  continue; // Да не гърми при лоши данни
-            $packagingId = cat_UoM::getSmartName($detailRec->value, 1);
+
             $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($detailRec->value, $detailRec->quantity));
             $packDataName = cat_UoM::getTitleById($detailRec->value);
             $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $detailRec->quantity, 'data-pack' => $packDataName, 'data-url' => $dataUrl), $btnCaption, true);
@@ -1992,11 +1992,11 @@ class pos_Terminal extends peripheral_Terminal
             
             $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId) : null;
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
-                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId));
+                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, null,2));
             }
             
             if ((isset($stock) && $stock <= 0)) {
-                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0));
+                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0, 2));
                 $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
             }
             
@@ -2091,7 +2091,7 @@ class pos_Terminal extends peripheral_Terminal
         
         while($receiptRec = $query->fetch()){
             $openUrl = (pos_Receipts::haveRightFor('terminal', $receiptRec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $receiptRec->id, 'opened' => true) : array();
-            $class = (count($openUrl)) ? ' navigable' : ' disabledBtn';
+            $class = (countR($openUrl)) ? ' navigable' : ' disabledBtn';
             $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
             
             $btnTitle = self::getReceiptTitle($receiptRec);
