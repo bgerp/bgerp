@@ -230,12 +230,12 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
      * Подготвя записите
      *
      * За предадените артикули:
-     * 		Dt: 323. СМЗ на отговорно пазене				    (Контрагенти, Артикули)
+     * 		Dt: 3231. СМЗ на отговорно пазене				    (Контрагенти, Артикули)
      *      Ct: 321. Суровини, материали, продукция, стоки	    (Складове, Артикули)
      *
      * За върнатите артикули:
      * 		Dt: 321. Суровини, материали, продукция, стоки		(Складове, Артикули)
-     *      Ct: 323. СМЗ на отговорно пазене					(Контрагенти, Артикули)
+     *      Ct: 3231. СМЗ на отговорно пазене					(Контрагенти, Артикули)
      */
     public static function getEntries($mvc, $rec, $isReverse = false)
     {
@@ -245,7 +245,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         $dRecs = self::getRecs($mvc->getClassId(), $rec->id);
         foreach ($dRecs as $dRec) {
             $quantity = $dRec->quantityInPack * $dRec->packQuantity;
-            $arr323 = array('323', array($rec->contragentClassId, $rec->contragentId),
+            $arr323 = array('3231', array($rec->contragentClassId, $rec->contragentId),
                 array('cat_Products', $dRec->productId),
                 'quantity' => $sign * $quantity);
             

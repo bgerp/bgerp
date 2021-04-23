@@ -184,18 +184,15 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
         
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Плащане->Валута');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
-        
+        $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,maxRadio=2,notNull,default=ours');
+
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
-        $this->FLD(
-            'state',
-                'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)',
-                'caption=Статус, input=none'
-        );
+        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
         $this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
-        $this->FLD('responsible', 'varchar', 'caption=Получил');
+        $this->FLD('responsible', 'varchar', 'caption=Допълнително->Получил');
     }
     
     
@@ -305,7 +302,8 @@ class store_ConsignmentProtocols extends core_Master
     private function prepareSnapshot($rec, $date)
     {
         $rows = array();
-        
+        $accId = ($rec->productType == 'ours') ? '3231' : '3232';
+
         // Кое е перото на контрагента ?
         $contragentItem = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId);
         
@@ -316,22 +314,22 @@ class store_ConsignmentProtocols extends core_Master
             $to = dt::addDays(1, $date);
             $Balance = new acc_ActiveShortBalance(array('from' => $to,
                 'to' => $to,
-                'accs' => '323',
+                'accs' => $accId,
                 'item1' => $contragentItem->id,
                 'strict' => true,
                 'keepUnique' => true,
                 'cacheBalance' => false));
-            
+
             // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
-            $Balance = $Balance->getBalanceBefore('323');
+            $Balance = $Balance->getBalanceBefore($accId);
             
             $Double = cls::get('type_Double');
             $Double->params['smartRound'] = true;
             $Int = cls::get('type_Int');
             
-            $accId = acc_Accounts::getRecBySystemId('323')->id;
+            $accId = acc_Accounts::getRecBySystemId($accId)->id;
             $count = 1;
-            
+
             // Подготвяме записите за показване
             foreach ($Balance as $b) {
                 if ($b['accountId'] != $accId) {
@@ -364,7 +362,8 @@ class store_ConsignmentProtocols extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
+        $form->setDefault('productType', 'ours');
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);

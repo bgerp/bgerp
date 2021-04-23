@@ -4,7 +4,8 @@
             <tbody>
                 <tr>
                     <td class='centered'>
-                        <div class="document-title">|протокол за отговорно пазене|*</div> 
+                        <div class="document-title">|протокол за отговорно пазене|*</div>
+                        <div class='small'>( <i>|за|* [#productType#]</i> )</div>
                         <div style="padding-top:5px;">
                                 <span class="state [#STATE_CLASS#]">
                                     № <span class="bigData">[#id#]</span> /

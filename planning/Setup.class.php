@@ -168,7 +168,6 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',
-        'migrate::updateSecondMeasure',
     );
     
     
@@ -250,55 +249,6 @@ class planning_Setup extends core_ProtoSetup
 
                 core_Cron::addOnce($rec);
             }
-        }
-    }
-
-
-    /**
-     * Миграция на втората мярка на заданията
-     */
-    public function updateSecondMeasure()
-    {
-        $Jobs = cls::get('planning_Jobs');
-        if(!$Jobs->count()) return;
-
-        $cubMeasureId = cat_UoM::fetchBySinonim('cub.m')->id;
-        $litreId = cat_UoM::fetchBySinonim('l')->id;
-
-        // Обновяване на заданията, които имат втора мярка
-        $updateNoSecondMeasure = $updateLitre = array();
-        $query = $Jobs->getQuery();
-        $query->where("#state != 'closed' AND #state != 'rejected' AND (#allowSecondMeasure = '' OR #allowSecondMeasure IS NULL)");
-
-        // За всяко
-        while($rec = $query->fetch()){
-
-            // Ако няма втора мярка, значи ще е без
-            if(empty($rec->secondMeasureId)){
-                $rec->allowSecondMeasure = 'no';
-                $updateNoSecondMeasure[$rec->id] = $rec;
-            } else {
-                $rec->allowSecondMeasure = 'yes';
-
-                // Ако втората мярка е кубичен метър подменя се с литър
-                if($rec->secondMeasureId == $cubMeasureId){
-                    $rec->secondMeasureId = $litreId;
-                    if(!empty($rec->secondMeasureQuantity)){
-                        $rec->secondMeasureQuantity = cat_UoM::convertValue($rec->secondMeasureQuantity, $cubMeasureId, $litreId);
-                    }
-                    $updateLitre[$rec->id] = $rec;
-                } else {
-                    $updateNoSecondMeasure[$rec->id] = $rec;
-                }
-            }
-        }
-
-        if(countR($updateNoSecondMeasure)){
-            $Jobs->saveArray($updateNoSecondMeasure, 'id,allowSecondMeasure');
-        }
-
-        if(countR($updateLitre)){
-            $Jobs->saveArray($updateLitre, 'id,allowSecondMeasure,secondMeasureId,secondMeasureQuantity');
         }
     }
 }
