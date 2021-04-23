@@ -328,11 +328,16 @@ class store_Setup extends core_ProtoSetup
 
             // Записване на новата транзакция на документа
             try{
+                $startReconto = true;
                 Mode::push('recontoTransaction', true);
                 $success = acc_Journal::saveTransaction($doc->docType, $doc->docId, false);
                 Mode::pop('recontoTransaction');
-            } catch(acc_journal_RejectRedirect  $e){
+                $startReconto = false;
+            } catch(core_exception_Expect  $e){
                 reportException($e);
+                if($startReconto){
+                    Mode::pop('recontoTransaction');
+                }
             }
         }
     }
