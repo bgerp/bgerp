@@ -171,7 +171,7 @@ class eshop_Products extends core_Master
         $this->FLD('coMoq', 'double', 'caption=Запитване->МКП,hint=Минимално количество за поръчка,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Мярка,tdClass=centerCol');
         $this->FLD('quantityCount', 'enum(,3=3 количества,2=2 количества,1=1 количество)', 'caption=Запитване->Количества,placeholder=Без количество');
-        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
+        $this->FLD('saleState', 'enum(single=Единичен,multi=Избор,other=Други,closed=Стар артикул,empty=Без опции)', 'caption=Тип,input=none,notNull,value=empty');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,input=none');
         
         $this->setDbIndex('groupId');
@@ -569,8 +569,8 @@ class eshop_Products extends core_Master
             if(countR($allowedPacks)){
                 $dQuery->likeKeylist('packagings', $allowedPacks);
             }
-            $countWithAllowedPacks = $dQuery->count();
             
+            $countWithAllowedPacks = $dQuery->count();
             $saleState = $pRec->saleState;
             
             // Ако е множествен избор но само 1 или 0 детайла ще се покажат
@@ -590,10 +590,10 @@ class eshop_Products extends core_Master
             }
             
             if ($saleState == 'single') {
-                
+               
                 // Детайлите на артикула
                 $dQuery = eshop_ProductDetails::getQuery();
-                $dQuery->where("#eshopProductId = {$pRec->id}");
+                $dQuery->where("#eshopProductId = {$pRec->id} AND #state != 'closed'");
                 if(countR($allowedPacks)){
                     $dQuery->likeKeylist('packagings', $allowedPacks);
                 }
@@ -755,7 +755,8 @@ class eshop_Products extends core_Master
         $data->productId = Request::get('id', 'int');
         
         if (!$data->productId) {
-            $opt = cms_Content::getMenuOpt('eshop_Groups');
+            $domainId = cms_Domains::getPublicDomain('id');
+            $opt = cms_Content::getMenuOpt('eshop_Groups', $domainId);
             if (countR($opt)) {
                 return new Redirect(array('cms_Content', 'Show', key($opt)));
             }
@@ -848,11 +849,11 @@ class eshop_Products extends core_Master
         }
         
         if (self::haveRightFor('single', $data->rec)) {
-            $data->row->singleLink = ht::createLink('', array('eshop_Products', 'single', $data->rec->id, 'ret_url' => true), false, "ef_icon={$this->singleIcon},height=16px,width;16px,title=Разглеждане на Е-артикула");
+            $data->row->singleLink = ht::createLink('', array('eshop_Products', 'single', $data->rec->id, 'ret_url' => true), false, "ef_icon={$this->singleIcon},title=Разглеждане на Е-артикула");
         }
         
         if (self::haveRightFor('edit', $data->rec)) {
-            $data->row->editLink = ht::createLink('', array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,height=16px,width;16px,title=Редактиране на Е-артикула');
+            $data->row->editLink = ht::createLink('', array('eshop_Products', 'edit', $data->rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на Е-артикула');
         }
         
         Mode::set('SOC_TITLE', $data->row->name);
@@ -987,7 +988,7 @@ class eshop_Products extends core_Master
         $mRec = cms_Content::fetch($gRec->menuId);
         $lg = $mRec->lang;
         
-        $lg{0} = strtoupper($lg{0});
+        $lg[0] = strtoupper($lg[0]);
         
         $url = array('A', 'p', $rec->vid ? $rec->vid : $rec->id, 'PU' => (haveRole('powerUser') && !$canonical) ? 1 : null);
         
@@ -1111,8 +1112,11 @@ class eshop_Products extends core_Master
         $form->setDefault('code', ($productRec->code) ? $productRec->code : "Art{$productRec->id}");
         $form->setField('packagings', 'input');
         $form->setSuggestions('packagings', cat_Products::getPacks($productRec->id));
-        
+
+        Mode::push('text', 'plain');
         $description = cat_Products::getDescription($productRec->id, 'public')->getContent();
+        Mode::pop();
+
         $description = html2text_Converter::toRichText($description);
         $description = cls::get('type_Richtext')->fromVerbal($description);
         $description = str_replace("\n\n", "\n", $description);
@@ -1132,7 +1136,7 @@ class eshop_Products extends core_Master
             
             if ($pState != 'template') {
                 $packagings = !empty($rec->packagings) ? $rec->packagings : keylist::addKey('', cat_Products::fetchField($rec->productId, 'measureId'));
-                $dRec = (object) array('productId' => $rec->productId, 'packagings' => $packagings, 'eshopProductId' => $rec->id);
+                $dRec = (object) array('productId' => $rec->productId, 'packagings' => $packagings, 'eshopProductId' => $rec->id, 'action' => 'buy');
                 eshop_ProductDetails::save($dRec);
             }
         }
@@ -1264,6 +1268,9 @@ class eshop_Products extends core_Master
             $packs = cat_Products::getPacks($productId);
             $form->setSuggestions('packagings', $packs);
             $form->setDefault('packagings', keylist::addKey('', key($packs)));
+            $form->setDefault('action', 'buy');
+        } else {
+            $form->setDefault('action', 'inquiry');
         }
         
         if (isset($form->rec->domainId)) {
@@ -1350,12 +1357,6 @@ class eshop_Products extends core_Master
             if (eshop_CartDetails::fetchField("#eshopProductId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             } elseif (marketing_Inquiries2::fetchField("#sourceClassId = {$mvc->getClassId()} AND #sourceId = {$rec->id}")) {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        if ($action == 'changestate' && isset($rec)) {
-            if ($mvc->haveRightFor('delete', $rec)) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -1593,17 +1594,20 @@ class eshop_Products extends core_Master
         $dQuery = eshop_ProductDetails::getQuery();
         $dQuery->where("#eshopProductId = {$id}");
         $dQuery->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
-        $dQuery->show('state, pState');
+        $dQuery->show('state, pState,action');
         $details = $dQuery->fetchAll();
         
         // Колко опции има и дали сред тях има затворени
-        $countNotClosed = $countClosed = 0;
+        $countNotClosed = $countClosed = $countBuyable = 0;
         $count = $dQuery->count();
-        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed) {
+        array_walk($details, function ($a) use (&$countClosed, &$countNotClosed, &$countBuyable) {
             if ($a->state != 'active' || $a->pState != 'active') {
                 $countClosed++;
             } else {
                 $countNotClosed++;
+                if(in_array($a->action, array('buy', 'both'))){
+                    $countBuyable++;
+                }
             }
         });
         
@@ -1611,10 +1615,12 @@ class eshop_Products extends core_Master
             $saleState = 'empty';
         } elseif ($count > 0 && $count == $countClosed) {
             $saleState = 'closed';
-        } elseif ($countNotClosed == 1) {
+        } elseif ($countNotClosed == 1 && $countBuyable == 1) {
             $saleState = 'single';
-        } else {
+        } elseif($countNotClosed > 1 && $countBuyable == $countNotClosed) {
             $saleState = 'multi';
+        } else {
+            $saleState = 'other';
         }
         
         return $saleState;
@@ -1904,5 +1910,17 @@ class eshop_Products extends core_Master
         $res = array_values($res);
         
         return $res;
+    }
+
+
+    /**
+     * Какво е заглавието на източника
+     *
+     * @param $id     - ид на запис
+     * @return string - заглавие
+     */
+    public function getSourceTitle($id)
+    {
+        return $this->getHyperlink($id, true);
     }
 }

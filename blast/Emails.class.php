@@ -567,7 +567,7 @@ class blast_Emails extends core_Master
                 
                 // Първия валиден имейл, който не е в блокорани, да е получателя
                 foreach ((array) $emailsArr as $email) {
-                    if (blast_BlockedEmails::isBlocked($email)) {
+                    if (email_AddressesInfo::isBlocked($email)) {
                         continue;
                     }
                     $toEmail = $email;
@@ -637,8 +637,8 @@ class blast_Emails extends core_Master
                 } else {
                     // Ако възникне грешка при изпращане, записваме имейла, като върнат
                     $this->logNotice('Върнато писмо', $rec->id);
-                    
-                    blast_BlockedEmails::addEmail($toEmail, true, 'error');
+
+                    email_AddressesInfo::addEmail($toEmail, true, 'error');
                 }
                 
                 unset($notSendDataArr[$detId]);
@@ -1397,7 +1397,7 @@ class blast_Emails extends core_Master
         $email = $hRec->data->to;
         
         // Ако имейл-а е в листата на блокираните имейли или сме натиснали бутона за премахване от листата
-        if (($uns == 'del') || ((!$uns) && (blast_BlockedEmails::isBlocked($email)))) {
+        if (($uns == 'del') || ((!$uns) && (email_AddressesInfo::isBlocked($email)))) {
             
             // Какво действие ще правим след натискане на бутона
             $act = 'add';
@@ -1407,7 +1407,7 @@ class blast_Emails extends core_Master
             
             // Добавяме имейл-а в листата на блокираните
             if ($uns) {
-                blast_BlockedEmails::blockEmail($email);
+                email_AddressesInfo::blockEmail($email);
             }
             
             $text = $conf->BGERP_BLAST_SUCCESS_REMOVED;
@@ -1416,7 +1416,7 @@ class blast_Emails extends core_Master
             $click = 'Премахване';
             
             // Премахваме имейл-а от листата на блокираните имейли
-            blast_BlockedEmails::unBlockEmail($email);
+            email_AddressesInfo::unBlockEmail($email);
             $text = $conf->BGERP_BLAST_SUCCESS_ADD;
         } else {
             $act = 'del';
@@ -2358,7 +2358,7 @@ class blast_Emails extends core_Master
      *
      * @return object
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         

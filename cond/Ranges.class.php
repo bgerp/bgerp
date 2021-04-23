@@ -85,7 +85,7 @@ class cond_Ranges extends core_Manager
         $this->FLD('roles', 'keylist(mvc=core_Roles,select=role,groupBy=type,orderBy=orderByRole)', 'caption=Достъп->Роли,autohide');
         $this->FLD('users', 'userList', 'caption=Достъп->Потребители,autohide');
         
-        $this->FLD('current', 'bigint', 'input=none,caption=Текущ');
+        $this->FLD('current', 'bigint', 'input=none,caption=Текущ,tdClass=italicText green');
         $this->FLD('lastUsedOn', 'datetime(format=smartTime)', 'input=none,caption=Последно');
         $this->FLD('systemId', 'varchar', 'input=none,caption=Системно ид');
         
@@ -259,12 +259,14 @@ class cond_Ranges extends core_Manager
             
             throw new core_exception_Expect('Избраният диапазон е запълнен. Моля изберете друг|*!', 'Несъответствие');
         }
-        
+
         $query = $mvc->getQuery();
-        $query->XPR('maxNum', 'int', "MAX(#{$numberField})");
-        $query->between('number', $rec->min, $rec->max);
-        
-        if (!$maxNum = $query->fetch()->maxNum) {
+        $query->between($numberField, $rec->min, $rec->max);
+        $query->orderBy($numberField, 'DESC');
+        $query->limit(1);
+        $query->show($numberField);
+
+        if (!$maxNum = $query->fetch()->{$numberField}) {
             $next = $rec->min;
         } else {
             $next = $maxNum + 1;

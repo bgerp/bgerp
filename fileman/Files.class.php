@@ -17,6 +17,14 @@
  */
 class fileman_Files extends core_Master
 {
+
+
+    /**
+     * Кой може да променя файла
+     */
+    public $canEditfile = 'user';
+
+
     /**
      * Детайла, на модела
      */
@@ -29,7 +37,7 @@ class fileman_Files extends core_Master
     /**
      * Всички потребители могат да разглеждат файлове
      */
-    protected $canSingle = 'powerUser';
+    protected $canSingle = 'user';
     
     
     protected $canDelete = 'no_one';
@@ -58,7 +66,7 @@ class fileman_Files extends core_Master
     /**
      * Кой има права за регенерира на файла
      */
-    protected $canPrintfiles = 'powerUser';
+    protected $canPrintfiles = 'user';
     
     
     /**
@@ -1895,7 +1903,7 @@ class fileman_Files extends core_Master
         expect($fRec, 'Няма такъв запис.');
         
         // Проверяваме за права
-        $this->requireRightFor('single', $fRec);
+        $this->requireRightFor('editfile', $fRec);
         
         //URL' то където ще се редиректва при отказ
         $retUrl = getRetUrl();
@@ -2024,7 +2032,7 @@ class fileman_Files extends core_Master
         $linkBtn = ht::createLink(tr('Линк'), array('F', 'GetLink', 'fileHnd' => $fh, 'ret_url' => true), null, array('ef_icon' => 'img/16/link.png', 'title' => 'Генериране на линк за сваляне', 'class' => 'button'));
         $tpl->append($linkBtn);
         
-        if ($printAttr = $this->checkForPrintBnt($this, $fRec)) {
+        if ($printAttr = $this->checkForPrintBtn($this, $fRec)) {
             if (!$printAttr['disabled']) {
                 $printLink = ht::createLink(tr('Печат'), array($this, 'PrintFiles', 'fileHnd' => $fRec->fileHnd, 'ret_url' => true), $printAttr['warning'], array('ef_icon' => 'img/16/printer.png', 'target' => '_blank', 'title' => 'Печат на документа', 'class' => 'button', 'onclick' => 'if ($(".iw-mTrigger").contextMenu) {$(".iw-mTrigger").contextMenu("close");}'));
                 $tpl->append($printLink);
@@ -2154,8 +2162,21 @@ class fileman_Files extends core_Master
         
         return false;
     }
-    
-    
+
+
+    /**
+     * Какви роли са необходими за качване или сваляне?
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$roles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'editfile' && !haveRole('powerUser')) {
+            if ($rec->createdBy != $userId) {
+                $roles = 'no_one';
+            }
+        }
+    }
+
+
     /**
      * Извиква се след конвертирането на реда ($rec) към вербални стойности ($row)
      */
@@ -2249,10 +2270,10 @@ class fileman_Files extends core_Master
         
         // Масив с линка към папката и документа на първата достъпна нишка, където се използва файла
         $pathArr = static::getFirstContainerLinks($rec);
-        
+
         // Ако има такъв документ
         if (countR($pathArr)) {
-            
+
             // Пътя до файла и документа
             $path = ' « ' . $pathArr['firstContainer']['content'] . ' « ' . $pathArr['folder']['content'];
             
@@ -2309,7 +2330,7 @@ class fileman_Files extends core_Master
     /**
      * Проверява дали да се покаже бутона за печат. Предава и параметрите за бутона: warning, disabled
      */
-    public function checkForPrintBnt($mvc, $rec, $activeProcessing = false)
+    public function checkForPrintBtn($mvc, $rec, $activeProcessing = false)
     {
         $ext = self::getExt($rec->name);
         
@@ -2378,7 +2399,7 @@ class fileman_Files extends core_Master
             $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=19.99, row=2');
         }
         
-        if ($printAttr = $this->checkForPrintBnt($mvc, $data->rec, true)) {
+        if ($printAttr = $this->checkForPrintBtn($mvc, $data->rec, true)) {
             $warning = $printAttr['warning'] ? ',warning = ' . $printAttr['warning'] : '';
             $data->toolbar->addBtn('Печат', array($mvc, 'PrintFiles', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btnPrint, target=_blank', "ef_icon = img/16/printer.png, title=Печат на документа{$printAttr['disabled']}{$warning}");
         }
@@ -2394,24 +2415,45 @@ class fileman_Files extends core_Master
             
             // Вземаме масива с документите, които може да създаде
             $arrCreate = $className::getActionsForFile($fRec);
-            
+
             if (is_array($arrCreate)) {
                 // Обхождаме масива
                 foreach ($arrCreate as $id => $arr) {
-                    
+
                     // Ако има полета, създаваме бутона
-                    if (count($arr)) {
+                    if (count($arr) && $className::haveRightFor('add')) {
                         $data->toolbar->addBtn($arr['title'], $arr['url'], 'row=2,id=' . $id . ',ef_icon=' . $arr['icon'], $arr['btnParams']);
                     }
                 }
             }
         }
         
-        if ($mvc->haveRightFor('single', $data->rec->id)) {
+        if ($mvc->haveRightFor('editfile', $data->rec->id)) {
             $data->toolbar->addBtn('Преименуване', array($mvc, 'editFile', $data->rec->fileHnd, 'ret_url' => true), 'id=btn-rename', 'ef_icon = img/16/edit-icon.png, title=Преименуване на файла, row=2');
         }
     }
-    
+
+
+    /**
+     *
+     * @return stdClass
+     */
+    public function act_Single()
+    {
+        if (core_Users::isContractor()) {
+            Mode::set('noWrapper', true);
+
+            $res = new ET();
+            $res->append("<div class='filemanSingle'>");
+            $res->append(parent::act_Single());
+            $res->append("</div>");
+
+            return  $res;
+        }
+
+        return parent::act_Single();
+    }
+
     
     /**
      * Екшън за отпечатване

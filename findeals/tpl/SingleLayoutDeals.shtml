@@ -18,6 +18,7 @@
             <!--ET_BEGIN STATISTIC_BAR-->
             [#STATISTIC_BAR#]
             <div class="sale-summary">
+                <div style="margin-bottom:7px;font-weight:bold;font-size:1.2em">[#accountId#]</div>
                 <table class='paddingCells' style='width:100%;'>
                     <tr>
                         <td class = 'sum-th'>
@@ -35,9 +36,12 @@
                     </tr>
                     <tr>
                         <td class = 'nowrap'>[#amountDeal#]</td>
-                        <td class = 'nowrap'>[#debitAmount#] </td>
-                        <td class = 'nowrap'>[#creditAmount#]</td>
-                        <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left;width:1%'>
+                        <td class = 'nowrap'><div>[#debitAmount#]</div>
+                            <!--ET_BEGIN curDebitAmount--><div class='small currentStat'>от страницата: [#curDebitAmount#]</div><!--ET_END curDebitAmount-->
+                        </td>
+                        <td class = 'nowrap'><div>[#creditAmount#]</div>
+                            <!--ET_BEGIN curCreditAmount--><div class='small currentStat'>от страницата: [#curCreditAmount#]</div><!--ET_END curCreditAmount-->
+                        <td class = 'vtop' style='font-size:0.8em;vertical-align:top;text-align:left;width: 300px;'>
                         	<span style='font-weight:normal'>[#contragentCaption#] : [#contragentName#]</span>
                         	<!--ET_BEGIN secondContragentId-->
                         	<br><span style='font-weight:normal'>|Втори контрагент|* : [#secondContragentId#]</span>
@@ -85,7 +89,6 @@
 		        </tr>
 		        <!--ET_END closedDocuments-->
 		    </table>
-		    <div style='margin-bottom:5px'>[#accountId#]</div>
 		    <!--ET_BEGIN HISTORY-->
 		    [#HISTORY#]
 		    <!--ET_END HISTORY-->

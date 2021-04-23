@@ -89,16 +89,16 @@ class crm_Companies extends core_Master
     /**
      * Полета за експорт
      */
-    public $exportableCsvFields = 'name,nameList,country,pCode,place,address,email,tel,fax,website,vatId,uicId,nkid,info,logo,folderName,groupList';
-    
+    public $exportableCsvFields = 'name,vatId,uicId,eori,country,pCode,place,address,email,tel,fax,website,info,logo,folderName,nkid,groupList';
     
     /**
      * Класове за автоматично зареждане
      */
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2, plg_State, 
                      Groups=crm_Groups, crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext,
-                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, plg_Printing,
-                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg';
+                     plg_Sorting, recently_Plugin, plg_Search, plg_Rejected,doc_FolderPlg, bgerp_plg_Groups, drdata_plg_Canonize, plg_Printing,
+                     acc_plg_Registry, doc_plg_Close, plg_LastUsedKeys,plg_Select,bgerp_plg_Import, drdata_PhonePlg,bgerp_plg_Export,
+                     plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg';
     
     
     /**
@@ -111,8 +111,16 @@ class crm_Companies extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
-    
-    
+
+
+    /**
+     * Кои полета да се канонизират и запишат в друг модел
+     *
+     * @see drdata_plg_Canonize
+     */
+    public $canonizeFields = 'uicId=uic';
+
+
     /**
      * Кой може да добавя?
      */
@@ -122,7 +130,7 @@ class crm_Companies extends core_Master
     /**
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
-    public $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id';
+    public $searchFields = 'name,pCode,place,country,folderName,email,tel,fax,website,vatId,info,uicId,id,eori';
     
     
     /**
@@ -299,10 +307,11 @@ class crm_Companies extends core_Master
         
         // Данъчен номер на фирмата
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv,silent');
-        $this->FLD('uicId', 'varchar(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('uicId', 'drdata_type_Uic(26)', 'caption=Национален №,remember=info,class=contactData,export=Csv,silent');
+        $this->FLD('eori', 'drdata_type_Eori', 'caption=EORI №,remember=info,class=contactData,export=Csv,silent');
         
         // Адресни данни
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv');
+        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,remember,class=contactData,mandatory,export=Csv,silent,removeAndRefreshForm');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,export=Csv');
         $this->FLD('place', 'varchar(64)', 'caption=Град,class=contactData,hint=Населено място: град или село и община,export=Csv');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData,export=Csv');
@@ -323,7 +332,7 @@ class crm_Companies extends core_Master
         }
         
         // Допълнителна информация
-        $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
+        $this->FLD('info', 'richtext(bucket=crmFiles, passage)', 'caption=Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('logo', 'fileman_FileType(bucket=pictures)', 'caption=Лого,export=Csv');
         $this->FLD('folderName', 'varchar', 'caption=Име на папка');
         
@@ -410,7 +419,7 @@ class crm_Companies extends core_Master
         
         
         if ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
@@ -532,27 +541,26 @@ class crm_Companies extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $form = $data->form;
-        
+
         if (empty($form->rec->name)) {
-            $form->setField('vatId', 'removeAndRefreshForm=name|address|pCode|country|place');
-            $form->setField('uicId', 'removeAndRefreshForm=name|address|pCode|country|place');
-            
-            if(empty($form->rec->name)){
-                $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
-                
-                // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
-                if(!empty($cDataSource)){
-                    if($cData = self::getCompanyDataFromString($cDataSource)){
-                        
-                        foreach (array('name', 'country', 'pCode', 'place', 'address', 'vatId', 'uicId') as $cFld){
-                            if(!empty($cData->{$cFld})){
-                                $form->setDefault($cFld, $cData->{$cFld});
-                            }
+
+            $cDataSource = !empty($form->rec->vatId) ? $form->rec->vatId : $form->rec->uicId;
+            // Ако не е въведено име, но има валиден ват попълват се адресните данни от него
+            if(!empty($cDataSource)){
+                if($cData = self::getCompanyDataFromString($cDataSource)){
+                    foreach (array('name', 'country', 'pCode', 'place', 'address', 'vatId', 'uicId') as $cFld){
+                        if(!empty($cData->{$cFld})){
+                            $form->setDefault($cFld, $cData->{$cFld});
                         }
                     }
                 }
             }
-            
+
+            if(empty($form->rec->name)){
+                $form->setField('vatId', 'removeAndRefreshForm=name|address|pCode|country|place');
+                $form->setField('uicId', 'removeAndRefreshForm=name|address|pCode|country|place');
+            }
+
             // Дефолтната държава е същата, като на "Моята фирма"
             $myCompany = self::fetchOwnCompany();
             $form->setDefault('country', $myCompany->countryId);
@@ -566,6 +574,10 @@ class crm_Companies extends core_Master
         }
         
         $mvc->autoChangeFields($form);
+
+        if(empty($form->rec->id)){
+            $form->setField('name', 'formOrder=3');
+        }
     }
     
     
@@ -804,9 +816,9 @@ class crm_Companies extends core_Master
     protected static function on_AfterInputEditForm($mvc, $form)
     {
         $rec = $form->rec;
-        
+
         if ($form->isSubmitted()) {
-            
+
             // Проверяваме да няма дублиране на записи
             $fields = '';
             $resStr = static::getSimilarWarningStr($form->rec, $fields);
@@ -833,17 +845,9 @@ class crm_Companies extends core_Master
                 $Vats = cls::get('drdata_Vats');
                 $rec->vatId = $Vats->canonize($rec->vatId);
             }
-            
-            if (!empty($rec->uicId)) {
-                $msg = $isError = null;
-                static::checkUicId($rec->uicId, $rec->country, $msg, $isError);
-                if (!empty($msg)) {
-                    if ($isError === true) {
-                        $form->setError('uicId', $msg);
-                    } else {
-                        $form->setWarning('uicId', $msg);
-                    }
-                }
+
+            if(!empty($rec->uicId)){
+                drdata_type_Uic::check($form, $rec->uicId, $rec->country);
             }
         }
     }
@@ -866,7 +870,7 @@ class crm_Companies extends core_Master
             type_Varchar::escape($data->listFilter->rec->search) .
             '</b>"';
         } elseif ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Фирми, които започват с не-буквени символи';
             } else {
                 $data->title = "Фирми, започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
@@ -875,8 +879,17 @@ class crm_Companies extends core_Master
             $data->title = null;
         }
     }
-    
-    
+
+
+    /**
+     * Изпълнява се преди преобразуването към вербални стойности на полетата на записа
+     */
+    protected static function on_BeforeRecToVerbal($mvc, $row, $rec, $fields = array())
+    {
+        $mvc->setFieldTypeParams('uicId', array('countryId' => $rec->country));
+    }
+
+
     /**
      * Промяна на данните от таблицата
      *
@@ -900,16 +913,6 @@ class crm_Companies extends core_Master
                 $row->image = $Fancybox->getImage($rec->logo, $tArr, $mArr);
             } elseif (!Mode::is('screenMode', 'narrow')) {
                 $row->image = '<img class="hgsImage" src=' . sbf('img/noimage120.gif') . " alt='no image'>";
-            }
-            
-            if (!empty($rec->uicId)) {
-                $msg = $isError = null;
-                crm_Companies::checkUicId($rec->uicId, $rec->country, $msg, $isError);
-                if (!empty($msg)) {
-                    $row->uicId = "<span class='red'>{$row->uicId}</span>";
-                    $icon = ($isError === true) ? 'error' : 'warning';
-                    $row->uicId = ht::createHint($row->uicId, $msg, $icon);
-                }
             }
             
             $VatType = new drdata_VatType();
@@ -975,7 +978,6 @@ class crm_Companies extends core_Master
         }
         
         $row->titleNumber = "<div class='number-block' style='display:inline'>№{$rec->id}</div>";
-        
         if ($rec->vatId && $rec->uicId) {
             if ("BG{$rec->uicId}" == $rec->vatId) {
                 unset($row->uicId);
@@ -1316,7 +1318,7 @@ class crm_Companies extends core_Master
         $query->XPR('searchFieldXprLower', 'text', "LOWER({$xpr})");
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             
@@ -1341,7 +1343,14 @@ class crm_Companies extends core_Master
         }
         
         $query->show('id,searchFieldXpr');
-        
+
+        if ($params['group']) {
+            $gId = crm_Groups::getIdFromSysId($params['group']);
+            expect($gId);
+
+            $query->likeKeylist('groupList', $gId);
+        }
+
         $res = array();
         
         while ($rec = $query->fetch()) {
@@ -1739,6 +1748,7 @@ class crm_Companies extends core_Master
             $contrData->companyVerb = crm_Companies::getVerbal($company, 'name');
             $contrData->companyId = $company->id;
             $contrData->vatNo = $company->vatId;
+            $contrData->eori = $company->eori;
             $contrData->uicId = $company->uicId;
             $contrData->tel = $company->tel;
             $contrData->fax = $company->fax;
@@ -2326,12 +2336,20 @@ class crm_Companies extends core_Master
             if ($fld->input != 'none' && $fld->input != 'hidden' && $fld->kind != 'FNC') {
                 $fields[$name] = array('caption' => $fld->caption, 'mandatory' => $fld->mandatory);
                 if ($name == $mvc->expandInputFieldName) {
+                    $tGroup = $fields[$name];
+                    unset($fields[$name]);
+
+                    $fields['groups'] = array('caption' => 'Група->CSV');
+
+                    $fields[$name] = $tGroup;
+
                     $fields[$name]['notColumn'] = true;
+                    $fields[$name]['caption'] = 'Група->Избор';
                     $fields[$name]['type'] = 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'persons\\\'AND #state !\\= \\\'rejected\\\')';
                 }
             }
         }
-        
+
         unset($fields['shared']);
         unset($fields['access']);
         unset($fields['inCharge']);
@@ -2382,7 +2400,11 @@ class crm_Companies extends core_Master
         if (isset($rec->country)) {
             $rec->country = drdata_Countries::getIdByName($rec->country);
         }
-        
+
+        if (isset($rec->nkid)) {
+            $rec->nkid = bglocal_NKID::fetchField(array("#title = '[#1#]'", $rec->nkid));
+        }
+
         // Проверка дали има дублиращи се записи
         $query = $mvc->getQuery();
         if ($name = trim($rec->name)) {
@@ -2402,55 +2424,54 @@ class crm_Companies extends core_Master
         if ($oRec = $query->fetch()) {
             $rec->id = $oRec->id;
         }
-    }
-    
-    
-    /**
-     * Проверява дали подадения национален номер е валиден
-     * В случая че държавата е България или няма държава, проверяваме
-     * дали е валиден ЕИК номер. Във всички други случаи приемаме че е валиден
-     *
-     * @param string $uicNo     - националния номер на контрагента
-     * @param string $countryId - id на държавата, NULL за България
-     *
-     * @return bool - валиден ли е националния номер
-     */
-    public static function checkUicId($uicNo, $countryId = null, &$msg, &$isError)
-    {
-        $msg = null;
-        expect($uicNo);
-        $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
-        
-        // Ако няма държава или държавате е България, провряваме дали е валиден ЕИК номер
-        if (empty($countryId) || $countryId == $bgId) {
-            
-            // Дали е валидно ЕИК ?
-            $res = drdata_Vats::isBulstat($uicNo);
-            if ($res) {
-                
-                return true;
-            }
-            
-            $msg = 'Невалиден ЕИК';
-            
-            // Ако не е валидно и с 10 символа, се проверява дали не е ЕГН
-            if (mb_strlen($uicNo) == 10) {
-                $Egn = cls::get('bglocal_EgnType');
-                $res = $Egn->isValid($uicNo);
-                if (!isset($res['error'])) {
-                    
-                    return true;
+
+        // Ако има избрана група от csv файла
+        if (isset($rec->groups)) {
+            $delimiter = csv_Lib::getDevider($rec->groups);
+
+            $groupArr = explode($delimiter, $rec->groups);
+
+            $groupIdArr = array();
+
+            $missingGroupArr = array();
+            foreach ($groupArr as $groupName) {
+                $groupName = trim($groupName);
+
+                if (!$groupName) {
+                    continue;
                 }
-                $msg = 'ДДС номер (9,10 или 13 символа): въведени са 10 символа, които не са валидно ЕИК/ЕГН';
+
+                $force = false;
+                if (haveRole('debug')) {
+                    $force = true;
+                }
+                $groupId = crm_Groups::force($groupName, null, $force);
+
+                if (!isset($groupId)) {
+                    $missingGroupArr[] = $groupName;
+                }
+
+                $groupIdArr[$groupId] = $groupId;
             }
-            
-            $isError = true;
-            
-            return false;
+
+            if (!empty($missingGroupArr)) {
+                $groupName = implode(', ', $missingGroupArr);
+                $rec->__errStr = "Липсваща група при импортиране: {$groupName}";
+                self::logNotice($rec->__errStr);
+
+                return false;
+            }
+
+            if ($rec->groupListInput) {
+                if (!empty($groupIdArr)) {
+                    $rec->groupListInput = type_Keylist::merge($rec->groupListInput, type_Keylist::fromArray($groupIdArr));
+                }
+            } else {
+                if (!empty($groupIdArr)) {
+                    $rec->groupListInput = type_Keylist::fromArray($groupIdArr);
+                }
+            }
         }
-        
-        // Ако се стигне до тук, винаги номера е валиден
-        return true;
     }
     
     

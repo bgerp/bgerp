@@ -85,8 +85,8 @@ class bank_IncomeDocuments extends bank_Document
      * Права за плъгин-а bgerp_plg_Export
      */
     public $canExport = 'ceo, invoicer';
-    
-    
+
+
     /**
      * Описание на модела
      */
@@ -111,7 +111,7 @@ class bank_IncomeDocuments extends bank_Document
         
         expect($origin = $mvc->getOrigin($form->rec), $form->rec);
         $form->setOptions('ownAccount', bank_OwnAccounts::getOwnAccounts(false));
-        
+        $options = array();
         $mvc->setDefaultsFromOrigin($origin, $form, $options);
         
         $form->setSuggestions('contragentIban', bank_Accounts::getContragentIbans($form->rec->contragentId, $form->rec->contragentClassId));

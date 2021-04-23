@@ -19,201 +19,201 @@ class store_Transfers extends core_Master
      * Заглавие
      */
     public $title = 'Междускладови трансфери';
-    
-    
+
+
     /**
      * Абревиатура
      */
     public $abbr = 'Str';
-    
-    
+
+
     /**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, acc_TransactionSourceIntf=store_transaction_Transfer, acc_AllowArticlesCostCorrectionDocsIntf,trans_LogisticDataIntf';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, plg_Sorting, plg_Printing, store_plg_Request, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
-    
-    
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+
+
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
      * @see plg_Clone
      */
     public $cloneDetails = 'store_TransfersDetails';
-    
-    
+
+
     /**
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = true;
-    
-    
+
+
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'fromStore, toStore, folderId, id';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo,store';
-    
-    
+
+
     /**
      * Кой има право да променя?
      */
     public $canChangeline = 'ceo,store';
-    
-    
+
+
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,store';
-    
-    
+
+
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,store';
-    
-    
+
+
     /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,store';
-    
-    
+
+
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'ceo,store';
-    
-    
+
+
     /**
      * Кой може да го изтрие?
      */
     public $canConto = 'ceo,store';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'deliveryTime,valior, title=Документ, fromStore, toStore, weight, volume,lineId, folderId, createdOn, createdBy';
-    
-    
+
+
     /**
      * Името на полето, което ще е на втори ред
      */
     public $listFieldsExtraLine = 'title=bottom';
-    
-    
+
+
     /**
      * Детайла, на модела
      */
     public $details = 'store_TransfersDetails';
-    
-    
+
+
     /**
      * Кой е главния детайл
      *
      * @var string - име на клас
      */
     public $mainDetail = 'store_TransfersDetails';
-    
-    
+
+
     /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Междускладов трансфер';
-    
-    
+
+
     /**
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'store/tpl/SingleLayoutTransfers.shtml';
-    
-    
+
+
     /**
      * Файл за единичния изглед в мобилен
      */
     public $singleLayoutFileNarrow = 'store/tpl/SingleLayoutTransfersNarrow.shtml';
-    
-    
+
+
     /**
      * Групиране на документите
      */
     public $newBtnGroup = '4.5|Логистика';
-    
-    
+
+
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'title';
-    
-    
+
+
     /**
      * Как се казва полето в което е избран склада
      */
     public $storeFieldName = 'fromStore';
-    
-    
+
+
     /**
      * Дата на очакване
      */
     public $termDateFld = 'deliveryTime';
-    
-    
+
+
     /**
      * Икона на единичния изглед
      */
     public $singleIcon = 'img/16/transfers.png';
-    
-    
+
+
     /**
      * Полета за филтър по склад
      */
     public $filterStoreFields = 'fromStore,toStore';
-    
-    
+
+
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
     public $hideListFieldsIfEmpty = 'deliveryTime';
-    
-    
+
+
     /**
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
-    
-    
+
+
     /**
      * Полета, които при клониране да не са попълнени
      *
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'valior,weight,volume,weightInput,volumeInput,deliveryTime,palletCount,storeReadiness';
-    
-    
+
+
     /**
      * Показва броя на записите в лога за съответното действие в документа
      */
     public $showLogTimeInHead = 'Документът се връща в чернова=3';
-    
-    
+
+
     /**
      * Поле показващо към кой склад ще е движението
      */
     public $toStoreFieldName = 'toStore';
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -224,12 +224,12 @@ class store_Transfers extends core_Master
         $this->FLD('toStore', 'key(mvc=store_Stores,select=name)', 'caption=До склад,mandatory');
         $this->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
-        
+
         // Доставка
         $this->FLD('deliveryTime', 'datetime', 'caption=Натоварване');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
-        
+
         // Допълнително
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
         $this->FLD(
@@ -237,11 +237,11 @@ class store_Transfers extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
             'caption=Статус, input=none'
         );
-        
+
         $this->setDbIndex('lineId');
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -250,11 +250,11 @@ class store_Transfers extends core_Master
         if ($requiredRoles == 'no_one') {
             return;
         }
-        
+
         if (!deals_Helper::canSelectObjectInDocument($action, $rec, 'store_Stores', 'toStore')) {
             $requiredRoles = 'no_one';
         }
-        
+
         if ($action == 'pending' && isset($rec) && $rec->id) {
             $Detail = cls::get($mvc->mainDetail);
             if (!$Detail->fetchField("#{$Detail->masterKey} = {$rec->id}")) {
@@ -262,8 +262,8 @@ class store_Transfers extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * След рендиране на сингъла
      */
@@ -273,8 +273,8 @@ class store_Transfers extends core_Master
             $tpl->removeBlock('header');
         }
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -282,7 +282,7 @@ class store_Transfers extends core_Master
     {
         $row->fromStore = store_Stores::getHyperlink($rec->fromStore, true);
         $row->toStore = store_Stores::getHyperlink($rec->toStore, true);
-        
+
         if ($fields['-single']) {
             if ($rec->fromStore) {
                 $fromStoreLocation = store_Stores::fetchField($rec->fromStore, 'locationId');
@@ -290,7 +290,7 @@ class store_Transfers extends core_Master
                     $row->fromAdress = crm_Locations::getAddress($fromStoreLocation);
                 }
             }
-            
+
             if ($rec->toStore) {
                 $toStoreLocation = store_Stores::fetchField($rec->toStore, 'locationId');
                 if ($toStoreLocation) {
@@ -298,47 +298,47 @@ class store_Transfers extends core_Master
                 }
             }
         }
-        
+
         if ($fields['-list']) {
             $row->title = $mvc->getLink($rec->id, 0);
-            
+
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
                 $row->title = '<b>' . $row->title . '</b>';
                 $row->title .= '  ' . $row->fromStore . ' » ' . $row->toStore;
                 $row->createdBy = crm_Profiles::createLink($rec->createdBy);
                 $row->createdOn = $mvc->getVerbal($rec, 'createdOn');
-                $row->title .= "<span class='fright'>" . $row->createdOn . ' ' . tr('от') . ' ' .   $row->createdBy . '</span>';
+                $row->title .= "<span class='fright'>" . $row->createdOn . ' ' . tr('от') . ' ' . $row->createdBy . '</span>';
             }
         }
-        
+
         if ($rec->state != 'pending') {
             unset($row->storeReadiness);
         } else {
             $row->storeReadiness = isset($rec->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
         }
-        
+
         if (Mode::isReadOnly()) {
             unset($row->storeReadiness, $row->zoneReadiness);
         }
     }
-    
-    
+
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param store_Stores $mvc
-     * @param stdClass     $data
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setDefault('fromStore', store_Stores::getCurrent('id', false));
         $folderCoverId = doc_Folders::fetchCoverId($data->form->rec->folderId);
         $data->form->setDefault('toStore', $folderCoverId);
-        
+
         if (!trans_Lines::count("#state = 'active'")) {
             $data->form->setField('lineId', 'input=none');
         }
-        
+
         // При редакция, ако няма права до склада, да е избрано
         if ($data->form->rec->id) {
             foreach (array('fromStore', 'toStore') as $fName) {
@@ -350,8 +350,8 @@ class store_Transfers extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * След изпращане на формата
      */
@@ -359,37 +359,37 @@ class store_Transfers extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
-            
+
             if ($rec->fromStore == $rec->toStore) {
                 $form->setError('toStore', 'Складовете трябва да са различни');
             }
-            
+
             $rec->folderId = store_Stores::forceCoverAndFolder($rec->toStore);
         }
     }
-    
-    
+
+
     /**
      * Може ли да бъде добавен документа в папката
      */
     public static function canAddToFolder($folderId)
     {
         $folderClass = doc_Folders::fetchCoverClassName($folderId);
-        
+
         return cls::haveInterface('store_iface_TransferFolderCoverIntf', $folderClass);
     }
-    
-    
+
+
     /**
      * Връща информацията за документа в папката
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
         $subTitle = '<b>' . store_Stores::getTitleById($rec->fromStore) . '</b> » <b>' . store_Stores::getTitleById($rec->toStore) . '</b>';
-        
-        $row = (object) array(
+
+        $row = (object)array(
             'title' => $title,
             'authorId' => $rec->createdBy,
             'author' => $this->getVerbal($rec, 'createdBy'),
@@ -397,11 +397,11 @@ class store_Transfers extends core_Master
             'subTitle' => $subTitle,
             'recTitle' => $title,
         );
-        
+
         return $row;
     }
-    
-    
+
+
     /**
      * Връща масив от използваните нестандартни артикули в СР-то
      *
@@ -421,11 +421,11 @@ class store_Transfers extends core_Master
             $cid = cat_Products::fetchField($dRec->newProductId, 'containerId');
             $res[$cid] = $cid;
         }
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * В кои корици може да се вкарва документа
      *
@@ -435,8 +435,8 @@ class store_Transfers extends core_Master
     {
         return array('store_iface_TransferFolderCoverIntf');
     }
-    
-    
+
+
     /**
      * Изпълнява се след създаване на нов запис
      */
@@ -446,12 +446,12 @@ class store_Transfers extends core_Master
         $cu = core_Users::getCurrent();
         doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
     }
-    
-    
+
+
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id     - ид или запис
+     * @param mixed $id - ид или запис
      * @param mixed $forMvc - за кой мениджър
      *
      * @return array $products        - масив с информация за артикули
@@ -471,7 +471,7 @@ class store_Transfers extends core_Master
         $query->where("#transferId = {$rec->id}");
         while ($dRec = $query->fetch()) {
             if (!array_key_exists($dRec->newProductId, $products)) {
-                $products[$dRec->newProductId] = (object) array('productId' => $dRec->newProductId,
+                $products[$dRec->newProductId] = (object)array('productId' => $dRec->newProductId,
                     'quantity' => 0,
                     'name' => cat_Products::getTitleById($dRec->newProductId, false),
                     'amount' => null,
@@ -480,15 +480,15 @@ class store_Transfers extends core_Master
                     'inStores' => array($rec->toStore => 0),
                 );
             }
-            
+
             $products[$dRec->newProductId]->quantity += $dRec->quantity;
             $products[$dRec->newProductId]->inStores[$rec->toStore] += $dRec->quantity;
         }
-        
+
         return $products;
     }
-    
-    
+
+
     /**
      * Информация за логистичните данни
      *
@@ -496,26 +496,26 @@ class store_Transfers extends core_Master
      *
      * @return array $data - логистичните данни
      *
-     *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
-     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
-     * 		string|NULL   ['fromPlace']    - град за натоварване
-     * 		string|NULL   ['fromAddress']  - адрес за натоварване
-     *  	string|NULL   ['fromCompany']  - фирма
-     *   	string|NULL   ['fromPerson']   - лице
-     * 		datetime|NULL ['loadingTime']  - дата на натоварване
-     * 		string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
-     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
-     * 		string|NULL   ['toPlace']      - град за разтоварване
-     *  	string|NULL   ['toAddress']    - адрес за разтоварване
-     *   	string|NULL   ['toCompany']    - фирма
-     *   	string|NULL   ['toPerson']     - лице
+     *        string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
+     *        string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
+     *        string|NULL   ['fromPlace']    - град за натоварване
+     *        string|NULL   ['fromAddress']  - адрес за натоварване
+     *    string|NULL   ['fromCompany']  - фирма
+     *    string|NULL   ['fromPerson']   - лице
+     *        datetime|NULL ['loadingTime']  - дата на натоварване
+     *        string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
+     *        string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
+     *        string|NULL   ['toPlace']      - град за разтоварване
+     *    string|NULL   ['toAddress']    - адрес за разтоварване
+     *    string|NULL   ['toCompany']    - фирма
+     *    string|NULL   ['toPerson']     - лице
      *      string|NULL   ['toPersonPhones'] - телефон на лицето
      *      string|NULL   ['instructions'] - инструкции
-     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
-     * 		text|NULL 	  ['conditions']   - други условия
-     *		varchar|NULL  ['ourReff']      - наш реф
-     * 		double|NULL   ['totalWeight']  - общо тегло
-     * 		double|NULL   ['totalVolume']  - общ обем
+     *        datetime|NULL ['deliveryTime'] - дата на разтоварване
+     *        text|NULL      ['conditions']   - други условия
+     *        varchar|NULL  ['ourReff']      - наш реф
+     *        double|NULL   ['totalWeight']  - общо тегло
+     *        double|NULL   ['totalVolume']  - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -523,11 +523,11 @@ class store_Transfers extends core_Master
         $res = array();
         $res['ourReff'] = '#' . $this->getHandle($rec);
         $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
-        
-        foreach (array('from', 'to')  as $part) {
+
+        foreach (array('from', 'to') as $part) {
             if ($locationId = store_Stores::fetchField($rec->{"{$part}Store"}, 'locationId')) {
                 $location = crm_Locations::fetch($locationId);
-                
+
                 $res["{$part}Country"] = drdata_Countries::fetchField($location->countryId, 'commonName');
                 $res["{$part}PCode"] = !empty($location->pCode) ? $location->pCode : null;
                 $res["{$part}Place"] = !empty($location->place) ? $location->place : null;
@@ -535,14 +535,14 @@ class store_Transfers extends core_Master
                 $res["{$part}Person"] = !empty($location->mol) ? $location->mol : null;
             }
         }
-        
+
         $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $rec->weight;
         $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Обновява данни в мастъра
      *
@@ -553,16 +553,16 @@ class store_Transfers extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetchRec($id);
-        
+
         return $this->save($rec);
     }
-    
-    
+
+
     /**
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
-     * @param int   $lineId
+     * @param int $lineId
      *
      * @return array
      *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
@@ -581,18 +581,18 @@ class store_Transfers extends core_Master
         $rec = static::fetchRec($rec);
         $row = $this->recToVerbal($rec);
         $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
-        
+
         $res['stores'] = array($rec->fromStore, $rec->toStore);
         $res['address'] = $row->toAdress;
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Какво да е предупреждението на бутона за контиране
      *
-     * @param int    $id         - ид
+     * @param int $id - ид
      * @param string $isContable - какво е действието
      *
      * @return NULL|string - текста на предупреждението или NULL ако няма
@@ -603,13 +603,13 @@ class store_Transfers extends core_Master
         $dQuery = store_TransfersDetails::getQuery();
         $dQuery->where("#transferId = {$id}");
         $dQuery->show('newProductId, quantity');
-        
+
         $warning = deals_Helper::getWarningForNegativeQuantitiesInStore($dQuery->fetchAll(), $rec->fromStore, $rec->state, 'newProductId');
-        
+
         return $warning;
     }
-    
-    
+
+
     /**
      * Извиква се преди подготовката на колоните
      */
@@ -619,8 +619,8 @@ class store_Transfers extends core_Master
             $data->listFields = 'deliveryTime,valior, title=Документ, folderId , weight, volume,lineId';
         }
     }
-    
-    
+
+
     /**
      * След извличане на името на документа за показване в RichText-а
      */
@@ -635,8 +635,8 @@ class store_Transfers extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Връща линк към документа
      */
@@ -651,12 +651,12 @@ class store_Transfers extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Връща дефолтен коментар при връзка на документи
      *
-     * @param int    $id
+     * @param int $id
      * @param string $comment
      *
      * @return string
@@ -666,13 +666,70 @@ class store_Transfers extends core_Master
         $rec = $this->fetchRec($id);
         $fromStore = store_Stores::getTitleById($rec->fromStore);
         $toStore = store_Stores::getTitleById($rec->toStore);
-        
+
         if (trim($comment)) {
             $comment .= '<br>';
         }
-       
+
         $comment .= "{$fromStore} » {$toStore}";
-        
+
         return $comment;
+    }
+
+
+    /**
+     * Връща планираните наличности
+     *
+     * @param stdClass $rec
+     * @return array
+     *       ['productId']        - ид на артикул
+     *       ['storeId']          - ид на склад, или null, ако няма
+     *       ['date']             - на коя дата
+     *       ['quantityIn']       - к-во очаквано
+     *       ['quantityOut']      - к-во за експедиране
+     *       ['genericProductId'] - ид на генеричния артикул, ако има
+     *       ['reffClassId']      - клас на обект (различен от този на източника)
+     *       ['reffId']           - ид на обект (различен от този на източника)
+     */
+    public function getPlannedStocks($rec)
+    {
+        $res = array();
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+        $Detail = cls::get('store_TransfersDetails');
+
+        $dQuery = $Detail->getQuery();
+        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=newProductId");
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=newProductId");
+        $dQuery->XPR('totalQuantity', 'double', "SUM(#{$Detail->quantityFld})");
+        $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+        $dQuery->groupBy('newProductId');
+
+        while ($dRec = $dQuery->fetch()) {
+            $genericProductId = null;
+            if($dRec->generic == 'yes'){
+                $genericProductId = $dRec->newProductId;
+            } elseif($dRec->canConvert == 'yes'){
+                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->newProductId}", 'genericProductId');
+            }
+
+            $res[] = (object)array('storeId'          => $rec->fromStore,
+                                   'productId'        => $dRec->newProductId,
+                                   'date'             => $date,
+                                   'quantityIn'       => null,
+                                   'quantityOut'      => $dRec->totalQuantity,
+                                   'genericProductId' => $genericProductId);
+
+            $res[] = (object)array('storeId'          => $rec->toStore,
+                                   'productId'        => $dRec->newProductId,
+                                   'date'             => $date,
+                                   'quantityIn'       => $dRec->totalQuantity,
+                                   'quantityOut'      => null,
+                                   'genericProductId' => $genericProductId);
+        }
+
+        return $res;
     }
 }

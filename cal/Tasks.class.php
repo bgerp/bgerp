@@ -20,7 +20,8 @@ class cal_Tasks extends embed_Manager
      * Интерфейс на драйверите
      */
     public $driverInterface = 'cal_TaskTypeIntf';
-    
+
+    public $withoutResStr = 'without resources';
     
     /**
      * Име на папката по подразбиране при създаване на нови документи от този тип.
@@ -278,9 +279,11 @@ class cal_Tasks extends embed_Manager
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,changable,silent');
-        
-        $this->FLD('description', 'richtext(bucket=calTasks, passage=Общи)', 'caption=Описание,changable');
-        
+
+        $this->FLD('assetResourceId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Ресурс, refreshForm, silent, after=typeId, changable');
+
+        $this->FLD('description', 'richtext(bucket=calTasks, passage)', 'caption=Описание,changable');
+
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable,autohide');
         
@@ -396,7 +399,7 @@ class cal_Tasks extends embed_Manager
         }
         
         if (Mode::is('screenMode', 'narrow')) {
-            $data->form->fields[priority]->maxRadio = 2;
+            $data->form->fields['priority']->maxRadio = 2;
         }
         
         $rec = $data->form->rec;
@@ -406,6 +409,57 @@ class cal_Tasks extends embed_Manager
         }
         
         $data->form->setField('title', 'mandatory');
+
+        $assetResArr = array();
+        if ($rec->folderId) {
+            $assetResArr += planning_AssetResources::getByFolderId($rec->folderId);
+
+            if (!empty($assetResArr)) {
+                asort($assetResArr);
+            }
+        }
+
+        // Болдваме ресурсите, до които е споделен
+        if (!empty($assetResArr)) {
+            $aUsersQuery = planning_AssetResources::getQuery();
+            $aUsersQuery->in('id', array_keys($assetResArr));
+            $aUsersQuery->likeKeylist('assetUsers', core_Users::getCurrent());
+            $aUsersQuery->show('id');
+            while ($rec = $aUsersQuery->fetch()) {
+                if (!$assetResArr[$rec->id]) continue;
+                $opt = new stdClass();
+                $opt->title = $assetResArr[$rec->id];
+                $opt->attr = array('class' => 'boldText');
+                $assetResArr[$rec->id] = $opt;
+            }
+
+            $data->form->setOptions('assetResourceId', $assetResArr);
+        } else {
+            $data->form->setField('assetResourceId', 'input=none');
+        }
+
+        if (($data->form->cmd == 'refresh') || (!$data->form->cmd && $data->form->rec->assetResourceId)) {
+            // При избор на компонент, да са избрани споделените потребители, които са отговорници
+            if ($data->form->rec->assetResourceId) {
+                $assetId = planning_AssetResources::fetchField($data->form->rec->assetResourceId, 'id');
+
+                if ($assetId) {
+                    $maintainers = planning_AssetResourceFolders::fetchField(array("#classId = '[#1#]' AND #objectId = '[#2#]' AND #folderId = '[#3#]'", planning_AssetResources::getClassId(), $assetId, $rec->folderId), 'users');
+                }
+
+                $maintainers = keylist::removeKey($maintainers, core_Users::getCurrent());
+
+                if ($maintainers) {
+                    $data->form->setDefault('sharedUsers', $maintainers);
+                }
+            }
+        }
+
+
+
+
+
+
     }
     
     
@@ -539,6 +593,10 @@ class cal_Tasks extends embed_Manager
             // и двете ги правим хипервръзка към календара - дневен изглед
             $row->timeStart = ht::createLink($row->timeStart, array('cal_Calendar', 'day', 'from' => $rec->timeStart, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
             $row->timeEnd = ht::createLink($row->timeEnd, array('cal_Calendar', 'day', 'from' => $rec->timeEnd, 'Task' => 'true'), null, array('ef_icon' => 'img/16/calendar5.png', 'title' => 'Покажи в календара'));
+        }
+
+        if ($rec->assetResourceId) {
+            $row->assetResourceId = planning_AssetResources::getLinkToSingle($rec->assetResourceId, 'codeAndName');
         }
     }
     
@@ -704,7 +762,7 @@ class cal_Tasks extends embed_Manager
         foreach ($data->rows as $id => $row) {
             $row->subTitle = $mvc->getDocumentRow($id)->subTitle;
             $row->subTitleDiv = "<div class='threadSubTitle'>{$row->subTitle}</div>";
-            
+
             if ($row->title instanceof core_ET) {
                 $row->title->append($row->subTitleDiv);
             } else {
@@ -1019,6 +1077,15 @@ class cal_Tasks extends embed_Manager
             $rec->progress = null;
             $rec->brState = null;
         }
+
+        if (!trim($rec->title)) {
+            if ($rec->assetResourceId) {
+                $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
+                if ($pRec) {
+                    $rec->title .= ' ' . $pRec->code . ' ' . $pRec->name;
+                }
+            }
+        }
     }
     
     
@@ -1028,6 +1095,14 @@ class cal_Tasks extends embed_Manager
     public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
     {
         $mvc->updateTaskToCalendar($rec->id);
+
+        if ($rec->assetResourceId) {
+            $nRec = new stdClass();
+            $nRec->id = $rec->assetResourceId;
+            $nRec->lastUsedOn = dt::now();
+
+            planning_AssetResources::save($nRec, 'lastUsedOn');
+        }
     }
     
     
@@ -1655,10 +1730,10 @@ class cal_Tasks extends embed_Manager
      *
      * @return stdClass $row
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
-        
+
         $row = new stdClass();
         
         //Заглавие
@@ -1720,14 +1795,15 @@ class cal_Tasks extends embed_Manager
         
         $date = '';
         
-        if ($rec->state == 'active' && $rec->timeEnd) {
-            $date = $rec->timeEnd;
-        }
-        
-        if (($rec->state == 'waiting' || $rec->state == 'pending') && $rec->timeStart) {
+        if ($rec->state == 'active' || $rec->state == 'waiting' || $rec->state == 'pending') {
             $date = $rec->timeStart;
+            if ($rec->timeEnd) {
+                if (!$rec->timeStart || (($rec->timeStart < dt::now()) && (dt::now(false) != dt::verbal2mysql($rec->timeStart, false)))) {
+                    $date = $rec->timeEnd;
+                }
+            }
         }
-        
+
         $row->subTitleNoTime = $row->subTitle;
         
         if ($date) {
@@ -3097,7 +3173,28 @@ class cal_Tasks extends embed_Manager
             return $res;
         }
     }
-    
+
+
+    /**
+     * Добавя ключовите думи от допълнителните полета
+     *
+     * @param cal_Tasks        $mvc
+     * @param object           $res
+     * @param object           $rec
+     */
+    public function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        if ($rec->assetResourceId) {
+            $pRec = planning_AssetResources::fetch($rec->assetResourceId, 'code, name');
+            $sTxt = ' ' . $pRec->code . ' ' . $pRec->name;
+        } else {
+            $sTxt = ' ' . $mvc->withoutResStrwithoutResStr;
+        }
+
+        if (trim($sTxt)) {
+            $res .= ' ' . plg_Search::normalizeText($sTxt);
+        }
+    }
     
     /**
      * Добавя допълнителни полетата в антетката
@@ -3118,6 +3215,10 @@ class cal_Tasks extends embed_Manager
         $resArr[$mvc->driverClassField] = array('name' => tr('Вид'), 'val' => "[#{$mvc->driverClassField}#]");
         
         $resArr['priority'] = array('name' => tr('Приоритет'), 'val' => '[#priority#]');
+
+        if ($row->assetResourceId) {
+            $resArr['assetResourceId'] = array('name' => tr('Ресурс'), 'val' => '[#assetResourceId#]');
+        }
         
         if ($row->timeStart) {
             $resArr['timeStart'] = array('name' => tr('Начало'), 'val' => '[#timeStart#]');

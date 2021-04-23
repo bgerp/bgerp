@@ -439,7 +439,7 @@ class rack_Zones extends core_Master
         }
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));
@@ -1002,5 +1002,25 @@ class rack_Zones extends core_Master
         $mQuery->orderBy('modifiedOn', 'DESC');
         $mQuery->show('modifiedOn');
         $res = md5(trim($mQuery->fetch()->modifiedOn));
+    }
+
+
+    /**
+     * Има ли запазени движения в зоната
+     *
+     * @param $containerId
+     * @return bool
+     */
+    public static function hasRackMovements($containerId)
+    {
+        // Има ли нагласени количества за артикула в зоната?
+        $zQuery = rack_ZoneDetails::getQuery();
+        $zQuery->XPR('movementQuantityRound', 'varchar', 'ROUND(COALESCE(#movementQuantity, 0), 3)');
+        $zQuery->EXT('containerId', 'rack_Zones', 'externalName=containerId,externalKey=zoneId');
+        $zQuery->where("#containerId = {$containerId} AND #movementQuantityRound != 0");
+        $zQuery->show('id');
+        $rec = $zQuery->fetch();
+
+        return is_object($rec);
     }
 }

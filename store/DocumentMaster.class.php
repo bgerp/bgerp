@@ -124,7 +124,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
-        $mvc->FLD('note', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
+        $mvc->FLD('note', 'richtext(bucket=Notes,passage,rows=6)', 'caption=Допълнително->Бележки');
         $mvc->FLD(
             'state',
                 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
@@ -504,7 +504,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * @see doc_DocumentIntf::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
@@ -702,14 +702,15 @@ abstract class store_DocumentMaster extends core_Master
         
         return $res;
     }
-    
-    
+
+
     /**
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
      * @param mixed               $id     - ид или запис на документа
      * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @param string $strategy - стратегия за намиране
      *
      * @return array $details - масив с артикули готови за запис
      *               o productId      - ид на артикул
@@ -719,7 +720,7 @@ abstract class store_DocumentMaster extends core_Master
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
      */
-    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
         $details = array();
         $rec = static::fetchRec($id);
@@ -969,10 +970,11 @@ abstract class store_DocumentMaster extends core_Master
      * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
      * @param string $term         - срок (не е задължителен)
      * @param string $notes        - забележки
+     * @param string $batch        - партида
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null)
+    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch)
     {
         $me = cls::get(get_called_class());
         $Detail = cls::get($me->mainDetail);
@@ -1065,6 +1067,9 @@ abstract class store_DocumentMaster extends core_Master
             
             // Ако е уникален, добавяме го
             $id = $Detail->save($dRec);
+            if(!empty($batch) && core_Packs::isInstalled('batch')){
+                batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
+            }
         }
         
         // Връщаме резултата от записа

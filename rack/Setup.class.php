@@ -2,6 +2,18 @@
 
 
 /**
+ * След колко време да се изтриват старите движение
+ */
+defIfNot('RACK_DELETE_OLD_MOVEMENTS', 5184000);
+
+
+/**
+ * След колко време да се изтриват архивораните движения
+ */
+defIfNot('RACK_DELETE_ARCHIVED_MOVEMENTS', dt::SECONDS_IN_MONTH * 12);
+
+
+/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -10,8 +22,8 @@
  * @category  bgerp
  * @package   rack
  *
- * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -61,10 +73,12 @@ class rack_Setup extends core_ProtoSetup
         'rack_Zones',
         'rack_ZoneDetails',
         'rack_OccupancyOfRacks',
+        'rack_OldMovements',
         'migrate::truncateOldRecs',
         'migrate::deleteOldPlugins',
         'migrate::updateNoBatchRackDetails2',
         'migrate::changeOffsetInGetOccupancyOfRacks',
+        'migrate::updateArchive2',
     );
     
     
@@ -86,14 +100,8 @@ class rack_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.2, 'Логистика', 'Стелажи', 'rack_Movements', 'default', 'rack,ceo'),
     );
-    
-    
-    /**
-     * Описание на конфигурационните константи
-     */
-    public $configDescription = array();
-    
-    
+
+
     /**
      * Настройки за Cron
      */
@@ -150,8 +158,17 @@ class rack_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
+
+
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'RACK_DELETE_OLD_MOVEMENTS' => array('time','caption=Изтриване на стари движения->Период'),
+        'RACK_DELETE_ARCHIVED_MOVEMENTS' => array('time','caption=Изтриване на архивирани движения->Период'),
+    );
+
+
     /**
      * Изпълнява се след setup-а
      */
@@ -246,5 +263,23 @@ class rack_Setup extends core_ProtoSetup
             
             core_Cron::save($qRec);
         }
+    }
+
+
+    /**
+     * Запълва архива с първоначални данни
+     */
+    public function updateArchive2()
+    {
+        $Movements = cls::get('rack_Movements');
+        if(!$Movements->count()) return;
+
+        $Archive = cls::get('rack_OldMovements');
+        $Archive->truncate();
+
+        $cols = "movement_id,store_id,product_id,packaging_id,pallet_id,position,batch,position_to,zones,worker_id,note,quantity,quantity_in_pack,state,zone_list,from_incoming_document,documents,modified_on,modified_by,search_keywords,created_on,created_by";
+        $colsFrom = "id,store_id,product_id,packaging_id,pallet_id,position,batch,position_to,zones,worker_id,note,quantity,quantity_in_pack,state,zone_list,from_incoming_document,documents,modified_on,modified_by,search_keywords,created_on,created_by";
+        $query = "INSERT INTO {$Archive->dbTableName}({$cols}) SELECT {$colsFrom} FROM {$Movements->dbTableName};";
+        $Archive->db->query($query);
     }
 }

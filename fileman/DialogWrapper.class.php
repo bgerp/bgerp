@@ -42,12 +42,13 @@ class fileman_DialogWrapper extends core_Plugin
             $tpl->prepend("<button onclick='javascript:window.close();' class='upload-close'>X</button><div class='dialogTitle'>{$this->info->title}</div>");
             
             $tpl->append('<ul><small><li>' . tr('Макс. размер') . ": {$this->info->maxFileSize}</li></small>");
-            
+
             if (!$this->info->extensions) {
                 $this->info->extensions = '* (' . tr('всички') . ')';
             }
             
             $tpl->append('<small><li>' . tr('Разширения') . ": {$this->info->extensions}</li></small></ul>");
+
             if ($this->info->accept) {
                 $tpl->replace("accept=\"{$this->info->accept}\"", 'ACCEPT');
             }

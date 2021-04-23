@@ -49,7 +49,11 @@
 				<!--ET_BEGIN prefix-->
 					<div class="groupList"><span class='quiet'>|Начало код|*</span>: [#prefix#]</div>
 				<!--ET_END prefix-->
-				
+
+                <!--ET_BEGIN minCodePad-->
+                <div class="groupList"><span class='quiet'>|Мин. дължина код|*</span>: [#minCodePad#]</div>
+                <!--ET_END minCodePad-->
+
 				<!--ET_BEGIN measures-->
 					<div class="groupList"><span class='quiet'>|Мерки|*</span>: [#measures#]</div>
 				<!--ET_END measures-->

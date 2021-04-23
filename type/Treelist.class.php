@@ -64,7 +64,7 @@ class type_Treelist extends type_Keylist
         if (!$value) {
             $values = array();
         } else {
-            $values = explode($value{0}, trim($value, $value{0}));
+            $values = explode($value[0], trim($value, $value[0]));
         }
         
         $attrCB['type'] = 'checkbox';
@@ -77,7 +77,7 @@ class type_Treelist extends type_Keylist
         $i = 0;
         $html = '';
         
-        $suggCnt = count($this->suggestions);
+        $suggCnt = countR($this->suggestions);
         $html = '';
         expect($parentIdName = $this->params['parentId']);
         
@@ -183,12 +183,12 @@ class type_Treelist extends type_Keylist
 
                 $items['openGroup_' . $id] = 'openGroup';
 
-                $cnt = count($items);
+                $cnt = countR($items);
                 if(self::addItems($items, $data, $id, $openIds)) {
                     $items[$id]->hasGroup = true;
                 }
 
-                if(count($items) > $cnt) {
+                if(countR($items) > $cnt) {
                     $items['closeGroup_' . $id] = 'closeGroup';
                 } else {
                     unset($items['openGroup_' . $id]);

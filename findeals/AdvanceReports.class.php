@@ -327,7 +327,7 @@ class findeals_AdvanceReports extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         $row = new stdClass();
@@ -418,14 +418,15 @@ class findeals_AdvanceReports extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
      * @param mixed               $id     - ид или запис на документа
      * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @param string $strategy - стратегия за намиране
      *
      * @return array $details - масив с артикули готови за запис
      *               o productId      - ид на артикул
@@ -435,7 +436,7 @@ class findeals_AdvanceReports extends core_Master
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
      */
-    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
         $details = array();
         $rec = static::fetchRec($id);

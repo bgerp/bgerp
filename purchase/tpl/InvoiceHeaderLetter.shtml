@@ -23,7 +23,11 @@
                                 <!--ET_BEGIN MyCompanyVatNo-->
                                 <div><span class ='contragent-vat'>|номер по ЗДДС|*:</span> [#MyCompanyVatNo#]</div>
                                 <!--ET_END MyCompanyVatNo-->
+                                <!--ET_BEGIN MyCompanyEori-->
+                                <div class ='contragent-info' ><span class ='contragent-vat'>EORI №:</span>[#MyCompanyEori#]</div>
+                                <!--ET_END MyCompanyEori-->
                                 <div class ='contragent-info' ><span class ='contragent-vat'>|ЕИК|*: </span>[#uicId#]</div>
+
                             </div>
                         </div>
                         <!--ET_BEGIN sales_InvoiceDetails-->

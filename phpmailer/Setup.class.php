@@ -22,7 +22,7 @@ defIfNot('PML_FROM_EMAIL', PML_DEF_NICK . '@' . $_SERVER['SERVER_NAME']);
 /**
  * Името във 'From' хедър-а на съобщението
  */
-defIfNot('PML_FROM_NAME', $conf->EF_APP_TITLE . ' ' .
+defIfNot('PML_FROM_NAME', EF_APP_TITLE . ' ' .
     mb_convert_case(PML_DEF_NICK, MB_CASE_TITLE, PML_CHARSET));
 
 
@@ -48,7 +48,7 @@ defIfNot('SENDMAIL_PATH', '/usr/sbin/sendmail');
 /**
  * Дефинираме пътя до кода на PHP_Mailer
  */
-defIfNot('PML_VERSION', '5.2.8');
+defIfNot('PML_VERSION', '5.2.27');
 
 
 /**

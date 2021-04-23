@@ -176,7 +176,7 @@ class core_Debug
      */
     public static function log($name)
     {
-        if (!isDebug() || !core_Debug::$isLogging) {
+        if ((!isDebug() && !defined('DEBUG_FATAL_ERRORS_FILE')) || !core_Debug::$isLogging) {
             
             return ;
         }
@@ -235,7 +235,7 @@ class core_Debug
         
         $html = '';
         
-        if (count(self::$debugTime)) {
+        if (countR(self::$debugTime)) {
             self::log('Край ' . core_DateTime::now());
             
             $html .= "\n<div class='debug_block' style=''>" .
@@ -270,7 +270,7 @@ class core_Debug
             $timers = self::$timers;
         }
         $display = Mode::is('screenMode', 'wide') ? 'table' : 'block';
-        if (count($timers)) {
+        if (countR($timers)) {
             $html .= "\n<div style='padding:5px; margin:10px; border:solid 1px #777; background-color:#FFFF99; display:{$display};color:black;'>" .
             "\n<div style='background-color:#FFFF33; padding:5px;color:black;'>Timers info</div><ol>";
             
@@ -287,6 +287,24 @@ class core_Debug
         }
         
         return $html;
+    }
+
+
+    /**
+     * Поомощна функция за вземане на времето на изпълнение
+     *
+     * @param sting $name
+     *
+     * @return null|double
+     */
+    public static function getWorkingTime($name)
+    {
+        $time = core_Debug::$timers[$name];
+
+        if ($time) {
+
+            return $time->workingTime;
+        }
     }
     
     
@@ -314,7 +332,7 @@ class core_Debug
         }
         
         $errHtml = self::getErrorHtml($html, $stack, $type);
-        
+
         $errHtml .= core_Debug::getLog();
         
         core_Os::requireDir(EF_TEMP_PATH);
@@ -533,7 +551,7 @@ class core_Debug
         $lines = explode("\n", $source);
         
         $from = max($line - $range - 1, 0);
-        $to = min($line + $range, count($lines));
+        $to = min($line + $range, countR($lines));
         $padding = strlen($to);
         for ($i = $from; $i < $to; $i++) {
             $l = str_pad($i + 1, $padding, ' ', STR_PAD_LEFT);
@@ -880,7 +898,7 @@ class core_Debug
         
         // Изваждаме от титлата httpStatusCode, ако е наличен
         if ($state['httpStatusCode'] = (int) $errTitle) {
-            $pos = strpos($errTitle, $state['httpStatusCode']);
+            $pos = strpos($errTitle, (string)$state['httpStatusCode']);
             $pos += strlen($state['httpStatusCode']);
             $state['errTitle'] = trim(substr($errTitle, $pos));
         } else {

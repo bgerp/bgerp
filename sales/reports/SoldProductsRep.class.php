@@ -69,8 +69,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         $fieldset->FLD('compare', 'enum(no=Без, previous=Предходен,month=По месеци, year=Миналогодишен)', 'caption=Сравнение,after=title,refreshForm,single=none,silent');
         
-        $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,removeAndRefreshForm,mandatory,silent');
-        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,removeAndRefreshForm,mandatory,silent');
+        $fieldset->FLD('from', 'date', 'caption=От,after=compare,single=none,removeAndRefreshForm,silent');
+        $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,removeAndRefreshForm,silent');
         
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,removeAndRefreshForm,single=none,input=none,silent');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,removeAndRefreshForm,single=none,input=none,silent');
@@ -95,10 +95,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $fieldset->FLD('engName', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Име EN,after=seeByContragent,single=none');
         $fieldset->FLD('seeDelta', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи делти,after=engName,single=none');
+        $fieldset->FLD('seeWeight', 'enum(yes=ДА, no=НЕ)', 'caption=Показване->Покажи тегло,after=seeDelta,single=none');
         
         
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=seeDelta');
+        $fieldset->FLD('orderBy', 'enum(code=Код, primeCost=Продажби, delta=Делти, changeDelta=Промяна Делти, changeCost=Промяна Стойност)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=seeWeight');
         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
     }
     
@@ -114,6 +115,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
+
+            if (($form->rec->compare != 'month') && (!($form->rec->from && $form->rec->to))) {
+            $form->setError('from,to,selectPeriod', 'Изберете период.');
+            }
             
             // Проверка на периоди
             if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
@@ -179,6 +184,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $form->setField('firstMonth', 'input');
             $form->setField('secondMonth', 'input');
         }
+
+        if ($rec->compare != 'no') {
+            $form->setField('seeWeight', 'input=hidden');
+        }
         $form->input('typeOfGroups');
         if ($rec->typeOfGroups == 'category') {
             $form->setField('group', 'input=hidden');
@@ -231,6 +240,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setDefault('engName', 'no');
         
         $form->setDefault('seeDelta', 'no');
+
+        $form->setDefault('seeWeight', 'no');
         
         $form->setDefault('orderBy', 'primeCost');
         
@@ -344,11 +355,11 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        //Код и Id  на основната валота в края на периода
+        //Код и Id  на основната валута в края на периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode($rec->to);
         $baseCurrencyId = currency_Currencies::getIdByCode($baseCurrency);
-        
-        //При групиране по кои крупи да работи: групи артикули или цатегории артикули
+
+        //При групиране по кои крупи да работи: групи артикули или категории артикули
         if ($rec->typeOfGroups == 'art') {
             $checkForGruping = 'group';
         } elseif (($rec->typeOfGroups == 'category')) {
@@ -361,7 +372,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (is_null($rec->seeDelta)) {
             $rec->seeDelta = 'no';
         }
-        
+
         //Показването да бъде ли ГРУПИРАНО
         if (($rec->grouping == 'no') && ($rec->group || $rec->category)) {
             if ($rec->typeOfGroups == 'art') {
@@ -371,22 +382,22 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             }
             $this->groupByField = $groupByField;
         }
-        
+
         if ($rec->seeByContragent == 'yes') {
             $this->groupByField = 'contragent';
         }
-        
+
         $recs = $invProd = array();
-        
-        
+
+
         //Ако има избрано разбивка "Артикули по контрагент"
         //Подготвяме масив с фактурираните артикули през избрания период
         //разбити по контрагент
         if ($rec->seeByContragent == 'yes') {
             $invDetQuery = sales_InvoiceDetails::getQuery();
-            
+
             $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
-            
+
             $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
             
             $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
@@ -446,15 +457,15 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
             }
         }
-        
-        
+
+
         if ($rec->quantityType == 'shipped') {
             $query = sales_PrimeCostByDocument::getQuery();
             
             //не е бърза продажба//
             $query->where('#sellCost IS NOT NULL');
         } else {
-            
+
             //За заявени количества
             $query = sales_SalesDetails::getQuery();
             
@@ -624,10 +635,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             //Код на артикула
             $artCode = $recPrime->code ? $recPrime->code : "Art{$recPrime->productId}";
-            
+
             //Мярка на артикула
-            $measureArt = cat_Products::getProductInfo($recPrime->productId)->productRec->measureId;
-            
+            $measureArt = cat_Products::fetch($recPrime->productId)->measureId;
+
             //Данни за ПРЕДХОДЕН ПЕРИОД или МЕСЕЦ
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                 if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
@@ -755,7 +766,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $v->changeDeltaLastYear = $v->delta - $v->deltaLastYear;
         }
         
-        $groupValues = $groupPrimeCostPrevious = $groupPrimeCostLastYear = array();
+        $groupValues=$groupQuantity = $groupPrimeCostPrevious = $groupPrimeCostLastYear = array();
         $groupDeltas = $groupDeltaPrevious = $groupDeltaLastYear = array();
         $tempArr = array();
         $totalArr = array();
@@ -788,6 +799,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 foreach ($v->$typeGroup as $k => $gro) {
                     //За този артикул
                     $groupValues[$gro] += $v->primeCost;                        //Стойност на продажбите за текущ период
+                    $groupQuantity[$gro] += $v->quantity;                        //Стойност на продажбите за текущ период
                     $groupDeltas[$gro] += $v->delta;                            //Стойност на делтите за текущ период
                     $groupPrimeCostPrevious[$gro] += $v->primeCostPrevious;     //Стойност на продажбите за предходен период
                     $groupDeltaPrevious[$gro] += $v->deltaPrevious;             //Стойност на делтите за предходен период
@@ -846,6 +858,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 //Един артикул може да го има в няколко групи
                 foreach ($tempArr[$tempArrKey]->$typeGroup as $gro) {
                     $groupValues[$gro] += $v->primeCost;
+                    $groupQuantity[$gro] += $v->quantity;
                     $groupDeltas[$gro] += $v->delta;
                     $groupPrimeCostPrevious[$gro] += $v->primeCostPrevious;
                     $groupDeltaPrevious[$gro] += $v->deltaPrevious;
@@ -890,6 +903,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             foreach ($recs as $v) {
                 $v->groupValues = $groupValues[$v->$typeGroup];
+                $v->groupQuantity = $groupQuantity[$v->$typeGroup];
                 $v->groupDeltas = $groupDeltas[$v->$typeGroup];
                 $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$v->$typeGroup];
                 $v->groupDeltaPrevious = $groupDeltaPrevious[$v->$typeGroup];
@@ -901,6 +915,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             foreach ($recs as $v) {
                 foreach ($v->$typeGroup as $gro) {
                     $v->groupValues = $groupValues[$gro];
+                    $v->groupQuantity = $groupQuantity[$gro];
                     $v->groupDeltas = $groupDeltas[$gro];
                     
                     $v->groupPrimeCostPrevious = $groupPrimeCostPrevious[$gro];
@@ -928,7 +943,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Когато имаме избрано групирано показване правим нов масив
         if ($rec->grouping == 'yes') {
             $recs = array();
-            
+
             if ($rec->typeOfGroups == 'category') {
                 foreach ($groupValues as $key => $val) {
                     if (cat_Categories::fetch($key) === false) {
@@ -966,7 +981,20 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $changeDelta = 'changeGroupDeltaLastYear';
             }
         }
-        
+
+        //Добавяне на колона за теглото
+        if ($rec->seeWeight == 'yes' && $rec->grouping == 'no' && $rec->compare == 'no'){
+
+            foreach ($recs as $val){
+                $prodRec = cat_Products::fetch($val->productId);
+                $prodWeight = self::getProductWeight($prodRec);
+                $val->weight =(is_numeric($prodWeight)) ? $prodWeight*$val->quantity : 'n.a.';
+
+            }
+
+
+        }
+
         //Подредба на резултатите
         if (!is_null($recs)) {
             $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
@@ -980,7 +1008,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             if ($rec->orderBy == 'changeCost') {
                 $orderBy = $changePrimeCost;
             }
-            
+
             arr::sortObjects($recs, $orderBy, $rec->order, $typeOrder);
         }
         
@@ -995,7 +1023,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         );
         
         array_unshift($recs, $totalArr['total']);
-        
+
         return $recs;
     }
     
@@ -1070,6 +1098,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     
                     if ($rec->seeDelta == 'yes') {
                         $fld->FLD('delta', 'double(smartRound,decimals=2)', 'smartCenter,caption=Делта');
+                    }
+
+                    if ($rec->seeWeight == 'yes') {
+                        $fld->FLD('weight', 'double(smartRound,decimals=2)', 'smartCenter,caption=Тегло->[кг]');
                     }
                 }
             } else {
@@ -1170,11 +1202,17 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 }
                 
                 $groupName = $groupClass::getVerbal($dRec->$typeGroup, 'name');
+                if ($dRec->groupQuantity != 0){
+                    $price = $dRec->groupValues / $dRec->groupQuantity;
+                }else{
+                    $price = 0;
+                }
+
                 
-                
-                $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) . $grouping . ' )'. '</span>';
+                $group = $groupName . "<span class= 'fright'><span class= ''>" . 'Общо за групата (количество:'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupQuantity).' ; '.'стойност: '. core_Type::getByName('double(decimals=2)')->toVerbal($groupVal) .' ; '.'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . $grouping . ' )'. '</span>';
             } else {
-                $group = $dRec->group . "<span class= 'fright'>" . 'Общо за групата ( стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas) . ' )' . '</span>';
+                $price = $dRec->groupValues / $dRec->groupQuantity;
+                $group = $dRec->group . "<span class= 'fright'>" . 'Общо за групата (количество:'.core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupQuantity) .' ; '.'стойност: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupValues).' ; '.'ср. цена: ' . core_Type::getByName('double(decimals=2)')->toVerbal($price) . ', делта: ' . core_Type::getByName('double(decimals=2)')->toVerbal($dRec->groupDeltas) . ' )' . '</span>';
             }
         } else {
             if (!is_numeric($dRec->group)) {
@@ -1341,7 +1379,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 'primeCost',
                 'delta',
                 'invQuantity',
-                'invAmount'
+                'invAmount',
+                'weight'
             ) as $fld) {
                 if (!isset($dRec->{$fld})) {
                     continue;
@@ -1466,18 +1505,20 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN firstMonth-->|Месец 1|*: [#firstMonth#]<!--ET_END firstMonth--></div></small>
-                                <small><div><!--ET_BEGIN secondMonth-->|Месец 2|*: [#secondMonth#]<!--ET_END secondMonth--></div></small>
-                                <small><div><!--ET_BEGIN dealers-->|Търговци|*: [#dealers#]<!--ET_END dealers--></div></small>
-                                <small><div><!--ET_BEGIN contragent-->|Контрагент|*: [#contragent#]<!--ET_END contragent--></div></small>
-                                <small><div><!--ET_BEGIN crmGroup-->|Група контрагенти|*: [#crmGroup#]<!--ET_END crmGroup--></div></small>
-                                <small><div><!--ET_BEGIN group-->|Групи продукти|*: [#group#]<!--ET_END group--></div></small>
-                                <small><div><!--ET_BEGIN category-->|Категории продукти|*: [#category#]<!--ET_END category--></div></small>
-                                <small><div><!--ET_BEGIN art-->|Артикули|*: [#art#]<!--ET_END art--></div></small>
-                                <small><div><!--ET_BEGIN compare-->|Сравнение|*: [#compare#]<!--ET_END compare--></div></small>
-                                <small><div><!--ET_BEGIN currency-->|Валута|*: [#currency#]<!--ET_END currency--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN firstMonth--><div>|Месец 1|*: [#firstMonth#]</div><!--ET_END firstMonth-->
+                                        <!--ET_BEGIN secondMonth--><div>|Месец 2|*: [#secondMonth#]</div><!--ET_END secondMonth-->
+                                        <!--ET_BEGIN dealers--><div>|Търговци|*: [#dealers#]</div><!--ET_END dealers-->
+                                        <!--ET_BEGIN contragent--><div>|Контрагент|*: [#contragent#]</div><!--ET_END contragent-->
+                                        <!--ET_BEGIN crmGroup--><div>|Група контрагенти|*: [#crmGroup#]</div><!--ET_END crmGroup-->
+                                        <!--ET_BEGIN group--><div>|Групи продукти|*: [#group#]</div><!--ET_END group-->
+                                        <!--ET_BEGIN category--><div>|Категории продукти|*: [#category#]</div><!--ET_END category-->
+                                        <!--ET_BEGIN art--><div>|Артикули|*: [#art#]</div><!--ET_END art-->
+                                        <!--ET_BEGIN compare--><div>|Сравнение|*: [#compare#]</div><!--ET_END compare-->
+                                        <!--ET_BEGIN currency--><div>|Валута|*: [#currency#]</div><!--ET_END currency-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if ($data->rec->compare == 'month') {
@@ -1683,5 +1724,36 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
         
         return $foldersInGroups;
+    }
+
+    /**
+     * Връща единично тегло на артикула
+     *
+     * @param stdClass $rec
+     *
+     * @return double
+     */
+    public static function getProductWeight($rec)
+    {
+        //id на мярката 'килограм'
+        $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
+
+        //Взема единичното тегло на целия продукт
+        $singleProductWeight = null;
+        $singleProductWeight = cat_Products::getParams($rec->id, 'weight');
+
+        if ($singleProductWeight) {
+            $singleProductWeight = $singleProductWeight / 1000;
+        } else {
+            $singleProductWeight = cat_Products::getParams($rec->id, 'weightKg');
+        }
+
+        if ($rec->measureId == $kgMeasureId) {
+            $singleProductWeight = 1;
+        }
+
+        $singleProductWeight = $singleProductWeight ? $singleProductWeight : 'n.a.';
+
+        return $singleProductWeight;
     }
 }

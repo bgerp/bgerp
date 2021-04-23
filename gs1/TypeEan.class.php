@@ -134,19 +134,24 @@ class gs1_TypeEan extends type_Varchar
     {
         $digits = (string) $digits;
         $oddSum = $evenSum = 0;
-        
+
+        $dLen = strlen($digits);
+
         foreach (array('even' => '0', 'odd' => '1') as $k => $v) {
             foreach (range($v, $n, 2) as ${"{$k}Num"}) {
-                ${"{$k}Sum"} += $digits[${"{$k}Num"}];
+                $a = ${"{$k}Num"};
+                if ($dLen > $a) {
+                    ${"{$k}Sum"} += $digits[$a];
+                }
             }
         }
-        
+
         // Ако е ЕАН13 умножаваме нечетната сума по три иначе- четната
         ($n == 13) ? $oddSum = $oddSum * 3 : $evenSum = $evenSum * 3;
         $totalSum = $evenSum + $oddSum;
         $nextTen = (ceil($totalSum / 10)) * 10;
         $checkDigit = $nextTen - $totalSum;
-        
+
         return $digits . $checkDigit;
     }
     
@@ -161,6 +166,7 @@ class gs1_TypeEan extends type_Varchar
      */
     public function isValidEan($value, $n = 13)
     {
+
         $digits12 = substr($value, 0, $n - 1);
         $digits13 = $this->eanCheckDigit($digits12, $n);
         $res = ($digits13 == $value);
@@ -215,6 +221,9 @@ class gs1_TypeEan extends type_Varchar
      */
     public function isValid($value)
     {
+        if(substr($value, 0, 1) == '#'){
+            return array();
+        }
         if (!trim($value)) {
             
             return array('value' => '');

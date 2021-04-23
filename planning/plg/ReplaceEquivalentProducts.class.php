@@ -116,7 +116,10 @@ class planning_plg_ReplaceEquivalentProducts extends core_Plugin
                     
                     $mvc->save($nRec);
                     $mvc->Master->logWrite('Заместване на артикул в документа с друг подобен', $nRec->{$mvc->masterKey});
-                    
+
+                    // Ако е подменен артикул се рекалкулират документите, които са генерирали записи спрямо този запис
+                    store_StockPlanning::recalcByReff($mvc->Master, $nRec->{$mvc->masterKey});
+
                     return followRetUrl(null, 'Артикулът е заместен успешно');
                 }
                 

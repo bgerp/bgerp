@@ -89,9 +89,9 @@ class refactor_PhpParser
     {
         foreach ($this->tokenArr as $i => $t) {
             if ($t->type == T_CONSTANT_ENCAPSED_STRING) {
-                $str = trim($t->str, $t->str{0});
+                $str = trim($t->str, $t->str[0]);
                 if (preg_match('/[А-Яа-я][А-Яа-я0-9A-Z\\-_ \\,\\.\\!\\?]+/u', $str, $matches)) {
-                    if (count($matches)) {
+                    if (countR($matches)) {
                         foreach ($matches as $s) {
                             $s = trim($s, ' ,_-');
                             $s = mb_strtoupper(mb_substr($s, 0, 1)) . mb_substr($s, 1);
@@ -112,7 +112,7 @@ class refactor_PhpParser
     {
         foreach ($this->lines as $l) {
             if (preg_match('/([a-z][а-я]|[а-я][a-z])/iu', $l, $matches) && !preg_match("/(preg_|pattern|CyrLat|\-zа\-)/iu", $l)) {
-                if ($matches[1]{0} == 'n' && strpos($l, '\\' . $matches[1]) !== false) {
+                if ($matches[1][0] == 'n' && strpos($l, '\\' . $matches[1]) !== false) {
                     continue;
                 }
             }
@@ -136,7 +136,7 @@ class refactor_PhpParser
                 $next = $this->tokenArr[$i + 1];
                 
                 $lines = explode("\n", $t->str);
-                $lastId = count($lines) - 1;
+                $lastId = countR($lines) - 1;
                 $lastStr = $lines[$lastId] . '';
                 
                 $newCnt = min(3, $lastId);
@@ -235,7 +235,7 @@ class refactor_PhpParser
                 }
                 
                 if ($c->type == T_WHITESPACE) {
-                    if ($nl = (count(explode("\n", $c->str)) - 1)) {
+                    if ($nl = (countR(explode("\n", $c->str)) - 1)) {
                         $c->str = str_repeat("\n", min($nl, 2));
                         expect(strlen($c->str));
                     }
@@ -688,7 +688,7 @@ class refactor_PhpParser
                         }
                         $l = trim($l);
                         
-                        if ($l && $l{0} != '/') {
+                        if ($l && $l[0] != '/') {
                             $l = ' ' . $l;
                         }
                         $c->insertAfter(T_DOC_COMMENT, $l);
@@ -798,7 +798,7 @@ class refactor_PhpParser
                 
                 if (in_array($c->type, array(T_IF, T_WHILE, T_DO, T_FOR, T_FOREACH, T_SWITCH, T_RETURN, T_DOC_COMMENT, T_COMMENT))) {
                     if ($prevE->type == '}' || $prevE->type == ';') {
-                        if ($prev->type == T_WHITESPACE && count(explode("\n", $prev->str)) == 2) {
+                        if ($prev->type == T_WHITESPACE && countR(explode("\n", $prev->str)) == 2) {
                             $prev->str .= "\n";
                         }
                     }
@@ -851,7 +851,7 @@ class refactor_PhpParser
     {
         if (is_array($this->tokenArr)) {
             foreach ($this->tokenArr as $i => $c) {
-                if (count($c->insertBefore)) {
+                if (countR($c->insertBefore)) {
                     foreach ($c->insertBefore as $add) {
                         $res[] = $add;
                     }
@@ -863,7 +863,7 @@ class refactor_PhpParser
                     $res[] = $c;
                 }
                 
-                if (count($c->insertAfter)) {
+                if (countR($c->insertAfter)) {
                     foreach ($c->insertAfter as $add) {
                         $res[] = $add;
                     }

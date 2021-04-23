@@ -42,6 +42,10 @@ class core_page_Wrapper extends core_BaseClass
         // Зареждаме опаковката
         $wrapperTpl = cls::get($tplName);
         
+        if ($content instanceof core_Redirect) {
+            cls::get('core_ET')->replace($content, 'PAGE_CONTENT');
+        }
+        
         $wrapperTpl->prepare();
         
         self::replaceSpecialPlaceholders($wrapperTpl);
@@ -74,7 +78,7 @@ class core_page_Wrapper extends core_BaseClass
         foreach ($placeHolders as $place) {
             $method = explode('::', $place);
             
-            if (count($method) != 2) {
+            if (countR($method) != 2) {
                 continue;
             }
             

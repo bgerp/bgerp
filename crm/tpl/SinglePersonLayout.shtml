@@ -41,6 +41,9 @@
                     <!--ET_BEGIN vatId-->
                     <div>VAT: <b>[#vatId#]</b></div>
                     <!--ET_END vatId-->
+                    <!--ET_BEGIN eori-->
+                    <div>EORI: <b>[#eori#]</b></div>
+                    <!--ET_END eori-->
                     <!--ET_BEGIN fax-->
                     <div>|Факс|*: <b>[#fax#]</b></div>
                     <!--ET_END fax--> 
@@ -54,6 +57,8 @@
                 [#contacts#]
             </fieldset>
             <!--ET_END contacts-->
+
+
             <!--ET_BEGIN groupList-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Групи|*</legend>
@@ -110,16 +115,21 @@
                 <legend class="groupTitle">|Друга информация|*</legend>
                 <div class="groupList">
                     [#info#]
+                    <div style="margin: 10px 0 3px; border: 1px solid #ccc; padding: 3px 5px;border-radius: 3px;">
+                        [#crm/tpl/ContragentInfoBlock.shtml#]
+                        <!--ET_BEGIN CloseTime-->
+                        <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
+                        <!--ET_END CloseTime-->
+                        <!--ET_BEGIN ShowDocumentsAsButtons-->
+                        <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
+                        <!--ET_END ShowDocumentsAsButtons-->
+                    </div>
                 </div>
-                [#crm/tpl/ContragentInfoBlock.shtml#]
-                <!--ET_BEGIN CloseTime-->
-                <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
-                <!--ET_END CloseTime-->
-                <!--ET_BEGIN ShowDocumentsAsButtons-->
-                <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
-                <!--ET_END ShowDocumentsAsButtons-->
+
+
             </fieldset>
             <!--ET_END info-->
+            <div class="clearfix21"></div>
             [#DETAILS#]
             <div style="clear:both;"></div>
         </div>

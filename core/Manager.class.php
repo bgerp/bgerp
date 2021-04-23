@@ -945,7 +945,7 @@ class core_Manager extends core_Mvc
     {
         $action = $action1;
         
-        $action{0} = strtoupper($action{0});
+        $action[0] = strtoupper($action[0]);
         $action = 'can' . $action;
         
         if (isset($this->{$action})) {
@@ -1030,7 +1030,7 @@ class core_Manager extends core_Mvc
     public static function on_Shutdown($mvc)
     {
         $time = time();
-        if (count(self::$cacheRights)) {
+        if (countR(self::$cacheRights)) {
             foreach (self::$cacheRights as $userId => $rights) {
                 if ($userId < 1) {
                     continue;
@@ -1055,7 +1055,7 @@ class core_Manager extends core_Mvc
                         unset($exRights[$key]);
                     }
                 }
-                if (count($exRights)) {
+                if (countR($exRights)) {
                     core_Cache::set('RightsForObject', $userId, $exRights, 120);
                 }
             }

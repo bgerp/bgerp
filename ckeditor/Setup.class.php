@@ -29,10 +29,38 @@ class ckeditor_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Текстов редактор за Интернет';
+
+
+    /**
+     * Мениджър - входна точка в пакета
+     */
+    public $startCtr = 'ckeditor_Test';
     
     
     /**
-     * Пакет без инсталация
+     * Екшън - входна точка в пакета
      */
-    public $noInstall = true;
+    public $startAct = 'default';
+
+    /**
+     * Списък с мениджърите, които съдържа пакета
+     */
+    public $managers = array(
+        'ckeditor_Test',
+    );
+
+    /**
+     * Инсталиране на пакета
+     */
+    public function install()
+    {
+        $html = parent::install();
+       
+
+        // Инсталираме плъгина за аватари
+        $html .= core_Plugins::installPlugin('Регистриране на RichHTML', 'ckeditor_Plugin', 'type_RichHtml', 'private');
+        
+        return $html;
+    }
+
 }

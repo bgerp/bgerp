@@ -17,9 +17,9 @@
                 <fieldset class="detail-info">
                     <legend class="groupTitle">|Адрес и контакти|*</legend>
                     <div class="groupList">
-                        <!--ET_BEGIN companyName-->
+                        <!--ET_BEGIN folderName-->
                         <div><strong style='color:blue'>[#folderName#]</strong></div>
-                        <!--ET_END companyName-->
+                        <!--ET_END folderName-->
                         <div>[#country#]</div>
                         <div>[#pCode#] [#place#]</div>
                         <div>[#address#]</div>
@@ -38,6 +38,9 @@
                         <!--ET_BEGIN vat-->
                         <div>VAT: <b>[#vat#]</b></div>
                         <!--ET_END vat-->
+                        <!--ET_BEGIN eori-->
+                        <div>EORI: <b>[#eori#]</b></div>
+                        <!--ET_END eori-->
                         <!--ET_BEGIN uicId-->
                         <div>|Нац.|* №: <b>[#uicId#]</b></div>
                         <!--ET_END uicId-->
@@ -83,14 +86,16 @@
                     <legend class="groupTitle">|Друга информация|*</legend>
                     <div class="groupList">
                         [#info#]
+                        <div style="margin: 10px 0 3px; border: 1px solid #ccc; padding: 3px 5px;border-radius: 3px;">
+                            [#crm/tpl/ContragentInfoBlock.shtml#]
+                            <!--ET_BEGIN CloseTime-->
+                            <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
+                            <!--ET_END CloseTime-->
+                            <!--ET_BEGIN ShowDocumentsAsButtons-->
+                            <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
+                            <!--ET_END ShowDocumentsAsButtons-->
+                        </div>
                     </div>
-                    [#crm/tpl/ContragentInfoBlock.shtml#]
-                    <!--ET_BEGIN CloseTime-->
-                    <div>|Затваряне на нишките|*: |Автоматично след|* [#CloseTime#]</div>
-                    <!--ET_END CloseTime-->
-                    <!--ET_BEGIN ShowDocumentsAsButtons-->
-                    <div>|Бързи бутони в папката|*: [#ShowDocumentsAsButtons#]</div>
-                    <!--ET_END ShowDocumentsAsButtons-->
                 </fieldset>
                 <!--ET_END info-->
                 [#DETAILS#]

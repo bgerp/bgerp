@@ -108,7 +108,6 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_InvoiceDetails',
         'purchase_Vops',
         'purchase_PurchasesData',
-        'migrate::migrateClosedWith',
     );
     
     
@@ -170,14 +169,5 @@ class purchase_Setup extends core_ProtoSetup
         }
         
         return $html;
-    }
-    
-    
-    /**
-     * Обновява кеш полето за коя сделка с коя е приключена
-     */
-    function migrateClosedWith()
-    {
-        cls::get('deals_Setup')->updateClosedWith('purchase_Purchases', 'purchase_ClosedDeals');
     }
 }

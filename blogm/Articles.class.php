@@ -2,14 +2,14 @@
 
 
 /**
- * Статии
+ * Блог Статии
  *
  *
  * @category  bgerp
  * @package   blogm
  *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -124,18 +124,9 @@ class blogm_Articles extends core_Master
     
     
     /**
-     * Екшъна по подразбиране е разглеждане на статиите
-     */
-    public function act_Default()
-    {
-        return $this->act_Browse();
-    }
-    
-    
-    /**
      * Обработка на вербалното представяне на статиите
      */
-    public function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    protected function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $rec->body = trim($rec->body);
         
@@ -176,10 +167,12 @@ class blogm_Articles extends core_Master
         }
         
         $row->publishedOn = dt::mysql2verbal($rec->publishedOn, 'smartTime');
-        
-        
+
         if ($fields['-list']) {
-            $row->title = ht::createLink($row->title, self::getUrl($rec), null, 'ef_icon=img/16/monitor.png');
+            $url = self::getUrl($rec);
+            $url['cMenuId'] = static::getDefaultMenuId($rec);
+
+            $row->title = ht::createLink($row->title, $url, null, 'ef_icon=img/16/monitor.png');
         }
     }
     
@@ -187,7 +180,7 @@ class blogm_Articles extends core_Master
     /**
      * Изпълнява се преди всеки запис
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $fields = null)
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null)
     {
         if (!$fields) {
             if ($rec->state == 'active') {
@@ -222,7 +215,7 @@ class blogm_Articles extends core_Master
     /**
      * Обработка на заглавието
      */
-    public function on_AfterPrepareListTitle($mvc, $data)
+    protected function on_AfterPrepareListTitle($mvc, $data)
     {
         // Проверява имали избрана категория
         $category = Request::get('category', 'int');
@@ -244,7 +237,7 @@ class blogm_Articles extends core_Master
     /**
      * Подготовка на формата за добавяне/редактиране на статия
      */
-    public static function on_AfterPrepareEditForm($mvc, $res, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = $data->form;
         
@@ -254,8 +247,7 @@ class blogm_Articles extends core_Master
         }
         
         $mvc->setMenuIdByRec($form->rec, false);
-        
-        $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent()));
+        $form->setSuggestions('categories', blogm_Categories::getCategoriesByDomain(cms_Domains::getCurrent(), null, null, true));
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
@@ -269,7 +261,7 @@ class blogm_Articles extends core_Master
     /**
      *  Филтриране на статиите по ключови думи и категория
      */
-    public static function on_AfterPrepareListFilter($mvc, $data)
+    protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->title = 'Търсене';
         $data->listFilter->view = 'horizontal';
@@ -304,8 +296,25 @@ class blogm_Articles extends core_Master
             $data->query->where("#state = 'active'");
         }
     }
-    
-    
+
+
+    /**
+     * Кое е дефолтното меню на статията
+     *
+     * @param mixed $id
+     * @return int $menuId
+     */
+    public function getDefaultMenuId($id)
+    {
+        $rec = static::fetchRec($id);
+
+        $categories = keylist::toArray($rec->categories);
+        $firstCategoryId = key($categories);
+        $menuId = blogm_Categories::fetchField($firstCategoryId, 'menuId');
+
+        return $menuId;
+    }
+
     /**
      *  Екшън за публично преглеждане и коментиране на блог-статия
      */
@@ -316,32 +325,44 @@ class blogm_Articles extends core_Master
         
         // Очакваме да има зададено "id" на статията
         $id = Request::get('id', 'int');
-        
+
         if (!$id) {
             $id = Request::get('articleId', 'int');
         }
         
         if (!$id) {
-            
+
             return $this->act_Browse();
         }
-        
-        
+
+        // Извличане на записа на статията
+        $rec = $this->fetch($id);
+        if(!$rec){
+
+            return $this->act_Browse();
+        }
+
+        $cMenuId = Request::get('cMenuId', 'int');
+        if(empty($cMenuId)){
+            $cMenuId = static::getDefaultMenuId($rec);
+        }
+
+        $categoryId = Request::get('category', 'int');
+
         // Създаваме празен $data обект
         $data = new stdClass();
         $data->query = $this->getQuery();
         $data->articleId = $id;
+        $data->menuId = $cMenuId;
+        $data->category = $categoryId;
+        $data->menuRec = cms_Content::fetch($data->menuId);
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->category);
+        $data->rec = $rec;
         
-        // Трябва да има $rec за това $id
-        $data->rec = $this->fetch($id);
-        
-        if (!$data->rec) {
-            
-            return $this->act_Browse();
-        }
-        
-        $this->setMenuIdByRec($data->rec);
-        
+
+
+        cms_Content::setCurrent($cMenuId);
+
         // Определяме езика на статията от първата и категория
         $catArr = keylist::toArray($data->rec->categories);
         $firstCatId = key($catArr);
@@ -429,6 +450,8 @@ class blogm_Articles extends core_Master
         if (is_object($rec) && isset($rec->categories)) {
             $catId = (int) trim($rec->categories, '|');
             $catRec = blogm_Categories::fetch($catId);
+
+
             if ($catRec) {
                 $menuId = cms_Content::getDefaultMenuId($this, $catRec->domainId);
                 cms_Content::setCurrent($menuId, $externalPage);
@@ -453,7 +476,6 @@ class blogm_Articles extends core_Master
         blogm_Comments::prepareComments($data);
         
         $data->selectedCategories = keylist::toArray($data->rec->categories);
-        
         $this->prepareNavigation($data);
         
         if ($this->haveRightFor('single', $data->rec)) {
@@ -470,7 +492,7 @@ class blogm_Articles extends core_Master
         // Поставяме данните от реда
         $layout->placeObject($data->row);
         
-        $layout->append($this->getPrevNextLink($data->rec), 'prevNextLinks');
+        $layout->append($this->getPrevNextLink($data), 'prevNextLinks');
         
         $layout = blogm_Comments::renderComments($data, $layout);
         
@@ -488,22 +510,22 @@ class blogm_Articles extends core_Master
     /**
      * Връща линкове за предишен и/или следващ постинг от същите категории
      */
-    public function getPrevNextLink($rec)
+    private function getPrevNextLink($data)
     {
         $res = '';
-        
+        $rec = $data->rec;
+
         if ($rec->categories) {
             $query = self::getQuery();
-            
-            $query->orderBy('#publishedOn');
-            
+            $query->XPR('calcDate', 'datetime', "COALESCE(#publishedOn, #createdOn)");
             $query->likeKeylist('categories', $rec->categories);
-            
-            $selected = false;
+            $query->orderBy('#publishedOn');
+
+            $flagSelected = false;
             $prev = $next = null;
             $now = dt::now();
             
-            while ($r = $query->fetch("#state = 'active' AND IF(#publishedOn IS NULL OR #publishedOn = '', #createdOn, #publishedOn)  <= '{$now}'")) {
+            while ($r = $query->fetch("#state = 'active' AND #calcDate  <= '{$now}'")) {
                 if ($r->id == $rec->id) {
                     $flagSelected = true;
                 } elseif (strlen($r->body)) {
@@ -519,10 +541,14 @@ class blogm_Articles extends core_Master
             // Линкове за следваща/предишна статия
             $prevLink = $nextLink = '';
             if ($prev) {
-                $prevLink = ht::createLink('«&nbsp;' . $prev->title, self::getUrl($prev));
+                $prevUrl = self::getUrl($prev);
+                $prevUrl['cMenuId'] = $data->menuId;
+                $prevLink = ht::createLink('«&nbsp;' . $prev->title, $prevUrl);
             }
             if ($next) {
-                $nextLink = ht::createLink($next->title . '&nbsp;»', self::getUrl($next));
+                $nextUrl = self::getUrl($next);
+                $nextUrl['cMenuId'] = $data->menuId;
+                $nextLink = ht::createLink($next->title . '&nbsp;»', $nextUrl);
             }
             
             if ($prevLink || $nextLink) {
@@ -547,21 +573,14 @@ class blogm_Articles extends core_Master
     /**
      * Добавяме бутон за преглед на статията в публичната част на сайта
      */
-    public function on_AfterPrepareSingleToolbar($mvc, $data)
+    protected function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         if ($mvc->haveRightFor('article', $data->rec)) {
-            $data->toolbar->addBtn(
-                'Преглед',
-                array(
-                    $this,
-                    'Article',
-                    $data->rec->id,
-                )
-             );
+            $data->toolbar->addBtn('Преглед', array($this, 'Article', $data->rec->id), null, 'ef_icon=img/16/monitor.png,title=Преглед във външната част');
         }
     }
-    
-    
+
+
     /**
      *  Показваме списък със статии и навигация по категории
      */
@@ -569,31 +588,32 @@ class blogm_Articles extends core_Master
     {
         // Създаваме празен $data обект
         $data = new stdClass();
-        
-        // Създаваме заявка към модела
-        $data->query = $this->getQuery();
-        
-        
-        // Въвеждаме ако има, категорията от заявката
-        $data->category = Request::get('category', 'int');
-        
-        // Определяме езика от категорията
-        if ($data->category > 0) {
-            $domainId = blogm_Categories::fetchField($data->category, 'domainId');
-            if ($domainId) {
-                cms_Domains::setPublicDomain($domainId);
+        $data->categoryId = Request::get('category', 'int');
+        $data->menuId = Request::get('cMenuId', 'int');
+
+        if(empty($data->menuId)){
+            if(isset($data->categoryId)){
+                $data->menuId = blogm_Categories::fetchField($data->categoryId, 'menuId');
+            } else {
+                $data->menuId = cms_Content::getDefaultMenuId($this);
             }
         }
-        
-        $categories = blogm_Categories::getCategoriesByDomain();
-        $data->query->likeKeylist('categories', keylist::fromArray($categories));
-        
-        // По какво заглавие търсим
+
+        $data->menuRec = cms_Content::fetch($data->menuId);
+        cms_Domains::setPublicDomain($data->menuRec->domainId);
+        cms_Content::setCurrent($data->menuId);
+
+        // Създаваме заявка към модела
+        $data->query = $this->getQuery();
+        $data->category = Request::get('category', 'int');
+
+        $data->categories = blogm_Categories::getCategoriesByDomain($data->menuRec->domainId, $data->menuId, $data->categoryId);
+        $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
         $data->q = Request::get('q');
-        
+
         // Архив
         $data->archive = Request::get('archive');
-        
+
         if ($data->archive) {
             list($data->archiveY, $data->archiveM) = explode('|', $data->archive);
             expect(is_numeric($data->archiveY) && is_numeric($data->archiveM));
@@ -601,14 +621,14 @@ class blogm_Articles extends core_Master
         }
         
         $data->ThemeClass = $this->getThemeClass();
-        
+
         // Подготвяме данните необходими за списъка със стаии
         $this->prepareBrowse($data);
-        
+
         // Подготвяме seo параметрите
         $rec = new stdClass();
         cms_Content::prepareSeo($rec, array('seoTitle' => $data->title));
-        
+
         // Рендираме списъка
         $tpl = $this->renderBrowse($data);
         
@@ -624,7 +644,9 @@ class blogm_Articles extends core_Master
         
         // Записваме, че потребителя е разглеждал този списък
         $this->logRead('Листване');
-        
+
+
+
         return $tpl;
     }
     
@@ -638,12 +660,12 @@ class blogm_Articles extends core_Master
             $data->query->where(array("#categories LIKE '%|[#1#]|%'", $data->category));
             $data->selectedCategories[$data->category] = true;
         } else {
+
             // Добавка, ако няма избрана категория, резултатите да се филтрират само по категориите, които са от текущия език
-            $categories = blogm_Categories::getCategoriesByDomain();
-            if (!is_array($categories) || !countR($categories)) {
-                $categories = array('99999999' => 'Няма категории на съответния език');
+            if (!countR($data->categories)) {
+                $data->categories = array('99999999' => 'Няма категории на съответния език');
             }
-            $data->query->likeKeylist('categories', keylist::fromArray($categories));
+            $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
         }
         
         if ($data->archive) {
@@ -667,13 +689,12 @@ class blogm_Articles extends core_Master
             $data->recs[$rec->id] = $rec;
             
             $row = new stdClass();
-            
             $row = self::recToVerbal($rec, $fields);
             
             $url = self::getUrl($rec);
-            
+
             $url['q'] = $data->q;
-            
+            $url['cMenuId'] = $data->menuId;
             $row->title = ht::createLink($row->title, $url);
             
             $txt = explode("\n", $rec->body, 2);
@@ -729,7 +750,7 @@ class blogm_Articles extends core_Master
                 $data->descr .= "<p><b style='color:#666;'>" . tr('Все още няма статии в този блог') . '</b></p>';
             }
         }
-        
+
         // Подготвяме данните за навигацията
         $this->prepareNavigation($data);
     }
@@ -770,17 +791,12 @@ class blogm_Articles extends core_Master
     public function prepareNavigation_(&$data)
     {
         $this->prepareSearch($data);
-        
-        $data->categories = blogm_Categories::getCategoriesByDomain();
-        
+
         $this->prepareArchive($data);
-        
         blogm_Links::prepareLinks($data);
         
         // Тема за блога
         $data->ThemeClass = $this->getThemeClass();
-        
-        Mode::set('cMenuId', cms_Content::getDefaultMenuId('blogm_Articles'));
     }
     
     
@@ -811,13 +827,15 @@ class blogm_Articles extends core_Master
         
         // Добавяме стиловете от темата
         $layout->push($data->ThemeClass->getStyles(), 'CSS');
-        
+
+        jquery_Jquery::run($layout, 'toggleNarrowMenu();', TRUE);
+
         // Поставяме шаблона за външен изглед
         Mode::set('wrapper', 'cms_page_External');
         
         // Добавяме лейаута на страницата
         Mode::set('cmsLayout', $data->ThemeClass->getBlogLayout());
-        
+
         return $layout;
     }
     
@@ -838,12 +856,13 @@ class blogm_Articles extends core_Master
     public function renderSearch_(&$data)
     {
         $data->searchForm->layout = $data->ThemeClass->getSearchFormLayout();
-        
-        $data->searchForm->layout->replace(toUrl(array('blogm_Articles')), 'ACTION');
+
+        $data->searchForm->layout->replace(toUrl(array('blogm_Articles', 'Browse', 'cMenuId' => $data->menuId)), 'ACTION');
         
         $data->searchForm->layout->replace(sbf('img/16/find.png', ''), 'FIND_IMG');
         $data->searchForm->layout->replace($data->q, 'VALUE');
-        
+        $data->searchForm->layout->replace($data->menuId, 'cMenuId');
+
         return $data->searchForm->renderHtml();
     }
     
@@ -896,7 +915,7 @@ class blogm_Articles extends core_Master
                 }
                 
                 // Създаваме линк, който ще покаже само статиите от избраната категория
-                $title = ht::createLink(dt::getMonth($m, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . '/' . $y, array('blogm_Articles', 'browse', 'archive' => $month));
+                $title = ht::createLink(dt::getMonth($m, Mode::is('screenMode', 'narrow') ? 'M' : 'F') . '/' . $y, array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'archive' => $month));
                 
                 // Див-обвивка
                 $title = ht::createElement('div', $attr, $title);
@@ -1008,7 +1027,7 @@ class blogm_Articles extends core_Master
      */
     public function getUrlByMenuId($cMenuId)
     {
-        return array('blogm_Articles', 'Default');
+        return array('blogm_Articles', 'Browse', 'cMenuId' => $cMenuId);
     }
     
     
@@ -1144,7 +1163,7 @@ class blogm_Articles extends core_Master
             $groupsArr[$gRec->id] = $gRec;
         }
         
-        if (count($groupsArr)) {
+        if (countR($groupsArr)) {
             $query = self::getQuery();
             $query->where("#state = 'active'");
             $query->likeKeylist('categories', keylist::fromArray($groupsArr));
@@ -1176,7 +1195,7 @@ class blogm_Articles extends core_Master
      * @param core_ET        $tpl
      * @param object         $data
      */
-    public function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    protected function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
         // Оттегляне на нотификацията
         $url = array($mvc, 'single', $data->rec->id);

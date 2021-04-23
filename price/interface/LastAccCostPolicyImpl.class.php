@@ -112,18 +112,22 @@ class price_interface_LastAccCostPolicyImpl extends price_interface_BaseCostPoli
                 $tmpArr[$itemId] = new stdClass();
             }
             
-            // Сумираме сумите и количествата
-            if ($dRec->blQuantity >= 0) {
+            // Сумираме неотрицателните сумите и количества
+            if ($dRec->blQuantity >= 0 && $dRec->blAmount >= 0) {
                 $tmpArr[$itemId]->quantity += $dRec->blQuantity;
                 $tmpArr[$itemId]->amount += $dRec->blAmount;
             }
         }
         
-        // Намираме цената
+        // Намиране на цената
         $productMap = array_flip($productMap);
         foreach ($tmpArr as $index => $r) {
             $pId = $productMap[$index];
             $amount = (!$r->quantity) ? 0 : round($r->amount / $r->quantity, 5);
+
+            // Подсигуряване, че сумата няма да е отрицателна 0. -0 и 0 са равни при проверка с ==
+            $amount = ($amount == 0) ? 0 : $amount;
+
             $r->quantity = (!$r->quantity) ? 0 : $r->quantity;
             
             $res[$pId] = (object)array('productId'     => $pId,

@@ -46,7 +46,7 @@ class i18n_Encoding
         $len = strlen($text);
         
         for ($i = 0; $i < $len; $i++) {
-            $c = $text{$i};
+            $c = $text[$i];
             $cOrd = ord($c);
             
             foreach ($encodings as $name => $allowedChars) {

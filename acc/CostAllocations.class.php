@@ -113,7 +113,8 @@ class acc_CostAllocations extends core_Manager
     {
         try {
             $origin = doc_Containers::getDocument($rec->containerId);
-            if ($origin->fetchField('state') == 'active') {
+            $state = $origin->fetchField('state');
+            if (in_array($state, array('closed', 'active'))) {
                 acc_Journal::reconto($rec->containerId);
                 $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
             }
@@ -278,7 +279,8 @@ class acc_CostAllocations extends core_Manager
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        
+        $Detail = cls::get($rec->detailClassId);
+
         if (isset($rec->expenseItemId)) {
             $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
             
@@ -286,20 +288,20 @@ class acc_CostAllocations extends core_Manager
                 if (isset($rec->allocationBy) && !in_array($rec->allocationBy, array('auto', 'no'))) {
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                     $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                    acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
+                    acc_ValueCorrections::addProductsFromOriginToForm($form, $origin, $Detail->Master);
                 }
             }
         }
         
         if ($form->isSubmitted()) {
-            
+
             // Колко ще бъде разпределено след записа
             $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
             $allocatedQuantity += $rec->quantity;
             $uomId = key(cat_Products::getPacks($rec->productId));
             
             // Проверка дали ще се разпределя повече от допустимото количество
-            $maxQuantity = cls::get($rec->detailClassId)->getMaxQuantity($rec->detailRecId);
+            $maxQuantity = $Detail->getMaxQuantity($rec->detailRecId);
             
             if ($allocatedQuantity > $maxQuantity) {
                 $maxQuantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($maxQuantity);
@@ -339,12 +341,12 @@ class acc_CostAllocations extends core_Manager
                             $errorField = 'allocateBy,chosenProducts';
                             $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                             $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                            $rec->productsData = $origin->getCorrectableProducts($mvc);
+                            $rec->productsData = $origin->getCorrectableProducts($Detail->Master);
                         } else {
                             $errorField = 'allocateBy';
                             $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
                         }
-                        
+
                         $copyArr = $rec->productsData;
                         if ($error = acc_ValueCorrections::allocateAmount($copyArr, $rec->quantity, $rec->allocationBy)) {
                             $form->setError($errorField, $error);
@@ -556,7 +558,7 @@ class acc_CostAllocations extends core_Manager
             //... и да е активен
             $state = $origin->fetchField('state');
             
-            if ($state != 'active' && $state != 'draft') {
+            if ($state != 'active' && $state != 'draft' && $state != 'closed') {
                 $requiredRoles = 'no_one';
                 
                 return;

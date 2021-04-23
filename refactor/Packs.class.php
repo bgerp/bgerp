@@ -106,7 +106,7 @@ class refactor_Packs extends core_Manager
                 $str = file_get_contents($f);
                 $matches = array();
                 preg_match_all($ptr, $str, $matches);
-                if (is_array($matches[1]) && count($matches[1])) {
+                if (is_array($matches[1]) && countR($matches[1])) {
                     foreach ($matches[1] as $pName) {
                         if ($pName == $p->name) {
                             continue;
@@ -126,7 +126,7 @@ class refactor_Packs extends core_Manager
         for ($i = 1; $i < 500; $i++) {
             foreach ($res as &$p) {
                 foreach ($p->used as $usedP) {
-                    $d = min(rand(0, 15) / 10, $p->credit / (count($res[$usedP]) * rand(80, 110)));
+                    $d = min(rand(0, 15) / 10, $p->credit / (countR($res[$usedP]) * rand(80, 110)));
                     
                     if ($res[$usedP]->credit < $p->credit) {
                         $res[$usedP]->credit += $d;

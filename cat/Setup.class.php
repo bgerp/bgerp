@@ -43,6 +43,12 @@ defIfNot('CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER', 'canSell,canManifacture,canSto
 
 
 /**
+ * Неизползваните от колко време нестандартни артикули в активни оферти да се затварят
+ */
+defIfNot('CAT_CLOSE_UNUSED_PRIVATE_IN_ACTIVE_QUOTES_OLDER_THAN', 63113904);
+
+
+/**
  * Дефолт свойства на нови артикули в папките на доставчици
  */
 defIfNot('CAT_DEFAULT_META_IN_SUPPLIER_FOLDER', 'canBuy,canConvert,canStore');
@@ -97,6 +103,13 @@ defIfNot('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', '');
 
 
 /**
+ * Дали дефолтно рецептите да са пълни или не
+ */
+defIfNot('CAT_DEFAULT_BOM_IS_COMPLETE', 'no');
+
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -107,7 +120,7 @@ defIfNot('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', '');
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -148,7 +161,6 @@ class cat_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'migrate::updateProductCodes2',
         'cat_UoM',
         'cat_Groups',
         'cat_Categories',
@@ -165,9 +177,8 @@ class cat_Setup extends core_ProtoSetup
         'cat_Listings',
         'cat_ListingDetails',
         'cat_PackParams',
-        'migrate::updateIntName',
-        'migrate::updateBrState',
-        'migrate::updateEmptyEanCode'
+        'migrate::updateBoms',
+        'migrate::updatePackFirsDoc2108'
     );
     
     
@@ -217,8 +228,11 @@ class cat_Setup extends core_ProtoSetup
         'CAT_PACKAGING_AUTO_BARCODE_END' => array('gs1_TypeEan', 'caption=Автоматични баркодове на опаковките->Край'),
         'CAT_LABEL_RESERVE_COUNT' => array('percent(min=0,max=1)', 'caption=Печат на етикети на опаковки->Резерва'),
         'CAT_CLOSE_UNUSED_PRIVATE_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на стари нестандартни артикули->Неизползвани от'),
+        'CAT_CLOSE_UNUSED_PRIVATE_IN_ACTIVE_QUOTES_OLDER_THAN' => array('time', 'caption=Затваряне на стари нестандартни артикули->В активни оферти отпреди'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_OLDER_THEN' => array('time', 'caption=Затваряне на неизползвани стандартни артикули->Създадени преди'),
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Само в папките'),
+
+        'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Пълни,no=Непълни)', 'caption=Дали рецептите по подразбиране са завършени->Избор'),
     );
     
     
@@ -275,39 +289,6 @@ class cat_Setup extends core_ProtoSetup
     
     
     /**
-     * Миграция на имената на артикулите
-     */
-    public function updateIntName()
-    {
-        $Products = cls::get('cat_Products');
-        $Products->setupMvc();
-        
-        if (!cat_Products::count()) {
-            
-            return;
-        }
-        
-        core_App::setTimeLimit(700);
-        $toSave = array();
-        $query = cat_Products::getQuery();
-        $query->where("LOCATE('||', #name)");
-        $query->show('name,nameEn');
-        while ($rec = $query->fetch()) {
-            $exploded = explode('||', $rec->name);
-            if (countR($exploded) == 2) {
-                $rec->name = $exploded[0];
-                $rec->nameEn = $exploded[1];
-                $toSave[$rec->id] = $rec;
-            }
-        }
-        
-        if (countR($toSave)) {
-            $Products->saveArray($toSave, 'id,name,nameEn');
-        }
-    }
-    
-    
-    /**
      * Менижиране на формата формата за настройките
      *
      * @param core_Form $configForm
@@ -318,109 +299,116 @@ class cat_Setup extends core_ProtoSetup
         $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
         $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
     }
-    
-    
+
+
     /**
-     * Обновяване на предишното състояние на грешно създадените артикули
+     * Обновява рецептите
      */
-    public function updateBrState()
+    public function updateBoms()
     {
-        $Products = cls::get('cat_Products');
-        $Products->setupMvc();
-        
-        $toSave = array();
-        $pQuery = $Products->getQuery();
-        $pQuery->where("#state = 'closed' AND #brState = 'closed'");
-        $pQuery->show('brState');
-        while($pRec = $pQuery->fetch()){
-            $pRec->brState = 'active';
-            $toSave[] = $pRec;
-        }
-        
-        if(countR($toSave)){
-            $Products->saveArray($toSave, 'id,brState');
-        }
+        $Bom = cls::get('cat_Boms');
+        if(!$Bom->count()) return;
+
+        // Обновява полето за завършеност на рецептата
+        $isCompleteColName = str::phpToMysqlName('isComplete');
+        $query = "UPDATE {$Bom->dbTableName} SET {$isCompleteColName} = 'auto'";
+        $Bom->db->query($query);
     }
-    
-    
+
+
     /**
-     * Миграция на празните баркодове
+     *
      */
-    public function updateEmptyEanCode()
+    public function updatePackFirsDoc2108()
     {
-        if(!cat_products_Packagings::count()) return;
-        
-        $Packs = cls::get('cat_products_Packagings');
-        $eanCol = str::phpToMysqlName('eanCode');
-        $query = "UPDATE {$Packs->dbTableName} SET {$eanCol} = '' WHERE {$eanCol} IS NULL";
-        $Packs->db->query($query);
+        core_CallOnTime::setCall(get_called_class(), 'addFirstDoc2108', null, dt::addSecs(120));
     }
-    
-    
+
+
     /**
-     * Миграция на кодовете
+     * Обновяване на първия документ, в който е използва по крон
      */
-    public function updateProductCodes2()
+    function callback_AddFirstDoc2108()
     {
-        $Products = cls::get('cat_Products');
-        
-        if ($Products->db->tableExists('cat_products')){
-            $Products->setupMvc();
-            $updateRecs = $saveRecs = array();
-            
-            $query = cat_Products::getQuery();
-            $query->XPR('normCode', 'varchar', 'LOWER(#code)');
-            $query->XPR('count', 'varchar', 'COUNT(#id)');
-            $query->show('normCode');
-            $query->where("#count > 1 AND #code IS NOT NULL");
-            $query->groupBy("normCode");
-            $query->orderBy("id", 'DESC');
-            
-            $duplicatedCodes = arr::extractValuesFromArray($query->fetchAll(), 'normCode');
-            
-            $query = $Products->getQuery();
-            $query->XPR('normCode', 'varchar', 'LOWER(#code)');
-            $query->where("#code IS NOT NULL");
-            $query->show('code,normCode');
-            $query->orderBy('id', 'DESC');
-            while($rec = $query->fetch()){
-                $updateRecs[$rec->id] = $rec;
+        $pKey = $this->className . '|AddFirstDoc2108';
+
+        $maxTime = dt::addSecs(40);
+
+        $kVal = core_Permanent::get($pKey);
+
+        $query = cat_products_Packagings::getQuery();
+
+        if (isset($kVal)) {
+            $query->where(array("#id < '[#1#]'", $kVal));
+        }
+
+        $cnt = $query->count();
+
+        if (!$cnt) {
+            if (!is_null($kVal)) {
+                core_Permanent::set($pKey, $kVal, 200);
+            } else {
+                core_Permanent::remove($pKey);
             }
-            
-            if(!countR($updateRecs)) return;
-            
-            $count = countR($updateRecs);
-            core_App::setTimeLimit($count * 0.2, false, 100);
-            
-            foreach ($updateRecs as &$uRec){
-                if(!array_key_exists($uRec->normCode, $duplicatedCodes)) continue;
-                
-                // Проверява се има ли записи със същото уникално поле
-                $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return $a->normCode == $uRec->normCode && $a->id != $uRec->id;});
-                
-                if(countR($foundRec)){
-                    
-                    // Отново се проверява дали е уникално
-                    $loop = true;
-                    while($loop){
-                       
-                        // Ако има то се инкрементира
-                        $uRec->code = str::addIncrementSuffix($uRec->code, '_');
-                        $uRec->normCode = mb_strtolower($uRec->code);
-                        $foundRec = array_filter($updateRecs, function ($a) use ($uRec) {return $a->normCode == $uRec->normCode && $a->id != $uRec->id;});
-                       
-                        if(!countR($foundRec)){
-                            $loop = false;
-                        }
+
+            cat_products_Packagings::logDebug('Приключи поправката на първи документ в опаковките');
+
+            return ;
+        }
+
+        $query->orderBy('id', 'DESC');
+
+        $isFirst = true;
+
+        $query->limit(10000);
+
+        $lastId = $kVal;
+
+        try {
+            $pPackaging = cls::get('cat_products_Packagings');
+
+            while ($rec = $query->fetch()) {
+
+                if (dt::now() >= $maxTime) {
+                    break;
+                }
+
+                if ($isFirst) {
+                    cat_products_Packagings::logDebug("Поправка на първия документ на опаковките: {$rec->id}");
+                    $isFirst = false;
+                }
+
+                $lastId = $rec->id;
+
+                try {
+                    $dRecArr = array();
+                    cat_products_Packagings::isUsed($rec->productId, $rec->packagingId, false, array('active', 'closed'), $dRecArr, true);
+
+                    if ($dRecArr) {
+                        $rec->firstClassId = $dRecArr['classId'];
+                        $rec->firstDocId = $dRecArr['id'];
+
+                        $pPackaging->save_($rec, 'firstClassId, firstDocId');
                     }
-                    
-                    $saveRecs[$uRec->id] = $uRec;
+                } catch (Exception $e) {
+                    reportException($e);
+                } catch (Throwable  $e) {
+                    reportException($e);
                 }
             }
-            
-            if(!countR($saveRecs)) return;
-            
-            $Products->saveArray($saveRecs, "id, code");
+        } catch (Exception $e) {
+            reportException($e);
+        } catch (Throwable  $e) {
+            reportException($e);
+        }
+
+        $callOn = dt::addSecs(55);
+        core_CallOnTime::setCall(get_called_class(), 'AddFirstDoc2108', null, $callOn);
+
+        cat_products_Packagings::logDebug('Поправка на първия документ на опаковките до id=' . $lastId);
+
+        if (!is_null($lastId)) {
+            core_Permanent::set($pKey, $lastId, 1000);
         }
     }
 }

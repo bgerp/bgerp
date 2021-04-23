@@ -153,7 +153,7 @@ class batch_definitions_Serial extends batch_definitions_Proto
             $start = $serial;
         }
         
-        if (count($res)) {
+        if (countR($res)) {
             $res = array($oldFrom => $oldFrom) + $res;
             
             return $res;

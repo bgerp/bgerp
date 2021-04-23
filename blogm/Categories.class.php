@@ -9,7 +9,7 @@
  * @package   blogm
  *
  * @author    Ивелин Димов <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,13 +25,13 @@ class blogm_Categories extends core_Manager
     /**
      * Зареждане на необходимите плъгини
      */
-    public $loadList = 'plg_RowTools2, blogm_Wrapper';
+    public $loadList = 'plg_RowTools2, cms_plg_ContentSharable, blogm_Wrapper, plg_StructureAndOrder';
     
     
     /**
      * Полета за изглед
      */
-    public $listFields = 'id, title, description';
+    public $listFields = 'id, title, description, menuId, sharedMenus';
     
     
     /**
@@ -44,8 +44,16 @@ class blogm_Categories extends core_Manager
      * Кой може да редактира
      */
     public $canEdit = 'cms, ceo, admin, blog';
-    
-    
+
+
+    /**
+     * Към менюта от кой клас да се споделят
+     *
+     * @see cms_plg_ContentSharable
+     */
+    public $sharableToContentSourceClass = 'blogm_Articles';
+
+
     /**
      * Кой може да изтрива
      */
@@ -70,17 +78,20 @@ class blogm_Categories extends core_Manager
     public function description()
     {
         $this->FLD('title', 'varchar(60)', 'caption=Заглавие,mandatory');
+        $this->FLD('menuId', 'key(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Основно,silent,refreshForm,mandatory');
+        $this->FLD('sharedMenus', 'keylist(mvc=cms_Content,select=menu, allowEmpty)', 'caption=Меню->Споделяне в,silent,refreshForm');
         $this->FLD('description', 'richtext(bucket=' . blogm_Articles::FILE_BUCKET . ')', 'caption=Описание');
         $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Домейн,notNull,defValue=bg,mandatory,autoFilter');
         
         $this->setDbUnique('title');
+        $this->setDbUnique('title,menuId');
     }
     
     
     /**
      * Създаване на линк към статиите, филтрирани спрямо избраната категория
      */
-    public function on_AfterRecToVerbal($mvc, $row, $rec)
+    protected function on_AfterRecToVerbal($mvc, $row, $rec)
     {
         $row->title = ht::createLink($row->title, array('blogm_Articles', 'list', 'category' => $rec->id));
     }
@@ -102,7 +113,7 @@ class blogm_Categories extends core_Manager
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
-    public static function on_AfterPrepareEditForm($mvc, $data)
+    protected static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
         
@@ -114,13 +125,35 @@ class blogm_Categories extends core_Manager
     /**
      * Връща категориите по текущия език
      */
-    public static function getCategoriesByDomain($domainId = null)
+    public static function getCategoriesByDomain($domainId = null, $cMenuId = null, $categoryId = null, $showAll = false)
     {
         $options = array();
         
         // Взимаме заявката към категориите, според избрания език
         $query = static::getQuery();
         self::filterByDomain($query, $domainId);
+        if(isset($cMenuId)){
+            $query->where("#menuId = {$cMenuId} OR LOCATE('|{$cMenuId}|', #sharedMenus)");
+        }
+
+        if(!$showAll){
+            if (isset($categoryId)) {
+                $fRec = self::fetch($categoryId, 'id,saoParentId');
+                $parentGroupsArr = array($fRec->id);
+                $sisCond = ($fRec->saoParentId) ? " OR #saoParentId = {$fRec->saoParentId} " : '';
+
+                while ($fRec->saoLevel > 1) {
+                    $parentGroupsArr[] = $fRec->id;
+                    $fRec = self::fetch($fRec->saoParentId. 'id,saoParentId');
+                }
+
+                $parentGroupsList = implode(',', $parentGroupsArr);
+                $query->where("#id IN ({$parentGroupsList}) OR #saoParentId IN ({$parentGroupsList}) {$sisCond} OR #saoLevel <= 1");
+            } else {
+                $query->where('#saoLevel <= 1');
+            }
+        }
+
         while ($rec = $query->fetch()) {
             $options[$rec->id] = static::getVerbal($rec, 'title');
         }
@@ -135,26 +168,29 @@ class blogm_Categories extends core_Manager
     public static function renderCategories_($data)
     {
         // Шаблон, който ще представлява списъка от хиперлинкове към категориите
-        $tpl = new ET();
+        $tpl = new ET("");
         
         if (!$data->categories) {
             $data->categories = array();
         }
-        
+
         $Lg = cls::get('core_Lg');
         $allCaption = $Lg->translate('Всички', false, cms_Content::getLang());
         $cat = array('' => $allCaption) + $data->categories;
-        
+
         // За всяка Категория, създаваме линк и го поставяме в списъка
         foreach ($cat as $id => $title) {
+            $saoLevel = static::fetchField($id, 'saoLevel');
+            $num = ($saoLevel) ? $saoLevel : 1;
+
             if ($data->selectedCategories[$id] || (!$id && !countR($data->selectedCategories))) {
-                $attr = array('class' => 'nav_item sel_page level2');
+                $attr = array('class' => "nav_item sel_page level{$num}");
             } else {
-                $attr = array('class' => 'nav_item level2');
+                $attr = array('class' => "nav_item level{$num}");
             }
             
             // Създаваме линк, който ще покаже само статиите от избраната категория
-            $title = ht::createLink($title, $id ? array('blogm_Articles', 'browse', 'category' => $id) : array('blogm_Articles'));
+            $title = ht::createLink($title, $id ? array('blogm_Articles', 'browse', 'cMenuId' => $data->menuId, 'category' => $id) : array('blogm_Articles', 'Browse', 'cMenuId' => $data->menuId));
             
             // Див-обвивка
             $title = ht::createElement('div', $attr, $title);
@@ -174,8 +210,43 @@ class blogm_Categories extends core_Manager
     /**
      * Преди извличане на записите от БД
      */
-    public static function on_AfterPrepareListFilter($mvc, &$data)
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         self::filterByDomain($data->query, cms_Domains::getCurrent());
+    }
+
+
+    /**
+     * Имплементация на метод, необходим за plg_StructureAndOrder
+     */
+    public function saoCanHaveSublevel($rec, $newRec = null)
+    {
+        return $rec->saoLevel <= 3;
+    }
+
+
+    /**
+     * Необходим метод за подреждането
+     */
+    public static function getSaoItems($rec)
+    {
+        $res = array();
+        $query = self::getQuery();
+        $menuId = Request::get('menuId', 'int');
+        if (!$menuId || strpos($rec->sharedMenus, "|{$menuId}|") === false) {
+            $menuId = (int) $rec->menuId;
+        }
+        if (!$menuId) {
+            $menuId = cms_Content::getDefaultMenuId('blogm_Articles');
+        }
+        if (!$menuId) {
+            return $res;
+        }
+        $query->where("#menuId = {$menuId}");
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $rec;
+        }
+
+        return $res;
     }
 }

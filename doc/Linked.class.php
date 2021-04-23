@@ -203,8 +203,19 @@ class doc_Linked extends core_Manager
         $rowArr = array();
         
         $me = cls::get(get_called_class());
-        
+
         foreach ($recArr as $id => $rec) {
+            // Ако връзката е към себе си, да не се показва
+            if (($rec->outType == $rec->inType) && ($rec->outVal == $rec->inVal)) {
+
+                continue;
+            }
+
+            if (!$rec->inType && !$rec->inVal) {
+
+                continue;
+            }
+
             $linkUrl = array();
             $comment = $me->getVerbal($rec, 'comment');
             
@@ -213,7 +224,7 @@ class doc_Linked extends core_Manager
             if ($rec->state == 'active') {
                 $getUrlWithAccess = true;
             }
-            
+
             if ($rec->outType == $type && $rec->outVal == $val) {
                 $icon = 'img/16/arrow_right.png';
                 $rowArr[$id]['docLink'] = self::getVerbalLinkForType($rec->inType, $rec->inVal, $comment, $getUrlWithAccess, $linkUrl);
@@ -240,7 +251,8 @@ class doc_Linked extends core_Manager
         
         if ($viewType == 'table') {
             $table = cls::get('core_TableView');
-            $table->tableClass = 'listTable smallerText';
+            $table->tableClass = 'listTable smallerText offsetTop';
+            $table->style = 'margin-top: 20px;';
             $res = $table->get($rowArr, '_rowTools=✍,
                                           docLink=Връзка,
 	                                      comment=Коментар');
@@ -911,7 +923,7 @@ class doc_Linked extends core_Manager
                 $or = true;
             }
         }
-        
+
         // Същия тим документ или папка +
         // 1 - потребител и папка
         // 2 - потребител
@@ -993,7 +1005,7 @@ class doc_Linked extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -1097,7 +1109,7 @@ class doc_Linked extends core_Manager
             $cQuery->where(array("#id != '[#1#]'", $params['unsetId']));
         }
         
-        $limit -= count($sArr);
+        $limit -= countR($sArr);
         $cQuery->limit($limit);
         
         $cQuery->orderBy('modifiedOn', 'DESC');
@@ -1154,7 +1166,7 @@ class doc_Linked extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -1178,7 +1190,7 @@ class doc_Linked extends core_Manager
             
             $show .= ',searchFieldXpr';
             
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             
@@ -1294,7 +1306,7 @@ class doc_Linked extends core_Manager
         
         $query->show($show);
         
-        $limit -= count($res);
+        $limit -= countR($res);
         $query->orderBy('last', 'DESC');
         
         while ($rec = $query->fetch()) {
@@ -1369,7 +1381,7 @@ class doc_Linked extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -1453,7 +1465,7 @@ class doc_Linked extends core_Manager
         
         $query->show($show);
         
-        $limit -= count($res);
+        $limit -= countR($res);
         $query->orderBy('last', 'DESC');
         
         while ($rec = $query->fetch()) {

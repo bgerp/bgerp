@@ -136,9 +136,9 @@ class core_String
                 
                 while ($r2 > 0) {
                     $r1 = (abs(crc32($seed . $r2--))) % $len[$k];
-                    $c = $chars[$k]{$r1};
-                    $chars[$k]{$r1} = $chars[$k]{$r2};
-                    $chars[$k]{$r2} = $c;
+                    $c = $chars[$k][$r1];
+                    $chars[$k][$r1] = $chars[$k][$r2];
+                    $chars[$k][$r2] = $c;
                 }
             }
         }
@@ -146,15 +146,15 @@ class core_String
         $pLen = strlen($pattern);
         
         for ($i = 0; $i < $pLen; $i++) {
-            $p = $pattern{$i};
+            $p = $pattern[$i];
             
             $rand = rand(0, $len[$p] - 1);
             
             $rand1 = ($rand + 7) % $len[$p];
             
-            $c = $chars[$p]{$rand};
-            $chars[$p]{$rand} = $chars[$p]{$rand1};
-            $chars[$p]{$rand1} = $c;
+            $c = $chars[$p][$rand];
+            $chars[$p][$rand] = $chars[$p][$rand1];
+            $chars[$p][$rand1] = $c;
             
             $res .= $c;
         }
@@ -306,7 +306,7 @@ class core_String
         
         $strLen = strlen($name);
         for ($i = 0; $i < $strLen; $i++) {
-            $c = $name{$i};
+            $c = $name[$i];
             
             if ((($lastC >= 'a' && $lastC <= 'z') || ($lastC >= '0' && $lastC <= '9')) && ($c >= 'A' && $c <= 'Z')) {
                 $mysqlName .= '_';
@@ -327,7 +327,7 @@ class core_String
         $cap = false;
         
         for ($i = 0; $i < strlen($name); $i++) {
-            $c = $name{$i};
+            $c = $name[$i];
             
             if ($c == '_') {
                 $cap = true;
@@ -537,21 +537,21 @@ class core_String
     public static function addIncrementSuffix($string, $prefix = '', $startNum = 1)
     {
         preg_match("/{$prefix}(\d+)$/", $string, $matches);
-        if (count($matches) == 2) {
+        if (countR($matches) == 2) {
             $number = $matches[1];
             $number = self::increment($number);
-            
+
             $offset = strlen($prefix);
             $startTagPos = strrpos($string, "{$prefix}") + $offset;
             
             // Инкрементираме числото
             $string = substr_replace($string, $number, $startTagPos);
         } else {
-            
+
             // Ако не е открит стринга добавяме `{$prefix}{$startNum}` в края му
             $string .= "{$prefix}{$startNum}";
         }
-        
+
         return $string;
     }
     
@@ -567,10 +567,17 @@ class core_String
     public static function increment($str)
     {
         if (is_string($str)) {
-            
+
+            // Ако целия стринг е число, инкрементираме го
+            if (is_numeric($str) && $str[0] != '0' && mb_strlen($str) >= 1) {
+                ++$str;
+
+                return (string) $str;
+            }
+
             //Разделяне на текста от последното число
             preg_match("/.+?(\d+)$/", $str, $match);
-            
+
             //Ако е открито число
             if (isset($match['1'])) {
                 $numLen = strlen($match['1']);
@@ -579,13 +586,6 @@ class core_String
                 
                 // Съединяване на текста с инкрементирана с единица стойност на последното число
                 return $other . str_pad(++$match['1'], $numLen, '0', STR_PAD_LEFT);
-            }
-            
-            // Ако целия стринг е число, инкрементираме го
-            if (is_numeric($str)) {
-                ++$str;
-                
-                return (string) $str;
             }
         }
         
@@ -836,7 +836,7 @@ class core_String
     public static function prepareMathExpr($expr, $contex = array())
     {
         // Ако има променливи, заместваме ги в израза
-        if (count($contex)) {
+        if (countR($contex)) {
             uksort($contex, 'str::sortByLengthReverse');
             array_walk($contex, function (&$value, $key) {
                 $value = ($value < 0) ? '(' . $value . ')' : (($value === null || $value === '') ? '0' : $value);

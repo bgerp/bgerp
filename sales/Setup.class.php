@@ -152,12 +152,6 @@ defIfNot('SALES_DELTA_MIN_PERCENT_PRIME_COST', '0.2');
 
 
 /**
- * Дефолтен режим на ДДС в офертите
- */
-defIfNot('SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG', 'auto');
-
-
-/**
  * Да се изчислява ли себестойноста на делтата на ЕН и СР лайв
  */
 defIfNot('SALES_LIVE_CALC_SO_DELTAS', 'no');
@@ -300,10 +294,6 @@ class sales_Setup extends core_ProtoSetup
             'time',
             'caption=Оферти->Валидност'
         ),
-        'SALES_QUOTATION_DEFAULT_CHARGE_VAT_BG' => array(
-            'enum(auto=Автоматично,yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)',
-            'caption=Режим на ДДС в офертите по подразбиране (клиенти от България)->Избор'
-        ),
     
         'SALES_PROD_NAME_LENGTH' => array(
             'int(min=0)',
@@ -365,9 +355,7 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
-        'migrate::migrateClosedWith',
-        'migrate::updateStoreIdInDeltas2',
-        'migrate::truncateRatings2',
+        'migrate::migrateValidFor1',
     );
     
     
@@ -559,73 +547,48 @@ class sales_Setup extends core_ProtoSetup
             cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
         }
     }
-    
-    
+
+
     /**
-     * Обновява рейтингите
+     * Миграция на срока на валидност на офертите без
      */
-    public function truncateRatings2()
+    public function migrateValidFor1()
     {
-        $Ratings = cls::get('sales_ProductRatings');
-        $Ratings->setupMvc();
-        
-        $Ratings->truncate();
-    }
-    
-    
-    /**
-     * Миграция да се записва склада в модела за делтите
-     */
-    public function updateStoreIdInDeltas2()
-    {
-        $Deltas = cls::get('sales_PrimeCostByDocument');
-        $Deltas->setupMvc();
-        
-        if (!$Deltas->count()) {
-            return;
+        core_App::setTimeLimit(250);
+        $Quotations = cls::get('sales_Quotations');
+        $validForColName = str::phpToMysqlName('validFor');
+
+        $secondsInYear = core_DateTime::SECONDS_IN_MONTH * 12;
+        $tableName = $Quotations->dbTableName;
+
+        // Тези без срок на валидност, променя се на 1 година
+        $query = "UPDATE {$tableName} SET {$validForColName} = {$secondsInYear} WHERE {$tableName}.{$validForColName} IS NULL";
+        $Quotations->db->query($query);
+
+        $saveArr = array();
+        $query = $Quotations->getQuery();
+        $query->XPR('cDate', 'date', 'DATE(COALESCE(#activatedOn,#createdOn))');
+        $query->where("#state = 'active' AND #date IS NULL");
+        $query->show('date,cDate');
+        while($rec = $query->fetch()){
+            $rec->date = $rec->cDate;
+            $saveArr[$rec->id] = $rec;
         }
-        
-        $Products = cls::get('cat_Products');
-        $Products->setupMvc();
-        
-        $Sales = cls::get('sales_Sales');
-        $Sales->setupMvc();
-        
-        $Shipments = cls::get('store_ShipmentOrders');
-        $Shipments->setupMvc();
-        
-        $Receipts = cls::get('store_Receipts');
-        $Receipts->setupMvc();
-        $Containers = cls::get('doc_Containers');
-        
-        $productCol = str::phpToMysqlName('productId');
-        $containerCol = str::phpToMysqlName('containerId');
-        $docIdCol = str::phpToMysqlName('docId');
-        $shipmentStoreIdCol = str::phpToMysqlName('shipmentStoreId');
-        $storeCol = str::phpToMysqlName('storeId');
-        $docClassCol = str::phpToMysqlName('docClass');
-        $canStoreCol = str::phpToMysqlName('can_store');
-        
-        $salesClassId = sales_Sales::getClassId();
-        $storeShipmentClassId = store_ShipmentOrders::getClassId();
-        $storeReceiptsClassId = store_Receipts::getClassId();
-        
-        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Sales->dbTableName} ON {$Sales->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Sales->dbTableName}.{$shipmentStoreIdCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$salesClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
-        $Deltas->db->query($query);
-        
-        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Shipments->dbTableName} ON {$Shipments->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Shipments->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeShipmentClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
-        $Deltas->db->query($query);
-        
-        $query = "UPDATE {$Deltas->dbTableName} JOIN {$Products->dbTableName} ON {$Products->dbTableName}.id = {$Deltas->dbTableName}.{$productCol} JOIN {$Containers->dbTableName} ON {$Deltas->dbTableName}.{$containerCol} = {$Containers->dbTableName}.id RIGHT JOIN {$Receipts->dbTableName} ON {$Receipts->dbTableName}.id = {$Containers->dbTableName}.{$docIdCol} SET {$Deltas->dbTableName}.{$storeCol} = {$Receipts->dbTableName}.{$storeCol} WHERE {$Containers->dbTableName}.{$docClassCol} = {$storeReceiptsClassId} AND {$Products->dbTableName}.{$canStoreCol} = 'yes' AND {$Deltas->dbTableName}.{$storeCol} IS NULL";
-        $Deltas->db->query($query);
-    }
-    
-    
-    /**
-     * Обновява кеш полето за коя сделка с коя е приключена
-     */
-    function migrateClosedWith()
-    {
-        cls::get('deals_Setup')->updateClosedWith('sales_Sales', 'sales_ClosedDeals');
+
+        if(countR($saveArr)){
+            $Quotations->saveArray($saveArr, 'id,date');
+        }
+
+        $cancelSystemUser = false;
+        if (!core_Users::isSystemUser()) {
+            core_Users::forceSystemUser();
+            $cancelSystemUser = true;
+        }
+
+        $Quotations->cron_CloseQuotations();
+
+        if (core_Users::isSystemUser() && $cancelSystemUser) {
+            core_Users::cancelSystemUser();
+        }
     }
 }

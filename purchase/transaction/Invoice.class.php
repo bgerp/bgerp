@@ -97,10 +97,19 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         
         if (Mode::get('saveTransaction')) {
             $productArr = array();
-            $dQuery = purchase_InvoiceDetails::getQuery();
+            $Detail = cls::get('purchase_InvoiceDetails');
+            $dQuery = $Detail->getQuery();
             $dQuery->where("#invoiceId = {$rec->id}");
-            $dQuery->show('productId');
-            while ($dRec = $dQuery->fetch()) {
+            $dRecs = $dQuery->fetchAll();
+
+            if($rec->type != 'invoice'){
+                $Detail::modifyDcDetails($dRecs, $rec, $Detail);
+            }
+
+            foreach ($dRecs as $dRec) {
+                if($rec->type != 'invoice'){
+                    if ($dRec->changedQuantity !== true && $dRec->changedPrice !== true) continue;
+                }
                 $productArr[$dRec->productId] = $dRec->productId;
             }
             

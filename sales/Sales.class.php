@@ -11,7 +11,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -48,7 +48,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,deals_plg_SaveValiorOnActivation, bgerp_plg_Export';
     
@@ -217,15 +217,13 @@ class sales_Sales extends deals_DealMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
         'bankAccountId' => 'lastDocUser|lastDoc',
-        'caseId' => 'sessionValue|lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
     );
@@ -328,9 +326,11 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Допълнително->Цени,notChangeableByContractor');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
+        $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
-        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale');
+        $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,silent,removeAndRefreshForm=caseId|paymentType');
+        $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
     }
     
     
@@ -441,6 +441,15 @@ class sales_Sales extends deals_DealMaster
         
         if (empty($rec->id)) {
             $form->setField('deliveryLocationId', 'removeAndRefreshForm=dealerId');
+
+            // Ако метода за плащане не е банков само тогава се попълва касата
+            if(isset($rec->paymentMethodId)){
+                $paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+                if($paymentType == 'cash'){
+                    $caseId = cond_plg_DefaultValues::getDefValueByStrategy($mvc, $rec, 'caseId', 'sessionValue|lastDocUser|lastDoc');
+                    $form->setDefault('caseId', $caseId);
+                }
+            }
         } else {
             
             // Ако има поне един детайл
@@ -450,7 +459,8 @@ class sales_Sales extends deals_DealMaster
                 if (isset($rec->deliveryTermId)) {
                     $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
                     $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
-                    $form->setReadOnly('deliveryCalcTransport', $calcCostDefault);
+                    $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
+                    $form->setReadOnly('deliveryCalcTransport');
                     
                     if ($deliveryCalcCost == 'yes') {
                         $form->setReadOnly('deliveryAdress');
@@ -1098,8 +1108,8 @@ class sales_Sales extends deals_DealMaster
             $data->jobs[$jRec->id] = planning_Jobs::recToVerbal($jRec, $fields);
         }
         
-        if (planning_Jobs::haveRightFor('Createjobfromsale', (object) array('saleId' => $rec->id))) {
-            $data->addJobUrl = array('planning_Jobs', 'CreateJobFromSale', 'saleId' => $rec->id, 'foreignId' => $rec->containerId,'ret_url' => true);
+        if (planning_Jobs::haveRightFor('add', (object) array('saleId' => $rec->id))) {
+            $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $rec->id, 'threadId' => $rec->threadId, 'foreignId' => $rec->containerId, 'ret_url' => true);
         }
     }
     
@@ -1130,20 +1140,26 @@ class sales_Sales extends deals_DealMaster
      * Връща всички производими артикули от продажбата
      *
      * @param mixed $id - ид или запис
+     * @param boolean $onlyActive - дали да са само активните артикули
      *
      * @return array $res - масив с производимите артикули
      */
-    public static function getManifacurableProducts($id)
+    public static function getManifacurableProducts($id, $onlyActive = false)
     {
         $rec = static::fetchRec($id);
         $res = array();
-        
+
+        // Кои са производимите, активни артикули
         $saleQuery = sales_SalesDetails::getQuery();
         $saleQuery->where("#saleId = {$rec->id}");
-        $saleQuery->EXT('meta', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
-        $saleQuery->where("#meta = 'yes'");
+        $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
+        $saleQuery->where("#canManifacture = 'yes'");
+        if($onlyActive){
+            $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
+            $saleQuery->where("#state = 'active'");
+        }
+
         $saleQuery->show('productId');
-        
         while ($dRec = $saleQuery->fetch()) {
             $res[$dRec->productId] = cat_Products::getTitleById($dRec->productId, false);
         }
@@ -1162,8 +1178,42 @@ class sales_Sales extends deals_DealMaster
     public static function getThreadState_($id)
     {
     }
-    
-    
+
+
+    /**
+     * Дефолтно дали да са видими цените в нишката от всички
+     *
+     * @param stdClass $rec
+     * @return boolean
+     */
+    private function areThePricesInThreadVisibleByAll($rec)
+    {
+        $listId = isset($rec->priceListId) ? $rec->priceListId : price_ListToCustomers::getListForCustomer($rec->contragentClassId, $rec->contragentId, $rec->valior);
+        $visiblePrices = price_Lists::fetchField($listId, 'visiblePricesByAnyone');
+
+        if($visiblePrices == 'no') return false;
+
+        // Ако продажбата или някоя от обединените е към оферта
+        $documents = array($rec->id);
+        if(!empty($rec->closedDocuments)) {
+            $documents += keylist::toArray($rec->closedDocuments);
+        }
+
+        foreach ($documents as $docId) {
+            if($docRec = $this->fetch($docId, 'originId,visiblePricesByAllInThread')){
+                if(isset($docRec->originId)){
+                    $origin = doc_Containers::getDocument($docRec->originId);
+                    if($origin->isInstanceOf('sales_Quotations')) return false;
+                }
+
+                if($docRec->visiblePricesByAllInThread == 'no') return false;
+            }
+        }
+
+        return true;
+    }
+
+
     /**
      * След вербализиране на записа
      */
@@ -1216,6 +1266,16 @@ class sales_Sales extends deals_DealMaster
         }
         
         if (isset($fields['-single'])) {
+
+            // Показване на дефолт дали цените ще са видими
+            if(empty($rec->visiblePricesByAllInThread) && in_array($rec->state, array('draft', 'pending'))){
+                $visiblePrices = ($mvc->areThePricesInThreadVisibleByAll($rec)) ? 'yes' : 'no';
+                $row->visiblePricesByAllInThread =  $mvc->getFieldType('visiblePricesByAllInThread')->toVerbal($visiblePrices);
+            }
+
+            $row->visiblePricesByAllInThread = ht::createHint("", "Цени и суми в нишката|*: |{$row->visiblePricesByAllInThread}|*");
+
+
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }
@@ -1423,11 +1483,10 @@ class sales_Sales extends deals_DealMaster
         $this->requireRightFor('createsaleforproduct', (object) array('folderId' => $folderId, 'productId' => $productId));
         $cover = doc_Folders::getCover($folderId);
         $fields = array('dealerId' => sales_Sales::getDefaultDealerId($folderId));
-        
+
         // Създаване на продажба и редирект към добавянето на артикула
         try {
             expect($saleId = sales_Sales::createNewDraft($cover->getInstance(), $cover->that, $fields));
-            
             redirect(array('sales_SalesDetails', 'add', 'saleId' => $saleId, 'productId' => $productId));
         } catch (core_exception_Expect $e) {
             $errorMsg = $e->getMessage();
@@ -1623,14 +1682,35 @@ class sales_Sales extends deals_DealMaster
                 $dQuery = sales_SalesDetails::getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
                 $dQuery->where("#saleId = {$rec->id}");
-                $dQuery->show('productId,quantity');
-                
+                $dQuery->show('productId,quantity,canStore');
                 $dQuery2 = clone $dQuery;
-                $dQuery->where("#canStore = 'yes'");
-                
-                $detailsStorable = $dQuery->fetchAll();
-                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsStorable, $rec->shipmentStoreId, $rec->state)) {
-                    $form->setWarning('action', $warning);
+
+                $detailsToCheck = array();
+                while($dRec = $dQuery->fetch()){
+                    $addProductToCheck = true;
+                    $instantBomRec = cat_Products::getLastActiveBom($dRec->productId, 'instant');
+                    if(is_object($instantBomRec)){
+                        $bomInfo = cat_Boms::getResourceInfo($instantBomRec, $dRec->quantity, $rec->valior);
+                        if(is_array($bomInfo['resources'])){
+                            foreach ($bomInfo['resources'] as $r){
+                                $detailsToCheck[] = (object)array('productId' => $r->productId, 'quantity' => $r->propQuantity);
+                                $addProductToCheck = false;
+                            }
+                        }
+                    }
+
+                    if($addProductToCheck){
+                        $detailsToCheck[] = $dRec;
+                    }
+                }
+
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($detailsToCheck, $rec->shipmentStoreId, $rec->state)) {
+                    $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
+                    if($allowNegativeShipment == 'yes'){
+                        $form->setWarning('action', $warning);
+                    } else {
+                        $form->setError('action', $warning);
+                    }
                 }
                 
                 $detailsAll = $dQuery2->fetchAll();
@@ -1657,7 +1737,13 @@ class sales_Sales extends deals_DealMaster
         $clientGroupId = crm_Groups::getIdFromSysId('customers');
         $groupRec = (object) array('name' => 'Продажби', 'sysId' => 'saleClients', 'parentId' => $clientGroupId);
         $groupId = crm_Groups::forceGroup($groupRec);
-        
+
+        // След активиране се обновява полето за видимост на цените
+        if(empty($rec->visiblePricesByAllInThread)){
+            $rec->visiblePricesByAllInThread = ($mvc->areThePricesInThreadVisibleByAll($rec)) ? 'yes' : 'no';
+            $mvc->save_($rec, 'visiblePricesByAllInThread');
+        }
+
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
     }
     
@@ -1712,9 +1798,9 @@ class sales_Sales extends deals_DealMaster
             }
             
             cls::get('sales_SalesDetails')->saveArray($update, 'id,autoDiscount');
-            
+
             // Вика се пак да се преизчислят кеш полетата наново след въведената отстъпка
-            parent::updateMaster_($id);
+            $mvc->updateMaster_($id);
         }
     }
     
@@ -1843,11 +1929,13 @@ class sales_Sales extends deals_DealMaster
     protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec)) {
+
+        $errorMsg = null;
+        if (deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)) {
             $rec->contoActions = '';
             $mvc->save_($rec, 'contoActions');
             
-            core_Statuses::newStatus('Продажбата не може да се контира, защото има артикули с продажна цена под минималната|*!', 'error');
+            core_Statuses::newStatus($errorMsg, 'error');
 
             return false;
         }

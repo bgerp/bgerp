@@ -446,7 +446,7 @@ class doc_Threads extends core_Manager
                     $fields[] = 'partnerDocLast';
                 }
                 $exRec = clone($rec);
-                if (!self::$updateQueue[$rec->id] && count($fields)) {
+                if (!self::$updateQueue[$rec->id] && countR($fields)) {
                     self::prepareDocCnt($rec, $firstDcRec, $lastDcRec);
                     $fieldsList = implode(',', $fields);
                     self::save($rec, $fieldsList);
@@ -805,7 +805,7 @@ class doc_Threads extends core_Manager
         $rejected = Request::get('Rejected');
         
         $documentsInThreadOptions = self::getDocumentTypesOptionsByFolder($folderId, false, $rejected);
-        if (count($documentsInThreadOptions)) {
+        if (countR($documentsInThreadOptions)) {
             $documentsInThreadOptions = array_map('tr', $documentsInThreadOptions);
             $data->listFilter->setOptions('documentClassId', $documentsInThreadOptions);
         } else {
@@ -1086,7 +1086,10 @@ class doc_Threads extends core_Manager
                 $attr
             
             );
-            
+
+            $row->_title = $row->title;
+            $row->_subTitle = $docRow->subTitle;
+
             if ($docRow->subTitle) {
                 $row->title .= "\n<div class='threadSubTitle'>{$docRow->subTitle}</div>";
             }
@@ -1275,7 +1278,7 @@ class doc_Threads extends core_Manager
             $time = doc_Threads::getExpectationMoveTime($threadId, $moveRest);
             
             $time = ceil($time);
-            $time += 10;
+            $time += 30;
             
             if ($time > ini_get('max_execution_time')) {
                 core_App::setTimeLimit($time);
@@ -1293,7 +1296,7 @@ class doc_Threads extends core_Manager
                 $selArr = arr::make($selected);
             }
             
-            if (!count($selArr)) {
+            if (!countR($selArr)) {
                 $selArr[] = $threadId;
             }
             
@@ -1304,7 +1307,7 @@ class doc_Threads extends core_Manager
             $errCnt = 0;
             
             $loggedToFolders = false;
-            $moveW = count($selArr) > 1 ? 'Преместени нишки' : 'Преместена нишка';
+            $moveW = countR($selArr) > 1 ? 'Преместени нишки' : 'Преместена нишка';
             
             foreach ($selArr as $threadId) {
                 try {
@@ -1359,7 +1362,7 @@ class doc_Threads extends core_Manager
             $exp->message = tr($message);
             
             // Ако преместваме само една нишка
-            if (count($selArr) == 1) {
+            if (countR($selArr) == 1) {
                 
                 // Ако имаме права за нишката, в преместената папка
                 if ($this->haveRightFor('single', $threadId)) {
@@ -1567,7 +1570,7 @@ class doc_Threads extends core_Manager
      */
     public static function checkExpectationMoveTime($threadId, $moveRest = 'no')
     {
-        $maxTimeForMove = 5;
+        $maxTimeForMove = 10;
         
         if (self::getExpectationMoveTime($threadId, $moveRest) >= $maxTimeForMove) {
             
@@ -1588,8 +1591,8 @@ class doc_Threads extends core_Manager
      */
     public static function getExpectationMoveTime($threadId, $moveRest = 'no')
     {
-        $timeForMoveContainer = 0.2;
-        $timeForMoveThread = 0.4;
+        $timeForMoveContainer = 0.1;
+        $timeForMoveThread = 0.2;
         
         $moveTime = 0;
         
@@ -2084,7 +2087,7 @@ class doc_Threads extends core_Manager
         }
         
         self::groupDocumentsInThread($rec->id, $contable, $notContable);
-        if (!count($contable)) {
+        if (!countR($contable)) {
             
             return;
         }
@@ -2104,7 +2107,8 @@ class doc_Threads extends core_Manager
             } else {
                 $docRec->brState = 'stopped';
             }
-            
+
+            $Class->logWrite("Спиране на документа", $docRec);
             $Class->save($docRec, 'state,brState');
         }
     }
@@ -2123,7 +2127,7 @@ class doc_Threads extends core_Manager
         
         // Намиране на всички спрени контиращи документи в нишката
         self::groupDocumentsInThread($rec->id, $contable, $notContable, 'stopped');
-        if (!count($contable)) {
+        if (!countR($contable)) {
             
             return;
         }
@@ -2138,6 +2142,8 @@ class doc_Threads extends core_Manager
             
             // Ако е спрян се активира, и се реконтира
             if ($docRec->state == 'stopped') {
+                $Class->logWrite("Пускане на документа", $cRec->docId);
+
                 try{
                     acc_Journal::saveTransaction($cRec->docClass, $cRec->docId);
                 } catch (acc_journal_RejectRedirect $e) {
@@ -2166,7 +2172,7 @@ class doc_Threads extends core_Manager
         }
         
         self::startDocuments($rec->id);
-        
+
         return new redirect($returnUrl, 'Бизнес документите в нишката са успешно пуснати');
     }
     
@@ -2448,6 +2454,14 @@ class doc_Threads extends core_Manager
         
         if ($action == 'move') {
             $res = $mvc->getRequiredRoles('single', $rec, $userId);
+
+            $firstDoc = doc_Threads::getFirstDocument($rec->id);
+
+            // Ако е зададено да не се може да се мести документа
+            if ($firstDoc->moveDocToFolder === false) {
+
+                $res = 'no_one';
+            }
         }
         
         if ($action == 'single') {
@@ -2483,7 +2497,7 @@ class doc_Threads extends core_Manager
                 
                 // Имали контиращи спрени документи
                 self::groupDocumentsInThread($rec, $contable, $notContable, 'stopped', 1);
-                if (!count($contable)) {
+                if (!countR($contable)) {
                     $res = 'no_one';
                 }
             }
@@ -3254,7 +3268,7 @@ class doc_Threads extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }

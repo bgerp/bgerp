@@ -210,7 +210,6 @@ class docarch_Volumes extends core_Master
     {
         //Поставя автоматична номерация на тома, ако не е въведена ръчно
         if ($form->isSubmitted()) {
-
             $type = $form->rec->type;
             
             if (is_null($form->rec->archive)) {
@@ -249,7 +248,7 @@ class docarch_Volumes extends core_Master
             }
         }
     }
-
+    
     
     /**
      * Изчисляване на заглавието
@@ -385,9 +384,10 @@ class docarch_Volumes extends core_Master
      */
     protected static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
-        foreach ($query->getDeletedRecs() as $rec) {
+        foreach ($query->getDeletedRecs() as $id => $rec) {
             
             // Прави запис в модела на движенията
+            $className = get_class();
             $mRec = (object) array('type' => 'deleting',
                 'position' => $rec->title,
             );

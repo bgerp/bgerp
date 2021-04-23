@@ -183,7 +183,7 @@ class bglocal_BulgarianEGN
      */
     public static function isValid($egn_string)
     {
-        return self::getParityDigit($egn_string) == $egn_string{9};
+        return self::getParityDigit($egn_string) == $egn_string[9];
     }
     
     
@@ -199,7 +199,7 @@ class bglocal_BulgarianEGN
         $sum = 0;
         
         foreach (self::$parity_weights as $k => $weight) {
-            $sum += $egn_string{$k} * $weight;
+            $sum += $egn_string[$k] * $weight;
         }
         
         return ($sum % 11) % 10;

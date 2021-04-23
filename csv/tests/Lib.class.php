@@ -55,10 +55,10 @@ class csv_tests_Lib extends unit_Class
         expect(($handle = fopen($path, 'r')) !== false);
         
         $resArr = array();
-        
+
         while (($data = fgetcsv($handle, $format['length'], $format['delimiter'], $format['enclosure'], $format['escape'])) !== false) {
             $allRows[] = $data;
-            
+
             foreach ($allRows as $id => $rec) {
                 foreach ($rec as $i => $d) {
                     if (!array_key_exists($id, $resArr)) {
@@ -70,7 +70,7 @@ class csv_tests_Lib extends unit_Class
                 }
             }
         }
-        
+
         $caption = array_slice($resArr, 0, 1);
         $restData = array_slice($resArr, 1, count($resArr) - 1);
         
@@ -92,10 +92,10 @@ class csv_tests_Lib extends unit_Class
         $fieldSet->FLD('f3', 'date');
         $fieldSet->FLD('f4', 'double');
         $fieldSet->FLD('f5', 'percent');
-        
+
         $res = csv_Lib::createCsv($restData, $fieldSet, $listFields, $format);
         $trimRes = trim($res);
-        $expect = "Тип на документа,Автор,Създадени документи (бр.),Дата,Стойност,Процент\nЗадачи,\"| <a class=\"\"\"\" profile ceo inactive\"\"\"\" title=\"\"\"\"Йордан Бонев\"\"\"\" href=\"\"\"\"/crm_Profiles/single/1OGU/\"\"\"\">Bachko</a>|\",7,20.05.2020,\"29084,00\",\"1500,00%\"\nЗадачи,\"<a class=\"\" profile ceo active\"\" title=\"\"Gabriela Petrova\"\" href=\"\"/crm_Profiles/single/27NmR/\"\">Gaby</a>\",1,20.05.2020,\"8754,00\",\"0,00%\"\nВарниш (DS-09454 a),кг,95,20.05.2020,\"244,00\",\"2500,00%\"\n#Ч-та LD вън.др 50х40 - ГЕПАРД,\"<a href=\"\"/sales_Invoices/single/5739YjN/\"\" class=\"\" linkWithIcon\"\" style=\"\"background-image:url(&#039;/sbf/bgerp/img/16/invoice_0722143638.png&#039;);\"\">0000005642</a>\",15 800,21.04.2015,\"15,00\",\"100,00%\"\nЧ-та LD вън.др 50х40 - ГЕПАРД - 3986652,#Sal5664,4 000.0000,05.12.2014,\"88,00\",\"9900,00%\"\n##Ч-та LD вън.др 50х40 - ГЕПАРД - 3986652,\||Sal5664|,4 000 0000,05.12.2014,\"99,76\",\"800,00%\"";
+        $expect = "Тип на документа,Автор,Създадени документи (бр.),Дата,Стойност,Процент\nЗадачи,\"| <a class=\"\"\"\" profile ceo inactive\"\"\"\" title=\"\"\"\"Йордан Бонев\"\"\"\" href=\"\"\"\"/crm_Profiles/single/1OGU/\"\"\"\">Bachko</a>|\",7,20.05.2020,\"29084,00\",\"15,00%\"\nЗадачи,\"<a class=\"\" profile ceo active\"\" title=\"\"Gabriela Petrova\"\" href=\"\"/crm_Profiles/single/27NmR/\"\">Gaby</a>\",1,20.05.2020,\"8754,00\",\"18,00%\"\nВарниш (DS-09454 a),кг,95,20.05.2020,\"244,00\",\"25,00%\"\n#Ч-та LD вън.др 50х40 - ГЕПАРД,\"<a href=\"\"/sales_Invoices/single/5739YjN/\"\" class=\"\" linkWithIcon\"\" style=\"\"background-image:url(&#039;/sbf/bgerp/img/16/invoice_0722143638.png&#039;);\"\">0000005642</a>\",15 800,21.04.2015,\"15,00\",\"100,00%\"\nЧ-та LD вън.др 50х40 - ГЕПАРД - 3986652,#Sal5664,4 000.0000,05.12.2014,\"88,00\",\"99,99%\"\n##Ч-та LD вън.др 50х40 - ГЕПАРД - 3986652,\||Sal5664|,4 000 0000,05.12.2014,\"99,76\",\"88,90%\"";
         $expect = str_replace('20.05.2020', dt::mysql2verbal(dt::now(), 'd.m.Y'), $expect);
           
         $trimExp = trim($expect);

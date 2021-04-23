@@ -54,6 +54,11 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
     
     
     /**
+     * Дали таб графика да е дефолтен
+     */
+    protected $chartTabDefault = true;
+    
+    /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
     protected $changeableFields = 'from,to,compare,group,dealers,contragent,crmGroup,articleType';
@@ -253,7 +258,7 @@ class tracking_reports_VehiclesMonitoring extends frame2_driver_TableData
         $row = new stdClass();
         
         if (is_object($dRec)) {
-            $row->number = $dRec->number. "<span class= 'fright'><span class= ''>" . 'Водач :' . crm_Persons::getVerbal($dRec->personId, 'name') . '</span>';
+            $row->number = $dRec->number. "<span class= 'fright'><span class= ''>" . 'Водач: ' . crm_Persons::getVerbal($dRec->personId, 'name') . '</span>';
             $row->latitude = core_Type::getByName('double(decimals=8)')->toVerbal($dRec->latitude);
             $row->longitude = core_Type::getByName('double(decimals=8)')->toVerbal($dRec->longitude);
             $row->speed = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->speed);

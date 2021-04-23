@@ -101,10 +101,10 @@ class bgerp_BaseImporter extends core_Manager
                     }
                     
                     $rec->{$name} = $value;
-                    
+
                     // Ако ще се добавя файл, правим опит да свалим файла и да го добавим
                     if (isset($rec->{$name})) {
-                        if ($this->mvc->getFieldType($name) instanceof fileman_FileType) {
+                        if ($this->mvc->getFieldType($name, false) instanceof fileman_FileType) {
                             $bucketId = fileman_Buckets::fetchByName('import');
                             $rec->{$name} = fileman_Get::getFile((object) array('url' => $rec->{$name}, 'bucketId' => $bucketId));
                         }
@@ -114,17 +114,21 @@ class bgerp_BaseImporter extends core_Manager
             
             // Ако записа е уникален, създаваме нов, ако не е обновяваме стария
             $fieldsUn = array();
-            
+
             if ($this->mvc->invoke('BeforeImportRec', array(&$rec)) === false) {
+                if ($rec->__errStr) {
+                    $row['__errStr'] = $rec->__errStr;
+                }
                 $errArr[] = $row;
                 
                 continue ;
             }
-            
+
+            $exRec = null;
             if (!$this->mvc->isUnique($rec, $fieldsUn, $exRec)) {
                 $rec->id = $exRec->id;
             }
-            
+
             if ($rec->id) {
                 if ($onExist == 'skip') {
                     $skipped++;
@@ -138,7 +142,7 @@ class bgerp_BaseImporter extends core_Manager
             } else {
                 $created++;
             }
-            
+
             $this->mvc->save($rec);
         }
         
@@ -188,6 +192,6 @@ class bgerp_BaseImporter extends core_Manager
      */
     public function isApplicable($className)
     {
-        return true;
+        return ($className != 'price_ListRules');
     }
 }

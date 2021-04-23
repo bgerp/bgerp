@@ -263,7 +263,7 @@ class type_Richtext extends type_Blob
         
         $html = core_ET::escape($html);
         
-        if (count($this->_htmlBoard)) {
+        if (countR($this->_htmlBoard)) {
             foreach ($this->_htmlBoard as $place => $cnt) {
                 $replaceFrom[] = core_ET::escape("[#${place}#]");
                 $replaceTo[] = "[#${place}#]";
@@ -401,7 +401,7 @@ class type_Richtext extends type_Blob
             $this->_htmlBoard[$place] = new ET($text);
         }
         
-        if (count($this->_htmlBoard)) {
+        if (countR($this->_htmlBoard)) {
             $html->placeArray($this->_htmlBoard);
             $html->placeArray($this->_htmlBoard);
         }
@@ -460,7 +460,7 @@ class type_Richtext extends type_Blob
         $textArr = explode('<br>', $text);
         
         // Броя на редовете
-        $cnt = count((array) $textArr);
+        $cnt = countR((array) $textArr);
         
         // Обхождаме всеки ред
         foreach ((array) $textArr as $n => $line) {
@@ -502,7 +502,7 @@ class type_Richtext extends type_Blob
         $textMode = Mode::get('text');
         $state = array();
         
-        $linesCnt = count($lines);
+        $linesCnt = countR($lines);
         
         for ($i = 0; $i < $linesCnt; $i++) {
             $l = $lines[$i];
@@ -513,7 +513,7 @@ class type_Richtext extends type_Blob
                 $indent = mb_strlen($l, 'UTF8') - mb_strlen(ltrim($matches['text']), 'UTF8');
                 while (isset($lines[$i + 1]) && (($indent == (mb_strlen($lines[$i + 1]) - mb_strlen(ltrim($lines[$i + 1], ' ')))) || (trim($lines[$i + 1]) == '<br>'))) {
                     if (trim($lines[$i + 1]) == '<br>') {
-                        $matches['text'] .= '<br>' . "<span style='height:5px; display:block;'></span>";
+                        $matches['text'] .= '<br>' . "<span style='height:5px; display:block;'>&nbsp;</span>";
                     } else {
                         
                         // Ако следващият ред е друго 'li'
@@ -529,7 +529,7 @@ class type_Richtext extends type_Blob
                 $level = max($level, 1);
                 
                 // 1,2,3,4,
-                if ($matches['list']{0} == '%') {
+                if ($matches['list'][0] == '%') {
                     $type = 'ol';
                 } else {
                     $type = 'ul';
@@ -542,12 +542,12 @@ class type_Richtext extends type_Blob
                 }
             }
             
-            while (($oldLevel = count($state)) < $level) {
+            while (($oldLevel = countR($state)) < $level) {
                 $state[$oldLevel] = $type;
                 $res .= "<{$type}>";
             }
             
-            while (($oldLevel = count($state)) > $level) {
+            while (($oldLevel = countR($state)) > $level) {
                 $oldType = $state[$oldLevel - 1];
                 unset($state[$oldLevel - 1]);
                 $res .= "</{$oldType}>" . '<br>';
@@ -796,7 +796,7 @@ class type_Richtext extends type_Blob
         
         $code = str_replace("\r\n", "\n", $code);
         
-        if ($code{0} == "\n") {
+        if ($code[0] == "\n") {
             $code = substr($code, 1);
         }
         
@@ -980,7 +980,7 @@ class type_Richtext extends type_Blob
         
         // Ако нямаме схема на URL-то
         if (!preg_match("/^[a-z0-9]{0,12}\:\/\//i", $url)) {
-            if ($url{0} == '/') {
+            if ($url[0] == '/') {
                 $httpBoot = getBoot(true, false, true);
                 $url = $httpBoot . $url;
             } else {
@@ -1073,7 +1073,7 @@ class type_Richtext extends type_Blob
             $this->_htmlBoard[$titlePlace] = $title;
         }
         
-        if ($title{0} != ' ' && !Mode::is('text', 'xhtml')) {
+        if ($title[0] != ' ' && !Mode::is('text', 'xhtml')) {
             $bgPlace = $this->getPlace();
             $thumb = new thumb_Img(array("https://plus.google.com/_/favicon?domain={$domain}", 16, 16, 'url', 'isAbsolute' => Mode::isReadOnly()));
             $iconUrl = $thumb->getUrl();
@@ -1319,7 +1319,7 @@ class type_Richtext extends type_Blob
         $table = false;
         
         foreach ($lines as $l) {
-            if ($l{0} == '|') {
+            if ($l[0] == '|') {
                 if (!$table) {
                     $out .= "\n<div class='overflow-scroll'><table class='inlineRichTable listTable'>";
                     $table = true;
@@ -1351,14 +1351,13 @@ class type_Richtext extends type_Blob
     public function getToolbar(&$attr)
     {
         $formId = $attr['id'];
-        
         $toolbarArr = new core_ObjectCollection('html,place,order');
         
         
         // Ако е логнат потребител
         if (core_Users::haveRole('user')) {
             $size = log_Browsers::isRetina() ? 32 : 16;
-            
+
             $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP1');
             $toolbarArr->add("<a class='rtbutton richtext-group-title'  title='" . tr('Усмивки') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group1', event)\"><img src=" . sbf("img/{$size}/emotion_smile.png") . " height='15' width='15'  alt='smile'></a>", 'TBL_GROUP1');
             $emot1 = 'richtext-holder-group-after';
@@ -1438,7 +1437,7 @@ class type_Richtext extends type_Blob
             $toolbarArr->add("<span class='richtext-relative-group'>", 'TBL_GROUP2');
             $toolbarArr->add("<a class='open-popup-link rtbutton'  title='" . tr('Таблица') .  "' onclick=\"toggleRichtextGroups('{$attr['id']}-group7', event); \"><img src=" . sbf("img/{$size}/table.png") . " height='15' width='15' alt='Table'></a>", 'TBL_GROUP2');
             $toolbarArr->add("<span id='{$attr['id']}-group7' class='richtext-emoticons7 richtext-holder-group {$emot7}'>", 'TBL_GROUP2');
-            $toolbarArr->add("<span class='popup-table-info'><span class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable'></span><span class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable'/></span><input type='button' id='getTableInfo' onclick=\"createRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable').value, document.getElementById('rowTable').value );\" value='OK' /> </span>", 'TBL_GROUP2');
+            $toolbarArr->add("<span class='popup-table-info'><span class='popupBlock'>" . tr('Колони') . ": <br><input type = 'text' value='5' id='colTable_{$formId}'></span><span class='popupBlock'>" . tr('Редове') .":<br> <input type = 'text' value='3' id='rowTable_{$formId}'/></span><input type='button' id='getTableInfo_{$formId}' onclick=\"createRicheditTable(document.getElementById('{$formId}'), 1, document.getElementById('colTable_{$formId}').value, document.getElementById('rowTable_{$formId}').value );\" value='OK' /> </span>", 'TBL_GROUP2');
             $toolbarArr->add('</span>', 'TBL_GROUP2');
             $toolbarArr->add('</span>', 'TBL_GROUP2');
             
@@ -1579,7 +1578,7 @@ class type_Richtext extends type_Blob
         $params = array();
         $anchor = '';
         
-        $lastPart = $restArr[count($restArr) - 1];
+        $lastPart = $restArr[countR($restArr) - 1];
         
         if ($lastPart && (strpos($lastPart, '#') !== false)) {
             $explodeArr = explode('#', $lastPart);
@@ -1589,7 +1588,7 @@ class type_Richtext extends type_Blob
         
         $haveLastPart = false;
         
-        if ($lastPart{0} == '?') {
+        if ($lastPart[0] == '?') {
             $haveLastPart = true;
             $lastPart = ltrim($lastPart, '?');
             $lastPart = str_replace('&amp;', '&', $lastPart);
@@ -1601,7 +1600,7 @@ class type_Richtext extends type_Blob
         }
         
         if ($haveLastPart || $anchor) {
-            unset($restArr[count($restArr) - 1]);
+            unset($restArr[countR($restArr) - 1]);
         }
         
         setIfNot($params['Ctr'], $restArr[0]);
@@ -1614,7 +1613,7 @@ class type_Richtext extends type_Blob
         
         setIfNot($params['Act'], $restArr[1], 'default');
         
-        if (count($restArr) % 2) {
+        if (countR($restArr) % 2) {
             setIfNot($params['id'], $restArr[2]);
             $pId = 3;
         } else {

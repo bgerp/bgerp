@@ -1041,4 +1041,25 @@ class core_DateTime
         
         return $months;
     }
+
+
+    /**
+     * Кои са датите между посочените
+     *
+     * @param datetime $start
+     * @param datetime $end
+     * @param string $mask
+     * @return array
+     */
+    public static function getDatesBetweenArr($start, $end, $mask = 'Y-m-d')
+    {
+        $arr = array();
+        $selectedDates = new DatePeriod(new DateTime($start), new DateInterval('P1D'), new DateTime(dt::addDays(1, $end, false)));
+        foreach ($selectedDates as $value) {
+            $date = $value->format($mask);
+            $arr[] = $date;
+        }
+
+        return $arr;
+    }
 }

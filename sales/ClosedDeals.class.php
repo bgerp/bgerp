@@ -113,29 +113,13 @@ class sales_ClosedDeals extends deals_ClosedDeals
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'valior';
-    
-    
+
+
     /**
-     * Връща разликата с която ще се приключи сделката
-     *
-     * @param mixed $threadId - ид на нишката или core_ObjectReference
-     *                        към първия документ в нишката
-     *
-     * @return float $amount - разликата на платеното и експедираното
+     * Кои са сметките за изнвънредни приходи и разходи
      */
-    public static function getClosedDealAmount($threadId)
-    {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-        $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
-        
-        $cost = acc_Balances::getBlAmounts($jRecs, '6911', 'debit')->amount;
-        $inc = acc_Balances::getBlAmounts($jRecs, '7911', 'credit')->amount;
-        
-        // Разликата между платеното и доставеното
-        return $inc - $cost;
-    }
-    
-    
+    protected $incomeAndCostAccounts = array('debit' => '6911', 'credit' => '7911');
+
     /**
      * След дефиниране на полетата на модела
      */
@@ -151,9 +135,9 @@ class sales_ClosedDeals extends deals_ClosedDeals
      *
      * @see deals_ClosedDeals::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
-        $row = parent::getDocumentRow($id);
+        $row = parent::getDocumentRow_($id);
         $title = "Приключване на продажба #{$row->saleId}";
         $row->title = $title;
         $row->recTitle = $title;

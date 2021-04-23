@@ -87,25 +87,31 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
-        
+
+        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички');
+
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
         $data->listFilter->setField('search', 'caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
         
         $data->listFilter->setDefault('author', 'all_users');
         
-        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, state, fromDate, toDate';
+        $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, tags, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(null, 'silent');
         
         $filterRec = $data->listFilter->rec;
-        
+
+        $tagsArr = tags_Tags::getTagsOptions();
+        $data->listFilter->setSuggestions('tags', $tagsArr['all']);
+
         $isFiltered =
         !empty($filterRec->search) ||
         !empty($filterRec->scopeFolderId) ||
         !empty($filterRec->docClass) ||
         !empty($filterRec->withMe) ||
+        !empty($filterRec->tags) ||
         !empty($filterRec->state) ||
         !empty($filterRec->fromDate) ||
         !empty($filterRec->toDate) ||
@@ -142,6 +148,15 @@ class doc_Search extends core_Manager
                 $data->listFilter->setError('fromDate', 'Не може да се търси в бъдеще');
             }
         }
+
+        // Дали има препочитан индекс?
+        $useIndex = null;
+        $aArr = type_UserList::toArray($filterRec->author); 
+        if (countR($aArr) == 1 && is_numeric(reset($aArr))) {
+            $useIndex = 'created_by';
+        } elseif ($filterRec->scopeFolderId) {
+            $useIndex = 'folder_id';
+        }
         
         // Ако се търси по документите на някой потребител, без да се гледа много 
         if ($isFiltered && !$filterRec->fromDate && !$filterRec->toDate && !$data->listFilter->ignore && !$data->query->isSlowQuery) {
@@ -152,7 +167,9 @@ class doc_Search extends core_Manager
             }
         }
         
-        if ($data->query->isSlowQuery && !$data->listFilter->ignore) {
+
+        
+        if ($data->query->isSlowQuery && !$data->listFilter->ignore && !$useIndex) {
             if (!$filterRec->fromDate && !$filterRec->toDate) {
                 $data->listFilter->setWarning('search, fromDate, toDate', 'Заявката за търсене е много обща и вероятно ще се изпълни бавно. Добавете още думи или я ограничете по дати');
                 $dFrom = dt::addMonths(-1, null, false);
@@ -205,22 +222,22 @@ class doc_Search extends core_Manager
             
             // Търсене по дата на създаване на документи (от-до)
             if (!empty($filterRec->fromDate)) {
-                $where = "NOT (#createdOn < '[#1#]') AND NOT(#modifiedOn < '[#1#]')";
+                $where = "(#createdOn >= '[#1#]') AND (#modifiedOn >= '[#1#]')";
                 
                 // Ако търсим по документ с вальор, добавяме вальора в търсенето по дата
                 if ($SearchDocument instanceof core_Mvc) {
-                    $where = "({$where}) OR NOT(#{$SearchDocument->valiorFld} < '[#1#]')";
+                    $where = "({$where}) OR (#{$SearchDocument->valiorFld} >= '[#1#]')";
                 }
                 
                 $data->query->where(array($where, $filterRec->fromDate));
             }
             
             if (!empty($filterRec->toDate)) {
-                $where = "NOT (#createdOn > '[#1#] 23:59:59') AND NOT (#modifiedOn > '[#1#] 23:59:59')";
+                $where = "(#createdOn <= '[#1#] 23:59:59') AND (#modifiedOn <= '[#1#] 23:59:59')";
                 
                 // Ако търсим по документ с вальор, добавяме вальора в търсенето по дата
                 if ($SearchDocument instanceof core_Mvc) {
-                    $where = "({$where}) OR NOT (#{$SearchDocument->valiorFld} > '[#1#] 23:59:59')";
+                    $where = "({$where}) OR (#{$SearchDocument->valiorFld} <= '[#1#] 23:59:59')";
                 }
                 
                 $data->query->where(array($where, $filterRec->toDate));
@@ -289,6 +306,28 @@ class doc_Search extends core_Manager
                     $data->query->where(array("#sharedBy = '[#1#]'", $currUserId));
                 }
             }
+
+            if ($filterRec->tags) {
+                $data->query->EXT('tags', 'tags_Logs', 'externalName=tagId, remoteKey=containerId');
+
+                $tagsArr = type_Keylist::toArray($filterRec->tags);
+
+                $personalTags = tags_Tags::getPersonalTags();
+
+                $cTags = array_diff($tagsArr, $personalTags);
+                $pTags = array_intersect($tagsArr, $personalTags);
+
+                $or = false;
+                if (!empty($cTags)) {
+                    $data->query->in('tags', $cTags);
+                    $or = true;
+                }
+
+                if (!empty($pTags)) {
+                    $data->query->EXT('tagsCreatedBy', 'tags_Logs', 'externalName=createdBy, remoteKey=containerId');
+                    $data->query->where(array('#tags IN (' . implode(',', $pTags) . ') AND #tagsCreatedBy = "[#1#]"', core_Users::getCurrent()), $or);
+                }
+            }
             
             if ($restrictAccess) {
                 // Ограничаване на заявката само до достъпните нишки
@@ -301,7 +340,11 @@ class doc_Search extends core_Manager
             // Експеримент за оптимизиране на бързодействието
             $data->query->orderBy('#modifiedOn=DESC');
             
-            
+            // Задаваме предпочитания индекс
+            if($useIndex) {
+                $data->query->useIndex($useIndex);
+            }
+
             /**
              * Останалата част от заявката - търсенето по ключови думи - ще я допълни plg_Search
              */
@@ -325,12 +368,15 @@ class doc_Search extends core_Manager
                     $url['author'] = core_Users::getCurrent();
                 }
                 $url2['fromDate'] = $filterRec->fromDate;
-                
+
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние
                 bgerp_Notifications::clear($url);
                 
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
+
+                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDate' => $filterRec->toDate);
+                bgerp_Notifications::clear($url3);
             }
         } else {
             // Няма условия за търсене - показваме само формата за търсене, без данни
@@ -360,7 +406,7 @@ class doc_Search extends core_Manager
         }
         
         // Ако не е начало на манипулатор на документ
-        if ($search{0} != '#') {
+        if ($search[0] != '#') {
             
             return ;
         }
@@ -393,7 +439,7 @@ class doc_Search extends core_Manager
      */
     public function on_AfterPrepareListRecs($mvc, $data)
     {
-        if (count($data->recs) == 0) {
+        if (countR($data->recs) == 0) {
             
             return;
         }
@@ -414,7 +460,7 @@ class doc_Search extends core_Manager
      */
     public function on_AfterPrepareListRows($mvc, $data)
     {
-        if (count($data->recs) == 0) {
+        if (countR($data->recs) == 0) {
             
             return;
         }

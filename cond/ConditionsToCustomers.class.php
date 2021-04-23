@@ -145,8 +145,8 @@ class cond_ConditionsToCustomers extends core_Manager
     {
         $query = self::getQuery();
         $query->where("#cClass = {$cClass} AND #cId = {$cId}");
-        $ids = array_map(create_function('$o', 'return $o->conditionId;'), $query->fetchAll());
-        
+        $ids = arr::extractValuesFromArray($query->fetchAll(), 'conditionId');
+
         $where = '';
         if (countR($ids)) {
             $ids = array_combine($ids, $ids);
@@ -528,7 +528,7 @@ class cond_ConditionsToCustomers extends core_Manager
                 }
             }
             
-            $count = count($update);
+            $count = countR($update);
             if($count){
                 cls::get('cond_ConditionsToCustomers')->saveArray($update);
             }

@@ -475,9 +475,11 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
         $Date = cls::get('type_Date');
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN employee-->|Служители|*: [#employee#]<!--ET_END employee--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN employee--><div>|Служители|*: [#employee#]</div><!--ET_END employee-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->from)) {
@@ -560,20 +562,20 @@ class hr_reports_AbsencesPerEmployee extends frame2_driver_TableData
             }
         }
         
-        $period[workingDays] = 0;
+        $period['workingDays'] = 0;
         $period['numberOfDays'] = 0;
         
         $checkDate = $period['startDate'];
         
         do {
             if (!cal_Calendar::isHoliday($checkDate, 'bg')) {
-                $period[workingDays]++;
+                $period['workingDays']++;
             }
             
             $checkDate = dt::addDays(1, $checkDate, false);
         } while ($checkDate <= $period['endDate']);
         
-        $period[numberOfDays] = dt::daysBetween($period['endDate'], $period['startDate']) + 1;
+        $period['numberOfDays'] = dt::daysBetween($period['endDate'], $period['startDate']) + 1;
         
         return $period;
     }

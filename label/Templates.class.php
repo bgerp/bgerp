@@ -620,7 +620,7 @@ class label_Templates extends core_Master
      *
      * @return stdClass|FALSE - записа на шаблона или FALSE ако не е променян
      */
-    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null, $rendererClassId = null)
+    public static function addFromFile($title, $filePath, $sysId, $sizes = array(), $lang = 'bg', $class = null, $peripheralClassId = null, $rendererClassId = null, $cssPath = null)
     {
         // Проверки на данните
         expect(in_array($lang, array('bg', 'en')), $lang);
@@ -629,9 +629,15 @@ class label_Templates extends core_Master
         $sizes = implode('x', $sizes) . ' mm';
         expect($path = getFullPath($filePath), $path);
         $templateHash = md5_file($path);
-        
+
+        if(isset($cssPath)){
+            expect($cssPath = getFullPath($cssPath), $cssPath);
+            $cssTemplateHash = md5_file($cssPath);
+        }
+
         // Има ли шаблон с това систем ид
         $exRec = self::fetch(array("#sysId = '[#1#]'", $sysId));
+
         if (!$exRec) {
             $exRec = new stdClass();
             $exRec->sysId = $sysId;
@@ -642,7 +648,10 @@ class label_Templates extends core_Master
         }
         
         $isContentTheSame = md5($exRec->template) == $templateHash;
-       
+        if(isset($cssPath)){
+            $isContentTheSame = $isContentTheSame && md5($exRec->css) == $cssTemplateHash;
+        }
+
         // Ако подадените параметри са същите като съществуващите, не се обновява/създава нищо
         if ($isContentTheSame && $exRec->title == $title && $exRec->title == $title && $exRec->sizes == $sizes && $exRec->lang == $lang && $exRec->classId == $classId) {
             
@@ -652,6 +661,9 @@ class label_Templates extends core_Master
         // Обновяване на контента, ако има промяна
         if ($isContentTheSame !== true) {
             $exRec->template = getFileContent($path);
+            if(isset($cssPath)){
+                $exRec->css = getFileContent($cssPath);
+            }
         }
         
         if (isset($classId)) {
@@ -676,7 +688,7 @@ class label_Templates extends core_Master
         
         // Създаване/обновяване на шаблона
         static::save($exRec);
-        
+
         return $exRec;
     }
     
@@ -693,11 +705,12 @@ class label_Templates extends core_Master
      */
     public static function addDefaultLabelsFromArray($sysId, $array, &$modified, &$skipped)
     {
-        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass'], $array['rendererClassId']);
+        $tRec = self::addFromFile($array['title'], $array['path'], $sysId, $array['sizes'], $array['lang'], $array['class'], $array['peripheralDriverClass'], $array['rendererClassId'], $array['cssPath']);
         
         if ($tRec !== false) {
             label_TemplateFormats::delete("#templateId = {$tRec->id}");
             $arr = static::getPlaceholders($tRec->template);
+
             if (is_array($arr)) {
                 foreach ($arr as $placeholder) {
                     if (in_array($placeholder, self::$systemPlaceholders)) {
@@ -713,9 +726,15 @@ class label_Templates extends core_Master
                     } elseif($placeholder == 'QR_CODE'){
                         $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '60', 'Height' => '60', 'Rotation' => 'no');
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif($placeholder == 'QR_CODE_90'){
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'qr', 'Ratio' => '4', 'Width' => '90', 'Height' => '90', 'Rotation' => 'no');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
                     } elseif($placeholder == 'BARCODE_WORK_CARDS'){
                         $params = array('Showing' => 'barcode', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '120', 'Height' => '60', 'Rotation' => 'no');
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
+                    } elseif(is_array($array['htmlPlaceholders']) && in_array($placeholder, $array['htmlPlaceholders'])){
+                        $params = array();
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'html', $params);
                     } else {
                         $type = 'caption';
                         $params = array();

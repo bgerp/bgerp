@@ -93,7 +93,7 @@ class doc_plg_SelectFolder extends core_Plugin
         $allParams = Request::getParams();
         if ($allParams) {
             foreach ($allParams as $name => $value) {
-                if (strpos($name, '_') === false && ucfirst($name{0}) != $name{0}) {
+                if (strpos($name, '_') === false && ucfirst($name[0]) != $name[0]) {
                     $form->setHidden($name, $value);
                 }
             }
@@ -227,7 +227,7 @@ class doc_plg_SelectFolder extends core_Plugin
         $interfaces = arr::make($mvc::getCoversAndInterfacesForNewDoc());
         
         // Ако няма корици се прескача плъгина
-        if (!count($interfaces)) {
+        if (!countR($interfaces)) {
             
             return;
         }

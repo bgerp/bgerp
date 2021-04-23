@@ -98,7 +98,7 @@ class fileman_tests_Files extends unit_Class
         ut::expectEqual($otherNameUnd, $otherName);
         
         // Ако няма добавени файлове
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Добавяме в масива
             self::$fhArr[] = $fh1;
@@ -165,7 +165,7 @@ class fileman_tests_Files extends unit_Class
         ut::expectEqual($otherNameUnd, $otherNameUnd2);
         
         // Ако няма добавени файлове
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Добавяме в масива
             self::$fhArr[] = $fh1;
@@ -189,7 +189,7 @@ class fileman_tests_Files extends unit_Class
         ut::expectEqual(($path1 && $path2), true);
         
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorb($mvc);
@@ -232,7 +232,7 @@ class fileman_tests_Files extends unit_Class
         ut::expectEqual(($content1 && $content2), true);
         
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorbStr($mvc);
@@ -261,7 +261,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_extract($mvc)
     {
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorb($mvc);
@@ -292,7 +292,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_extractStr($mvc)
     {
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorbStr($mvc);
@@ -320,7 +320,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_rename($mvc)
     {
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorb($mvc);
@@ -348,7 +348,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_copy($mvc)
     {
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorb($mvc);
@@ -373,7 +373,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_fhToId($mvc)
     {
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorb($mvc);
@@ -404,7 +404,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_fhKeylistToIds($mvc)
     {
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorb($mvc);
@@ -414,7 +414,7 @@ class fileman_tests_Files extends unit_Class
         $idsArr = fileman::fhKeylistToIds(self::$fhArr);
         
         // Очакваме да има 2 id' та
-        ut::expectEqual(count($idsArr), 2);
+        ut::expectEqual(countR($idsArr), 2);
         
         // Обхождаме масива с манипуалтори и го привръщаме в keyList
         foreach (self::$fhArr as $value) {
@@ -436,7 +436,7 @@ class fileman_tests_Files extends unit_Class
         }
         
         // Ако не е сетнат
-        if (!count(self::$idsArr)) {
+        if (!countR(self::$idsArr)) {
             
             // Записваме го в масива с id
             self::$idsArr = $newArr;
@@ -452,7 +452,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_idToFh($mvc)
     {
         // Ако няма добавени id' та
-        if (!count(self::$idsArr)) {
+        if (!countR(self::$idsArr)) {
             
             // Извикваме функцията за сетване на id' та
             self::test_fhKeylistToIds($mvc);
@@ -483,7 +483,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_idKeylistToFhs($mvc)
     {
         // Ако няма добавени id' та
-        if (!count(self::$idsArr)) {
+        if (!countR(self::$idsArr)) {
             
             // Извикваме функцията за сетване на id' та
             self::test_fhKeylistToIds($mvc);
@@ -493,7 +493,7 @@ class fileman_tests_Files extends unit_Class
         $fhsArr = fileman::idKeylistToFhs(self::$idsArr);
         
         // Очакваме броя им да е 2
-        ut::expectEqual(count($fhsArr), 2);
+        ut::expectEqual(countR($fhsArr), 2);
         
         // Обхождаме масива с id' та и го превръщаме в keylist
         foreach (self::$idsArr as $value) {
@@ -517,7 +517,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_getMeta($mvc)
     {
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorb($mvc);
@@ -533,7 +533,7 @@ class fileman_tests_Files extends unit_Class
         $now = dt::now();
         
         // Очакваме броя на мета данните да е 6
-        ut::expectEqual(count($metaData), 6);
+        ut::expectEqual(countR($metaData), 6);
         
         // Времето на последното екстракване трябва да е преди сега
         ut::expectEqual($metaData['extractDate'] <= $now, true);
@@ -629,7 +629,7 @@ class fileman_tests_Files extends unit_Class
     public static function test_checkFileNameExist($mvc)
     {
         // Ако няма добавен файл
-        if (!count(self::$fhArr)) {
+        if (!countR(self::$fhArr)) {
             
             // Извикваме теста за абсорбиране на файл, който добавя в масива
             self::test_absorb($mvc);

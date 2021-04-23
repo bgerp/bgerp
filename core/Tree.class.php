@@ -43,7 +43,7 @@ class core_Tree extends core_BaseClass
         
         $pid = -1;
         
-        $nodesCnt = count($nodes);
+        $nodesCnt = countR($nodes);
         
         foreach ($nodes as $key => $node) {
             $currentPath .= ($currentPath ? '->' : '') . $node;
@@ -51,7 +51,7 @@ class core_Tree extends core_BaseClass
             if (!isset($this->nodes[$currentPath])) {
                 $n = new stdClass();
                 
-                $n->id = count($this->nodes);
+                $n->id = countR($this->nodes);
                 $n->pid = $pid;
                 $pid = $n->id;
                 $n->title = $node;
@@ -77,53 +77,43 @@ class core_Tree extends core_BaseClass
     public function renderHtml_($body, $selected = null)
     {
         // Ако нямаме дърво - връщаме съдържанието без промяна
-        if (!count($this->nodes)) {
+        if (!countR($this->nodes)) {
             
             return $body;
         }
         
         //  @тодо
-        if (!$selectedNode) {
+//        if (!$selectedNode) {
             $selectedId = 0;
-        }
-        
+//        }
+
         $tpl = new ET("
-         <div class='dtree' style='float:left;'>
-
- 
-        <script type='text/javascript'>
-            <!--
-
-            [#treeName#] = new dTree('[#treeName#]');
-
-            [#treeDesciption#]
-
-            document.write([#treeName#]);
-
-            //-->
-        </script>
-
-        </div>
+         <div class='dtree' id='dtreeBlock' style='float:left;'>
+            
+         </div>
          <div style='float:left;margin-left:10px;'> [#body#]</div>  
          <div style='clear:both'></div>
         ");
-        
+
         $name = $this->name;
-        
-        $tpl->append("\n{$name}.icon.root = " . sbf('img/dtree/base.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.folder = " . sbf('img/dtree/folder.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.folderOpen = " . sbf('img/dtree/folderopen.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.node = " . sbf('img/dtree/page.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.empty = " . sbf('img/dtree/empty.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.line = " . sbf('img/dtree/line.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.join = " . sbf('img/dtree/join.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.joinBottom = " . sbf('img/dtree/joinbottom.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.plus = " . sbf('img/dtree/plus.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.plusBottom = " . sbf('img/dtree/plusbottom.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.minus = " . sbf('img/dtree/minus.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.minusBottom = " . sbf('img/dtree/minusbottom.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.nlPlus = " . sbf('img/dtree/nolines_plus.gif', "'") . ';', 'treeDesciption');
-        $tpl->append("\n{$name}.icon.nlMinus = " . sbf('img/dtree/nolines_minus.gif', "'") . ';', 'treeDesciption');
+
+        $jsTpl = new ET("[#treeName#] = new dTree('[#treeName#]'); [#treeDesciption#] 
+                                 document.getElementById('dtreeBlock').innerHTML = [#treeName#];");
+
+        $jsTpl->append("\n{$name}.icon.root = " . sbf('img/dtree/base.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.folder = " . sbf('img/dtree/folder.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.folderOpen = " . sbf('img/dtree/folderopen.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.node = " . sbf('img/dtree/page.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.empty = " . sbf('img/dtree/empty.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.line = " . sbf('img/dtree/line.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.join = " . sbf('img/dtree/join.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.joinBottom = " . sbf('img/dtree/joinbottom.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.plus = " . sbf('img/dtree/plus.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.plusBottom = " . sbf('img/dtree/plusbottom.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.minus = " . sbf('img/dtree/minus.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.minusBottom = " . sbf('img/dtree/minusbottom.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.nlPlus = " . sbf('img/dtree/nolines_plus.gif', "'") . ';', 'treeDesciption');
+        $jsTpl->append("\n{$name}.icon.nlMinus = " . sbf('img/dtree/nolines_minus.gif', "'") . ';', 'treeDesciption');
         
         foreach ($this->nodes as $path => $n) {
             $n->title = json_encode($n->title);
@@ -134,19 +124,21 @@ class core_Tree extends core_BaseClass
         }
         
         // Аппендваме стринга
-        $tpl->append($treeDescription, 'treeDesciption');
+        $jsTpl->append($treeDescription, 'treeDesciption');
         
         if ($selectedId) {
             // $tpl->append("\n{$name}.openTo({$selectedId}, true);", 'treeDesciption');
         }
-        
-        $tpl->replace($name, 'treeName');
+
+        $jsTpl->replace($name, 'treeName');
         
         $tpl->replace($body, 'body');
         
         $tpl->push('css/dtree.css', 'CSS');
         $tpl->push('js/dtree.js', 'JS');
-        
+
+        jquery_Jquery::run($tpl, "\n {$jsTpl}", true);
+
         return $tpl;
     }
 }

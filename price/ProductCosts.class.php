@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -109,8 +109,13 @@ class price_ProductCosts extends core_Manager
             }
         }
         
-        $row->classId = cls::get($rec->classId)->getName(true);
-        $row->classId = trim($row->classId, ' "');
+        try{
+            $row->classId = cls::get($rec->classId)->getName(true);
+            $row->classId = trim($row->classId, ' "');
+        } catch(core_exception_Expect $e){
+            reportException($e);
+            $row->classId = "<span class='red'>" . tr('Проблем при показването') . "</span>";
+        }
     }
     
     
@@ -146,9 +151,9 @@ class price_ProductCosts extends core_Manager
     {
         $self = cls::get(get_called_class());
         $PolicyOptions = core_Classes::getOptionsByInterface('price_CostPolicyIntf');
-        
+
         // Изчисляване на всяка от засегнатите политики, себестойностите на засегнатите пера
-        $update = array();
+        $totalProducts = $update = array();
         foreach ($PolicyOptions as $policyId) {
             if (cls::load($policyId, true)) {
                 
@@ -157,25 +162,21 @@ class price_ProductCosts extends core_Manager
                 $Interface = cls::getInterface('price_CostPolicyIntf', $policyId);
                 if($Interface->hasSeparateCalcProcess()) continue;
                 
-                // Ако е миграция, средната складова няма да се преизчислява от тук
-                if (Mode::is('isMigrate') && ($Policy instanceof price_interface_AverageCostStorePricePolicyImpl)) {
-                    continue;
-                }
-                
                 // Кои са засегнатите артикули, касаещи политиката
                 $affectedProducts = $Interface->getAffectedProducts($datetime);
-                
+                $totalProducts += $affectedProducts;
+
                 // Ако има такива, ще се прави опит за изчисляване на себестойносттите
                 $count = countR($affectedProducts);
                 if($count){
                     
-                    core_App::setTimeLimit($count * 0.5, 60);
+                    core_App::setTimeLimit($count * 0.5, false,60);
                     $calced = $Interface->calcCosts($affectedProducts);
                     $update = array_merge($update, $calced);
                 }
             }
         }
-        
+
         if(!countR($update)){
             
             return;
@@ -188,8 +189,9 @@ class price_ProductCosts extends core_Manager
         
         // Синхронизиране на новите записи със старите записи на засегнатите пера
         $exQuery = self::getQuery();
-        $exQuery->in('productId', $affectedProducts);
+        $exQuery->in('productId', $totalProducts);
         $exRecs = $exQuery->fetchAll();
+
         $res = arr::syncArrays($update, $exRecs, 'productId,classId', 'price,quantity,sourceClassId,sourceId,valior');
         
         // Добавяне на нови записи

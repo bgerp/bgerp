@@ -84,6 +84,11 @@
                         <td>[#department#]</td>
                     </tr>
                     <!--ET_END department-->
+
+                    <tr style='padding-bottom:80px;padding-top:80px'>
+                        <td class='quiet' style='text-align: left'>|Втора мярка|*:</td>
+                        <td>[#allowSecondMeasure#]<!--ET_BEGIN secondMeasureId--> (<span style="color:darkblue;font-size:15px;font-style:italic;">[#secondMeasureId#]</span>)<!--ET_END secondMeasureId--></td>
+                    </tr>
                     <!--ET_BEGIN RECEIPTS-->
                     [#RECEIPTS#]
                     <!--ET_BEGIN sBomId-->

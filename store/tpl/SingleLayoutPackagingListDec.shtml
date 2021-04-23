@@ -28,11 +28,7 @@
             </tr>
             <tr>
                 <td class="cell">
-                    <b>[#contragentName#]</b>
-                    <div class='address-block'>
-                        [#contragentCountryId#]
-                        <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
-                    </div>
+                    [#/deals/tpl/ContragentHeaderBlock.shtml#]
                     <!--ET_BEGIN locationId-->
                     <hr style="margin: 3px 0 1px;">
                     <div>
@@ -41,10 +37,7 @@
                     <!--ET_END locationId-->
                 </td>
                 <td class="cell">
-                    <b>[#MyCompany#]</b>
-                    <div class='address-block'>
-                        [#MyAddress#]
-                    </div>
+                    [#/deals/tpl/MyCompanyBlock.shtml#]
                     <!--ET_BEGIN storeId-->
                     <hr style="margin: 3px 0 1px;">
                     <div>
@@ -164,7 +157,7 @@
     <!--ET_END PACKAGING_BTNS-->
 
     <div class='footerDocBlock'   style="border-top: none !important">
-        <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b>.</div>
+        [#/doc/tpl/Copyright.shtml#]
     </div>
 </div>
 <div style='margin-top:20px'>

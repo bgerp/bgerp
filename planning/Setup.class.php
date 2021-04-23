@@ -20,6 +20,12 @@ defIfNot('PLANNING_TASK_WEIGHT_TOLERANCE_WARNING', 0.05);
 
 
 /**
+ * Допустим толеранс за втората мярка в протокола за производство
+ */
+defIfNot('PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING', 0.1);
+
+
+/**
  * Отчитане на теглото в ПО->Режим
  */
 defIfNot('PLANNING_TASK_WEIGHT_MODE', 'yes');
@@ -50,6 +56,30 @@ defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
 
 
 /**
+ * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
+ */
+defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
+
+
+/**
+ * При произвеждане на артикул, да се изравнява ли му производната себестойност с очакваната
+ */
+defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
+
+
+/**
+ * Автоматично приключване на задание, изпълнени над
+ */
+defIfNot('PLANNING_JOB_AUTO_COMPLETION_PERCENT', '');
+
+
+/**
+ * Автоматично приключване на задание, да не са модифицирани от
+ */
+defIfNot('PLANNING_JOB_AUTO_COMPLETION_DELAY', '21600');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -57,7 +87,7 @@ defIfNot('PLANNING_UNDEFINED_CENTER_DISPLAY_NAME', 'Неопределен');
  * @package   planning
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -104,8 +134,12 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_CONSUMPTION_USE_AS_RESOURCE' => array('enum(yes=Да,no=Не)', 'caption=Детайлно влагане по подразбиране->Избор'),
         'PLANNING_PRODUCTION_NOTE_REJECTION' => array('enum(no=Забранено,yes=Позволено)', 'caption=Оттегляне на стари протоколи за производство ако има нови->Избор'),
         'PLANNING_UNDEFINED_CENTER_DISPLAY_NAME' => array('varchar', 'caption=Неопределен център на дейност->Име'),
-        'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent', 'caption=Отчитане на теглото в ПО->Предупреждение'),
+        'PLANNING_PNOTE_SECOND_MEASURE_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Толеранс за разминаване между очакваното съответствие в протоколите за производство->Предупреждение'),
+        'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Отчитане на теглото в ПО->Предупреждение'),
         'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
+
+        'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на заданието->Изпълнени над,callOnChange=planning_Setup::setJobAutoClose'),
+        'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на заданието->Без модификации от'),
     );
     
     
@@ -134,9 +168,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',
-        'migrate::assetResourceFields',
-        'migrate::updateTasks',
-        'migrate::updateTasksPart2'
+        'migrate::updateSecondMeasure',
     );
     
     
@@ -187,123 +219,86 @@ class planning_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
+
+
     /**
-     * Мигация за поправка на key полетата към keylist в planning_AssetResources
+     * След промяна на процента за приключване на задание
      */
-    public static function assetResourceFields()
+    public static function setJobAutoClose($Type, $oldValue, $newValue)
     {
-        $inst = cls::get('planning_AssetResources');
-        $query = $inst->getQuery();
-        while ($rec = $query->fetch()) {
-            if (!$rec->systemFolderId) {
-                $rec->systemFolderId = null;
+        $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
+        if(empty($newValue)){
+            if(is_object($exRec)){
+                $exRec->state = 'stopped';
+                core_Cron::save($exRec, 'state');
             }
-            
-            if (!$rec->assetFolderId) {
-                $rec->assetFolderId = null;
+        } elseif(empty($oldValue)) {
+            $exRec = core_Cron::getRecForSystemId('Close Old Jobs');
+            if($exRec->state == 'stopped'){
+                $exRec->state = 'free';
+                core_Cron::save($exRec, 'state');
+            } else {
+                $rec = new stdClass();
+                $rec->systemId =  'Close Old Jobs';
+                $rec->description = 'Затваряне на стари задания';
+                $rec->controller = 'planning_Jobs';
+                $rec->action = 'CloseOldJobs';
+                $rec->period = 720;
+                $rec->offset = 60;
+                $rec->delay = 0;
+                $rec->timeLimit = 120;
+
+                core_Cron::addOnce($rec);
             }
-            
-            // Взамем от папките
-            $fQuery = planning_AssetResourceFolders::getQuery();
-            $fQuery->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $inst->getClassId(), $rec->id));
-            $defOptArr = array();
-            while ($fRec = $fQuery->fetch()) {
-                if (!$fRec->folderId) {
-                    continue ;
-                }
-                
-                $cover = doc_Folders::getCover($fRec->folderId);
-                
-                $systemFolderName = 'assetFolderId';
-                
-                if ($cover->className == 'support_Systems') {
-                    $systemFolderName = 'systemFolderId';
-                }
-                
-                $defOptArr[$systemFolderName]['folders'][$fRec->folderId] = $fRec->folderId;
-                if ($fRec->users) {
-                    $defOptArr[$systemFolderName]['users'] = type_Keylist::merge($defOptArr[$systemFolderName]['users'], $fRec->users);
-                }
-            }
-            
-            if ($defOptArr['systemFolderId']['folders']) {
-                $rec->systemFolderId = type_Keylist::fromArray($defOptArr['systemFolderId']['folders']);
-                $rec->systemUsers = $defOptArr['systemFolderId']['users'];
-            }
-            
-            if ($defOptArr['assetFolderId']['folders']) {
-                $rec->assetFolderId = type_Keylist::fromArray($defOptArr['assetFolderId']['folders']);
-                $rec->assetUsers = $defOptArr['assetFolderId']['users'];
-            }
-            
-            $inst->save($rec, 'systemFolderId, systemUsers, assetFolderId, assetUsers');
         }
     }
-    
-    
+
+
     /**
-     * Обновява новите полета на ПО
+     * Миграция на втората мярка на заданията
      */
-    public static function updateTasks()
+    public function updateSecondMeasure()
     {
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-        
-        $TaskDetails = cls::get('planning_ProductionTaskDetails');
-        $TaskDetails->setupMvc();
-        
-        if (!countR($Tasks)) {
-            
-            return;
+        $Jobs = cls::get('planning_Jobs');
+        if(!$Jobs->count()) return;
+
+        $cubMeasureId = cat_UoM::fetchBySinonim('cub.m')->id;
+        $litreId = cat_UoM::fetchBySinonim('l')->id;
+
+        // Обновяване на заданията, които имат втора мярка
+        $updateNoSecondMeasure = $updateLitre = array();
+        $query = $Jobs->getQuery();
+        $query->where("#state != 'closed' AND #state != 'rejected' AND (#allowSecondMeasure = '' OR #allowSecondMeasure IS NULL)");
+
+        // За всяко
+        while($rec = $query->fetch()){
+
+            // Ако няма втора мярка, значи ще е без
+            if(empty($rec->secondMeasureId)){
+                $rec->allowSecondMeasure = 'no';
+                $updateNoSecondMeasure[$rec->id] = $rec;
+            } else {
+                $rec->allowSecondMeasure = 'yes';
+
+                // Ако втората мярка е кубичен метър подменя се с литър
+                if($rec->secondMeasureId == $cubMeasureId){
+                    $rec->secondMeasureId = $litreId;
+                    if(!empty($rec->secondMeasureQuantity)){
+                        $rec->secondMeasureQuantity = cat_UoM::convertValue($rec->secondMeasureQuantity, $cubMeasureId, $litreId);
+                    }
+                    $updateLitre[$rec->id] = $rec;
+                } else {
+                    $updateNoSecondMeasure[$rec->id] = $rec;
+                }
+            }
         }
-        
-        $updateArr = array();
-        $query = $Tasks->getQuery();
-        $query->where('#indPackagingId IS NULL');
-        $query->show('packagingId');
-        while ($rec = $query->fetch()) {
-            $rec->indPackagingId = $rec->packagingId;
-            $updateArr[$rec->id] = $rec;
+
+        if(countR($updateNoSecondMeasure)){
+            $Jobs->saveArray($updateNoSecondMeasure, 'id,allowSecondMeasure');
         }
-        
-        if (countR($updateArr)) {
-            $Tasks->saveArray($updateArr, 'id,indPackagingId');
-        }
-    }
-    
-    
-    /**
-     * Обновява новите полета на ПО
-     */
-    public static function updateTasksPart2()
-    {
-        $Tasks = cls::get('planning_Tasks');
-        $Tasks->setupMvc();
-        
-        $TaskDetails = cls::get('planning_ProductionTaskDetails');
-        $TaskDetails->setupMvc();
-        
-        if (!countR($Tasks)) {
-            
-            return;
-        }
-        
-        $updateArr = array();
-        $query = $Tasks->getQuery();
-        $query->where('#measureId IS NULL');
-        $query->show('measureId,quantityInPack,productId');
-        while ($rec = $query->fetch()) {
-            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
-            $rec->measureId = $measureId;
-            $rec->quantityInPack = 1;
-            
-            $updateArr[] = $rec;
-        }
-        
-        if (countR($updateArr)) {
-            $Tasks->saveArray($updateArr, 'id,measureId,quantityInPack');
+
+        if(countR($updateLitre)){
+            $Jobs->saveArray($updateLitre, 'id,allowSecondMeasure,secondMeasureId,secondMeasureQuantity');
         }
     }
 }

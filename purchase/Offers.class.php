@@ -51,8 +51,14 @@ class purchase_Offers extends core_Master
      * Заглавие
      */
     public $title = 'Оферти за покупки';
-    
-    
+
+
+    /**
+     * Шаблон за единичния изглед
+     */
+    public $singleLayoutFile = 'purchase/tpl/SingleLayoutOffer.shtml';
+
+
     /**
      * Плъгини за зареждане
      */
@@ -144,7 +150,7 @@ class purchase_Offers extends core_Master
         $this->FLD('sum', 'double', 'caption=Оферта->Цена, summary=amount');
         $this->FLD('date', 'date', 'caption=Оферта->Дата');
         $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
-        $this->FLD('document', 'fileman_FileType(bucket=Notes)', 'caption=Оферта->Документ');
+        $this->FLD('documentId', 'fileman_FileType(bucket=Notes)', 'caption=Оферта->Документ,oldFieldName=document');
     }
     
     
@@ -238,7 +244,7 @@ class purchase_Offers extends core_Master
      *
      * @see doc_DocumentIntf::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         

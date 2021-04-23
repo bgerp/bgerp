@@ -90,9 +90,17 @@ class core_Composer extends core_Mvc
 
         if (!$path || !file_exists($path)) {
             
+            if (!is_dir(EF_VENDOR_PATH)) {
+                if (!@mkdir(EF_VENDOR_PATH)) {
+                    self::$error = "Грешка: няма права за създаване на: " . EF_VENDOR_PATH;
+                    
+                    return false;
+                }
+            }
             $composerCmd = EF_VENDOR_PATH . '/composer.phar';
                         
             if (!file_exists($composerCmd)) {
+                
                 $sig = trim(file_get_contents('https://composer.github.io/installer.sig'));
                 
                 $setupPath = EF_VENDOR_PATH . '/composer-setup.php';
@@ -136,7 +144,7 @@ class core_Composer extends core_Mvc
             
             putenv('COMPOSER_HOME=' . EF_VENDOR_PATH . '/.composer');
 
-            $cmd = "{$phpCmd} {$path} {$dir} {$command}";
+            $cmd = "{$phpCmd} {$path} {$dir} {$command} 2>&1";
  
             exec($cmd, $lines, $result);
            

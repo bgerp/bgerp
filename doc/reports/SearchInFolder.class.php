@@ -81,7 +81,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
         }
         
         // Проверка за дуплицирани думи
-        if (count($duplicatedWords)) {
+        if (countR($duplicatedWords)) {
             $duplicatedWords = implode('<span style=font-weight:normal>,</span> ', $duplicatedWords);
             $form->setError('text', "Следните думи се повтарят|*: <b>{$duplicatedWords}</b>");
         }
@@ -224,7 +224,7 @@ class doc_reports_SearchInFolder extends frame2_driver_TableData
         if (isset($oldData[$dRec->index])) {
             $oldCount = $oldData[$dRec->index]->count;
             $diff = $dRec->count - $oldCount;
-        } elseif (count($oldData)) {
+        } elseif (countR($oldData)) {
             $diff = $dRec->count;
         }
         

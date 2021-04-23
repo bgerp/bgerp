@@ -11,7 +11,14 @@
             <td>[#parent#]</td>
         </tr>
         <!--ET_END parent-->
-        
+
+        <!--ET_BEGIN cId-->
+        <tr>
+            <td class="title-style">|Частна за|*</td>
+            <td>[#cId#]</td>
+        </tr>
+        <!--ET_END cId-->
+
         <!--ET_BEGIN defaultSurcharge-->
         <tr>
             <td class="title-style">|[#discountType#] по подразбиране|*</td>
@@ -37,6 +44,14 @@
             <td>[#vat#]</td>
         </tr>
         <!--ET_END vat-->
+
+        <!--ET_BEGIN visiblePricesByAnyone-->
+        <tr>
+            <td class="title-style">|Видимост на цените|*</td>
+            <td>[#visiblePricesByAnyone#]</td>
+        </tr>
+        <!--ET_END visiblePricesByAnyone-->
+
         <!--ET_BEGIN discountCompared-->
         <tr>
             <td class="title-style">|Отстъпка към|*</td>

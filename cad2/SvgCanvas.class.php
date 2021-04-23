@@ -755,7 +755,7 @@ class cad2_SvgCanvas extends cad2_Canvas
             }
             
             if (!isset($tag->body)) {
-                if ($tag->haveBody || $tag->name{0} == '/') {
+                if ($tag->haveBody || $tag->name[0] == '/') {
                     $element = "<{$tag->name}{$attrStr}>\n";
                 } else {
                     $element = "<{$tag->name}{$attrStr}/>\n";

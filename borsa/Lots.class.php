@@ -361,7 +361,7 @@ class borsa_Lots extends core_Master
         
         $tpl = new ET('<h2>[#LOT_INFO#]</h2><div id="prodDesc">[#PROD_DESC#]</div> <div>[#TABLE#]</div><!--ET_BEGIN OTHER_LOTS--><div class="otherLots"><h4>[#OTHER_LOTS_INFO#]</h4>[#OTHER_LOTS#]</div><!--ET_END OTHER_LOTS-->');
         
-        $links .= '<ul class="otherProduct">';
+        $links = '<ul class="otherProduct">';
         foreach ((array)$prodOptArr as $pId) {
             $pLRec = $this->fetch($pId);
             $pLRec->productName = trim($pLRec->productName) ? $pLRec->productName : tr("Продукт") . $pId;

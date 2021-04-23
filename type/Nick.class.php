@@ -137,12 +137,12 @@ class type_Nick extends type_Varchar
         
         for ($i = 0; $i < $len; $i++) {
             //Текущата буква
-            $char = $value{$i};
+            $char = $value[$i];
             
             //Ако е първата буква, или преди точка и долна черта
-            if (($i == 0) || ($value{$i - 1} == '.') || ($value{$i - 1} == '_')) {
+            if (($i == 0) || ($value[$i - 1] == '.') || ($value[$i - 1] == '_')) {
                 //Номера в ASCII таблицата
-                $lowChar = ord($value{$i});
+                $lowChar = ord($value[$i]);
                 
                 //Ако е малка латинска буква
                 if (($lowChar >= 97) && ($lowChar <= 122)) {

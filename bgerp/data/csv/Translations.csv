@@ -532,7 +532,7 @@ en,Документи за п_120a1,Documents to complete the sales
 en,Документи за п_c1496,Documents to complete the purchases
 en,Документи,Documents
 en,Документите,The documents
-en,Документът е с_10cde,Powered by
+en,Документът е създаден чрез системата,This document is created by
 en,Домейн,Domain
 en,Домейни,Domains
 en,Допустими разширения,Allowed extensions
@@ -566,7 +566,7 @@ en,Е-кутия,E-box
 en,Е-маг,E-shop
 en,ЕАН,EAN
 en,ЕГН,EGN
-en,ЕИК,UIC
+en,ЕИК,TAX ID
 en,ЕИК №,TAX ID
 en,Език на интерф_82872,Interface language after logging
 en,Език,Language
@@ -1228,7 +1228,7 @@ en,Обратен апостроф,Back quote
 en,Обратни разписки за получаване на имейл,Receipt for received  email
 en,Обръщение в им_757d4,Salutation in e-mails
 en,Обръщение,Salutation
-en,Обръщения,Addressings
+en,Обръщения,Salutations
 en,Обслужване,Services
 en,Обхват,Scope
 en,Общ брой палети,Total number of pallets
@@ -1265,7 +1265,7 @@ en,От URL,From URL
 en,От адрес,From address
 en,От мен,By me
 en,От начална дата,From start date
-en,От някого,By somebody
+en,От някого,By someone
 en,От обект,Object from
 en,От системата,By system
 en,От склад,From store
@@ -1792,7 +1792,7 @@ en,Сайт,Site
 en,Сайт/Блог,Site/Blog
 en,Салдо,Balance
 en,Само лица,Persons only
-en,Само моите,Only mine
+en,Само моите,Only my documents
 en,Само фирми,Companies only
 en,Самостоятелна,Separate
 en,Свален файл,Downloaded file
@@ -1960,8 +1960,8 @@ en,Съдилище,Court
 en,Съдържа се в,Contained in
 en,Съдържание,Content
 en,Създаване на н_9b9a7,Create a new authorization for online service
-en,Създаване на,Creating a
-en,Създаване,Create
+en,Създаване на,Create a
+en,Създаване,Created
 en,Създаване->На,Created->On
 en,Създаване->От,Created->By
 en,Създаден на,Created on
@@ -1977,7 +1977,7 @@ en,Съобщения от сензорите,Messages from sensors
 en,Съобщения,Messages
 en,Съответствие,Conformity
 en,Сървър,Server
-en,Сървъра на, The server
+en,Сървъра на,The server
 en,Сърдечни поздр_2049,Best regards
 en,Сърце,Heart
 en,Съставил,Prepared by
@@ -2853,7 +2853,7 @@ en,"Моля, завършете поръчката, като направите
 en,"Ако имате клиентска карта, може да я въведете от","If you have a client card, you may input it from"
 en,Невалиден номер на карта,The card number is not valid
 en,Картата вече не е активна,The card is no longer active
-en,Въвеждане на клиентска карта,Input client card
+en,Въвеждане на клиентска карта,Add client card
 en,Въведи,Enter
 en,Сканирай,Scan
 en,Регистриране на нов акаунт на партньор,Register a new partner account
@@ -2920,3 +2920,12 @@ en,"не бяха открити точни резултати, затова с�
 en,"не бяха открити резултати","did not return any result"
 еn,В CSV-източника са открити по-малко колони от колкото са необходими за този списък,Fewer columns were found in the CSV source than are needed for this list
 en,Всички статии в блога,All Articles in the Blog
+en,Количка за пазаруване,Shopping cart
+en,Кошница за пазаруване,Shopping basket
+en,Очаква се доставка,Expected delivery
+en,Адресът трябва да съдържа държава и пощенски код,Address must contain country and zip code
+en,Пътуване,Travel
+en,Започнато,Started
+en,За по-късно,For later
+en,Важно,Important
+en,В обработка,In processing

@@ -167,13 +167,16 @@ class email_Mime extends core_BaseClass
         $fromParser->ParseAddressList($fromHeader, $parseFrom);
         $fromEmlStr = $parseFrom[0]['address'] ? $parseFrom[0]['address'] : $parseFrom[1]['address'];
         $this->fromName = $parseFrom[0]['name'] . ' ' . $parseFrom[1]['name'];
-        
-        if (!$fromEmlStr) {
-            $fromEmlArr = type_Email::extractEmails($this->getHeader('Return-Path'));
-        } else {
+
+        $fromEmlArr = array();
+        if (trim($fromEmlStr)) {
             $fromEmlArr = type_Email::extractEmails($fromEmlStr);
         }
-        
+
+        if (empty($fromEmlArr)) {
+            $fromEmlArr = type_Email::extractEmails($this->getHeader('Return-Path'));
+        }
+
         $this->fromEmail = $fromEmlArr[0];
     }
     
@@ -189,12 +192,30 @@ class email_Mime extends core_BaseClass
             
             if (countR($d)) {
                 $time = mktime($d['hour'], $d['minute'], $d['second'], $d['month'], $d['day'], $d['year']);
-                
+
                 if ($d['is_localtime']) {
-                    $time = $time + $d['zone'] * 60 + (date('O') / 100 * 60 * 60);
+
+                    // Фикс за времето
+                    $zTime = $d['zone'];
+
+                    // Ако е PHP под 7.2 - третираме като минути
+                    if (PHP_VERSION_ID < 70200) {
+                        $zTime *= 60;
+                    } else {
+                        $zTime *= -1;
+                    }
+
+                    $time = $time + $zTime + (date('O') / 100 * 60 * 60);
                 }
                 
                 $this->sendingTime = dt::timestamp2Mysql($time);
+
+                // Ако е в бъдеще - репортваме и записваме текущото време
+                $now = dt::verbal2mysql();
+                if ($now < $this->sendingTime) {
+                    wp($d, $this->sendingTime, $time);
+                    $this->sendingTime = $now;
+                }
             }
         }
         

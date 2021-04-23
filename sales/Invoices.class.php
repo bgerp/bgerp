@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -51,7 +51,7 @@ class sales_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, doc_DocumentPlg, bgerp_plg_Export,
 					doc_EmailCreatePlg, recently_Plugin, cond_plg_DefaultValues,deals_plg_DpInvoice,doc_plg_Sequencer2,
-                    doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search,plg_LastUsedKeys';
+                    doc_plg_HidePrices, doc_plg_TplManager, drdata_plg_Canonize, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search,plg_LastUsedKeys';
     
     
     /**
@@ -145,12 +145,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Дефолт диапазон за номерацията на фактурите от настройките на пакета
-     */
-    public $defaultNumRange = 1;
-    
-    
-    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -158,6 +152,7 @@ class sales_Invoices extends deals_InvoiceMaster
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
+        'contragentEori' => 'clientData|lastDocUser|lastDoc',
         'uicNo' => 'clientData|lastDocUser|lastDoc',
         'contragentPCode' => 'clientData|lastDocUser|lastDoc',
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
@@ -228,8 +223,14 @@ class sales_Invoices extends deals_InvoiceMaster
      * Кои ключове да се тракват, кога за последно са използвани
      */
     public $lastUsedKeys = 'numlimit';
-    
-    
+
+
+    /**
+     * Стратегии за добавяне на артикули след създаване от източника
+     */
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички от договора", 'shippedNotInvoiced' => 'Нефактурираните експедирани');
+
+
     /**
      * Описание на модела
      */
@@ -242,10 +243,12 @@ class sales_Invoices extends deals_InvoiceMaster
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
-        
+        $this->FLD('template', 'key(mvc=doc_TplManager,select=name)', 'caption=Допълнително->Изглед,notChangeableByContractor,silent,removeAndRefreshForm=additionalInfo');
+        $this->FNC('selectInvoiceText', 'enum(,private=Частно,public=Общо,both=Частно и общо)', 'caption=Допълнително->Други условия,removeAndRefreshForm=additionalInfo,silent,before=additionalInfo');
+        $this->setField('contragentCountryId', 'removeAndRefreshForm=additionalInfo');
+
         $this->setDbUnique('number');
     }
-    
     
     /**
      * Извиква се след SetUp-а на таблицата за модела
@@ -264,7 +267,7 @@ class sales_Invoices extends deals_InvoiceMaster
         $tplArr[] = array('name' => 'Invoice short', 'content' => 'sales/tpl/InvoiceHeaderShortEN.shtml',
             'narrowContent' => 'sales/tpl/InvoiceHeaderShortNarrowEN.shtml', 'lang' => 'en');
         $tplArr[] = array('name' => 'Фактура с цени в евро', 'content' => 'sales/tpl/InvoiceHeaderEuro.shtml', 'lang' => 'bg');
-        $tplArr[] = array('name' => 'Счетоводна фактура', 'content' => 'sales/tpl/InvoiceAccView.shtml', 'lang' => 'bg', 'printCount' => 1);
+        $tplArr[] = array('name' => 'Счетоводна фактура', 'content' => 'sales/tpl/InvoiceAccView.shtml', 'lang' => 'bg');
         
         $res = '';
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -310,9 +313,17 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
         $defInfo = '';
-        
+
+        if(isset($rec->id)){
+            $form->setDefault('selectInvoiceText', 'inputed');
+        } else {
+            $form->setDefault('selectInvoiceText', 'both');
+        }
+
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        $firstRec = $firstDoc->rec();
+
         if ($rec->sourceContainerId) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('sales_Proformas')) {
@@ -327,6 +338,10 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         parent::prepareInvoiceForm($mvc, $data);
+        if(empty($rec->id)){
+            $form->setDefault('importProducts', 'shippedNotInvoiced');
+        }
+
         if(!empty($form->rec->contragentVatNo)){
             $Vats = cls::get('drdata_Vats');
             list(, $vies) = $Vats->check($form->rec->contragentVatNo);
@@ -356,15 +371,12 @@ class sales_Invoices extends deals_InvoiceMaster
                 $form->setField('vatReason', 'mandatory');
             }
         }
-        
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        $firstRec = $firstDoc->rec();
-        
+
         $tLang = doc_TplManager::fetchField($rec->template, 'lang');
         core_Lg::push($tLang);
-        
+
         $showSale = core_Packs::getConfigValue('sales', 'SALE_INVOICES_SHOW_DEAL');
-        
+
         if ($showSale == 'yes' && empty($rec->sourceContainerId)) {
             // Ако продажбата приключва други продажби също ги попълва в забележката
             if ($firstRec->closedDocuments) {
@@ -384,10 +396,10 @@ class sales_Invoices extends deals_InvoiceMaster
                 $valior = $firstDoc->getVerbal('valior');
                 Mode::pop('text');
                 $defInfo .= tr('Съгласно сделка') . ": #{$handle}/{$valior}";
-                
+
                 // Ако продажбата има референтен номер, попълваме го в забележката
                 if ($firstRec->reff) {
-                    
+
                     // Ако рефа е по офертата на сделката към която е фактурата
                     if (isset($firstRec->originId)) {
                         $origin = doc_Containers::getDocument($firstRec->originId);
@@ -399,14 +411,35 @@ class sales_Invoices extends deals_InvoiceMaster
                 }
             }
         }
-        
+
         core_Lg::pop();
-        
-        // Ако има дефолтен текст за фактура добавяме и него
-        if ($invText = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')) {
-            $defInfo .= "\n" .$invText;
+
+        $invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText');
+        $invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText');
+        if(!empty($invTextPrivate) && !empty($invTextPublic) && md5($invTextPrivate) != md5($invTextPublic)){
+            $form->setField('selectInvoiceText', 'input');
         }
-        
+
+        // Ако има дефолтен текст за фактура добавяме и него
+        if(in_array($rec->selectInvoiceText, array('private', 'both'))){
+            if ($invTextPrivate = cond_Parameters::getParameter($firstRec->contragentClassId, $firstRec->contragentId, 'invoiceText')) {
+                $defInfo .= "\n" . $invTextPrivate;
+            }
+        }
+
+        // Ако има дефолтен текст за държавата и е различен, добавя се и той
+        if(in_array($rec->selectInvoiceText, array('public', 'both'))) {
+            if ($invTextPublic = cond_Countries::getParameterByCountryId($rec->contragentCountryId, 'invoiceText')) {
+                if(md5($invTextPrivate) != md5($invTextPublic)){
+                    $defInfo .= "\n";
+                    if(!empty($invTextPrivate)){
+                        $defInfo .= "\n";
+                    }
+                    $defInfo .= $invTextPublic;
+                }
+            }
+        }
+
         // Задаваме дефолтния текст
         $form->setDefault('additionalInfo', $defInfo);
     }
@@ -686,9 +719,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($restore === false) {
             $query->orderBy('date', 'DESC');
             $newDate = $query->fetch()->date;
-            
-            
-            
+
             if ($newDate > $rec->date) {
                 $newDate = dt::mysql2verbal($newDate, 'd.m.y');
                 $msg = "Не може да се запише фактура с дата по-малка от последната активна фактура в диапазона|* [<b>{$rangeName}</b>] ({$newDate})";

@@ -207,13 +207,16 @@ abstract class deals_DealDetail extends doc_Detail
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
-        
+
         if (empty($rec->id)) {
+            $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
+            $listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
+
             // Ако потребителя е партньор и има листвани артикули за контрагента
             if (haveRole('partner')) {
-                $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';
-                $listId = cond_Parameters::getParameter($masterRec->contragentClassId, $masterRec->contragentId, $listSysId);
                 $form->setFieldTypeParams('productId', array('listId' => $listId, 'selectSourceArr' => 'cat_Listings::getProductOptions'));
+            } else {
+                $form->setFieldTypeParams('productId', array('listId' => $listId));
             }
         } else {
             $form->setReadOnly('productId');
@@ -503,8 +506,8 @@ abstract class deals_DealDetail extends doc_Detail
             $masterRec = $Master->fetch($masterId);
             $price = deals_Helper::getPurePrice($row->price, cat_Products::getVat($pRec->productId), $masterRec->currencyRate, $masterRec->chargeVat);
         }
-        
-        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId);
+
+        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);
     }
     
     
@@ -531,14 +534,13 @@ abstract class deals_DealDetail extends doc_Detail
         
         $listed = cat_Listings::getAll($listId, $saleRec->shipmentStoreId, 50, true);
         $form->info .= tr('|* ( |Показване на първите|* <b>50</b> |артикула|* )');
-        
+
         // И всички редове от продажбата
         $query = $this->getQuery();
         $query->where("#{$this->masterKey} = {$saleId}");
         $recs = $query->fetchAll();
         expect(countR($listed));
-        
-        
+
         foreach ($listed as &$list) {
             $list->code = cat_Products::getVerbal($list->productId, 'code');
         }
@@ -710,6 +712,10 @@ abstract class deals_DealDetail extends doc_Detail
             
             $title = cat_Products::getTitleById($lRec->productId);
             $title = str_replace(',', ' ', $title);
+            if($lRec->reff != $lRec->code){
+                $title = "[{$lRec->reff}] {$title}";
+            }
+
             $caption = '|' . $title . '|*';
             $caption .= ' |' . cat_UoM::getShortName($lRec->packagingId);
             

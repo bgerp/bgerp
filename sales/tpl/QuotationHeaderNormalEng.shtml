@@ -26,8 +26,8 @@
                 </tr>
                 <tr>
                     <td class="cell">
-                        <div><b>[#company#]</b></div>
-                        <div><b>[#person#]</b></div>
+                        <!--ET_BEGIN company--><div><b>[#company#]</b></div><!--ET_END company-->
+                        <!--ET_BEGIN person--> <div><b>[#person#]</b></div><!--ET_END person-->
                         <div class='address-block'>
                             [#contragentCountryId#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]<!--ET_BEGIN tel-->,<br>
                             <!--ET_BEGIN tel-->[#tel#]<!--ET_END tel--><!--ET_BEGIN fax-->, [#fax#] <!--ET_END fax--><!--ET_BEGIN email-->, [#email#]<!--ET_END email-->
@@ -110,6 +110,6 @@
 	    </table>
     </div>
     <div class='footerDocBlock no-border-top'>
-        <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b></div>
+        [#/doc/tpl/Copyright.shtml#]
     </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

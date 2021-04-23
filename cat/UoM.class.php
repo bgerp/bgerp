@@ -374,7 +374,13 @@ class cat_UoM extends core_Manager
         
         expect($fromRec, "Неразпозната мярка: {$from}", $fromRec);
         expect($toRec, "Неразпозната мярка: {$to}", $toRec);
-        
+
+        // Ако двете мерки са една и съща
+        if($fromRec->id == $toRec->id){
+
+            return $value;
+        }
+
         ($fromRec->baseUnitId) ? $baseFromId = $fromRec->baseUnitId : $baseFromId = $fromRec->id;
         ($toRec->baseUnitId) ? $baseToId = $toRec->baseUnitId : $baseToId = $toRec->id;
         
@@ -424,14 +430,19 @@ class cat_UoM extends core_Manager
      * 
      * @param mixed $id
      * @param int|null $count
+     * @param int|null $minLen
      * @return string
      */
-    public static function getSmartName($id, $count = null)
+    public static function getSmartName($id, $count = null, $minLen = null)
     {
         $rec = static::fetchRec($id);
         if($rec->type == 'uom'){
             
-            return static::getShortName($rec->id);
+            $name = static::getShortName($rec->id);
+            if(empty($minLen) || mb_strlen($name) >= $minLen){
+
+                return $name;
+            }
         }
         
         $name = static::getVerbal($rec, 'name');

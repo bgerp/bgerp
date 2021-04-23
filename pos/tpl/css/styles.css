@@ -442,7 +442,6 @@ select.tabHolder {
   display: grid;
   align-items: center;
   text-align: center;
-  grid-gap: 0.8rem;
   margin-bottom: 10px; }
 
 .posResultContragent {
@@ -646,32 +645,55 @@ select.tabHolder {
   .is-reverted .receipt-payment {
     background: #feb7b7; }
 
+.inputHolder {
+  position: relative; }
+
 .large-field {
   clear: both;
   width: 100%;
   height: 2.2em !important;
   font-size: 1.2em !important;
   border: 1px solid #aaaaaa;
+  box-sizing: border-box !important;
   margin: 0 0 10px !important;
   border-radius: 4px !important;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.25), 2px 2px 2px rgba(0, 0, 0, 0.2); }
+
+.close-icon {
+  border: 1px solid rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0);
+  display: inline-block;
+  vertical-align: middle;
+  outline: 0;
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  position: absolute;
+  z-index: 1;
+  right: 10px;
+  top: 12px;
+  font-size: 20px;
+  color: #12008a; }
+
+.large-field:placeholder-shown +  .close-icon {
+  display: none; }
 
 .narrow .large-field {
   height: 1.6em !important; }
 
 .pos-photo-field {
-  width: 64px;
-  height: 64px;
+  width: 70px;
+  height: 70px;
   background: white;
   border: 1px solid black;
   display: inline-block;
   margin-right: 10px; }
   .pos-photo-field img {
-    width: 64px;
-    max-height: 64px; }
+    width: 70px;
+    max-height: 70px; }
 
 .pos-price-field {
-  font-size: 1.05em; }
+  font-size: 1.02em; }
 
 .measureResult {
   color: #888888; }
@@ -680,9 +702,8 @@ select.tabHolder {
   text-align: left;
   padding: 9px;
   box-sizing: border-box;
-  border: 2px solid #999999;
-  border-radius: 5px;
-  height: 113px;
+  border: 1px solid #999999;
+  height: 118px;
   background: #f1f1f1;
   user-select: none;
   opacity: 0.7; }
@@ -690,14 +711,15 @@ select.tabHolder {
   .element.selected {
     box-shadow: 0px 0px 10px #fca40b !important;
     border: 3px solid #fa0606;
-    padding: 8px !important;
+    padding: 7px !important;
     opacity: 1; }
   .element .pos-title {
-    text-indent: -75px;
-    height: 72px;
+    margin-top: -1px;
+    text-indent: -82px;
+    height: 80px;
     line-height: 130%; }
   .element .pos-photo-field {
-    margin-top: 22px; }
+    margin-top: 25px; }
   .element .pos-add-res-btn {
     color: #333333;
     height: 73px; }

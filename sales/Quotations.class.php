@@ -174,7 +174,7 @@ class sales_Quotations extends core_Master
         'validFor' => 'lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
-        'chargeVat' => 'lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
         'others' => 'lastDocUser|lastDoc',
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'deliveryPlaceId' => 'lastDocUser|lastDoc|',
@@ -233,7 +233,7 @@ class sales_Quotations extends core_Master
         $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
-        $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС,oldFieldName=vat');
+        $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС,salecondSysId=quotationChargeVat');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,salecondSysId=deliveryTermSale,silent,removeAndRefreshForm=deliveryData|deliveryPlaceId|deliveryAdress|deliveryCalcTransport');
         $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
@@ -266,19 +266,7 @@ class sales_Quotations extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
-        $cData = doc_Folders::getContragentData($rec->folderId);
-        $bgId = drdata_Countries::getIdByName('Bulgaria');
-        if(empty($cData->countryId) || $bgId == $cData->countryId){
-            $defaultChargeVat = sales_Setup::get("QUOTATION_DEFAULT_CHARGE_VAT_BG");
-            if($defaultChargeVat != 'auto'){
-                
-                return $defaultChargeVat;
-            }
-        }
-        
-        $defaultChargeVat = deals_Helper::getDefaultChargeVat($rec->folderId);
-        
-        return $defaultChargeVat;
+        return deals_Helper::getDefaultChargeVat($rec->folderId);
     }
     
     
@@ -357,19 +345,21 @@ class sales_Quotations extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if ($data->rec->state == 'active') {
-            if ($mvc->haveRightFor('salefromquotation', (object) array('folderId' => $data->rec->folderId))) {
-                $items = $mvc->getItems($data->rec->id);
+        $rec = $data->rec;
+
+        if ($rec->state == 'active') {
+            if ($mvc->haveRightFor('salefromquotation', (object) array('folderId' => $rec->folderId, 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId))) {
+                $items = $mvc->getItems($rec->id);
                 
                 // Ако има поне един опционален артикул или има варианти на задължителните, бутона сочи към екшън за определяне на количествата
-                if (sales_QuotationsDetails::fetch("#quotationId = {$data->rec->id} AND #optional = 'yes'") || !$items) {
-                    $data->toolbar->addBtn('Продажба', array($mvc, 'FilterProductsForSale', $data->rec->id, 'ret_url' => true), false, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
+                if (sales_QuotationsDetails::fetch("#quotationId = {$rec->id} AND #optional = 'yes'") || !$items) {
+                    $data->toolbar->addBtn('Продажба', array($mvc, 'FilterProductsForSale', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/star_2.png,title=Създаване на продажба по офертата');
                 
                 // Иначе, към създаването на нова продажба
                 } else {
                     $warning = '';
                     $title = 'Прехвърляне на артикулите в съществуваща продажба чернова';
-                    if (!sales_Sales::count("#state = 'draft' AND #contragentId = {$data->rec->contragentId} AND #contragentClassId = {$data->rec->contragentClassId}")) {
+                    if (!sales_Sales::count("#state = 'draft' AND #contragentId = {$rec->contragentId} AND #contragentClassId = {$rec->contragentClassId}")) {
                         $warning = 'Сигурни ли сте, че искате да създадете продажба?';
                         $title = 'Създаване на продажба от офертата';
                         $efIcon = 'img/16/star_2.png';
@@ -377,7 +367,7 @@ class sales_Quotations extends core_Master
                         $efIcon = 'img/16/cart_go.png';
                     }
                     
-                    $data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $data->rec->id, 'ret_url' => true), array('warning' => $warning), "ef_icon={$efIcon},title={$title}");
+                    $data->toolbar->addBtn('Продажба', array($mvc, 'CreateSale', $rec->id, 'ret_url' => true), array('warning' => $warning), "ef_icon={$efIcon},title={$title}");
                 }
             }
         }
@@ -563,7 +553,7 @@ class sales_Quotations extends core_Master
         }
         
         if ($fields['-single']) {
-            
+
             // Линк към от коя оферта е клонирано
             if(isset($rec->clonedFromId)){
                 $row->clonedFromId = "#" . self::getHandle($rec->clonedFromId);
@@ -573,7 +563,6 @@ class sales_Quotations extends core_Master
             }
             
             if (isset($rec->validFor)) {
-                
                 // До коя дата е валидна
                 $validDate = dt::addSecs($rec->validFor, $rec->date);
                 $row->validDate = $mvc->getFieldType('date')->toVerbal($validDate);
@@ -591,7 +580,15 @@ class sales_Quotations extends core_Master
                     }
                 }
             }
-            
+
+            if(!Mode::isReadOnly()){
+                $folderCover = doc_Folders::getCover($rec->folderId);
+                if($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId){
+                    $row->company = "<span class ='red'>{$row->company}</span>";
+                    $row->company = ht::createHint($row->company, 'Контрагента в офертата, се различава от този в папката', 'error', false);
+                }
+            }
+
             $row->number = $mvc->getHandle($rec->id);
             $row->username = core_Users::recToVerbal(core_Users::fetch($rec->createdBy), 'names')->names;
             $row->username = transliterate(tr($row->username));
@@ -646,8 +643,7 @@ class sales_Quotations extends core_Master
                     }
                 }
             }
-            
-            
+
             // Показване на допълнителните условия от артикулите
             $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
             if (is_array($additionalConditions)) {
@@ -877,7 +873,7 @@ class sales_Quotations extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         $row = new stdClass();
@@ -957,7 +953,19 @@ class sales_Quotations extends core_Master
         }
         
         if ($action == 'salefromquotation') {
-            $res = sales_Sales::getRequiredRoles('add', $rec, $userId);
+            $sRec = isset($rec->folderId) ? (object)array('folderId' => $rec->folderId) : null;
+            $res = sales_Sales::getRequiredRoles('add', $sRec, $userId);
+
+            if(isset($rec)){
+                if($res != 'no_one'){
+
+                    // Ако има разминаване между контрагента в офертата и данните от папката, забранява се създаване на продажба
+                    $folderCover = doc_Folders::getCover($rec->folderId);
+                    if($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId){
+                        $res = 'no_one';
+                    }
+                }
+            }
         }
     }
     
@@ -1119,7 +1127,7 @@ class sales_Quotations extends core_Master
         $rec = static::fetchRec($rec);
         
         $abbr = $mvc->abbr;
-        $abbr{0} = strtoupper($abbr{0});
+        $abbr[0] = strtoupper($abbr[0]);
         
         $date = dt::mysql2verbal($rec->date, 'd.m.year');
         
@@ -1171,6 +1179,7 @@ class sales_Quotations extends core_Master
             'deliveryTime' => $rec->deliveryTime,
             'deliveryTermTime' => $rec->deliveryTermTime,
             'deliveryData' => $rec->deliveryData,
+            'deliveryCalcTransport' => $rec->deliveryCalcTransport,
             'deliveryLocationId' => crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id'),
         );
         
@@ -1198,7 +1207,7 @@ class sales_Quotations extends core_Master
         expect($rec = $this->fetchRec($id));
         expect($rec->state = 'active');
         expect($items = $this->getItems($id));
-        $this->requireRightFor('salefromquotation', (object) array('folderId' => $rec->folderId));
+        $this->requireRightFor('salefromquotation', $rec);
         $force = Request::get('force', 'int');
         
         // Ако не форсираме нова продажба
@@ -1212,20 +1221,14 @@ class sales_Quotations extends core_Master
         
         // Ако няма създава се нова продажба
         if (!$sId = Request::get('dealId', 'key(mvc=sales_Sales)')) {
-            $errorMsg = 'Проблем при създаването на оферта';
-            
             try{
                 $sId = $this->createSale($rec);
                 sales_Sales::logWrite('Създаване от оферта', $sId);
             } catch(core_exception_Expect $e){
-                $errorMsg = $e->getMessage();
                 reportException($e);
-                $this->logErr($errorMsg, $rec->id);
+                $this->logErr($e->dump[0], $rec->id);
+                followRetUrl(null, "Проблем при създаване на продажба от оферта", 'error');
             }
-        }
-        
-        if(empty($sId)){
-            followRetUrl(null, $errorMsg, 'error');
         }
         
         // За всеки детайл на офертата подаваме го като детайл на продажбата
@@ -1256,7 +1259,7 @@ class sales_Quotations extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         expect($rec->state == 'active');
-        $this->requireRightFor('salefromquotation', (object) array('folderId' => $rec->folderId));
+        $this->requireRightFor('salefromquotation', $rec);
         
         // Подготовка на формата за филтриране на данните
         $form = $this->getFilterForm($rec->id, $id);
@@ -1460,11 +1463,12 @@ class sales_Quotations extends core_Master
         $query->where("#expireOn < '{$today}'");
         $query->show('id');
         
-        // Затваряме ги
+        // Затварят се
         while ($rec = $query->fetch()) {
             try {
                 $rec->state = 'closed';
                 $this->save_($rec, 'state');
+                $this->logWrite('Затваряне на изтекла оферта', $rec->id);
             } catch (core_exception_Expect $e) {
                 reportException($e);
             }
@@ -1808,7 +1812,14 @@ class sales_Quotations extends core_Master
                 return false;
             }
         }
-        
+
+        $errorMsg = null;
+        if(deals_Helper::hasProductsBellowMinPrice($mvc, $rec, $errorMsg)){
+            core_Statuses::newStatus($errorMsg, 'error');
+
+            return false;
+        }
+
         cls::get('sales_QuotationsDetails')->saveArray($saveRecs);
     }
     
@@ -1920,7 +1931,7 @@ class sales_Quotations extends core_Master
         $constValue = sales_Setup::get('NEW_QUOTATION_AUTO_ACTION_BTN');
         if($constValue == 'form') {
             
-            return Redirect(array($this, 'add', 'folderId' => $folderId));
+            return Redirect(array($this, 'add', 'folderId' => $folderId, 'ret_url' => getRetUrl()));
         }
         
         // Генерира дефолтите според папката
@@ -1934,6 +1945,11 @@ class sales_Quotations extends core_Master
         // Създаване на мастър на документа
         try{
             $masterId = static::createNewDraft($Cover->getClassId(), $Cover->that, null, $fields);
+            if(isset($productId)){
+                static::logWrite('Създаване от артикул', $masterId);
+            } else {
+                static::logWrite('Създаване', $masterId);
+            }
         } catch(core_exception_Expect $e){
             reportException($e);
             

@@ -66,7 +66,7 @@ class csv_Lib
             }
             
             // Пропускаме редовете със знака указан в $skip
-            if ($data[0]{0} == $format['skip']) {
+            if ($data[0][0] == $format['skip']) {
                 if (strtolower(trim($data[0], ' ' . $format['skip'])) == 'closeonce') {
                     $closeOnce = true;
                 }
@@ -419,7 +419,9 @@ class csv_Lib
                     $value = $type->toVerbal($rec->{$name});
                     Mode::pop('text');
                 } elseif ($type instanceof fileman_FileType) {
-                    $value = toUrl(array('F', 'D', $rec->{$name}), 'absolute');
+                    if (trim($rec->{$name})) {
+                        $value = toUrl(array('F', 'D', $rec->{$name}), 'absolute');
+                    }
                 } elseif ($type instanceof type_Enum) {
                     $value = $type->toVerbal($rec->{$name});
                 } elseif ($type instanceof fileman_FileSize) {
@@ -515,10 +517,12 @@ class csv_Lib
      * @param string  $enclosure
      * @param bool    $firstEmpty
      * @param bool    $checkErr
+     * @param string|null    $caption
+     * @param string|null    $name
      *
      * @return array
      */
-    public static function getCsvColNames($csvData, $delimiter = null, $enclosure = null, $firstEmpty = false, $checkErr = false)
+    public static function getCsvColNames($csvData, $delimiter = null, $enclosure = null, $firstEmpty = false, $checkErr = false, $caption = null, $name = null)
     {
         $rowsArr = self::getCsvRowsFromFile($csvData, array('delimiter' => $delimiter, 'enclosure' => $enclosure, 'firstRow' => 'columnNames'));
         
@@ -536,7 +540,37 @@ class csv_Lib
         if ($firstEmpty) {
             $resArr = arr::combine(array(null => ''), $resArr);
         }
-        
+
+        if ($caption) {
+            $captionC = trim(mb_strtolower($caption));
+            $nameC = trim(mb_strtolower($name));
+
+            $cDataArr = $rowsArr['firstRow'] ? $rowsArr['firstRow'] : $rowsArr['data'][0];
+            foreach ((array) $cDataArr as $id => $val) {
+                $valC = trim(mb_strtolower($val));
+
+                if (!$valC) {
+                    continue;
+                }
+
+                if (strpos($captionC, $valC) !== false || strpos($valC, $captionC) !== false) {
+
+                    return $id;
+                }
+                if (strpos($nameC, $valC) !== false || strpos($valC, $nameC) !== false) {
+
+                    return $id;
+                }
+
+                if (type_Email::isValidEmail($valC) && $nameC == 'email') {
+
+                    return $id;
+                }
+            }
+
+            return -1;
+        }
+
         return $resArr;
     }
     
@@ -583,7 +617,7 @@ class csv_Lib
             }
             
             // Пропускаме редовете със знака указан в $skip
-            if ($data[0]{0} == $params['skip']) {
+            if ($data[0][0] == $params['skip']) {
                 continue;
             }
             

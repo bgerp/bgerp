@@ -86,7 +86,7 @@ class doc_reports_DocsByRols extends frame2_driver_TableData
             
             $documentsForCheck = $query->fetchAll();
             
-            $timeLimit = (int)(count($documentsForCheck) / 100);
+            $timeLimit = (int)(countR($documentsForCheck) / 100);
             $timeLimit = max($timeLimit, 240);
             core_App::setTimeLimit($timeLimit);
             

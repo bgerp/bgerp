@@ -127,7 +127,7 @@ class email_Receipts extends email_ServiceEmails
             $rec = new stdClass();
             
             // Само първите 100К от писмото
-            $rec->data = substr($mime->getData(), 0, 100000);
+            $rec->data = $mime->getData();
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
@@ -135,8 +135,8 @@ class email_Receipts extends email_ServiceEmails
             self::save($rec);
             
             self::logNotice('Получена обратна разписка', $rec->id);
-            
-            blast_BlockedEmails::addSentEmailFromText($mid, $mime);
+
+            email_AddressesInfo::addSentEmailFromText($mid, $mime);
         }
         
         return $isReceipt ? 'receipt' : null;

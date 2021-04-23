@@ -243,11 +243,11 @@ class bgerp_Setup extends core_ProtoSetup
 
         // Спираме SQL лога, ако има такъв
         core_Db::$sqlLogEnebled = false;
-        
+
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
         $html = $Plugins->repair();
-        
+
         $managers = array(
             'bgerp_Menu',
             'bgerp_Portal',
@@ -267,30 +267,28 @@ class bgerp_Setup extends core_ProtoSetup
         }
         
         core_SystemLock::block('Starting bgERP installation...');
-        
+
         // Инстанция на мениджъра на пакетите
         $Packs = cls::get('core_Packs');
-        
+
         // Това първо инсталиране ли е?
-        $isFirstSetup = ($Packs->count() == 0);
-        
+        $isFirstSetup = ($Packs->count() <= 5);
+
         // Списък на основните модули на bgERP
-        $packs = 'core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,help,acc,cond,uiext,currency,cms,ograph,
+        $packs = 'core,log,fileman,drdata,bglocal,editwatch,recently,thumb,doc,tags,help,acc,cond,uiext,currency,cms,ograph,
                   email,crm, cat, trans, price, blast,hr,lab,dec,sales,import2,planning,marketing,store,cash,bank,
                   tcost,purchase,accda,frame,frame2,cal,fconv,doclog,fconv,cms,blogm,forum,deals,findeals,
                   vislog,docoffice,incoming,support,survey,pos,change,sass,
                   callcenter,social,status,phpmailer,label,webkittopdf,jqcolorpicker,export,select2';
-        
+
         // Ако има private проект, добавяме и инсталатора на едноименния му модул
         if (defined('EF_PRIVATE_PATH')) {
             $packs .= ',' . strtolower(basename(EF_PRIVATE_PATH));
         }
-        
+
         // Добавяме допълнителните пакети, само при първоначален Setup
-        $Folders = cls::get('doc_Folders');
-        
-        if (!$Folders->db->tableExists($Folders->dbTableName) || ($isFirstSetup)) {
-            $packs .= ',avatar,keyboard,statuses,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
+        if (($isFirstSetup) || !$Packs->isInstalled('avatar')) {
+            $packs .= ',avatar,keyboard,google,gdocs,jqdatepick,imagics,fastscroll,context,autosize,oembed,hclean,toast,minify,rtac,hljs,pixlr,tnef';
         } else {
             $packs = arr::make($packs, true);
             $pQuery = $Packs->getQuery();
@@ -321,7 +319,9 @@ class bgerp_Setup extends core_ProtoSetup
         $Cache = cls::get('core_Cache');
         $Cache->eraseFull();
         core_Cache::$stopCaching = true;
-        
+
+        $loop = 0;
+
         do {
             $loop++;
             
@@ -329,7 +329,9 @@ class bgerp_Setup extends core_ProtoSetup
             
             $packCnt = countR($packArr);
             $i = 1;
-            
+
+            $isSetup = array();
+
             // Извършваме инициализирането на всички включени в списъка пакети
             foreach ($packArr as $p) {
                 $i++;
@@ -369,16 +371,21 @@ class bgerp_Setup extends core_ProtoSetup
             // Де-форсираме системния потребител
             core_Users::cancelSystemUser();
         } while (!empty($haveError) && ($loop < 5));
-        
+
+        if ($isFirstSetup) {
+            $currentVersion = core_setup::CURRENT_VERSION;
+        } else {
+            $currentVersion = core_Updates::getNewVersionTag();
+        }
+
         // Записваме в конфигурацията, че базата е мигрирана към текущата версия
-        if ($currentVersion = core_Updates::getNewVersionTag()) {
+        if ($currentVersion) {
             core_Packs::setConfig('core', array('CORE_LAST_DB_VERSION' => $currentVersion));
         }
         
         // Започваме пак да записваме дебъг съобщенията
         core_Debug::$isLogging = true;
-        
-        
+
         core_SystemLock::block('Finishing bgERP Installation');
         
         $html .= implode("\n", $haveError);
@@ -513,7 +520,9 @@ class bgerp_Setup extends core_ProtoSetup
                     if ($setupFlag) {
                         // Махаме <h2> тага на заглавието
                         // $res = substr($res, strpos($res, "</h2>"), strlen($res));
-                        
+
+                        $res = '';
+
                         do {
                             $res = @file_put_contents(EF_SETUP_LOG_PATH, $res, FILE_APPEND | LOCK_EX);
                             if ($res !== false) {

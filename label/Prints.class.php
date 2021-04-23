@@ -56,7 +56,7 @@ class label_Prints extends core_Master
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'label, admin, ceo';
+    public $canList = 'label, admin, ceo, seeLabelAll';
     
     
     /**
@@ -377,13 +377,30 @@ class label_Prints extends core_Master
         if ($rec->templateId) {
             // Трябва да има зададена медия за шаблона
             $mediaArr = label_Templates::getMediaForTemplate($rec->templateId);
-            
+
             $form->setOptions('mediaId', $mediaArr);
             
             if (empty($mediaArr)) {
                 $form->setError('templateId', 'Няма добавена медия за шаблона');
             } else {
-                $form->setDefault('mediaId', key($mediaArr));
+
+                // Вземаме последно използваната медия по подразбиране
+                $query = $mvc->getQuery();
+                $query->in('mediaId', array_keys($mediaArr));
+                $query->where("#state = 'active'");
+                $query->where("#createdBy = " . core_Users::getCurrent());
+                $query->orderBy('#createdOn', 'DESC');
+                $query->show('mediaId');
+                $query->limit(1);
+                $r = $query->fetch();
+
+                if ($r && $r->mediaId && $mediaArr[$r->mediaId]) {
+                    $lastMediaId = $r->mediaId;
+                } else {
+                    $lastMediaId = key($mediaArr);
+                }
+
+                $form->setDefault('mediaId', $lastMediaId);
             }
         }
         
@@ -767,7 +784,7 @@ class label_Prints extends core_Master
         unset($data->listFilter->fields['mediaId']->mandatory);
         $data->listFilter->fields['mediaId']->type->params['allowEmpty'] = 'allowEmpty';
         
-        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin, rolesForTeams=label|ceo|admin)', 'caption=От, refreshForm');
+        $data->listFilter->FNC('author', 'users(rolesForAll=labelMaster|ceo|admin|seeLabelAllGlobal, rolesForTeams=label|ceo|admin|seeLabelAll)', 'caption=От, refreshForm');
         
         $data->listFilter->showFields = 'author, search, templateId, mediaId';
         
@@ -787,17 +804,12 @@ class label_Prints extends core_Master
         
         // Ако има филтър
         if ($filter = $data->listFilter->rec) {
-            
+
             // Ако се търси по всички
-            if (strpos($filter->author, '|-1|') !== false) {
-                if (!haveRole('labelMaster, ceo, admin')) {
-                    $data->query->where('1=2');
-                }
-            } else {
-                
+            if (strpos($filter->author, '|-1|') === false) {
                 // Масив с потребителите
                 $usersArr = type_Keylist::toArray($filter->author);
-                
+
                 $data->query->orWhereArr('createdBy', $usersArr);
                 $data->query->orWhereArr('modifiedBy', $usersArr, true);
             }
@@ -988,7 +1000,6 @@ class label_Prints extends core_Master
         if (!$rec->rows) {
             $pData->Label->params = array();
             
-            $params = $rec->params;
             if ($rec->objectId && $rec->classId) {
                 $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
                 
@@ -1002,6 +1013,7 @@ class label_Prints extends core_Master
                 core_Mode::pop('prepareLabel');
                 
                 foreach ($labelDataArr as $id => $lArr) {
+                    $params = $rec->params;
                     foreach ((array) $lArr as $key => $val) {
                         $keyNormalized = label_TemplateFormats::getPlaceholderFieldName($key);
                         
@@ -1013,11 +1025,12 @@ class label_Prints extends core_Master
                     $pData->Label->params[$id] = $params;
                 }
             } else {
+                $params = $rec->params;
                 for ($id = 0; $id < $pData->cnt; $id++) {
                     $pData->Label->params[$id] = $params;
                 }
             }
-            
+
             // Подготвяме данните за етикета
             $this->prepareLabel($pData);
         } else {

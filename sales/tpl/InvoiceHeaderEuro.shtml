@@ -49,38 +49,10 @@
                                 </tr>
                                 <tr>
                                     <td class="cell">
-                                        <table>
-                                            <tbody>
-                                                <!--ET_BEGIN contragentVatNo-->
-                                                <tr>
-                                                    <td class="aright"><small>№ |по ЗДДС|* / <i>VAT ID</i>:</small></td>
-                                                    <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
-                                                </tr>
-                                                <!--ET_END contragentVatNo-->
-                                                <tr>
-                                                    <td class="aright"><small>[#contragentUicCaption#]:</small></td>
-                                                    <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                        [#/deals/tpl/InvoiceContragentVatHeaderInfo.shtml#]
                                     </td>
                                     <td class="cell">
-                                        <table>
-                                            <tbody>
-                                                <!--ET_BEGIN MyCompanyVatNo-->
-                                                <tr>
-                                                    <td class="aright"><small>№ |по ЗДДС|* / <i>VAT ID</i>:</small></td>
-                                                    <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
-                                                </tr>
-                                                <!--ET_END MyCompanyVatNo-->
-                                                <!--ET_BEGIN uicId-->
-                                                <tr>
-                                                    <td class="aright"><small>|ЕИК|* / <i>UIC</i>:</small></td>
-                                                    <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
-                                                </tr>
-                                                <!--ET_END uicId-->
-                                            </tbody>
-                                        </table>
+                                        [#/deals/tpl/InvoiceMyCompanyVatHeaderInfo.shtml#]
                                     </td>
                                 </tr>
                             </tbody>
@@ -120,7 +92,7 @@
                                         <!--ET_END deadlineForBalancePayment-->
                                         <!--ET_BEGIN accountId-->
                                         <hr>
-                                        <div>
+                                        <div class="[#BANK_BLOCK_CLASS#]">
                                             <span class='quiet'>|Банкова с-ка|* / <i>Bank account</i>:</span> [#accountId#]
                                             <div class="smallData">
                                                 <!--ET_BEGIN bank-->
@@ -285,7 +257,7 @@
                                 </tr>
                                 <tr class='footerDocInfo'>
                                     <td colspan="2">
-                                         <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                                        [#/doc/tpl/Copyright.shtml#]
                                     </td>
                                 </tr>
                             </tbody>

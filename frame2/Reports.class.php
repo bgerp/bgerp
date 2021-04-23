@@ -214,8 +214,14 @@ class frame2_Reports extends embed_Manager
      * Флаг, който указва, че документа е партньорски
      */
     public $visibleForPartners = true;
-    
-    
+
+
+    /**
+     * Константа, че е имало грешка при подготовка на данните
+     */
+    const DATA_ERROR_STATE = 'ERROR';
+
+
     /**
      * Описание на модела
      */
@@ -477,11 +483,17 @@ class frame2_Reports extends embed_Manager
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = '???';
-        if($Driver = static::getDriver($rec)){
-            $title = $Driver->getTitle($rec);
+        $title = $rec->title;
+        if(empty($title)){
+            if($Driver = static::getDriver($rec)){
+                $title = $Driver->getTitle($rec);
+            }
         }
-        
+
+        if(empty($title)){
+            $title = '???';
+        }
+
         return "{$title} №{$rec->id}";
     }
     
@@ -489,13 +501,13 @@ class frame2_Reports extends embed_Manager
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         
         $row = new stdClass();
         $row->title = $this->getRecTitle($rec);
-        
+
         $Driver = $this->getDriver($rec);
         if (is_object($Driver)) {
             $driverTitle = $Driver->getTitle($rec);
@@ -529,17 +541,19 @@ class frame2_Reports extends embed_Manager
         if ($mvc->haveRightFor('refresh', $rec)) {
             $data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на справката');
         }
-        
-        $url = array($mvc, 'single', $rec->id);
-        $icon = 'img/16/checked.png';
-        if (!Request::get('vId', 'int')) {
-            $url['vId'] = $rec->id;
-            $icon = 'img/16/checkbox_no.png';
-        }
-        
-        $vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
-        if ($vCount > 1) {
-            $data->toolbar->addBtn("Версии|* ({$vCount})", $url, null, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+
+        if(!core_Users::isContractor()){
+            $url = array($mvc, 'single', $rec->id);
+            $icon = 'img/16/checked.png';
+            if (!Request::get('vId', 'int')) {
+                $url['vId'] = $rec->id;
+                $icon = 'img/16/checkbox_no.png';
+            }
+
+            $vCount = frame2_ReportVersions::count("#reportId = {$rec->id}");
+            if ($vCount > 1) {
+                $data->toolbar->addBtn("Версии|* ({$vCount})", $url, null, "ef_icon={$icon}, title=Показване на предишни версии,row=1");
+            }
         }
     }
     
@@ -577,8 +591,15 @@ class frame2_Reports extends embed_Manager
                 if(isset($lang)){
                     core_Lg::push($lang);
                 }
-                
-                $tplData = $Driver->renderData($rec);
+
+                if($rec->data !== static::DATA_ERROR_STATE){
+                    $tplData = $Driver->renderData($rec);
+                } else {
+                    $hint = ht::createHint(tr('Възникна проблем при актуализиране'), 'Възникна проблем при актуализиране на справката', 'error', false);
+                    $tplData = new core_ET("<fieldset class='detail-info' style='margin-bottom:10px;color:red'>[#hint#]</fieldset>");
+                    $tplData->replace($hint, 'hint');
+                }
+
                 if(isset($lang)){
                     core_Lg::pop();
                 }
@@ -634,27 +655,18 @@ class frame2_Reports extends embed_Manager
     public static function refresh(&$rec)
     {
         $rec = self::fetchRec($rec);
-        
+        $me = cls::get(get_called_class());
+
         // Ако има драйвер
         if ($Driver = self::getDriver($rec)) {
             try {
-                $me = cls::get(get_called_class());
-                
                 // Опресняват се данните му
                 $rec->data = $Driver->prepareData($rec);
-                $rec->lastRefreshed = dt::now();
-                
-                // Запис на променените полета
-                $me->save_($rec, 'data,lastRefreshed');
-                
-                // Записване в опашката че справката е била опреснена
-                if (frame2_ReportVersions::log($rec->id, $rec)) {
-                    $me->refreshReports[$rec->id] = $rec;
-                    if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
-                        core_Statuses::newStatus('Справката е актуализирана|*!');
-                    }
-                }
+
             } catch (core_exception_Expect $e) {
+
+                // Ако е имало грешка, се записва че данните са грешни
+                $rec->data = static::DATA_ERROR_STATE;
                 reportException($e);
                 
                 if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
@@ -663,7 +675,21 @@ class frame2_Reports extends embed_Manager
                 
                 self::logErr('Грешка при обновяване на справката', $rec->id);
             }
-            
+
+            $rec->lastRefreshed = dt::now();
+            $me->save_($rec, 'data,lastRefreshed');
+
+            // Записване в опашката че справката е била опреснена
+            if (frame2_ReportVersions::log($rec->id, $rec)) {
+                if($rec->data !== static::DATA_ERROR_STATE){
+                    $me->refreshReports[$rec->id] = $rec;
+                }
+
+                if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
+                    core_Statuses::newStatus('Справката е актуализирана|*!');
+                }
+            }
+
             $me->setNewUpdateTimes[$rec->id] = $rec;
             
             // Ако справката сега е създадена да не се обновява

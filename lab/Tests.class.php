@@ -571,7 +571,7 @@ class lab_Tests extends core_Master
     /**
      * Интерфейсен метод на doc_DocumentIntf
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         if (! $id) {
             

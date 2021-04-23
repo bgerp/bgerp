@@ -133,7 +133,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         
         $query = $mvc->getQuery();
         $query->where("#group != '' AND #group IS NOT NULL");
-        $params = array_map(create_function('$o', 'return $o->group;'), $query->fetchAll());
+        $params = arr::extractValuesFromArray($query->fetchAll(), 'group');
         if (countR($params)) {
             $params = arr::make($params, true);
         }
@@ -273,6 +273,10 @@ abstract class bgerp_ProtoParam extends embed_Manager
                 $rec->roles = core_Roles::getRolesAsKeylist($rec->csv_roles);
             }
         }
+
+        if (!empty($rec->csv_options)) {
+            $rec->options = cond_type_abstract_Proto::options2text($rec->csv_options);
+        }
     }
     
     
@@ -381,8 +385,8 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $rec = static::fetchRec($id);
         if ($Driver = static::getDriver($rec)){
             $value = trim($value);
-            
-            $res = $Driver->toVerbal($id, $domainClass, $domainId, $value);
+
+            $res = $Driver->toVerbal($rec, $domainClass, $domainId, $value);
             
             return $res;
         }

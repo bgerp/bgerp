@@ -36,7 +36,7 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
         $mvc->FNC('packQuantity', 'double', 'caption=Количество,smartCenter,input=input');
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
-        $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки');
+        $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
     }
     
     
@@ -101,7 +101,8 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 // Показване на допълнителна мярка
                 if (isset($rec->packagingId)) {
                     $pType = cat_UoM::fetchField($rec->packagingId, 'type');
-                    if ($pType == 'uom' && $rec->packagingId != $productInfo->productRec->measureId) {
+                    $derivitiveMeasures = cat_UoM::getSameTypeMeasures($productInfo->productRec->measureId);
+                    if ($pType == 'uom' && !array_key_exists($rec->packagingId, $derivitiveMeasures)){
                         $form->setField('baseQuantity', 'input');
                         $measureShort = cat_UoM::getShortName($productInfo->productRec->measureId);
                         $form->setField('baseQuantity', "unit={$measureShort}");
@@ -370,6 +371,6 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
             
         }
         
-        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId);
+        return $Master::addRow($masterId, $pRec->productId, $row->quantity, $price, $pRec->packagingId, null, null, null, null, $row->batch);
     }
 }

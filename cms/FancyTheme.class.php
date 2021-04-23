@@ -44,7 +44,6 @@ class cms_FancyTheme extends core_ProtoInner
         $form->FLD('wImg3', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 3');
         $form->FLD('wImg4', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 4');
         $form->FLD('wImg5', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Ротиращи се картинки за десктоп (1200x220px)->Изображение 5');
-        $form->FLD('colabImg', 'fileman_FileType(bucket=gallery_Pictures)', 'caption=Картинка за логин и при колаборатор (1000x150px)->Изображение');
 
         $form->FLD('menuPosition', 'enum(below=Под банера,above=Над банера)', 'caption=Меню->Позиция');
         
@@ -74,7 +73,7 @@ class cms_FancyTheme extends core_ProtoInner
             $tpl->replace($menu, 'TOP_PAGE');
             $css .= "\n    header {border-bottom: 2px solid {$this->innerForm->baseColor} !important;}";
         } else {
-            $tpl->replace($menu, 'BOTTOM_MENU');
+            $tpl->replace($menu, 'MENU');
         }
         // Добавяме заглавния текст
         $title = $this->innerForm->title;
@@ -232,46 +231,40 @@ class cms_FancyTheme extends core_ProtoInner
     {
         $imgs = array();
         if (!Mode::is('screenMode', 'narrow')) {
-            if (core_Users::isContractor()) {
-                $img = new thumb_Img(array($this->innerForm->colabImg, 1000, 150, 'fileman', 'isAbsolute' => true,'mode' => 'large-no-change'));
-                $imageURL = $img->getUrl('forced');
-            } else {
-                
-                for ($i = 1; $i <= 5; $i++) {
-                    $imgName = 'wImg' . $i;
-                    if ($this->innerForm->{$imgName}) {
-                        $imgs[$i] = $this->innerForm->{$imgName};
-                    }
+            for ($i = 1; $i <= 5; $i++) {
+                $imgName = 'wImg' . $i;
+                if ($this->innerForm->{$imgName}) {
+                    $imgs[$i] = $this->innerForm->{$imgName};
                 }
-                
-                if (countR($imgs) >= 1) {
-                    $conf = core_Packs::getConfig('core');
-                    
-                    $banner = '';
-                    
-                    $banner .= '<div class="fadein">';
-                    $style = '';
-                    foreach ($imgs as $iHash) {
-                        $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
-                        $imageURL = $img->getUrl('forced');
-                        $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1200, 'height' => 220, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
-                        $banner .= "\n{$hImage}";
-                        $style = 'display:none;';
-                    }
-                    $banner .= '</div>';
-                    $banner = new ET($banner);
-                    $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
-                    $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
-                    
-                    if(countR($imgs) > 1){
-                        $banner->append('.fadein { position:relative; display:block;} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
-                        jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", true);
-                    }
-                    
-                    $this->haveOwnHeaderImages = true;
-                    
-                    return $banner;
+            }
+
+            if (countR($imgs) >= 1) {
+                $conf = core_Packs::getConfig('core');
+
+                $banner = '';
+
+                $banner .= '<div class="fadein" style="overflow: hidden;">';
+                $style = '';
+                foreach ($imgs as $iHash) {
+                    $img = new thumb_Img(array($iHash, 1000, 288, 'fileman', 'isAbsolute' => true, 'mode' => 'large-no-change'));
+                    $imageURL = $img->getUrl('forced');
+                    $hImage = ht::createElement('img', array('src' => $imageURL, 'width' => 1200, 'height' => 220, 'alt' => $conf->EF_APP_TITLE, 'class' => 'headerImg', 'style' => $style));
+                    $banner .= "\n{$hImage}";
+                    $style = 'display:none;';
                 }
+                $banner .= '</div>';
+                $banner = new ET($banner);
+                $fadeTransition = $this->innerForm->fadeTransition ? $this->innerForm->fadeTransition : 1500;
+                $fadeDelay = $this->innerForm->fadeDelay ? $this->innerForm->fadeDelay : 5000;
+
+                if(countR($imgs) > 1){
+                    $banner->append('.fadein { position:relative; display:block;} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
+                    jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", true);
+                }
+
+                $this->haveOwnHeaderImages = true;
+
+                return $banner;
             }
         } else {
             if ($this->innerForm->nImg) {

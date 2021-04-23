@@ -5,6 +5,22 @@
   padding:0px;
   color:white;
   cursor: pointer;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+}
+
+div.selected {
+   outline: dotted 4px black;
+   z-index:10000;
+   outline-offset: 3px;
+}
+
+.floor {
+    position: relative;
+}
+.narrow{
+    padding: 4px;
 }
 .ui-draggable-dragging {
     opacity:0.8;
@@ -18,4 +34,17 @@
   font-weight:bold;
   overflow: hidden;
   color: #000;
+}
+
+body.wide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+	background-color:black;
+    height: 100vh;
+}
+
+body.narrow {
+    min-height: 100vh;
+    background-color:black;
 }

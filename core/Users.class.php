@@ -639,7 +639,7 @@ class core_Users extends core_Manager
         } else {
             $teamsList = core_Roles::getRolesByType('team');
             $teamsArr = type_Keylist::toArray($teamsList);
-            if (count($teamsArr) == 1) {
+            if (countR($teamsArr) == 1) {
                 $form->setDefault('rolesInput', $teamsArr);
             }
         }
@@ -691,7 +691,7 @@ class core_Users extends core_Manager
                         array('external' => (object) array('title' => 'Външен достъп', 'group' => true)),
                         $roleTypes['external']
                 );
-                if (count($roleTypes['external'])) {
+                if (countR($roleTypes['external'])) {
                     $form->FNC('roleOthers', 'keylist(mvc=core_Roles,select=role,allowEmpty)', 'caption=Достъп->Роли,after=roleTesms,input');
                     $form->setSuggestions('roleOthers', $otherRoles);
                 }
@@ -717,7 +717,7 @@ class core_Users extends core_Manager
                             $teams[$i] = $i;
                         }
                     }
-                    if (count($teams)) {
+                    if (countR($teams)) {
                         $form->setDefault('roleTeams', keylist::fromArray($teams));
                     }
                 }
@@ -732,7 +732,7 @@ class core_Users extends core_Manager
                         }
                     }
                 }
-                if (count($other)) {
+                if (countR($other)) {
                     $form->setDefault('roleOthers', keylist::fromArray($other));
                 }
             }
@@ -1373,7 +1373,25 @@ class core_Users extends core_Manager
     public static function sudo($id)
     {
         $userRec = self::fetch((int) $id);
-        
+
+        if (!is_object($userRec) && ($id > 0)) {
+            $rolesArr = array(core_Roles::fetchByName('admin'), core_Roles::fetchByName(doc_Setup::get('BGERP_ROLE_HEADQUARTER', true)));
+
+            $autoUser = new stdClass();
+            $autoUser->id = (int) $id;
+            $autoUser->nick = 'Auto_' . str::getRand();
+            $autoUser->names = 'Автоматично';
+            $autoUser->rolesInput = type_Keylist::fromArray(arr::make($rolesArr, true));
+            $autoUser->ps5enc = core_Users::encodePwd(str::getRand(), $napUser->nick);
+            $autoUser->state = 'closed';
+
+            cls::get('core_Users')->save_($autoUser, null, 'IGNORE');
+
+            sleep(1);
+
+            $userRec = self::fetch((int) $id);
+        }
+
         if (is_object($userRec)) {
             $userRecS = clone($userRec);
             $userRecS->_isSudo = true;
@@ -1404,8 +1422,14 @@ class core_Users extends core_Manager
         
         if ($id !== true) {
             expect($id == core_Users::getCurrent());
+
+            $userRec = self::fetch((int) $id);
+            if (!is_object($userRec)) {
+
+                return ;
+            }
         }
-        
+
         core_Mode::pop('currentUserRec');
     }
     
@@ -2070,7 +2094,7 @@ class core_Users extends core_Manager
             $requiredRoles = arr::make($roles);
         }
         
-        if (count($requiredRoles)) {
+        if (countR($requiredRoles)) {
             foreach ($requiredRoles as $role) {
                 
                 // Всеки потребител има роля 'every_one'
@@ -2541,7 +2565,7 @@ class core_Users extends core_Manager
         
         $html = $this->renderWrapping($form->renderHtml());
         
-        if ($cnt = count($res)) {
+        if ($cnt = countR($res)) {
             $html .= "<h2 style='margin-left:15px'>Мигрирани са ${cnt} папки</h2>";
             $html .= '<ul><li>' . implode('</li><li>', $res) . '</li></ul>';
         } elseif ($form->isSubmitted()) {
@@ -2600,7 +2624,7 @@ class core_Users extends core_Manager
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -2636,7 +2660,7 @@ class core_Users extends core_Manager
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             
@@ -2768,14 +2792,16 @@ class core_Users extends core_Manager
         $query->where("#state = 'active'");
         $query->orderBy('#names', 'ASC');
         $query->show('id,nick');
+
         $roles = core_Roles::getRolesAsKeylist($roles);
         $query->likeKeylist('roles', $roles);
-        
+
         if (isset($keylist)) {
             $keylistUsers = keylist::toArray($keylist);
-            $query->in('id', $keylistUsers, false, true);
+            $keylistUsers = implode(',', $keylistUsers);
+            $query->where("#id IN ({$keylistUsers})");
         }
-        
+
         $arr = array();
         while ($userRec = $query->fetch()) {
             $arr[$userRec->id] = $userRec->nick;

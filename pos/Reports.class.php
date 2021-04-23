@@ -185,7 +185,7 @@ class pos_Reports extends core_Master
         $row->title = $mvc->getLink($rec->id, 0);
         $row->pointId = pos_Points::getHyperLink($rec->pointId, true);
         $row->from = dt::mysql2verbal($rec->details['receipts'][0]->createdOn, 'd.m.Y H:i');
-        $row->to = dt::mysql2verbal($rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn, 'd.m.Y H:i');
+        $row->to = dt::mysql2verbal($rec->details['receipts'][countR($rec->details['receipts']) - 1]->createdOn, 'd.m.Y H:i');
         
         if ($fields['-single']) {
             $pointRec = pos_Points::fetch($rec->pointId);
@@ -230,7 +230,7 @@ class pos_Reports extends core_Master
         
         $rec->details = $reportData;
         $rec->total = $rec->paid = 0;
-        if (count($reportData['receiptDetails'])) {
+        if (countR($reportData['receiptDetails'])) {
             foreach ($reportData['receiptDetails'] as $index => $detail) {
                 list($action) = explode('|', $index);
                 if ($action == 'sale') {
@@ -260,7 +260,7 @@ class pos_Reports extends core_Master
         }
         
         // Рендираме обобщената информация за касиерите
-        if (count($data->row->statisticArr)) {
+        if (countR($data->row->statisticArr)) {
             $block = $tpl->getBlock('ROW');
             
             foreach ($data->row->statisticArr as $statRow) {
@@ -298,7 +298,7 @@ class pos_Reports extends core_Master
             $data->row->receiptIds[$receiptId] = pos_Receipts::getHyperlink($receiptId)->getContent();
         }
 
-        if(count($data->row->receiptIds)){
+        if(countR($data->row->receiptIds)){
             $data->row->receiptIds = implode(' <span class="quiet small" style="display: inline-block;margin: 0 3px;"> | </span> ', $data->row->receiptIds);
         }
         
@@ -334,7 +334,7 @@ class pos_Reports extends core_Master
         
         // Инстанцираме пейджър-а
         $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listDetailsPerPage));
-        $Pager->itemsCount = count($detail->rows);
+        $Pager->itemsCount = countR($detail->rows);
         $Pager->calc();
         
         // Добавяме всеки елемент отговарящ на условието на пейджъра в нов масив
@@ -352,7 +352,7 @@ class pos_Reports extends core_Master
             // Обръщаме във вербален вид
             $start = $Pager->rangeStart;
             $end = $Pager->rangeEnd - 1;
-            $rowsCnt = count($detail->rows);
+            $rowsCnt = countR($detail->rows);
             for ($i = 0; $i < $rowsCnt; $i++) {
                 if ($i >= $start && $i <= $end) {
                     $keys = array_keys($detail->rows);
@@ -461,7 +461,7 @@ class pos_Reports extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         $title = "Отчет за POS продажба №{$rec->id}";
@@ -638,7 +638,7 @@ class pos_Reports extends core_Master
         $rQuery->where("#pointId = {$rec->pointId} AND #state = 'draft' AND #total = 0");
         
         // Оттегляме само тези чернови чиято дата е преди тази на последната активна бележка
-        $lastReceiptDate = $rec->details['receipts'][count($rec->details['receipts']) - 1]->createdOn;
+        $lastReceiptDate = $rec->details['receipts'][countR($rec->details['receipts']) - 1]->createdOn;
         $rQuery->where("#valior < '{$lastReceiptDate}'");
         
         $count = $rQuery->count();
@@ -660,9 +660,10 @@ class pos_Reports extends core_Master
         if ($rec->state != 'draft' && $rec->state != 'closed') {
             $nextState = ($rec->state == 'active') ? 'closed' : 'waiting';
             $msg = ($rec->state == 'active') ? 'Приключени' : 'Активирани';
-            
+
             // Всяка бележка в репорта се "затваря"
             $count = 0;
+            $Receipts = cls::get('pos_Receipts');
             foreach ($rec->details['receipts'] as $receiptRec) {
                 $state = pos_Receipts::fetchField($receiptRec->id, 'state');
                 if ($state == $nextState) {
@@ -671,8 +672,14 @@ class pos_Reports extends core_Master
                 
                 $receiptRec->modifiedBy = core_Users::getCurrent();
                 $receiptRec->modifiedOn = dt::now();
+                $receiptRec->exState = $receiptRec->state;
                 $receiptRec->state = $nextState;
-                pos_Receipts::save($receiptRec, 'state,modifiedOn,modifiedBy');
+
+                $Receipts->save($receiptRec, 'state,modifiedOn,modifiedBy,exState');
+                if($receiptRec->state == 'closed'){
+                    store_StockPlanning::remove($Receipts, $receiptRec->id);
+                }
+
                 $count++;
             }
             

@@ -562,8 +562,8 @@ class email_Outgoings extends core_Master
                     
                     // Записваме имейла, като върнат
                     doclog_Documents::returned($rec->__mid);
-                    
-                    blast_BlockedEmails::addEmail($emailTo, true, 'error');
+
+                    email_AddressesInfo::addEmail($emailTo, true, 'error');
                 }
             }
             
@@ -1908,16 +1908,16 @@ class email_Outgoings extends core_Master
     protected static function prepareContragentData($rec, $isForwarding = false)
     {
         $contragentData = null;
-        
+
         if (!$isForwarding) {
             if ($rec->threadId) {
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
             }
-            
+
             if ($rec->originId) {
                 $oDoc = doc_Containers::getDocument($rec->originId);
                 $oContragentData = $oDoc->getContragentData();
-                
+
                 if ($oContragentData->person) {
                     $contragentData->person = ($contragentData->person) ? $contragentData->person : $oContragentData->person;
                 }
@@ -1951,9 +1951,10 @@ class email_Outgoings extends core_Master
                     $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
                     $contragentData->groupEmails .= $oContragentData->groupEmails;
                 }
+
             }
         }
-        
+
         if (!$contragentData) {
             $contragentData = doc_Folders::getContragentData($rec->folderId);
         } else {
@@ -1961,14 +1962,18 @@ class email_Outgoings extends core_Master
             $cover = doc_Folders::getCover($rec->folderId);
             if (($cover->instance instanceof crm_Companies) || ($cover->instance instanceof crm_Persons)) {
                 $use = true;
-                
+
                 $contrData = $cover->getContragentData();
                 
                 $contrData->groupEmails = mb_strtolower($contrData->groupEmails);
-                
+
                 if ($rec->originId) {
                     $oDoc = doc_Containers::getDocument($rec->originId);
-                    
+
+                    if ($oContragentData && ($oDoc->useOriginContragentData === true)) {
+                        $contragentData = $oContragentData;
+                    }
+
                     // Ако трябва да е се използва първия имейл от списъка
                     if ($oDoc->forceFirstEmail === true) {
                         if ($contrData->email) {
@@ -1984,13 +1989,13 @@ class email_Outgoings extends core_Master
                     $fromEml = $oRec->fromEml;
                     $fromEml = trim($fromEml);
                     $fromEml = mb_strtolower($fromEml);
-                    
+
                     $emailsArr = type_Emails::toArray($contrData->groupEmails);
                     if (!$fromEml || !in_array($fromEml, $emailsArr)) {
                         $use = false;
                     }
                 }
-                
+
                 if ($use) {
                     $contragentData->country = $contrData->country;
                     $contragentData->countryId = $contrData->countryId;
@@ -2002,7 +2007,7 @@ class email_Outgoings extends core_Master
                 }
             }
         }
-        
+
         return $contragentData;
     }
     
@@ -2145,12 +2150,6 @@ class email_Outgoings extends core_Master
                 
                 // Ако е към друг имейл, трябва да има съвпадение с хедърите
                 $salutation = $this->prepareSalutation($salutation, $headerDataArr['name']);
-            }
-        }
-        
-        if ($salutation && trim($headerDataArr['name'])) {
-            if (mb_stripos($salutation, $headerDataArr['name']) === false) {
-                $salutation = '';
             }
         }
         
@@ -2657,7 +2656,7 @@ class email_Outgoings extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         

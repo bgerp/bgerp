@@ -89,6 +89,11 @@
                     <!--ET_END LEFT_COLUMN-->
                     
                 </tr>
+                <tr class='footerDocInfo'>
+                    <td>
+                        [#/doc/tpl/Copyright.shtml#]
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>

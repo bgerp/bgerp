@@ -80,19 +80,19 @@ class color_Object
      */
     public static function hexToRgb($hexColor, &$r, &$g, &$b)
     {
-        if ($hexColor{0} == '#') {
+        if ($hexColor[0] == '#') {
             $hexColor = substr($hexColor, 1);
         }
         
         if (preg_match('/[0-9a-f]{3}([0-9a-f]{3})/i', $hexColor) || preg_match('/[0-9a-f]{3}/i', $hexColor)) {
             if (strlen($hexColor) == 3) {
-                $r = hexdec($hexColor{0} . $hexColor{0});
-                $g = hexdec($hexColor{1} . $hexColor{1});
-                $b = hexdec($hexColor{2} . $hexColor{2});
+                $r = hexdec($hexColor[0] . $hexColor[0]);
+                $g = hexdec($hexColor[1] . $hexColor[1]);
+                $b = hexdec($hexColor[2] . $hexColor[2]);
             } elseif (strlen($hexColor) == 6) {
-                $r = hexdec($hexColor{0} . $hexColor{1});
-                $g = hexdec($hexColor{2} . $hexColor{3});
-                $b = hexdec($hexColor{4} . $hexColor{5});
+                $r = hexdec($hexColor[0] . $hexColor[1]);
+                $g = hexdec($hexColor[2] . $hexColor[3]);
+                $b = hexdec($hexColor[4] . $hexColor[5]);
             } else {
                 
                 return false;
@@ -197,21 +197,21 @@ class color_Object
             $hexColor = $color;
         }
         
-        if ($hexColor{0} == '#') {
+        if ($hexColor[0] == '#') {
             $hexColor = substr($hexColor, 1);
         }
         
         if (preg_match('/[0-9a-f]{3}([0-9a-f]{3})/i', $hexColor) || preg_match('/[0-9a-f]{3}/i', $hexColor)) {
             if (strlen($hexColor) == 3) {
-                $r = hexdec($hexColor{0} . $hexColor{0});
-                $g = hexdec($hexColor{1} . $hexColor{1});
-                $b = hexdec($hexColor{2} . $hexColor{2});
+                $r = hexdec($hexColor[0] . $hexColor[0]);
+                $g = hexdec($hexColor[1] . $hexColor[1]);
+                $b = hexdec($hexColor[2] . $hexColor[2]);
                 
                 return array($r, $g, $b);
             } elseif (strlen($hexColor) == 6) {
-                $r = hexdec($hexColor{0} . $hexColor{1});
-                $g = hexdec($hexColor{2} . $hexColor{3});
-                $b = hexdec($hexColor{4} . $hexColor{5});
+                $r = hexdec($hexColor[0] . $hexColor[1]);
+                $g = hexdec($hexColor[2] . $hexColor[3]);
+                $b = hexdec($hexColor[4] . $hexColor[5]);
                 
                 return array($r, $g, $b);
             }

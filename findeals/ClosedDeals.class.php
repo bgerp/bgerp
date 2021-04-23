@@ -99,8 +99,14 @@ class findeals_ClosedDeals extends deals_ClosedDeals
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'notes,docId,classId, id';
-    
-    
+
+
+    /**
+     * Кои са сметките за изнвънредни приходи и разходи
+     */
+    protected $incomeAndCostAccounts = array('debit' => '6913', 'credit' => '7913');
+
+
     /**
      * След дефиниране на полетата на модела
      */
@@ -109,37 +115,16 @@ class findeals_ClosedDeals extends deals_ClosedDeals
         // Добавяме към модела, поле за избор на с коя сделка да се приключи
         $mvc->FLD('closeWith', 'key(mvc=findeals_Deals,allowEmpty)', 'caption=Приключи с,input=none');
     }
-    
-    
-    /**
-     * Връща разликата с която ще се приключи сделката
-     *
-     * @param mixed $threadId - ид на нишката или core_ObjectReference
-     *                        към първия документ в нишката
-     *
-     * @return float $amount - разликата на платеното и експедираното
-     */
-    public static function getClosedDealAmount($threadId)
-    {
-        $firstDoc = doc_Threads::getFirstDocument($threadId);
-        $jRecs = acc_Journal::getEntries(array($firstDoc->getInstance(), $firstDoc->that));
-        
-        $cost = acc_Balances::getBlAmounts($jRecs, '6913', 'debit')->amount;
-        $inc = acc_Balances::getBlAmounts($jRecs, '7913', 'credit')->amount;
-        
-        // Разликата между платеното и доставеното
-        return $inc - $cost;
-    }
-    
-    
+
+
     /**
      * Имплементиране на интерфейсен метод
      *
      * @see deals_ClosedDeals::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
-        $row = parent::getDocumentRow($id);
+        $row = parent::getDocumentRow_($id);
         $title = "Приключване на сделка #{$row->saleId}";
         $row->title = $title;
         $row->recTitle = $title;
@@ -154,19 +139,11 @@ class findeals_ClosedDeals extends deals_ClosedDeals
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->DOC_NAME = tr('ФИНАНСОВА СДЕЛКА');
-        $costAmount = $incomeAmount = 0;
         if ($rec->amount > 0) {
-            $incomeAmount = $rec->amount;
-            $costAmount = 0;
             $row->type = tr('Приход');
         } elseif ($rec->amount < 0) {
-            $costAmount = abs($rec->amount);
-            $incomeAmount = 0;
             $row->type = tr('Разход');
         }
-        
-        $row->costAmount = $mvc->getFieldType('amount')->toVerbal($costAmount);
-        $row->incomeAmount = $mvc->getFieldType('amount')->toVerbal($incomeAmount);
         
         //@TODO а ако е авансов отчет ??
         if ($rec->closeWith) {
@@ -209,5 +186,26 @@ class findeals_ClosedDeals extends deals_ClosedDeals
         }
         
         return true;
+    }
+
+
+    /**
+     * Намиране на най-големия вальор в треда на приключващия документ
+     *
+     * @param stdClass $rec
+     * @return date $dates
+     */
+    protected function getBiggestValiorInThread($rec)
+    {
+        $firstDoc =  doc_Threads::getFirstDocument($rec->threadId);
+
+        // Намира се най-големия вальор от документите свързани към сделката
+        $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+        $valiors = arr::extractValuesFromArray($jRecs, 'valior');
+        if($firstDocValior = $firstDoc->fetchField($firstDoc->valiorFld)){
+            $valiors[$firstDocValior] = $firstDocValior;
+        }
+
+        return max($valiors);
     }
 }

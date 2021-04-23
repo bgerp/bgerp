@@ -127,8 +127,9 @@ class tcost_FeeZones extends core_Master
         
         $this->FLD('addTax', 'double', 'caption=Надценки->Твърда, autohide');
         $this->FLD('addPerKg', 'double', 'caption=Надценки->За кг, autohide');
-        $this->FLD('volume2quantity', 'double(min=0)', 'caption=Надценки->Обем към кг, autohide');
-        
+        $this->FLD('volume2quantity', 'double(min=0)', 'caption=Конверсия->Обем към кг, autohide');
+        $this->FLD('volume2quantityValidForAbove', 'double(min=0,smartRound)', 'caption=Конверсия->Важи над,unit=кг, autohide');
+
         $this->setDbIndex('deliveryTermId');
     }
     
@@ -197,16 +198,22 @@ class tcost_FeeZones extends core_Master
         if (!empty($weight) || !empty($volume)) {
             $multiplier = self::V2C;
             if($zoneArr = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode'])){
-                $volume2quantity = tcost_FeeZones::fetchField($zoneArr['zoneId'], 'volume2quantity');
-                if($volume2quantity){
-                    $multiplier = $volume2quantity;
+                $zoneRec = tcost_FeeZones::fetch($zoneArr['zoneId'], 'volume2quantity,volume2quantityValidForAbove');
+                if($zoneRec->volume2quantity){
+                    $multiplier = $zoneRec->volume2quantity;
                 }
             }
-            
+
             if($volume * 33 < $weight) {
                 $multiplier *= 1000;
             }
-            
+
+            // Ако има тегло и има стойност за над и теглото е под нея, няма да се сметя обемното тегло
+            if(!empty($weight) && isset($zoneRec->volume2quantityValidForAbove) && $weight <= $zoneRec->volume2quantityValidForAbove){
+
+                return $weight;
+            }
+
             $volumicWeight = max($weight, $volume * $multiplier);
         }
         
@@ -322,7 +329,10 @@ class tcost_FeeZones extends core_Master
         $form->FLD('pCode', 'varchar(16)', 'caption=П. код,recently,class=pCode,smartCenter, notNull');
         $form->FLD('singleWeight', 'double(Min=0)', 'caption=Единично тегло,mandatory');
         $form->FLD('totalWeight', 'double(Min=0)', 'caption=Тегло за изчисление,recently, unit = kg.,mandatory');
-        
+
+        $countryId = crm_Companies::fetchOurCompany()->country;
+        $form->setDefault('countryId', $countryId);
+
         // Въвеждаме формата от Request (тази важна стъпка я бяхме пропуснали)
         $form->input();
         $form->setDefault('singleWeight', 1);
@@ -438,7 +448,7 @@ class tcost_FeeZones extends core_Master
      */
     public function addToCartView($termRec, $cartRec, $cartRow, &$tpl)
     {
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($cartRec->domainId);
         
         if(!empty($settings->freeDelivery) && $cartRec->haveOnlyServices != 'yes'){
             $deliveryAmount = $settings->freeDelivery;
@@ -460,14 +470,12 @@ class tcost_FeeZones extends core_Master
             
             if($deliveryAmount < 0){
                 wp($delivery, $cartRec, $settings->freeDelivery);
+            } else {
+                $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
+                $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
+                $block->append($cartRow->freeDelivery, 'freeDelivery');
+                $tpl->append($block, 'CART_FOOTER');
             }
-            
-            $cartRow->freeDelivery = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
-            $cartRow->freeDelivery = currency_Currencies::decorate($cartRow->freeDelivery, $settings->currencyId);
-            
-            $block->append($cartRow->freeDelivery, 'freeDelivery');
-            
-            $tpl->append($block, 'CART_FOOTER');
         }
     }
     
@@ -481,7 +489,7 @@ class tcost_FeeZones extends core_Master
      */
     public function onUpdateCartMaster(&$cartRec)
     {
-        $settings = cms_Domains::getSettings();
+        $settings = cms_Domains::getSettings($cartRec->domainId);
         $freeDelivery = currency_CurrencyRates::convertAmount($settings->freeDelivery, null, $settings->currencyId);
         
         if(!empty($settings->freeDelivery) && round($cartRec->total, 2) >= round($freeDelivery, 2)){

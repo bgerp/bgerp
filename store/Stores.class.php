@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -193,8 +193,9 @@ class store_Stores extends core_Master
     {
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
+        $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка за показване на наличностите,notNull,value=productMeasureId');
+
         $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители,mandatory');
-        
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
         $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Допълнително->Продуктови групи');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
@@ -202,7 +203,7 @@ class store_Stores extends core_Master
         $this->FLD('lastUsedOn', 'datetime', 'caption=Последено използване,input=none');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
-        
+
         $this->setDbUnique('name');
     }
     
@@ -366,5 +367,14 @@ class store_Stores extends core_Master
             $data->listFields['name'] = '@' . $data->listFields['name'];
             $mvc->tableRowTpl = "<tbody class='rowBlock'>[#ADD_ROWS#][#ROW#]</tbody>";
         }
+    }
+
+
+    /**
+     * Поставя изискване да се избират за предложения само активните записи
+     */
+    protected static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
+    {
+        $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
     }
 }

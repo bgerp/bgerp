@@ -225,18 +225,18 @@ class fileman_Upload extends core_Manager
         if ($allowMultiUpload) {
             $multiple = 'multiple';
         }
-        
+        $message = tr("Изберете, поставете (Ctrl+V) или провлачете файл");
         $allowMultiUpload = (int) $allowMultiUpload;
         
         $tpl = new ET('
             <div id="uploads" class="uploads-holder"><div id="uploadsTitle" style="display: none;"><b><i>' . $uploadStr . '</i></b></div></div>
             <form id="uploadform" enctype="multipart/form-data" method="post">
                 <span class="uploaded-filenames"> </span>
-                <div id="inputDiv">
-                    <input id="ulfile" class="ulfile" name="ulfile[]" ' . $multiple . ' type="file" size="1" onchange="afterSelectFile(this, ' . $allowMultiUpload . ', ' . (int) $maxAllowedFileSize . ');" [#ACCEPT#]>
-                    <button id="btn-ulfile" class="linkWithIcon button btn-ulfile">' . tr('Файл') . '</button>
-                    <input type="button" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button btn-disabled" id="uploadBtn" disabled="disabled"/>
-                </div>
+                <input type="button" name="Upload" value="' . tr('Качване') . '" class="linkWithIcon button hidden" id="uploadBtn"/>
+                    <div class="uploadBox"> 
+                        <input id="ulfile" class="ulfile" name="ulfile[]" ' . $multiple . ' type="file" size="1" onchange="afterSelectFile(this, ' . $allowMultiUpload . ', ' . (int) $maxAllowedFileSize . ');" [#ACCEPT#]>
+                        <span class="uploadMessage">' . $message. '</span>
+                    </div>
             </form>');
         
         $currUrl = getCurrentUrl();
@@ -257,6 +257,35 @@ class fileman_Upload extends core_Manager
         $tpl->appendOnce("var uploadUrl = {$uploadUrl}; var crossImgPng = {$crossImg}; var uploadErrStr = {$uploadErrStr}; var fileSizeErr = {$fileSizeErr}; var allowMultiupload = {$allowMultiUpload};", 'SCRIPTS');
         
         $tpl->push('fileman/js/upload.js', 'JS');
+
+        $tpl->appendOnce("window.addEventListener('paste', e => {
+                                                                        if (e.clipboardData.files && e.clipboardData.files.length) {
+                                                                            e.preventDefault();
+                                                                            var fileInput = document.getElementById('ulfile');
+                                                                            fileInput.files = e.clipboardData.files;
+                                                                            
+                                                                            afterSelectFile(fileInput, {$allowMultiUpload}, " . (int) $maxAllowedFileSize . ");
+                                                                            
+                                                                            document.getElementById('uploadBtn').click();
+                                                                            
+                                                                            return false;
+                                                                         }
+                                                                        });", 'SCRIPTS');
+
+        $tpl->appendOnce("window.addEventListener('dragover', function(e){e.preventDefault(); return false;}, false);
+                                  window.addEventListener('drop', function(e) {
+                                        e.preventDefault();
+                                        
+                                        var fileInput = document.getElementById('ulfile');
+                                                                                                    
+                                        fileInput.files = e.dataTransfer.files;
+                                        
+                                        afterSelectFile(fileInput, {$allowMultiUpload}, " . (int) $maxAllowedFileSize . ");
+                                        
+                                        document.getElementById('uploadBtn').click();
+                                        
+                                        return false;
+                                    }, false);", 'SCRIPTS');
         
         return $tpl;
     }

@@ -524,8 +524,8 @@ class email_Inboxes extends core_Master
                 }
             }
         }
-        
-        if ((!$userRec || ($userRec->state != 'rejected')) && ($bestEmail = self::getClosest($emailsArr))) {
+
+        if ((!$userRec || ($userRec->state != 'rejected')) && ($bestEmail = self::getClosest($emailsArr, true, true, 'officer'))) {
             
             return $bestEmail;
         }
@@ -577,7 +577,7 @@ class email_Inboxes extends core_Master
      *
      * @return NULL|string
      */
-    public static function getClosest($emailsArr, $removeClosed = true, $removeRejected = true)
+    public static function getClosest($emailsArr, $removeClosed = true, $removeRejected = true, $uRole = null)
     {
         $md = md5(serialize($emailsArr));
         
@@ -588,7 +588,7 @@ class email_Inboxes extends core_Master
         
         // Всички наши имейли
         if (!$ourEmailsArr) {
-            $allEmailsArr = self::getAllEmailsArr($removeClosed, $removeRejected);
+            $allEmailsArr = self::getAllEmailsArr($removeClosed, $removeRejected, $uRole);
             
             foreach ((array) $allEmailsArr as $email) {
                 list($emailL, $domain) = explode('@', $email);
@@ -1201,13 +1201,13 @@ class email_Inboxes extends core_Master
      *
      * @return array
      */
-    public static function getAllEmailsArr($removeClosed = true, $removeRejected = true)
+    public static function getAllEmailsArr($removeClosed = true, $removeRejected = true, $uRole = null)
     {
         $cacheType = 'emailInboxes';
-        $cacheHandle = 'allEmails_' . $removeRejected . '_' . $removeClosed;
+        $cacheHandle = 'allEmails_' . $removeRejected . '_' . $removeClosed . '_' . $uRole;
         $keepMinutes = 1000;
         $depends = array('email_Inboxes', 'email_Accounts');
-        
+
         if (!$allEmailsArr = core_Cache::get($cacheType, $cacheHandle, $keepMinutes, $depends)) {
             // Извличаме всички имейли
             $query = static::getQuery();
@@ -1219,15 +1219,22 @@ class email_Inboxes extends core_Master
             if ($removeClosed) {
                 $query->where("#state != 'closed'");
             }
-            
+
             $allEmailsArr = array();
             while ($rec = $query->fetch()) {
+
+                if (isset($uRole)) {
+                    if ($rec->inCharge && !haveRole($uRole, $rec->inCharge)) {
+                        continue;
+                    }
+                }
+
                 $allEmailsArr[] = $rec->email;
             }
             
             core_Cache::set($cacheType, $cacheHandle, $allEmailsArr, $keepMinutes, $depends);
         }
-        
+
         return $allEmailsArr;
     }
     

@@ -59,7 +59,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith';
     
     
     /**
@@ -74,8 +74,20 @@ abstract class deals_DealMaster extends deals_DealBase
      * @var int
      */
     public $defaultCopiesOnPrint = 2;
-    
-    
+
+
+    /**
+     *  При преминаването в кои състояния ще се обновяват планираните складови наличностти
+     */
+    public $updatePlannedStockOnChangeStates = array('pending', 'active', 'stopped');
+
+
+    /**
+     * Дата на очакване
+     */
+    public $termDateFld = 'deliveryTime';
+
+
     /**
      * Извиква се след описанието на модела
      *
@@ -350,7 +362,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $rec = static::fetchRec($rec);
         
         $abbr = $mvc->abbr;
-        $abbr{0} = strtoupper($abbr{0});
+        $abbr[0] = strtoupper($abbr[0]);
         
         if (isset($rec->contragentClassId, $rec->contragentId)) {
             $crm = cls::get($rec->contragentClassId);
@@ -456,7 +468,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки');
     
         return $options;
     }
@@ -520,6 +532,10 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where('#deliveredRound < #dealRound OR #deliveredRound IS NULL');
                 $query->where("#state = 'active'");
                 break;
+            case 'paidnotdelivered':
+                $query->where("#paidRound > #deliveredRound");
+                $query->where("#state = 'active'");
+                break;
             case 'unpaid':
                 $query->where('#paidRound < #deliveredRound OR #paidRound IS NULL');
                 $query->where("#state = 'active'");
@@ -528,7 +544,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'closed' AND #closeWith IS NOT NULL");
                 break;
             case 'notClosedWith':
-                $query->where("(#state = 'active' || #state ='closed') AND #closeWith IS NULL");
+                $query->where("(#state = 'active' OR #state ='closed') AND #closeWith IS NULL");
                 break;
             case 'unionDeals':
                 $query->where("#state = 'active' OR #state = 'closed'");
@@ -539,6 +555,8 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#closedDocuments IS NULL OR #closedDocuments = ''");
                 break;
         }
+
+        $query->orWhere("#state = 'rejected'");
     }
     
     
@@ -659,7 +677,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see doc_DocumentIntf::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         expect($rec = $this->fetch($id));
         $title = static::getRecTitle($rec);
@@ -1073,6 +1091,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 case 'separate':
                     $fld = 'sepVat';
                     break;
+                case 'exempt':
+                    $fld = 'exemptVat';
+                    break;
                 default:
                     $fld = 'noVat';
                     break;
@@ -1108,7 +1129,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     $row->deliveryTermId = $deliveryAdress;
                 }
             }
-           
+
             // Подготовка на имената на моята фирма и контрагента
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + (array) $headerInfo);
@@ -1657,8 +1678,6 @@ abstract class deals_DealMaster extends deals_DealBase
      *      o $fields['receiptId']             - информативно от коя бележка е
      *      o $fields['onlineSale']            - дали е онлайн продажба
      *      o $fields['priceListId']           - ценова политика
-     *      
-     *      
      *
      * @return mixed $id/FALSE - ид на запис или FALSE
      */
@@ -1666,7 +1685,7 @@ abstract class deals_DealMaster extends deals_DealBase
     {
         $contragentClass = cls::get($contragentClass);
         expect($cRec = $contragentClass->fetch($contragentId));
-        expect($cRec->state != 'rejected');
+        expect($cRec->state != 'rejected' && $cRec->state != 'closed', "Контрагента е затворен или оттеглен");
         
         // Намираме всички полета, които не са скрити или не се инпутват, те са ни позволените полета
         $me = cls::get(get_called_class());
@@ -1728,11 +1747,10 @@ abstract class deals_DealMaster extends deals_DealBase
         $fields['contragentClassId'] = $contragentClass->getClassId();
         $fields['contragentId'] = $contragentId;
         
-        // Ако няма валута, това е основната за периода
-        $fields['currencyId'] = (empty($fields['currencyId'])) ? acc_Periods::getBaseCurrencyCode($fields['valior']) : $fields['currencyId'];
-        
+        // Валутата е дефолтната за папката
+        $fields['currencyId'] = (isset($fields['currencyId'])) ? $fields['currencyId'] : cond_plg_DefaultValues::getDefaultValue($me, $fields['folderId'], 'currencyId');
+
         // Ако няма курс, това е този за основната валута
-        
         if (empty($fields['currencyRate'])) {
             $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], null);
             expect($fields['currencyRate']);
@@ -1800,10 +1818,12 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
      * @param string $term         - срок (не е задължителен)
      * @param string $notes        - забележки
+     *@param  string $batch        - партида
+     *
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
      */
-    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null)
+    public static function addRow($id, $productId, $packQuantity, $price = null, $packagingId = null, $discount = null, $tolerance = null, $term = null, $notes = null, $batch = null)
     {
         $me = cls::get(get_called_class());
         $Detail = cls::get($me->mainDetail);
@@ -1845,8 +1865,9 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Ако няма цена, опитваме се да я намерим от съответната ценова политика
         if (empty($price)) {
+            $listId = ($rec->priceListId) ? $rec->priceListId : null;
             $Policy = (isset($Detail->Policy)) ? $Detail->Policy : cls::get('price_ListToCustomers');
-            $policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity);
+            $policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity, $rec->valior, 1, 'no', $listId);
             $price = $policyInfo->price;
             if (!isset($discount) && isset($policyInfo->discount)) {
                 $discount = $policyInfo->discount;
@@ -1872,7 +1893,7 @@ abstract class deals_DealMaster extends deals_DealBase
         );
 
         // Проверяваме дали въвдения детайл е уникален
-        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes);
+        $exRec = deals_Helper::fetchExistingDetail($Detail, $id, null, $productId, $packagingId, $price, $discount, $tolerance, $term, null, null, $notes, $batch);
         
         if (is_object($exRec)) {
             
@@ -1894,9 +1915,12 @@ abstract class deals_DealMaster extends deals_DealBase
             // Ъпдейтваме съществуващия запис
             $id = $Detail->save($exRec);
         } else {
-            
+
             // Ако е уникален, добавяме го
             $id = $Detail->save($dRec);
+            if(!empty($batch) && core_Packs::isInstalled('batch')){
+                batch_BatchesInDocuments::saveBatches($Detail, $id, array($batch => $dRec->quantity), true);
+            }
         }
         
         // Връщаме резултата от записа
@@ -2006,14 +2030,15 @@ abstract class deals_DealMaster extends deals_DealBase
         
         return $tpl;
     }
-    
-    
+
+
     /**
      * Артикули които да се заредят във фактурата/проформата, когато е създадена от
      * определен документ
      *
      * @param mixed               $id     - ид или запис на документа
      * @param deals_InvoiceMaster $forMvc - клас наследник на deals_InvoiceMaster в който ще наливаме детайлите
+     * @param string $strategy - стратегия за намиране
      *
      * @return array $details - масив с артикули готови за запис
      *               o productId      - ид на артикул
@@ -2023,7 +2048,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *               o discount       - отстъпка
      *               o price          - цена за единица от основната мярка
      */
-    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc)
+    public function getDetailsFromSource($id, deals_InvoiceMaster $forMvc, $strategy)
     {
         $details = array();
         $rec = $this->fetchRec($id);
@@ -2034,8 +2059,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $agreed = $info->get('products');
         $invoiced = $info->get('invoicedProducts');
         $packs = $info->get('shippedPacks');
-        
-        if ($ForMvc instanceof sales_Proformas) {
+
+        if($strategy == 'onlyFromDeal') {
             $products = $agreed;
             $invoiced = array();
             foreach ($products as $product1) {
@@ -2045,9 +2070,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-        
+
         if (!countR($products)) {
-            
+
             return $details;
         }
         
@@ -2317,7 +2342,7 @@ abstract class deals_DealMaster extends deals_DealBase
         expect($folderId = Request::get('folderId', 'int'));
         $this->requireRightFor('add', (object)array('folderId' => $folderId));
         expect(doc_Folders::haveRightToFolder($folderId));
-        
+
         // Проверка има ли все пак желана стойност за действието
         $constValue = Request::get('autoAction', "enum(form,addProduct,createProduct,importlisted)");
         $productId = Request::get('productId', 'int');
@@ -2330,7 +2355,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         if($constValue == 'form') {
             
-            return Redirect(array($this, 'add', 'folderId' => $folderId));
+            return Redirect(array($this, 'add', 'folderId' => $folderId, 'ret_url' => getRetUrl()));
         }
         
         // Генерира дефолтите според папката
@@ -2347,6 +2372,11 @@ abstract class deals_DealMaster extends deals_DealBase
         // Създаване на мастър на документа
         try{
             $masterId = static::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
+            if(isset($productId)){
+                static::logWrite('Създаване от артикул', $masterId);
+            } else {
+                static::logWrite('Създаване', $masterId);
+            }
         } catch(core_exception_Expect $e){
             reportException($e);
             followRetUrl(null, "Проблем при създаване на|* " . mb_strtolower($this->singleTitle));
@@ -2376,5 +2406,131 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         return Redirect($redirectUrl);
+    }
+
+
+    /**
+     * След извличане на планираните наличности
+     *
+     * @see store_plg_StockPlanning
+     */
+    protected static function on_AfterGetPlannedStocks($mvc, &$res, $rec)
+    {
+        if(is_array($res)){
+            $rec = $mvc->fetchRec($rec);
+
+            if($rec->state != 'pending' && $rec->state != 'active') {
+                $res = array();
+                return;
+            }
+
+            // Какви запазени количества имаме вече в нишката
+            $pendingQuery = store_StockPlanning::getQuery();
+            $pendingQuery->where("#threadId = {$rec->threadId} AND #sourceClassId != {$mvc->getClassId()}");
+            $pendingRecs = $pendingQuery->fetchAll();
+
+            // Какви движения имаме по складовите сметки от счетоводството
+            $TransactionClassName =  ($mvc instanceof sales_Sales) ? 'sales_transaction_Sale' : 'purchase_transaction_Purchase';
+            $field =  ($mvc instanceof sales_Sales) ? 'quantityOut' : 'quantityIn';
+            $entries = $TransactionClassName::getEntries($rec->id);
+            $shipped = ($mvc instanceof sales_Sales) ? $TransactionClassName::getShippedProducts($entries, '321') : $TransactionClassName::getShippedProducts($entries, $rec->id, '321');
+
+            $shippedProducts = arr::extractValuesFromArray($shipped, 'productId');
+            $plannedProducts = arr::extractValuesFromArray($res, 'productId');
+
+            // Ако има експедиция поне по един от артикулите в продажбата тя няма да запазва !
+            if(array_intersect_key($plannedProducts, $shippedProducts)){
+
+                $res = array();
+                return;
+            }
+
+            // За всяко от количествата, които ще се запазват
+            $newRes = array();
+            foreach($res as $plannedRec){
+                $removeQuantity = 0;
+
+                // Проспадане от запазеното количество, на вече запазеното по документи в нишката
+                array_walk($pendingRecs, function($a) use ($plannedRec, &$removeQuantity, $field){
+                    if($a->productId == $plannedRec->productId){
+                        $removeQuantity += $a->{$field};
+                    }
+                });
+
+                $plannedRec->{$field} -= $removeQuantity;
+                $plannedRec->{$field} = round($plannedRec->{$field}, 4);
+
+                // Ако остатъка е положителен, ще се се запази
+                if($plannedRec->{$field} > 0){
+                    $newRes[] = $plannedRec;
+                    $plannedRec->createdOn = ($rec->activatedOn) ? $rec->activatedOn : $rec->modifiedOn;
+                }
+            }
+
+            $res = $newRes;
+        }
+    }
+
+
+    /**
+     * За коя дата се заплануват наличностите
+     *
+     * @param $rec - запис
+     * @return date - дата, за която се заплануват наличностите
+     */
+    public function getPlannedQuantityDate_($rec)
+    {
+        // Ако има ръчно въведена дата на доставка, връща се тя
+        if(!empty($rec->deliveryTime)) return $rec->deliveryTime;
+
+        // Датата ще е вальора/датата на активиране/датата на създаване в този ред
+        $date = !empty($rec->valior) ? $rec->valior : (!empty($rec->activatedOn) ? $rec->activatedOn : $rec->createdOn);
+
+        // Ако има въведен срок на доставка, той се добавя към отправната дата
+        if(!empty($rec->deliveryTermTime)){
+            $date = dt::addSecs($rec->deliveryTermTime, $date);
+        }
+
+        return $date;
+    }
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    protected static function on_BeforeChangeState($mvc, &$rec, $state)
+    {
+        if(acc_plg_Contable::havePendingDocuments($rec->threadId, $rec->containerId)){
+            followRetUrl(null, 'Сделката не може да се открие/закрие, защото има документи на заявка', 'error');
+        }
+    }
+
+
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        if(!core_Packs::isInstalled('rack')) return;
+
+        // Ако има, се спира оттеглянето
+        $rec = $mvc->fetchRec($id);
+
+        $errorDocuments = array();
+        $descendants = $mvc->getDescendants($rec->id);
+        if(is_array($descendants)){
+            foreach($descendants as $desc){
+                $descendantContainerId = $desc->fetchField('containerId');
+                if(rack_Zones::hasRackMovements($descendantContainerId)){
+                    $errorDocuments[] = $desc->getHandle();
+                }
+            }
+        }
+
+        if(countR($errorDocuments)){
+            $msg = implode(', ', $errorDocuments);
+            core_Statuses::newStatus( "Документа не може да се оттегли, докато следните документи имат нагласени количества в зона|*: {$msg}", 'error');
+
+            return false;
+        }
     }
 }

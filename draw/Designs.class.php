@@ -655,6 +655,21 @@ class draw_Designs extends core_Master
         
         $svg->info[$params[0]] = $y;
     }
+
+
+    // $caption, $val
+    public static function cmd_ErrorMsg($params, &$svg, &$contex, &$error)
+    {
+        $y = self::calcExpr($params[1], $contex);
+
+        if ($y === self::CALC_ERROR) {
+            $error = 'Грешка при изчисляване на: "' . $params[1] . '"';
+
+            return false;
+        }
+
+        $svg->errorMsg[$params[0]] = $y;
+    }
     
     
     public static function cmd_WriteSizeText($params, &$svg, &$contex, &$error)
@@ -765,7 +780,7 @@ class draw_Designs extends core_Master
             $pen = draw_Pens::fetch(array("#name = '[#1#]'", ltrim($params[0], '#')));
             
             if (!$pen) {
-                $error = 'Липсващ молив: "' . $params[1] . '"';
+                $error = 'Липсващ молив: "' . $params[0] . '"';
                 
                 return false;
             }
@@ -1093,15 +1108,21 @@ class draw_Designs extends core_Master
             $tpl->append($data->form->renderHtml(), 'DETAILS');
         }
         
-        if (!$data->error) {
-            $tpl->append($data->canvas->render(), 'DETAILS');
+        if (!$data->error && !$data->canvas->errorMsg) {
+            $tpl->append($data->canvas->render(), 'SVG');
         } else {
-            $tpl->append("<h3 style='color:red;'>" . $data->error . '</h3>', 'DETAILS');
+            $tpl->append("<h3 style='color:red;'>" . $data->error . '</h3>', 'SVG');
         }
         
         if ($data->canvas->info) {
             foreach ($data->canvas->info as $c => $v) {
                 $tpl->append("<div>${c} = <b>${v}</b></div>", 'INFO_BLOCK');
+            }
+        }
+
+        if ($data->canvas->errorMsg) {
+            foreach ($data->canvas->errorMsg as $c => $v) {
+                $tpl->append("<div class='errorMsg'>${c} = <b>${v}</b></div>", 'ERROR_BLOCK');
             }
         }
     }
@@ -1209,7 +1230,10 @@ class draw_Designs extends core_Master
         }
     }
     
-    
+
+    /**
+     *
+     */
     public static function prepareForm($script, &$error)
     {
         $sArr = self::parseScript($script);

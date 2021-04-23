@@ -45,7 +45,7 @@ class purchase_Invoices extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable,plg_Clone, doc_DocumentPlg,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
-                    doc_plg_HidePrices, acc_plg_DocumentSummary,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
+                    doc_plg_HidePrices, acc_plg_DocumentSummary, drdata_plg_Canonize,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
     
     
     /**
@@ -174,6 +174,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
+        'contragentEori' => 'clientData|lastDocUser|lastDoc',
         'uicNo' => 'clientData|lastDocUser|lastDoc',
         'contragentPCode' => 'clientData|lastDocUser|lastDoc',
         'contragentPlace' => 'clientData|lastDocUser|lastDoc',
@@ -187,8 +188,14 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Кои полета да могат да се променят след активация
      */
     public $changableFields = 'journalDate,number,fileHnd,responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template';
-    
-    
+
+
+    /**
+     * Стратегии за добавяне на артикули след създаване от източника
+     */
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от сделката", 'shippedNotInvoiced' => 'Заскладените (Нефактурирани) артикули по сделката');
+
+
     /**
      * Описание на модела
      */
@@ -212,7 +219,7 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
         $form->FLD('contragentSource', 'enum(company=Фирми,newContragent=Нов доставчик)', 'input,silent,removeAndRefreshForm=selectedContragentId,caption=Контрагент->Източник,before=contragentName');
         $form->setDefault('contragentSource', 'company');
-        $form->FLD('selectedContragentId', 'int', 'input=none,silent,removeAndRefreshForm,caption=Контрагент->Избор,after=contragentSource');
+        $form->FLD('selectedContragentId', 'int', 'input=none,silent,removeAndRefreshForm,caption=Контрагент->Избор,after=contragentSource,mandatory');
     }
     
     
@@ -223,8 +230,9 @@ class purchase_Invoices extends deals_InvoiceMaster
     {
         $form = $data->form;
         $rec = $form->rec;
+
         $origin = $mvc->getOrigin($form->rec);
-        
+
         if ($origin->isInstanceOf('findeals_AdvanceReports')) {
             $form->setDefault('vatRate', $origin->fetchField('chargeVat'));
             $form->setDefault('currencyId', $origin->fetchField('currencyId'));
@@ -239,6 +247,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
             $form->setField('contragentSource', 'input=none');
             unset($form->rec->contragentSource);
+        } else {
+            if(isset($rec->id)){
+                $form->setDefault('selectedContragentId', $rec->contragentId);
+            }
         }
         
         // Ако има избрано поле за източник на контрагента
@@ -250,7 +262,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         }
         
         parent::prepareInvoiceForm($mvc, $data);
-      
+        if(empty($rec->id)){
+            $form->setDefault('importProducts', 'shippedNotInvoiced');
+        }
+
         if ($data->aggregateInfo) {
             if ($data->aggregateInfo->get('bankAccountId')) {
                 $form->rec->accountId = $data->aggregateInfo->get('bankAccountId');
@@ -369,6 +384,7 @@ class purchase_Invoices extends deals_InvoiceMaster
         if ($rec->type != 'dc_note') {
             // Ако източника е фирма и не е избрана фирма, забраняваме определени полета
             if ($rec->contragentSource == 'company' && empty($rec->selectedContragentId)) {
+                unset($rec->contragentName);
                 foreach (array('contragentName', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
                     $form->setReadOnly($fld);
                 }
@@ -378,7 +394,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         parent::inputInvoiceForm($mvc, $form);
         
         if ($form->isSubmitted()) {
-            
+            if($rec->date > dt::today()){
+                $form->setError('date', 'Датата не може да е в бъдещето');
+            }
+
             // Ако има въведена сч. дата тя се проверява
             if (isset($rec->journalDate) && core_Request::get('Act') == 'changefields') {
                 $periodState = acc_Periods::fetchByDate($rec->journalDate)->state;
@@ -1212,5 +1231,30 @@ class purchase_Invoices extends deals_InvoiceMaster
         if(!empty($rec->number)){
             $res .= ' ' . plg_Search::normalizeText($rec->number);
         }
+    }
+    
+    
+    /**
+     * Кое е мястото на фактурата по подразбиране
+     *
+     * @param stdClass $rec
+     *
+     * @return string|null $place
+     */
+    public static function getDefaultPlace($rec)
+    {
+        $place = null;
+        $cData = doc_Folders::getContragentData($rec->folderId);
+        $place = !empty($cData->place) ? $cData->place : $cData->address;
+        
+        if(!empty($place)){
+            $myCompany = crm_Companies::fetchOwnCompany();
+            if ($cData->countryId != $myCompany->countryId) {
+                $cCountry = drdata_Countries::fetchField($cData->countryId, 'commonName');
+                $place .= ", {$cCountry}";
+            }
+        }
+        
+        return $place;
     }
 }

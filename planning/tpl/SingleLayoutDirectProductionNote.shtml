@@ -47,7 +47,7 @@
                                             <!--ET_BEGIN additionalMeasureId-->
                                             <tr>
                                                 <td class='quiet nowrap'>|Втора мярка|*:</td>
-                                                <td style='color:darkblue'><i>[#additionalMeasureQuantity#] [#additionalMeasureId#]</i></td>
+                                                <td style='color:darkblue'><i>[#additionalMeasureQuantity#]</i> [#additionalMeasureId#]</td>
                                             </tr>
                                             <!--ET_END additionalMeasureId-->
                                         </table>
@@ -91,6 +91,10 @@
                                                 <td>[#debitAmount#]</td>
                                             </tr>
                                             <!--ET_END debitAmount-->
+                                            <tr>
+                                                <td class='quiet aright'>|Изравняване на сб-ст|*:</td>
+                                                <td>[#equalizePrimeCost#]</td>
+                                            </tr>
                                             <!--ET_BEGIN expenses-->
                                             <tr>
                                                 <td class='quiet nowrap aright'>|Реж. разходи|*:</td>

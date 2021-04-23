@@ -65,7 +65,7 @@ class page_PureHtml extends core_ET
         $headers = $invoker->getArray('HTTP_HEADER');
         if (!empty($headers)) {
             foreach ($headers as $hdr) {
-                if ($hdr{0} == '-') {
+                if ($hdr[0] == '-') {
                     header_remove(substr($hdr, 1));
                 } else {
                     header($hdr, true);

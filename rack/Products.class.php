@@ -225,7 +225,7 @@ class rack_Products extends store_Products
         $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
        
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));

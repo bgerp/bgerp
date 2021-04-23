@@ -86,9 +86,12 @@ class transsrv_ProductDrv extends cat_ProductDriver
         
         // Обща информация
         $form->FLD('conditions', 'richtext(bucket=Notes,rows=3)', 'caption=Обща информация->Условия');
+        $form->FLD('ourReffDomainUrl', 'varchar', 'caption=Обща информация->Наш реф.№,input=hidden');
         $form->FLD('ourReff', 'varchar', 'caption=Обща информация->Наш реф.№');
         $form->FLD('auction', 'varchar', 'caption=Обща информация->Търг');
         $form->FLD('auctionId', 'varchar', 'caption=Обща информация->Търг,input=hidden');
+
+        $this->invoke('AfterTransportServiceFields', array(&$form));
     }
     
     
@@ -201,7 +204,9 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $params = array();
         $toleranceId = cat_Params::force('tolerance', 'Толеранс', 'cond_type_Percent', null, '%');
         $params[$toleranceId] = 0;
-        
+
+        $this->invoke('AfterTransportGetParams', array(&$params, $rec));
+
         if (!is_numeric($name)) {
             $nameId = cat_Params::fetch(array("#sysId = '[#1#]'", $name))->id;
         } else {
@@ -310,7 +315,8 @@ class transsrv_ProductDrv extends cat_ProductDriver
     {
         // Шаблон
         $tpl = getTplFromFile('transsrv/tpl/TransportProduct.shtml');
-        
+        $this->invoke('BeforeTransportRenderDescription', array(&$data));
+
         // ще се заместват само полетата от драйвера
         $fields = cat_Products::getDriverFields($this);
         $row = new stdClass();
@@ -332,11 +338,24 @@ class transsrv_ProductDrv extends cat_ProductDriver
                 }
             }
         }
-        
+
         if (!empty($data->rec->ourReff)) {
-            $reff = str_replace('#', '', $row->ourReff);
-            $reffLink = array('doc_Search', 'list', 'search' => "#{$reff}");
-            $row->ourReff = ht::createLink("#{$reff}", $reffLink);
+            $ourRefDomainId = !empty($data->rec->ourReffDomainUrl) ? $data->rec->ourReffDomainUrl : '';
+
+            $selfUrl = core_App::getSelfURL();
+            $selfUrl = str_replace($_SERVER['REQUEST_URI'], '', $selfUrl);
+            $reff = str_replace('#', '', $data->rec->ourReff);
+
+            $url = array();
+            if($ourRefDomainId == $selfUrl || empty($ourRefDomainId)){
+                if(doc_Search::haveRightFor('list')){
+                    $url = array('doc_Search', 'list', 'search' => "#{$reff}");
+                }
+            } elseif($systemId = remote_Authorizations::getSystemId($ourRefDomainId)) {
+                $url = remote_Authorizations::getRemoteUrl($systemId, array('doc_Search', 'list', 'search' => "#{$reff}"));
+            }
+
+            $row->ourReff = ht::createLink($row->ourReff, $url);
         }
         
         $tpl->placeObject($row);

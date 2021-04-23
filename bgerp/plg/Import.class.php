@@ -123,15 +123,21 @@ class bgerp_plg_Import extends core_Plugin
                     core_App::setTimeLimit(countR($rows)/10 + 10);
                     ini_set('memory_limit', '2048M');
                     core_Debug::$isLogging = false;
-                    
+
                     Mode::push('importing', 'true');
                     // Импортиране на данните от масива в зададените полета
                     $msg = $Driver->import($rows, $fields);
                     Mode::pop('importing');
                     Mode::pop('onExist');
-                    
-                    // Редирект кум лист изгледа на мениджъра в който се импортира
-                    redirect(array($mvc, 'list'), false, $msg);
+
+                    if($mvc instanceof core_Detail){
+                        $masterId = Request::get($mvc->masterKey, 'int');
+                        redirect(array($mvc->Master, 'single', $masterId), false, $msg);
+                    } else {
+                        // Редирект кум лист изгледа на мениджъра в който се импортира
+                        redirect(array($mvc, 'list'), false, $msg);
+                    }
+
                 }
             }
             
@@ -166,8 +172,17 @@ class bgerp_plg_Import extends core_Plugin
         
         return $csv;
     }
-    
-    
+
+
+    /**
+     * Зарежда данни от посочен CSV файл, като се опитва да ги конвертира в UTF-8
+     */
+    public static function setDefaultValue($value)
+    {
+        return $value;
+    }
+
+
     /**
      * Подготовка на експерта за импортирането (@see expert_Expert)
      *
@@ -181,6 +196,7 @@ class bgerp_plg_Import extends core_Plugin
         $exp->functions['getcsvcolnames'] = 'csv_Lib::getCsvColNames';
         $exp->functions['getimportdrivers'] = 'bgerp_plg_Import::getImportDrivers';
         $exp->functions['verifydata'] = 'bgerp_plg_Import::verifyInputData';
+        $exp->functions['setdefault'] = 'bgerp_plg_Import::setDefaultValue';
         bgerp_plg_Import::$cache = get_class($exp->mvc);
         
         // Избиране на драйвър за импортиране
@@ -210,14 +226,14 @@ class bgerp_plg_Import extends core_Plugin
         $exp->SUGGESTIONS('#enclosure', array('' => '', '"' => '"', '\'' => '\''));
         $exp->DEF('#firstRow=Първи ред', 'enum(columnNames=Имена на колони,data=Данни)', 'mandatory');
         $exp->DEF('#onExist=При съвпадение', 'enum(skip=Пропускане, update=Обновяване, duplicate=Дублиране)', 'mandatory');
-        
-        
+
+
         if ($exp->mvc->expOnExist) {
             $exp->ASSUME('#onExist', '"' . $exp->mvc->expOnExist . '"');
         }
         
         // Проверка дали броя на колоните отговаря навсякъде
-        $exp->rule('#csvColumnsCnt', 'count(getCsvColNames(#csvData,#delimiter,#enclosure, 0, 1))');
+        $exp->rule('#csvColumnsCnt', 'count(getCsvColNames(#csvData,#delimiter,#enclosure, FALSE, TRUE))');
         $exp->WARNING(tr('Възможен е проблем с формата на CSV данните, защото е открита само една колона'), '#csvColumnsCnt == 1');
         $exp->ERROR(tr('Има проблем с формата на CSV данните') . '. <br>' . tr('Моля проверете дали правилно сте въвели данните и разделителя'), '#csvColumnsCnt < 1');
         
@@ -233,9 +249,18 @@ class bgerp_plg_Import extends core_Plugin
                 $type = ($fld['type']) ? $fld['type'] : 'int';
                 $exp->DEF("#col{$name}={$fld['caption']}", $type, "{$fld['mandatory']}");
                 if (!isset($fld['notColumn'])) {
-                    $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure,1)');
-                    $exp->ASSUME("#col{$name}", '-1');
+                    $exp->OPTIONS("#col{$name}", 'getCsvColNames(#csvData,#delimiter,#enclosure,TRUE)');
+
+                    $caption = str_replace(array('"', "'"), array('\\"', "\\'"), $fld['caption']);
+                    $nameEsc = str_replace(array('"', "'"), array('\\"', "\\'"), $name);
+
+                    $exp->ASSUME("#col{$name}", "getCsvColNames(#csvData,#delimiter,#enclosure,TRUE, FALSE, '{$caption}', '{$nameEsc}')");
+                } elseif(isset($fld['default'])){
+
+                    $exp->ASSUME("#col{$name}", "setdefault('{$fld['default']}')");
+                    //bp();
                 }
+
                 
                 $qFields .= ($qFields ? ',' : '') . "#col{$name}";
             }

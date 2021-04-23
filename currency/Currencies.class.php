@@ -181,19 +181,17 @@ class currency_Currencies extends core_Master
 
         switch($currency) {
             case 'BGN': 
-                $amount .= ' ' . tr('лв');
+                $amount .= '&nbsp;' . tr('лв');
                 break;
             case 'USD': 
-                $amount = "\$ {$amount}";
+                $amount = "\$&nbsp;{$amount}";
                 break;
             case "EUR":
-                $amount = "€ {$amount}";
+                $amount = "€&nbsp;{$amount}";
                 break;
             default: 
-                $amount .= ' <span class="cCode">' . $currency . '</span>';
+                $amount .= '&nbsp;<span class="cCode">' . $currency . '</span>';
         }
-
-        $amount = str_replace(' ', '&nbsp;', trim($amount));
 
         return $amount;
     }

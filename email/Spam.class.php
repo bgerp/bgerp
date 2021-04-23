@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Клас 'email_Spam' - регистър на квалифицираните като твърд спам писма
@@ -77,7 +77,7 @@ class email_Spam extends email_ServiceEmails
             $rec = new stdClass();
             
             // Само първите 100К от писмото
-            $rec->data = substr($mime->getData(), 0, 100000);
+            $rec->data = $mime->getData();
             $rec->accountId = $accId;
             $rec->uid = $uid;
             $rec->createdOn = dt::verbal2mysql();
@@ -132,9 +132,17 @@ class email_Spam extends email_ServiceEmails
         // Гледаме спам рейтинга
         $score = self::getSpamScore($mime->parts[1]->headersArr, true, $mime);
         if (isset($score) && ($score >= email_Setup::get('HARD_SPAM_SCORE'))) {
-            $isSpam = true;
+            $fromEmail = mb_strtolower($fromEmail);
+
+            // Ако има друг входящ или изходящ имейл, да не се третира като СПАМ
+            if (!email_Incomings::fetchField(array("#fromEml = '[#1#]' AND #state != 'rejected'", $fromEmail))) {
+                // Ако има друг изходящ имейл, намаляме резултата
+                if (!email_AddressesInfo::fetchField(array("#email = '[#1#]'", $fromEmail))) {
+                    $isSpam = true;
+                }
+            }
         }
-        
+
         return $isSpam;
     }
     
@@ -186,7 +194,34 @@ class email_Spam extends email_ServiceEmails
             if (!is_numeric($score)) {
                 $score = null;
             }
-            
+
+            // Проверка на резултата директно от SPAS
+            if (core_Packs::isInstalled('spas')) {
+                $emlData = null;
+                if (isset($mime)) {
+                    $emlData = $mime->getData();
+                }
+
+                if (!isset($emlData) && $rec && isset($rec->emlFile)) {
+                    $fh = fileman::fetchField($rec->emlFile, 'fileHnd');
+                    if ($fh) {
+                        $emlData = fileman_Files::getContent($fh);
+                    }
+                }
+
+                if (isset($emlData) && strlen($emlData)) {
+                    $Spas = cls::get('spas_Helper');
+//                    $spasScoreFromReport = $Spas->getScoreFromReport($emlData);
+                    $spasScore = $Spas->getScore($emlData);
+
+                    setIfNot($spasScore, $score);
+                    setIfNot($score, $spasScore);
+                    if (isset($spasScore) && isset($score)) {
+                        $score = max($spasScore, $score);
+                    }
+                }
+            }
+
             $scoreArr[$hash]['score'] = $score;
         } else {
             $score = $scoreArr[$hash]['score'];
@@ -203,7 +238,27 @@ class email_Spam extends email_ServiceEmails
                 $score += $aScore;
             }
         }
-        
+
+        // Ако има комуникация с имейла, намаляме точники
+        $fromEmail = $mime->getFromEmail();
+        $fromEmail = trim($fromEmail);
+        $fromEmail = mb_strtolower($fromEmail);
+
+        if (isset($score) && $fromEmail) {
+            if (($score >= email_Setup::get('REJECT_SPAM_SCORE')) || ($score >= email_Setup::get('HARD_SPAM_SCORE'))) {
+
+//                // Ако има друг входящ имейл, намаляме резултата
+//                if (email_Incomings::fetchField(array("#fromEml = '[#1#]' AND #state != 'rejected'", $fromEmail))) {
+//                    $score -= 1;
+//                }
+
+                // Ако има друг изходящ имейл, намаляме резултата
+                if (email_AddressesInfo::fetchField(array("#email = '[#1#]'", $fromEmail))) {
+                    $score -= 4;
+                }
+            }
+        }
+
         return $score;
     }
     

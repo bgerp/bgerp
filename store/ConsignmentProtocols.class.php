@@ -54,7 +54,7 @@ class store_ConsignmentProtocols extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                        plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices';
+                        plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_StockPlanning';
     
     
     /**
@@ -405,7 +405,7 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * @see doc_DocumentIntf::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
@@ -586,7 +586,7 @@ class store_ConsignmentProtocols extends core_Master
         
         $rec = static::fetchRec($rec);
         $abbr = $mvc->abbr;
-        $abbr{0} = strtoupper($abbr{0});
+        $abbr[0] = strtoupper($abbr[0]);
         
         if (isset($rec->contragentClassId, $rec->contragentId)) {
             $Crm = cls::get($rec->contragentClassId);
@@ -607,5 +607,53 @@ class store_ConsignmentProtocols extends core_Master
         $title .= "/{$contragent}";
         
         return $title;
+    }
+
+
+    /**
+     * Връща планираните наличности
+     *
+     * @param stdClass $rec
+     * @return array
+     *       ['productId']        - ид на артикул
+     *       ['storeId']          - ид на склад, или null, ако няма
+     *       ['date']             - на коя дата
+     *       ['quantityIn']       - к-во очаквано
+     *       ['quantityOut']      - к-во за експедиране
+     *       ['genericProductId'] - ид на генеричния артикул, ако има
+     *       ['reffClassId']      - клас на обект (различен от този на източника)
+     *       ['reffId']           - ид на обект (различен от този на източника)
+     */
+    public function getPlannedStocks($rec)
+    {
+        $res = array();
+        $id = is_object($rec) ? $rec->id : $rec;
+        $rec = $this->fetch($id, '*', false);
+        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+
+        $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
+        $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
+        $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
+        $dQuery->XPR('totalQuantity', 'double', "SUM(#packQuantity * #quantityInPack)");
+        $dQuery->where("#protocolId = {$rec->id}");
+        $dQuery->groupBy('productId');
+
+        while ($dRec = $dQuery->fetch()) {
+            $genericProductId = null;
+            if($dRec->generic == 'yes'){
+                $genericProductId = $dRec->productId;
+            } elseif($dRec->canConvert == 'yes'){
+                $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
+            }
+
+            $res[] = (object)array('storeId'          => $rec->storeId,
+                                   'productId'        => $dRec->productId,
+                                   'date'             => $date,
+                                   'quantityIn'       => null,
+                                   'quantityOut'      => $dRec->totalQuantity,
+                                   'genericProductId' => $genericProductId);
+        }
+
+        return $res;
     }
 }

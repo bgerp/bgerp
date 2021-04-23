@@ -1,5 +1,9 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-    <h3 style='margin-top:15px;margin-bottom:15px;'>[#productId#]</h3>
+
+<h3 style='margin-top:15px;margin-bottom:15px;'>[#productId#]</h3>
+<!--ET_BEGIN title-->
+<h4 style='margin-top:0px;margin-bottom:10px;color:green'>[#title#]</h4>
+<!--ET_END title-->
     <!--ET_BEGIN primeCost-->
     	<div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: [#primeCost#]</div>
     <!--ET_END primeCost-->
@@ -11,7 +15,8 @@
     <!--ET_BEGIN showInProduct-->
     	<div style='margin-top:5px'><span class='quiet'>|Показване в артикула|*</span>: <b>[#showInProduct#]</b></div>
     <!--ET_END showInProduct-->
-    
+
+    <div style='margin-top:5px'><span class='quiet'>|Пълна рецепта|*</span>: [#isComplete#]</div>
     <div style='margin-top:5px'><span class='quiet'>|Модифициранe|*</span>: <b>[#modifiedOn#]</b> |от|* [#modifiedBy#]</div>
     
     <div class="scrolling-holder" style='margin:10px 0'>

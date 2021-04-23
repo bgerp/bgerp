@@ -66,18 +66,32 @@
                 <td>[#company#]</td>
             </tr>
             <!--ET_END company-->
-            <!--ET_BEGIN country-->
-            <tr>
-                <td>|Държава|*</td>
-                <td>[#country#]</td>
-            </tr>
-            <!--ET_END country-->
             <!--ET_BEGIN personNames-->
             <tr>
                 <td>|Лице|*</td>
                 <td>[#personNames#]</td>
             </tr>
             <!--ET_END personNames-->
+
+            <!--ET_BEGIN vatId-->
+            <tr>
+                <td>|ДДС №|*</td>
+                <td>[#vatId#]</td>
+            </tr>
+            <!--ET_END vatId-->
+            <!--ET_BEGIN uicId-->
+            <tr>
+                <td>|ЕИК/ЕГН|*</td>
+                <td>[#uicId#]</td>
+            </tr>
+            <!--ET_END uicId-->
+
+            <!--ET_BEGIN country-->
+            <tr>
+                <td>|Държава|*</td>
+                <td>[#country#]</td>
+            </tr>
+            <!--ET_END country-->
             <tr>
                 <td>|Имейли|*</td>
                 <td>[#email#]</td>

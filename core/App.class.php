@@ -1,5 +1,7 @@
 <?php
 
+defIfNot('EF_DEFAULT_ACT_NAME', 'default');
+defIfNot('EF_DEFAULT_CTR_NAME', 'index');
 
 class core_App
 {
@@ -150,7 +152,7 @@ class core_App
             $vUrl = explode('/', $_GET['virtual_url']);
             
             // Премахваме последният елемент
-            $cnt = count($vUrl);
+            $cnt = countR($vUrl);
             
             if (!strlen($vUrl[$cnt - 1])) {
                 unset($vUrl[$cnt - 1]);
@@ -191,9 +193,9 @@ class core_App
                         $last = strrpos($prm, '_');
                         
                         if ($last !== false && $last < strlen($prm)) {
-                            $className{$last + 1} = strtoupper($prm{$last + 1});
+                            $className[$last + 1] = strtoupper($prm[$last + 1]);
                         } else {
-                            $className{0} = strtoupper($prm{0});
+                            $className[0] = strtoupper($prm[0]);
                         }
                     }
                     $q['Ctr'] = preg_replace('/[^a-zA-Z0-9_]*/', '', $prm);
@@ -206,7 +208,7 @@ class core_App
                     continue;
                 }
                 
-                if ((count($vUrl) - $id) % 2 || floor($prm) > 0) {
+                if ((countR($vUrl) - $id) % 2 || floor($prm) > 0) {
                     if (!isset($q['id']) && !$name) {
                         $q['id'] = decodeUrl($prm);
                     } else {
@@ -431,6 +433,7 @@ class core_App
     {
         $memUsagePercentLimit = 80;
         $executionTimePercentLimit = 70;
+        $dbTimePercentLimit = 50;
         
         $memoryLimit = core_Os::getBytesFromMemoryLimit();
         
@@ -439,7 +442,7 @@ class core_App
         $peakMemUsage = memory_get_peak_usage($realUsage);
         if (is_numeric($memoryLimit) && $memoryLimit) {
             $peakMemUsagePercent = ($peakMemUsage / $memoryLimit) * 100;
-            
+
             // Ако сме доближили до ограничението на паметта
             if ($peakMemUsagePercent > $memUsagePercentLimit) {
                 wp();
@@ -466,6 +469,17 @@ class core_App
                 // Ако сме доближили до ограничението за времето
                 if ($maxExecutionTimePercent > $executionTimePercentLimit) {
                     wp();
+                }
+
+                $qTime = core_Debug::getWorkingTime('DB::query()');
+                if ($qTime) {
+                    $dbTimePercent = ($qTime / $executionTime) * 100;
+
+                    if ($dbTimePercent >= $dbTimePercentLimit) {
+                        if ($executionTime > 7) {
+                            wp('Голям брой заявки, които минават бавно', (int) $dbTimePercent, $dbTimePercentLimit, $qTime, $executionTime);
+                        }
+                    }
                 }
             }
         }
@@ -762,9 +776,9 @@ class core_App
             $get['Act'] = $arr[2];
             $begin = 3;
             
-            $cnt = count($arr);
+            $cnt = countR($arr);
             
-            if (count($arr) % 2 == (($begin - 1) % 2)) {
+            if (countR($arr) % 2 == (($begin - 1) % 2)) {
                 $get['id'] = $arr[$begin];
                 $begin++;
             }
@@ -775,9 +789,9 @@ class core_App
                 $value = decodeUrl($value);
                 $key = explode(',', $key);
                 
-                if (count($key) == 1) {
+                if (countR($key) == 1) {
                     $get[$key[0]] = $value;
-                } elseif (count($key) == 2) {
+                } elseif (countR($key) == 2) {
                     $get[$key[0]][$key[1]] = $value;
                 } else {
                     // Повече от едномерен масив в URL-то не се поддържа
@@ -850,8 +864,8 @@ class core_App
             if (!$arr['Act']) {
                 $arr['Act'] = 'default';
             }
-            
-            $url .= $arr['App'];
+
+            $url = $arr['App'];
             $url .= '/' . $arr['Ctr'];
             $url .= '/' . $arr['Act'];
             
@@ -1006,7 +1020,7 @@ class core_App
         }
         
         // Задължително слагаме контролера
-        $pre .= '/' . $params['Ctr'] . '/';
+        $pre = '/' . $params['Ctr'] . '/';
         
         if ($params['Act'] && (strtolower($params['Act']) !== 'default' || $params['id'])) {
             $pre .= $params['Act'] . '/';
@@ -1047,7 +1061,7 @@ class core_App
             unset($params['#']);
         }
         
-        if (count($params)) {
+        if (countR($params)) {
             $urlQuery = http_build_query($params);
         }
         
@@ -1088,7 +1102,7 @@ class core_App
      */
     public static function getSelfURL()
     {
-        $s = empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on') ? 's' : '';
+        $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
         if (!$s && (EF_HTTPS == 'MANDATORY')) {
             $s = 's';
         }
@@ -1112,7 +1126,7 @@ class core_App
         static $relativeWebRoot = null;
         
         if ($absolute) {
-            $s = empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on') ? 's' : '';
+            $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
             if (!$s && (EF_HTTPS == 'MANDATORY')) {
                 $s = 's';
             }
@@ -1204,7 +1218,7 @@ class core_App
             
             return trim($value) !== '';
         });
-        $cntBranches = count($branchArr);
+        $cntBranches = countR($branchArr);
         
         $res = array();
         foreach ($pathArr as $i => $line) {
@@ -1285,7 +1299,7 @@ class core_App
             $new = $args[$i];
             
             if (is_array($p1)) {
-                if (!count($new)) {
+                if (!countR($new)) {
                     continue;
                 }
                 

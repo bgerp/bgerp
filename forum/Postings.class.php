@@ -1018,7 +1018,7 @@ class forum_Postings extends core_Detail
             if (!$mvc->masterMVC) {
                 if ($fields['-list']) {
                     $row->type = 'коментар';
-                    $commentURL = array($this, 'Topic', $rec->themeId, '#' => "C{$rec->id}");
+                    $commentURL = array($mvc, 'Topic', $rec->themeId, '#' => "C{$rec->id}");
                     $row->title = ht::createLink("#C{$rec->id}", $commentURL);
                 }
             }

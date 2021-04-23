@@ -20,7 +20,7 @@
              </td>
              <!--ET_END INVOICE_DOWNPAYMENT_TH-->
              <td class = 'sum-th'>
-                 |Информация|*
+                 |Информация|* [#visiblePricesByAllInThread#]
              </td>
           </tr>
           <tr>
@@ -33,7 +33,7 @@
               <td class = 'nowrap'>[#amountInvoicedDownpayment#]</td>
               <!--ET_END INVOICE_DOWNPAYMENT_TD-->
               
-              <td class = 'nowrap' style='font-size:0.8em;vertical-align:top;text-align:left' rowspan='3'>
+              <td class = 'nowrap vtop' style='font-size:0.8em;text-align:left' rowspan='3'>
                   <!--ET_BEGIN paymentState-->
                   <span style='font-weight:normal'>|Чакащо плащане|*</span>: [#paymentState#]<br>
                   <!--ET_END paymentState-->
@@ -49,18 +49,15 @@
                   <!--ET_BEGIN deliveryLocationId-->
                   <span style='font-weight:normal'>|До локация|*</span>: [#deliveryLocationId#]<br>
                   <!--ET_END deliveryLocationId-->
-                  
                   <!--ET_BEGIN caseId-->
                   <span style='font-weight:normal'>|Каса|*</span>: [#caseId#]<br>
                   <!--ET_END caseId-->
-                  
                   <!--ET_BEGIN originId-->
                   <span style='font-weight:normal'>|Към|*</span>: [#originId#]<br>
                   <!--ET_END originId-->
                   <!--ET_BEGIN priceListId-->
-                  <span style='font-weight:normal'>|Цени|*</span>: [#priceListId#]<br>
+                  <span style='font-weight:normal'>|Политика|*</span>: [#priceListId#]<br>
                   <!--ET_END priceListId-->
-                  
                   <!--ET_BEGIN closeWith-->
                   <span style='font-weight:normal'>|Приключено с|*</span>: [#closeWith#]<br>
                   <!--ET_END closeWith-->

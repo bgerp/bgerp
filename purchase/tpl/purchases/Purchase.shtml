@@ -28,37 +28,10 @@
             </tr>
             <tr>
                 <td class="cell">
-                    <b>[#MyCompany#]</b>
-                    <div class='address-block'>
-                        [#MyAddress#]
-                    </div>
-                    <!--ET_BEGIN vatInfo-->
-                    [#vatInfo#]
-                    <hr style="margin: 3px 0 1px;">
-                    <!--ET_BEGIN MyCompanyVatNo-->
-                    <div><small>ЗДДС&nbsp;№:</small> <span class="bigData notBold" style="padding-left:5px;">[#MyCompanyVatNo#]</span></div>
-                    <!--ET_END MyCompanyVatNo-->
-                    <!--ET_BEGIN uicId-->
-                    <div><small>ЕИК:</small> <span class="bigData notBold" style="padding-left:5px;">[#uicId#]</span></div>
-                    <!--ET_END uicId-->
-                    <!--ET_END vatInfo-->
+                    [#/deals/tpl/MyCompanyBlock.shtml#]
                 </td>
                 <td class="cell">
-                    <b>[#contragentName#]</b>
-                    <div class='address-block'>
-                        [#contragentCountryId#]
-                        <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
-                    </div>
-                    <!--ET_BEGIN contragentVatInfo-->
-                    [#contragentVatInfo#]
-                    <hr style="margin: 3px 0 1px;">
-                    <!--ET_BEGIN vatNo-->
-                    <div><small>ЗДДС&nbsp;№:</small> <span class="bigData notBold" style="padding-left:5px;">[#vatNo#]</span></div>
-                    <!--ET_END vatNo-->
-                    <!--ET_BEGIN contragentUicId-->
-                    <div><small>[#contragentUicCaption#]:</small> <span class="bigData notBold" style="padding-left:5px;"> [#contragentUicId#]</span></div>
-                    <!--ET_END contragentUicId-->
-                    <!--ET_END contragentVatInfo-->
+                    [#/deals/tpl/ContragentHeaderBlock.shtml#]
                 </td>
             </tr>
         </tbody>
@@ -109,6 +82,9 @@
                             <!--ET_BEGIN sepVat-->
                             <li>|Цените са с отделно ДДС|*[#sepVat#]</li>
                             <!--ET_END sepVat-->
+                            <!--ET_BEGIN exemptVat-->
+                            <li>|Освободено от ДДС|*[#exemptVat#]</li>
+                            <!--ET_END exemptVat-->
                             <!--ET_BEGIN noVat-->
                             <li>|Цените са без ДДС|*[#noVat#]</li>
                             <!--ET_END noVat-->
@@ -166,7 +142,7 @@
             </tr>
             <tr class='footerDocInfo'>
                 <td colspan="3">
-                    <div class='aright'>|Документът е създаден чрез системата|* <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                    [#/doc/tpl/Copyright.shtml#]
                 </td>
             </tr>
         </tbody>

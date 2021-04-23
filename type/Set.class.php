@@ -89,7 +89,7 @@ class type_Set extends core_Type
         $displayHtml = $this->params['displayHtml'];
         $col = type_Keylist::getCol($this->suggestions, $maxChars);
         
-        if (count($this->suggestions) < 4) {
+        if (countR($this->suggestions) < 4) {
             $className .= ' shrinked';
         }
         
@@ -99,8 +99,8 @@ class type_Set extends core_Type
         $html = '';
         $trOpen = true;
         
-        if (count($this->suggestions)) {
-            if (count($this->suggestions) == 1 && $value === null && $this->params['mandatory'] && empty($displayHtml)) {
+        if (countR($this->suggestions)) {
+            if (countR($this->suggestions) == 1 && $value === null && $this->params['mandatory'] && empty($displayHtml)) {
                 $key = key($this->suggestions);
                 $values[$key] = $key;
             }

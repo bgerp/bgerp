@@ -268,7 +268,7 @@ class plg_Search extends core_Plugin
                 $mode = '+';
                 
                 $beginMark = false;
-                if ($w{0} == '"') {
+                if ($w[0] == '"') {
                     $mode = '"';
                     $w = substr($w, 1);
                     if (!$w) {
@@ -278,7 +278,7 @@ class plg_Search extends core_Plugin
                     $beginMark = true;
                 }
                 
-                if ($w{0} == '*') {
+                if ($w[0] == '*') {
                     $wT = substr($w, 1);
                     $wT = trim($wT);
                     if (!$wT) {
@@ -287,7 +287,7 @@ class plg_Search extends core_Plugin
                     $wordBegin = '';
                 }
                 
-                if ($w{0} == '-') {
+                if ($w[0] == '-') {
                     $w = substr($w, 1);
                     $mode = '-';
                     
@@ -592,7 +592,7 @@ class plg_Search extends core_Plugin
         $isWord = true;
         
         for ($i = 0; $i < $len; $i++) {
-            $c = $str{$i};
+            $c = $str[$i];
             
             // Кога трябва да прибавим буквата
             if (($c != ' ' && $c != '"') || ($c == ' ' && $quote)) {
@@ -638,7 +638,7 @@ class plg_Search extends core_Plugin
         
         if (is_array($qArr)) {
             foreach ($qArr as $q) {
-                if ($q{0} == '-') {
+                if ($q[0] == '-') {
                     continue;
                 }
                 $q = trim($q);
@@ -658,7 +658,8 @@ class plg_Search extends core_Plugin
     {
         $i = 0;
         setIfNot($mvc->fillSearchKeywordsOnSetup, true);
-        if ($mvc->fillSearchKeywordsOnSetup !== false && !$mvc->count("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
+
+        if ($mvc->fillSearchKeywordsOnSetup !== false && !$mvc->fetchField("#searchKeywords != '' AND #searchKeywords IS NOT NULL")) {
             try {
                 $query = $mvc->getQuery();
                 while ($rec = $query->fetch()) {
@@ -855,16 +856,18 @@ class plg_Search extends core_Plugin
      * Форсира ръчно обновяване на ключовите думи на модела
      * (и на контейнера му ако е документ)
      *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
+     * @param mixed $mvc
+     * @param mixed $rec
      */
     public static function forceUpdateKeywords($mvc, $rec)
     {
+        $mvc = cls::get($mvc);
+        $rec = $mvc->fetchRec($rec);
+
         $fRec = $mvc->fetch("id = {$rec->id}", '*', false);
         $rec->searchKeywords = $mvc->getSearchKeywords($fRec);
-        
         $rec->searchKeywords = self::purifyKeywods($rec->searchKeywords);
-        
+
         $mvc->save_($rec, 'searchKeywords');
         if($rec->containerId){
             doc_Containers::update_($rec->containerId);

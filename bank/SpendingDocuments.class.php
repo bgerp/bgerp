@@ -79,8 +79,8 @@ class bank_SpendingDocuments extends bank_Document
      * Права за плъгин-а bgerp_plg_Export
      */
     public $canExport = 'ceo, invoicer';
-    
-    
+
+
     /**
      * Описание на модела
      */

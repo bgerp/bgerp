@@ -103,7 +103,10 @@ class deals_plg_SetTermDate extends core_Plugin
             $rec->{$mvc->termDateFld} = $form->rec->newTermDate;
             $mvc->save_($rec, $mvc->termDateFld);
             $mvc->touchRec($rec);
-            
+            if($mvc->hasPlugin('store_plg_StockPlanning')){
+                $mvc->updatePlannedStocks($rec);
+            }
+
             followRetUrl(null, 'Промяната е направена успешно');
         }
         

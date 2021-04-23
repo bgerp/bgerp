@@ -53,22 +53,10 @@ class core_Request
     public function init($params = array())
     {
         global $_GET, $_POST, $_COOKIE, $_REQUEST;
-        
-        // Избягваме кофти-ефекта на magic_quotes
-        if (get_magic_quotes_gpc()) {
-            self::push(array_map(array(
-                'core_Request',
-                '_stripSlashesDeep'
-            ), $_GET), '_GET', false, true);
-            self::push(self::checkUrlHash(array_map(array(
-                'core_Request',
-                '_stripSlashesDeep'
-            ), $_POST)), '_POST', false, true);
-        } else {
-            self::push($_GET, '_GET', false, true);
-            self::push($_POST, '_POST', false, true);
-        }
-        
+
+        self::push($_GET, '_GET', false, true);
+        self::push($_POST, '_POST', false, true);
+
         // Ако имаме 'Protected' поле - декодираме го
         $prot = self::get('Protected');
         
@@ -202,7 +190,7 @@ class core_Request
                     unset($arr[$name]);
                 }
             }
-            
+
             if (is_array($prot)) {
                 $prot = serialize($prot);
                 $prot = gzcompress($prot);
@@ -311,7 +299,7 @@ class core_Request
         if ($name) {
             $element[$name] = $array;
         } else {
-            $element[count(self::$vars)] = $array;
+            $element[countR(self::$vars)] = $array;
         }
         
         if ($unShift) {
@@ -402,7 +390,7 @@ class core_Request
         
         $vars = arr::make($vars, true);
         
-        if (count($vars)) {
+        if (countR($vars)) {
             $Request->push($vars, $varsName);
             $mustPop = true;
         }

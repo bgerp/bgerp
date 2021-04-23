@@ -108,16 +108,16 @@ class acc_plg_ExpenseAllocation extends core_Plugin
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-        
+
         if (isset($rec->allocationBy) && !in_array($rec->allocationBy, array('no', 'auto'))) {
             $itemRec = acc_Items::fetch($rec->expenseItemId);
             $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-            acc_ValueCorrections::addProductsFromOriginToForm($form, $origin);
+            acc_ValueCorrections::addProductsFromOriginToForm($form, $origin, $mvc->Master);
         }
-        
+
         if ($form->isSubmitted()) {
+
             if (isset($rec->id)) {
-                
                 // Колко разпределено по-реда
                 $allocated = acc_CostAllocations::getAllocatedInDocument($mvc->getClassId(), $rec->id);
                 $inputQuantity = $rec->{$mvc->quantityInPackFld} * $rec->{$mvc->packQuantityFld};
@@ -129,17 +129,25 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                     $form->setError($mvc->packQuantityFld, "Въведеното к-во е по-малко от к-то разпределеното по разходи|* <b>{$allocatedVerbal}</b> |{$uomName}|*");
                 }
             } elseif(isset($rec->expenseItemId) && isset($rec->allocationBy)) {
+                if(!in_array($rec->allocationBy, array('no', 'auto'))){
+                    if (!countR($form->allProducts)) {
+                        $form->setError('allocationBy,expenseItemId', 'В избраната сделка няма експедирани/заскладени артикули');
+                    }
+                }
+
                 if($rec->allocationBy == 'auto'){
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                     $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                    $rec->productsData = $origin->getCorrectableProducts('acc_CostAllocations');
+                    $rec->productsData = $origin->getCorrectableProducts($mvc->Master);
                 } elseif(isset($rec->chosenProducts)){
                     $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
                 }
-               
-                if($rec->allocationBy != 'no'){
-                    if ($error = acc_ValueCorrections::allocateAmount($rec->productsData, $rec->packQuantity, $rec->allocationBy)) {
-                        $form->setError('allocateBy,chosenProducts', $error);
+
+                if(!$form->gotErrors()){
+                    if($rec->allocationBy != 'no'){
+                        if ($error = acc_ValueCorrections::allocateAmount($rec->productsData, $rec->packQuantity, $rec->allocationBy)) {
+                            $form->setError('allocateBy,chosenProducts', $error);
+                        }
                     }
                 }
             }

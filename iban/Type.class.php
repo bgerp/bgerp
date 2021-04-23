@@ -55,7 +55,7 @@ class iban_Type extends type_Varchar
         
         if (empty($value)) {
             $res->error = 'Липсващ IBAN';
-        } elseif ($value{0} == '#') {
+        } elseif ($value[0] == '#') {
             $res->value = $value;
         } else {
             if (!verify_iban($value)) {
@@ -162,7 +162,7 @@ class iban_Type extends type_Varchar
      */
     public static function removeDs($value)
     {
-        if ($value{0} == '#') {
+        if ($value[0] == '#') {
             $value = substr($value, 1);
         }
         
@@ -177,7 +177,7 @@ class iban_Type extends type_Varchar
     {
         self::loadCode();
         
-        if ($iban{0} == '#') {
+        if ($iban[0] == '#') {
             
             return trim(str_replace(array(' ', '-'), array('', ''), $iban));
         }

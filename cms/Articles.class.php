@@ -147,10 +147,11 @@ class cms_Articles extends core_Master
         // Показваме само това поле. Иначе и другите полета
         // на модела ще се появят
         $form->showFields = 'search, menuId';
-        
         $form->input('search, menuId', 'silent');
-        
-        $form->setOptions('menuId', $opt = cms_Content::getMenuOpt($mvc));
+
+        $domainId = cms_Domains::getPublicDomain('id');
+        $opt = cms_Content::getMenuOpt($mvc, $domainId);
+        $form->setOptions('menuId', $opt);
         
         $form->setField('menuId', 'refreshForm');
         
@@ -178,8 +179,9 @@ class cms_Articles extends core_Master
             $cRec = cms_Content::fetch($rec->menuId);
             cms_Domains::selectCurrent($cRec->domainId);
         }
-        
-        $data->form->setOptions('menuId', arr::combine(array('' => ''), cms_Content::getMenuOpt($mvc)));
+
+        $domainId = cms_Domains::getPublicDomain('id');
+        $data->form->setOptions('menuId', arr::combine(array('' => ''), cms_Content::getMenuOpt($mvc, $domainId)));
     }
     
     
@@ -461,34 +463,36 @@ class cms_Articles extends core_Master
     {
         $navTpl = new ET();
         $noRootClass = ($data->hasRootNavigation) ? '' : 'noRoot';
-        
-        foreach ($data->links as $l) {
-            $selected = ($l->selected) ? 'sel_page' : '';
-            if ($l->closed) {
-                $aAttr = array('style' => 'color:#aaa !important;');
-            } else {
-                $aAttr = array();
+
+        if(is_array($data->links)){
+            foreach ($data->links as $l) {
+                $selected = ($l->selected) ? 'sel_page' : '';
+                if ($l->closed) {
+                    $aAttr = array('style' => 'color:#aaa !important;');
+                } else {
+                    $aAttr = array();
+                }
+
+                $navTpl->append("<div class='nav_item {$noRootClass} level{$l->level} {$selected}'>");
+                if ($l->url) {
+                    $navTpl->append(ht::createLink($l->title, $l->url, null, $aAttr));
+                } else {
+                    $navTpl->append('<span>' . $l->title .'</span>');
+                }
+                if ($selected) {
+                    $currentPage = $l->title;
+                }
+                if ($l->editLink) {
+                    // Добавяме интервал
+                    $navTpl->append('&nbsp;');
+
+                    // Добавяме линка
+                    $navTpl->append($l->editLink);
+                }
+                $navTpl->append('</div>');
             }
-            
-            $navTpl->append("<div class='nav_item {$noRootClass} level{$l->level} {$selected}'>");
-            if ($l->url) {
-                $navTpl->append(ht::createLink($l->title, $l->url, null, $aAttr));
-            } else {
-                $navTpl->append('<span>' . $l->title .'</span>');
-            }
-            if ($selected) {
-                $currentPage = $l->title;
-            }
-            if ($l->editLink) {
-                // Добавяме интервал
-                $navTpl->append('&nbsp;');
-                
-                // Добавяме линка
-                $navTpl->append($l->editLink);
-            }
-            $navTpl->append('</div>');
         }
-        
+
         if ($data->addLink) {
             $navTpl->append("<div class='addPage'>");
             $navTpl->append($data->addLink);
@@ -749,7 +753,7 @@ class cms_Articles extends core_Master
             $data->toolbar->addBtn(
                 'Нова статия',
                 array(
-                    $this,
+                    $mvc,
                     'add',
                     'menuId' => $data->listFilter->rec->menuId,
                 ),
@@ -770,7 +774,7 @@ class cms_Articles extends core_Master
         $form->FNC('divider', 'richtext(rows=3,bucket=Notes)', 'caption=Разделител,input');
         
         $form->input(null, 'silent');
-        $form->method = 'GET';
+//        $form->method = 'GET';
         
         if ($form->rec->menuId) {
             $query = self::getQuery();
@@ -795,7 +799,9 @@ class cms_Articles extends core_Master
             $query->where("#id IN ({$commaList})");
             $rt = cls::get('type_Richtext');
             $query->orderBy('#level=ASC');
-            
+
+            $res = '';
+
             while ($rec = $query->fetch()) {
                 if (!$res) {
                     $res = new ET("<div style='max-width:800px;'>[#CONTENT#]</div>");

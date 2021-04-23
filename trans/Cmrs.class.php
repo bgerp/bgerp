@@ -142,8 +142,8 @@ class trans_Cmrs extends core_Master
     public function description()
     {
         $this->FLD('cmrNumber', 'varchar(12)', 'caption=ЧМР №,mandatory');
-        $this->FLD('senderData', 'text(rows=2)', 'caption=1. Изпращач,mandatory');
-        $this->FLD('consigneeData', 'text(rows=2)', 'caption=2. Получател,mandatory');
+        $this->FLD('senderData', 'text(rows=5)', 'caption=1. Изпращач,mandatory');
+        $this->FLD('consigneeData', 'text(rows=5)', 'caption=2. Получател,mandatory');
         $this->FLD('deliveryPlace', 'text(rows=2)', 'caption=3. Разтоварен пункт,mandatory');
         $this->FLD('loadingPlace', 'text(rows=2)', 'caption=4. Товарен пункт,mandatory');
         $this->FLD('loadingDate', 'date', 'caption=4. Дата на товарене,mandatory');
@@ -161,7 +161,7 @@ class trans_Cmrs extends core_Master
         $this->FLD('sumPaid', 'varchar(12)', 'caption=Допълнително->Дължимо');
         
         $this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
-        $this->FLD('cariersData', 'text(rows=2)', 'caption=Допълнително->16. Превозвач');
+        $this->FLD('cariersData', 'text(rows=5)', 'caption=Допълнително->16. Превозвач');
         $this->FLD('vehicleReg', 'varchar', 'caption=МПС рег. №');
         $this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
         $this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
@@ -300,24 +300,6 @@ class trans_Cmrs extends core_Master
     
     
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            
-            // Подсигуряване че винаги след редакция ще е в чернова
-            if ($form->cmd == 'save') {
-                $form->rec->state = 'draft';
-            }
-        }
-    }
-    
-    
-    /**
      * Зарежда дефолтни данни от формата
      *
      * @param int       $originId - ориджин
@@ -337,11 +319,16 @@ class trans_Cmrs extends core_Master
         
         // Информация за изпращача
         $ownCompanyId = crm_Setup::get('BGERP_OWN_COMPANY_ID', true);
-        $senderData = $this->getDefaultContragentData('crm_Companies', $ownCompanyId);
-        
-        // Информация за получателя
+        $contragentData = cls::get($sRec->contragentClassId)->getContragentData($sRec->contragentId);
+        $hideOurEori = false;
+        if(empty($contragentData->eori) && drdata_Countries::isEu($contragentData->countryId)){
+            $hideOurEori = true;
+        }
+
+        // Информация за получателя и изпращача
         $consigneeData = $this->getDefaultContragentData($sRec->contragentClassId, $sRec->contragentId, false);
-        
+        $senderData = $this->getDefaultContragentData('crm_Companies', $ownCompanyId, true, $hideOurEori);
+
         // Място на товарене / Разтоварване
         $loadingPlace = $lData['fromPCode'] . ' ' .  transliterate($lData['fromPlace']) . ', ' . $lData['fromCountry'];
         $deliveryPlace = $lData['toPCode'] . ' ' .  transliterate($lData['toPlace']) . ', ' . $lData['toCountry'];
@@ -349,14 +336,18 @@ class trans_Cmrs extends core_Master
         // Има ли общо тегло в ЕН-то
         $weight = ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight;
         if (!empty($weight)) {
+            Mode::push('text', 'plain');
             $weight = core_Type::getByName('cat_type_Weight')->toVerbal($weight);
+            Mode::pop('text');
             $form->setDefault('grossWeight1', $weight);
         }
         
         // Има ли общ обем в ЕН-то
         $volume = ($sRec->volumeInput) ? $sRec->volumeInput : $sRec->volume;
         if (!empty($weight)) {
+            Mode::push('text', 'plain');
             $volume = core_Type::getByName('cat_type_Volume')->toVerbal($volume);
+            Mode::pop('text');
             $form->setDefault('volume1', $volume);
         }
         
@@ -373,7 +364,7 @@ class trans_Cmrs extends core_Master
         if (isset($sRec->lineId)) {
             $lineRec = trans_Lines::fetch($sRec->lineId);
             if (isset($lineRec->forwarderId)) {
-                $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId);
+                $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId, true, true);
                 $form->setDefault('cariersData', $carrierData);
             }
             
@@ -399,22 +390,31 @@ class trans_Cmrs extends core_Master
      * @param mixed $contragentClassId - клас на контрагента
      * @param int   $contragentId      - контрагент ид
      * @param bool  $translate         - превод на името на контрагента
+     * @param bool  $hideEori          - дали да се скрие ЕОРИ номера на контрагента
      *
      * @return string - информация за контрагента
      */
-    private function getDefaultContragentData($contragentClassId, $contragentId, $translate = true)
+    private function getDefaultContragentData($contragentClassId, $contragentId, $translate = true, $hideEori = false)
     {
         $Contragent = cls::get($contragentClassId);
         $verbal = $Contragent->fetch($contragentId, 'pCode,place,address');
-        $contragentAddress = ($verbal->address) ? transliterate(tr($verbal->address)) . "\n" : '';
+        $contragentAddress = ($verbal->address) ? (transliterate(tr($verbal->address)) . "\n") : '';
         $contragentAddress .= ($verbal->pCode) ? $verbal->pCode : '';
-        $contragentAddress .= ($verbal->place) ? ' ' . transliterate(tr($verbal->place)) : '';
+        $contragentAddress .= ($verbal->place) ? (' ' . transliterate(tr($verbal->place))) : '';
         
         $contragentCountry = $Contragent->getVerbal($contragentId, 'country');
         $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
-        $contragenData = trim($contragentName) . "\n" . trim($contragentAddress) . "\n" . trim($contragentCountry);
-        
-        return $contragenData;
+        $cData = cls::get($contragentClassId)->getContragentData($contragentId);
+
+        $contragentNumbers = '';
+        if(!$hideEori && !empty($cData->eori)){
+            $contragentNumbers .= "EORI №: {$cData->eori}";
+        }
+
+        $contragentData = trim($contragentName) . "\n" . trim($contragentAddress) . "\n" . trim($contragentCountry) . "\n" . trim($contragentNumbers);
+        $contragentData = str_replace(',,', ',', $contragentData);
+
+        return $contragentData;
     }
     
     
@@ -491,7 +491,7 @@ class trans_Cmrs extends core_Master
     public static function canAddToThread($threadId)
     {
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if ($firstDoc && $firstDoc->isInstanceOf('deals_DealMaster')) {
+        if ($firstDoc && $firstDoc->isInstanceOf('deals_DealBase')) {
             $state = $firstDoc->fetchField('state');
             if (in_array($state, array('active', 'closed', 'pending'))) {
                 
@@ -506,7 +506,7 @@ class trans_Cmrs extends core_Master
     /**
      * @see doc_DocumentIntf::getDocumentRow()
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         expect($rec = $this->fetch($id));
         $title = $this->getRecTitle($rec);
@@ -639,5 +639,25 @@ class trans_Cmrs extends core_Master
         $copyTpl->append($copyNum, 'copyNum');
         $copyTpl->append($head[$copyNum], 'copyTitle');
         $copyTpl->append($colorClass[$copyNum], 'colorClass');
+    }
+
+
+    /**
+     * Рендиране на изгледа
+     */
+    public function renderSingleLayout_(&$data)
+    {
+        // Ако се печата, форсира се английски език винаги, без значение езика от сесията
+        if(Mode::is('printing')){
+            core_Lg::push('en');
+        }
+
+        $tpl = parent::renderSingleLayout_($data);
+
+        if(Mode::is('printing')){
+            core_Lg::pop();
+        }
+
+        return $tpl;
     }
 }

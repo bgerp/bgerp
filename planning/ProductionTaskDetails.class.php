@@ -135,12 +135,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
-     * Кой може да печата бърз етикет
-     */
-    public $canPrintfastlabel = 'debug';
-    
-    
-    /**
      * Описание на модела (таблицата)
      */
     public function description()

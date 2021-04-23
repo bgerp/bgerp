@@ -107,7 +107,7 @@ class core_Pager extends core_BaseClass
             $this->itemsPerPage = 0;
         }
         
-        if (Mode::is('printing')) {
+        if (Mode::is('printing') || Mode::is('exporting')) {
             $this->itemsPerPage = max(core_Setup::get('MAX_ROWS_FOR_PRINTING'), $this->itemsPerPage);
         }
         
@@ -272,7 +272,7 @@ class core_Pager extends core_BaseClass
                     while ($rec = $q->fetch()) {
                         $ids[] = $rec->id;
                     }
-                    $idCnt = count($ids);
+                    $idCnt = countR($ids);
                 }
             } elseif ($idCnt < $limit) {
                 // Края на резултатите попада в търсената страница
@@ -316,7 +316,7 @@ class core_Pager extends core_BaseClass
             while ($rec = $rQuery->fetch()) {
                 $ids[] = $rec->id;
             }
-            $idCnt = count($ids);
+            $idCnt = countR($ids);
         }
         
         if ($idCnt) {

@@ -122,7 +122,13 @@ class doc_ExpensesSummary extends core_Manager
         $data->recs = self::updateSummary($rec->containerId, $itemRec);
      
         if (is_array($data->recs)) {
+            $count = 1;
             foreach ($data->recs as $index => $r) {
+                if($r->type == 'allocated'){
+                    $r->count = $count;
+                    $count++;
+                }
+
                 $data->rows[$index] = $this->getVerbalRow($r);
             }
         }
@@ -143,6 +149,9 @@ class doc_ExpensesSummary extends core_Manager
     private function getVerbalRow($rec)
     {
         $row = new stdClass();
+        if(isset($rec->count)){
+            $row->count = core_Type::getByName('int')->toVerbal($rec->count);
+        }
         if (isset($rec->docId)) {
             $row->docId = cls::get($rec->docType)->getLink($rec->docId, 0);
         }
@@ -239,11 +248,11 @@ class doc_ExpensesSummary extends core_Manager
         $currencyCode = acc_Periods::getBaseCurrencyCode();
         
         // Рендиране на таблицата
-        $tableHtml = $table->get($data->rows, "valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
+        $tableHtml = $table->get($data->rows, "count=№,valior=Вальор,item2Id=Артикул,docId=Документ,quantity=Количество,amount=Сума|* <small>({$currencyCode}</small>)");
         
         if (countR($data->rows)) {
             $total = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($total);
-            $afterRow = "<tr style='background-color:#eee'><td colspan=4 style='text-align:right'><b>" . tr('Общо') . "</b></td><td style='text-align:right'><b>{$total}</b></td></tr>";
+            $afterRow = "<tr style='background-color:#eee'><td colspan=5 style='text-align:right'><b>" . tr('Общо') . "</b></td><td style='text-align:right'><b>{$total}</b></td></tr>";
             $tableHtml->append($afterRow, 'ROW_AFTER');
         }
         
@@ -331,8 +340,10 @@ class doc_ExpensesSummary extends core_Manager
                 }
             }
         }
-       
-        $rec->count = count($recs);
+
+        arr::sortObjects($recs, 'valior', 'ASC');
+
+        $rec->count = countR($recs);
         $notDistributed = $allocated;
         
         // За всички отнесени разходи
@@ -347,7 +358,7 @@ class doc_ExpensesSummary extends core_Manager
             });
             
             // Ако има и коригиращи записи, добавят се след тях
-            if (count($foundArr)) {
+            if (countR($foundArr)) {
                 
                 // Преразпределяне на сумата спрямо тази, която е разпределена (не искаме усреднената сума)
                 foreach ($foundArr as &$f1) {
@@ -364,7 +375,7 @@ class doc_ExpensesSummary extends core_Manager
         }
         
         // Ако има останали неразпределени добавят се най-отдолу
-        if (count($notDistributed)) {
+        if (countR($notDistributed)) {
             $res[] = (object) array('type' => 'allocated');
             foreach ($notDistributed as &$nRec) {
                 $nRec->notDistributed = true;

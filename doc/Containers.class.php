@@ -781,7 +781,7 @@ class doc_Containers extends core_Manager
         
         while ($cRec = $cQuery->fetch()) {
             if ($show) {
-                doc_HiddenContainers::showOrHideDocument($cRec->id, false, true);
+                doc_HiddenContainers::showOrHideDocument($cRec->id);
             } elseif ($hide) {
                 doc_HiddenContainers::removeFromTemp($cRec->id);
             }
@@ -1348,7 +1348,7 @@ class doc_Containers extends core_Manager
                 $otherNick = str::limitLen($otherNick, 50);
                 
                 // Броя на авторите, които са добавили нещо
-                $cntAuthorArr = count($authorArr);
+                $cntAuthorArr = countR($authorArr);
                 
                 // Ако има други, които са добавили документи
                 if ($cntAuthorArr > $maxUsersToShow) {
@@ -1725,25 +1725,28 @@ class doc_Containers extends core_Manager
         // Извличане на потенциалните класове на нови документи
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
         
-        if (is_array($docArr) && count($docArr)) {
+        if (is_array($docArr) && countR($docArr)) {
             $docArrSort = array();
+            $i = 0;
             foreach ($docArr as $id => $class) {
                 $mvc = cls::get($class);
                 
                 if ($mvc->newBtnGroup === false) {
                     continue;
                 }
-                
-                list($order, $group) = explode('|', $mvc->newBtnGroup);
-                
-                // debug::log('Start HaveRight:' . $mvc->className);
-                
+
                 if ($mvc->haveRightFor('add', $rec)) {
+                    if($mvc->newBtnGroup){
+                        list($order, $group) = explode('|', $mvc->newBtnGroup);
+                    } else {
+                        $order = 0;
+                        $group = 'Без група';
+                        wp($mvc);
+                    }
+
                     $ind = $order * 10000 + $i++;
                     $docArrSort[$ind] = array($group, $mvc->singleTitle, $class);
                 }
-                
-                // debug::log('End HaveRight:' . $mvc->className);
             }
             
             // Сортиране
@@ -2673,16 +2676,15 @@ class doc_Containers extends core_Manager
     {
         // При възстановяване на треда, гледаме кои контейнери са били оттеглени със него
         $rejectedInThread = doc_Threads::fetchField($threadId, 'rejectedContainersInThread');
-        
-        /* @var $query core_Query */
+        $rejectedInThread = arr::make($rejectedInThread, true);
+
         $query = static::getQuery();
-        
         $query->where("#threadId = {$threadId}");
         $query->where("#state = 'rejected'");
         $query->orderBy('#id', 'ASC');
         
         // Ако има документи оттеглени със треда
-        if (count($rejectedInThread)) {
+        if (countR($rejectedInThread)) {
             
             // Възстановяваме само тези контейнери от тях
             $query->in('id', $rejectedInThread);
@@ -2692,7 +2694,7 @@ class doc_Containers extends core_Manager
             $recs = $query->fetchAll();
         }
         
-        if (count($recs)) {
+        if (countR($recs)) {
             foreach ($recs as $rec) {
                 try {
                     $doc = static::getDocument($rec);
@@ -3072,7 +3074,7 @@ class doc_Containers extends core_Manager
             }
             
             // Ако има неактивирани бизнес документи
-            if (count($notArr)) {
+            if (countR($notArr)) {
                 foreach ($notArr as $clsId => $count) {
                     $customUrl = $url = array('doc_Search', 'docClass' => $clsId, 'state' => 'draft', 'author' => $firstTeamAuthor, 'fromDate' => $fromDate);
                     
@@ -3589,7 +3591,7 @@ class doc_Containers extends core_Manager
         $likeQuery->where("#containerId = {$containerId}");
         $likeQuery->show('createdBy');
         $likedArray = arr::extractValuesFromArray($likeQuery->fetchAll(), 'createdBy');
-        if (count($likedArray)) {
+        if (countR($likedArray)) {
             $subscribed = $subscribed + $likedArray;
         }
         
@@ -3628,7 +3630,7 @@ class doc_Containers extends core_Manager
             $sharedUsers = doc_Containers::getSubscribedUsers($containerId, true, true);
         }
         
-        if (!count($sharedUsers)) {
+        if (!countR($sharedUsers)) {
             
             return;
         }

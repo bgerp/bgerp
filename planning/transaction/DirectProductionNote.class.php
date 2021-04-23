@@ -42,7 +42,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         if (countR($entries)) {
             $result->entries = $entries;
         }
-        
+
         if (Mode::get('saveTransaction')) {
             $productArr = arr::extractValuesFromArray($rec->_details, 'productId');
             if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canConvert', null, 'трябва да са вложими')){
@@ -59,6 +59,29 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     acc_journal_RejectRedirect::expect(false, $redirectError);
                 }
             }
+
+            if (Mode::get('saveTransaction')) {
+                $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
+
+                // Ако е забранено да се изписва на минус, прави се проверка
+                if($allowNegativeShipment == 'no'){
+                    $shippedProductsFromStores = array();
+                    foreach ($rec->_details as $d){
+                        if(isset($d->storeId)){
+                            $shippedProductsFromStores[$d->storeId][] = $d;
+                        }
+                    }
+
+                    foreach ($shippedProductsFromStores as $storeId => $arr){
+                        if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($arr, $storeId, $rec->state)) {
+                            acc_journal_RejectRedirect::expect(false, $warning);
+                        }
+                    }
+                }
+            }
+
+
+
         }
         
         return $result;
@@ -133,8 +156,9 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             $dRecs = $dQuery->fetchAll();
             $rec->_details = $dRecs;
         }
-        
-        $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs, $rec->jobQuantity);
+
+        $equalizePrimeCost = $rec->equalizePrimeCost == 'yes';
+        $entries = self::getProductionEntries($rec->productId, $rec->quantity, $rec->storeId, $rec->debitAmount, $this->class, $rec->id, $rec->expenseItemId, $rec->valior, $rec->expenses, $dRecs, $rec->jobQuantity, $equalizePrimeCost);
         
         return $entries;
     }
@@ -156,14 +180,13 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
      * 
      * @return array $entries
      */
-    public static function getProductionEntries($productId, $quantity, $storeId, $debitAmount, $classId, $documentId, $expenseItemId, $valior, $expenses, $details, $jobQuantity = null)
+    public static function getProductionEntries($productId, $quantity, $storeId, $debitAmount, $classId, $documentId, $expenseItemId, $valior, $expenses, $details, $jobQuantity = null, $equalizePrimeCost = null)
     {
         $entries = $array = array();
         $prodRec = cat_Products::fetch($productId, 'fixedAsset,canStore');
         
         if ($prodRec->canStore == 'yes') {
-            $array = array('321', array('store_Stores', $storeId),
-                array('cat_Products', $productId));
+            $array = array('321', array('store_Stores', $storeId), array('cat_Products', $productId));
         } else {
             if ($prodRec->fixedAsset == 'yes') {
                 $expenseItem = array('cat_Products', $productId);
@@ -182,7 +205,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         
         if (is_array($details)) {
             if (!countR($details)) {
-                $debitAmount = ($debitAmount) ? $debitAmount : 0;
+                $debitAmount = ($debitAmount) ? round($debitAmount, 2) : 0;
                 
                 $amount = $debitAmount;
                 $costAmount = $debitAmount;
@@ -217,6 +240,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                                      'quantity' => $dRec->quantity),
                                            'reason' => 'Влагане на материал в производството');
                         } else {
+                            if(empty($dRec->fromAccId)) continue;
+
                             $item = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
                             $entry = array('debit' => array('61101',
                                                       array('cat_Products', $dRec->productId),
@@ -324,27 +349,29 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 
                 $entries[] = $costArray;
             }
-            
+
             if ($Driver = cat_Products::getDriver($productId)) {
-                $quantityCompare = !empty($jobQuantity) ? $jobQuantity : $quantity;
-                $driverCost = $Driver->getPrice($productId, $quantityCompare, 0, 0, $valior);
-              
-                $driverCost = is_object($driverCost) ? $driverCost->price : $driverCost;
-                
-                if (isset($driverCost)) {
-                    $driverAmount = $driverCost * $quantity;
-                    $diff = round($driverAmount - $selfAmount, 2);
-                    
-                    if ($diff > 0) {
-                        $array['quantity'] = 0;
-                        $array1 = array(
-                            'amount' => $diff,
-                            'debit' => $array,
-                            'credit' => array('61102'),
-                            'reason' => 'Изравняване на себестойността, спрямо очакваната'
-                        );
-                        
-                        $entries[] = $array1;
+                if($equalizePrimeCost){
+                    $quantityCompare = !empty($jobQuantity) ? $jobQuantity : $quantity;
+                    $driverCost = $Driver->getPrice($productId, $quantityCompare, 0, 0, $valior);
+
+                    $driverCost = is_object($driverCost) ? $driverCost->price : $driverCost;
+
+                    if (isset($driverCost)) {
+                        $driverAmount = $driverCost * $quantity;
+                        $diff = round($driverAmount - $selfAmount, 2);
+
+                        if ($diff > 0) {
+                            $array['quantity'] = 0;
+                            $array1 = array(
+                                'amount' => $diff,
+                                'debit' => $array,
+                                'credit' => array('61102'),
+                                'reason' => 'Изравняване на себестойността, спрямо очакваната'
+                            );
+
+                            $entries[] = $array1;
+                        }
                     }
                 }
             }

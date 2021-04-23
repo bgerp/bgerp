@@ -424,7 +424,6 @@ input[type="radio"] {
  */
 
 input[type="search"] {
-    -webkit-appearance: textfield; /* 1 */
     -moz-box-sizing: content-box;
     -webkit-box-sizing: content-box; /* 2 */
     box-sizing: content-box;
@@ -696,7 +695,11 @@ select.combo {
 		color: blue !important;
 	}
 }
-
+label .colorBox {
+	position: relative;
+	top: 4px;
+	margin-right: 5px;
+}
 
 .checkbox, input[type=checkbox] {
 	margin: 3px 3px 3px 4px;
@@ -890,8 +893,8 @@ a.header:hover {
 }
 
 .wide .noicon {
-    padding-right: 3px !important; /* IE6 */
-    padding-left: 3px !important; /* IE6 */
+    padding-right: 6px !important; /* IE6 */
+    padding-left: 6px !important; /* IE6 */
 }
 
 .location-input{
@@ -980,6 +983,17 @@ table .linkWithIcon {
 	&.nameday {
 		background-image: url('../img/16/orthodox.png');
 	}
+}
+
+.toolbar-first input.onlyIcon {
+	padding: 0.34em 5px 0.34em 5px !important;
+	box-sizing: border-box;
+	width: 26px;
+	background-position: center !important;
+}
+
+.narrow .toolbar-first input.onlyIcon {
+	width: 28px;
 }
 
 a.linkWithIcon.small-padding-icon {
@@ -1274,11 +1288,13 @@ a.profile {
 }
 
 .state-opened-link > a {
-	background-color: #e0ffe0;
+	color: green;
 	padding-right: 4px;
-	box-shadow: inset 0 0 3px #aaf2aa;
 }
-
+.portal .state-opened {
+	color: green;
+	background-color: transparent !important;
+}
 .state-pending{
     background-color: #ecf;
 	background-color:rgba(238, 204, 255, 0.7);
@@ -1492,8 +1508,7 @@ table.listTable {
 	> tbody > tr > td {
 	    border: 1px solid $gray4;
 	    padding: 4px 3px 3px;
-	    line-height: normal; 
-	    font-family: Arial,Verdana;
+	    line-height: normal;
 		vertical-align: middle;
 		word-wrap: break-word;
 	}
@@ -2274,6 +2289,10 @@ table.keylist {
 	       padding-right: 20px;
 	   }
 	}
+}
+
+.keylist.twoCols td {
+	width: 50%;
 }
 
 .wide table.keylist.shrinked:not(.keylist-wide) {

@@ -290,10 +290,12 @@ class acc_reports_ProductGroupRep extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-							    <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN group-->|Групи|*: [#group#]<!--ET_END group--></div></small>
-                                <small><div><!--ET_BEGIN groupBy-->|Групиране по|*: [#groupBy#]<!--ET_END groupBy--></div></small>
+								    <div class='small'>
+                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN group--><div>|Групи|*: [#group#]</div><!--ET_END group-->
+                                        <!--ET_BEGIN groupBy--><div>|Групиране по|*: [#groupBy#]</div><!--ET_END groupBy-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
         if (isset($data->rec->from)) {

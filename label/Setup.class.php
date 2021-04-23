@@ -66,6 +66,8 @@ class label_Setup extends core_ProtoSetup
         array('seeLabel'),
         array('label', 'seeLabel'),
         array('labelMaster', 'label'),
+        array('seeLabelAll', 'seeLabel'),
+        array('seeLabelAllGlobal', 'seeLabelAll'),
     );
     
     

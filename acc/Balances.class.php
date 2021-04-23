@@ -144,10 +144,10 @@ class acc_Balances extends core_Master
         $this->FLD('periodId', 'key(mvc=acc_Periods,select=title)', 'caption=Период,mandatory,autoFilter');
         $this->FLD('fromDate', 'date', 'input=none,caption=Период->от,column=none');
         $this->FLD('toDate', 'date', 'input=none,caption=Период->до,column=none');
-        $this->FLD('lastAlternation', 'datetime(format=smartTime)', 'input=none,caption=Последно->Изменение');
+        $this->FLD('lastAlternation', 'datetime(format=smartTime, defaultTime)', 'input=none,caption=Последно->Изменение');
         $this->FLD('lastAlternationDocClass', 'class(interface=acc_TransactionSourceIntf)', 'caption=Последно изменение->Документ клас,input=none,column=none');
         $this->FLD('lastAlternationDocId', 'int', 'input=none,column=none,caption=Последно изменение->Документ ID');
-        $this->FLD('lastCalculate', 'datetime(format=smartTime)', 'input=none,caption=Последно->Изчисляване');
+        $this->FLD('lastCalculate', 'datetime(format=smartTime, defaultTime)', 'input=none,caption=Последно->Изчисляване');
         $this->FLD('lastCalculateChange', 'enum(yes,no)', 'input=none,caption=Последно->Нови ст-ти');
     }
     
@@ -280,6 +280,8 @@ class acc_Balances extends core_Master
     {
         $query = self::getQuery();
         $query->orderBy('#toDate', 'DESC');
+        $date = (empty($date)) ? '0000-00-00' : $date;
+
         while ($rec = $query->fetch("#toDate < '{$date}'")) {
             if (self::isValid($rec)) {
                 
@@ -413,13 +415,9 @@ class acc_Balances extends core_Master
             // Преизчисляваме първия баланс, в който има промени още веднъж, за да подаде верни данни на следващите
             static $rc1;
             
-            self::logDebug("After Calc: {$rec->lastCalculateChange}; rc1 = {$rc1}");
-            
             if (!$rc1 && $rec->lastCalculateChange != 'no') {
                 self::calc($rec);
                 $rc1 = true;
-                
-                self::logDebug("After Calc2: {$rec->lastCalculateChange}; rc1 = {$rc1}");
             }
             
             return true;
@@ -518,7 +516,6 @@ class acc_Balances extends core_Master
             do {
                 core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME);
                 self::forceCalc($rec);
-                self::logDebug("After forceCalc: {$rec->lastCalculateChange}; j = {$j}; rc = {$rc}");
             } while ($rec->lastCalculateChange != 'no' && $j++ < 9 && $rc);
             $rc = false;
         }

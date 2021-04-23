@@ -30,8 +30,8 @@ class ical_Parser extends core_Mvc
         $ical->initString($ics);
         
         $events = $ical->events();
-        
-        
+
+
         foreach ($events as $id => $e) {
             if ($e->dtstart) {
                 $e->dtstart = dt::timestamp2mysql(strtotime($e->dtstart));
@@ -60,6 +60,7 @@ class ical_Parser extends core_Mvc
             
             if ($e->duration) {
                 $d = new \DateInterval($e->duration);
+                $t = '';
                 if ($d->y) {
                     $t .= $d->y . ' years ';
                 }
@@ -102,16 +103,19 @@ class ical_Parser extends core_Mvc
             
             $Richtext = cls::get('type_Richtext');
             $e->descriptionVrb = preg_replace_callback(type_Richtext::URL_PATTERN, array($Richtext, '_catchUrls'), $e->descriptionVrb);
-            
-            // Подготовка и заместване на плейсхолдерите
-            foreach ($Richtext->_htmlBoard as $place => $text) {
-                $Richtext->_htmlBoard[$place] = new ET($text);
+
+            if (is_array($Richtext->_htmlBoard)) {
+                // Подготовка и заместване на плейсхолдерите
+                foreach ($Richtext->_htmlBoard as $place => $text) {
+                    $Richtext->_htmlBoard[$place] = new ET($text);
+                }
+
+                if (countR($Richtext->_htmlBoard)) {
+                    $e->descriptionVrb = new ET($e->descriptionVrb);
+                    $e->descriptionVrb->placeArray($Richtext->_htmlBoard);
+                }
             }
-            
-            if (count($Richtext->_htmlBoard)) {
-                $e->descriptionVrb = new ET($e->descriptionVrb);
-                $e->descriptionVrb->placeArray($Richtext->_htmlBoard);
-            }
+
             
             $e->organizer = str_replace(array('\\n\\r', '\\r\\n', '\\n', '\\r'), "\n", $e->organizer);
             $e->organizerVrb = self::getPersons($e->organizer_array);

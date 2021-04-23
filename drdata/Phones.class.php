@@ -98,7 +98,7 @@ class drdata_Phones extends core_Manager
                     foreach ($numberVarArr as $number) {
                         
                         // Ако кода на региона започва с 0, да не се добавя кода на държавата
-                        if ($areaCode{0} === '0') {
+                        if ($areaCode[0] === '0') {
                             $hash = $areaCode . '|' . $number;
                             if (!$setArr[$hash]) {
                                 $setArr[$hash] = true;
@@ -254,7 +254,7 @@ class drdata_Phones extends core_Manager
                     // Ако първата цифра на телефона е >0, обаче той е много, много дълъг, за
                     // да бъде локален телефон, проверяваме дали не започва директно с код
                     // на държавата по дефолт. Ако е така, добавяме 2 нули
-                    if ($t1{0} > '0' && strlen($t1) >= 10 && $defaultCountryCode) {
+                    if ($t1[0] > '0' && strlen($t1) >= 10 && $defaultCountryCode) {
                         if (strpos($t1, $defaultCountryCode) === 0) {
                             $t1 = '00' . $t1;
                         }
@@ -262,7 +262,7 @@ class drdata_Phones extends core_Manager
                     
                     // Ако телефонът започва с единица и в оригиналния си вид
                     // след единицата не е цифра, значи предполагаме, че телефонът е американски
-                    if ($t1{0} == '1' && strlen($t1) > 0) {
+                    if ($t1[0] == '1' && strlen($t1) > 0) {
                         $onePos = strpos($t, '1');
                         $second = @substr($t, $onePos, 1);
                         
@@ -274,8 +274,8 @@ class drdata_Phones extends core_Manager
                     // Ако първата цифра на телефона е >0, обаче той е  дълъг, за
                     // да бъде локален телефон, проверяваме дали не започва директно с код
                     // на региона по дефолт или на мобилни оператори от държавата. Ако е така, добавяме 1 нула
-                    if ($t1{0} > '0' && strlen($t1) >= 8 && strlen($t1) < 15) {
-                        if ($defaultAreaCode && strpos($t1, $defaultAreaCode) === 0) {
+                    if ($t1[0] > '0' && strlen($t1) >= 8 && strlen($t1) < 15) {
+                        if ($defaultAreaCode && strpos((string)$t1, (string)$defaultAreaCode) === 0) {
                             $t1 = '0' . $t1;
                         } else {
                             $mobArr = $this->getMobile($defaultCountryCode);
@@ -292,7 +292,7 @@ class drdata_Phones extends core_Manager
                     
                     // Ако първата цифра е 0, но втората не е и все пак, телефона е дълъг за да бъде регионален,
                     // Проверяваме дали не започва с националния код, и ако е така, отпред добавяме една 0
-                    if ($t1{0} == '0' && $t1{1} > '0' && strlen($t1) >= 9 && $defaultCountryCode) {
+                    if ($t1[0] == '0' && $t1[1] > '0' && strlen($t1) >= 9 && $defaultCountryCode) {
                         if (substr($t1, 1, strlen($defaultCountryCode)) == $defaultCountryCode) {
                             $t1 = '0' . $t1;
                         }
@@ -326,7 +326,7 @@ class drdata_Phones extends core_Manager
                         }
                         
                         // само за италия
-                        if ($obj->countryCode == '39' && $t1{1} == '0') {
+                        if ($obj->countryCode == '39' && $t1[1] == '0') {
                             $t1 = substr($t1, 1);
                         }
                         
@@ -347,11 +347,11 @@ class drdata_Phones extends core_Manager
                                 $areaCodeLen = 2;
                             }
                             
-                            if ($t1{$areaCodeLen + 1} == '0') {
+                            if ($t1[$areaCodeLen + 1] == '0') {
                                 $areaCodeLen++;
                             }
                             
-                            if ($t1{$areaCodeLen + 1} == '0') {
+                            if ($t1[$areaCodeLen + 1] == '0') {
                                 $areaCodeLen++;
                             }
                             
@@ -364,7 +364,7 @@ class drdata_Phones extends core_Manager
                     }
                     
                     // Само за италия
-                    if ($obj->countryCode == '39' && ($obj->areaCode{0} != '0') && ($obj->areaCode{0} != '3')) {
+                    if ($obj->countryCode == '39' && ($obj->areaCode[0] != '0') && ($obj->areaCode[0] != '3')) {
                         $obj->areaCode = '0' . $obj->areaCode;
                     }
                     

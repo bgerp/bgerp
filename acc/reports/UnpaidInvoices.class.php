@@ -362,7 +362,7 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
-        
+
         if ($export === false) {
             $fld->FLD('invoiceNo', 'varchar', 'caption=Фактура No,smartCenter');
             $fld->FLD('invoiceDate', 'varchar', 'caption=Дата');
@@ -563,12 +563,14 @@ class acc_reports_UnpaidInvoices extends frame2_driver_TableData
             tr(
                 "|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN contragent-->|Контрагент|*: <b>[#contragent#]</b><!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN salesTotalNotPaid-->|фактури ПРОДАЖБИ »    НЕПЛАТЕНИ|*: <b>[#salesTotalNotPaid#]</b><!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN salesTotalOverDue-->|фактури ПРОДАЖБИ »   ПРОСРОЧЕНИ|*: <b>[#salesTotalOverDue#]</b><!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN salesTotalOverPaid-->|фактури ПРОДАЖБИ »   НАДПЛАТЕНИ|*: <b>[#salesTotalOverPaid#]</b><!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN purchaseTotalNotPaid-->|фактури ПОКУПКИ »  НЕПЛАТЕНИ|*: <b>[#purchaseTotalNotPaid#]</b><!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN purchaseTotalOverDue-->|фактури ПОКУПКИ » ПРОСРОЧЕНИ|*: <b>[#purchaseTotalOverDue#]</b><!--ET_END to--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN contragent--><div>|Контрагент|*: <b>[#contragent#]</b></div><!--ET_END contragent-->
+                                        <!--ET_BEGIN salesTotalNotPaid--><div>|фактури ПРОДАЖБИ » НЕПЛАТЕНИ|*: <b>[#salesTotalNotPaid#]</b></div><!--ET_END salesTotalNotPaid-->
+                                        <!--ET_BEGIN salesTotalOverDue--><div>|фактури ПРОДАЖБИ » ПРОСРОЧЕНИ|*: <b>[#salesTotalOverDue#]</b></div><!--ET_END salesTotalOverDue-->
+                                        <!--ET_BEGIN salesTotalOverPaid--><div>|фактури ПРОДАЖБИ » НАДПЛАТЕНИ|*: <b>[#salesTotalOverPaid#]</b></div><!--ET_END salesTotalOverPaid-->
+                                        <!--ET_BEGIN purchaseTotalNotPaid--><div>|фактури ПОКУПКИ » НЕПЛАТЕНИ|*: <b>[#purchaseTotalNotPaid#]</b></div><!--ET_END purchaseTotalNotPaid-->
+                                        <!--ET_BEGIN purchaseTotalOverDue--><div>|фактури ПОКУПКИ » ПРОСРОЧЕНИ|*: <b>[#purchaseTotalOverDue#]</b></div><!--ET_END purchaseTotalOverDue-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"
             )
         );

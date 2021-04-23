@@ -44,6 +44,12 @@ defIfNot('DRDATA_VAT_TTL', 2 * core_DateTime::SECONDS_IN_MONTH);
 
 
 /**
+ * Кеширане на информацията за EORI номерата
+ */
+defIfNot('DRDATA_EORI_TTL', 2 * core_DateTime::SECONDS_IN_MONTH);
+
+
+/**
  * До колко време след последното използване да се проверяват
  */
 defIfNot('DRDATA_LAST_USED_EXP', core_DateTime::SECONDS_IN_MONTH);
@@ -105,6 +111,7 @@ class drdata_Setup extends core_ProtoSetup
         'TEL_LINK_NARROW' => array('enum(none=Няма,
                                                    yes=Да,)', 'caption=Хипервръзки за телефоните->Mobile'),
         'DRDATA_VAT_TTL' => array('time(suggestions=1 месец|2 месеца|3 месеца|4 месеца|6 месеца|12 месеца)', 'mandatory, caption=Кеширане на информацията за VAT номерата->Време'),
+        'DRDATA_EORI_TTL' => array('time(suggestions=1 месец|2 месеца|3 месеца|4 месеца|6 месеца|12 месеца)', 'mandatory, caption=Кеширане на информацията за EORI номерата->Време'),
         'DRDATA_LAST_USED_EXP' => array('time(suggestions=1 месец|2 месеца|3 месеца|4 месеца|6 месеца|12 месеца)', 'mandatory, caption=Ограничение за проверка след последно използване->Време'),
     
     );
@@ -120,8 +127,11 @@ class drdata_Setup extends core_ProtoSetup
         'drdata_DialCodes',
         'drdata_PhoneCache',
         'drdata_Vats',
+        'drdata_Eori',
         'drdata_Domains',
         'drdata_Languages',
+        'drdata_bg_Places',
+        'drdata_CanonizedStrings',
         'migrate::fixPhoneCache2040'
     );
     

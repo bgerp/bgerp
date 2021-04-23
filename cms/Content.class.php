@@ -578,23 +578,35 @@ class cms_Content extends core_Manager
     {
         $data->title .= cms_Domains::getCurrentDomainInTitle();
     }
-    
-    
+
+
     /**
      * Връща опциите от менюто, които отговарят на текущия домейн и клас
+     *
+     * @param mixed $class
+     * @param null|int $domainId
+     * @return array $res
      */
     public static function getMenuOpt($class, $domainId = null)
     {
         $classId = core_Classes::getId($class);
-        if (!$domainId) {
-            $domainId = cms_Domains::getPublicDomain('id');
-        }
-        
+
         $res = array();
         $query = self::getQuery();
+        $query->where("#source = {$classId} AND #state = 'active'");
+        if(isset($domainId)){
+            $query->where("#domainId = {$domainId}");
+        }
         $query->orderBy('#order');
-        while ($rec = $query->fetch("#domainId = {$domainId} AND #source = {$classId}")) {
-            $res[$rec->id] = $rec->menu;
+
+        while ($rec = $query->fetch()) {
+            if(!isset($domainId)){
+                $title = cms_Content::getVerbal($rec, 'menu') . ' (' . cms_Content::getVerbal($rec, 'domainId') . ')';
+            } else {
+                $title = cms_Content::getVerbal($rec, 'menu');
+            }
+
+            $res[$rec->id] = $title;
         }
         
         return $res;
@@ -906,18 +918,18 @@ class cms_Content extends core_Manager
 
         foreach ($qArr as $j => &$w) {
             
-            $f = $w{0};
+            $f = $w[0];
             $len = strlen($w);
             
             // Отрицателните думи не ги обработваме
-            if ($w{0} == '-') {
+            if ($w[0] == '-') {
                 $resArr[] = $w;
                 $lastW = null;
                 continue;
             }
            
             // Фразите не ги обработваме
-            if ($w{0} == '"') {
+            if ($w[0] == '"') {
                 $flag = true;
                 $resArr[] = $w . '"';
                 $lastW = null;
@@ -935,7 +947,7 @@ class cms_Content extends core_Manager
             // Разбити на две думи в заявката
             if (isset($lastW)) {  
                 $dw = $lastW . $w;
-                $df = $dw{0};
+                $df = $dw[0];
                 $dLen = strlen($dw);
                 if(is_array($kArr[$df][$dLen]) && in_array($dw, $kArr[$df][$dLen])) {
                     $flag = true;
@@ -1003,7 +1015,7 @@ class cms_Content extends core_Manager
         
         $res = null;
         
-        if (count($resArr) && $flag) {
+        if (countR($resArr) && $flag) {
             $res = implode(' ', $resArr);
         }
         
@@ -1030,7 +1042,7 @@ class cms_Content extends core_Manager
                 if (cls::existsMethod($cls, 'getAllSearchKeywords')) {
                     $newWords = $cls::getAllSearchKeywords($rec->id);
                     foreach ($newWords as $w => $bool) {
-                        $kArr[$w{0}][strlen($w)][] = $w;
+                        $kArr[$w[0]][strlen($w)][] = $w;
                     }
                 }
             }

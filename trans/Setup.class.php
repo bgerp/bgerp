@@ -17,6 +17,19 @@ defIfNot('TRANS_CMR_SHOW_BTN', 'no');
  */
 defIfNot('TRANS_DATE_FOR_TRANS_INDICATORS', '');
 
+
+/**
+ * Автоматично затваряне на транспортни линии активни от
+ */
+defIfNot('TRANS_LINES_ACTIVATED_AFTER', '5184000');
+
+
+/**
+ * Автоматично затваряне на транспортни линии чакащи с минала дата
+ */
+defIfNot('TRANS_LINES_PENDING_AFTER', '604800');
+
+
 /**
  * Транспорт
  *
@@ -93,12 +106,29 @@ class trans_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(3.3, 'Логистика', 'Транспорт', 'trans_Lines', 'default', 'trans, ceo'),
     );
-    
-    
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Close Trans Lines',
+            'description' => 'Затваряне на транспортни линии',
+            'controller' => 'trans_Lines',
+            'action' => 'CloseTransLines',
+            'period' => 1440,
+            'timeLimit' => 360
+        ),
+    );
+
+
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
+        'TRANS_LINES_ACTIVATED_AFTER' => array('time','caption=Автоматично затваряне на транспортни линии->Активни от'),
+        'TRANS_LINES_PENDING_AFTER' => array('time','caption=Автоматично затваряне на транспортни линии->Чакащи с минала дата'),
         'TRANS_CMR_SENDER_INSTRUCTIONS' => array('text(rows=2)','caption=ЧМР->13. Инструкции на изпращача'),
         'TRANS_CMR_SHOW_BTN' => array('enum(yes=Включено,no=Изключено)','caption=При липса на условие на доставка. Да се показва ли бутона за ЧМР->Избор'),
         'TRANS_DATE_FOR_TRANS_INDICATORS' => array('date', 'caption=От коя дата да се изчисляват индикатори транспортни линии->Дата'),

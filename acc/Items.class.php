@@ -96,7 +96,7 @@ class acc_Items extends core_Manager
     /**
      * Работен кеш
      */
-    protected $cache = array();
+    public $cache = array();
     
     
     /**
@@ -598,12 +598,6 @@ class acc_Items extends core_Manager
             $rec = new stdClass();
             $register = core_Cls::getInterface('acc_RegisterIntf', $classId);
             self::syncItemRec($rec, $register, $objectId);
-            
-            if (haveRole('debug')) {
-                $title = $Class->getTitleById($objectId);
-                $listName = acc_Lists::fetchField($listId, 'name');
-                core_Statuses::newStatus("|*'{$title}' |е добавен в номенклатура|* '{$listName}'");
-            }
         }
         
         $rec->classId = $classId;
@@ -930,6 +924,7 @@ class acc_Items extends core_Manager
      */
     public function act_ShowItemInfo()
     {
+        requireRole('powerUser');
         $id = Request::get('id', 'int');
         $unique = Request::get('unique', 'int');
         

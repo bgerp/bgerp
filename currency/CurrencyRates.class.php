@@ -26,7 +26,7 @@ class currency_CurrencyRates extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools, Currencies=currency_Currencies, currency_Wrapper, plg_Sorting, plg_Chart';
+    public $loadList = 'plg_Created, plg_RowTools2, Currencies=currency_Currencies, currency_Wrapper, plg_Sorting, plg_Chart';
     
     
     /**
@@ -339,7 +339,7 @@ class currency_CurrencyRates extends core_Detail
         // Незададен (NULL) код на валута означава базова валута, зададен - обръщаме го към id
         $fromId = is_null($from) ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($from);
         $toId = is_null($to)   ? acc_Periods::getBaseCurrencyId($date) : currency_Currencies::getIdByCode($to);
-        
+
         if (!isset($date)) {
             $date = dt::verbal2mysql();
         }
@@ -404,7 +404,7 @@ class currency_CurrencyRates extends core_Detail
     protected static function getDirectRate($date, $fromId, $toId)
     {
         $rate = static::getStoredRate($date, $fromId, $toId);
-        
+
         if (is_null($rate)) {
             if (!is_null($rate = static::getStoredRate($date, $toId, $fromId))) {
                 $rate = 1 / $rate;
@@ -426,10 +426,10 @@ class currency_CurrencyRates extends core_Detail
      *
      * @return float
      */
-    protected static function getStoredRate($date, $fromId, $toId)
+    private static function getStoredRate($date, $fromId, $toId)
     {
         if (!isset(static::$cache[$date][$fromId][$toId])) {
-            
+
             // Търсим най-близкия минал или текущ курс до подадената дата
             $query = static::getQuery();
             $query->where("#date <= '{$date}'");
@@ -437,12 +437,15 @@ class currency_CurrencyRates extends core_Detail
             $query->where("#currencyId = {$toId}");
             $query->orderBy('date', 'DESC');
             $query->limit(1);
-            
+
             // Ако има го кешираме
             if ($pastRec = $query->fetch()) {
                 static::$cache[$date][$pastRec->baseCurrencyId][$pastRec->currencyId] = $pastRec->rate;
+                if(empty($pastRec->rate)){
+                    wp($pastRec->rate, $pastRec, $date, $fromId, $toId);
+                }
             } else {
-                
+
                 // Ако няма намираме най-близкия курс след зададената дата
                 $fQuery = static::getQuery();
                 $fQuery->where("#date > '{$date}'");
@@ -454,14 +457,26 @@ class currency_CurrencyRates extends core_Detail
                 // Ако намери кешираме го
                 if ($nextRec = $fQuery->fetch()) {
                     static::$cache[$date][$nextRec->baseCurrencyId][$nextRec->currencyId] = $nextRec->rate;
+
+                    if(empty($nextRec->rate)){
+                        wp($nextRec->rate, $nextRec, $date, $fromId, $toId);
+                    }
                 }
             }
         }
         
         // Ако имаме кеширан курс връщаме го
         if (isset(static::$cache[$date][$fromId][$toId])) {
-            
-            return static::$cache[$date][$fromId][$toId];
+            $rate = static::$cache[$date][$fromId][$toId];
+            if(empty($rate)){
+                wp($rate, $date, $fromId, $toId);
+            }
+
+            if(is_array($rate)){
+                $rate = $rate[key($rate)];
+            }
+
+            return $rate;
         }
     }
     
@@ -476,7 +491,7 @@ class currency_CurrencyRates extends core_Detail
      *
      * @return float
      */
-    protected static function getCrossRate($date, $fromId, $toId, $baseCurrencyId)
+    public static function getCrossRate($date, $fromId, $toId, $baseCurrencyId)
     {
         if (is_null($fromBaseRate = static::getDirectRate($date, $fromId, $baseCurrencyId))) {
             
@@ -488,7 +503,7 @@ class currency_CurrencyRates extends core_Detail
             return;
         }
         
-        return static::$cache[$date][$fromId][$toId] = $fromBaseRate / $toBaseRate;
+        return static::$cache[$date][$fromId][$toId][$baseCurrencyId] = $fromBaseRate / $toBaseRate;
     }
     
     

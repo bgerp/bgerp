@@ -131,6 +131,8 @@ class drdata_Vats extends core_Manager
      */
     public function act_Check()
     {
+        requireRole('admin');
+
         $form = cls::get('core_Form');
         $form->title = 'Проверка на VAT номер';
         $form->FNC('vat', 'varchar(32)', 'caption=VAT номер,input');
@@ -487,11 +489,10 @@ class drdata_Vats extends core_Manager
                 return $lastDigit == $c;
                 
             case 13:
-                
-               
                 $v1 = array(2, 7, 3, 5);
                 $v2 = array(4, 9, 5, 7);
-                
+
+                $c = 0;
                 for ($i = 8; $i < 12; $i++) {
                     $c = $c + ((int) substr($BULSTAT, $i, 1)) * $v1[$i - 8] ;
                 }
@@ -652,9 +653,13 @@ class drdata_Vats extends core_Manager
                                 if (!empty($addressHtml)) {
                                     $addressHtml = str_replace('<br />', ' ', $addressHtml);
                                     $address = strip_tags(str_replace('<br/>', ' ', $addressHtml));
-                                    
+
                                     $shortAddress = $address;
-                                    $shortAddress = str_replace('бул./ул.', 'ул.', $shortAddress);
+
+                                    $shortAddress = preg_replace('/(бул.\s*\/+)*(ул\.\s*)+(бул.\s*)/ui', 'бул. ', $shortAddress);
+                                    $shortAddress = preg_replace('/(бул.\s*\/+)*(ул\.\s*)+/ui', 'ул. ', $shortAddress);
+                                    $shortAddress = str::removeWhiteSpace($shortAddress, ' ');
+
                                     $cutPos1 = mb_strpos($shortAddress, 'Населено място');
                                     if ($cutPos1 !== false) {
                                         $shortAddress = mb_substr($shortAddress, $cutPos1);

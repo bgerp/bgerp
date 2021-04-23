@@ -152,8 +152,17 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
      */
     private function getLastDebitRecs($productItemIds, $storeItemIds, $useCachedDate = true)
     {
+        // Ако баланса се изчислява в момента да не прави нищо
+        if ($useCachedDate && !core_Locks::get('RecalcBalances', 600, 2)) {
+
+            log_System::logDebug("AVG BALANCE NOT FREE");
+
+            return array();
+        }
+
         $storeAccId = acc_Accounts::getRecBySystemId('321')->id;
         $skipDocArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
+        $lastBalance = acc_Balances::getLastBalance();
         
         // Дали да се използва кешираната дата
         $lastCalcedDebitTime = null;
@@ -180,11 +189,19 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             if(empty($lastCalcedDebitTime)){
                 $jQuery->groupBy('journalId');
             } else { 
-                $jQuery->where("#journalCreatedOn >= '{$lastCalcedDebitTime}'");
+                $where = "#journalCreatedOn >= '{$lastCalcedDebitTime}'";
+                if(is_object($lastBalance)){
+                    $where .= " AND #journalCreatedOn <= '{$lastBalance->lastCalculate}'";
+                }
+                log_System::logDebug("AVG FROM '{$lastCalcedDebitTime}' - BID={$lastBalance->id} '{$lastBalance->lastCalculate}'");
+
+                $jQuery->where($where);
+
+                log_System::logDebug("AVG QUERY '{$jQuery->getWhereAndHaving()->w}'");
+
             }
             
             $jRec = $jQuery->fetch();
-           
             if (is_object($jRec)) {
                 $jRec->debitQuantity = $jRec->sumDebitQuantity;
                 $jRec->amount = $jRec->sumDebitAmount;
@@ -192,14 +209,16 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
                 unset($jRec->sumDebitQuantity);
                 unset($jRec->sumDebitAmount);
                 unset($jRec->maxValior);
-                
                 $debitRecs[$itemId] = $jRec;
+
+                log_System::logDebug("AVG Quantity {$jRec->debitQuantity} AMOUNT {$jRec->amount}");
             }
         }
 
-        $lastCalcedDebitTime = dt::now();
+        $lastCalcedDebitTime = is_object($lastBalance) ? $lastBalance->lastCalculate : dt::now();
         core_Permanent::set('lastCalcedDebitTime', $lastCalcedDebitTime, core_Permanent::IMMORTAL_VALUE);
-        
+        log_System::logDebug("AVG SAVED TIME {$lastCalcedDebitTime}");
+
         return $debitRecs;
     }
     
@@ -295,7 +314,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
             return;
         }
         
-        core_App::setTimeLimit($count * 0.8, 900);
+        core_App::setTimeLimit($count * 0.8, false, 900);
         
         // Мапване на артикулите с перата и намиране на последните им дебити в посочените складове
         $map = $me->getProductItemMap($publicProductIds, $alreadyCalculatedProductIds);
@@ -362,13 +381,17 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
     public function getAffectedProducts($datetime)
     {
         $affected = array();
-        
+
         // Ако има избрани складове, гледа се има ли дебити в тях
         $storeData = $this->getStoreInfo();
         if(countR($storeData['storeItemIds'])){
             $skipDocumentArr = array(store_Transfers::getClassId(), store_InventoryNotes::getClassId());
-            
-            $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit', $storeData['storeItemIds'], $skipDocumentArr);
+
+            // Опит бъгфикс
+            $lastCalcedDebitTime = core_Permanent::get('lastCalcedDebitTime');
+            $time = !empty($lastCalcedDebitTime) ? $lastCalcedDebitTime : $datetime;
+
+            $affected = parent::getAffectedProductWithStoreMovement($time, 'debit', $storeData['storeItemIds'], $skipDocumentArr);
         }
         
         return $affected;

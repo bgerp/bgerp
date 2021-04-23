@@ -89,7 +89,8 @@ class crm_Persons extends core_Master
     public $loadList = 'plg_Created, plg_Modified, plg_RowTools2,  plg_LastUsedKeys,plg_Rejected, plg_Select,
                      crm_Wrapper, crm_AlphabetWrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Groups, plg_Printing, plg_State,
                      plg_Sorting, recently_Plugin, plg_Search, acc_plg_Registry, doc_FolderPlg,
-                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg, callcenter_AdditionalNumbersPlg';
+                     bgerp_plg_Import, doc_plg_Close, drdata_PhonePlg,bgerp_plg_Export,plg_ExpandInput, core_UserTranslatePlg,
+                     callcenter_AdditionalNumbersPlg, crm_ContragentGroupsPlg';
     
     
     /**
@@ -101,7 +102,7 @@ class crm_Persons extends core_Master
     /**
      * Полета за експорт
      */
-    public $exportableCsvFields = 'salutation,name,nameList,egn,vatId,birthday,country,pCode,place,address,buzCompanyId,buzLocationId,buzPosition,buzEmail,buzTel,buzFax,buzAddress,email,tel,mobile,fax,website,info,photo,groupList';
+    public $exportableCsvFields = 'salutation,name,nameList,egn,vatId,eori,birthday,country,pCode,place,address,buzCompanyId,buzLocationId,buzPosition,buzEmail,buzTel,buzFax,buzAddress,email,tel,mobile,fax,website,info,photo,groupList';
     
     
     /**
@@ -125,7 +126,7 @@ class crm_Persons extends core_Master
     /**
      * Полета по които се правитърсене от плъгина plg_Search
      */
-    public $searchFields = 'salutation, name, egn, birthday, country, pCode, place, address, email, tel, mobile, fax, website, info, buzCompanyId, buzLocationId, buzPosition, buzEmail, buzTel, buzFax, buzAddress, id';
+    public $searchFields = 'salutation, name, egn, birthday, country, pCode, place, address, email, tel, mobile, fax, website, info, buzCompanyId, buzLocationId, buzPosition, buzEmail, buzTel, buzFax, buzAddress, id, eori, vatId';
     
     
     /**
@@ -290,7 +291,8 @@ class crm_Persons extends core_Master
         // Единен Граждански Номер
         $this->FLD('egn', 'bglocal_EgnType', 'caption=ЕГН,export=Csv,silent');
         $this->FLD('vatId', 'drdata_VatType', 'caption=ДДС (VAT) №,remember=info,class=contactData,export=Csv');
-        
+        $this->FLD('eori', 'drdata_type_Eori', 'caption=EORI №,remember=info,class=contactData,export=Csv,silent');
+
         // Дата на раждане
         $this->FLD('birthday', 'combodate(minYear=1850,maxYear=' . date('Y') . ')', 'caption=Рожден ден,export=Csv');
         
@@ -321,7 +323,7 @@ class crm_Persons extends core_Master
         $this->FLD('website', 'url', 'caption=Лични комуникации->Сайт/Блог,class=contactData,export=Csv');
         
         // Допълнителна информация
-        $this->FLD('info', 'richtext(bucket=crmFiles, passage=Общи)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
+        $this->FLD('info', 'richtext(bucket=crmFiles, passage)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото,export=Csv');
         
         // В кои групи е?
@@ -399,7 +401,7 @@ class crm_Persons extends core_Master
             $mvc->birthdayFilter = true;
         }
         if ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $cond = "LTRIM(REPLACE(REPLACE(REPLACE(LOWER(#name), '\"', ''), '\'', ''), '`', '')) NOT REGEXP '^[a-zA-ZА-Яа-я]'";
             } else {
                 $alphaArr = explode('-', $data->listFilter->rec->alpha);
@@ -540,7 +542,7 @@ class crm_Persons extends core_Master
             type_Varchar::escape($data->listFilter->rec->search) .
             '</b>"';
         } elseif ($data->listFilter->rec->alpha) {
-            if ($data->listFilter->rec->alpha{0} == '0') {
+            if ($data->listFilter->rec->alpha[0] == '0') {
                 $data->title = 'Лица, които започват с не-буквени символи';
             } else {
                 $data->title = "Лица започващи с буквите|* \"<b style='color:green'>{$data->listFilter->rec->alpha}</b>\"";
@@ -1362,6 +1364,7 @@ class crm_Persons extends core_Master
             $contrData->countryId = $person->country;
             $contrData->pCode = $person->pCode;
             $contrData->vatNo = $person->vatId;
+            $contrData->eori = $person->eori;
             $contrData->uicId = $person->egn;
             $contrData->place = $person->place;
             $contrData->email = $person->buzEmail;
@@ -2915,6 +2918,54 @@ class crm_Persons extends core_Master
         if ($oRec = $query->fetch()) {
             $rec->id = $oRec->id;
         }
+
+        // Ако има избрана група от csv файла
+        if (isset($rec->groups)) {
+            $delimiter = csv_Lib::getDevider($rec->groups);
+
+            $groupArr = explode($delimiter, $rec->groups);
+
+            $groupIdArr = array();
+
+            $missingGroupArr = array();
+            foreach ($groupArr as $groupName) {
+                $groupName = trim($groupName);
+
+                if (!$groupName) {
+                    continue;
+                }
+
+                $force = false;
+                if (haveRole('debug')) {
+                    $force = true;
+                }
+                $groupId = crm_Groups::force($groupName, null, $force);
+
+                if (!isset($groupId)) {
+                    $missingGroupArr[] = $groupName;
+                }
+
+                $groupIdArr[$groupId] = $groupId;
+            }
+
+            if (!empty($missingGroupArr)) {
+                $groupName = implode(', ', $missingGroupArr);
+                $rec->__errStr = "Липсваща група при импортиране: {$groupName}";
+                self::logNotice($rec->__errStr);
+
+                return false;
+            }
+
+            if ($rec->groupListInput) {
+                if (!empty($groupIdArr)) {
+                    $rec->groupListInput = type_Keylist::merge($rec->groupListInput, type_Keylist::fromArray($groupIdArr));
+                }
+            } else {
+                if (!empty($groupIdArr)) {
+                    $rec->groupListInput = type_Keylist::fromArray($groupIdArr);
+                }
+            }
+        }
     }
     
     
@@ -3019,7 +3070,7 @@ class crm_Persons extends core_Master
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             
@@ -3046,7 +3097,14 @@ class crm_Persons extends core_Master
         $query->show('id, buzCompanyId, ' . $titleFld);
         
         $res = array();
-        
+
+        if ($params['group']) {
+            $gId = crm_Groups::getIdFromSysId($params['group']);
+            expect($gId);
+
+            $query->likeKeylist('groupList', $gId);
+        }
+
         while ($rec = $query->fetch()) {
             $str = trim($rec->{$titleFld});
             
@@ -3058,7 +3116,7 @@ class crm_Persons extends core_Master
             
             $res[$rec->id] = $str;
         }
-        
+
         return $res;
     }
     

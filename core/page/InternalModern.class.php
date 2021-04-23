@@ -155,17 +155,17 @@ class core_page_InternalModern extends core_page_Active
             // Задаваме лейаута на страницата
             $header = "<div style='position: relative'>
                                 <a id='nav-panel-btn' class='fleft btn-sidemenu btn-menu-left push-body [#openLeftBtn#]'>". $menuImg ."</a>
-                                <span class='fleft '>
-                                    <span class='menu-options search-options'>" . $searchImg .
-                                         "<span class='menu-holder'>
+                                <div class='fleft '>
+                                    <div class='menu-options search-options'>" . $searchImg .
+                                         "<div class='menu-holder'>
                                                 [#SEARCH_INPUT#]
                                                 [#SEARCH_LINK#]
-                                            </span>
-                                        </span>
-                                </span>
-                                <span class='center-block'>
+                                            </div>
+                                        </div>
+                                </div>
+                                <div class='center-block'>
                                     <div class='logoText'>[#PORTAL#]<span class='notificationsCnt'>[#NOTIFICATIONS_CNT#]</span></div>
-                                </span>
+                                </div>
                                 <a id='fav-panel-btn' class='fright btn-sidemenu btn-menu-right push-body [#openRightBtn#]'>". $pinImg . $pinnedImg . "</a>
                                 <div class='fright'>
                                         <div class='menu-options user-options'>
@@ -260,7 +260,7 @@ class core_page_InternalModern extends core_page_Active
         $html = '';
         $lastMenu = '';
         
-        if (($menuObj) && (count($menuObj))) {
+        if (($menuObj) && (countR($menuObj))) {
             foreach ($menuObj as $key => $rec) {
                 
                 // Определяме дали състоянието на елемента от менюто не е 'активно'
@@ -274,7 +274,7 @@ class core_page_InternalModern extends core_page_Active
                 
                 if ($lastMenu != $rec->menu) {
                     $html .= ($html ? "\n</ul></li>" : '') . "\n<li{$mainClass} data-menuid = '{$rec->id}'>";
-                    $html .= "\n    <div><span class='arrow'></span>{$rec->menuTr}</div>";
+                    $html .= "\n    <div><span class='arrow'>&nbsp;</span>{$rec->menuTr}</div>";
                     $html .= "\n<ul class='submenuBlock'>";
                 }
                 $lastMenu = $rec->menu;
@@ -296,7 +296,7 @@ class core_page_InternalModern extends core_page_Active
                 }
             }
         }
-        
+
         $tpl->append($html, 'MENU_ROW');
     }
     
@@ -320,7 +320,7 @@ class core_page_InternalModern extends core_page_Active
             if (!$email) {
                 $email = core_Users::getCurrent('email');
             }
-            
+
             list($user, $domain) = explode('@', $email);
             $currUrl = getCurrentUrl();
             $ctr = $currUrl['Ctr'];
@@ -419,35 +419,41 @@ class core_page_InternalModern extends core_page_Active
         $attr = array();
         $attr['onClick'] = "return searchInLink(this, 'search-input-modern', 'search', false);";
         $searchLink = '';
-        $colum1 = '';
-        $colum2 = '';
+        $column = '';
         
         if (doc_Search::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/doc_empty.png';
             $attr['id'] = 'modern-doc-search';
-            $colum1 .= ht::createLink(tr('Документи'), array('doc_Search', 'list'), null, $attr);
+            $column .= ht::createLink(tr('Документи'), array('doc_Search', 'list'), null, $attr);
         }
         
         if (doc_Folders::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/folder_open_icon.png';
             $attr['id'] = 'modern-folder-search';
-            $colum2 .= ht::createLink(tr('Папки'), array('doc_Folders', 'list'), null, $attr);
+            $column .= ht::createLink(tr('Папки'), array('doc_Folders', 'list'), null, $attr);
+        }
+        
+        // Бутон за търсене във файлове
+        if (doc_Files::haveRightFor('list')) {
+            $attr['ef_icon'] = 'img/16/paper-clip2.png';
+            $attr['id'] = 'modern-file-search';
+            $column .= ht::createLink(tr('Файлове'), array('doc_Files', 'list'), null, $attr);
         }
         
         // Бутон за търсене по баркод
         if (barcode_Search::haveRightFor('list')) {
             $attr['ef_icon'] = 'img/16/barcode-icon.png';
             $attr['id'] = 'modern-barcode-search';
-            $colum1 .= ht::createLink(tr('Баркод'), array('barcode_Search', 'list'), null, $attr);
+            $column .= ht::createLink(tr('Баркод'), array('barcode_Search', 'list'), null, $attr);
         }
         
         // Бутон за търсене по баркод
         if (help_Info::haveRightFor('list') && core_Packs::isInstalled('help')) {
             $attr['ef_icon'] = 'img/16/help_icon.png';
             $attr['id'] = 'modern-help-info';
-            $colum2 .= ht::createLink(tr('Помощ'), array('help_Info', 'list'), null, $attr);
+            $column .= ht::createLink(tr('Помощ'), array('help_Info', 'list'), null, $attr);
         }
-        $searchLink = "<table><tr><td>{$colum1}</td><td>${colum2}</td></tr></table>";
+        $searchLink = "<table><tr><td>{$column}</td></tr></table>";
         $tpl->replace($searchLink, 'SEARCH_LINK');
     }
     

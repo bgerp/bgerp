@@ -197,6 +197,10 @@ class doc_Folders extends core_Master
             $attr['class'] .= ' state-rejected';
         }
         
+        if ($url) {
+            unset($attr['url']);
+        }
+        
         $link = ht::createLink($title, $url, null, $attr);
         
         return $link;
@@ -484,7 +488,7 @@ class doc_Folders extends core_Master
     /**
      * Връща линк към папката
      */
-    public static function getFolderTitle($rec, $title = null)
+    public static function getFolderTitle($rec, $title = null, $limitLen = null)
     {
         $mvc = cls::get('doc_Folders');
         
@@ -498,10 +502,11 @@ class doc_Folders extends core_Master
         if ($title === null) {
             $title = $mvc->getVerbal($rec, 'title');
         }
-        
-        if (mb_strlen($rec->title) > self::maxLenTitle) {
+
+        $maxLenTitle = isset($limitLen) ? $limitLen : self::maxLenTitle;
+        if (mb_strlen($title) > $maxLenTitle) {
             $attr['title'] = $title;
-            $title = str::limitLen($rec->title, self::maxLenTitle);
+            $title = str::limitLen($title, $maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
         
@@ -536,7 +541,7 @@ class doc_Folders extends core_Master
             if (Mode::is('printing') || Mode::is('text', 'xhtml') || Mode::is('pdf')) {
                 $link = array();
             }
-            
+
             $title = ht::createLink($title, $link, null, $attr);
         } else {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
@@ -586,7 +591,7 @@ class doc_Folders extends core_Master
         // изпълнен.
         doc_Threads::doUpdateThread();
         
-        if (count($mvc->updateByContentOnShutdown)) {
+        if (countR($mvc->updateByContentOnShutdown)) {
             foreach ($mvc->updateByContentOnShutdown as $id) {
                 // Извличаме записа на папката
                 $rec = doc_Folders::fetch($id);
@@ -2143,7 +2148,7 @@ class doc_Folders extends core_Master
         }
         
         if (is_array($onlyIds)) {
-            if (!count($onlyIds)) {
+            if (!countR($onlyIds)) {
                 
                 return array();
             }
@@ -2167,7 +2172,7 @@ class doc_Folders extends core_Master
         $query->XPR('searchFieldXpr', 'text', "LOWER(CONCAT(' ', #{$titleFld}))");
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             

@@ -137,7 +137,8 @@ class pos_Points extends core_Master
         $this->FLD('payments', 'keylist(mvc=cond_Payments, select=title)', 'caption=Настройки->Безналични плащания,placeholder=Всички');
         $this->FLD('theme', 'enum(default=Стандартна,dark=Тъмна)', 'caption=Настройки->Тема,default=default,mandatory');
         $this->FLD('cashiers', 'keylist(mvc=core_Users,select=nick)', 'caption=Настройки->Оператори, mandatory,optionsFunc=pos_Points::getCashiers');
-        $this->FLD('productGroups', 'table(columns=groupId,captions=Група,validate=pos_Points::validateGroups)', 'caption=Настройки->Групи');
+        $this->FLD('productGroups', 'table(columns=groupId,captions=Група,validate=pos_Points::validateGroups,groupId_class=leftCell)', 'caption=Настройки->Групи');
+
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
         $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts)', 'caption=Ръчно задаване->Използвани отстъпки');
@@ -361,7 +362,7 @@ class pos_Points extends core_Master
             $reportUrl = array('pos_Reports', 'add', 'pointId' => $rec->id, 'ret_url' => true);
         }
         
-        $title = (count($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
+        $title = (countR($reportUrl)) ? 'Направи отчет' : 'Не може да се генерира отчет. Възможна причина - неприключени бележки.';
         
         $data->toolbar->addBtn('Отчет', $reportUrl, null, "title={$title},ef_icon=img/16/report.png");
     }

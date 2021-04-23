@@ -130,9 +130,11 @@ class export_Export extends core_Mvc
         expect($dRec);
         
         $inst->requireRightFor('exportdoc', $dRec);
-        
+
+        core_App::setTimeLimit(300);
+
         $form = $this->getForm();
-        $form->title = 'Експортиране на|*' . $inst->getFormTitleLink($docId);
+        $form->title = 'Експортиране на|* ' . $inst->getFormTitleLink($docId);
         
         $retUrl = getRetUrl();
         
@@ -160,17 +162,28 @@ class export_Export extends core_Mvc
             $intfCls = cls::getInterface('export_ExportTypeIntf', $type);
             $intfCls->addParamFields($form, $classId, $docId);
         }
-        
+
+        $pKey = 'docExportType_' . core_Users::getCurrent();
+        if (($docExportType = core_Permanent::get($pKey)) && (isset($exportFormats[$docExportType]))) {
+            $form->setDefault('type', $docExportType);
+        }
+
         $form->input();
         
         if ($form->isSubmitted()) {
             $exportFormatsArr = $this->getPossibleExports($classId, $docId);
             expect($exportFormatsArr[$form->rec->type]);
-            
+
+            Mode::set('exporting', true);
+
             $intfCls = cls::getInterface('export_ExportTypeIntf', $form->rec->type);
             
             $eRes = $intfCls->makeExport($form, $classId, $docId);
-            
+
+            if ($form->rec->type) {
+                core_Permanent::set($pKey, $form->rec->type, 43200);
+            }
+
             if (is_object($eRes) && $eRes instanceof core_Redirect) {
                 
                 return $eRes;
@@ -245,7 +258,9 @@ class export_Export extends core_Mvc
         if ($action->createdBy) {
             $su = core_Users::sudo($action->createdBy);
         }
-        
+
+        Mode::set('exporting', true);
+
         $fileHnd = $typeClsInst->makeExport($form, $clsId, $mRec);
         
         core_Users::exitSudo($su);

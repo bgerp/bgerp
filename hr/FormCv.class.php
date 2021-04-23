@@ -92,7 +92,7 @@ class hr_FormCv extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'doc_DocumentPlg, plg_RowTools2,hr_Wrapper, plg_Printing, plg_State, plg_PrevAndNext,doc_ActivatePlg';
+    public $loadList = 'doc_DocumentPlg, plg_RowTools2,hr_Wrapper, plg_Printing, plg_State, plg_PrevAndNext,doc_ActivatePlg, hr_EmailCreatePlg';
     
     
     /**
@@ -318,7 +318,7 @@ class hr_FormCv extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         $title = $this->recToverbal($rec, 'name')->name;

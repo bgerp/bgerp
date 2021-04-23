@@ -15,6 +15,13 @@
  */
 class cat_ListingDetails extends doc_Detail
 {
+
+    /**
+     * @var string
+     */
+    public $exportToMaster = 'price, reff, productId=code|name';
+
+
     /**
      * Кой  може да изтрива?
      */
@@ -54,7 +61,7 @@ class cat_ListingDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Modified, cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_RowNumbering, plg_AlignDecimals2, plg_Sorting';
+    public $loadList = 'plg_Modified, cat_Wrapper, plg_RowTools2, plg_SaveAndNew, plg_RowNumbering, plg_AlignDecimals2, plg_Sorting, plg_PrevAndNext';
     
     
     /**

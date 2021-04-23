@@ -585,10 +585,13 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN groupsChecked-->|Наблюдавани групи|*: [#groupsChecked#]<!--ET_END groupsChecked--></div></small>
-                                <small><div><!--ET_BEGIN inputArts-->|Наблюдавани артикули|*: [#inputArts#]<!--ET_END inputArts--></div></small>
-                                <small><div><!--ET_BEGIN ariculsData-->|Артикули с данни|*: [#ariculsData#]<!--ET_END ariculsData--></div></small>
-                                <small><div><!--ET_BEGIN storeId-->|Складове|*: [#storeId#]<!--ET_END storeId--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN groupsChecked--><div>|Наблюдавани групи|*: [#groupsChecked#]</div><!--ET_END groupsChecked-->
+                                        <!--ET_BEGIN inputArts--><div>|Наблюдавани артикули|*: [#inputArts#]</div><!--ET_END inputArts-->
+                                        <!--ET_BEGIN ariculsData--><div>|Артикули с данни|*: [#ariculsData#]</div><!--ET_END ariculsData-->
+                                        <!--ET_BEGIN storeId--><div>|Складове|*: [#storeId#]</div><!--ET_END storeId-->
+                                    </div>
+                                
                                  </fieldset><!--ET_END BLOCK-->"));
         
         

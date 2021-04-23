@@ -352,7 +352,7 @@ class incoming_Documents extends core_Master
     /**
      * Имплементиране на интерфейсен метод (@see doc_DocumentIntf)
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         // Вземаме записите
         $rec = $this->fetch($id);

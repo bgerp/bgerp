@@ -151,7 +151,7 @@ class log_Browsers extends core_Master
         $this->FLD('userAgent', 'text', 'caption=User agent');
         $this->FLD('acceptLangs', 'text', 'caption=Accept langs');
         $this->FLD('userData', 'blob(serialize, compress)', 'caption=Данни');
-        
+
         $this->setDbUnique('brid');
     }
     
@@ -1173,5 +1173,45 @@ class log_Browsers extends core_Master
     protected static function getBridHashName()
     {
         return md5(log_Browsers::getUserAgent() . '|' . core_Users::getRealIpAddr());
+    }
+
+
+    /**
+     * Изтрива стари записи
+     */
+    public function cron_DeleteOldEmptyBrid()
+    {
+        $before = dt::addDays(-1 * (log_Setup::get('EMPTY_BRID_KEEP_DAYS') / (24 * 3600)));
+
+        $query = $this->getQuery();
+        $query->where(array("#createdOn <= '[#1#]' AND #createdBy <= 0 AND #userData IS NULL", $before));
+        $query->orWhere(array("#brid IS NULL", $before));
+        $query->orWhere(array("#brid = ''", $before));
+
+        $query->show('id, brid');
+        $rCnt = 0;
+
+        while ($rec = $query->fetch()) {
+
+            // Ако има история - да не се изтрива
+            if (strlen($rec->brid) && vislog_History::fetch(array("#brid = '[#1#]'", $rec->brid))) {
+
+                continue;
+            }
+
+            // Ако има логване - да не се изтрива
+            if (strlen($rec->brid) && core_LoginLog::fetch(array("#brid = '[#1#]'", $rec->brid))) {
+
+                continue;
+            }
+
+            $rCnt += $this->delete(array("#id = '[#1#]'", $rec->id));
+        }
+
+        if ($rCnt) {
+            $this->logNotice("Бяха изтрити {$rCnt} записа");
+
+            return "Бяха изтрити {$rCnt} записа от " . $this->className;
+        }
     }
 }

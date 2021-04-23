@@ -93,7 +93,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
     /**
      * Какви продукти да могат да се избират в детайла
      */
-    protected $defaultMeta = 'canConvert,canStore';
+    protected $defaultMeta = 'canConvert';
     
     
     /**
@@ -125,7 +125,8 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $data->masterData->rec->storeId, $rec->quantity, $data->masterData->rec->state);
+            $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;
+            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $data->masterData->rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
         }
     }
     

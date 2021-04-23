@@ -59,39 +59,53 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
         
         $dQuery = planning_ConsumptionNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
-        while ($dRec = $dQuery->fetch()) {
+        $details = $dQuery->fetchAll();
+
+        if (Mode::get('saveTransaction')) {
+            $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
+            if($allowNegativeShipment == 'no'){
+                if ($warning = deals_Helper::getWarningForNegativeQuantitiesInStore($details, $rec->storeId, $rec->state)) {
+                    acc_journal_RejectRedirect::expect(false, $warning);
+                }
+            }
+        }
+
+        foreach ($details as $dRec) {
+            $prodRec = cat_Products::fetch($dRec->productId, 'canStore,fixedAsset');
             $productsArr[$dRec->productId] = $dRec->productId;
             $debitArr = null;
             
             if ($rec->useResourceAccounts == 'yes') {
                 
                 // Ако е указано да влагаме само в център на дейност и ресурси, иначе влагаме в център на дейност
-                $debitArr = array('61101', array('cat_Products', $dRec->productId),
-                    'quantity' => $dRec->quantity);
-                
-                $reason = 'Влагане на материал в производството';
+                $debitArr = array('61101', array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
             }
-            
+
+            if($prodRec->canStore == 'yes'){
+                $creditArr = array(321, array('store_Stores', $rec->storeId), array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
+                $reason = 'Влагане на материал в производството';
+            } else {
+                $expenseItem = ($prodRec->fixedAsset == 'yes') ? array('cat_Products', $dRec->productId) : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+                $creditArr = array(60201, $expenseItem, array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
+                $reason = 'Влагане на услуга в производството';
+            }
+
             // Ако не е ресурс, дебитираме общата сметка за разходи '61102. Други разходи (общо)'
             if (empty($debitArr)) {
                 $debitArr = array('61102');
-                $reason = 'Бездетайлно влагане на материал в производството';
+                $type = ($prodRec->canStore == 'yes') ? 'материал' : 'услуга';
+                $reason = "Бездетайлно влагане на {$type} в производството";
             }
-            
-            $entries[] = array('debit' => $debitArr,
-                'credit' => array(321,
-                    array('store_Stores', $rec->storeId),
-                    array('cat_Products', $dRec->productId),
-                    'quantity' => $dRec->quantity),
-                'reason' => $reason);
+
+            $entries[] = array('debit' => $debitArr, 'credit' => $creditArr, 'reason' => $reason);
         }
         
         if (Mode::get('saveTransaction')) {
             
             // Проверка на артикулите
             if (countR($productsArr)) {
-                $msg = "трябва да са складируеми и вложими";
-                if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canConvert,canStore', null, $msg)){
+                $msg = "трябва да са складируеми и/или вложими";
+                if($redirectError = deals_Helper::getContoRedirectError($productsArr, 'canConvert', null, $msg)){
                     
                     acc_journal_RejectRedirect::expect(false, $redirectError);
                 }

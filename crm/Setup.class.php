@@ -41,6 +41,13 @@ defIfNot('CRM_REGISTRY_USE_BRRA', 'yes');
  */
 defIfNot('CRM_ALPHABET_FILTER', 'standart');
 
+
+/**
+ * "Свързани" фирми
+ */
+defIfNot('CRM_CONNECTED_COMPANIES', '');
+
+
 /**
  * Клас 'crm_Setup' -
  *
@@ -49,11 +56,10 @@ defIfNot('CRM_ALPHABET_FILTER', 'standart');
  * @package   crm
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @todo:     Да се документира този клас
  */
 class crm_Setup extends core_ProtoSetup
 {
@@ -100,8 +106,9 @@ class crm_Setup extends core_ProtoSetup
         'CRM_VISIBLE_NKID' => array('enum(none=Не показвай, yes=Покажи)', 'caption=Класификация на икономическите дейности->НКИД'),
         'CRM_REGISTRY_USE_BRRA' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->Търговски регистър'),
         'CRM_REGISTRY_USE_VIES' => array('enum(yes=Включено,ne=Изключено)', 'caption=Извличане и попълване на данни->VIES'),
-        'CRM_ALPHABET_FILTER' => array('enum(none=Без,standart=Стандартен,twoRows=Двоен)', 'caption=Вид на азбучника, customizeBy=powerUser'),
-    );
+        'CRM_ALPHABET_FILTER' => array('enum(none=Без,standart=Стандартен,twoRows=Двоен)', 'caption=Вид на азбучника->Избор, customizeBy=powerUser'),
+        'CRM_CONNECTED_COMPANIES' => array('keylist(mvc=crm_Companies,select=name)', 'caption="Свързани" фирми'),
+        );
     
     
     /**
@@ -144,6 +151,8 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
+        'migrate::updateUics',
+        'migrate::updateGroupsCountry2106',
     );
     
     
@@ -159,8 +168,28 @@ class crm_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(1.32, 'Указател', 'Визитник', 'crm_Companies', 'default', 'powerUser'),
     );
-    
-    
+
+
+    /**
+     * Менижиране на формата формата за настройките
+     *
+     * @param core_Form $configForm
+     * @return void
+     */
+    public function manageConfigDescriptionForm(&$configForm)
+    {
+        $companyOptions = array();
+        $companyQuery = crm_Companies::getQuery();
+        $groupId = crm_Groups::getIdFromSysId('related');
+        $companyQuery->where("LOCATE('|{$groupId}|', #groupList)");
+        while($cRec = $companyQuery->fetch()){
+            $companyOptions[$cRec->id] = crm_Companies::getRecTitle($cRec, false);
+        }
+
+        $configForm->setSuggestions('CRM_CONNECTED_COMPANIES', $companyOptions);
+    }
+
+
     /**
      * Скрипт за инсталиране
      */
@@ -198,7 +227,106 @@ class crm_Setup extends core_ProtoSetup
         $rec->offset = 16;
         $rec->delay = 0;
         $html .= core_Cron::addOnce($rec);
-        
+
         return $html;
+    }
+
+
+    /**
+     * Обновява националните номера
+     */
+    public function updateUics()
+    {
+        $Canonized = cls::get('drdata_CanonizedStrings');
+        $Canonized->setupMvc();
+
+        // Всички фирми с национални номера
+        $Companies = cls::get('crm_Companies');
+        $query = $Companies->getQuery();
+        $query->where("#uicId IS NOT NULL AND #uicId != ''");
+        $query->show('id,uicId');
+        $count =  $query->count();
+        core_App::setTimeLimit($count * 0.6, false,300);
+
+        // Нормализиране на националния номер според държавата на контрагента
+        $save = $update = array();
+        while($rec = $query->fetch()){
+
+            // Канонизиране на номера
+            $canonized = drdata_CanonizedStrings::canonize($rec->uicId, 'uic', false);
+
+            // Подмяна на нац. номер с канонизирания
+            if(!empty($canonized)){
+                if(!array_key_exists($rec->uicId, $save)){
+                    $save[$rec->uicId] = (object)array('string' => $rec->uicId, 'canonized' => $canonized, 'type' => 'uic');
+                }
+
+                $rec->uicId = $canonized;
+                $update[$rec->id] = $rec;
+            }
+        }
+
+        // Канонизация на номерата
+        if(countR($save)) {
+            $eQuery = $Canonized->getQuery();
+            $all = $eQuery->fetchAll();
+
+            $res = arr::syncArrays($save, $all, 'string,type', 'string,canonized');
+            if(countR($res['insert'])){
+                $Canonized->saveArray($res['insert']);
+            }
+
+            if(countR($res['update'])){
+                $Canonized->saveArray($res['update'], 'id,string,canonized');
+            }
+        }
+
+        // Ъпдейт на фирмите
+        if(countR($update)) {
+            $Companies->saveArray($update, 'id,uicId');
+        }
+    }
+
+
+    /**
+     * Миграция за добавяне на групи за държави
+     */
+    public function updateGroupsCountry2106()
+    {
+        $gIdArr = crm_ContragentGroupsPlg::getGroupsId();
+
+        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
+            $clsInst = cls::get($clsName);
+            $query = $clsInst->getQuery();
+
+            $query->show('groupListInput, groupList, country');
+            while ($rec = $query->fetch()) {
+                if (!$rec->country) {
+
+                    continue;
+                }
+
+                $gForAdd = drdata_CountryGroups::getGroupsArr($rec->country);
+
+                foreach ($gForAdd as $id => $gRec) {
+                    $gId = $gIdArr[$id];
+
+                    $rec->groupListInput = type_Keylist::addKey($rec->groupListInput, $gId);
+                }
+
+                // Вземаме всички въведени от потребителя стойност
+                $inputArr = type_Keylist::toArray($rec->groupListInput);
+
+                // Намираме всички свъразани
+                $resArr = $clsInst->expandInput($inputArr);
+
+                $rec->groupList = type_Keylist::fromArray($resArr);
+
+                $clsInst->save_($rec, 'groupListInput, groupList');
+            }
+        }
+
+        crm_Groups::updateGroupsCnt('crm_Companies', 'companiesCnt');
+        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
     }
 }

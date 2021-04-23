@@ -159,7 +159,7 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
         }
         
         // Изчисляване на цените по последни рецепти
-        core_App::setTimeLimit($count * 0.8, 600);
+        core_App::setTimeLimit($count * 0.8, false,600);
         $Interface = cls::getInterface('price_CostPolicyIntf', $this);
         $calced = $Interface->calcCosts($affectedProducts);
         

@@ -294,27 +294,17 @@ class pos_Terminal extends peripheral_Terminal
                     foreach ($stores as $storeId){
                         $block = clone $modalTpl->getBlock('INSTOCK_BLOCK');
                         $storeRow = (object)array('storeId' => store_Stores::getTitleById($storeId));
-                        
-                        $quantity = pos_Stocks::fetchField("#storeId = '{$storeId}' AND #productId = '{$productRec->id}'", 'quantity');
-                        $quantity = isset($quantity) ? $quantity : 0;
-                        $reservedQuantity = store_Products::fetchField("#storeId = {$storeId} AND #productId = {$productRec->id}", 'reservedQuantity');
-                        $free = $quantity;
-                        
-                        $inStockVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
-                        $inStockVerbal = ht::styleIfNegative($inStockVerbal, $quantity);
-                        $storeRow->inStock = $inStockVerbal;
-                        
-                        if(!empty($reservedQuantity) && $quantity){
-                            $reservedQuantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($reservedQuantity);
-                            $reservedQuantityVerbal = ht::styleIfNegative($reservedQuantityVerbal, $reservedQuantity);
-                            $storeRow->reserved = $reservedQuantityVerbal;
-                            $free -= $reservedQuantity;
+                        $stockRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = '{$productRec->id}'");
+
+                        foreach (array('reservedQuantity', 'expectedQuantity', 'quantity') as $fld){
+                            $verbalQuantity = core_Type::getByName('double(smartRound)')->toVerbal($stockRec->{$fld});
+                            $storeRow->{$fld} = ht::styleIfNegative($verbalQuantity, $stockRec->{$fld});
                         }
-                        
-                        $freeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($free);
-                        $freeVerbal = ht::styleIfNegative($freeVerbal, $free);
-                        $storeRow->free = $freeVerbal;
-                        
+
+                        $freeQuantity = $stockRec->quantity - $stockRec->reservedQuantity + $stockRec->expectedQuantity;
+                        $freeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantity);
+                        $freeVerbal = ht::styleIfNegative($freeVerbal, $freeQuantity);
+                        $storeRow->freeQuantity = $freeVerbal;
                         $block->placeObject($storeRow);
                         $row->INSTOCK .= $block->getContent();
                     }
@@ -349,7 +339,8 @@ class pos_Terminal extends peripheral_Terminal
                 $changeMetaUrl = (cat_Products::haveRightFor('edit', $productRec->id)) ? array('cat_Products', 'changemeta', 'Selected' => $productRec->id, 'toggle' => 'canSell', 'ret_url' => array('pos_Terminal', 'open', 'receiptId' => $receitpId)) : array();
                 $warning = ($productRec->canSell == 'yes') ? 'Наистина ли желаете да спрете артикула от продажба|*?' : 'Наистина ли желаете да пуснете артикула в продажба|*?';
                 $warning = countR($changeMetaUrl) ? $warning : false;
-                $btn = ht::createBtn($btnTitle,  $changeMetaUrl, $warning, null, "class=actionBtn {$className}");
+
+                $btn = ht::createBtn($btnTitle,  $changeMetaUrl, $warning, null, "class=actionBtn {$className},title={$btnTitle} на артикула от продажба");
                 Request::removeProtected('Selected');
                 $modalTpl->append($btn, 'TOOLBAR');
                 
@@ -370,7 +361,7 @@ class pos_Terminal extends peripheral_Terminal
                 Mode::pop('noWrapper');
                 Mode::pop('text');
         }
-        
+
         // Ще се реплейсва и пулта
         $res = array();
         $resObj = new stdClass();
@@ -634,7 +625,8 @@ class pos_Terminal extends peripheral_Terminal
         
         // Добавяне на полето за търсене и клавиатурата
         $input = ht::createElement('input', $params);
-        $holder = ht::createElement('div', array('class' => 'inputHolder'), $input, true);
+        $reset = ht::createElement('span', array("class" => "close-icon"), "&#10006;", true);
+        $holder = ht::createElement('div', array('class' => 'inputHolder'), $input . $reset, true);
         $block->append($holder, 'INPUT_FLD');
         
         // Добавяне на цифрова клавиатура
@@ -1036,7 +1028,7 @@ class pos_Terminal extends peripheral_Terminal
                 
                 // Ако има клиентска карта с посочения номер, намира се контрагента ѝ
                 if($cardRec = crm_ext_Cards::fetch("#number = '{$stringInput}'")){
-                    $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec)->getTitleById($cardRec->contragentId));
+                    $contragents["{$cardRec->contragentClassId}|{$cardRec->contragentId}"] = (object)array('contragentClassId' => $cardRec->contragentClassId, 'contragentId' => $cardRec->contragentId, 'title' => cls::get($cardRec->contragentClassId)->getTitleById($cardRec->contragentId));
                     $count++;
                 }
                 
@@ -1348,8 +1340,7 @@ class pos_Terminal extends peripheral_Terminal
         $count = 0;
         foreach ($packs as $packagingId => $packName){
             $packRec = cat_products_Packagings::getPack($selectedRec->productId, $packagingId);
-            $packName = cat_UoM::getTitleById($packagingId);
-            
+            $packName = cat_UoM::getVerbal($packagingId, 'name');
             $btnCaption = tr($packName);
             if(is_object($packRec)){
                 $baseMeasureId = $measureId;
@@ -1378,7 +1369,7 @@ class pos_Terminal extends peripheral_Terminal
             $quantity = core_Type::getByName('double(smartRound)')->toVerbal($detailRec->quantity);
             Mode::pop('text', 'plain');
             if(!$detailRec->value)  continue; // Да не гърми при лоши данни
-            $packagingId = cat_UoM::getSmartName($detailRec->value, 1);
+
             $btnCaption =  "{$quantity} " . tr(cat_UoM::getSmartName($detailRec->value, $detailRec->quantity));
             $packDataName = cat_UoM::getTitleById($detailRec->value);
             $frequentPackButtons[] = ht::createElement("div", array('id' => "packaging{$count}", 'class' => "{$baseClass} packWithQuantity", 'data-quantity' => $detailRec->quantity, 'data-pack' => $packDataName, 'data-url' => $dataUrl), $btnCaption, true);
@@ -1390,9 +1381,10 @@ class pos_Terminal extends peripheral_Terminal
             $stores = pos_Points::getStores($rec->pointId);
             if(countR($stores) > 1 && empty($rec->revertId)){
                 $storeArr = array();
+
                 foreach ($stores as $storeId){
-                    $quantity = pos_Stocks::getQuantityByStore($selectedRec->productId, $storeId);
-                    $storeArr[$storeId] = $quantity;
+                    $stRec = store_Products::getQuantities($selectedRec->productId, $storeId);
+                    $storeArr[$storeId] = $stRec->free;
                 }
                 
                 arsort($storeArr);
@@ -1659,7 +1651,12 @@ class pos_Terminal extends peripheral_Terminal
         $resObj2->func = 'clearStatuses';
         $resObj2->arg = array('type' => 'error');
         $res[] = $resObj2;
-        
+
+        $resObj3 = new stdClass();
+        $resObj3->func = 'clearStatuses';
+        $resObj3->arg = array('type' => 'warning');
+        $res[] = $resObj3;
+
         return $res;
     }
     
@@ -1669,7 +1666,7 @@ class pos_Terminal extends peripheral_Terminal
      * 
      * @param stdClass $rec - записа на бележката
      * @param string $string - въведения стринг за търсене
-     * @param int $revertReceiptId - ид-то на бележката за сторниране
+     * @param stdClass|null $selectedRec - ид-то на бележката за сторниране
      * 
      * @return core_ET
      */
@@ -1937,11 +1934,12 @@ class pos_Terminal extends peripheral_Terminal
         $productClassId = cat_Products::getClassId();
         
         $Policy = cls::get('price_ListToCustomers');
-        $listId = pos_Points::fetchField($rec->pointId, 'policyId');
+        $listId = pos_Points::getSettings($rec->pointId, 'policyId');
+
         if(!($rec->contragentObjectId == $defaultContragentId && $rec->contragentClass == $defaultContragentClassId)){
             $listId = price_ListToCustomers::getListForCustomer($rec->contragentClass, $rec->contragentObjectId);
         }
-        
+
         foreach ($products as $id => $pRec) {
             if(isset($pRec->packId)){
                 $packId = $pRec->packId;
@@ -1977,10 +1975,10 @@ class pos_Terminal extends peripheral_Terminal
             $res[$id]->stock = core_Type::getByName('double(smartRound)')->toVerbal($obj->stock);
             $packagingId = ($obj->packagingId) ? $obj->packagingId : $obj->measureId;
             $res[$id]->packagingId = cat_UoM::getSmartName($packagingId, $obj->stock);
-            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($obj->productId, 'name'), 0, 95);
+            $res[$id]->productId = mb_subStr(cat_Products::getVerbal($obj->productId, 'name'), 0, 80);
             $res[$id]->code = !empty($pRec->code) ? cat_Products::getVerbal($obj->productId, 'code') : "Art{$obj->productId}";
             
-            $res[$id]->photo = $this->getPosProductPreview($obj->productId, 64, 64);
+            $res[$id]->photo = $this->getPosProductPreview($obj->productId, 70, 70);
             $res[$id]->CLASS = ' pos-add-res-btn navigable enlargable';
             $res[$id]->DATA_URL = (pos_ReceiptDetails::haveRightFor('add', $obj)) ? toUrl(array('pos_ReceiptDetails', 'addProduct', 'receiptId' => $rec->id), 'local') : null;
             $res[$id]->DATA_ENLARGE_OBJECT_ID = $id;
@@ -1992,13 +1990,13 @@ class pos_Terminal extends peripheral_Terminal
                 $res[$id]->CLASS .= ' notSellable';
             }
             
-            $stock = ($pRec->canStore == 'yes') ? pos_Stocks::getBiggestQuantity($id, $rec->pointId) : null;
+            $stock = ($pRec->canStore == 'yes') ? pos_Receipts::getBiggestQuantity($id, $rec->pointId) : null;
             if($packId != cat_UoM::fetchBySysId('pcs')->id || (isset($stock) && empty($stock))){
-                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId));
+                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, null,2));
             }
             
-            if ((isset($stock) && empty($stock))) {
-                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0));
+            if ((isset($stock) && $stock <= 0)) {
+                $res[$id]->measureId = tr(cat_UoM::getSmartName($packId, 0, 2));
                 $res[$id]->measureId = "<span class='notInStock'>0 {$res[$id]->measureId}</span>";
             }
             
@@ -2093,7 +2091,7 @@ class pos_Terminal extends peripheral_Terminal
         
         while($receiptRec = $query->fetch()){
             $openUrl = (pos_Receipts::haveRightFor('terminal', $receiptRec->id)) ? array('pos_Terminal', 'open', 'receiptId' => $receiptRec->id, 'opened' => true) : array();
-            $class = (count($openUrl)) ? ' navigable' : ' disabledBtn';
+            $class = (countR($openUrl)) ? ' navigable' : ' disabledBtn';
             $class .= ($receiptRec->id == $rec->id) ? ' currentReceipt' : '';
             
             $btnTitle = self::getReceiptTitle($receiptRec);

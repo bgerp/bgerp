@@ -160,8 +160,14 @@ class sales_Proformas extends deals_InvoiceMaster
         'contragentAddress' => 'clientData|lastDocUser|lastDoc',
         'template' => 'lastDocUser|lastDoc|defMethod',
     );
-    
-    
+
+
+    /**
+     * Стратегии за добавяне на артикули след създаване от източника
+     */
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от договора", 'onlyShipped' => 'Експедираните артикули по договора');
+
+
     /**
      * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
      */
@@ -217,7 +223,10 @@ class sales_Proformas extends deals_InvoiceMaster
     {
         $form = &$data->form;
         parent::prepareInvoiceForm($mvc, $data);
-        
+        if(empty($rec->id)){
+            $form->setDefault('importProducts', 'onlyFromDeal');
+        }
+
         $form->setField('paymentType', 'input=none');
         foreach (array('deliveryPlaceId', 'vatDate') as $fld) {
             $form->setField($fld, 'input=hidden');
@@ -433,11 +442,11 @@ class sales_Proformas extends deals_InvoiceMaster
             $originId = isset($rec->originId) ? $rec->originId : doc_Threads::getFirstContainerId($rec->threadId);
             
             if (cash_Pko::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $originId, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');
+                $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $originId, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов ордер към проформата');
             }
             
             if (bank_IncomeDocuments::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'fromContainerId' => $rec->containerId))) {
-                $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ към проформата');
+                $data->toolbar->addBtn('ПБД', array('bank_IncomeDocuments', 'add', 'originId' => $originId, 'amountDeal' => $amount, 'fromContainerId' => $rec->containerId, 'termDate' => $rec->dueDate, 'ret_url' => true), 'ef_icon=img/16/bank_add.png,title=Създаване на нов приходен банков документ към проформата');
             }
         }
     }

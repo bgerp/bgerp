@@ -195,7 +195,7 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
                 continue;
             }
             $minCost = $rec->minCost ? $rec->minCost : 0;
-            $pQuantity = store_Products::getQuantity($pRec->productId, $rec->storeId);
+            $pQuantity = store_Products::getQuantities($pRec->productId, $rec->storeId, dt::today())->quantity;
             $amount = $pQuantity * $selfPrice;
             $code = $pRec->code ? $pRec->code : 'Art' . $pRec->productId;
             
@@ -409,12 +409,14 @@ class store_reports_ArticlesDepended extends frame2_driver_TableData
         
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
 								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
-                                <small><div><!--ET_BEGIN from-->|От|*: [#from#]<!--ET_END from--></div></small>
-                                <small><div><!--ET_BEGIN to-->|До|*: [#to#]<!--ET_END to--></div></small>
-                                <small><div><!--ET_BEGIN storeId-->|Склад|*: [#storeId#]<!--ET_END storeId--></div></small>
-                                <small><div><!--ET_BEGIN groups-->|Групи продукти|*: [#groups#]<!--ET_END groups--></div></small>
-                                <small><div><!--ET_BEGIN minCost-->|Мин. наличност|*: [#minCost#] ${currency}<!--ET_END minCost--></div></small>
-                                <small><div><!--ET_BEGIN reversibility-->|Мин. обращаемост|*: [#reversibility#]<!--ET_END reversibility--></div></small>
+                                    <div class='small'>
+                                        <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
+                                        <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
+                                        <!--ET_BEGIN storeId--><div>|Склад|*: [#storeId#]</div><!--ET_END storeId-->
+                                        <!--ET_BEGIN groups--><div>|Групи продукти|*: [#groups#]</div><!--ET_END groups-->
+                                        <!--ET_BEGIN minCost--><div>|Мин. наличност|*: [#minCost#] ${currency}</div><!--ET_END minCost-->
+                                        <!--ET_BEGIN reversibility--><div>|Мин. обращаемост|*: [#reversibility#]</div><!--ET_END reversibility-->
+                                    </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         if (isset($data->rec->from)) {
             $fieldTpl->append('<b>' .$Date->toVerbal($data->rec->from) . '</b>', 'from');

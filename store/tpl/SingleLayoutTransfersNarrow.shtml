@@ -89,6 +89,8 @@
             </table>
          </td>
          <!--ET_END leftColum-->
+      </tr>
+      <tr>
          <td>
             <!--ET_BEGIN note-->
             [#note#]
@@ -97,6 +99,11 @@
             <div>
                |Общо тегло|*:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; |Общ обем|*:&nbsp;<b>[#volume#]</b>  <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
             </div>
+         </td>
+      </tr>
+      <tr class='footerDocInfo'>
+         <td>
+            [#/doc/tpl/Copyright.shtml#]
          </td>
       </tr>
    </tbody>

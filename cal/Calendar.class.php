@@ -18,8 +18,14 @@ class cal_Calendar extends core_Master
      * Заглавие
      */
     public $title = "Календар на събития и празници";
-    
-    
+
+
+    /**
+     * Типове, които да се разширяват и така да се показвт в портлания блок
+     */
+    public $blockExpandTypes = 'working-travel,leaves,sick,attendance';
+
+
     /**
      * Класове за автоматично зареждане
      */
@@ -193,7 +199,10 @@ class cal_Calendar extends core_Master
         }
         
         $query    = self::getQuery();
-        
+
+        $fromDate = (empty($fromDate)) ? '0000-00-00' : $fromDate;
+        $toDate = (empty($toDate)) ? '0000-00-00' : $toDate;
+
         $fromTime = $fromDate . ' 00:00:00';
         $toTime   = $toDate   . ' 23:59:59';
         
@@ -390,12 +399,12 @@ class cal_Calendar extends core_Master
         
         // проверка, този клас mvc ли е?
         if($mvc instanceof core_Mvc) {
-            
             $class = $url['Ctr'];
-            
+            $actLower = strtolower($url['Act']);
+
             // записа има ли достъп до екшъните му
-            switch ($url['Act']) {
-                case 'Single':
+            switch ($actLower) {
+                case 'single':
                     $isLink = $class::haveRightFor('single', $url['id']);
                     break;
                 case 'list':
@@ -441,9 +450,7 @@ class cal_Calendar extends core_Master
             $row->event = ht::createLink($row->title, $url, NULL, $attr);
             
             if($cUrl['Act'] == "day" || $cUrl['Act'] == "week" || $cUrl['Act'] == "month"){
-                
-                
-                if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel'){
+                if($rec->type == 'leaves' || $rec->type == 'sick' || $rec->type == 'task' || $rec->type == 'working-travel' || $rec->type == 'attendance'){
                     $row->event = "<div class='task'>" . $img . ht::createLink("<p class='state-{$rec->state}'>".$row->title . "</p>", $url, NULL)."</div>";
                 } else{
                     $row->event = "<div class='holiday-title'>" . $img . ht::createLink("<p class='calWeek'>".$row->title . "</p>", $url, NULL)."</div>";
@@ -468,7 +475,12 @@ class cal_Calendar extends core_Master
                     $row->event .= ' (' . crm_Profiles::createLink($pRec->inCharge) . ')';
                 }
             }
-            
+
+            if($url['Ctr'] == 'doc_Folders' && ($url['id'])) {
+                $fRec = doc_Folders::fetch($url['id']);
+                $row->event = "{$img} {$row->title} (" . crm_Profiles::createLink($fRec->inCharge) . ")";
+            }
+
             if ($addEnd) {
                 $row->event = "<div title='{$row->title}' style='margin-bottom: 5px;font-style=normal;'>" . $row->event . "</div>";
             }
@@ -737,14 +749,11 @@ class cal_Calendar extends core_Master
                 } elseif($rec->type == 'workday') {
                 
                 } elseif($rec->type == 'task' || $rec->type == 'reminder'){
-                	
-                	if ($arr[$d] != 'active') {
-                		if($rec->state == 'active' || $rec->state == 'waiting') {
-                			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
-                		} else {
-                			$data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
-                		}
-                	}
+                    if($rec->state == 'active' || $rec->state == 'waiting') {
+                        $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_2.png') .">&nbsp;";
+                    } else {
+                        $data[$i]->html = "<img style='height10px;width:10px;' src=". sbf('img/16/star_grey.png') .">&nbsp;";
+                    }
                 }
             }
         }
@@ -1453,7 +1462,7 @@ class cal_Calendar extends core_Master
     	
     	if ($date1 == $date2){
     	    $date1Type = self::getDayStatus($date1, 'bg');
-    	    if($date1Type->specialDay  == FALSE || $dateType->specialDay  == 'workday') {
+    	    if($date1Type->specialDay  == FALSE || $date1Type->specialDay  == 'workday') {
     	        $workDays++;
     	    } else {
     	        $nonWorking++;
@@ -1711,7 +1720,8 @@ class cal_Calendar extends core_Master
         $toDate = $from['toDate'];
         
         $stateDay = self::prepareState($fromDate, $toDate, $selectedUsers);
-        
+
+        $dayData = array();
         
         if(is_array($stateDay)){
 	        
@@ -1763,7 +1773,9 @@ class cal_Calendar extends core_Master
         $toDate = $from['toDate'];
         
         $stateWeek = self::prepareState($fromDate, $toDate, $selectedUsers);
-        
+
+        $weekData = array();
+
         if(is_array($stateWeek)){
 	        foreach($stateWeek as $rec){
 	            $row = new stdClass();

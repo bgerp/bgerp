@@ -20,6 +20,12 @@ defIfNot('MARKETING_MANDATORY_CONTACT_FIELDS', 'person');
 
 
 /**
+ * Дали да се показват във формата за запитване уникалните полета за идентификатори
+ */
+defIfNot('MARKETING_MANDATORY_UNIQUE_FIELDS', 'hide');
+
+
+/**
  * Маркетинг - инсталиране / деинсталиране
  *
  *
@@ -65,6 +71,7 @@ class marketing_Setup extends core_ProtoSetup
         'MARKETING_INQUIRE_FROM_EMAIL' => array('key(mvc=email_Inboxes,select=email,allowEmpty)', 'caption=Изпращане на запитването по имейл->Имейл \'От\''),
         'MARKETING_INQUIRE_TO_EMAIL' => array('emails', 'caption=Изпращане на запитването по имейл->Имейл \'Към\''),
         'MARKETING_MANDATORY_CONTACT_FIELDS' => array('enum(company=Фирма,person=Лице,both=Двете)', 'caption=Задължителни контактни данни за запитване->Поле'),
+        'MARKETING_MANDATORY_UNIQUE_FIELDS' => array('enum(vat=ДДС №,uicId=ЕИК/ЕГН,both=ДДС № и ЕИК/ЕГН, none=Незадължителни, hide=Да не се показват)', 'caption=Показване на полета за ДДС № и ЕИК/ЕГН в запитването->Избор'),
     );
     
     
@@ -75,8 +82,6 @@ class marketing_Setup extends core_ProtoSetup
         'marketing_Inquiries2',
         'marketing_Bulletins',
         'marketing_BulletinSubscribers',
-        'migrate::regenerateBulletins2042',
-        'migrate::updateContactData',
     );
     
     
@@ -109,32 +114,5 @@ class marketing_Setup extends core_ProtoSetup
         $html .= $Plugins->forcePlugin('Бюлетин за външната част', 'marketing_BulletinPlg', 'cms_page_External', 'private');
         
         return $html;
-    }
-    
-    
-    /**
-     * Миграция за обновява всички записи, за да се обнови кеша
-     */
-    public static function regenerateBulletins2042()
-    {
-        $query = marketing_Bulletins::getQuery();
-        while ($rec = $query->fetch()) {
-            marketing_Bulletins::save($rec);
-        }
-    }
-    
-    
-    /**
-     * Миграция на уеб константа
-     */
-    function updateContactData()
-    {
-        $conf = core_Packs::getConfig('bgerp');
-        $value = $conf->_data['BGERP_MANDATORY_CONTACT_FIELDS'];
-        $exValue = marketing_Setup::get('MANDATORY_CONTACT_FIELDS');
-        
-        if(!empty($value) && $exValue != $value && in_array($value, array('company', 'person', 'both'))){
-            core_Packs::setConfig('marketing', array('MARKETING_MANDATORY_CONTACT_FIELDS' => $value));
-        }
     }
 }

@@ -39,7 +39,7 @@ class hr_Sickdays extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, doc_DocumentPlg,acc_plg_DocumentSummary,doc_plg_TransferDoc, plg_Sorting, 
-    				 doc_ActivatePlg, plg_Printing,doc_SharablePlg,bgerp_plg_Blank,change_Plugin, hr_Wrapper';
+    				 doc_ActivatePlg, plg_Printing,doc_SharablePlg,bgerp_plg_Blank,change_Plugin, hr_Wrapper, hr_EmailCreatePlg';
     
     
     /**
@@ -528,7 +528,7 @@ class hr_Sickdays extends core_Master
      *
      * @return stdClass $row
      */
-    public function getDocumentRow($id)
+    public function getDocumentRow_($id)
     {
         $rec = $this->fetch($id);
         

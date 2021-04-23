@@ -38,8 +38,8 @@ class cat_Categories extends core_Master
      * Кои документи да се добавят като бързи бутони в папката на корицата
      */
     public $defaultDefaultDocuments = 'cat_Products';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
@@ -152,8 +152,13 @@ class cat_Categories extends core_Master
      * Дефолт достъп до новите корици
      */
     public $defaultAccess = 'team';
-    
-    
+
+    /**
+     * Минимална дължина на генерираните кодове
+     */
+    const MIN_CODE_PADDING = 1;
+
+
     /**
      * Извиква се след подготовката на формата
      */
@@ -182,7 +187,8 @@ class cat_Categories extends core_Master
         $this->FLD('info', 'richtext(bucket=Notes,rows=4)', 'caption=Бележки');
         $this->FLD('useAsProto', 'enum(no=Не,yes=Да)', 'caption=Използване на артикулите като шаблони->Използване');
         $this->FLD('measures', 'keylist(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Настройки - допустими за артикулите в категорията (всички или само избраните)->Мерки,columns=2,hint=Ако не е избрана нито една - допустими са всички');
-        $this->FLD('prefix', 'varchar(64)', 'caption=Настройки - препоръчителни за артикулите в категорията->Начало код');
+        $this->FLD('prefix', 'varchar(32)', 'caption=Настройки - препоръчителни за артикулите в категорията->Представка код');
+        $this->FLD('minCodePad', 'int(Min=0)', 'caption=Настройки - препоръчителни за артикулите в категорията->Мин. дължина на кода');
         $this->FLD('markers', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Настройки - препоръчителни за артикулите в категорията->Групи,columns=2');
         $this->FLD('params', 'keylist(mvc=cat_Params,select=typeExt,makeLinks)', 'caption=Настройки - препоръчителни за артикулите в категорията->Параметри');
         
@@ -293,6 +299,26 @@ class cat_Categories extends core_Master
                 $rec->measures = keylist::addKey($rec->measures, cat_UoM::fetchBySinonim($m)->id);
             }
         }
+
+        if (!$rec->id) {
+            $conflictFields = array();
+            $mvc->isUnique($rec, $conflictFields, $exRec);
+
+            if ($exRec->id) {
+                $rec->id = $exRec->id;
+            }
+        }
+
+        if ($rec->id) {
+            $oRec = $mvc->fetch($rec->id);
+            if (!isset($rec->inCharge)) {
+                $rec->inCharge = $oRec->inCharge;
+            }
+
+            if (!isset($rec->state)) {
+                $rec->state = $oRec->state;
+            }
+        }
     }
     
     
@@ -343,11 +369,13 @@ class cat_Categories extends core_Master
         
         // Ако има представка
         if ($rec->prefix) {
-            
+            $minCodeLen = !empty($rec->minCodePad) ? $rec->minCodePad : static::MIN_CODE_PADDING;
+            $startCode = str_pad('1', $minCodeLen, '0', STR_PAD_LEFT);
+
             // Опитваме се да намерим първия код започващ с представката
-            $code = str::addIncrementSuffix('', $rec->prefix);
+            $code = str::addIncrementSuffix('', $rec->prefix, $startCode);
             while (cat_Products::getByCode($code)) {
-                $code = str::addIncrementSuffix($code, $rec->prefix);
+                $code = str::addIncrementSuffix($code, $rec->prefix, $startCode);
                 if (!cat_Products::getByCode($code)) {
                     break;
                 }
@@ -475,8 +503,8 @@ class cat_Categories extends core_Master
                 $catQuery = cat_Products::getQuery();
                 $catQuery->likeKeylist('groups', $keylist);
                 $catQuery->show('id');
-                $productIds = array_map(create_function('$o', 'return $o->id;'), $catQuery->fetchAll());
-                
+
+                $productIds = arr::extractValuesFromArray($catQuery->fetchAll(), 'id');
                 if (empty($productIds)) {
                     // Искаме от нишките да останат само тези за въпросните артикули
                     $threadQuery->where('1=2');

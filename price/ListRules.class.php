@@ -50,7 +50,7 @@ class price_ListRules extends core_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew, plg_PrevAndNext';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_SaveAndNew, plg_PrevAndNext, bgerp_plg_Import';
     
     
     /**
@@ -72,9 +72,9 @@ class price_ListRules extends core_Detail
     
     
     /**
-     * Кой има право да добавя?
+     * Кой има право да изтрива?
      */
-    public $canDelete = 'no_one';
+    public $canDelete = 'ceo,sales,price';
     
     
     /**
@@ -303,12 +303,12 @@ class price_ListRules extends core_Detail
     {
         $datetime = price_ListToCustomers::canonizeTime($datetime);
         $canUseCache = ($datetime == price_ListToCustomers::canonizeTime());
-        
+
         if ((!$canUseCache) || ($price = price_Cache::getPrice($listId, $productId)) === null) {
             $query = self::getQuery();
             $query->where("#listId = {$listId} AND #validFrom <= '{$datetime}' AND (#validUntil IS NULL OR #validUntil >= '{$datetime}')");
             $query->where("#productId = {$productId}");
-            
+
             if ($listId != price_ListRules::PRICE_LIST_COST) {
                 $groups = keylist::toArray(cat_Products::fetchField($productId, 'groups'));
                 if (countR($groups)) {
@@ -324,7 +324,7 @@ class price_ListRules extends core_Detail
             $rec = $query->fetch();
             $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
-            
+            //bp($rec, $listRec);
             if ($rec) {
                 if ($rec->type == 'value') {
                     $vat = cat_Products::getVat($productId, $datetime);
@@ -349,16 +349,7 @@ class price_ListRules extends core_Detail
                 // Ако има дефолтна надценка и има наследена политика
                 if (isset($defaultSurcharge)) {
                     if ($parent = $listRec->parent) {
-                        
-                        // Ако няма запис за продукта или групата
-                        // му и бащата на ценоразписа е "себестойност"
-                        // връщаме NULL
-                        // Дали е необходима тази защита или тя може да създаде проблеми?
-                        if ($parent == price_ListRules::PRICE_LIST_COST) {
-                            
-                            return;
-                        }
-                        
+
                         // Питаме бащата за цената
                         $price = self::getPrice($parent, $productId, $packagingId, $datetime, $validFrom);
                         
@@ -377,13 +368,18 @@ class price_ListRules extends core_Detail
                     if ($listRec->vat == 'yes') {
                          $vat = 1 + cat_Products::getVat($productId, $datetime);
                     }
-                    $rate = 1 / currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
-                }
 
-                $price = $price * $vat * $rate;
-                $price = price_Lists::roundPrice($listRec, $price);  
-                $price = $price / ($vat * $rate); 
-    
+                    $cRate = currency_CurrencyRates::getRate($datetime, $listRec->currency, null);
+                    if(!empty($cRate)){
+                        $rate = 1 / $cRate;
+                        $price = $price * $vat * $rate;
+                        $price = price_Lists::roundPrice($listRec, $price);
+                        $price = $price / ($vat * $rate);
+                    } else {
+                        wp($cRate, $datetime, $listRec->currency);
+                        $price = null;
+                    }
+                }
                
                 if ($canUseCache) {
                     price_Cache::setPrice($price, $listId, $productId);
@@ -595,7 +591,7 @@ class price_ListRules extends core_Detail
     {
         if ($rec->listId) {
             if ($rec->validFrom <= dt::now() || empty($rec->validFrom)) {
-                price_Cache::callback_InvalidatePriceList($rec->listId);
+                $mvc->invalidateListsOnShutdown[$rec->listId] = $rec->listId;
             } else {
                 core_CallOnTime::setOnce('price_Cache', 'InvalidatePriceList', $rec->listId, $rec->validFrom);
             }
@@ -604,8 +600,22 @@ class price_ListRules extends core_Detail
             }
         }
     }
-    
-    
+
+
+    /**
+     * Изпълнява се на шътдаун
+     */
+    public static function on_Shutdown($mvc)
+    {
+        // Ако има списъци за инвалидиране на кешираните цени да се инвалидират
+        if (is_array($mvc->invalidateListsOnShutdown)) {
+            foreach ($mvc->invalidateListsOnShutdown as $listId) {
+                price_Cache::callback_InvalidatePriceList($listId);
+            }
+        }
+    }
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -759,6 +769,10 @@ class price_ListRules extends core_Detail
      */
     public static function savePrimeCost($productId, $primeCost, $validFrom, $currencyCode = null, $vat = 'no')
     {
+        if($primeCost < 0){
+            wp($primeCost);
+        }
+
         // По подразбиране задаваме в текуща валута
         $currencyCode = isset($currencyCode) ? $currencyCode : acc_Periods::getBaseCurrencyCode();
         
@@ -843,7 +857,7 @@ class price_ListRules extends core_Detail
         $tpl = getTplFromFile('price/tpl/ListRules.shtml');
         
         unset($data->listFields['priority']);
-        $display = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument')) ? true : false;
+        $display = (!Mode::is('text', 'xhtml') && !Mode::is('printing') && !Mode::is('pdf') && !Mode::is('inlineDocument'));
         
         if ($masterRec->state != 'rejected' && $display === true) {
             $img = ht::createElement('img', array('src' => sbf('img/16/tools.png', '')));
@@ -851,36 +865,60 @@ class price_ListRules extends core_Detail
         }
         
         $tpl->append($this->renderListFilter($data), 'ListFilter');
-        
+        $retUrl = getRetUrl();
+
         // За всеки приоритет
         foreach (array(1 => 'Правила с висок приоритет', 2 => 'Правила със среден приоритет', 3 => 'Правила с нисък приоритет') as $priority => $title) {
             $block = clone $tpl->getBlock('PRIORITY');
             $appendTable = true;
             $fRows = $data->{"rows{$priority}"};
-            
-            $data->listFields['rule'] = 'Стойност';
+            $fields = $data->listFields;
+
+            $fields['rule'] = 'Стойност';
             $table = cls::get('core_TableView', array('mvc' => $this));
+
             $toolbar = cls::get('core_Toolbar');
-            
+            $fields = core_TableView::filterEmptyColumns($fRows, $fields, '_rowTools');
+
             // Добавяме бутони за добавяне към всеки приоритет
             if ($priority == 1) {
-                $data->listFields['domain'] = 'Артикул';
+                $fields['domain'] = 'Артикул';
                 if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                    $toolbar->addBtn('Стойност', array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'priority' => $priority,'ret_url' => true), null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
+                    $url = array($this, 'add', 'type' => 'value', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority);
+                    if(countR($retUrl)){
+                        $url['ret_url'] = $retUrl;
+                    }
+
+                    $toolbar->addBtn('Стойност', $url, null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
+                }
+
+                if ($this->haveRightFor('import')) {
+                    $url = array($this, 'import', 'listId' => $masterRec->id, 'ret_url' => true);
+                    $toolbar->addBtn('Импорт', $url, null, 'row=2,ef_icon=img/16/import.png,title=Импортиране на ' . mb_strtolower($mvc->title));
                 }
             } else {
-                $data->listFields['domain'] = 'Група';
+                $fields['domain'] = 'Група';
             }
             
             // Ако политиката наследява друга, може да се добавят правила за марж
             if ($masterRec->parent) {
                 if ($priority == 1) {
                     if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                        $toolbar->addBtn('Продуктов марж', array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => true), null, 'title=Задаване на правило с % за артикул,ef_icon=img/16/tag.png');
+                        $url = array($this, 'add', 'type' => 'discount', 'listId' => $masterRec->id, 'productId' => $data->listFilter->rec->product, 'priority' => $priority);
+                        if(countR($retUrl)){
+                            $url['ret_url'] = $retUrl;
+                        }
+
+                        $toolbar->addBtn('Продуктов марж', $url, null, 'title=Задаване на правило с % за артикул,ef_icon=img/16/tag.png');
                     }
                 } else {
                     if ($display === true && $this->haveRightFor('add', (object) array('listId' => $masterRec->id))) {
-                        $toolbar->addBtn('Групов марж', array($this, 'add', 'type' => 'groupDiscount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => true), null, 'title=Задаване на групово правило с %,ef_icon=img/16/grouping.png');
+                        $url = array($this, 'add', 'type' => 'groupDiscount', 'listId' => $masterRec->id, 'priority' => $priority, 'ret_url' => true);
+                        if(countR($retUrl)){
+                            $url['ret_url'] = $retUrl;
+                        }
+
+                        $toolbar->addBtn('Групов марж', $url, null, 'title=Задаване на групово правило с %,ef_icon=img/16/grouping.png');
                     }
                 }
             } else {
@@ -893,12 +931,6 @@ class price_ListRules extends core_Detail
             if ($appendTable === true) {
                 $style = ($priority == 1) ? '' : 'margin-top:20px;margin-bottom:2px';
                 $block->append("<div style='{$style}'><b>{$title}</b></div>", 'TABLE');
-                
-                $fields = $data->listFields;
-                if (!countR($fRows)) {
-                    unset($fields['_rowTools']);
-                }
-                
                 $block->append($table->get($fRows, $fields), 'TABLE');
                 if (isset($data->{"pager{$priority}"})) {
                     $block->append($data->{"pager{$priority}"}->getHtml(), 'TABLE_PAGER');
@@ -970,7 +1002,7 @@ class price_ListRules extends core_Detail
         $pQuery->XPR('searchFieldXprLower', 'text', "LOWER(CONCAT(' ', COALESCE(#name, ''), ' ', COALESCE(#code, ''), ' ', COALESCE(#nameEn, ''), ' ', 'Art', #id))");
         
         if ($q) {
-            if ($q{0} == '"') {
+            if ($q[0] == '"') {
                 $strict = true;
             }
             $q = trim(preg_replace("/[^a-z0-9\p{L}]+/ui", ' ', $q));

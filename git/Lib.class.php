@@ -86,6 +86,31 @@ class git_Lib
         
         return false;
     }
+
+    
+    /**
+     * Обновява таговете на репозиторито
+     *
+     * @param string $repoPath - път до git репозитори
+     * @param array  $log      - масив с логове
+     *
+     * @return  bool - FALSE при неуспех - или резултат от командата
+     */
+    public static function fetchTags($repoPath, &$log = null)
+    {
+        $command = 'fetch --tags 2>&1';
+        $res = '';
+        // Първият ред съдържа резултата
+        if (self::cmdExec($command, $res, $repoPath)) {
+            
+            return $res;
+        }
+        
+        $repoName = basename($repoPath);
+        $log[] = "[{$repoName}]: Неуспешно фечване на тагове";
+        
+        return false;
+    }
     
     
     /**

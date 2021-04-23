@@ -34,20 +34,7 @@
                     <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
                 </div>
                 <hr>
-                <table class='no-border'>
-                    <tbody>
-                    <!--ET_BEGIN contragentVatNo-->
-                    <tr>
-                        <td class="aright"><small>VAT ID</small></td>
-                        <td><span class="bigData" style='padding-left:5px;'>[#contragentVatNo#]</span></td>
-                    </tr>
-                    <!--ET_END contragentVatNo-->
-                    <tr>
-                        <td class="aright"><small>[#contragentUicCaption#]:</small></td>
-                        <td> <span class="bigData" style='padding-left:5px;'>[#uicNo#]</span></td>
-                    </tr>
-                    </tbody>
-                </table>
+                [#/deals/tpl/InvoiceContragentVatHeaderInfo.shtml#]
             </td>
         </tr>
         <tr>
@@ -60,22 +47,7 @@
                     [#MyAddress#]
                 </div>
                 <hr>
-                <table  class='no-border'>
-                    <tbody>
-                    <!--ET_BEGIN MyCompanyVatNo-->
-                    <tr>
-                        <td class="aright"><small>VAT ID</small></td>
-                        <td><span class="bigData" style='padding-left:5px;'>[#MyCompanyVatNo#]</span></td>
-                    </tr>
-                    <!--ET_END MyCompanyVatNo-->
-                    <!--ET_BEGIN uicId-->
-                    <tr>
-                        <td class="aright"><small>Tax ID:</small></td>
-                        <td><span class="bigData" style='padding-left:5px;'>[#uicId#]</span></td>
-                    </tr>
-                    <!--ET_END uicId-->
-                    </tbody>
-                </table>
+                [#/deals/tpl/InvoiceMyCompanyVatHeaderInfo.shtml#]
             </td>
         </tr>
         </tbody>
@@ -114,7 +86,7 @@
                 <div><span class='quiet'>Finally till: </span>[#deadlineForBalancePayment#]</div>
                 <!--ET_END deadlineForBalancePayment-->
                 <!--ET_BEGIN accountId-->
-                <div>
+                <div class="[#BANK_BLOCK_CLASS#]">
                     <span class='quiet'>Bank Account:</span> [#accountId#]
                     <!--ET_BEGIN bankInfo-->
                     [#bankInfo#]
@@ -153,7 +125,7 @@
         </tr>
         <tr class='footerDocInfo'>
             <td>
-                <div class='aright'>This document is created by <b><a href='http://bgerp.com'>bgERP</a></b></div>
+                [#/doc/tpl/Copyright.shtml#]
             </td>
         </tr>
         </tbody>

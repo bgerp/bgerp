@@ -170,19 +170,20 @@ class ztm_ProfileDetails extends core_Detail
     public function changeValues($rec, $useDef = false)
     {
         $rRec = ztm_Registers::fetch($rec->registerId);
-        
+
         $dQuery = ztm_Devices::getQuery();
         $dQuery->where(array("#profileId = '[#1#]'", $rec->profileId));
         $dQuery->show('id');
         while ($dRec = $dQuery->fetch()) {
             $dArr[$dRec->id] = $dRec->id;
         }
-        
+
         $vQuery = ztm_RegisterValues::getQuery();
         $vQuery->in('deviceId', $dArr);
+        $vQuery->where(array("#registerId = '[#1#]'", $rec->registerId));
         $vQuery->where(array("#value = '[#1#]'", $rRec->default));
         $vQuery->orWhere(array("#value = '[#1#]'", $rec->__oldVal));
-        
+
         while ($vRec = $vQuery->fetch()) {
             if ($useDef) {
                 $val = $rRec->default;

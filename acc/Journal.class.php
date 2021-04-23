@@ -368,6 +368,7 @@ class acc_Journal extends core_Master
         } catch (acc_journal_Exception $ex) {
             $tr = $docClass->getTransaction($docRec->id);
             reportException($ex);
+            $mvc->logErr("Грешка при контиране на документ", $docRec->id);
             error($ex->getMessage(), $tr, $ex->getMessage());
         }
         
@@ -724,7 +725,7 @@ class acc_Journal extends core_Master
         $query->groupBy('docId,docType');
         
         $recs = $query->fetchAll();
-        
+
         // За всеки запис ако има
         if (countR($recs)) {
             foreach ($recs as $rec) {
@@ -741,28 +742,66 @@ class acc_Journal extends core_Master
             
             // Преизчисляваме баланса
             cls::get('acc_Balances')->recalc();
-            
             foreach ($recs as $rec) {
-                
-                // Ако е в затворен период, пропускаме го
-                $periodState = acc_Periods::fetchByDate($rec->valior)->state;
-                if ($periodState == 'closed') {
-                    continue;
-                }
-                
-                // Преконтираме документа
-                Mode::push('recontoTransaction', true);
-                acc_Journal::saveTransaction($rec->docType, $rec->docId, false);
-                Mode::pop('recontoTransaction');
-                cls::get($rec->docType)->logWrite('Реконтиране от настройките', $rec->docId);
+                $this->recalcDoc($rec->docType, $rec->docId, $rec->valior);
             }
         }
-        
+
+        if (countR($types)) {
+            foreach ($types as $type){
+
+                // Добавен фикс ако има контиращи документи без контировка поради някаква причина
+                $Doc = cls::get($type);
+                $query = $Doc->getQuery();
+
+                // Ако е приключване на сделка, да се взимат само тези записи от този мениджър
+                if($Doc instanceof deals_ClosedDeals){
+                    $query->where("#classId = {$type}");
+                }
+
+                $query->EXT('journalId', 'acc_Journal', array('externalName' => 'id', 'onCond' => "#acc_Journal.docId = #id AND #acc_Journal.docType = {$type}", 'join' => 'right'));
+                $query->where("#journalId IS NULL AND (#state = 'active' || #state = 'closed')");
+                $query->where("#{$Doc->valiorFld} BETWEEN '{$from}' AND '{$to}'");
+                $query->show("id,{$Doc->valiorFld},state,journalId");
+
+                // Да се реконтират и те
+                while($dRec = $query->fetch()){
+                    $this->recalcDoc($Doc, $dRec->id, $dRec->{$Doc->valiorFld});
+                }
+            }
+        }
+
         // Засегнатите документи
         return countR($recs);
     }
-    
-    
+
+
+    /**
+     * Рекондира един документ
+     *
+     * @param $docType
+     * @param $docId
+     * @param null $valior
+     */
+    private function recalcDoc($docType, $docId, $valior = null)
+    {
+        $Document = cls::get($docType);
+        if(empty($valior)){
+            $valior = $Document->fetchField($docId, $Document->valiorFLd);
+        }
+
+        // Ако е в затворен период, пропускаме го
+        $periodState = acc_Periods::fetchByDate($valior)->state;
+        if ($periodState == 'closed') return;
+
+        // Преконтираме документа
+        Mode::push('recontoTransaction', true);
+        acc_Journal::saveTransaction($Document, $docId, false);
+        Mode::pop('recontoTransaction');
+        $Document->logWrite('Реконтиране от настройките', $docId);
+    }
+
+
     /**
      * Екшън реконтиращ всички документи където участва дадена сметка
      * в даден интервал
@@ -808,7 +847,7 @@ class acc_Journal extends core_Master
                 
                 $this->logWrite('Реконтиране на документ', $rec->id);
                 
-                return followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"));
+                return followRetUrl(null, tr("|Реконтирани са|* {$res} |документа|*"), 'warning');
             }
         }
         

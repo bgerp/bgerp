@@ -14,6 +14,12 @@ defIfNot('STORE_TARIFF_NUMBER_LENGTH', '8');
 
 
 /**
+ * Изписване на отрицателни наличности от склада
+ */
+defIfNot('STORE_ALLOW_NEGATIVE_SHIPMENT', 'yes');
+
+
+/**
  * class store_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -24,7 +30,7 @@ defIfNot('STORE_TARIFF_NUMBER_LENGTH', '8');
  * @package   store
  *
  * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2013 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -86,7 +92,8 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNotes',
         'store_InventoryNoteSummary',
         'store_InventoryNoteDetails',
-        'migrate::deleteReservedCache',
+        'store_StockPlanning',
+        'migrate::migratePendings',
     );
     
     
@@ -115,6 +122,7 @@ class store_Setup extends core_ProtoSetup
     public $configDescription = array(
         'STORE_ACC_ACCOUNTS' => array('acc_type_Accounts(regInterfaces=store_AccRegIntf|cat_ProductAccRegIntf)', 'caption=Складова синхронизация със счетоводството->Сметки'),
         'STORE_TARIFF_NUMBER_LENGTH' => array('int', 'caption=Групиране на тарифните номера по част от него->Първите,unit=цифри'),
+        'STORE_ALLOW_NEGATIVE_SHIPMENT' => array('enum(no=Забранено, yes=Разрешено)', 'caption=Изписване на минус от склад->Избор'),
     );
     
     
@@ -123,7 +131,7 @@ class store_Setup extends core_ProtoSetup
      */
     public $defClasses = 'store_reports_Documents,store_reports_ChangeQuantity,store_reports_ProductAvailableQuantity,
                           store_iface_ImportShippedProducts,store_reports_DeficitInStores,store_reports_UnfulfilledQuantities,
-                          store_reports_ArticlesDepended,store_reports_ProductsInStock';
+                          store_reports_ArticlesDepended,store_reports_ProductsInStock,store_reports_UnrealisticPricesAndWeights';
     
     
     /**
@@ -135,7 +143,7 @@ class store_Setup extends core_ProtoSetup
             'description' => 'Обновяване на резервираните наличности',
             'controller' => 'store_Products',
             'action' => 'CalcReservedQuantity',
-            'period' => 1,
+            'period' => 5,
             'offset' => 0,
             'timeLimit' => 100
         ),
@@ -208,14 +216,68 @@ class store_Setup extends core_ProtoSetup
             reportException($e);
         }
     }
-    
-    
+
+
     /**
-     * Миграция за изтриване на перманентния кеш
+     * Първоначално наливане на запазените количества
      */
-    public function deleteReservedCache()
+    public function migratePendings()
     {
-        core_Permanent::remove('reserved_', true);
-        cls::get('store_Products')->cron_CalcReservedQuantity();
+        // Ако не е имало складови движения, не се прави нищо
+        if(!store_Products::count()) return;
+
+        $Stocks = cls::get('store_StockPlanning');
+        $Stocks->truncate();
+
+        // Кои документи запазват на заявка
+        $stockableClasses = array('store_ShipmentOrders',
+                                  'store_Receipts',
+                                  'store_Transfers',
+                                  'store_ConsignmentProtocols',
+                                  'planning_ConsumptionNotes',
+                                  'planning_DirectProductionNote',
+                                  'pos_Receipts');
+
+        // Записват се запазените количества
+        $stocksArr = array();
+        foreach ($stockableClasses as $cls){
+            $Source = cls::get($cls);
+            $Source->setupMvc();
+
+            $query = $Source->getQuery();
+            $query->in("state", $Source->updatePlannedStockOnChangeStates);
+            $count = $query->count();
+            core_App::setTimeLimit(0.6 * $count, false,300);
+
+            while($rec = $query->fetch()){
+                $arr = $Source->getPlannedStocks($rec);
+                store_StockPlanning::addStaticValuesToStockArr($arr, $Source, $rec->id);
+                $stocksArr = array_merge($stocksArr, $arr);
+            }
+        }
+
+        // Записване на запазеното на индивидуланите количества
+        $Stocks->saveArray($stocksArr);
+
+        // Преизчисляване на запазеното по сделки и запазени.
+        $dealsArr = array();
+        $stockableOriginClasses = array('sales_Sales', 'purchase_Purchases', 'planning_Jobs');
+        foreach ($stockableOriginClasses as $cls) {
+            $Source = cls::get($cls);
+            $Source->setupMvc();
+
+            $query = $Source->getQuery();
+            $query->in("state", $Source->updatePlannedStockOnChangeStates);
+            $count = $query->count();
+            core_App::setTimeLimit(0.7 * $count, false,300);
+
+            while ($rec = $query->fetch()) {
+                $arr = $Source->getPlannedStocks($rec);
+                store_StockPlanning::addStaticValuesToStockArr($arr, $Source, $rec->id);
+                $dealsArr = array_merge($dealsArr, $arr);
+            }
+        }
+
+        $Stocks->saveArray($dealsArr);
     }
 }
