@@ -318,7 +318,7 @@ class store_Setup extends core_ProtoSetup
         $count = countR($documents);
         if(!$count)  return;
 
-        core_App::setTimeLimit($count * 0.7, false, 300);
+        core_App::setTimeLimit($count * 0.6, false, 250);
 
         // Всеки документ от тях се реконтира
         foreach ($documents as $doc){
@@ -331,7 +331,6 @@ class store_Setup extends core_ProtoSetup
                 Mode::push('recontoTransaction', true);
                 $success = acc_Journal::saveTransaction($doc->docType, $doc->docId, false);
                 Mode::pop('recontoTransaction');
-                cls::get($doc->docType)->logWrite("Реконтиране от миграция", $doc->docId);
             } catch(acc_journal_RejectRedirect  $e){
                 reportException($e);
             }
