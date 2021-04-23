@@ -103,8 +103,26 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         parent::setFields($this);
         $this->setDbUnique('protocolId,productId,packagingId');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
+    {
+        $masterRec = $data->masterRec;
+        $params = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic');
+        if($masterRec->productType == 'other'){
+            $params['isPublic'] = 'no';
+        }
+
+        $data->form->setFieldTypeParams('productId', $params);
+    }
+
+
     /**
      * След инпутване на формата
      */
