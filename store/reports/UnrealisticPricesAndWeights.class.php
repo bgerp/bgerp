@@ -215,7 +215,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row = new stdClass();
 
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getLinkToSingle($dRec->productId, 'name');
+            $row->productId = cat_Products::getHyperlink($dRec->productId, 'name');
         }
 
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
