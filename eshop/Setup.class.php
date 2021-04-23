@@ -173,7 +173,6 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_ProductDetails',
         'eshop_Carts',
         'eshop_CartDetails',
-        'migrate::updateProductButtons',
     );
     
     
@@ -302,29 +301,5 @@ class eshop_Setup extends core_ProtoSetup
         eshop_Products::saveNearProducts();
         
         return tr('Преизчисляване на свързаните е-артикули');
-    }
-    
-    
-    /**
-     * Миграция обновяваща полето действия в детайла на е-артикула
-     */
-    public function updateProductButtons()
-    {
-        $Details = cls::get('eshop_ProductDetails');
-        $Details->setupMvc();
-        
-        if(!$Details->count()) return;
-        
-        $save = array();
-        $query = $Details->getQuery();
-        $query->where("#action IS NULL OR #action = ''");
-        while($rec = $query->fetch()){
-            $rec->action = 'buy';
-            $save[$rec->id] = $rec;
-        }
-        
-        if(countR($save)){
-            $Details->saveArray($save, 'id,action');
-        }
     }
 }
