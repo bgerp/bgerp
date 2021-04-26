@@ -362,7 +362,7 @@ class eshop_Groups extends core_Master
         }
 
         cms_Content::setCurrent($data->menuId);
-        
+
         $this->prepareGroup($data);
         $this->prepareNavigation($data);
         plg_AlignDecimals2::alignDecimals(cls::get('eshop_Products'), $data->products->recs, $data->products->rows);

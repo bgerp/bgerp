@@ -490,7 +490,8 @@ class eshop_Products extends core_Master
             return;
         }
 
-        $products = eshop_Favourites::getProducts();
+        $cu = core_Users::getCurrent();
+        $products = eshop_Favourites::getProducts($cu);
 
         $data->groups = array();
         if(countR($products)){
@@ -560,10 +561,9 @@ class eshop_Products extends core_Master
         } else {
             $pQuery->where("#state = 'active'");
 
+            // Добавяне само на Любимите артикули
             $cu = core_Users::getCurrent();
-            $fQuery = eshop_Favourites::getQuery();
-            $fQuery->where("#userId = '{$cu}'");
-            $allFavourites = arr::extractValuesFromArray($fQuery->fetchAll(), 'eshopProductId');
+            $allFavourites = eshop_Favourites::getProducts($cu);
             if(countR($allFavourites)){
                 $pQuery->in('id', $allFavourites);
             } else {
