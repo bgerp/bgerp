@@ -31,7 +31,7 @@ class eshop_Favourites extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'userId,eshopProductId,createdOn,createdBy';
+    public $listFields = 'brid,userId,eshopProductId,createdOn,createdBy';
 
 
     /**
@@ -60,13 +60,13 @@ class eshop_Favourites extends core_Manager
     /**
      * Кой има право да добавя/маха?
      */
-    public $canToggle = 'user';
+    public $canToggle = 'every_one';
 
 
     /**
      * Кой има право да разглежда от външната част?
      */
-    public $canShow = 'user';
+    public $canShow = 'every_one';
 
 
     /**
@@ -80,9 +80,11 @@ class eshop_Favourites extends core_Manager
      */
     public function description()
     {
+        $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
 
+        $this->setDbIndex('brid');
         $this->setDbIndex('userId');
     }
 
@@ -101,21 +103,49 @@ class eshop_Favourites extends core_Manager
 
 
     /**
+     * Подготвя заявка за намиране на любимите артикули
+     *
+     * @param null|int $cu
+     * @param null|int $domainId
+     * @param null|string $brid
+     * @return core_Query
+     */
+    public static function getFavQuery($cu, $domainId = null, $brid = null)
+    {
+        $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+        $brid = !empty($brid) ? $brid : log_Browsers::getBrid();
+
+        $query = static::getQuery();
+        $query->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
+        $query->EXT('state', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
+        $query->where("#domainId = {$domainId}");
+        if(isset($cu)){
+            $query->where("#userId = {$cu}");
+        } else {
+            $query->where("#userId IS NULL AND #brid = '{$brid}'");
+        }
+
+        return $query;
+    }
+
+
+    /**
      * Екшън за добавяне/премахване на артикул от любими
      */
     public function act_Toggle()
     {
         $this->requireRightFor('toggle');
         expect($eshopProductId = Request::get('eshopProductId', 'int'));
-        expect($cu = core_Users::getCurrent());
+        $cu = core_Users::getCurrent();
         $this->requireRightFor('toggle', (object)array('eshopProductId' => $eshopProductId));
+        $brid = log_Browsers::getBrid();
 
-        if($exRecId = static::fetchField("#userId = {$cu} AND #eshopProductId = {$eshopProductId}")){
+        if($exRecId = static::isIn($eshopProductId, $cu, $brid)){
             core_Statuses::newStatus('Артикулът е премахнат от "Любими"');
             static::delete($exRecId);
         } else {
             core_Statuses::newStatus('Артикулът е добавен в "Любими"');
-            $rec = (object)array('userId' => $cu, 'eshopProductId' => $eshopProductId);
+            $rec = (object)array('userId' => $cu, 'eshopProductId' => $eshopProductId, 'brid' => $brid);
             static::save($rec);
         }
 
@@ -155,14 +185,19 @@ class eshop_Favourites extends core_Manager
      *
      * @param $eshopProductId - е-артикул
      * @param null|int $cu    - потребител (null за текущия)
-     * @return bool
+     * @param null|string $brid
+     * @return int|false
      */
-    public static function isIn($eshopProductId, $cu = null)
+    public static function isIn($eshopProductId, $cu = null, $brid = null)
     {
         $cu = isset($cu) ? $cu : core_Users::getCurrent();
-        $exId = static::fetchField("#userId = '{$cu}' AND #eshopProductId = {$eshopProductId}");
+        $domainId = eshop_Products::fetchField($eshopProductId, 'domainId');
+        $query = static::getFavQuery($cu, $domainId, $brid);
+        $query->where("#eshopProductId = {$eshopProductId}");
+        $rec = $query->fetch();
+        $id = is_object($rec) ? $rec->id : false;
 
-        return !empty($exId);
+        return $id;
     }
 
 
@@ -178,8 +213,9 @@ class eshop_Favourites extends core_Manager
         $attr['data-url'] = toUrl(array('eshop_Favourites', 'toggle', 'eshopProductId' => $eshopProductId), 'local');
 
         $isIn = static::isIn($eshopProductId);
-        $attr['ef_icon'] = $isIn ? 'img/16/heart.png' : 'img/16/heart_empty.png';
-        $attr['title'] = $isIn ? tr('Добавяне на артикула в любими') : tr('Премахване на артикула от любими');
+
+        $attr['ef_icon'] = $isIn ? 'img/16/heart-red.png' : 'img/16/heart_empty.png';
+        $attr['title'] = $isIn ? tr('Премахване на артикула от любими') : tr('Добавяне на артикула в любими');
         $text = $isIn ? tr('Добавено в любими') : tr('Добави в любими');
 
         $tpl = ht::createLink($text, null, null, $attr);
@@ -192,25 +228,15 @@ class eshop_Favourites extends core_Manager
      * Колко любими артикула има потребителя
      *
      * @param null|int $cu
-     * @return int
+     * @param null|int $domainId
+     * @param null|string $brid
+     * @return array
      */
-    public static function getProducts($cu = null, $domainId = null)
+    public static function getProducts($cu, $domainId = null, $brid = null)
     {
-        $array = array();
-        $cu = isset($cu) ? $cu : core_Users::getCurrent();
+        $query = static::getFavQuery($cu, $domainId, $brid);
 
-        if(isset($cu)){
-            $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
-
-            $query = static::getQuery();
-            $query->EXT('domainId', 'eshop_Products', 'externalName=domainId,externalKey=eshopProductId');
-            $query->EXT('state', 'eshop_Products', 'externalName=state,externalKey=eshopProductId');
-            $query->where("#domainId = {$domainId} AND #userId = {$cu}");// AND #state = 'active'
-
-            return arr::extractValuesFromArray($query->fetchAll(), 'eshopProductId');
-        }
-
-        return $array;
+        return arr::extractValuesFromArray($query->fetchAll(), 'eshopProductId');
     }
 
 
@@ -231,14 +257,11 @@ class eshop_Favourites extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if($action == 'show'){
-            if(!$userId){
+
+            // Потребителят трябва да има любими артикули
+            $products = static::getProducts($userId);
+            if(!countR($products)){
                 $requiredRoles = 'no_one';
-            } else {
-                // Потребителят трябва да има любими артикули
-                $products = static::getProducts($userId);
-                if(!countR($products)){
-                    $requiredRoles = 'no_one';
-                }
             }
         }
     }
@@ -265,20 +288,18 @@ class eshop_Favourites extends core_Manager
      */
     public static function renderFavouritesBtnInNavigation()
     {
-        $products = eshop_Favourites::getProducts();
+        $cu = core_Users::getCurrent();
+        $products = eshop_Favourites::getProducts($cu);
         if(countR($products)){
             $favouritesUrl = eshop_Favourites::getUrl();
             $cId = Request::get('id') == static::FAVOURITE_SYSTEM_GROUP_ID;
             $selClass = $cId ? 'sel_page' : '';
 
-            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink'>" . ht::createLink(tr('Любими артикули||Favourite Products'), $favouritesUrl)  . '</div>');
+            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink nav_item level-1'>" . ht::createLink(tr('Любими артикули||Favourite Products'), $favouritesUrl)  . '</div>');
 
             return $tpl;
         }
 
         return new core_ET(" ");
     }
-
-
-
 }

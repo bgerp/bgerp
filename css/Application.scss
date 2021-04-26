@@ -6238,6 +6238,19 @@ div.location.public {
 		padding-right: 10px;
 	}
 }
+.wide #addToFavouritesBtn {
+	display: inline-block;
+	margin-left: 5px;
+	.favouritesBtn {
+		&:hover {
+			cursor: pointer;
+		}
+	}
+}
+.narrow  #addToFavouritesBtn {
+	display: inline-block;
+	margin-top: 5px;
+}
 .narrow .externalPage #maincontent.hasLogoutBlock {
 	padding-top: 29px !important;
 }

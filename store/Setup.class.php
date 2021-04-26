@@ -94,7 +94,7 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteDetails',
         'store_StockPlanning',
         'migrate::migratePendings',
-        'migrate::reconto3231',
+        'migrate::reconto3231v1',
     );
     
     
@@ -286,7 +286,7 @@ class store_Setup extends core_ProtoSetup
     /**
      * Реконтира документите засягащи сметка 323
      */
-    public function reconto3231()
+    public function reconto3231v1()
     {
         $Consignemts = cls::get('store_ConsignmentProtocols');
         $Consignemts->setupMvc();
@@ -317,6 +317,9 @@ class store_Setup extends core_ProtoSetup
         // Ако няма такива не се прави нищо
         $count = countR($documents);
         if(!$count)  return;
+
+        $accSetup = cls::get('acc_Setup');
+        $accSetup->loadSetupData();
 
         core_App::setTimeLimit($count * 0.6, false, 250);
 
