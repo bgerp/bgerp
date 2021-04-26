@@ -14,7 +14,7 @@
  *
  * @since     v 0.1
  */
-class eshop_Favourites extends core_Master
+class eshop_Favourites extends core_Manager
 {
     /**
      * Заглавие
@@ -62,6 +62,16 @@ class eshop_Favourites extends core_Master
      */
     public $canToggle = 'user';
 
+
+    /**
+     * Кой има право да разглежда от външната част?
+     */
+    public $canShow = 'user';
+
+
+    /**
+     * Системно ид на страницата за любими артикули
+     */
     const FAVOURITE_SYSTEM_GROUP_ID = -1;
 
 
@@ -213,7 +223,28 @@ class eshop_Favourites extends core_Master
      */
     public function act_Show()
     {
+        self::requireRightFor('show');
+
         return Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'Show', 'id' => static::FAVOURITE_SYSTEM_GROUP_ID));
+    }
+
+
+    /**
+     * След проверка на ролите
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'show'){
+            if(!$userId){
+                $requiredRoles = 'no_one';
+            } else {
+                // Потребителят трябва да има любими артикули
+                $products = static::getProducts($userId);
+                if(!countR($products)){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
 
 
