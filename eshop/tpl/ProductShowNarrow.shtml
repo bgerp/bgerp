@@ -11,9 +11,9 @@
 			</div>
 		<div class="inqRow">[#coInquiry#] <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--></div>
 		<!--ET_BEGIN FAVOURITES_BTN-->
-		<div id="addToFavouritesBtn">
+		<span id="addToFavouritesBtn">
 			[#FAVOURITES_BTN#]
-		</div>
+		</span>
 		<!--ET_END FAVOURITES_BTN-->
 	</div>
 	<!--ET_BEGIN STATE_EXTERNAL-->
