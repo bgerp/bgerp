@@ -131,7 +131,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
             $id = $pRec->id;
             try {
-                $prodTransVolume = cat_Products::getTransportVolume($pRec->id,1);
+                $prodTransVolume = cat_Products::getTransportVolume($pRec->id,1000); //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
                 $prodTransWeight = cat_Products::getTransportWeight($pRec->id,1);
             }catch (Exception $e){
                 ;
@@ -151,7 +151,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 continue;
             }
 
-            $volumeWeight = $prodTransWeight/($prodTransVolume*1000);
+            $volumeWeight = $prodTransWeight/($prodTransVolume);
 
             if ($volumeWeight > $rec->minVolWeight && $volumeWeight < $rec->maxVolWeight) continue;
 
@@ -159,7 +159,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
                     'productId' => $pRec->id,                                      // Артикул
-                    'prodVolume' => $prodTransVolume*1000,                         // Транспортен обем
+                    'prodVolume' => $prodTransVolume,                         // Транспортен обем
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
                     'volumeWeight' => $volumeWeight,                               // Обемно тегло
 
@@ -215,7 +215,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row = new stdClass();
 
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getLinkToSingle($dRec->productId, 'name');
+           // $row->productId = cat_Products::getLinkToSingle($dRec->productId, 'name');
+            $row->productId = cat_Products::getHyperlink($dRec->productId);
         }
 
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
