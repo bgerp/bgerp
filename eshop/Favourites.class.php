@@ -174,19 +174,15 @@ class eshop_Favourites extends core_Manager
      */
     public static function renderToggleBtn($eshopProductId)
     {
-        $attr = array('width' => '32px', 'height' => '32px', 'class' => 'favouritesBtn');
+        $attr = array('class' => 'favouritesBtn productBtn');
         $attr['data-url'] = toUrl(array('eshop_Favourites', 'toggle', 'eshopProductId' => $eshopProductId), 'local');
 
         $isIn = static::isIn($eshopProductId);
-        $icon = $isIn ? 'img/16/heart.png' : 'img/16/heart_empty.png';
-        $text = $isIn ? tr('Добавено в Любими') : tr('Добави в любими');
+        $attr['ef_icon'] = $isIn ? 'img/16/heart.png' : 'img/16/heart_empty.png';
         $attr['title'] = $isIn ? tr('Добавяне на артикула в любими') : tr('Премахване на артикула от любими');
-        $attr['src'] = sbf($icon, '');
+        $text = $isIn ? tr('Добавено в любими') : tr('Добави в любими');
 
-        $img = ht::createImg($attr);
-        $tpl = new core_ET("[#img#] [#text#]");
-        $tpl->replace($img, 'img');
-        $tpl->replace($text, 'text');
+        $tpl = ht::createLink($text, null, null, $attr);
 
         return $tpl;
     }
