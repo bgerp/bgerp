@@ -179,7 +179,7 @@ class eshop_Favourites extends core_Manager
 
         $isIn = static::isIn($eshopProductId);
         $attr['ef_icon'] = $isIn ? 'img/16/heart-red.png' : 'img/16/heart_empty.png';
-        $attr['title'] = $isIn ? tr('Добавяне на артикула в любими') : tr('Премахване на артикула от любими');
+        $attr['title'] = $isIn ? tr('Премахване на артикула от любими') : tr('Добавяне на артикула в любими');
         $text = $isIn ? tr('Добавено в любими') : tr('Добави в любими');
 
         $tpl = ht::createLink($text, null, null, $attr);

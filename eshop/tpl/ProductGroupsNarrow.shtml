@@ -5,7 +5,11 @@
             [#SEARCH_BOX#] [#TOGGLE_BTN#]
             <div class="clearfix21"></div>
         </div>
+
         <div class="narrowNav">
+            <div id="faveNavBtn">
+                [#NAVIGATION_FAV#]
+            </div>
             [#NAVIGATION#]
         </div>
     </div>
