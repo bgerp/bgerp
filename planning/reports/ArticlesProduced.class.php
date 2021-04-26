@@ -82,7 +82,8 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $fieldset->FLD('groupsMat', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
         }
 
-        $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=orderBy,input=hiden,single=none');
+        $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=groupsMat,input=hiden,single=none');
+        $fieldset->FNC('totalConsumed', 'varchar', 'caption=Обща стойност на вложените материали,after=montsArr,input=hiden,single=none');
 
 
     }
@@ -121,6 +122,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         $form->setDefault('groupBy', 'no');
         $form->setDefault('orderBy', 'code');
+        $form->setDefault('totalConsumed', null);
 
         if ($rec->consumed == 'yes') {
             $form->setField('groupsMat', 'input');
@@ -343,6 +345,9 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         }
 
+        if (!empty($amountTotal)) {
+            $rec->totalConsumed = array_sum($amountTotal);
+        }
         return $recs;
     }
 
@@ -513,6 +518,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                                         <!--ET_BEGIN from--><div>|От|*: [#from#]</div><!--ET_END from-->
                                         <!--ET_BEGIN to--><div>|До|*: [#to#]</div><!--ET_END to-->
                                         <!--ET_BEGIN groupsMat--><div>|Групи материали|*: [#groupsMat#]</div><!--ET_END groupsMat-->
+                                        <!--ET_BEGIN totalConsumed--><div>|Общо вложени|*: [#totalConsumed#] лв.</div><!--ET_END totalConsumed--> 
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
 
@@ -542,6 +548,10 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             } else {
                   $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groupsMat');
             }
+        }
+
+        if ($data->rec->consumed == 'yes') {
+            $fieldTpl->append('<b>' . $Double->toVerbal($data->rec->totalConsumed) . '</b>', 'totalConsumed');
         }
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
