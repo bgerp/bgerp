@@ -173,6 +173,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_ProductDetails',
         'eshop_Carts',
         'eshop_CartDetails',
+        'eshop_Favourites',
     );
     
     

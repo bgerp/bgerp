@@ -10,6 +10,11 @@
 			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
 			</div>
 		<div class="inqRow">[#coInquiry#] <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--></div>
+		<!--ET_BEGIN FAVOURITES_BTN-->
+		<div id="addToFavouritesBtn">
+			[#FAVOURITES_BTN#]
+		</div>
+		<!--ET_END FAVOURITES_BTN-->
 	</div>
 	<!--ET_BEGIN STATE_EXTERNAL-->
 	<div style='padding-bottom:5px'>[#STATE_EXTERNAL#]</div>

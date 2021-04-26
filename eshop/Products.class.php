@@ -489,11 +489,20 @@ class eshop_Products extends core_Master
         if (!countR($groups)) {
             return;
         }
-            
+
+        $products = eshop_Favourites::getProducts();
+
         $data->groups = array();
+        if(countR($products)){
+            $data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID] = new stdClass();
+            $data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID]->groupId = eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID;
+            self::prepareGroupList($data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID]);
+        }
+
         $gQuery = eshop_Groups::getQuery();
         $groupList = implode(',', array_keys($groups));
         $gQuery->where("#id IN ({$groupList})");
+
         while ($gRec = $gQuery->fetch("#state = 'active'")) {
             $data->groups[$gRec->id] = new stdClass();
             $data->groups[$gRec->id]->groupId = $gRec->id;
@@ -543,12 +552,30 @@ class eshop_Products extends core_Master
     public static function prepareGroupList($data)
     {
         $pQuery = self::getQuery();
-        $pQuery->where("#state = 'active' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
+        if($data->groupId != eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
+            $pQuery->where("#state = 'active' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
+
+            $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
+            $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
+        } else {
+            $pQuery->where("#state = 'active'");
+
+            $cu = core_Users::getCurrent();
+            $fQuery = eshop_Favourites::getQuery();
+            $fQuery->where("#userId = '{$cu}'");
+            $allFavourites = arr::extractValuesFromArray($fQuery->fetchAll(), 'eshopProductId');
+            if(countR($allFavourites)){
+                $pQuery->in('id', $allFavourites);
+            } else {
+                $pQuery->where("1=2");
+            }
+
+            $perPage = eshop_Setup::get('PRODUCTS_PER_PAGE');
+        }
+
         $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$data->groupId}, #saoOrder, 999999999)");
         $pQuery->orderBy('cOrder,code');
-        $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
-        $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
-        
+
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = $pQuery->count();
         $data->Pager->setLimit($pQuery);
@@ -669,10 +696,15 @@ class eshop_Products extends core_Master
                 if (!countR($gData->recs)) {
                     continue;
                 }
-                
-                $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
+
+                if($gData->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
+                    $groupName = tr("Любими артикули");
+                } else {
+                    $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
+                }
+
                 $layout->append('<h2>' . $groupName . '</h2>');
-                
+
                 if (!empty($gData->groupRec->image)) {
                     $image = fancybox_Fancybox::getImage($gData->groupRec->image, array(1200,800), array(1600, 1000), $groupName);
                     $layout->append(new core_ET("<div class='eshop-group-image'>[#IMAGE#]</div>"));
@@ -730,8 +762,8 @@ class eshop_Products extends core_Master
         if ($data->Pager) {
             $layout->append($data->Pager->getHtml());
         }
-        
-        if ($data->addUrl) {
+
+        if ($data->addUrl && $data->groupId != eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID) {
             $layout->append(ht::createBtn('Нов продукт', $data->addUrl, null, null, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
         
@@ -753,7 +785,7 @@ class eshop_Products extends core_Master
         
         $data = new stdClass();
         $data->productId = Request::get('id', 'int');
-        
+
         if (!$data->productId) {
             $domainId = cms_Domains::getPublicDomain('id');
             $opt = cms_Content::getMenuOpt('eshop_Groups', $domainId);
@@ -781,7 +813,6 @@ class eshop_Products extends core_Master
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
         $data->groups->menuId = cms_Content::getMainMenuId($data->groups->rec->menuId, $data->groups->rec->sharedMenus);
         cms_Content::setCurrent($data->groups->menuId);
-        
         $this->prepareProduct($data);
         
         // Подготвяме SEO данните
@@ -791,6 +822,7 @@ class eshop_Products extends core_Master
         eshop_Groups::prepareNavigation($data->groups);
         
         $tpl = eshop_Groups::getLayout();
+        $tpl->appendOnce(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
         // Поставяме SEO данните
@@ -954,7 +986,12 @@ class eshop_Products extends core_Master
             $tpl = getTplFromFile('eshop/tpl/ProductShowNarrow.shtml');
         }
         $tpl->placeObject($data->row);
-        
+
+        if(eshop_Favourites::haveRightFor('toggle', (object)array('eshopProductId' => $data->productId))){
+            $favouritesBtn = eshop_Favourites::renderToggleBtn($data->productId);
+            $tpl->replace($favouritesBtn, 'FAVOURITES_BTN');
+        }
+
         $tpl->push('css/no-sass.css', 'CSS');
         if (is_array($data->detailData->rows) && countR($data->detailData->rows)) {
             $tpl->replace(eshop_ProductDetails::renderExternal($data->detailData), 'PRODUCT_OPT');

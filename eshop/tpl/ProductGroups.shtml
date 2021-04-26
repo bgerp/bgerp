@@ -3,6 +3,9 @@
     <div class='fourcol' id='cmsNavigation'  style='margin-left:2%'>
         [#TOP_NAV#]
         [#SEARCH_BOX#]
+        <div id="faveNavBtn">
+            [#NAVIGATION_FAV#]
+        </div>
         [#NAVIGATION#]
         [#BOTTOM_NAV#]
         [#BEFORE_FOOTER_INFO#]

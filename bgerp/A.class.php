@@ -55,8 +55,17 @@ class bgerp_A extends core_Mvc
     {
         return Request::forward(array('Ctr' => 'blogm_Articles', 'Act' => 'Article'));
     }
-    
-    
+
+
+    /**
+     * Създава пряк път до любимите артикули
+     */
+    public function act_F()
+    {
+        return Request::forward(array('Ctr' => 'eshop_Favourites', 'Act' => 'Show'));
+    }
+
+
     /**
      * Създава watchpoint
      */
