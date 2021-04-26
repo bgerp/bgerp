@@ -295,11 +295,32 @@ class eshop_Favourites extends core_Manager
             $cId = Request::get('id') == static::FAVOURITE_SYSTEM_GROUP_ID;
             $selClass = $cId ? 'sel_page' : '';
 
-            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink nav_item level-1'>" . ht::createLink(tr('Любими артикули||Favourite Products'), $favouritesUrl)  . '</div>');
+            $settings = cms_Domains::getSettings();
+
+            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink nav_item level-1'>" . ht::createLink($settings->favouriteProductBtnCaption, $favouritesUrl)  . '</div>');
 
             return $tpl;
         }
 
         return new core_ET(" ");
+    }
+
+
+    /**
+     * Изтриване на любими артикули от анонимни потребители
+     */
+    public static function cron_DeleteOldFavourites()
+    {
+        $lifetime = eshop_Setup::get('ANONYM_FAVOURITE_DELETE_INTERVAL');
+        $now = dt::now();
+
+        $query = static::getQuery();
+        $query->where("#userId IS NULL");
+        while($rec = $query->fetch()){
+            $deadline = dt::addSecs($lifetime, $rec->createdOn);
+            if($deadline >= $now){
+                eshop_Favourites::delete($rec->id);
+            }
+        }
     }
 }

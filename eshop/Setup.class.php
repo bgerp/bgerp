@@ -116,6 +116,12 @@ defIfNot('ESHOP_DEFAULT_PAYMENTS', '');
 
 
 /**
+ * Изтриване на стари любими артикули
+ */
+defIfNot('ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL', '604800');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -214,6 +220,7 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_DEFAULT_POLICY_ID' => array('key(mvc=price_Lists,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Политика'),
         'ESHOP_DEFAULT_DELIVERY_TERMS' => array('keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Дефолти в настройките а онлайн магазина->Условия на доставка'),
         'ESHOP_DEFAULT_PAYMENTS' => array('keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Методи на плащане'),
+        'ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL' => array('time', 'caption=Изтриване на любимите артикули на нерегистрирани потребители->Време'),
     );
     
     
@@ -234,6 +241,16 @@ class eshop_Setup extends core_ProtoSetup
             'action' => 'CheckDraftCarts',
             'period' => 60,
             'offset' => 30,
+            'timeLimit' => 100
+        ),
+
+        array(
+            'systemId' => 'Deleta Favourite Products In Eshop',
+            'description' => 'Изтриване на любимите артикули в е-маг',
+            'controller' => 'eshop_Favourites',
+            'action' => 'DeleteOldFavourites',
+            'period' => 1440,
+            'offset' => 60,
             'timeLimit' => 100
         ),
     );

@@ -698,7 +698,8 @@ class eshop_Products extends core_Master
                 }
 
                 if($gData->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
-                    $groupName = tr("Любими артикули");
+                    $settings = cms_Domains::getSettings();
+                    $groupName = $settings->favouriteProductBtnCaption;
                 } else {
                     $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
                 }

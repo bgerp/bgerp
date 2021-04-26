@@ -451,7 +451,8 @@ class eshop_Groups extends core_Master
             $row->description = $this->getVerbal($rec, 'info');
             Mode::set('SOC_SUMMARY', $row->info);
         } else {
-            $row->name = tr('Любими артикули');
+           $settings = cms_Domains::getSettings();
+            $row->name = $settings->favouriteProductBtnCaption;
         }
 
         Mode::set('SOC_TITLE', $row->name);
