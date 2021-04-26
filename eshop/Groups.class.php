@@ -451,8 +451,8 @@ class eshop_Groups extends core_Master
             $row->description = $this->getVerbal($rec, 'info');
             Mode::set('SOC_SUMMARY', $row->info);
         } else {
-           $settings = cms_Domains::getSettings();
-            $row->name = $settings->favouriteProductBtnCaption;
+            $settings = cms_Domains::getSettings();
+            $row->name = str::mbUcfirst($settings->favouriteProductBtnCaption);
         }
 
         Mode::set('SOC_TITLE', $row->name);

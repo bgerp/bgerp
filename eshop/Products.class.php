@@ -699,7 +699,7 @@ class eshop_Products extends core_Master
 
                 if($gData->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
                     $settings = cms_Domains::getSettings();
-                    $groupName = $settings->favouriteProductBtnCaption;
+                    $groupName = str::mbUcfirst($settings->favouriteProductBtnCaption);
                 } else {
                     $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
                 }

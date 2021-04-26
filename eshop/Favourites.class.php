@@ -272,8 +272,8 @@ class eshop_Favourites extends core_Manager
      */
     public static function getUrl()
     {
-        $lang = cms_Domains::getPublicDomain('lang');
-        $vId = ($lang == 'bg') ? 'Любими-артикули' : 'Favourite-products';
+        $settings = cms_Domains::getSettings();
+        $vId = str::mbUcfirst(str::removeWhiteSpace($settings->favouriteProductBtnCaption, '-'));
 
         $url = array('A', 'F',$vId);
 
@@ -296,8 +296,9 @@ class eshop_Favourites extends core_Manager
             $selClass = $cId ? 'sel_page' : '';
 
             $settings = cms_Domains::getSettings();
+            $caption = str::mbUcfirst($settings->favouriteProductBtnCaption);
 
-            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink nav_item level-1'>" . ht::createLink($settings->favouriteProductBtnCaption, $favouritesUrl)  . '</div>');
+            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink nav_item level-1'>" . ht::createLink($caption, $favouritesUrl)  . '</div>');
 
             return $tpl;
         }
