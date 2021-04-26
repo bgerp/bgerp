@@ -68,18 +68,19 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
 
         //Групиране на резултата
-        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=group');
+        $fieldset->FLD('groupBy', 'enum(no=Без групиране, department=Център на дейност,storeId=Склад,month=По месеци)', 'notNull,caption=Групиране и подреждане->Групиране,after=groups');
 
 
         //Подредба на резултатите
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
 
-        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
+        $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
+        $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
+            $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени материали->Група артикули,placeholder = Всички,after=consumedFrom,single=none,input=hidden');
         } else {
-            $fieldset->FLD('groupsMat', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени артикули->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
+            $fieldset->FLD('groupsMat', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени материали->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
         }
 
         $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=groupsMat,input=hiden,single=none');
@@ -123,9 +124,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $form->setDefault('groupBy', 'no');
         $form->setDefault('orderBy', 'code');
         $form->setDefault('totalConsumed', null);
+        $form->setDefault('consumedFrom', 'protocols');
 
         if ($rec->consumed == 'yes') {
             $form->setField('groupsMat', 'input');
+            $form->setField('consumedFrom', 'input');
             $form->setField('groups', 'input=hidden');
             $form->setField('groupBy', 'input=hidden');
             $form->setOptions('orderBy', array('code' => 'Код'));
@@ -208,27 +211,82 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
             //Вложени материали
             if ($rec->consumed == 'yes') {
+                $dpRecDetArr = array();
 
-                $query = acc_Journal::getQuery();
-                $dpRec = $query->fetch("#docType = $pDpClassId AND #docId = $planningRec->id AND #state = 'active' ");
-                $dpQuery = acc_JournalDetails::getQuery();
-                $dpQuery->where("#journalId = $dpRec->id AND #debitAccId = $debitAccId");
+                //Ако е избрана опция за вложените материали по протоколи за производство
+                if ($rec->consumedFrom == 'protocols') {
+                    $query = acc_Journal::getQuery();
+                    $dpRec = $query->fetch("#docType = $pDpClassId AND #docId = $planningRec->id AND #state = 'active' ");
+                    $dpQuery = acc_JournalDetails::getQuery();
+                    $dpQuery->where("#journalId = $dpRec->id AND #debitAccId = $debitAccId");
 
+                    while ($dpRecDet = $dpQuery->fetch()) {
+                        unset($amount, $quantity, $matRec, $matItemRec, $matClassName);
 
-                while ($dpRecDet = $dpQuery->fetch()) {
-                    unset($amount, $quantity, $matRec, $matItemRec, $matClassName);
+                        if ($dpRecDet->creditItem1) {
+                            $matItemRec = acc_Items::fetch($dpRecDet->creditItem1);
+                            $matClassName = core_Classes::fetch($matItemRec->classId)->name;
 
-                    if ($dpRecDet->creditItem1) {
-                        $matItemRec = acc_Items::fetch($dpRecDet->creditItem1);
-                        $matClassName = core_Classes::fetch($matItemRec->classId)->name;
+                            //rec-а на вложения материал
+                            $matRec = $matClassName::fetch($matItemRec->objectId);
+                            $id = $planningRec->productId . '|' . $matRec->id;
+                        } else {
+                            $id = $planningRec->productId . '|' . 'distrib';
+                        }
+                        $dpRecDetArr[$id] = (object)array('dpRecDet' => $dpRecDet,
+                            'matRec' => $matRec);
+                    }
+                }
 
-                        //rec-а на вложения материал
-                        $matRec = $matClassName::fetch($matItemRec->objectId);
-                        $id = $planningRec->productId . '|' . $matRec->id;
-                    } else {
-                        $id = $planningRec->productId . '|' . 'distrib';
+                //Ако е избрана опция за вложените материали по рецепти
+                if ($rec->consumedFrom == 'boms') {
+                    $lastActivBomm = cat_Products::getLastActiveBom($planningRec->productId);
+
+                    if ($lastActivBomm) {
+                        $bommMaterials = cat_Boms::getBomMaterials($lastActivBomm->id, $lastActivBomm->quantity);
                     }
 
+                    // Масив артикули и количество необходими за изпълнение на заданията //
+                    if (is_array($bommMaterials)) {
+                        foreach ($bommMaterials as $material) {
+                            $id = $planningRec->productId . '|' .$material->productId;
+
+                            $jobsQuantityMaterial = (double)$material->quantity * $planningRec->quantity;
+
+                            if (!array_key_exists($id, $dpRecDetArr)) {
+                                $dpRecDetArr[$id] =
+
+                                    (object)array(
+
+                                        'productId' => $material->productId,
+
+                                        'quantity' => $jobsQuantityMaterial
+                                    );
+                            } else {
+                                $obj = &$dpRecDetArr[$id];
+
+                                $obj->quantity += $jobsQuantityMaterial;
+                            }
+                        }
+                    }
+                }
+
+
+                foreach ($dpRecDetArr as $id => $val){
+
+                    if ($rec->consumedFrom == 'protocols'){
+                        $matRec = $val->matRec;
+                        $quantity = $val->dpRecDet->creditQuantity;
+                        $amount = $val->dpRecDet->amount;
+                        $amountTotal[$planningRec->productId] += $val->dpRecDet->amount;
+                    }else{
+                        $matRec =cat_Products::fetch($val->productId);
+
+                        $quantity = $val->quantity;
+                        $quantity = cat_Products::getWacAmountInStore(1,$val->productId,$planningRec->valior);
+                        $amountTotal[$planningRec->productId] += $amount;
+
+                    }
 
                     //филтър по група на вложеното
                     if ($rec->groupsMat) {
@@ -236,10 +294,6 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                         //Ако има избрани групи материали филтрираме само тях
                         if (!(keylist::isIn(keylist::toArray($rec->groupsMat), $matRec->groups))) continue;
                     }
-
-                    $quantity = $dpRecDet->creditQuantity;
-                    $amount = $dpRecDet->amount;
-                    $amountTotal[$planningRec->productId] += $dpRecDet->amount;
 
                     // Запис в масива на материалите
                     if (!array_key_exists($id, $consumedItems)) {
