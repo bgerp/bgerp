@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -186,7 +186,7 @@ class store_ConsignmentProtocols extends core_Master
         
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
-        $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,maxRadio=2,notNull,default=ours');
+        $this->FLD('productType', 'enum(,ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
 
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
@@ -273,24 +273,18 @@ class store_ConsignmentProtocols extends core_Master
     {
         // Ако потребителя няма достъп към визитката на лицето, или не може да види сч. справки то визитката, той не може да види справката
         $Contragent = cls::get($data->rec->contragentClassId);
-        if (!$Contragent->haveRightFor('single', $data->rec->contragentId)) {
-            
-            return;
-        }
-        if (!haveRole($Contragent->canReports)) {
-            
-            return;
-        }
+        if (!$Contragent->haveRightFor('single', $data->rec->contragentId)) return;
+
+        if (!haveRole($Contragent->canReports)) return;
         
         $snapshot = $data->rec->snapshot;
-        
         $mvcTable = new core_Mvc;
         $mvcTable->FLD('blQuantity', 'int', 'tdClass=accCell');
-        
+
+        $productCaption = ($data->rec->productType == 'ours') ? 'Наш артикул' : 'Чужд артикул';
         $table = cls::get('core_TableView', array('mvc' => $mvcTable));
-        $details = $table->get($snapshot->rows, 'count=№,productId=Артикул,blQuantity=Количество');
-        
-        
+        $details = $table->get($snapshot->rows, "count=№,productId={$productCaption},blQuantity=Количество");
+
         $tpl->replace($details, 'SNAPSHOT');
         $tpl->replace($snapshot->date, 'SNAPSHOT_DATE');
     }
@@ -363,7 +357,6 @@ class store_ConsignmentProtocols extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
-        $form->setDefault('productType', 'ours');
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
