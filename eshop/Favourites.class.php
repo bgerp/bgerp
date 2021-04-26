@@ -25,7 +25,7 @@ class eshop_Favourites extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, eshop_Wrapper, plg_Sorting';
 
 
     /**
@@ -81,7 +81,7 @@ class eshop_Favourites extends core_Manager
     public function description()
     {
         $this->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
-        $this->FLD('userId', 'key(mvc=core_Users, select=nick)', 'caption=Потребител,input=none');
+        $this->FLD('userId', 'key(mvc=core_Users, select=nick,allowEmpty)', 'caption=Потребител,input=none');
         $this->FLD('eshopProductId', 'key(mvc=eshop_Products,select=name)', 'caption=Ешоп артикул,mandatory,silent');
 
         $this->setDbIndex('brid');
@@ -320,6 +320,32 @@ class eshop_Favourites extends core_Manager
             $deadline = dt::addSecs($lifetime, $rec->createdOn);
             if($deadline >= $now){
                 eshop_Favourites::delete($rec->id);
+            }
+        }
+    }
+
+    /**
+     * Сортиране по name
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('id', "ASC");
+        $data->listFilter->showFields = 'userId,brid';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+
+        if($rec = $data->listFilter->rec){
+            if(isset($rec->userId)){
+                $data->query->where("#userId = {$rec->userId}");
+            }
+
+            if(!empty($rec->brid)){
+                $data->query->where("#brid = {$rec->brid}");
             }
         }
     }
