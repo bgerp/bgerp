@@ -752,10 +752,6 @@ class eshop_Products extends core_Master
                 $row->name = ht::createLink($row->name, $url);
                 $row->image = ht::createLink($row->image, $url, false, 'class=eshopLink');
 
-                if(eshop_Favourites::isIn($rec->id)){
-                    $row->FAV_ICON = ht::createImg(array('title' => "Артикулът е добавен в \"Любими\"", 'style' => "position:relative; top: 3px; margin-left: 2px;", 'src' => sbf('img/16/heart-red.png', '')));
-                }
-
                 $pTpl->placeObject($row);
                 $pTpl->removePlaces();
                 $pTpl->removeBlocks();

@@ -5,7 +5,7 @@
                 [#image#]
             </td>
             <td class="vtop">
-                <h2 class='eshop-product-list-name'>[#name#] [#singleLink#][#editLink#]<!--ET_BEGIN favIcon--><span class="FAV_ICON">[#FAV_ICON#]</span><!--ET_END FAV_ICON--></h2>
+                <h2 class='eshop-product-list-name'>[#name#] [#singleLink#][#editLink#]</h2>
                 <div class='eshop-product-labels'>
                     <!--ET_BEGIN code--><span class="info">|Код|*: <b>[#code#]</b></span><!--ET_END code--> <!--ET_BEGIN coMoq--><span class="info" title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--> [#coInquiry#]<!--ET_BEGIN catalogPrice--><span class="info">|Цена|*: [#catalogPrice#] [#chargeVat#] |за|* [#packagingId#]</span> <!--ET_END catalogPrice-->[#btn#]
                     <!--ET_BEGIN saleInfo--><div>[#saleInfo#]</div><!--ET_END saleInfo-->
