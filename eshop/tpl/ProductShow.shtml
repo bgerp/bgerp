@@ -15,14 +15,12 @@
 			<div style='padding-bottom:5px'><b style='font-size:1.4em'>[#ONLY_PRODUCT_NAME#]</b></div>
 			<!--ET_END ONLY_PRODUCT_NAME-->
 			<div>
-			<!--ET_BEGIN code--><span style="margin-right: 15px;"><b>|Код|*: [#code#]</b></span><!--ET_END code-->
+			<!--ET_BEGIN code--><span style="margin-right: 5px;"><b>|Код|*: [#code#]</b></span><!--ET_END code-->
 			[#coInquiry#]<!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*' >|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq-->
+				<!--ET_BEGIN FAVOURITES_BTN-->
+				<span id="addToFavouritesBtn">[#FAVOURITES_BTN#]</span>
+				<!--ET_END FAVOURITES_BTN-->
 			</div>
-			<!--ET_BEGIN FAVOURITES_BTN-->
-			<div id="addToFavouritesBtn">
-				[#FAVOURITES_BTN#]
-			</div>
-			<!--ET_END FAVOURITES_BTN-->
 			<div class="clearfix21"></div>
 		</div>
 

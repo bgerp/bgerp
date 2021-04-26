@@ -178,7 +178,7 @@ class eshop_Favourites extends core_Manager
         $attr['data-url'] = toUrl(array('eshop_Favourites', 'toggle', 'eshopProductId' => $eshopProductId), 'local');
 
         $isIn = static::isIn($eshopProductId);
-        $attr['ef_icon'] = $isIn ? 'img/16/heart.png' : 'img/16/heart_empty.png';
+        $attr['ef_icon'] = $isIn ? 'img/16/heart-red.png' : 'img/16/heart_empty.png';
         $attr['title'] = $isIn ? tr('Добавяне на артикула в любими') : tr('Премахване на артикула от любими');
         $text = $isIn ? tr('Добавено в любими') : tr('Добави в любими');
 
@@ -271,7 +271,7 @@ class eshop_Favourites extends core_Manager
             $cId = Request::get('id') == static::FAVOURITE_SYSTEM_GROUP_ID;
             $selClass = $cId ? 'sel_page' : '';
 
-            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink'>" . ht::createLink(tr('Любими артикули||Favourite Products'), $favouritesUrl)  . '</div>');
+            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink nav_item level-1'>" . ht::createLink(tr('Любими артикули||Favourite Products'), $favouritesUrl)  . '</div>');
 
             return $tpl;
         }
