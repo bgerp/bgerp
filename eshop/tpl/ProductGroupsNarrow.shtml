@@ -8,7 +8,7 @@
 
         <div class="narrowNav">
             [#NAVIGATION_EXTRA_BTNS#]
-            <div id="faveNavBtn">
+            <div id="faveNavBtn" class="clearfix21">
                 [#NAVIGATION_FAV#]
             </div>
             [#NAVIGATION#]

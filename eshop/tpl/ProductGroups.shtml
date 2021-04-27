@@ -4,7 +4,7 @@
         [#TOP_NAV#]
         [#SEARCH_BOX#]
         [#NAVIGATION_EXTRA_BTNS#]
-        <div id="faveNavBtn">
+        <div id="faveNavBtn" class="clearfix21">
             [#NAVIGATION_FAV#]
         </div>
         [#NAVIGATION#]
