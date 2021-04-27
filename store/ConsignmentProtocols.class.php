@@ -229,7 +229,7 @@ class store_ConsignmentProtocols extends core_Master
             $row->contragentId = cls::get($rec->contragentClassId)->getHyperlink($rec->contragentId, true);
             $row->title = $mvc->getLink($rec->id, 0);
         }
-        
+
         $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
         $row = (object) ((array) $row + (array) $headerInfo);
         
@@ -357,7 +357,12 @@ class store_ConsignmentProtocols extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
-        $form->setFieldType('productType', 'enum(,our=Наши артикули,other=Чужди артикули)');
+        // При нов протокол, потребителя ще бъде принуден да избере типа на предаваните/получаваните артикули
+        if(empty($rec->id)){
+            $form->setOptions('productType', array('' => '', 'ours' => 'Наши артикули', 'other' => 'Чужди артикули'));
+            $form->setDefault('productType', '');
+        }
+
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
@@ -386,7 +391,7 @@ class store_ConsignmentProtocols extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if($form->isSubmitted()){
-            
+
             // Задаване на дефолтния склад, ако потребителя е партньор
             if(core_Packs::isInstalled('colab') && haveRole('partner')){
                 $form->rec->storeId = cond_Parameters::getParameter($form->rec->contragentClassId, $form->rec->contragentId, 'defaultStoreSale');

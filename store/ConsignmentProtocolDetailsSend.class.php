@@ -141,12 +141,9 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (!countR($data->recs)) {
-            
-            return;
-        }
+        if (!countR($data->recs)) return;
 
         $storeId = $data->masterData->rec->storeId;
         foreach ($data->rows as $id => $row) {

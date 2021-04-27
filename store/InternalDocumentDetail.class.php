@@ -271,4 +271,16 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         
         return self::save($dRec);
     }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $data->toolbar->removeBtn('btnAdd');
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterData->rec->id, 'ret_url' => true), "id=btnAdd-{$data->masterData->rec->containerId},order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
+        }
+    }
 }
