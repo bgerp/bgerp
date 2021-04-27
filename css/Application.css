@@ -5470,15 +5470,16 @@ div.location.public {
     text-align: right;
     padding-right: 10px; }
 
-.wide #addToFavouritesBtn {
-  display: inline-block;
-  margin-left: 5px; }
-    .wide #addToFavouritesBtn .favouritesBtn:hover {
-      cursor: pointer; }
-
-.narrow  #addToFavouritesBtn {
-  display: inline-block;
-  margin-top: 5px; }
+  #cmsNavigation .favouriteNavigationLink .linkWithIcon {
+    background-position: 5px 3px !important;
+    margin-left: 0 !important;
+    margin-bottom: 5px !important;
+    color: #a00505; }
+  #cmsNavigation .favouriteNavigationLink.sel_page .linkWithIcon,
+  #cmsNavigation .favouriteNavigationLink:hover .linkWithIcon {
+    background-color: #fdc3c3 !important;
+    border-color: #fb9292 !important;
+    color: #a00505 !important; }
 
 .narrow .externalPage #maincontent.hasLogoutBlock {
   padding-top: 29px !important; }

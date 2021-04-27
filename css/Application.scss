@@ -6238,18 +6238,18 @@ div.location.public {
 		padding-right: 10px;
 	}
 }
-.wide #addToFavouritesBtn {
-	display: inline-block;
-	margin-left: 5px;
-	.favouritesBtn {
-		&:hover {
-			cursor: pointer;
-		}
+#cmsNavigation .favouriteNavigationLink {
+	.linkWithIcon {
+		background-position: 5px 3px !important;
+		margin-left: 0 !important;
+		margin-bottom: 5px !important;
+		color: #A00505;
 	}
-}
-.narrow  #addToFavouritesBtn {
-	display: inline-block;
-	margin-top: 5px;
+	&.sel_page .linkWithIcon, &:hover .linkWithIcon {
+		background-color: #fdc3c3 !important;
+		border-color: #fb9292 !important;
+		color: #A00505 !important;
+	}
 }
 .narrow .externalPage #maincontent.hasLogoutBlock {
 	padding-top: 29px !important;
