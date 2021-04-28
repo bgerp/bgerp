@@ -276,7 +276,7 @@ class eshop_Groups extends core_Master
             $this->prepareAllGroups($data);
 
             $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
-            $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_FAV');
+            $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
             
             $seoRec = new stdClass();
@@ -370,7 +370,7 @@ class eshop_Groups extends core_Master
         
         $layout = $this->getLayout();
         $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
-        $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_FAV');
+        $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
 
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
