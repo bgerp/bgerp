@@ -298,7 +298,7 @@ class eshop_Favourites extends core_Manager
             $settings = cms_Domains::getSettings();
             $caption = str::mbUcfirst($settings->favouriteProductBtnCaption);
 
-            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink nav_item level-1'>" . ht::createLink($caption, $favouritesUrl, false, 'ef_icon=img/16/heart-red.png')  . '</div>');
+            $tpl = new core_ET("<div class='{$selClass} favouriteNavigationLink navWithIcon nav_item level-1'>" . ht::createLink($caption, $favouritesUrl, false, 'ef_icon=img/16/heart-red.png')  . '</div>');
 
             return $tpl;
         }
