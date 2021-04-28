@@ -19,7 +19,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Довереник|*</b></td>
+                    <td class="cell custom-header-bg"><b>[#contragentCaption#]</b></td>
                 </tr>
                 <tr>
                     <td>
@@ -31,7 +31,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Доверител|*</b></td>
+                    <td class="cell custom-header-bg"><b>[#ourCompanyCaption#]</b></td>
                 </tr>
                 <tr>
                     <td>

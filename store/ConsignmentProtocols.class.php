@@ -236,6 +236,11 @@ class store_ConsignmentProtocols extends core_Master
         if (isset($fields['-single'])) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
             $row->username = core_Users::getVerbal($rec->createdBy, 'names');
+
+            $mvc->pushTemplateLg($rec->template);
+            $row->contragentCaption = ($rec->productType == 'ours') ? tr('Довереник') : tr('Доверител');
+            $row->ourCompanyCaption = ($rec->productType == 'ours') ? tr('Доверител') : tr('Довереник');
+            core_Lg::pop();
         }
     }
     
