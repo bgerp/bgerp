@@ -804,7 +804,7 @@ class eshop_Products extends core_Master
 
                 foreach ($data->rows as $date => $products) {
                     $date = dt::mysql2verbal($date, 'd.m.Y');
-                    $block = new core_ET("<div class='lastOrderProductsDate'>[#DATE#]</div><div class='eshop-product-list-holder'>[#PRODUCTS#]</div>");
+                    $block = new core_ET("<h2 class='lastOrderProductsDate' style='margin-bottom: 10px'>[#DATE#]</h2><div class='eshop-product-list-holder'>[#PRODUCTS#]</div>");
                     $block->replace($date, 'DATE');
 
                     foreach ($products as $id => $row){
