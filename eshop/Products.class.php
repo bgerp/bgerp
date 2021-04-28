@@ -798,13 +798,13 @@ class eshop_Products extends core_Master
      */
     public function renderGroupList_($data)
     {
-        $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
-
         if (is_array($data->rows)) {
             if(countR($data->lastOrderedData)){
+                $layout = new ET("[#BLOCK#]");
+
                 foreach ($data->rows as $date => $products) {
                     $date = dt::mysql2verbal($date, 'd.m.Y');
-                    $block = new core_ET("<div class='lastOrderProductsDate'>[#DATE#]</div>[#PRODUCTS#]");
+                    $block = new core_ET("<div class='lastOrderProductsDate'>[#DATE#]</div><div class='eshop-product-list-holder'>[#PRODUCTS#]</div>");
                     $block->replace($date, 'DATE');
 
                     foreach ($products as $id => $row){
@@ -817,6 +817,7 @@ class eshop_Products extends core_Master
                     $layout->append($block, 'BLOCK');
                 }
             } else {
+                $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
                 foreach ($data->rows as $id => $row) {
                     $row1 = clone $row;
                     $rec = $data->recs[$id];
