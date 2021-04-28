@@ -269,12 +269,14 @@ class eshop_Groups extends core_Master
             
             vislog_History::add("Търсене в продуктите: {$q}");
         }
-        
-        
+
         if (self::mustShowSideNavigation()) {
             // Ако имаме поне 4-ри групи артикули
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
+
+            $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
+            $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
             
             $seoRec = new stdClass();
@@ -285,6 +287,7 @@ class eshop_Groups extends core_Master
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             cms_Content::renderSeo($layout, $seoRec);
         } else {
+
             eshop_Products::prepareAllProducts($data);
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
         }
@@ -344,28 +347,39 @@ class eshop_Groups extends core_Master
         $data = new stdClass();
         
         $data->groupId = Request::get('id', 'int');
-        
+
         if (!$data->groupId) {
             return $this->act_ShowAll();
         }
-        expect($groupRec = self::fetch($data->groupId));
-        if (!($data->menuId = Request::get('cMenuId', 'int')) || ($groupRec->menuId != $data->menuId && strpos($groupRec->sharedMenus, "|{$data->menuId}|") === false)) {
-            $data->menuId = cms_Content::getMainMenuId($groupRec->menuId, $groupRec->sharedMenus);
+
+        if($data->groupId > 0){
+            expect($groupRec = self::fetch($data->groupId));
+
+            if (!($data->menuId = Request::get('cMenuId', 'int')) || ($groupRec->menuId != $data->menuId && strpos($groupRec->sharedMenus, "|{$data->menuId}|") === false)) {
+                $data->menuId = cms_Content::getMainMenuId($groupRec->menuId, $groupRec->sharedMenus);
+            }
+        } else {
+            $data->menuId = cms_Content::getDefaultMenuId($this);
         }
-        
+
         cms_Content::setCurrent($data->menuId);
-        
+
         $this->prepareGroup($data);
         $this->prepareNavigation($data);
         plg_AlignDecimals2::alignDecimals(cls::get('eshop_Products'), $data->products->recs, $data->products->rows);
         
         $layout = $this->getLayout();
+        $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
+        $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
+
         $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
         $layout->append($this->renderGroup($data), 'PAGE_CONTENT');
         
         // Добавя канонично URL
-        $url = toUrl(self::getUrl($data->rec, true), 'absolute');
-        $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+        if($data->groupId > 0){
+            $url = toUrl(self::getUrl($data->rec, true), 'absolute');
+            $layout->append("\n<link rel=\"canonical\" href=\"{$url}\"/>", 'HEAD');
+        }
         
         // Страницата да се кешира в браузъра
         $conf = core_Packs::getConfig('eshop');
@@ -402,7 +416,7 @@ class eshop_Groups extends core_Master
         $query = self::getQuery();
         self::setOrder($query, $data->menuId);
         
-        if ($groupId) {
+        if ($groupId && $groupId != eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID) {
             $query->where("#state = 'active' AND #saoParentId = {$groupId} AND (#menuId = {$data->menuId} OR LOCATE('|{$data->menuId}|', #sharedMenus))");
         } else {
             $query->where("#state = 'active' AND (#menuId = {$data->menuId} OR LOCATE('|{$data->menuId}|', #sharedMenus)) AND #saoLevel <= 1");
@@ -423,28 +437,37 @@ class eshop_Groups extends core_Master
      */
     public function prepareGroup_($data)
     {
-        expect($rec = $data->rec = $this->fetch($data->groupId), $data);
-        
-        $rec->menuId = $rec->menuId;
-        
-        $row = $data->row = new stdClass();
-        
-        $row->name = $this->getVerbal($rec, 'name');
-        
-        if ($rec->image) {
-            $row->image = fancybox_Fancybox::getImage($rec->image, array(620, 620), array(1200, 1200), $row->name);
+        if($data->groupId > 0){
+            expect($rec = $data->rec = $this->fetch($data->groupId), $data);
         }
         
-        $row->description = $this->getVerbal($rec, 'info');
-        
+        $row = $data->row = new stdClass();
+
+        if($data->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
+            $settings = cms_Domains::getSettings();
+            $row->name = str::mbUcfirst($settings->favouriteProductBtnCaption);
+        } elseif($data->groupId == eshop_Carts::LAST_SALES_SYSTEM_ID){
+            $settings = cms_Domains::getSettings();
+            $row->name = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
+        } else {
+            $row->name = $this->getVerbal($rec, 'name');
+            if ($rec->image) {
+                $row->image = fancybox_Fancybox::getImage($rec->image, array(620, 620), array(1200, 1200), $row->name);
+            }
+
+            $row->description = $this->getVerbal($rec, 'info');
+            Mode::set('SOC_SUMMARY', $row->info);
+        }
+
         Mode::set('SOC_TITLE', $row->name);
-        Mode::set('SOC_SUMMARY', $row->info);
-        
+
         $data->products = new stdClass();
         $data->products->groupId = $data->groupId;
-        
-        $this->prepareAllGroups($data, $data->groupId);
-        
+
+        if($data->groupId > 0){
+            $this->prepareAllGroups($data, $data->groupId);
+        }
+
         eshop_Products::prepareGroupList($data->products);
     }
     
@@ -518,12 +541,20 @@ class eshop_Groups extends core_Master
         $rec = $data->rec;
         
         // Подготвяме данните за SEO
-        cms_Content::prepareSeo($rec, array('seoTitle' => $rec->name, 'seoDescription' => $rec->info, 'seoThumb' => $rec->image ? $rec->image : $rec->icon));
-        
+        if($data->groupId > 0){
+            cms_Content::prepareSeo($rec, array('seoTitle' => $rec->name, 'seoDescription' => $rec->info, 'seoThumb' => $rec->image ? $rec->image : $rec->icon));
+        }
+
         $groupTpl->append(eshop_Products::renderGroupList($data->products), 'PRODUCTS');
         
         // Рендираме данните за seo
-        cms_Content::renderSeo($groupTpl, $rec);
+        if($data->groupId > 0){
+            cms_Content::renderSeo($groupTpl, $rec);
+        } elseif(in_array($data->groupId, array(eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID, eshop_Carts::LAST_SALES_SYSTEM_ID))) {
+            $settings = cms_Domains::getSettings();
+            $seoTitle = ($data->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID) ? $settings->favouriteProductBtnCaption : $settings->lastOrderedProductBtnCaption;
+            $groupTpl->prependOnce(str::mbUcfirst($seoTitle) . ' » ', 'PAGE_TITLE');
+        }
         
         return $groupTpl;
     }
@@ -565,7 +596,7 @@ class eshop_Groups extends core_Master
         $groupId = $data->groupId;
         $productId = $data->productId;
         $menuId = $data->menuId;
-        
+
         if (empty($data->groupId) && $productId) {
             $pRec = eshop_Products::fetch("#id = {$productId} AND #state = 'active'");
             $groupId = $pRec->groupId;
@@ -573,7 +604,7 @@ class eshop_Groups extends core_Master
             $groupId = $data->groupId;
         }
         
-        if ($groupId) {
+        if ($groupId && $groupId > 0) {
             $fRec = self::fetch($groupId);
             
             $parentGroupsArr = array($fRec->id);
@@ -603,7 +634,7 @@ class eshop_Groups extends core_Master
             $l->url['PU'] = 1;
         }
         $settings = cms_Domains::getSettings();
-       
+
         $data->hasRootNavigation = ($settings->showRootNavigation == 'yes');
         if($data->hasRootNavigation){
             $l->title = $settings->rootNavigationName;
@@ -613,7 +644,7 @@ class eshop_Groups extends core_Master
         
         $editSbf = sbf('img/16/edit.png', '');
         $editImg = ht::createElement('img', array('src' => $editSbf, 'width' => 16, 'height' => 16));
-        
+
         while ($rec = $query->fetch()) {
             $l = new stdClass();
             if ($rec->menuId != $menuId) {
@@ -637,6 +668,7 @@ class eshop_Groups extends core_Master
         
         $data->searchCtr = 'eshop_Groups';
         $data->searchAct = 'ShowAll';
+
     }
     
     

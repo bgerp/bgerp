@@ -58,7 +58,10 @@ class newsbar_Plugin extends core_Plugin
                         break;
                     case 'topPage':
                         $placeholderName = 'TOP_PAGE';
-                        $className .= "topPageNewsbar absolutePosition";
+                        if (Mode::is('screenMode', 'narrow')) {
+                            $className .= " absolutePosition";
+                        }
+                        $className .= " topPageNewsbar";
                         break;
                     case 'topContent':
                         $placeholderName = 'TOP_CONTENT';

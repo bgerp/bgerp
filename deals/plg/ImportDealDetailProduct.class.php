@@ -235,15 +235,24 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 continue;
             }
             
-            $state = cat_Products::fetchField($pRec->productId, 'state');
-            if ($state != 'active') {
-                $err[$i][] = $obj->code . ' |Артикулът е неактивен|*';
+            $productRec = cat_Products::fetch($pRec->productId, "state,isPublic,folderId,{$mvc->metaProducts}");
+            if ($productRec->state != 'active') {
+                $err[$i][] = $obj->code . ' |Артикулът не е активен|*';
                 continue;
             }
-            
-            $meta = (array) cat_Products::fetch($pRec->productId, $mvc->metaProducts);
-            unset($meta['id']);
-            
+
+            $meta = (array) $productRec;
+            unset($meta['id'], $meta['state'], $meta['isPublic'], $meta['folderId']);
+
+            // Ако артикула е нестандартен, проверява се все пак може ли да се добави в папката на документа
+            if($productRec->isPublic != 'yes'){
+                $productSharedFolders = cat_products_SharedInFolders::getSharedFolders($productRec->id);
+                if(!in_array($folderId, $productSharedFolders)){
+                    $err[$i][] = $obj->code . ' |Артикулът е частен и не е достъпен в папката на документа|*';
+                    continue;
+                }
+            }
+
             // Ако импорта е в Експедиционно или Складова разписка
             if (!$mvc->metaProducts) {
                 $masterId = Request::get($mvc->masterKey, 'int');
