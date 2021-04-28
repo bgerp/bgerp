@@ -229,13 +229,26 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             $pRec = cat_Products::getByCode($obj->code);
-            
+
             if (!$pRec) {
                 $err[$i][] = $obj->code . ' |Няма артикул с такъв код|*';
                 continue;
             }
-            
-            $productRec = cat_Products::fetch($pRec->productId, "state,isPublic,folderId,{$mvc->metaProducts}");
+
+            $masterId = Request::get($mvc->masterKey, 'int');
+            $metaArr = arr::make($mvc->metaProducts, true);
+            if(!countR($metaArr)){
+                $masterRec = $mvc->Master->fetch($masterId);
+                $Document = doc_Containers::getDocument($masterRec->originId);
+                if ($Document->className == 'sales_Sales') {
+                    $metaArr = array('canSell' => 'canSell');
+                } elseif ($Document->className == 'purchase_Purchases') {
+                    $metaArr = array('canBuy' => 'canBuy');
+                }
+            }
+
+            $metaString = implode(',', $metaArr);
+            $productRec = cat_Products::fetch($pRec->productId, "state,isPublic,folderId,{$metaString}");
             if ($productRec->state != 'active') {
                 $err[$i][] = $obj->code . ' |Артикулът не е активен|*';
                 continue;
@@ -253,22 +266,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             }
 
-            // Ако импорта е в Експедиционно или Складова разписка
-            if (!$mvc->metaProducts) {
-                $masterId = Request::get($mvc->masterKey, 'int');
-                
-                $masterRec = $mvc->Master->fetch($masterId);
-                
-                //Първия документ в нишката
-                $Document = doc_Containers::getDocument($masterRec->originId);
-                
-                if ($Document->className == 'sales_Sales') {
-                    $meta = array('canSell' => cat_Products::fetch($pRec->productId)->canSell);
-                } elseif ($Document->className == 'purchase_Purchases') {
-                    $meta = array('canBuy' => cat_Products::fetch($pRec->productId)->canBuy);
-                }
-            }
-            
             foreach ($meta as $metaValue) {
                 if ($metaValue != 'yes') {
                    $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
