@@ -169,8 +169,32 @@ class eshop_Settings extends core_Master
      * Името на основната група на навигацията на EN
      */
     const DEFAULT_ROOT_NAVIGATION_GROUP_NAME_EN = 'Product groups';
-    
-    
+
+
+    /**
+     * Заглавие на бутона за добавяне в количката на BG
+     */
+    const DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_BG = 'Любими артикули';
+
+
+    /**
+     * Заглавие на бутона за добавяне в количката на EN
+     */
+    const DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN = 'Favourite products';
+
+
+    /**
+     * Заглавие на бутона за добавяне в количката на BG
+     */
+    const DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_BG = 'Последно поръчвани';
+
+
+    /**
+     * Заглавие на бутона за добавяне в количката на EN
+     */
+    const DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_EN = 'Last ordered';
+
+
     /**
      * Описание на модела
      */
@@ -230,6 +254,9 @@ class eshop_Settings extends core_Master
         $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕГН');
         $this->FLD('mandatoryUicId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕИК');
         $this->FLD('mandatoryVatId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ДДС №');
+
+        $this->FLD('favouriteProductBtnCaption', 'varchar(16)', 'caption=Бутон за Любими артикули->Надпис');
+        $this->FLD('lastOrderedProductBtnCaption', 'varchar(16)', 'caption=Бутон за Последно продадени артикули->Надпис');
 
         $this->setDbIndex('classId, objectId');
     }
@@ -387,7 +414,15 @@ class eshop_Settings extends core_Master
         
         $companyPlaceholder = drdata_Countries::getCountryName($ownCompany->country);
         $form->setField('countries',  array('placeholder' => $companyPlaceholder));
-       
+
+        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_BG : self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN;
+        $form->setField('favouriteProductBtnCaption', array('placeholder' => $btnPlaceholder));
+
+        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_BG : self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_EN;
+        $form->setField('lastOrderedProductBtnCaption', array('placeholder' => $btnPlaceholder));
+
+
+
         $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_BG : self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_EN;
         $form->setField('rootNavigationName', array('placeholder' => $btnPlaceholder));
         
@@ -513,7 +548,15 @@ class eshop_Settings extends core_Master
             if (empty($settingRec->partnerTerms)) {
                 $settingRec->partnerTerms = $settingRec->terms;
             }
-            
+
+            if (empty($settingRec->favouriteProductBtnCaption)) {
+                $settingRec->favouriteProductBtnCaption = ($lang == 'bg') ? self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_BG : self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN;
+            }
+
+            if (empty($settingRec->lastOrderedProductBtnCaption)) {
+                $settingRec->lastOrderedProductBtnCaption = ($lang == 'bg') ? self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_BG : self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_EN;
+            }
+
             $settingRec->showNavigation = (in_array($settingRec->showNavigation, array('yes', 'no'))) ? $settingRec->showNavigation : eshop_Setup::get('SHOW_NAVIGATION');
             $fldArr = array('mandatoryEcartContactFields' => 'MANDATORY_CONTACT_FIELDS', 'mandatoryInquiryContactFields' => 'MANDATORY_INQUIRY_CONTACT_FIELDS', 'mandatoryEGN' => 'MANDATORY_EGN', 'mandatoryUicId' => 'MANDATORY_UIC_ID', 'mandatoryVatId' => 'MANDATORY_VAT_ID', 'listId' => 'DEFAULT_POLICY_ID', 'payments' => 'DEFAULT_PAYMENTS', 'terms' => 'DEFAULT_DELIVERY_TERMS');
             foreach ($fldArr as $fld => $const){
