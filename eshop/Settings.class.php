@@ -180,7 +180,7 @@ class eshop_Settings extends core_Master
     /**
      * Заглавие на бутона за добавяне в количката на EN
      */
-    const DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN = 'Favourite products';
+    const DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN = 'Favourite items';
 
 
     /**
