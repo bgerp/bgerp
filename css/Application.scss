@@ -6238,14 +6238,16 @@ div.location.public {
 		padding-right: 10px;
 	}
 }
-#cmsNavigation .favouriteNavigationLink {
+#cmsNavigation .navWithIcon {
+	&.favouriteNavigationLink .linkWithIcon{
+		color: #A00505;
+	}
 	.linkWithIcon {
 		background-position: 5px 3px !important;
 		margin-left: 0 !important;
 		margin-bottom: 5px !important;
-		color: #A00505;
 	}
-	&.sel_page .linkWithIcon, &:hover .linkWithIcon {
+	&.favouriteNavigationLink.sel_page .linkWithIcon, &.favouriteNavigationLink:hover .linkWithIcon {
 		background-color: #fdc3c3 !important;
 		border-color: #fb9292 !important;
 		color: #A00505 !important;

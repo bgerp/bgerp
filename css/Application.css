@@ -5470,13 +5470,14 @@ div.location.public {
     text-align: right;
     padding-right: 10px; }
 
-  #cmsNavigation .favouriteNavigationLink .linkWithIcon {
+  #cmsNavigation .navWithIcon.favouriteNavigationLink .linkWithIcon {
+    color: #a00505; }
+  #cmsNavigation .navWithIcon .linkWithIcon {
     background-position: 5px 3px !important;
     margin-left: 0 !important;
-    margin-bottom: 5px !important;
-    color: #a00505; }
-  #cmsNavigation .favouriteNavigationLink.sel_page .linkWithIcon,
-  #cmsNavigation .favouriteNavigationLink:hover .linkWithIcon {
+    margin-bottom: 5px !important; }
+  #cmsNavigation .navWithIcon.favouriteNavigationLink.sel_page .linkWithIcon,
+  #cmsNavigation .navWithIcon.favouriteNavigationLink:hover .linkWithIcon {
     background-color: #fdc3c3 !important;
     border-color: #fb9292 !important;
     color: #a00505 !important; }

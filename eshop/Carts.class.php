@@ -2873,7 +2873,7 @@ class eshop_Carts extends core_Master
                 $settings = cms_Domains::getSettings();
                 $caption = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
 
-                $tpl = new core_ET("<div class='{$selClass} lastOrderedLink nav_item level-1'>" . ht::createLink($caption, $favouritesUrl, null, 'ef_icon=img/16/shopping.png')  . '</div>');
+                $tpl = new core_ET("<div class='{$selClass} lastOrderedLink navWithIcon nav_item level-1'>" . ht::createLink($caption, $favouritesUrl, null, 'ef_icon=img/16/shopping.png')  . '</div>');
 
                 return $tpl;
             }
