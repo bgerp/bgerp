@@ -67,6 +67,15 @@ class bgerp_A extends core_Mvc
 
 
     /**
+     * Създава пряк път до любимите артикули
+     */
+    public function act_LO()
+    {
+        return Request::forward(array('Ctr' => 'eshop_Carts', 'Act' => 'ShowLastOrders'));
+    }
+
+
+    /**
      * Създава watchpoint
      */
     public function act_wp()

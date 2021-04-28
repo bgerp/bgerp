@@ -184,6 +184,18 @@ class eshop_Settings extends core_Master
 
 
     /**
+     * Заглавие на бутона за добавяне в количката на BG
+     */
+    const DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_BG = 'Последно поръчвани';
+
+
+    /**
+     * Заглавие на бутона за добавяне в количката на EN
+     */
+    const DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_EN = 'Last ordered';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -244,6 +256,7 @@ class eshop_Settings extends core_Master
         $this->FLD('mandatoryVatId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ДДС №');
 
         $this->FLD('favouriteProductBtnCaption', 'varchar(16)', 'caption=Бутон за Любими артикули->Надпис');
+        $this->FLD('lastOrderedProductBtnCaption', 'varchar(16)', 'caption=Бутон за Последно продадени артикули->Надпис');
 
         $this->setDbIndex('classId, objectId');
     }
@@ -405,6 +418,11 @@ class eshop_Settings extends core_Master
         $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_BG : self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN;
         $form->setField('favouriteProductBtnCaption', array('placeholder' => $btnPlaceholder));
 
+        $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_BG : self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_EN;
+        $form->setField('lastOrderedProductBtnCaption', array('placeholder' => $btnPlaceholder));
+
+
+
         $btnPlaceholder = ($lang == 'bg') ? self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_BG : self::DEFAULT_ROOT_NAVIGATION_GROUP_NAME_EN;
         $form->setField('rootNavigationName', array('placeholder' => $btnPlaceholder));
         
@@ -533,6 +551,10 @@ class eshop_Settings extends core_Master
 
             if (empty($settingRec->favouriteProductBtnCaption)) {
                 $settingRec->favouriteProductBtnCaption = ($lang == 'bg') ? self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_BG : self::DEFAULT_FAVOURITE_PRODUCT_BTN_CAPTION_EN;
+            }
+
+            if (empty($settingRec->lastOrderedProductBtnCaption)) {
+                $settingRec->lastOrderedProductBtnCaption = ($lang == 'bg') ? self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_BG : self::DEFAULT_LAST_ORDERED_PRODUCTS_BTN_CAPTION_EN;
             }
 
             $settingRec->showNavigation = (in_array($settingRec->showNavigation, array('yes', 'no'))) ? $settingRec->showNavigation : eshop_Setup::get('SHOW_NAVIGATION');
