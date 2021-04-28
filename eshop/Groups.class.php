@@ -550,6 +550,10 @@ class eshop_Groups extends core_Master
         // Рендираме данните за seo
         if($data->groupId > 0){
             cms_Content::renderSeo($groupTpl, $rec);
+        } elseif(in_array($data->groupId, array(eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID, eshop_Carts::LAST_SALES_SYSTEM_ID))) {
+            $settings = cms_Domains::getSettings();
+            $seoTitle = ($data->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID) ? $settings->favouriteProductBtnCaption : $settings->lastOrderedProductBtnCaption;
+            $groupTpl->prependOnce(str::mbUcfirst($seoTitle) . ' » ', 'PAGE_TITLE');
         }
         
         return $groupTpl;
