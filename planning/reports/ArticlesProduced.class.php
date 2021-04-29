@@ -625,6 +625,9 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
+
+        $res->type = $Enum->toVerbal($dRec->consumedType);
     }
 
 }
