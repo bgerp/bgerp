@@ -6253,6 +6253,11 @@ div.location.public {
 		color: #A00505 !important;
 	}
 }
+
+.favouritesBtn.linkWithIcon:hover {
+	cursor: pointer;
+}
+
 .narrow .externalPage #maincontent.hasLogoutBlock {
 	padding-top: 29px !important;
 }
