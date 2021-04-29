@@ -250,7 +250,7 @@ class eshop_Groups extends core_Master
         // Поставя временно външният език, за език на интерфейса
         $lang = cms_Domains::getPublicDomain('lang');
         core_Lg::push($lang);
-        
+
         $data = new stdClass();
         $data->menuId = Request::get('cMenuId', 'int');
         
@@ -261,7 +261,7 @@ class eshop_Groups extends core_Master
         $menuId = $data->menuId;
         
         cms_Content::setCurrent($data->menuId);
-        
+
         $layout = $this->getLayout();
         
         if (($q = Request::get('q')) && $menuId > 0) {
@@ -287,7 +287,6 @@ class eshop_Groups extends core_Master
             $layout->append($this->renderAllGroups($data), 'PAGE_CONTENT');
             cms_Content::renderSeo($layout, $seoRec);
         } else {
-
             eshop_Products::prepareAllProducts($data);
             $layout->append(eshop_Products::renderAllProducts($data), 'PAGE_CONTENT');
         }
@@ -592,8 +591,7 @@ class eshop_Groups extends core_Master
         self::setOrder($query, $data->menuId);
         
         $query->where("#state = 'active'");
-        
-        $groupId = $data->groupId;
+
         $productId = $data->productId;
         $menuId = $data->menuId;
 
@@ -603,7 +601,7 @@ class eshop_Groups extends core_Master
         } else {
             $groupId = $data->groupId;
         }
-        
+        //bp($groupId);
         if ($groupId && $groupId > 0) {
             $fRec = self::fetch($groupId);
             

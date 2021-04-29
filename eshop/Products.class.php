@@ -484,11 +484,17 @@ class eshop_Products extends core_Master
      * Подготвя информация за всички артикули от активните групи
      */
     public static function prepareAllProducts($data)
-    {
-        $groups = eshop_Groups::getByDomain();
-        if (!countR($groups)) {
-            return;
+    {   $query = eshop_Groups::getQuery();
+        $query->in('menuId', $data->menuId);
+        $query->orLikeKeylist('sharedMenus', $data->menuId);
+        $query->show('id,name,saoLevel');
+
+        $groups = array();
+        while($gRec = $query->fetch()){
+            $groups[$gRec->id] = cls::get('eshop_Groups')->saoGetTitle($gRec, $gRec->name);
         }
+
+        if (!countR($groups)) return;
 
         $cu = core_Users::getCurrent();
         $products = eshop_Favourites::getProducts($cu);

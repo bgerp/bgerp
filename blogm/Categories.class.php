@@ -176,6 +176,7 @@ class blogm_Categories extends core_Manager
 
         $Lg = cls::get('core_Lg');
         $allCaption = $Lg->translate('Всички', false, cms_Content::getLang());
+        if(!countR($data->categories)) return $tpl;
         $cat = array('' => $allCaption) + $data->categories;
 
         // За всяка Категория, създаваме линк и го поставяме в списъка

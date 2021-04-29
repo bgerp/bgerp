@@ -662,10 +662,11 @@ class blogm_Articles extends core_Master
         } else {
 
             // Добавка, ако няма избрана категория, резултатите да се филтрират само по категориите, които са от текущия език
-            if (!countR($data->categories)) {
-                $data->categories = array('99999999' => 'Няма категории на съответния език');
+            if (countR($data->categories)) {
+                $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
+            } else {
+                $data->query->where("1=2");
             }
-            $data->query->likeKeylist('categories', keylist::fromArray($data->categories));
         }
         
         if ($data->archive) {
@@ -884,10 +885,11 @@ class blogm_Articles extends core_Master
         
         // Филтриране по категориите на съответния език
         $categories = blogm_Categories::getCategoriesByDomain();
-        if (!is_array($categories) || !countR($categories)) {
-            $categories = array('99999999' => 'Няма категории на съответния език');
+        if (!countR($categories)) {
+            $query->likeKeylist('categories', keylist::fromArray($categories));
+        } else {
+            $query->where("1=2");
         }
-        $query->likeKeylist('categories', keylist::fromArray($categories));
         
         while ($rec = $query->fetch()) {
             $data->archiveArr[] = $rec->month;
