@@ -2867,13 +2867,16 @@ class eshop_Carts extends core_Master
             $products = static::getLastOrderedProducts($cu);
 
             if(countR($products)){
-                $favouritesUrl = eshop_Carts::getLastOrderedUrl();
+                $lastOrderUrl = eshop_Carts::getLastOrderedUrl();
                 $cId = Request::get('id') == static::LAST_SALES_SYSTEM_ID;
                 $selClass = $cId ? 'sel_page' : '';
                 $settings = cms_Domains::getSettings();
                 $caption = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
+                if($cMenuId = Request::get('cMenuId', 'int')){
+                    $lastOrderUrl['cMenuId'] = $cMenuId;
+                }
 
-                $tpl = new core_ET("<div class='{$selClass} lastOrderedLink navWithIcon nav_item level-1'>" . ht::createLink($caption, $favouritesUrl, null, 'ef_icon=img/16/shopping.png')  . '</div>');
+                $tpl = new core_ET("<div class='{$selClass} lastOrderedLink navWithIcon nav_item level-1'>" . ht::createLink($caption, $lastOrderUrl, null, 'ef_icon=img/16/shopping.png')  . '</div>');
 
                 return $tpl;
             }

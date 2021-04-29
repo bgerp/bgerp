@@ -275,6 +275,10 @@ class eshop_Groups extends core_Master
             $this->prepareNavigation($data);
             $this->prepareAllGroups($data);
 
+            if(countR($data->links) == 1){
+                redirect($data->links[0]->url);
+            }
+
             $layout->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
             $layout->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
             $layout->append(cms_Articles::renderNavigation($data), 'NAVIGATION');
@@ -358,7 +362,10 @@ class eshop_Groups extends core_Master
                 $data->menuId = cms_Content::getMainMenuId($groupRec->menuId, $groupRec->sharedMenus);
             }
         } else {
-            $data->menuId = cms_Content::getDefaultMenuId($this);
+            $data->menuId = Request::get('cMenuId', 'int');
+            if(empty($data->menuId)){
+                $data->menuId = cms_Content::getDefaultMenuId($this);
+            }
         }
 
         cms_Content::setCurrent($data->menuId);
