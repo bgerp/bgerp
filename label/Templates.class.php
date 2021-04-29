@@ -713,7 +713,7 @@ class label_Templates extends core_Master
 
             if (is_array($arr)) {
                 foreach ($arr as $placeholder) {
-                    if (in_array($placeholder, self::$systemPlaceholders)) {
+                    if (in_array($placeholder, self::$systemPlaceholders) || (is_array($array['skipPlaceholders']) && in_array($placeholder, $array['skipPlaceholders']))) {
                         continue;
                     }
                     
