@@ -159,7 +159,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
                     'productId' => $pRec->id,                                      // Артикул
-                    'prodVolume' => $prodTransVolume,                         // Транспортен обем
+                    'prodVolume' => $prodTransVolume,                              // Транспортен обем
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
                     'volumeWeight' => $volumeWeight,                               // Обемно тегло
 
@@ -210,7 +210,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
+        $Double->params['decimals'] = 3;
 
         $row = new stdClass();
 
