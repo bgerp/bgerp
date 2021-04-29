@@ -109,10 +109,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $pQuery->where("#state = 'active' AND #canStore = 'yes'");
 
 
-
-        if ($rec->typeOfProducts == 'public'){
+        if ($rec->typeOfProducts == 'public') {
             $pQuery->where("#isPublic = 'yes'");
-        }else{
+        } else {
             $pQuery->where("#isPublic = 'no'");
         }
 
@@ -125,24 +124,24 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $zeroProd = array();
 
-        while ($pRec = $pQuery->fetch()){
+        while ($pRec = $pQuery->fetch()) {
 
             $prodTransWeight = $prodTransVolume = $volumeWeight = 0;
 
             $id = $pRec->id;
             try {
-                $prodTransVolume = cat_Products::getTransportVolume($pRec->id,1000); //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
-                $prodTransWeight = cat_Products::getTransportWeight($pRec->id,1);
-            }catch (Exception $e){
+                $prodTransVolume = cat_Products::getTransportVolume($pRec->id, 1000); //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
+                $prodTransWeight = cat_Products::getTransportWeight($pRec->id, 1);
+            } catch (Exception $e) {
                 ;
             }
 
 
-            if (!$prodTransVolume || !$prodTransWeight){
+            if (!$prodTransVolume || !$prodTransWeight) {
 
                 $zeroProd[$id] = (object)array(
                     'productId' => $pRec->id,                                      // Артикул
-                    'prodVolume' => $prodTransVolume*1000,                         // Транспортен обем
+                    'prodVolume' => $prodTransVolume * 1000,                         // Транспортен обем
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
 
 
@@ -151,7 +150,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 continue;
             }
 
-            $volumeWeight = $prodTransWeight/($prodTransVolume);
+            $volumeWeight = $prodTransWeight / ($prodTransVolume);
 
             if ($volumeWeight > $rec->minVolWeight && $volumeWeight < $rec->maxVolWeight) continue;
 
@@ -167,9 +166,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             }
 
 
-
         }
-        $recs = $recs+$zeroProd;
+        $recs = $recs + $zeroProd;
 
         return $recs;
     }
@@ -215,7 +213,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row = new stdClass();
 
         if (isset($dRec->productId)) {
-           // $row->productId = cat_Products::getLinkToSingle($dRec->productId, 'name');
+            // $row->productId = cat_Products::getLinkToSingle($dRec->productId, 'name');
             $row->productId = cat_Products::getHyperlink($dRec->productId);
         }
 
@@ -223,7 +221,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row->prodWeight = $Double->toVerbal($dRec->prodWeight);
         $row->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
 
-        if (!$dRec->volumeWeight){
+        if (!$dRec->volumeWeight) {
 
             $row->ROW_ATTR['class'] = 'state-closed';
         }
@@ -299,10 +297,10 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-
-        $res->quantyti = $dRec->blQuantity;
-
-        $res->measure = cat_UoM::fetch(cat_Products::fetch($dRec->productId)->measureId)->shortName;
+        $Double->params['decimals'] = 3;
+        $res->productId = cat_Products::fetch($dRec->productId)->name;
+        $res->prodVolume = $Double->toVerbal($dRec->prodVolume);
+        $res->prodWeight = $Double->toVerbal($dRec->prodWeight);
+        $res->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
     }
 }
