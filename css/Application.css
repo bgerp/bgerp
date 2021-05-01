@@ -5482,6 +5482,9 @@ div.location.public {
     border-color: #fb9292 !important;
     color: #a00505 !important; }
 
+.favouritesBtn.linkWithIcon:hover {
+  cursor: pointer; }
+
 .narrow .externalPage #maincontent.hasLogoutBlock {
   padding-top: 29px !important; }
 
