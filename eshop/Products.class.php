@@ -804,6 +804,8 @@ class eshop_Products extends core_Master
      */
     public function renderGroupList_($data)
     {
+        $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
+
         if (is_array($data->rows)) {
             if(countR($data->lastOrderedData)){
                 $layout = new ET("[#BLOCK#]");
@@ -823,7 +825,6 @@ class eshop_Products extends core_Master
                     $layout->append($block, 'BLOCK');
                 }
             } else {
-                $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
                 foreach ($data->rows as $id => $row) {
                     $row1 = clone $row;
                     $rec = $data->recs[$id];
