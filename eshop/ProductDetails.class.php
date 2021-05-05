@@ -524,7 +524,7 @@ class eshop_ProductDetails extends core_Detail
                 $daysBetween = dt::daysBetween($startSale, $now);
                 if($daysBetween == 0){
                     $secs = dt::secsBetween($startSale, $now);
-                    $inHours = ceil($secs / 3600);
+                    $inHours = round($secs / 3600);
                     $afterTimeVerbal = $Time->toVerbal($inHours * 60 * 60);
                 } else {
                     $afterTimeVerbal = $Time->toVerbal($daysBetween * 24 * 60 * 60);
