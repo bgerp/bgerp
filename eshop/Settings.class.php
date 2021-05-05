@@ -210,13 +210,13 @@ class eshop_Settings extends core_Master
     /**
      * Дефолтен текст за информация за предстоящи продажби на артикули на BG
      */
-    const DEFAULT_SALE_PENDING_TEXT_BG = 'В продажба след [#DAYS#] дни';
+    const DEFAULT_SALE_PENDING_TEXT_BG = 'В продажба след [#DAYS#]';
 
 
     /**
      * Дефолтен текст за информация за предстоящи продажби на артикули на ЕН
      */
-    const DEFAULT_SALE_PENDING_TEXT_EN = 'Sale in [#DAYS#] days';
+    const DEFAULT_SALE_PENDING_TEXT_EN = 'Sale in [#DAYS#]';
 
 
     /**

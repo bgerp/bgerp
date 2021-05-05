@@ -174,9 +174,29 @@ class eshop_ProductDetails extends core_Detail
             $form->setField('packagings', 'input=none');
             $form->setField('action', 'input=none');
         }
+
+
+       //
     }
-    
-    
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if($form->isSubmitted()){
+            $rec = $form->rec;
+
+            $endSale = cat_Products::getParams($rec->productId, 'endSales');
+            if(!empty($endSale) && dt::now() > str_replace(' 00:00:00', ' 23:59:59', $endSale)){
+                $form->setWarning('productId', "Крайният срок за онлайн продажба на артикула е изтекъл");
+            }
+        }
+    }
+
     /**
      * Каква е цената във външната част
      *
@@ -437,7 +457,7 @@ class eshop_ProductDetails extends core_Detail
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         $class = ($rec->_listView === true) ? 'group-row' : '';
 
-        $stopSale = (!empty($startSale) && $now < $startSale) || (!empty($startSale) && $now > $endSale);
+        $stopSale = (!empty($startSale) && $now < $startSale) || (!empty($endSale) && $now > str_replace(' 00:00:00', ' 23:59:59', $endSale));
 
         if($showCartBtn && !$stopSale){
             if (!empty($catalogPriceInfo->discount)) {
@@ -499,9 +519,20 @@ class eshop_ProductDetails extends core_Detail
         if($stopSale){
             if(!empty($startSale) && $now < $startSale){
                 $pendingTpl = new core_ET($settings->salePendingText);
-                $pendingTpl->replace(dt::daysBetween($startSale, $now), "DAYS");
+
+                $Time = core_Type::getByName('time(uom=days)');
+                $daysBetween = dt::daysBetween($startSale, $now);
+                if($daysBetween == 0){
+                    $secs = dt::secsBetween($startSale, $now);
+                    $inHours = ceil($secs / 3600);
+                    $afterTimeVerbal = $Time->toVerbal($inHours * 60 * 60);
+                } else {
+                    $afterTimeVerbal = $Time->toVerbal($daysBetween * 24 * 60 * 60);
+                }
+                $pendingTpl->replace($afterTimeVerbal, "DAYS");
+
                 $row->saleInfo .= "<span class='{$class} option-not-in-stock waitingDelivery'>{$pendingTpl->getContent()}</span>";
-            } elseif(!empty($endSale) && $now > $endSale){
+            } elseif(!empty($endSale) && $now > str_replace(' 00:00:00', ' 23:59:59', $endSale)){
                 $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$settings->saleEndedText}</span>";
             }
         }
@@ -656,7 +687,8 @@ class eshop_ProductDetails extends core_Detail
         $isTemplate = $data->masterData->rec->state == 'template';
         $data->isNotOk = ($data->masterData->rec->canSell != 'yes' || $data->masterData->rec->isPublic != 'yes' || !in_array($data->masterData->rec->state, array('active', 'template')));
         $hasDetail = ($isTemplate) ? eshop_Products::fetch("LOCATE('|{$data->masterId}|', #proto)") : eshop_ProductDetails::fetchField("#productId = {$data->masterId}");
-        
+
+        $endSale = cat_Products::getParams($data->masterData->rec->id, 'endSales');
         if(!$hasDetail && $data->isNotOk){
             $data->hide = true;
             
@@ -718,7 +750,11 @@ class eshop_ProductDetails extends core_Detail
                 $data->rows[$rec->id] = $row;
             }
         }
-        
+
+        if(!empty($endSale) && dt::now() > str_replace(' 00:00:00', ' 23:59:59', $endSale)){
+            $data->info = "<span class='red'>" . tr('Крайният срок за онлайн продажба е изтекъл') . "</span>";
+        }
+
         // Добавяне на бутон за публикуване в Е-маг
         if (eshop_Products::haveRightFor('linktoeshop', (object) array('productId' => $data->masterId))) {
             $linkUrl = array('eshop_Products', 'linktoeshop', 'productId' => $data->masterId, 'ret_url' => true);

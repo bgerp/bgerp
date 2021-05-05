@@ -1463,6 +1463,16 @@ class eshop_Products extends core_Master
             
             if ($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes') {
                 $requiredRoles = 'no_one';
+            } else {
+
+                // Изтеклите артикули не може да се добавят в е-маг
+                $endSale = cat_Products::getParams($rec->productId, 'endSales');
+                if(!empty($endSale)){
+                    $endSale = str_replace(' 00:00:00', ' 23:59:59', $endSale);
+                    if($endSale < dt::now()){
+                        $requiredRoles = 'no_one';
+                    }
+                }
             }
         }
         
