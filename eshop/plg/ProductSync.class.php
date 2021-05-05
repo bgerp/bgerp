@@ -117,6 +117,6 @@ class eshop_plg_ProductSync extends core_Plugin
             $eDetails->save($newRec);
         }
 
-        $mvc->logWrite("Връзване в е-маг след клониране");
+        $mvc->logWrite("Връзване в е-маг след клониране", $nRec->id);
     }
 }
