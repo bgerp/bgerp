@@ -495,6 +495,7 @@ class eshop_ProductDetails extends core_Detail
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         }
 
+        // Проверка дали артикула е спрян от продажба
         if($stopSale){
             if(!empty($startSale) && $now < $startSale){
                 $pendingTpl = new core_ET($settings->salePendingText);

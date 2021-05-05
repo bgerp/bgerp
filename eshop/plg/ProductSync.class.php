@@ -89,4 +89,34 @@ class eshop_plg_ProductSync extends core_Plugin
         $details['eshopProductDetail'] = 'eshop_ProductDetails';
         $details = arr::fromArray($details);
     }
+
+
+    /**
+     * След клониране на записа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec  - клонирания запис
+     * @param stdClass $nRec - новия запис
+     */
+    public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        $eDetails = cls::get('eshop_ProductDetails');
+
+        if(!$eDetails->haveRightFor('linktoeshop', (object)array('productId' => $nRec->id))) return;
+
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->where("#productId = {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+            $newRec = (object)array('eshopProductId' => $dRec->eshopProductId,
+                                    'productId'      => $nRec->id,
+                                    'packagings'     => keylist::addKey('', $nRec->measureId),
+                                    'action'         => $dRec->action,
+                                    'moq'            => $dRec->moq,
+                                    'state'          => 'active');
+
+            $eDetails->save($newRec);
+        }
+
+        $mvc->logWrite("Връзване в е-маг след клониране");
+    }
 }
