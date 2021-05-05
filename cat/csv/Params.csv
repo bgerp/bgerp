@@ -24,4 +24,5 @@
 Информация за фактура,cond_type_Varchar,,invoiceInfo,,,no,active,,no
 Начало продажби,cond_type_Date,,startSales,,,no,active,,no
 Край продажби,cond_type_Date,,endSales,,,no,active,,no
-Повторение продажби,cond_type_Varchar,,durationSales,,,no,active,,no
+Повторение продажби,cond_type_Enum,,durationSales,"everyweek=Ежеседмично,everymonth=Ежемесечно,everyyear=Ежегодно",,no,active,,no
+
