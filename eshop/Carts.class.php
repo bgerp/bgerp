@@ -305,13 +305,14 @@ class eshop_Carts extends core_Master
             $warning = '';
             if (!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)) {
                 $msg = $warning;
-                $success = false;
                 $skip = true;
             }
         }
         
         // Ако има избран склад, проверка дали к-то е допустимо
-        $msg = '|Проблем при добавянето на артикула|*!';
+        if(!empty($msg)){
+            $msg = '|Проблем при добавянето на артикула|*!';
+        }
         
         $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack, $eshopProductId);
         if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
@@ -326,10 +327,17 @@ class eshop_Carts extends core_Master
             $success = false;
             $skip = true;
         }
-        
+
+        $now = dt::now();
+        $startSale = cat_Products::getParams($productId, 'startSales');
+        $endSale = cat_Products::getParams($productId, 'endSales');
+        if((!empty($startSale) && $now < $startSale) || (!empty($startSale) && $now > $endSale)){
+            $msg = '|Артикулът не може да бъде добавен в количка|*';
+            $skip = true;
+        }
+
         if (!eshop_ProductDetails::getPublicDisplayPrice($productId, $packagingId)) {
             $msg = '|Артикулът няма цена|*';
-            $success = false;
             $skip = true;
         }
         

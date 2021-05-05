@@ -393,7 +393,11 @@ class eshop_ProductDetails extends core_Detail
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
         $row->code = substr($fullCode, 0, 10);
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
-        
+
+        $now = dt::now();
+        $startSale = cat_Products::getParams($rec->productId, 'startSales');
+        $endSale = cat_Products::getParams($rec->productId, 'endSales');
+
         $productRec = cat_Products::fetch($rec->productId, 'state');
         $row->packagingId = cat_UoM::getShortName($rec->packagingId);
         
@@ -432,8 +436,10 @@ class eshop_ProductDetails extends core_Detail
         $row->orderCode = $fullCode;
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         $class = ($rec->_listView === true) ? 'group-row' : '';
-        
-        if($showCartBtn){
+
+        $stopSale = (!empty($startSale) && $now < $startSale) || (!empty($startSale) && $now > $endSale);
+
+        if($showCartBtn && !$stopSale){
             if (!empty($catalogPriceInfo->discount)) {
                 $style = ($rec->_listView === true) ? 'style="display:inline-block;font-weight:normal"' : '';
                 
@@ -467,11 +473,11 @@ class eshop_ProductDetails extends core_Detail
         }
         
         // Подготовка на бутона за купуване
-        if($showCartBtn){
+        if($showCartBtn && !$stopSale){
             $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn productBtn addToCard', 'rel' => 'nofollow'));
         }
         
-        if(in_array($rec->action, array('inquiry', 'both'))){
+        if(in_array($rec->action, array('inquiry', 'both')) && !$stopSale){
             $productRec = cat_Products::fetch($rec->productId, 'innerClass,state');
             $customizeProto = ($productRec->state == 'template') ? 'yes' : 'no';
 
@@ -484,13 +490,23 @@ class eshop_ProductDetails extends core_Detail
                 $row->btnInquiry = ht::createBtn('Запитване', $url, false, false, "ef_icon=img/16/help_contents.png,title={$title},class=productBtn,rel=nofollow");
             }
         }
-        
+
         if($rec->_listView !== true){
             deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         }
-        
+
+        if($stopSale){
+            if(!empty($startSale) && $now < $startSale){
+                $pendingTpl = new core_ET($settings->salePendingText);
+                $pendingTpl->replace(dt::daysBetween($startSale, $now), "DAYS");
+                $row->saleInfo .= "<span class='{$class} option-not-in-stock waitingDelivery'>{$pendingTpl->getContent()}</span>";
+            } elseif(!empty($endSale) && $now > $endSale){
+                $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$settings->saleEndedText}</span>";
+            }
+        }
+
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-        if (isset($settings->storeId) && $canStore == 'yes') {
+        if (isset($settings->storeId) && $canStore == 'yes' && !$stopSale) {
             $quantity = store_Products::getQuantities($rec->productId, $settings->storeId)->free;
 
             if ($quantity < $rec->quantityInPack) {
@@ -504,7 +520,7 @@ class eshop_ProductDetails extends core_Detail
                 }
             }
         }
-        
+
         if($rec->_listView !== true){
             $row->catalogPrice = "<div class='eshop-product-price-holder'>{$row->catalogPrice}</div>";
             if(!empty($row->btn)){
