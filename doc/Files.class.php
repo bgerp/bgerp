@@ -474,6 +474,13 @@ class doc_Files extends core_Manager
         
         // Последните разгледани папки на текущия потребител
         $lastFoldersArr = (array) bgerp_Recently::getLastFolderIds(5);
+
+        $lastFolderId = Mode::get('lastfolderId');
+
+        if (!$lastFoldersArr[$lastFolderId]) {
+            $lastFoldersArr[$lastFolderId] = $lastFolderId;
+        }
+
         foreach ($lastFoldersArr as $folderId) {
             $fRec = doc_Folders::fetch($folderId);
             $suggArr[$folderPrefix . $folderId] = $fRec->title;
