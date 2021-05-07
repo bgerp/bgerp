@@ -371,7 +371,7 @@ class eshop_ProductDetails extends core_Detail
                 $i++;
             }
         }
-       
+
         if (countR($data->rows)) {
             $prev = null;
             foreach ($data->rows as &$row1) {
@@ -410,7 +410,7 @@ class eshop_ProductDetails extends core_Detail
         $row = new stdClass();
         $row->productId = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
-        $row->code = substr($fullCode, 0, 10);
+        $row->code = mb_substr($fullCode, 0, 10);
         $row->code = "<span title={$fullCode}>{$row->code}</span>";
 
         $now = dt::now();
