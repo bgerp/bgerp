@@ -534,7 +534,7 @@ class eshop_ProductDetails extends core_Detail
                 }
                 $pendingTpl->replace($afterTimeVerbal, "DAYS");
 
-                $row->saleInfo .= "<span class='{$class} option-not-in-stock waitingDelivery'>{$pendingTpl->getContent()}</span>";
+                $row->saleInfo .= "<span class='{$class} option-not-in-stock saleSoon'>{$pendingTpl->getContent()}</span>";
             } elseif(static::hasSaleEnded($rec->productId)){
                 $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$settings->saleEndedText}</span>";
             }
