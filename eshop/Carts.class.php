@@ -330,8 +330,7 @@ class eshop_Carts extends core_Master
 
         $now = dt::now();
         $startSale = cat_Products::getParams($productId, 'startSales');
-        $endSale = cat_Products::getParams($productId, 'endSales');
-        if((!empty($startSale) && $now < $startSale) || (!empty($startSale) && $now > $endSale)){
+        if((!empty($startSale) && $now < $startSale) || eshop_ProductDetails::hasSaleEnded($productId)){
             $msg = '|Артикулът не може да бъде добавен в количка|*';
             $skip = true;
         }

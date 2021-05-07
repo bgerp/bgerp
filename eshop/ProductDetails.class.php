@@ -190,8 +190,7 @@ class eshop_ProductDetails extends core_Detail
         if($form->isSubmitted()){
             $rec = $form->rec;
 
-            $endSale = cat_Products::getParams($rec->productId, 'endSales');
-            if(!empty($endSale) && dt::now() > str_replace(' 00:00:00', ' 23:59:59', $endSale)){
+            if(static::hasSaleEnded($rec->productId)){
                 $form->setWarning('productId', "Крайният срок за онлайн продажба на артикула е изтекъл");
             }
         }
@@ -416,7 +415,6 @@ class eshop_ProductDetails extends core_Detail
 
         $now = dt::now();
         $startSale = cat_Products::getParams($rec->productId, 'startSales');
-        $endSale = cat_Products::getParams($rec->productId, 'endSales');
 
         $productRec = cat_Products::fetch($rec->productId, 'state');
         $row->packagingId = cat_UoM::getShortName($rec->packagingId);
@@ -457,7 +455,7 @@ class eshop_ProductDetails extends core_Detail
         $addUrl = toUrl(array('eshop_Carts', 'addtocart'), 'local');
         $class = ($rec->_listView === true) ? 'group-row' : '';
 
-        $stopSale = (!empty($startSale) && $now < $startSale) || (!empty($endSale) && $now > str_replace(' 00:00:00', ' 23:59:59', $endSale));
+        $stopSale = (!empty($startSale) && $now < $startSale) || static::hasSaleEnded($rec->productId);
 
         if($showCartBtn && !$stopSale){
             if (!empty($catalogPriceInfo->discount)) {
@@ -537,7 +535,7 @@ class eshop_ProductDetails extends core_Detail
                 $pendingTpl->replace($afterTimeVerbal, "DAYS");
 
                 $row->saleInfo .= "<span class='{$class} option-not-in-stock waitingDelivery'>{$pendingTpl->getContent()}</span>";
-            } elseif(!empty($endSale) && $now > str_replace(' 00:00:00', ' 23:59:59', $endSale)){
+            } elseif(static::hasSaleEnded($rec->productId)){
                 $row->saleInfo = "<span class='{$class} option-not-in-stock'>{$settings->saleEndedText}</span>";
             }
         }
@@ -693,7 +691,6 @@ class eshop_ProductDetails extends core_Detail
         $data->isNotOk = ($data->masterData->rec->canSell != 'yes' || $data->masterData->rec->isPublic != 'yes' || !in_array($data->masterData->rec->state, array('active', 'template')));
         $hasDetail = ($isTemplate) ? eshop_Products::fetch("LOCATE('|{$data->masterId}|', #proto)") : eshop_ProductDetails::fetchField("#productId = {$data->masterId}");
 
-        $endSale = cat_Products::getParams($data->masterData->rec->id, 'endSales');
         if(!$hasDetail && $data->isNotOk){
             $data->hide = true;
             
@@ -756,7 +753,7 @@ class eshop_ProductDetails extends core_Detail
             }
         }
 
-        if(!empty($endSale) && dt::now() > str_replace(' 00:00:00', ' 23:59:59', $endSale)){
+        if(static::hasSaleEnded($data->masterData->rec->id)){
             $data->info = "<span class='red'>" . tr('Крайният срок за онлайн продажба е изтекъл') . "</span>";
         }
 
@@ -906,6 +903,30 @@ class eshop_ProductDetails extends core_Detail
             $productInString = implode(',', $removeProducts);
             eshop_ProductDetails::delete("#productId IN ($productInString)");
         }
+    }
+
+
+    /**
+     * Дали онлайн продажбата на артикула е спряла към подадената дата
+     *
+     * @param $productId            - ид на артикул
+     * @param null|datetime $date   - дата или null за текущата
+     * @return bool                 - спряна ли е продажбата към посочената дата
+     */
+    public static function hasSaleEnded($productId, $date = null)
+    {
+        $date = isset($date) ? $date : dt::now();
+
+        $endSale = cat_Products::getParams($productId, 'endSales');
+        if(empty($endSale)) return false;
+
+        if(strpos($endSale, ' 00:00:00') !== false){
+            $endSale = str_replace(' 00:00:00', ' 23:59:59', $endSale);
+        } elseif(strlen($endSale) == 10){
+            $endSale = "{$endSale} 23:59:59";
+        }
+
+        return $date >= $endSale;
     }
 }
 
