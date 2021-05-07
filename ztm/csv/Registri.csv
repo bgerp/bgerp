@@ -63,31 +63,31 @@ monitoring.pa.l1,json,,Monitoring,device,"""[]""",Power analyser L1 parameters
 monitoring.pa.l2,json,,Monitoring,device,"""[]""",Power analyser L2 parameters
 monitoring.pa.l3,json,,Monitoring,device,"""[]""",Power analyser L3 parameters
 monitoring.enabled,bool,true|false,Monitoring,system,false,Plugin enabled
-env.is_empty,int,0/1,Environment,device,1,Is empty flag
-env.is_empty_timeout,int,0/,Environment,system,3600,Is empty time out [s]
-env.temp.actual,float,-50/50,Environment,system,20.0,Actual outside temperature [C]
-env.temp.a6,float,-50/50,Environment,system,30.0,Actual outside temperature for 6 hours [C]
-env.temp.min24,float,-50/50,Environment,system,20.0,Minimum outside temperature for 24 hours [C]
-env.temp.max24,float,-50/50,Environment,system,36.0,Maximum outside temperature for 24 hours [C]
-env.rh,float,0.0/100.0,Environment,system,60.0,Actual outside relative humidity [%]
-env.wind.actual,float,0.0/,Environment,system,3.0,Actual wind [m/sec]
-env.wind.max12,float,0.0/,Environment,system,6.0,Maximum wind for 12 hours [m/sec]
-env.light,float,0.0/,Environment,system,1000.0,Outside light [lux]
-env.energy,int,,Environment,system,0,Energy mode of the building
-env.flag_fire,int,0/3,Environment,system,0,Emergency index for the fire.
-env.flag_storm,int,0/3,Environment,system,0,Emergency index for the storm.
-env.flag_earthquake,int,0/3,Environment,system,0,Emergency index for the earthquake.
-env.flag_gassing,int,0/3,Environment,system,0,Emergency index for the gassing.
-env.flag_flooding,int,0/3,Environment,system,0,Emergency index for the flooding.
-env.flag_blocked,int,0/3,Environment,system,0,Emergency index for the blocking.
-env.sunpos.enabled,bool,true|false,Environment,system,false,Enable software calculation of the sun position
-env.building.location.lat,float,0.0/360.0,Environment,system,43.07779,Latitude of the target building.
-env.building.location.lon,float,0.0/360.0,Environment,system,25.59549,Longitude of the target building.
-env.building.location.elv,int,/,Environment,system,210,Longitude of the target building.
-env.building.location.time_zone,int,0/23,Environment,system,2,Longitude of the target building.
-env.enabled,bool,true|false,Environment,system,false,Plugin enabled
-env.sun.azimuth,float,0.0/360.0,Blinds,system,0.0,Sun azimuth value
-env.sun.elevation,float,0.0/360.0,Blinds,system,0.0,Sun elevation value
+envm.is_empty,int,0/1,Environment,device,1,Is empty flag
+envm.is_empty_timeout,int,0/,Environment,system,3600,Is empty time out [s]
+envm.temp.actual,float,-50/50,Environment,system,20.0,Actual outside temperature [C]
+envm.temp.a6,float,-50/50,Environment,system,30.0,Actual outside temperature for 6 hours [C]
+envm.temp.min24,float,-50/50,Environment,system,20.0,Minimum outside temperature for 24 hours [C]
+envm.temp.max24,float,-50/50,Environment,system,36.0,Maximum outside temperature for 24 hours [C]
+envm.rh,float,0.0/100.0,Environment,system,60.0,Actual outside relative humidity [%]
+envm.wind.actual,float,0.0/,Environment,system,3.0,Actual wind [m/sec]
+envm.wind.max12,float,0.0/,Environment,system,6.0,Maximum wind for 12 hours [m/sec]
+envm.light,float,0.0/,Environment,system,1000.0,Outside light [lux]
+envm.energy,int,,Environment,system,0,Energy mode of the building
+envm.flag_fire,int,0/3,Environment,system,0,Emergency index for the fire.
+envm.flag_storm,int,0/3,Environment,system,0,Emergency index for the storm.
+envm.flag_earthquake,int,0/3,Environment,system,0,Emergency index for the earthquake.
+envm.flag_gassing,int,0/3,Environment,system,0,Emergency index for the gassing.
+envm.flag_flooding,int,0/3,Environment,system,0,Emergency index for the flooding.
+envm.flag_blocked,int,0/3,Environment,system,0,Emergency index for the blocking.
+envm.sunpos.enabled,bool,true|false,Environment,system,false,Enable software calculation of the sun position
+envm.building.location.lat,float,0.0/360.0,Environment,system,43.07779,Latitude of the target building.
+envm.building.location.lon,float,0.0/360.0,Environment,system,25.59549,Longitude of the target building.
+envm.building.location.elv,int,/,Environment,system,210,Longitude of the target building.
+envm.building.location.time_zone,int,0/23,Environment,system,2,Longitude of the target building.
+envm.enabled,bool,true|false,Environment,system,false,Plugin enabled
+envm.sun.azimuth,float,0.0/360.0,Blinds,system,0.0,Sun azimuth value
+envm.sun.elevation,float,0.0/360.0,Blinds,system,0.0,Sun elevation value
 hvac.zones_count,int,0/,HVAC,system,1,Count of the HVAC zones.
 hvac.adjust_temp_1,float,-50.0/50.0,HVAC,system,0.0,Adjust temperature
 hvac.air_temp_cent_1.settings,str,,HVAC,system,temp/DS18B20/28FFFCD0001703AE,Air temperature sensor center settings
