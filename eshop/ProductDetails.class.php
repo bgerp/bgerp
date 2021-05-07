@@ -526,7 +526,8 @@ class eshop_ProductDetails extends core_Detail
                     $secs = dt::secsBetween($startSale, $now);
                     $inHours = round($secs / 3600);
                     if($inHours == 0){
-                        $afterTimeVerbal = $Time->toVerbal($secs);
+                        $inMinutes = round($secs / 60);
+                        $afterTimeVerbal = $Time->toVerbal($inMinutes * 60);
                     } else {
                         $afterTimeVerbal = $Time->toVerbal($inHours * 60 * 60);
                     }
@@ -864,4 +865,47 @@ class eshop_ProductDetails extends core_Detail
 
         return $title;
     }
+
+
+    /**
+     * Премахване на артикули от онлайн магазина по разписание
+     */
+    function cron_RemoveProductsFromEshop()
+    {
+        // Кои са всички артикули, закачени към е-артикул
+        $query = eshop_ProductDetails::getQuery();
+        $query->show('productId');
+        $eshopProducts = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+
+        if(!countR($eshopProducts)) return;
+
+        $now = dt::now();
+        $removeProducts = array();
+
+        // За всеки
+        $delaySecs = eshop_Setup::get('REMOVE_PRODUCTS_WITH_ENDED_SALES_DELAY');
+        foreach ($eshopProducts as $productId){
+            $saleEnd = cat_Products::getParams($productId, 'endSales');
+
+            // Ако има краен срок за онлайн продажба
+            if($saleEnd){
+
+                // Проверява се дали е минало X време след изтичането му
+                $saleEnd = str_replace(' 00:00:00', ' 23:59:59', $saleEnd);
+                $lifetime = dt::addSecs($delaySecs, $saleEnd);
+                if($lifetime <= $now){
+
+                    // Ако е минало, артикула ще бъде премахнат от е-артикула
+                    $removeProducts[$productId] = $productId;
+                }
+            }
+        }
+
+        // Ако има изтекли артикули, премахват се от всички е-артикули където са посочени
+        if(countR($removeProducts)){
+            $productInString = implode(',', $removeProducts);
+            eshop_ProductDetails::delete("#productId IN ($productInString)");
+        }
+    }
 }
+
