@@ -218,8 +218,18 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         
         // Масив с всички прикачени файлове
         $filesArr = keylist::toArray($filesKeyList);
-        
+
+        // Премахваме нашите файлове
+        $ourImgArr = core_Permanent::get('ourImgEmailArr');
+
         foreach ($filesArr as $keyD => $dummy) {
+
+            // Не се показват нашите файлове
+            $fRec = fileman::fetch($keyD);
+            if ($ourImgArr[$fRec->dataId]) {
+                continue;
+            }
+
             $filesStr .= fileman_Files::getLinkById($keyD) . "\n";
         }
         
