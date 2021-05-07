@@ -411,7 +411,7 @@ class eshop_ProductDetails extends core_Detail
         $row->productId = static::getPublicProductTitle($rec->eshopProductId, $rec->productId);
         $fullCode = cat_products::getVerbal($rec->productId, 'code');
         $row->code = mb_substr($fullCode, 0, 10);
-        $row->code = "<span title={$fullCode}>{$row->code}</span>";
+        $row->code = "<span title='{$fullCode}'>{$row->code}</span>";
 
         $now = dt::now();
         $startSale = cat_Products::getParams($rec->productId, 'startSales');
