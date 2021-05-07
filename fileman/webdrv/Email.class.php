@@ -220,7 +220,6 @@ class fileman_webdrv_Email extends fileman_webdrv_Generic
         $filesArr = keylist::toArray($filesKeyList);
 
         $filesStr = '';
-
         foreach ($filesArr as $keyD => $dummy) {
             $filesStr .= fileman_Files::getLinkById($keyD) . "\n";
         }
