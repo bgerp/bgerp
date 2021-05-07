@@ -516,6 +516,7 @@ class eshop_ProductDetails extends core_Detail
         // Проверка дали артикула е спрян от продажба
         if($stopSale){
             if(!empty($startSale) && $now < $startSale){
+                $row->quantity = "<span class='quiet'>1</span>";
                 $pendingTpl = new core_ET($settings->salePendingText);
 
                 $Time = core_Type::getByName('time(uom=days)');
