@@ -254,8 +254,9 @@ class cat_products_PriceDetails extends core_Manager
                 $primeCostRows[] = $cRow;
             }
         }
-        
-        if (isset($catalogCost)) {
+
+        $catalogPriceCanBeAdded = price_ListRules::haveRightFor('add', (object) array('productId' => $data->masterId, 'listId' => price_ListRules::PRICE_LIST_CATALOG));
+        if (isset($catalogCost) || $catalogPriceCanBeAdded) {
             $type = tr('Политика "Каталог"');
             $threadId = price_Lists::fetchField($catalogListId, 'threadId');
             
@@ -268,10 +269,18 @@ class cat_products_PriceDetails extends core_Manager
             if($catalogCostIsFromTemplate === true){
                 $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
             }
-            
+
+            $buttons = '';
+            if ($catalogPriceCanBeAdded) {
+                $addCatalogPriceUrl = array('price_ListRules', 'add', 'type' => 'value', 'listId' => price_ListRules::PRICE_LIST_CATALOG, 'productId' => $data->masterId, 'priority' => 1, 'ret_url' => true);
+
+                $buttons .= "<div style='text-align:left'>" . ht::createLink('Нова каталожна цена', $addCatalogPriceUrl, false, 'title=Добавяне на нова цена в каталога') . '</div>';
+            }
+
             $primeCostRows[] = (object) array('type' => $type,
                                               'updatedOn' => $DateTime->toVerbal($catalogCostDate),
                                               'price' => '<b>' . $verbPrice . "</b>",
+                                              'buttons' => $buttons,
                                               'ROW_ATTR' => array('class' => 'state-active'));
         }
 
