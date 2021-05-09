@@ -44,26 +44,26 @@ class doc_Wrapper extends plg_ProtoWrapper
         if ($containerId && !$threadId) {
             $threadId = doc_Containers::fetchField($containerId, 'threadId');
         }
-        
+
         // Определяме папката от треда
         if ($threadId) {
             $folderId = doc_Threads::fetchField($threadId, 'folderId');
         }
-        
+
         // Вадим или запомняме последния отворен тред в сесията
         if (!$threadId) {
             $threadId = Mode::get('lastThreadId');
         } else {
             Mode::setPermanent('lastThreadId', $threadId);
         }
-        
+
         // Вадим или запомняме последната отворена папка в сесията
         if (!$folderId) {
             $folderId = Mode::get('lastfolderId');
         } else {
             Mode::setPermanent('lastfolderId', $folderId);
         }
-        
+
         $threadsUrl = array();
 
         if ($folderId && (doc_Folders::haveRightFor('single', $folderId))) {

@@ -326,7 +326,7 @@ class doc_Setup extends core_ProtoSetup
      */
     public function install()
     {
-        $html .= core_Roles::addOnce('powerUser', null, 'system');
+        $html = core_Roles::addOnce('powerUser', null, 'system');
         
         // Добавяне на ролите за Ранг
         $rangRoles = array(
