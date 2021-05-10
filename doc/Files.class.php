@@ -482,8 +482,10 @@ class doc_Files extends core_Manager
         }
 
         foreach ($lastFoldersArr as $folderId) {
-            $fRec = doc_Folders::fetch($folderId);
-            $suggArr[$folderPrefix . $folderId] = $fRec->title;
+            if ($folderId) {
+                $fRec = doc_Folders::fetch($folderId);
+                $suggArr[$folderPrefix . $folderId] = $fRec->title;
+            }
         }
         
         // Показваме избор на потребители
