@@ -200,6 +200,12 @@ defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
 
 
 /**
+ * Добавяне на наши файлове
+ */
+defIfNot('EMAIL_OUR_IMGS', '');
+
+
+/**
  * Хедъри, които ще се проверяват за спам скоре
  */
 defIfNot('EMAIL_CHECK_SPAM_SCORE_HEADERS', 'x-spam-status,x-spam-score');
@@ -380,7 +386,9 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
         
         'EMAIL_STOP_SEND_TO' => array('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
-        
+
+        'EMAIL_OUR_IMGS' => array('fileman_type_Files(bucket=Email)', 'caption=Наши файлове|*&comma;| които ще се игнорират във входящите имейли->Файлове'),
+
         'EMAIL_CHECK_SPAM_SCORE_HEADERS' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Хедъри'),
         
         'EMAIL_HARD_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Твърд спам'),
@@ -555,7 +563,29 @@ class email_Setup extends core_ProtoSetup
         }
         
         Mode::pop('text');
-        
+
+        // Добавяме всички лога към нашите файлове
+        $logoArr = array();
+        $logoArr['BGERP_COMPANY_LOGO'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO');
+        $logoArr['BGERP_COMPANY_LOGO_EN'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO_EN');
+        foreach ($logoArr as $lKey => $logoLgArr) {
+            foreach ((array) $logoLgArr as $lArr) {
+                if (!$lArr[$lKey]) {
+                    continue;
+                }
+
+                $dataId = fileman::fetchByFh($lArr[$lKey], 'dataId');
+                $oImgDataIdArr[$dataId] = $dataId;
+            }
+        }
+
+        // Добавяме файловете зададени в конфига
+        $fArr = type_Keylist::toArray($this->get('OUR_IMGS'));
+        foreach ((array) $fArr as $fId) {
+            $dataId = fileman::fetchField($fId, 'dataId');
+            $oImgDataIdArr[$dataId] = $dataId;
+        }
+
         core_Permanent::set('ourImgEmailArr', $oImgDataIdArr, 10000000);
     }
     
