@@ -477,7 +477,7 @@ class doc_Files extends core_Manager
 
         $lastFolderId = Mode::get('lastfolderId');
 
-        if (!$lastFoldersArr[$lastFolderId]) {
+        if ($lastFolderId && !$lastFoldersArr[$lastFolderId]) {
             $lastFoldersArr[$lastFolderId] = $lastFolderId;
         }
 
