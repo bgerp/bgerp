@@ -116,7 +116,8 @@ class price_reports_PriceList extends frame2_driver_TableData
         $form->setDefault('showEan', 'yes');
         $form->setDefault('showMeasureId', 'yes');
         $form->setDefault('displayDetailed', 'no');
-        
+        $form->setDefault('packType', 'yes');
+
         $suggestions = cat_UoM::getPackagingOptions();
         $form->setSuggestions('packagings', $suggestions);
         
@@ -135,10 +136,9 @@ class price_reports_PriceList extends frame2_driver_TableData
         
         $form->setOptions('policyId', $listOptions);
         $form->setDefault('policyId', $defaultListId);
-        $contragentListId = null;
 
         // Ако е в папка с контрагентски данни
-        if ($Cover->haveInterface('doc_ContragentDataIntf')) {
+        if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $cData = doc_Folders::getContragentData($form->rec->folderId);
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
             $lang = (!empty($cData->countryId) && $cData->countryId != $bgId) ? 'en' : 'bg';
@@ -153,7 +153,7 @@ class price_reports_PriceList extends frame2_driver_TableData
         if(isset($rec->policyId)){
             $listingId = null;
 
-            if ($Cover->haveInterface('doc_ContragentDataIntf')) {
+            if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
 
                 // Ако справката е в папка на клиент взима се списъка му листвани артикули
                 $listingId = cond_Parameters::getParameter($Cover->className, $Cover->that, 'salesList');
