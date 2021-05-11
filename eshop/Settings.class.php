@@ -225,7 +225,9 @@ class eshop_Settings extends core_Master
         $this->FLD('rootNavigationName', 'varchar', 'caption=Показване на основната група на списъка с артикулите->Основна група');
         $this->FLD('showRootNavigation', 'enum(yes=Показване,no=Скриване)', 'caption=Показване на основната група на списъка с артикулите->Показване');
         
-        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри,optionsFunc=cat_Params::getPublic');
+        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Изглед),optionsFunc=cat_Params::getPublic');
+        $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Показване на е-артикулите във външната част->Общи параметри (Списък),optionsFunc=cat_Params::getPublic');
+
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Показване на е-артикулите във външната част->Опаковки/Мерки');
         $this->FLD('enableCart', 'enum(yes=Винаги,no=Ако съдържа артикули)', 'caption=Показване на количката във външната част->Показване,notNull,value=no');
         $this->FLD('cartName', 'varchar(16)', 'caption=Показване на количката във външната част->Надпис');
