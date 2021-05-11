@@ -18,7 +18,7 @@ class doc_Files extends core_Manager
 
 
     /**
-     * @var Разширения, които да не се показват по подразбиране
+     * Разширения, които да не се показват по подразбиране
      */
     protected $exludeFilesExt = array('eml');
 
@@ -477,13 +477,15 @@ class doc_Files extends core_Manager
 
         $lastFolderId = Mode::get('lastfolderId');
 
-        if (!$lastFoldersArr[$lastFolderId]) {
+        if ($lastFolderId && !$lastFoldersArr[$lastFolderId]) {
             $lastFoldersArr[$lastFolderId] = $lastFolderId;
         }
 
         foreach ($lastFoldersArr as $folderId) {
-            $fRec = doc_Folders::fetch($folderId);
-            $suggArr[$folderPrefix . $folderId] = $fRec->title;
+            if ($folderId) {
+                $fRec = doc_Folders::fetch($folderId);
+                $suggArr[$folderPrefix . $folderId] = $fRec->title;
+            }
         }
         
         // Показваме избор на потребители
@@ -511,7 +513,9 @@ class doc_Files extends core_Manager
         
         $usersArr = null;
         $filter = $data->listFilter->rec;
-        
+
+        $fSearch = '';
+
         if ($filter->range) {
             // Ако се филтрира по папките на текущия потребител или файловете му
             if (stripos($filter->range, $sPrefix) === 0) {
@@ -559,12 +563,17 @@ class doc_Files extends core_Manager
             }
         }
 
-        $fSearch = '';
+        $fSearchStr = '';
         foreach ($mvc->exludeFilesExt as $fExt) {
-            $fExt = preg_quote($fExt, '/');
-            if (!$filter->search || !preg_match("/(\.|\s|^|\-)+({$fExt})(\.|\s|$)+/i", $filter->search)) {
-                $fSearch .= " -.eml";
+            $fExtQ = preg_quote($fExt, '/');
+            if (!$filter->search || !preg_match("/(\.|\s|^|\-)+({$fExtQ})(\.|\s|$)+/i", $filter->search)) {
+                $fSearchStr .= " -.{$fExt}";
             }
+        }
+
+        // Скриваме html файловете
+        if (!$filter->search || !preg_match("/(\.|\s|^|\-)+(html)(\.|\s|$)+/i", $filter->search)) {
+            $data->query->where("#searchKeywords NOT REGEXP '([0-9]+ )+([a-f0-9]{6}) html'");
         }
 
         // Премахваме нашите файлове
@@ -574,10 +583,10 @@ class doc_Files extends core_Manager
         }
 
         // Налагане на условията за търсене
-        if (!empty($filter->search) || !empty($fSearch)) {
+        if (!empty($filter->search) || !empty($fSearchStr)) {
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
 
-            plg_Search::applySearch($filter->search . $fSearch, $data->query, 'searchKeywords');
+            plg_Search::applySearch($filter->search . $fSearchStr, $data->query, 'searchKeywords');
         }
     }
     
