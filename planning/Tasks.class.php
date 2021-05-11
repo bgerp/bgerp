@@ -1345,4 +1345,33 @@ class planning_Tasks extends core_Master
             $mvc->save_($rec, 'timeEnd');
         }
     }
+
+
+    /**
+     * След като документа е станал разходен обект
+     *
+     * @param $mvc
+     * @param $rec
+     */
+    public static function on_AfterForceAsExpenseItem($mvc, $rec)
+    {
+        // Всички протоколи за влагане/връщане на услуги се реконтират - за да се смени правилно разходния обект
+        foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_ReturnNoteDetails' => 'planning_ReturnNotes') as $detailName => $masterName){
+            $DetailMvc = cls::get($detailName);
+            $MasterMvc = cls::get($masterName);
+            $conQuery = $DetailMvc->getQuery();
+            $conQuery->EXT('state', $MasterMvc, 'externalKey=noteId');
+            $conQuery->EXT('containerId', $MasterMvc, 'externalKey=noteId');
+            $conQuery->EXT('threadId', $MasterMvc, 'externalKey=noteId');
+            $conQuery->EXT('canStore', 'cat_Products', 'externalKey=productId');
+            $conQuery->where("#state = 'active' AND #threadId = {$rec->threadId} AND #canStore = 'no'");
+            $conQuery->groupBy('containerId,noteId');
+            $conQuery->show('containerId,noteId');
+
+            while($dRec = $conQuery->fetch()){
+                acc_Journal::reconto($dRec->containerId);
+                $MasterMvc->logWrite('Ре-контиране, след като операцията е станала разходен обект', $dRec->noteId);
+            }
+        }
+    }
 }
