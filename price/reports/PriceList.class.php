@@ -323,7 +323,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 core_Lg::pop();
             }
         }
-        
+
         return $recs;
     }
     
