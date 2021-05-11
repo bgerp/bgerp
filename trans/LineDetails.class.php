@@ -595,6 +595,10 @@ class trans_LineDetails extends doc_Detail
         
         $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$pkoClassId} THEN 3 WHEN {$rkoClassId} THEN 4 WHEN {$transferClassId} THEN 5 WHEN {$consClassId} THEN 6 ELSE 7 END)");
         $data->query->orderBy('#orderByClassId=ASC,#containerId');
+
+        if(Mode::is('printing')){
+            $data->query->where("#status != 'removed'");
+        }
     }
     
     
