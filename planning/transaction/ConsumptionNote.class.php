@@ -60,6 +60,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
         $dQuery = planning_ConsumptionNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         $details = $dQuery->fetchAll();
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 
         if (Mode::get('saveTransaction')) {
             $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');
@@ -85,7 +86,14 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
                 $creditArr = array(321, array('store_Stores', $rec->storeId), array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
                 $reason = 'Влагане на материал в производството';
             } else {
-                $expenseItem = ($prodRec->fixedAsset == 'yes') ? array('cat_Products', $dRec->productId) : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+                $expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+                if(isset($firstDoc) && $firstDoc->isInstanceOf('planning_Tasks')){
+                    if(acc_Items::isItemInList($firstDoc->getInstance(), $firstDoc->that, 'costObjects')){
+                        $expenseItem = acc_Items::fetchItem($firstDoc->getInstance(), $firstDoc->that)->id;
+                    }
+                }
+
+                $expenseItem = ($prodRec->fixedAsset == 'yes') ? array('cat_Products', $dRec->productId) : $expenseItem;
                 $creditArr = array(60201, $expenseItem, array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
                 $reason = 'Влагане на услуга в производството';
             }
