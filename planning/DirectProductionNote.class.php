@@ -255,6 +255,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $form->setDefault('productId', key($productOptions));
 
         if(isset($rec->productId)){
+            if($rec->productId != $jobRec->productId){
+                $form->setField('inputStoreId', 'input=none');
+            }
+
             // Ако артикула не е складируем, скриваме полето за мярка
             $packs = cat_Products::getPacks($rec->productId, false, $jobRec->secondMeasureId);
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
@@ -862,6 +866,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      */
     private static function getDefaultDebitPrice($rec)
     {
+        if(!static::isForJobProductId($rec)) return 0;
+
         $quantity = !empty($rec->jobQuantity) ? $rec->jobQuantity : $rec->quantity;
         $valior = (!empty($rec->valior)) ? $rec->valior : dt::now();
 
@@ -1317,5 +1323,26 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return $res;
+    }
+
+
+    /**
+     * Дали артикула от протокола е същия, като този от заданието
+     *
+     * @param $id
+     * @return bool
+     */
+    public static function isForJobProductId($id)
+    {
+        $rec = static::fetchRec($id);
+
+        $originDoc = doc_Containers::getDocument($rec->originId);
+        if ($originDoc->isInstanceOf('planning_Tasks')) {
+            $jobProductId = doc_Containers::getDocument($originDoc->fetchField('originId'))->fetchField('productId');
+        } else {
+            $jobProductId = $originDoc->fetchField('productId');
+        }
+
+        return $rec->productId == $jobProductId;
     }
 }

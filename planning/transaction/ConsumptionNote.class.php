@@ -86,14 +86,13 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
                 $creditArr = array(321, array('store_Stores', $rec->storeId), array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
                 $reason = 'Влагане на материал в производството';
             } else {
-                $expenseItem = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+                $expenseItem = ($prodRec->fixedAsset == 'yes') ? array('cat_Products', $dRec->productId) : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
                 if(isset($firstDoc) && $firstDoc->isInstanceOf('planning_Tasks')){
                     if(acc_Items::isItemInList($firstDoc->getInstance(), $firstDoc->that, 'costObjects')){
                         $expenseItem = acc_Items::fetchItem($firstDoc->getInstance(), $firstDoc->that)->id;
                     }
                 }
 
-                $expenseItem = ($prodRec->fixedAsset == 'yes') ? array('cat_Products', $dRec->productId) : $expenseItem;
                 $creditArr = array(60201, $expenseItem, array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
                 $reason = 'Влагане на услуга в производството';
             }
