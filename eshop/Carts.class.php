@@ -861,6 +861,7 @@ class eshop_Carts extends core_Master
         if (isset($rec->saleFolderId)) {
             $Cover = doc_Folders::getCover($rec->saleFolderId);
             $folderId = $rec->saleFolderId;
+            $routerExplanation = 'Рутиране по ръчно избрана папка';
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : (isset($rec->deliveryCountry) ? $rec->deliveryCountry : $rec->country);
             if (!empty($rec->invoicePCode) || !empty($rec->invoicePlace) || !empty($rec->invoiceAddress)) {
