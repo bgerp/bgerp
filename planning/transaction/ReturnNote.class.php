@@ -74,14 +74,7 @@ class planning_transaction_ReturnNote extends acc_DocumentTransactionSource
                 $debitArr = array(321, array('store_Stores', $rec->storeId), array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
                 $reason = 'Връщане на материал в производството';
             } else {
-                $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
                 $expenseItem = ($prodRec->fixedAsset == 'yes') ? array('cat_Products', $dRec->productId) : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
-                if(isset($firstDoc) && $firstDoc->isInstanceOf('planning_Tasks')){
-                    if(acc_Items::isItemInList($firstDoc->getInstance(), $firstDoc->that, 'costObjects')){
-                        $expenseItem = acc_Items::fetchItem($firstDoc->getInstance(), $firstDoc->that)->id;
-                    }
-                }
-
                 $debitArr = array(60201, $expenseItem, array('cat_Products', $dRec->productId), 'quantity' => $dRec->quantity);
                 $reason = 'Връщане на услуга в производството';
             }
