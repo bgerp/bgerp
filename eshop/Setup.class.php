@@ -134,6 +134,12 @@ defIfNot('ESHOP_REMOVE_PRODUCTS_WITH_ENDED_SALES_DELAY', '43200');
 
 
 /**
+ * Показване на колоната за опаковката в Е-маг ако са само услуги
+ */
+defIfNot('ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES', 'yes');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -234,7 +240,8 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_DEFAULT_PAYMENTS' => array('keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Методи на плащане'),
         'ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL' => array('time', 'caption=Изтриване на любимите артикули на нерегистрирани потребители->Време'),
         'ESHOP_REMOVE_PRODUCTS_WITH_ENDED_SALES_DELAY' => array('time', 'caption=Премахване на артикули от Е-маг след изтичане на онлайн продажбата->Премахване след'),
-    );
+        'ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES' => array('enum(yes=Да,no=Не)', 'caption=Показване на колоната за опаковката в Е-маг ако са само услуги->Избор'),
+        );
     
     
     /**
