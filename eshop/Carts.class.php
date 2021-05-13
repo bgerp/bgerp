@@ -2059,9 +2059,9 @@ class eshop_Carts extends core_Master
         
         $cu = core_Users::getCurrent('id', false);
         if (isset($cu) && $form->rec->makeInvoice != 'none') {
-            $profileRec = crm_Profiles::getProfile($cu);
             if (isset($form->rec->saleFolderId)) {
-                $form->rec->makeInvoice = ($form->rec->saleFolderId == $profileRec->folderId) ? 'person' : 'company';
+                $Cover = doc_Folders::getCover($form->rec->saleFolderId);
+                $form->rec->makeInvoice = ($Cover->isInstanceOf('crm_Persons')) ? 'person' : 'company';
             }
         }
         
