@@ -122,8 +122,6 @@ defIfNot('ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL', '604800');
 
 
 /**
-<<<<<<< DC1
-=======
  * Изтриване на стари любими артикули
  */
 defIfNot('ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL', '604800');
@@ -142,7 +140,6 @@ defIfNot('ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES', 'yes');
 
 
 /**
->>>>>>> 86177d5 Ешоп:нова настройка
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
