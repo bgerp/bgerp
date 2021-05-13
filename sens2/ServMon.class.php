@@ -126,14 +126,41 @@ class sens2_ServMon extends sens2_ProtoDriver
         
         // Проверка натовареността на процесора
         $res['cpuLoad'] = self::getServerLoad();
-        
-        if (core_Packs::isInstalled('spflib')) {
-            list($ip, $domain) = explode('_', $config->IPDomain);
-            $res['IPDomain'] = spflib_Checker::check($ip, $domain)->getCode();
-        } else {
-            $res['IPDomain'] = 'spflib not installed.';
+
+        if ($inputs['IPDomain']) {
+            $res['IPDomain'] = self::getSPF($config->IPDomain);
         }
 
+        return $res;
+    }
+    
+    
+    /**
+     * Връща SPF статус
+     */
+    public static function getSPF($IPDomain)
+    {
+        if (core_Packs::isInstalled('spflib')) {
+            list($ip, $domain) = explode('_', $IPDomain);
+            $res = spflib_Checker::check($ip, $domain)->getCode();
+        } else {
+            $res = 'spflib not installed.';
+        }
+        switch ($res) {
+            case 'pass':
+                $res = 1;
+                break;
+            case 'none':
+                $res = 0;
+                break;
+            case 'softfail':
+                $res = -1;
+                break;
+            case 'fail':
+                $res = -2;
+                break;
+        }
+        
         return $res;
     }
     

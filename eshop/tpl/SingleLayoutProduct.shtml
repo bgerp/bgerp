@@ -148,9 +148,16 @@
        [#PARAMS#]
       <div class="groupList">
       	<table class="noBorder" style='width:99%'>
+            <!--ET_BEGIN showListParams-->
+            <tr>
+                <td class="title-style" style='width:250px'>|Параметри (Списък)|*:</td>
+                <td>[#showListParams#]</td>
+            </tr>
+            <!--ET_END showListParams-->
+
          	<!--ET_BEGIN showParams-->
             <tr>
-               <td class="title-style" style='width:250px'>|Параметри|*:</td>
+               <td class="title-style" style='width:250px'>|Параметри (Изглед)|*:</td>
                <td>[#showParams#]</td>
             </tr>
             <!--ET_END showParams-->

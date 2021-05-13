@@ -74,11 +74,6 @@ class rack_Setup extends core_ProtoSetup
         'rack_ZoneDetails',
         'rack_OccupancyOfRacks',
         'rack_OldMovements',
-        'migrate::truncateOldRecs',
-        'migrate::deleteOldPlugins',
-        'migrate::updateNoBatchRackDetails2',
-        'migrate::changeOffsetInGetOccupancyOfRacks',
-        'migrate::updateArchive2',
     );
     
     
@@ -176,110 +171,5 @@ class rack_Setup extends core_ProtoSetup
     {
         $sMvc = cls::get('store_Stores');
         $sMvc->setupMVC();
-    }
-    
-    
-    /**
-     * Изпълнява се след setup-а
-     */
-    public function truncateOldRecs()
-    {
-        foreach (array('rack_Pallets', 'rack_RackDetails', 'rack_Zones', 'rack_ZoneDetails', 'rack_Movements') as $class) {
-            $Class = cls::get($class);
-            $Class->setupMvc();
-            $Class->truncate();
-        }
-    }
-    
-    
-    /**
-     * Деинсталиране на стари плъгини
-     */
-    public function deleteOldPlugins()
-    {
-        cls::get('core_Plugins')->deinstallPlugin('rack_plg_Document');
-    }
-    
-    
-    /**
-     * Бъгфикс с без партида
-     */
-    public function updateNoBatchRackDetails2()
-    {
-        $Zones = cls::get('rack_ZoneDetails');
-        $Zones->setupMvc();
-        
-        if (!$Zones->count()) {
-            
-            return;
-        }
-        
-        $toSave = array();
-        $zQuery = rack_ZoneDetails::getQuery();
-        $zQuery->where('#batch IS NULL');
-        while ($zRec = $zQuery->fetch()) {
-            $zRec->batch = '';
-            $toSave[$zRec->id] = $zRec;
-        }
-        
-        if (countR($toSave)) {
-            $Zones->saveArray($toSave, 'id,batch');
-        }
-        
-        $deleteArr = array();
-        $query2 = $Zones->getQuery();
-        $query2->where("#batch = ''");
-        $query2->orderBy('id', 'ASC');
-        while ($rec2 = $query2->fetch()) {
-            $exRec = rack_ZoneDetails::fetch("#id != '{$rec2->id}' AND #zoneId = {$rec2->zoneId} AND #productId = {$rec2->productId} AND #packagingId = {$rec2->packagingId} AND #batch = ''");
-            if (!$exRec) {
-                continue;
-            }
-            
-            $rec2->movementQuantity = !empty($rec2->movementQuantity) ? $rec2->movementQuantity : $exRec->movementQuantity;
-            $rec2->documentQuantity = !empty($rec2->documentQuantity) ? $rec2->documentQuantity : $exRec->documentQuantity;
-            
-            $Zones->save($rec2, 'movementQuantity,documentQuantity');
-            $deleteArr[$exRec->id] = $exRec->id;
-        }
-        
-        foreach ($deleteArr as $delId) {
-            rack_ZoneDetails::delete($delId);
-        }
-    }
-    
-    /**
-     * Миграция: за промяна на offset-a
-     * на cron_GetOccupancyOfRacks
-     */
-    public function changeOffsetInGetOccupancyOfRacks()
-    {
-        $q = core_Cron::getQuery();
-        
-        $qRec = $q->fetch("#systemId = 'Get occupancy of racks'");
-       
-        if($qRec){
-            $qRec->offset = 5;
-            
-            core_Cron::save($qRec);
-        }
-    }
-
-
-    /**
-     * Запълва архива с първоначални данни
-     */
-    public function updateArchive2()
-    {
-        $Movements = cls::get('rack_Movements');
-        if(!$Movements->count()) return;
-
-        $Archive = cls::get('rack_OldMovements');
-        $Archive->truncate();
-
-        $cols = "movement_id,store_id,product_id,packaging_id,pallet_id,position,batch,position_to,zones,worker_id,note,quantity,quantity_in_pack,state,zone_list,from_incoming_document,documents,modified_on,modified_by,search_keywords,created_on,created_by";
-        $colsFrom = "id,store_id,product_id,packaging_id,pallet_id,position,batch,position_to,zones,worker_id,note,quantity,quantity_in_pack,state,zone_list,from_incoming_document,documents,modified_on,modified_by,search_keywords,created_on,created_by";
-        $query = "INSERT INTO {$Archive->dbTableName}({$cols}) SELECT {$colsFrom} FROM {$Movements->dbTableName};";
-        $Archive->db->query($query);
     }
 }

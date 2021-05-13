@@ -299,7 +299,7 @@ class acc_reports_UnactiveContableDocs extends frame2_driver_TableData
         
         if (isset($data->rec->states)) {
             foreach (type_Keylist::toArray($data->rec->states) as $state) {
-                $statesVerb .= (cls::get(sales_Sales)->getFieldType('state')->toVerbal($state)) . ', ';
+                $statesVerb .= (cls::get('sales_Sales')->getFieldType('state')->toVerbal($state)) . ', ';
             }
             $fieldTpl->append(trim($statesVerb, ', '), 'states');
         }

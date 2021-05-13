@@ -4,7 +4,8 @@
             <tbody>
                 <tr>
                     <td class='centered'>
-                        <div class="document-title">|протокол за отговорно пазене|*</div> 
+                        <div class="document-title">|протокол за отговорно пазене|*</div>
+                        <div class='small'>( <i>|за|* [#productType#]</i> )</div>
                         <div style="padding-top:5px;">
                                 <span class="state [#STATE_CLASS#]">
                                     № <span class="bigData">[#id#]</span> /
@@ -18,7 +19,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Довереник|*</b></td>
+                    <td class="cell custom-header-bg"><b>[#contragentCaption#]</b></td>
                 </tr>
                 <tr>
                     <td>
@@ -30,7 +31,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="cell custom-header-bg"><b>|Доверител|*</b></td>
+                    <td class="cell custom-header-bg"><b>[#ourCompanyCaption#]</b></td>
                 </tr>
                 <tr>
                     <td>

@@ -116,6 +116,30 @@ defIfNot('ESHOP_DEFAULT_PAYMENTS', '');
 
 
 /**
+ * Изтриване на стари любими артикули
+ */
+defIfNot('ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL', '604800');
+
+
+/**
+ * Изтриване на стари любими артикули
+ */
+defIfNot('ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL', '604800');
+
+
+/**
+ * Колко време след като е свършил крайния срок за онлайн продажбите на артикула той да се махне
+ */
+defIfNot('ESHOP_REMOVE_PRODUCTS_WITH_ENDED_SALES_DELAY', '43200');
+
+
+/**
+ * Показване на колоната за опаковката в Е-маг ако са само услуги
+ */
+defIfNot('ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES', 'yes');
+
+
+/**
  * class cat_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -173,7 +197,7 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_ProductDetails',
         'eshop_Carts',
         'eshop_CartDetails',
-        'migrate::updateProductButtons',
+        'eshop_Favourites',
     );
     
     
@@ -214,7 +238,10 @@ class eshop_Setup extends core_ProtoSetup
         'ESHOP_DEFAULT_POLICY_ID' => array('key(mvc=price_Lists,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Политика'),
         'ESHOP_DEFAULT_DELIVERY_TERMS' => array('keylist(mvc=cond_DeliveryTerms,select=codeName)', 'caption=Дефолти в настройките а онлайн магазина->Условия на доставка'),
         'ESHOP_DEFAULT_PAYMENTS' => array('keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Дефолти в настройките а онлайн магазина->Методи на плащане'),
-    );
+        'ESHOP_ANONYM_FAVOURITE_DELETE_INTERVAL' => array('time', 'caption=Изтриване на любимите артикули на нерегистрирани потребители->Време'),
+        'ESHOP_REMOVE_PRODUCTS_WITH_ENDED_SALES_DELAY' => array('time', 'caption=Премахване на артикули от Е-маг след изтичане на онлайн продажбата->Премахване след'),
+        'ESHOP_PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES' => array('enum(yes=Да,no=Не)', 'caption=Показване на колоната за опаковката в Е-маг ако са само услуги->Избор'),
+        );
     
     
     /**
@@ -234,6 +261,16 @@ class eshop_Setup extends core_ProtoSetup
             'action' => 'CheckDraftCarts',
             'period' => 60,
             'offset' => 30,
+            'timeLimit' => 100
+        ),
+
+        array(
+            'systemId' => 'Deleta Favourite Products In Eshop',
+            'description' => 'Изтриване на любимите артикули в е-маг',
+            'controller' => 'eshop_Favourites',
+            'action' => 'DeleteOldFavourites',
+            'period' => 1440,
+            'offset' => 60,
             'timeLimit' => 100
         ),
     );
@@ -302,29 +339,5 @@ class eshop_Setup extends core_ProtoSetup
         eshop_Products::saveNearProducts();
         
         return tr('Преизчисляване на свързаните е-артикули');
-    }
-    
-    
-    /**
-     * Миграция обновяваща полето действия в детайла на е-артикула
-     */
-    public function updateProductButtons()
-    {
-        $Details = cls::get('eshop_ProductDetails');
-        $Details->setupMvc();
-        
-        if(!$Details->count()) return;
-        
-        $save = array();
-        $query = $Details->getQuery();
-        $query->where("#action IS NULL OR #action = ''");
-        while($rec = $query->fetch()){
-            $rec->action = 'buy';
-            $save[$rec->id] = $rec;
-        }
-        
-        if(countR($save)){
-            $Details->saveArray($save, 'id,action');
-        }
     }
 }

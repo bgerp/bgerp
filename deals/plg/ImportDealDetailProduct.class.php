@@ -229,37 +229,43 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             $pRec = cat_Products::getByCode($obj->code);
-            
+
             if (!$pRec) {
                 $err[$i][] = $obj->code . ' |Няма артикул с такъв код|*';
                 continue;
             }
-            
-            $state = cat_Products::fetchField($pRec->productId, 'state');
-            if ($state != 'active') {
-                $err[$i][] = $obj->code . ' |Артикулът е неактивен|*';
-                continue;
-            }
-            
-            $meta = (array) cat_Products::fetch($pRec->productId, $mvc->metaProducts);
-            unset($meta['id']);
-            
-            // Ако импорта е в Експедиционно или Складова разписка
-            if (!$mvc->metaProducts) {
-                $masterId = Request::get($mvc->masterKey, 'int');
-                
+
+            $masterId = Request::get($mvc->masterKey, 'int');
+            $metaArr = arr::make($mvc->metaProducts, true);
+            if(!countR($metaArr)){
                 $masterRec = $mvc->Master->fetch($masterId);
-                
-                //Първия документ в нишката
                 $Document = doc_Containers::getDocument($masterRec->originId);
-                
                 if ($Document->className == 'sales_Sales') {
-                    $meta = array('canSell' => cat_Products::fetch($pRec->productId)->canSell);
+                    $metaArr = array('canSell' => 'canSell');
                 } elseif ($Document->className == 'purchase_Purchases') {
-                    $meta = array('canBuy' => cat_Products::fetch($pRec->productId)->canBuy);
+                    $metaArr = array('canBuy' => 'canBuy');
                 }
             }
-            
+
+            $metaString = implode(',', $metaArr);
+            $productRec = cat_Products::fetch($pRec->productId, "state,isPublic,folderId,{$metaString}");
+            if ($productRec->state != 'active') {
+                $err[$i][] = $obj->code . ' |Артикулът не е активен|*';
+                continue;
+            }
+
+            $meta = (array) $productRec;
+            unset($meta['id'], $meta['state'], $meta['isPublic'], $meta['folderId']);
+
+            // Ако артикула е нестандартен, проверява се все пак може ли да се добави в папката на документа
+            if($productRec->isPublic != 'yes'){
+                $productSharedFolders = cat_products_SharedInFolders::getSharedFolders($productRec->id);
+                if(!in_array($folderId, $productSharedFolders)){
+                    $err[$i][] = $obj->code . ' |Артикулът е частен и не е достъпен в папката на документа|*';
+                    continue;
+                }
+            }
+
             foreach ($meta as $metaValue) {
                 if ($metaValue != 'yes') {
                    $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
