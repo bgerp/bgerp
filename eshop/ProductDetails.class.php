@@ -286,7 +286,7 @@ class eshop_ProductDetails extends core_Detail
     public static function prepareExternal(&$data)
     {
         $data->rows = $data->recs = array();
-        
+
         $me = cls::get(get_called_class());
         $data->listFields = arr::make('code=Код,productId=Артикул,packagingId=Опаковка,quantity=Количество,catalogPrice=Цена');
         $fields = cls::get(get_called_class())->selectFields();
@@ -297,7 +297,7 @@ class eshop_ProductDetails extends core_Detail
         $query->orderBy('productId');
         $data->optionsProductsCount = $query->count();
         $data->commonParams = eshop_Products::getCommonParams($data->rec->id);
-        
+
         $orderByParam = isset($data->rec->orderByParam) ? $data->rec->orderByParam : '_code';
         $orderByDir = isset($data->rec->orderByDir) ? $data->rec->orderByDir : 'asc';
         
@@ -322,8 +322,14 @@ class eshop_ProductDetails extends core_Detail
         
         // Сортиране на резултатите
         arr::sortObjects($recs, 'orderField', $orderByDir, 'str');
-        
+
+        $onlyServices = true;
         foreach ($recs as $rec){
+            $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+            if($canStore == 'yes'){
+                $onlyServices = false;
+            }
+
             $newRec = (object) array('recId' => $rec->id, 'eshopProductId' => $rec->eshopProductId, 'productId' => $rec->productId, 'title' => $rec->title, 'deliveryTime' => $rec->deliveryTime, 'action' => $rec->action);
             $paramsText = eshop_CartDetails::getUniqueParamsAsText($rec->eshopProductId, $rec->productId);
             
@@ -352,7 +358,14 @@ class eshop_ProductDetails extends core_Detail
                 $i++;
             }
         }
-       
+
+        if($onlyServices){
+            $showServicePackColumn = eshop_Setup::get('PUBLIC_PRODUCT_SHOW_PACK_COLUMN_IF_ONLY_SERVICES');
+            if($showServicePackColumn == 'no'){
+                unset($data->listFields['packagingId']);
+            }
+        }
+
         if (countR($data->rows)) {
             $prev = null;
             foreach ($data->rows as &$row1) {
