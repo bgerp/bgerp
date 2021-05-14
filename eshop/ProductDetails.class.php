@@ -891,7 +891,7 @@ class eshop_ProductDetails extends core_Detail
         if(!countR($eshopProducts)) return;
 
         $now = dt::now();
-        $removeProducts = array();
+        $closeProducts = array();
 
         // За всеки
         $delaySecs = eshop_Setup::get('REMOVE_PRODUCTS_WITH_ENDED_SALES_DELAY');
@@ -907,15 +907,20 @@ class eshop_ProductDetails extends core_Detail
                 if($lifetime <= $now){
 
                     // Ако е минало, артикула ще бъде премахнат от е-артикула
-                    $removeProducts[$productId] = $productId;
+                    $closeProducts[$productId] = $productId;
                 }
             }
         }
 
         // Ако има изтекли артикули, премахват се от всички е-артикули където са посочени
-        if(countR($removeProducts)){
-            $productInString = implode(',', $removeProducts);
-            eshop_ProductDetails::delete("#productId IN ($productInString)");
+        if(countR($closeProducts)){
+            $query = $this->getQuery();
+            $query->in('productId', $closeProducts);
+            $query->where("#state != 'closed'");
+            while($rec = $query->fetch()){
+                $rec->state = 'closed';
+                $this->save($rec, 'state');
+            }
         }
     }
 
