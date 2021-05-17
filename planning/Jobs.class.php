@@ -1672,4 +1672,236 @@ class planning_Jobs extends core_Master
             core_Users::cancelSystemUser();
         }
     }
+
+
+    /**
+     * Кои са перата на ПО на заданието
+     *
+     * @param $id
+     * @return array $taskExpenseItemIds
+     */
+    public static function getTaskCostObjectItems($id)
+    {
+        $jobRec = planning_Jobs::fetchRec($id);
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$jobRec->containerId} AND #state != 'draft' AND #state != 'rejected'");
+
+        $taskExpenseItemIds = array();
+        while($tRec = $tQuery->fetch()){
+            if($listItemId = acc_Items::fetchItem('planning_Tasks', $tRec->id)->id){
+                $taskExpenseItemIds[$listItemId] = $listItemId;
+            }
+        }
+
+        return $taskExpenseItemIds;
+    }
+
+
+    /**
+     * Кои са разпределените разходи към заданието
+     *
+     * @param $id
+     * @return array
+     */
+    public static function getAllocatedServices($id)
+    {
+        $jobRec = planning_Jobs::fetchRec($id);
+
+        $res = array();
+        $taskExpenseItemIds = static::getTaskCostObjectItems($jobRec);
+        if(!countR($taskExpenseItemIds)) return $res;
+
+        $createdOn = dt::verbal2mysql($jobRec->createdOn, false);
+        $Balance = new acc_ActiveShortBalance(array('from' => $createdOn, 'to' => dt::today(), 'accs' => '60201', 'item1' => $taskExpenseItemIds, 'keepUnique' => true));
+        $bRecs = $Balance->getBalance('60201');
+        if(is_array($bRecs)) {
+            foreach ($bRecs as $bRec) {
+                    $itemRec = acc_Items::fetch($bRec->ent2Id, 'classId,objectId');
+                    $measureId = cat_Products::fetchField($itemRec->objectId, 'measureId');
+                    $key = "{$itemRec->objectId}|{$bRec->ent1Id}";
+                    if (!array_key_exists($key, $res)) {
+                        $res[$key] = (object)array('productId' => $itemRec->objectId, 'measureId' => $measureId, 'expenseItemId' => $bRec->ent1Id);
+                    }
+
+                    $res[$key]->quantity += $bRec->blQuantity;
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща детайли отговарящи на вложеното до сега по заданието на протокола за крайния артикул
+     *
+     * @param mixed $rec
+     * @return array $convertedArr
+     */
+    public static function getDefaultProductionDetailsFromConvertedByNow($rec)
+    {
+        $rec = planning_Jobs::fetchRec($rec);
+
+        // Кои са свързаните нишки към заданието
+        $threadsArr = planning_Jobs::getJobLinkedThreads($rec);
+        $consumable = $convertedArr = array();
+
+        // Намират се всички произведени Заготовки: артикул по заданието различни от артикула му
+        $pQuery1 = planning_DirectProductionNote::getQuery();
+        $pQuery1->where("#state = 'active' AND #productId != {$rec->productId}");
+        $pQuery1->in('threadId', $threadsArr);
+        $pNoteClassId = planning_DirectProductionNote::getClassId();
+
+        while($pRec = $pQuery1->fetch()){
+
+            $aArray = array('' => $pRec->quantity);
+
+            if(core_Packs::isInstalled('batch')){
+                $bQuery = batch_BatchesInDocuments::getQuery();
+                $bQuery->where("#detailClassId = {$pNoteClassId} AND #detailRecId = {$pRec->id}");
+                while($dRec1 = $bQuery->fetch()){
+                    $aArray["{$dRec1->batch}"] = $dRec1->quantity;
+                    $aArray[""] -= $dRec1->quantity;
+                }
+                if(empty($aArray[""])){
+                    unset($aArray[""]);
+                }
+            }
+
+            foreach ($aArray as $batch => $q){
+                // Те ще се влагат от склада в който са произведени
+                $key = "{$pRec->productId}|{$pRec->packagingId}|||{$pRec->storeId}|{$batch}";
+                if(!array_key_exists($key, $convertedArr)){
+                    $batch = !empty($batch) ? $batch : null;
+                    $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+                    $convertedArr[$key] = (object)array('productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'quantityInPack' => $pRec->quantityInPack, 'measureId' => $measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'storeId' => $pRec->storeId, 'batch' => $batch);
+                    $consumable[$pRec->productId] = $pRec->productId;
+                }
+
+                $convertedArr[$key]->quantityExpected += $q;
+            }
+        }
+
+        // Всички протоколи за влагане/връщане на услуги се реконтират - за да се смени правилно разходния обект
+        foreach (array('planning_ConsumptionNoteDetails' => 'planning_ConsumptionNotes', 'planning_ReturnNoteDetails' => 'planning_ReturnNotes') as $detailName => $masterName){
+            $sign = ($detailName == 'planning_ConsumptionNoteDetails') ? 1 : -1;
+            $DetailMvc = cls::get($detailName);
+            $MasterMvc = cls::get($masterName);
+            $dQuery = $DetailMvc->getQuery();
+            $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+            $dQuery->EXT('storeId', $MasterMvc, 'externalKey=noteId');
+            $dQuery->EXT('state', $MasterMvc, 'externalKey=noteId');
+            $dQuery->EXT('threadId', $MasterMvc, 'externalKey=noteId');
+            $dQuery->where("#state = 'active'");
+            $dQuery->in('threadId', $threadsArr);
+
+            while($dRec = $dQuery->fetch()){
+                $key = "{$dRec->productId}|{$dRec->packagingId}|||";
+                $cSign = $sign;
+
+                // Ако артикула е заготовка, но вече е заскладен в посочения склад ще се приспада к-то от него
+                if(array_key_exists($dRec->productId, $consumable) && $cSign > 0){
+                    $aArray = array('' => $dRec->quantity);
+
+                    if(core_Packs::isInstalled('batch')){
+                        $bQuery = batch_BatchesInDocuments::getQuery();
+                        $bQuery->where("#detailClassId = {$DetailMvc->getClassId()} AND #detailRecId = {$dRec->id}");
+                        while($bRec = $bQuery->fetch()){
+                            $aArray["{$bRec->batch}"] = $bRec->quantity;
+                            $aArray[""] -= $bRec->quantity;
+                        }
+                        if(empty($aArray[""])){
+                            unset($aArray[""]);
+                        }
+                    }
+
+                    $cSign = $sign;
+                    foreach ($aArray as $batch => $q){
+                        $key1 = "{$dRec->productId}|{$dRec->packagingId}|||{$dRec->storeId}|{$batch}";
+
+                        if(array_key_exists($key1, $convertedArr)){
+                            $convertedArr[$key1]->quantityExpected -= $q;
+                        } else {
+                            $key1 = "{$dRec->productId}|{$dRec->packagingId}||||";
+                            if(!array_key_exists($key1, $convertedArr)){
+                                $convertedArr[$key1] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'measureId' => $dRec->measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'batch' => null);
+                            }
+                            $convertedArr[$key1]->quantityExpected += $cSign * $q;
+                        }
+                    }
+                } else {
+                    if(!array_key_exists($key, $convertedArr)){
+                        $convertedArr[$key] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'measureId' => $dRec->measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'batch' => null);
+                    }
+
+                    $convertedArr[$key]->quantityExpected += $sign * $dRec->quantity;
+                }
+            }
+        }
+
+        // Кои са всички разпределни услуги по ПО, които са разходни обекти
+        $allocatedProducts = planning_Jobs::getAllocatedServices($rec);
+        if(countR($allocatedProducts)){
+            foreach ($allocatedProducts as $aRec){
+                $key = "{$aRec->productId}|{$aRec->measureId}|{$aRec->expenseItemId}|61102||";
+                if(!array_key_exists($key, $convertedArr)){
+                    $convertedArr[$key] = (object)array('productId' => $aRec->productId, 'packagingId' => $aRec->measureId, 'quantityInPack' => 1, 'measureId' => $aRec->measureId, 'quantityExpected' => 0, 'expenseItemId' => $aRec->expenseItemId, 'fromAccId' => '61102', 'type' => 'allocated');
+                }
+
+                $convertedArr[$key]->quantityExpected += $aRec->quantity;
+            }
+        }
+
+        // Обикалят се всички протоколи за произовдство за крайния артикул
+        $pQuery = planning_DirectProductNoteDetails::getQuery();
+        $pQuery->EXT('pProductId', 'planning_DirectProductionNote', 'externalName=productId,externalKey=noteId');
+        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        $pQuery->EXT('state', 'planning_DirectProductionNote', 'externalName=state,externalKey=noteId');
+        $pQuery->EXT('threadId', 'planning_DirectProductionNote', 'externalName=threadId,externalKey=noteId');
+        $pQuery->where("#state = 'active' AND #pProductId = {$rec->productId}");
+        $pQuery->in('threadId', $threadsArr);
+
+        $detailClassId = planning_DirectProductNoteDetails::getClassId();
+        while($dRec = $pQuery->fetch()){
+            if(!isset($dRec->storeId) || array_key_exists($dRec->productId, $consumable)){
+                if(!isset($dRec->storeId)){
+                    // Приспада се произведеното до сега
+                    $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->expenseItemId}|{$dRec->fromAccId}|{$dRec->storeId}|";
+                    if(array_key_exists($key, $convertedArr)){
+                        $convertedArr[$key]->quantityExpected -= $dRec->quantity;
+                    }
+
+                } else {
+                    $aArray = array("" => $dRec->quantity);
+
+                    if(core_Packs::isInstalled('batch')){
+                        $bQuery = batch_BatchesInDocuments::getQuery();
+                        $bQuery->where("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
+                        while($bRec = $bQuery->fetch()){
+                            $aArray["{$bRec->batch}"] = $bRec->quantity;
+                            $aArray[""] -= $bRec->quantity;
+                        }
+                        if(empty($aArray[""])){
+                            unset($aArray[""]);
+                        }
+
+                        foreach ($aArray as $batch => $q) {
+                            $key1 = "{$dRec->productId}|{$dRec->packagingId}|||{$dRec->storeId}|{$batch}";
+                            if(array_key_exists($key1, $convertedArr)){
+                                $convertedArr[$key1]->quantityExpected -= $q;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Остават само положителните количества
+        foreach ($convertedArr as $cId => $cObj){
+            if($cObj->quantityExpected <= 0){
+                unset($convertedArr[$cId]);
+            }
+        }
+
+        return $convertedArr;
+    }
 }
