@@ -671,30 +671,52 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Ако протокола е за крайния артикул
         if(static::isForJobProductId($rec)) {
-            $details = $this->getDefaultDetailsFromBom($rec);
+            $detailsFromBom = $this->getDefaultDetailsFromBom($rec);
 
             // Какво е вложено до момента в заданието
             $jobRec =  static::getJobRec($rec);
             $details2 = planning_Jobs::getDefaultProductionDetailsFromConvertedByNow($jobRec);
 
+            $details = array();
+
             // Сумират се очакваните детайли по рецепта и реално вложеното
             if(countR($details2)){
                 foreach ($details2 as $d2){
-                    if(!array_key_exists("{$d2->productId}|{$d2->type}|{$d2->storeId}", $details)){
-                        $c = clone $d2;
-                        $c->quantity = $c->quantityExpected;
-                        $c->quantityExpected = 0;
-                        unset($c->batch);
-                        $details["{$d2->productId}|{$d2->type}|{$d2->storeId}"] = $c;
+                    if(array_key_exists("{$d2->productId}|{$d2->type}", $detailsFromBom)){
+                        $d2->quantityFromBom = $detailsFromBom["{$d2->productId}|{$d2->type}"]->quantityFromBom;
+                        $d2->quantity = $d2->quantityFromBom;
+                    }
+
+                    $key = "{$d2->productId}|{$d2->packagingId}|{$d2->type}|{$d2->storeId}";
+                    $obj = clone $d2;
+                    if(!array_key_exists($key, $details)){
+                        $obj->quantityExpected = 0;
+                        $details[$key] = $obj;
                     }
 
                     if(!empty($d2->batch)){
-                        $details["{$d2->productId}|{$d2->type}|{$d2->storeId}"]->batches[$d2->batch] = $d2->quantityExpected;
+                        $details[$key]->batches[$d2->batch] = $d2->quantityExpected;
                     }
 
-                    $details["{$d2->productId}|{$d2->type}|{$d2->storeId}"]->quantityExpected += $d2->quantityExpected;
+                    $details[$key]->quantityExpected += $d2->quantityExpected;
                 }
             }
+
+            if(countR($detailsFromBom)) {
+                foreach ($detailsFromBom as $d3) {
+                    $key = "{$d3->productId}|{$d3->packagingId}|{$d3->type}|{$d3->storeId}";
+                    if(!array_key_exists($key, $details)){
+                        $obj1 = clone $d3;
+                        $obj1->quantity = $obj1->quantityFromBom;
+                        $obj1->quantityExpected = null;
+                        $obj1->quantityFromBom = 0;
+                        $details[$key] = $obj1;
+                    }
+
+                    $details[$key]->quantityFromBom += $d3->quantityFromBom;
+                }
+            }
+
         } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = array();
             //$this->getDefaultDetailsFromTasks($rec);
