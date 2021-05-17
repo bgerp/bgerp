@@ -667,37 +667,38 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         $rec = $this->fetchRec($rec);
         $origin = doc_Containers::getDocument($rec->originId);
-        if($origin->isInstanceOf('planning_Tasks')){
+
+
+        // Ако протокола е за крайния артикул
+        if(static::isForJobProductId($rec)) {
+            $details = $this->getDefaultDetailsFromBom($rec);
+
+            // Какво е вложено до момента в заданието
+            $jobRec =  static::getJobRec($rec);
+            $details2 = planning_Jobs::getDefaultProductionDetailsFromConvertedByNow($jobRec);
+
+            // Сумират се очакваните детайли по рецепта и реално вложеното
+            if(countR($details2)){
+                foreach ($details2 as $d2){
+                    if(!array_key_exists("{$d2->productId}|{$d2->type}|{$d2->storeId}", $details)){
+                        $c = clone $d2;
+                        $c->quantity = $c->quantityExpected;
+                        $c->quantityExpected = 0;
+                        unset($c->batch);
+                        $details["{$d2->productId}|{$d2->type}|{$d2->storeId}"] = $c;
+                    }
+
+                    if(!empty($d2->batch)){
+                        $details["{$d2->productId}|{$d2->type}|{$d2->storeId}"]->batches[$d2->batch] = $d2->quantityExpected;
+                    }
+
+                    $details["{$d2->productId}|{$d2->type}|{$d2->storeId}"]->quantityExpected += $d2->quantityExpected;
+                }
+            }
+        } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = $this->getDefaultDetailsFromTasks($rec);
         } else {
             $details = $this->getDefaultDetailsFromBom($rec);
-
-            // Ако протокола е за крайния артикул
-            if(static::isForJobProductId($rec)) {
-                $jobRec =  static::getJobRec($rec);
-
-                // Какво е вложено до момента в заданието
-                $details2 = planning_Jobs::getDefaultProductionDetailsFromConvertedByNow($jobRec);
-
-                // Сумират се очакваните детайли по рецепта и реално вложеното
-                if(countR($details2)){
-                    foreach ($details2 as $d2){
-                        if(!array_key_exists("{$d2->productId}|{$d2->type}|{$d2->storeId}", $details)){
-                            $c = clone $d2;
-                            $c->quantity = $c->quantityExpected;
-                            $c->quantityExpected = 0;
-                            unset($c->batch);
-                            $details["{$d2->productId}|{$d2->type}|{$d2->storeId}"] = $c;
-                        }
-
-                        if(!empty($d2->batch)){
-                            $details["{$d2->productId}|{$d2->type}|{$d2->storeId}"]->batches[$d2->batch] = $d2->quantityExpected;
-                        }
-
-                        $details["{$d2->productId}|{$d2->type}|{$d2->storeId}"]->quantityExpected += $d2->quantityExpected;
-                    }
-                }
-            }
         }
 
         // Връщаме намерените дефолтни детайли
