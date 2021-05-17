@@ -696,7 +696,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
         } elseif($origin->isInstanceOf('planning_Tasks')){
-            $details = $this->getDefaultDetailsFromTasks($rec);
+            $details = array();
+            //$this->getDefaultDetailsFromTasks($rec);
         } else {
             $details = $this->getDefaultDetailsFromBom($rec);
         }
