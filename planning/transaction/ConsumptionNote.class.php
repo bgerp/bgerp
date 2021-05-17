@@ -60,6 +60,7 @@ class planning_transaction_ConsumptionNote extends acc_DocumentTransactionSource
         $dQuery = planning_ConsumptionNoteDetails::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         $details = $dQuery->fetchAll();
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
 
         if (Mode::get('saveTransaction')) {
             $allowNegativeShipment = store_Setup::get('ALLOW_NEGATIVE_SHIPMENT');

@@ -246,6 +246,13 @@
                <td>[#invoiceAddress#]</td>
             </tr>
             <!--ET_END invoiceAddress-->
+
+            <!--ET_BEGIN saleFolderId-->
+            <tr>
+               <td><span class="title-style nowrap">|Ръчно избрана папка|*:</span> </td>
+               <td>[#saleFolderId#]</td>
+            </tr>
+            <!--ET_END saleFolderId-->
          </table>
       </div>
    </fieldset>

@@ -584,13 +584,15 @@ class blast_ListDetails extends doc_Detail
         $exp->SUGGESTIONS('#documentType', 'getDocumentTypes()');
         $exp->ASSUME('#documentType', 'getDocumentTypesAssume()');
         $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholder=Всички, notNull');
-        $exp->DEF('#contragentType=Вид контрагент', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholder=Всички, notNull');
+        $exp->DEF('#contragentType=Вид контрагент->Избор', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholder=Всички, notNull');
         $exp->DEF('#docFrom=Период->От', 'date', 'notNull');
         $exp->DEF('#docTo=Период->До', 'date', 'notNull');
+        $exp->DEF('#amountTo=Сума->От', 'int', 'notNull');
+        $exp->DEF('#amountFrom=Сума->До', 'int', 'notNull');
         
         $exp->question('#countriesInclude,#countriesExclude', tr('Филтър по държави') . ':', "#source == 'groupCompanies' || #source == 'groupPersons'", 'title=' . tr('Филтър по държави'));
         
-        $exp->question('#documentType,#catGroups,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo', tr('Избор на вид документ') . ':', "#source == 'document'", 'title=' . tr('Избор на вид документ'));
+        $exp->question('#documentType,#catGroups,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo, #amountTo, #amountFrom', tr('Избор на вид документ') . ':', "#source == 'document'", 'title=' . tr('Избор на вид документ'));
         
         $exp->rule('#delimiter', "','", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
         $exp->rule('#delimiterAsk', '#delimiter');
@@ -600,7 +602,7 @@ class blast_ListDetails extends doc_Detail
         $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers)");
         $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers)");
         
-        $exp->rule('#csvData', 'importCsvFromDocuments(#documentType,#catGroups,#listId,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo)');
+        $exp->rule('#csvData', 'importCsvFromDocuments(#documentType,#catGroups,#listId,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo, #amountTo, #amountFrom)');
         
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
         
@@ -1072,7 +1074,7 @@ class blast_ListDetails extends doc_Detail
      *
      * @return array
      */
-    public static function importCsvFromDocuments($documentType, $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $docFrom, $docTo)
+    public static function importCsvFromDocuments($documentType, $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $docFrom, $docTo, $amountFrom, $amountTo)
     {
         core_App::setTimeLimit(600);
 
@@ -1088,7 +1090,7 @@ class blast_ListDetails extends doc_Detail
         if (empty($documentTypeArr)) {
             $documentTypeArr = array_keys(self::getDocumentTypes());
         }
-        
+
         $csvArr = array();
         if (!empty($documentTypeArr)) {
             $csvArr[] = tr('Имейл') . ',' . tr('Име') . ',' . tr('Държава');
@@ -1156,7 +1158,7 @@ class blast_ListDetails extends doc_Detail
                     $docDetails = ($docType == 'sales_Sales') ? 'sales_SalesDetails' : 'sales_QuotationsDetails';
                 }
             }
-            
+
             // Ако данните ще се определят от следващия изпратен имейл или папката
             if ($getFromNextEmail) {
                 $docDetailsInst = cls::get($docDetails);
@@ -1182,7 +1184,7 @@ class blast_ListDetails extends doc_Detail
                 // Филтрираме по вид контрагент
                 if ($contragentType) {
                     $query->EXT('contragentClassId', $masterClass, "externalName=contragentClassId,externalKey={$docDetailsInst->masterKey}");
-                    $query->where(array("#contragentClassId = '[#1#]'", $clsId = $contragentType::getClassId()));
+                    $query->where(array("#contragentClassId = '[#1#]'", $contragentType::getClassId()));
                 }
                 
                 // Филтрираме по дата
@@ -1204,7 +1206,20 @@ class blast_ListDetails extends doc_Detail
                 $query->EXT('containerId', $masterClass, "externalName=containerId,externalKey={$docDetailsInst->masterKey}");
                 $query->EXT('folderId', $masterClass, "externalName=folderId,externalKey={$docDetailsInst->masterKey}");
 
+                if ($amountFrom || $amountTo) {
+                    $query->XPR('cAmount', 'double', '#quantity * #price');
+
+                    if ($amountFrom) {
+                        $query->where(array("#cAmount >= '[#1#]'", $amountFrom));
+                    }
+
+                    if ($amountTo) {
+                        $query->where(array("#cAmount <= '[#1#]'", $amountTo));
+                    }
+                }
+
                 while ($rec = $query->fetch()) {
+
                     $name = '';
                     
                     $fRec = doc_Folders::fetch($rec->folderId);
@@ -1213,7 +1228,7 @@ class blast_ListDetails extends doc_Detail
                         $cInst = cls::get($fRec->coverClass);
                         $cInstRec = $cInst->fetch($fRec->coverId);
                     }
-                    
+
                     // Ако няма имейл в записа, вземаме следващия до когото е изпратен
                     $email = $rec->email;
                     if (!$email) {
@@ -1317,7 +1332,7 @@ class blast_ListDetails extends doc_Detail
                 // Ако се филтрира по типа на контрагента
                 if ($contragentType) {
                     $query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
-                    $query->where(array("#coverClass = '[#1#]'", $clsId = $contragentType::getClassId()));
+                    $query->where(array("#coverClass = '[#1#]'", $contragentType::getClassId()));
                 }
 
                 // Ако има зададена група, извличаме всичките и филтрираме по тях
@@ -1327,6 +1342,8 @@ class blast_ListDetails extends doc_Detail
                     if (!empty($groupIdsArr)) {
 
                         $prodArr = array();
+
+                        $catGroupsWhere = '';
 
                         foreach ($groupIdsArr as $gId) {
                             $catGroupsWhere .= ($catGroupsWhere ? ' OR ' : '') . "LOCATE('|{$gId}|', #groups)";
@@ -1350,6 +1367,7 @@ class blast_ListDetails extends doc_Detail
                 }
 
                 while ($rec = $query->fetch()) {
+
                     $email = trim($rec->email);
                     
                     if (!$email) {

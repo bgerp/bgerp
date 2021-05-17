@@ -116,7 +116,8 @@ class price_reports_PriceList extends frame2_driver_TableData
         $form->setDefault('showEan', 'yes');
         $form->setDefault('showMeasureId', 'yes');
         $form->setDefault('displayDetailed', 'no');
-        
+        $form->setDefault('packType', 'yes');
+
         $suggestions = cat_UoM::getPackagingOptions();
         $form->setSuggestions('packagings', $suggestions);
         
@@ -135,9 +136,9 @@ class price_reports_PriceList extends frame2_driver_TableData
         
         $form->setOptions('policyId', $listOptions);
         $form->setDefault('policyId', $defaultListId);
-        
+
         // Ако е в папка с контрагентски данни
-        if ($Cover->haveInterface('doc_ContragentDataIntf')) {
+        if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $cData = doc_Folders::getContragentData($form->rec->folderId);
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
             $lang = (!empty($cData->countryId) && $cData->countryId != $bgId) ? 'en' : 'bg';
@@ -148,17 +149,31 @@ class price_reports_PriceList extends frame2_driver_TableData
             $form->setField('packagings', 'input=none');
         }
 
-        // Ако политиката е частна позволява се потребителя да избере само листваните артикули за клиента
+        // Ако има посочена ценова политика
         if(isset($rec->policyId)){
-            $listRec = price_Lists::fetch($rec->policyId);
-            if($listRec->isPublic = 'no'){
-                if($foundRec = price_ListToCustomers::fetch("#listId = {$rec->policyId}")){
-                    if($listingId = cond_Parameters::getParameter($foundRec->cClass, $foundRec->cId, 'salesList')){
-                        $form->setField('listingId', 'input');
-                        $form->setOptions('listingId', array('' => '') + array("{$listingId}" => cat_Listings::getTitleById($listingId, false)));
+            $listingId = null;
+
+            if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
+
+                // Ако справката е в папка на клиент взима се списъка му листвани артикули
+                $listingId = cond_Parameters::getParameter($Cover->className, $Cover->that, 'salesList');
+            } else {
+
+                // Ако справката не е в папка на клиент, проверява се дали политиката е частна
+                // ако е частна, взима се списъка от листваните артикули на клиента
+                $listRec = price_Lists::fetch($rec->policyId);
+                if($listRec->isPublic = 'no'){
+                    if($foundRec = price_ListToCustomers::fetch("#listId = {$rec->policyId}")){
+                        $listingId = cond_Parameters::getParameter($foundRec->cClass, $foundRec->cId, 'salesList');
                     }
                 }
             }
+
+            // Ако има намерен списък с листвани артикули, показва се като възможност за избор
+            if(isset($listingId)){
+                $form->setField('listingId', 'input');
+                $form->setOptions('listingId', array('' => '') + array("{$listingId}" => cat_Listings::getTitleById($listingId, false)));
+             }
         }
     }
     
@@ -308,7 +323,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 core_Lg::pop();
             }
         }
-        
+
         return $recs;
     }
     

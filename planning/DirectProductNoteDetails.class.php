@@ -362,4 +362,18 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $res->operation[key($res->operation)] = $rec->storeId;
         }
     }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'add' && isset($rec)) {
+
+            if(!planning_DirectProductionNote::isForJobProductId($rec->noteId)){
+                $requiredRoles = 'no_one';
+            }
+        }
+    }
 }

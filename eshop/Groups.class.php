@@ -122,7 +122,8 @@ class eshop_Groups extends core_Master
         
         $this->FLD('name', 'varchar(64)', 'caption=Група->Наименование, mandatory,width=100%');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Група->Описание');
-        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри,optionsFunc=cat_Params::getPublic');
+        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри (Изглед),optionsFunc=cat_Params::getPublic');
+        $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Група->Параметри (Списък),optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Група->Опаковки/Мерки');
         $this->FLD('order', 'double', 'caption=Подредба,hint=Важи само за менютата, където групата е споделена');
         $this->FLD('perPage', 'int(Min=0)', 'caption=Страниране,unit=артикули на страница');

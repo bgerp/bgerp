@@ -369,6 +369,23 @@ class plg_TreeObject extends core_Plugin
                 $row->ROW_ATTR['class'] .= ' searchResult';
             }
         }
+
+        if ($fields['-single']) {
+
+            $mQuery = $mvc->getQuery();
+            $mQuery->where("#state != 'rejected'");
+
+            $dArr = $mQuery->fetchAll();
+
+            $descendants = self::getDescendants($mvc, $rec->id, $dArr);
+
+            unset($descendants[$rec->id]);
+
+            foreach ($descendants as $dId => $dRec) {
+                $rec->personsCnt += $dRec->personsCnt;
+                $rec->companiesCnt += $dRec->companiesCnt;
+            }
+        }
     }
     
     

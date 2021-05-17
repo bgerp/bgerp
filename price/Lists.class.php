@@ -631,7 +631,9 @@ class price_Lists extends core_Master
         }
         
         if($action == 'changepublic' && isset($rec)){
-            if($rec->public == 'yes'){
+            if($rec->state == 'rejected'){
+                $requiredRoles = 'no_one';
+            } elseif($rec->public == 'yes'){
                 $customers = price_ListToCustomers::getCustomers($rec->id);
                 
                 // Ако ценовата политика е публична и е закачена на повече от 1 контрагент, не може да стане частна

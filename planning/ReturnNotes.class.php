@@ -244,4 +244,29 @@ class planning_ReturnNotes extends deals_ManifactureMaster
             $row->departmentId = planning_Centers::getHyperlink($rec->departmentId, true);
         }
     }
+
+
+    /**
+     * Проверка дали нов документ може да бъде добавен в посочената нишка
+     *
+     * @param int $threadId key(mvc=doc_Threads)
+     *
+     * @return bool
+     */
+    public static function canAddToThread($threadId)
+    {
+        // Може да добавяме или към нишка в която има задание
+        if (planning_Jobs::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
+
+            return true;
+        }
+
+        // Може да добавяме или към нишка в която има задание
+        if (planning_Tasks::fetchField("#threadId = {$threadId} AND (#state = 'active' || #state = 'stopped' || #state = 'wakeup')")) {
+
+            return true;
+        }
+
+        return false;
+    }
 }

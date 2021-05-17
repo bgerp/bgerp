@@ -339,7 +339,7 @@ class acc_Balances extends core_Master
         if (!core_Locks::get($lockKey, self::MAX_PERIOD_CALC_TIME, 1)) {
             $this->logNotice('Изчисляването на баланса е заключено от друг процес');
             
-            followRetUrl(null, "Балансът се изчислява в момента. Пробвайте по-късно.", 'warning');
+            followRetUrl(null, "Балансът се изчислява в момента. Опитайте по-късно.", 'warning');
         }
         
         $this->requireRightFor('forcecalc');

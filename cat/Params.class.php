@@ -122,7 +122,7 @@ class cat_Params extends bgerp_ProtoParam
             1 => 'driverClass',
             2 => 'suffix',
             3 => 'sysId',
-            4 => 'options',
+            4 => 'csv_options',
             5 => 'default',
             6 => 'showInPublicDocuments',
             7 => 'state',
@@ -254,7 +254,7 @@ class cat_Params extends bgerp_ProtoParam
      *
      * @return int - ид на параметъра
      */
-    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false)
+    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true)
     {
         // Ако има параметър с това систем ид,връща се
         $id = self::fetchIdBySysId($sysId);
@@ -265,7 +265,8 @@ class cat_Params extends bgerp_ProtoParam
         
         $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix);
         $nRec->showInTasks = ($showInTasks) ? 'yes' : 'no';
-        
+        $nRec->showInPublicDocuments = ($showInPublicDocuments) ? 'yes' : 'no';
+
         // Създаване на параметъра
         return self::save($nRec);
     }

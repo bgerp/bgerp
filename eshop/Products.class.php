@@ -156,8 +156,9 @@ class eshop_Products extends core_Master
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
+        $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри в списъка,optionsFunc=cat_Params::getPublic');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
-        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри,optionsFunc=cat_Params::getPublic');
+        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри в изгледа,optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Описание->Опаковки/Мерки');
         $this->FLD('nearProducts', 'blob(serialize)', 'caption=Описание->Виж също,input=none,single=none,column=none');
         
@@ -343,7 +344,7 @@ class eshop_Products extends core_Master
         if (isset($fields['-single'])) {
             $row->orderByParam = ($rec->orderByParam == '_code') ? tr('Код') : (($rec->orderByParam == '_title') ? tr('Заглавие') : (($rec->orderByParam == '_createdOn') ? tr('Създаване') : $row->orderByParam));
             
-            foreach (array('showPacks', 'showParams') as $fld) {
+            foreach (array('showPacks', 'showParams', 'showListParams') as $fld) {
                 $hint = null;
                 $showPacks = eshop_Products::getSettingField($rec->id, null, $fld, $hint);
                 if (countR($showPacks)) {
@@ -698,7 +699,7 @@ class eshop_Products extends core_Master
                 $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
             
-            $commonParams = self::getCommonParams($pRec->id);
+            $commonParams = self::getCommonParams($pRec->id, true);
             $pRow->commonParams = (countR($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : null;
         }
 
@@ -804,6 +805,8 @@ class eshop_Products extends core_Master
      */
     public function renderGroupList_($data)
     {
+        $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
+
         if (is_array($data->rows)) {
             if(countR($data->lastOrderedData)){
                 $layout = new ET("[#BLOCK#]");
@@ -823,7 +826,6 @@ class eshop_Products extends core_Master
                     $layout->append($block, 'BLOCK');
                 }
             } else {
-                $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
                 foreach ($data->rows as $id => $row) {
                     $row1 = clone $row;
                     $rec = $data->recs[$id];
@@ -1178,6 +1180,8 @@ class eshop_Products extends core_Master
         $form->FNC('packagings', 'keylist(mvc=cat_UoM,select=shortName)', 'caption=Опаковки,silent,after=image5');
         $form->input(null, 'hidden');
         $form->setSuggestions('showParams', cat_Params::getPublic());
+        $form->setSuggestions('showListParams', cat_Params::getPublic());
+
         if ($id = $form->rec->id) {
             $rec = self::fetch($id);
             $gRec = eshop_Groups::fetch($rec->groupId);
@@ -1463,6 +1467,8 @@ class eshop_Products extends core_Master
             
             if ($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes') {
                 $requiredRoles = 'no_one';
+            } elseif(eshop_ProductDetails::hasSaleEnded($rec->productId)) {
+                $requiredRoles = 'no_one';
             }
         }
         
@@ -1582,15 +1588,16 @@ class eshop_Products extends core_Master
      *
      * @return array
      */
-    public static function getCommonParams($id)
+    public static function getCommonParams($id, $list = false)
     {
         $rec = self::fetchRec($id);
-        
+        $paramField = ($list) ? 'showListParams' : 'showParams';
+
         if (!isset(static::$cacheParams[$rec->id])) {
             $res = $rowParams = $totalParams = array();
             
             // Има ли параметри за показване
-            $displayParams = eshop_Products::getSettingField($id, null, 'showParams');
+            $displayParams = eshop_Products::getSettingField($id, null, $paramField);
             if (countR($displayParams)) {
                 
                 // Опциите към артикула
