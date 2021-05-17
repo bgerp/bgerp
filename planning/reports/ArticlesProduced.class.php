@@ -245,20 +245,23 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                     $lastActivBomm = cat_Products::getLastActiveBom($planningRec->productId);
 
                     if ($lastActivBomm) {
-                        $bommMaterials = cat_Boms::getBomMaterials($lastActivBomm->id, $lastActivBomm->quantity);
+                        $arr = array();
+                        //Вложени материали по рецепта (някои може да са заготовки т.е. да имат рецепти за влагане на по низши материали или заготовки)
+                        $bommMaterials= self::getBaseMaterialFromBoms($lastActivBomm,$arr);
+
+                    }else{
+                        continue;
                     }
 
                     // Масив артикули и количество необходими за изпълнение на заданията //
-                    if (is_array($bommMaterials)) {
                         foreach ($bommMaterials as $material) {
+
                             $id = $planningRec->productId . '|' .$material->productId;
 
                             $jobsQuantityMaterial = (double)$material->quantity * $planningRec->quantity;
 
                             if (!array_key_exists($id, $dpRecDetArr)) {
-                                $dpRecDetArr[$id] =
-
-                                    (object)array(
+                                $dpRecDetArr[$id] = (object)array(
 
                                         'productId' => $material->productId,
 
@@ -270,14 +273,12 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                                 $obj->quantity += $jobsQuantityMaterial;
                             }
                         }
-                    }
                 }
 
-//bp($dpRecDetArr);
                 foreach ($dpRecDetArr as $id => $val){
 
                     if ($rec->consumedFrom == 'protocols'){
-                        $matRec = $val->matRec;// if(!(keylist::isIn(keylist::toArray($rec->groupsMat), $matRec->groups)))bp(!(keylist::isIn(keylist::toArray($rec->groupsMat), $matRec->groups)),$matRec,$val);
+                        $matRec = $val->matRec;
                         $quantity = $val->dpRecDet->creditQuantity;
                         $amount = $val->dpRecDet->amount;
 
@@ -480,7 +481,10 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
             $row->code = $dRec->code;
         }
         if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+        //    $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
+
+            $aaa= ($dRec->consumedType == 'prod') ? true : false;
+            $row->productId = cat_Products::getHyperlink($dRec->productId, $aaa);
         } else {
             $row->productId = 'Разпределени разходи';
         }
@@ -628,6 +632,50 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $Enum = cls::get('type_Enum', array('options' => array('prod' => 'произв.', 'consum' => 'вл.')));
 
         $res->type = $Enum->toVerbal($dRec->consumedType);
+    }
+
+    /**
+     * Рекурсивно извеждане на вложените материали
+     *
+     * @param stdClass $lastActivBomm
+     * @return array $material
+     *
+     */
+
+    private function getBaseMaterialFromBoms($lastActivBomm, &$arr)
+    {
+
+        //Вложени материали по рецепта (някои може да са заготовки т.е. да имат рецепти за влагане на по низши материали или заготовки)
+        $bommMaterials = cat_Boms::getBomMaterials($lastActivBomm->id, $lastActivBomm->quantity);
+
+        foreach ($bommMaterials as $material){
+            if (cat_Products::getLastActiveBom($material->productId)){
+                $lastActivBomm =cat_Products::getLastActiveBom($material->productId);
+
+                self::getBaseMaterialFromBoms($lastActivBomm,$arr);
+
+            }else{
+                $id = $material->productId;
+
+                $jobsQuantityMaterial = (double)$material->quantity;
+
+                if (!array_key_exists($id, $arr)) {
+                    $arr[$id] = (object)array(
+
+                        'productId' => $material->productId,
+
+                        'quantity' => $jobsQuantityMaterial
+                    );
+                } else {
+                    $obj = &$arr[$id];
+
+                    $obj->quantity += $jobsQuantityMaterial;
+                }
+            }
+
+        }
+
+       return $arr;
     }
 
 }
