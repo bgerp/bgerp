@@ -719,51 +719,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = array();
-            //$this->getDefaultDetailsFromTasks($rec);
         } else {
             $details = $this->getDefaultDetailsFromBom($rec);
         }
 
         // Връщаме намерените дефолтни детайли
-        return $details;
-    }
-
-
-    /**
-     * Намира количествата за влагане от задачите
-     *
-     * @param stdClass $rec
-     *
-     * @return array $details
-     */
-    protected function getDefaultDetailsFromTasks($rec)
-    {
-        $details = array();
-        $origin = doc_Containers::getDocument($rec->originId);
-        $aQuery = planning_ProductionTaskProducts::getQuery();
-        $aQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-
-        $aQuery->where("#taskId = {$origin->that} AND #type != 'production' AND #canStore = 'yes' AND #totalQuantity != 0");
-        if(isset($rec->inputStoreId)){
-            $aQuery->where("#storeId IS NULL OR #storeId = '{$rec->inputStoreId}'");
-        }
-
-        // Събираме ги в масив
-        while ($aRec = $aQuery->fetch()) {
-            $obj = new stdClass();
-            $obj->productId = $aRec->productId;
-            $obj->type = ($aRec->type == 'input') ? 'input' : 'pop';
-            $obj->quantityInPack = 1;
-            $obj->quantity = $aRec->totalQuantity;
-            $obj->packagingId = cat_Products::fetchField($obj->productId, 'measureId');
-            $obj->measureId = $obj->packagingId;
-            $obj->storeId = $aRec->storeId;
-
-            $index = $obj->productId . '|' . $obj->type;
-            $details[$index] = $obj;
-        }
-
-        // Връщаме намерените детайли
         return $details;
     }
 
