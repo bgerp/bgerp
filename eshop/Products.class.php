@@ -1467,6 +1467,8 @@ class eshop_Products extends core_Master
             
             if ($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes') {
                 $requiredRoles = 'no_one';
+            } elseif(eshop_ProductDetails::hasSaleEnded($rec->productId)) {
+                $requiredRoles = 'no_one';
             }
         }
         

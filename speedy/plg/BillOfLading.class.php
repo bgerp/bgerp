@@ -410,6 +410,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         if($rec->amountCODBase){
             $form->setDefault('isFragile', 'no');
             $form->setField('codType', 'input');
+            $form->setDefault('codType', 'post');
             $form->setSuggestions('amountInsurance', array('' => '', "{$amountCod}" => $amountCod));
         }
         $form->setDefault('returnShipmentIsFragile', 'no');

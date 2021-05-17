@@ -1699,7 +1699,7 @@ class email_Outgoings extends core_Master
                 $contragentData->person = $contragentData->person ? $contragentData->person : $pContragentData->person;
             }
             self::setContragentDataToRec($contragentData, $rec);
-            
+
             if ($emailTo) {
                 $rec->email = $emailTo;
             }
@@ -1707,7 +1707,7 @@ class email_Outgoings extends core_Master
             if ($faxTo) {
                 $rec->fax = $faxTo;
             }
-            
+
             // Подготвяме тялото на имейла и преводите
             $bodyLangArr = array();
             $bCnt = 0;
@@ -2023,7 +2023,7 @@ class email_Outgoings extends core_Master
             
             return ;
         }
-        
+
         crm_Companies::removeOwnCompanyData($contragentData);
         
         $rec->recipient = $contragentData->company;
@@ -2058,7 +2058,7 @@ class email_Outgoings extends core_Master
         
         //Данни необходими за създаване на хедър-а на съобщението
         $contragentDataHeader['name'] = $contragentData->person;
-        
+
         // Ако има обръщение
         if ($contragentData->salutationRec) {
             if ($contragentData->salutationRec == 'mrs' || $contragentData->salutationRec == 'miss') {
@@ -2839,15 +2839,15 @@ class email_Outgoings extends core_Master
         
         // Ако има папка
         if ($posting->folderId) {
-            
+
             // Вземаме корицата на папката
             $cover = doc_Folders::getCover($posting->folderId);
-            
+
             // Ако корицата има съответния интерфейс
             if (cls::haveInterface('doc_ContragentDataIntf', $cover->className)) {
-                
+
                 // Вземаме груповите имейли
-                $contrData->groupEmails = $cover->getContragentData($rec->docId)->groupEmails;
+                $contrData->groupEmails = $cover->getContragentData()->groupEmails;
             }
         }
         

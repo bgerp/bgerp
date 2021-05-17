@@ -98,7 +98,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,sales,acc';
+    public $canList = 'ceo,sales,acc,saleAll';
     
     
     /**

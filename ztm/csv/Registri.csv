@@ -1,6 +1,7 @@
 name,type,range,plugin,scope,default,description
 ac.enabled,bool,true|false,Access Control,system,false,Plugin enabled
 ac.allowed_attendees,json,,Access Control,system,"""[]""",Allowed attendees
+ac.zones_count,int,1/,Access Control,system,2,Number of security zones
 ac.nearby_attendees,json,,Access Control,system,"""[]""",Nearby attendees
 ac.last_update_attendees,json,,Access Control,device,"""[]""",Last update attendee
 ac.next_attendance,float,0.0/,Access Control,device,0.0,Next attendance
@@ -40,14 +41,14 @@ ac.door_window_blind_2.output,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8|!DO0|!
 ac.door_window_blind_2.value,bool,true|false,Access Control,device,false,Door window blind 2 value
 ac.zone_1_occupied,bool,true|false,Access Control,device,false,Zone occupied flag
 ac.zone_2_occupied,bool,true|false,Access Control,device,false,Zone occupied flag
-blinds.sun.azimuth.value,float,0.0/180.0,Blinds,system,0.0,Sun azimuth value
-blinds.sun.azimuth.mou,str,deg|rad,Blinds,system,deg,MOU
-blinds.sun.elevation.value,float,0.0/180.0,Blinds,system,0.0,Sun elevation value
-blinds.sun.elevation.mou,str,deg|rad,Blinds,system,deg,MOU
 blinds.input_fb,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,Blinds,system,AI0,Feedback input
 blinds.output_ccw,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8|!DO0|!DO1|!DO2|!DO3|!DO4|!DO5|!DO6|!DO7|!DO8,Blinds,system,DO0,CCW output
 blinds.output_cw,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8|!DO0|!DO1|!DO2|!DO3|!DO4|!DO5|!DO6|!DO7|!DO8,Blinds,system,DO1,CW output
-blinds.position,float,0.0/180.0,Blinds,system,0.0,Position
+blinds.position,float,0.0/180.0,Blinds,system,0.0,Position [deg]
+blinds.deg_per_sec,float,0.0/,Blinds,system,10.0,Degrees pre seconds ratio.
+blinds.feedback_treshold,float,0.0/,Blinds,system,0.093,Feedback treshold level in [V].
+blinds.sunspot_limit,float,0.0/,Blinds,system,1.0,Sun spot limit [m].
+blinds.object_height,float,0.0/,Blinds,system,2.0,Object height [m].
 blinds.enabled,bool,true|false,Blinds,system,false,Plugin enabled
 monitoring.cw.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,Monitoring,system,off,Cold water input flow meter
 monitoring.cw.tpl,float,0.0/,Monitoring,system,1.0,Cold water tics per liter
@@ -62,25 +63,32 @@ monitoring.pa.l1,json,,Monitoring,device,"""[]""",Power analyser L1 parameters
 monitoring.pa.l2,json,,Monitoring,device,"""[]""",Power analyser L2 parameters
 monitoring.pa.l3,json,,Monitoring,device,"""[]""",Power analyser L3 parameters
 monitoring.enabled,bool,true|false,Monitoring,system,false,Plugin enabled
-env.is_empty,int,0/1,Environment,device,1,Is empty flag
-env.is_empty_timeout,int,0/,Environment,system,3600,Is empty time out [s]
-env.temp.actual,float,-50/50,Environment,system,29.0,Actual outside temperature [C]
-env.temp.a6,float,-50/50,Environment,system,30.0,Actual outside temperature for 6 hours [C]
-env.temp.min24,float,-50/50,Environment,system,20.0,Minimum outside temperature for 24 hours [C]
-env.temp.max24,float,-50/50,Environment,system,36.0,Maximum outside temperature for 24 hours [C]
-env.rh,float,0.0/100.0,Environment,system,60.0,Actual outside relative humidity [%]
-env.wind.actual,float,0.0/,Environment,system,3.0,Actual wind [m/sec]
-env.wind.max12,float,0.0/,Environment,system,6.0,Maximum wind for 12 hours [m/sec]
-env.light,float,0.0/,Environment,system,1000.0,Outside light [lux]
-env.energy,int,,Environment,system,0,Energy mode of the building
-env.flag_fire,int,0/3,Environment,system,0,Emergency index for the fire.
-env.flag_storm,int,0/3,Environment,system,0,Emergency index for the storm.
-env.flag_earthquake,int,0/3,Environment,system,0,Emergency index for the earthquake.
-env.flag_gassing,int,0/3,Environment,system,0,Emergency index for the gassing.
-env.flag_flooding,int,0/3,Environment,system,0,Emergency index for the flooding.
-env.flag_blocked,int,0/3,Environment,system,0,Emergency index for the blocking.
-env.sunpos.enabled,bool,true|false,Environment,system,false,Enable software calculation of the sun position
-env.enabled,bool,true|false,Environment,system,false,Plugin enabled
+envm.is_empty,int,0/1,Environment,device,1,Is empty flag
+envm.is_empty_timeout,int,0/,Environment,system,3600,Is empty time out [s]
+envm.temp.actual,float,-50/50,Environment,system,20.0,Actual outside temperature [C]
+envm.temp.a6,float,-50/50,Environment,system,30.0,Actual outside temperature for 6 hours [C]
+envm.temp.min24,float,-50/50,Environment,system,20.0,Minimum outside temperature for 24 hours [C]
+envm.temp.max24,float,-50/50,Environment,system,36.0,Maximum outside temperature for 24 hours [C]
+envm.rh,float,0.0/100.0,Environment,system,60.0,Actual outside relative humidity [%]
+envm.wind.actual,float,0.0/,Environment,system,3.0,Actual wind [m/sec]
+envm.wind.max12,float,0.0/,Environment,system,6.0,Maximum wind for 12 hours [m/sec]
+envm.light,float,0.0/,Environment,system,1000.0,Outside light [lux]
+envm.energy,int,,Environment,system,0,Energy mode of the building
+envm.flag_fire,int,0/3,Environment,system,0,Emergency index for the fire.
+envm.flag_storm,int,0/3,Environment,system,0,Emergency index for the storm.
+envm.flag_earthquake,int,0/3,Environment,system,0,Emergency index for the earthquake.
+envm.flag_gassing,int,0/3,Environment,system,0,Emergency index for the gassing.
+envm.flag_flooding,int,0/3,Environment,system,0,Emergency index for the flooding.
+envm.flag_blocked,int,0/3,Environment,system,0,Emergency index for the blocking.
+envm.sunpos.enabled,bool,true|false,Environment,system,false,Enable software calculation of the sun position
+envm.building.location.lat,float,0.0/360.0,Environment,system,43.07779,Latitude of the target building.
+envm.building.location.lon,float,0.0/360.0,Environment,system,25.59549,Longitude of the target building.
+envm.building.location.elv,int,/,Environment,system,210,Longitude of the target building.
+envm.building.location.time_zone,int,0/23,Environment,system,2,Longitude of the target building.
+envm.enabled,bool,true|false,Environment,system,false,Plugin enabled
+envm.sun.azimuth,float,0.0/360.0,Blinds,system,0.0,Sun azimuth value
+envm.sun.elevation,float,0.0/360.0,Blinds,system,0.0,Sun elevation value
+hvac.zones_count,int,0/,HVAC,system,1,Count of the HVAC zones.
 hvac.adjust_temp_1,float,-50.0/50.0,HVAC,system,0.0,Adjust temperature
 hvac.air_temp_cent_1.settings,str,,HVAC,system,temp/DS18B20/28FFFCD0001703AE,Air temperature sensor center settings
 hvac.air_temp_cent_1.value,float,/,HVAC,system,0.0,Air temperature sensor center value

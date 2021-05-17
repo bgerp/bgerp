@@ -146,7 +146,7 @@ class pami_Setup extends core_ProtoSetup
      */
     public function install()
     {
-        $html .= parent::install();
+        $html = parent::install();
         
         $html .= core_Composer::install('marcelog/pami', '2.*');
         

@@ -76,13 +76,35 @@ class bgerp_plg_Import extends core_Plugin
     public static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         // Добавяне на бутон за импортиране, ако има инсталирани драйвъри
-        if ($mvc->haveRightFor('import')) {
+        $rec = ($mvc instanceof core_Detail) ? (object)array($mvc->masterKey => $data->masterId) : null;
+
+        if ($mvc->haveRightFor('import', $rec)) {
             $url = array($mvc, 'import', 'ret_url' => true);
             $data->toolbar->addBtn('Импорт', $url, null, 'row=2,ef_icon=img/16/import.png,title=Импортиране на ' . mb_strtolower($mvc->title));
         }
     }
-    
-    
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
+    {
+        // Не може да се оттеглят документи, към които има създадени КИ и ДИ
+        if ($action == 'import' && isset($rec)) {
+
+            if($mvc instanceof core_Detail){
+                if(isset($rec->{$mvc->masterKey})){
+                    $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey}, 'state');
+                    if($masterRec->state == 'rejected'){
+                        $res = 'no_one';
+                    }
+                }
+            }
+        }
+    }
+
+
     /**
      * Преди всеки екшън на мениджъра-домакин
      */
@@ -94,7 +116,12 @@ class bgerp_plg_Import extends core_Plugin
             // Подготвяме експерта
             $exp = cls::get('expert_Expert', array('mvc' => $mvc));
             $content = static::solveExpert($exp);
-            
+
+            if($mvc instanceof core_Detail){
+                $masterId = Request::get($mvc->masterKey, 'int');
+                $mvc->requireRightFor('import', (object)array($mvc->masterKey => $masterId));
+            }
+
             if ($content == 'SUCCESS') {
                 
                 // Извличаме уточнените вече стойностти на параметритр

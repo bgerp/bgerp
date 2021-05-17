@@ -273,6 +273,16 @@ class eshop_Setup extends core_ProtoSetup
             'offset' => 60,
             'timeLimit' => 100
         ),
+
+        array(
+            'systemId' => 'Remove Products From еshop',
+            'description' => 'Премахване на артикули от е-маг',
+            'controller' => 'eshop_ProductDetails',
+            'action' => 'RemoveProductsFromEshop',
+            'period' => 1440,
+            'offset' => 60,
+            'timeLimit' => 100
+        ),
     );
     
     
