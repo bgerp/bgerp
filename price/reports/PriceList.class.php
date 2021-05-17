@@ -247,7 +247,9 @@ class price_reports_PriceList extends frame2_driver_TableData
                 if (isset($dateBefore)) {
                     $oldPrice = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $dateBefore);
                     $oldPrice = round($oldPrice, $round);
-                    
+                    $priceByPolicy = round($priceByPolicy, $round);
+                    $differenceHint = null;
+
                     // Колко процента е промяната спрямо старата цена
                     if (empty($oldPrice)) {
                         $obj->type = 'new';
@@ -256,14 +258,17 @@ class price_reports_PriceList extends frame2_driver_TableData
                         $obj->type = 'removed';
                         $difference = -1;
                     } else {
-                        $difference = (round(trim($priceByPolicy), $round) - trim($oldPrice)) / $oldPrice;
-                        $difference = round($difference, 4);
+                        $difference = (trim($priceByPolicy) - trim($oldPrice)) / $oldPrice;
+                        $difference = round($difference, 2);
+                        $differenceHint = "Стара цена|*: {$oldPrice}; |Нова цена|*: {$priceByPolicy}";
                     }
                     
                     // Ако няма промяна, артикулът не се показва
                     if ($difference == 0) {
                         continue;
                     }
+
+                    $obj->differenceHint = $differenceHint;
                     $obj->difference = $difference;
                 }
                 
@@ -370,6 +375,10 @@ class price_reports_PriceList extends frame2_driver_TableData
                     $row->difference = "<span class='green'>+{$row->difference}</span>";
                 } else {
                     $row->difference = "<span class='red'>{$row->difference}</span>";
+                }
+
+                if(!empty($dRec->differenceHint) && !Mode::isReadOnly()){
+                    $row->difference = ht::createHint($row->difference, $dRec->differenceHint);
                 }
             }
         }
