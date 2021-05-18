@@ -351,6 +351,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
         $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
+        if(empty($iData->listFields['quantityFromBom']) && empty($iData->listFields['quantityExpected'])){
+            $iData->listFields['packQuantity'] = 'Количество';
+        }
+
         $this->modifyRows($iData);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
         $tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
@@ -365,7 +369,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $tpl->append(ht::createBtn('Отнесени разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Влагане на отнесен разход')), 'planning_DirectProductNoteDetails');
         }
 
-        // Рендираме таблицата с отпадъците
+        // Рендиране на таблицата с отпадъците
         if (countR($data->popArr) || $data->masterData->rec->state == 'draft') {
             $data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
             unset($data->listFields['storeId']);

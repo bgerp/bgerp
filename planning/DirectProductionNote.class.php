@@ -685,6 +685,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     if(array_key_exists("{$d2->productId}|{$d2->type}", $detailsFromBom)){
                         $d2->quantityFromBom = $detailsFromBom["{$d2->productId}|{$d2->type}"]->quantityFromBom;
                         $d2->quantity = $d2->quantityFromBom;
+                    } else {
+                        $d2->quantity = 0;
                     }
 
                     $key = "{$d2->productId}|{$d2->packagingId}|{$d2->type}|{$d2->storeId}";
@@ -699,6 +701,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     }
 
                     $details[$key]->quantityExpected += $d2->quantityExpected;
+                    if(empty($d2->quantityFromBom)){
+                        $details[$key]->quantity += $d2->quantityExpected;
+                    }
                 }
             }
 
@@ -711,9 +716,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $obj1->quantityExpected = null;
                         $obj1->quantityFromBom = 0;
                         $details[$key] = $obj1;
+                        $details[$key]->quantityFromBom += $d3->quantityFromBom;
                     }
-
-                    $details[$key]->quantityFromBom += $d3->quantityFromBom;
                 }
             }
 
