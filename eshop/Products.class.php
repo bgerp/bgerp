@@ -1469,9 +1469,6 @@ class eshop_Products extends core_Master
         if ($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes') {
 
             return false;
-        } elseif(eshop_ProductDetails::hasSaleEnded($productId)) {
-
-            return false;
         }
 
         return true;
@@ -1485,6 +1482,10 @@ class eshop_Products extends core_Master
     {
         if ($action == 'linktoeshop' && isset($rec->productId)) {
             if(!static::canProductBeAddedToEshop($rec->productId)){
+                $requiredRoles = 'no_one';
+            }
+
+            if(eshop_ProductDetails::hasSaleEnded($productId)){
                 $requiredRoles = 'no_one';
             }
         }
