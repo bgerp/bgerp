@@ -1485,7 +1485,7 @@ class eshop_Products extends core_Master
                 $requiredRoles = 'no_one';
             }
 
-            if(eshop_ProductDetails::hasSaleEnded($productId)){
+            if(eshop_ProductDetails::hasSaleEnded($rec->productId)){
                 $requiredRoles = 'no_one';
             }
         }
