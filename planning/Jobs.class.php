@@ -1788,10 +1788,11 @@ class planning_Jobs extends core_Master
             $MasterMvc = cls::get($masterName);
             $dQuery = $DetailMvc->getQuery();
             $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+            $dQuery->EXT('useResourceAccounts', $MasterMvc, 'externalKey=noteId');
             $dQuery->EXT('storeId', $MasterMvc, 'externalKey=noteId');
             $dQuery->EXT('state', $MasterMvc, 'externalKey=noteId');
             $dQuery->EXT('threadId', $MasterMvc, 'externalKey=noteId');
-            $dQuery->where("#state = 'active'");
+            $dQuery->where("#state = 'active' AND #useResourceAccounts = 'yes'");
             $dQuery->in('threadId', $threadsArr);
 
             while($dRec = $dQuery->fetch()){

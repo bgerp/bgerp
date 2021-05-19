@@ -229,6 +229,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
             $row->ROW_ATTR['class'] = ($rec->type == 'pop') ? 'row-removed' : 'row-added';
+
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
@@ -330,7 +331,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     public function renderDetail_($data)
     {
         $tpl = new ET('');
-        
+
+        // Ако протокола е само за заготовка и няма детайли няма да се рендират
+        if(!countR($data->recs) && !planning_DirectProductionNote::isForJobProductId($data->masterData->rec)) return $tpl;
+
         if (Mode::is('printing')) {
             unset($data->listFields['tools']);
         }
