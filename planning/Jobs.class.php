@@ -1798,7 +1798,7 @@ class planning_Jobs extends core_Master
             $dQuery->in('threadId', $threadsArr);
 
             while($dRec = $dQuery->fetch()){
-                $key = "{$dRec->productId}|{$dRec->packagingId}|||";
+                $key = "{$dRec->productId}|{$dRec->packagingId}||||";
                 $cSign = $sign;
 
                 // Ако артикула е заготовка, но вече е заскладен в посочения склад ще се приспада к-то от него
@@ -1843,7 +1843,7 @@ class planning_Jobs extends core_Master
                 }
             }
         }
-
+        //bp($convertedArr);
         // Кои са всички разпределни услуги по ПО, които са разходни обекти
         $allocatedProducts = planning_Jobs::getAllocatedServices($rec);
         if(countR($allocatedProducts)){
@@ -1871,7 +1871,8 @@ class planning_Jobs extends core_Master
             if(!isset($dRec->storeId) || array_key_exists($dRec->productId, $consumable)){
                 if(!isset($dRec->storeId)){
                     // Приспада се произведеното до сега
-                    $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->expenseItemId}|{$dRec->fromAccId}|{$dRec->storeId}|";
+                    $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->expenseItemId}|{$dRec->fromAccId}||";
+
                     if(array_key_exists($key, $convertedArr)){
                         $convertedArr[$key]->quantityExpected -= $dRec->quantity;
                     }
