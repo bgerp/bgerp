@@ -7411,6 +7411,10 @@ body.narrow {
 	margin-bottom: 10mm;
 }
 
+.labelBreak:last-child {
+	margin-bottom: 0mm;
+}
+
 /*стилове за принтиране*/
 @media print{
 	.wide .singleView {
