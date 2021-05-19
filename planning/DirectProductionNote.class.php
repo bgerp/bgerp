@@ -668,7 +668,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $rec = $this->fetchRec($rec);
         $origin = doc_Containers::getDocument($rec->originId);
 
-
         // Ако протокола е за крайния артикул
         if(static::isForJobProductId($rec)) {
             $detailsFromBom = $this->getDefaultDetailsFromBom($rec);
@@ -676,13 +675,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             // Какво е вложено до момента в заданието
             $jobRec =  static::getJobRec($rec);
             $details2 = planning_Jobs::getDefaultProductionDetailsFromConvertedByNow($jobRec);
-
             $details = array();
 
             // Сумират се очакваните детайли по рецепта и реално вложеното
             if(countR($details2)){
                 foreach ($details2 as $d2){
+                    $d2->_realData = true;
                     if(array_key_exists("{$d2->productId}|{$d2->type}", $detailsFromBom)){
+                        unset($detailsFromBom["{$d2->productId}|{$d2->type}"]);
                         $d2->quantityFromBom = $detailsFromBom["{$d2->productId}|{$d2->type}"]->quantityFromBom;
                         $d2->quantity = $d2->quantityFromBom;
                     } else {
@@ -720,7 +720,6 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     }
                 }
             }
-
         } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = array();
         } else {
@@ -806,18 +805,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         $details = $mvc->getDefaultDetails($rec);
+
         if(countR($details)) {
             foreach ($details as $dRec) {
                 $dRec->noteId = $rec->id;
 
                 // Склада за влагане се добавя само към складируемите артикули, които не са отпадъци
-                if (empty($dRec->storeId) && isset($rec->inputStoreId)) {
-                    if (cat_Products::fetchField($dRec->productId, 'canStore') == 'yes' && $dRec->type == 'yes') {
+                if (empty($dRec->storeId) && isset($rec->inputStoreId) && $dRec->_realData !== true) {
+                    if (cat_Products::fetchField($dRec->productId, 'canStore') == 'yes' && $dRec->type == 'input') {
                         $dRec->storeId = $rec->inputStoreId;
                     }
                 }
 
-                if(is_array($dRec->batches)){
+                if($dRec->_realData === true){
                     $dRec->autoAllocate = false;
                     $dRec->_clonedWithBatches = true;
                 }
