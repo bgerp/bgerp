@@ -1747,6 +1747,7 @@ class planning_Jobs extends core_Master
 
         // Намират се всички произведени Заготовки: артикул по заданието различни от артикула му
         $pQuery1 = planning_DirectProductionNote::getQuery();
+        $pQuery1->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
         $pQuery1->where("#state = 'active' AND #productId != {$rec->productId}");
         $pQuery1->in('threadId', $threadsArr);
         $pNoteClassId = planning_DirectProductionNote::getClassId();
@@ -1767,13 +1768,14 @@ class planning_Jobs extends core_Master
                 }
             }
 
+            $fromAccId = ($pRec->canStore != 'yes') ? '61102' : '';
             foreach ($aArray as $batch => $q){
                 // Те ще се влагат от склада в който са произведени
-                $key = "{$pRec->productId}|{$pRec->packagingId}|||{$pRec->storeId}|{$batch}";
+                $key = "{$pRec->productId}|{$pRec->packagingId}||{$fromAccId}|{$pRec->storeId}|{$batch}";
                 if(!array_key_exists($key, $convertedArr)){
                     $batch = !empty($batch) ? $batch : null;
                     $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
-                    $convertedArr[$key] = (object)array('productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'quantityInPack' => $pRec->quantityInPack, 'measureId' => $measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'storeId' => $pRec->storeId, 'batch' => $batch);
+                    $convertedArr[$key] = (object)array('productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'quantityInPack' => $pRec->quantityInPack, 'measureId' => $measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'storeId' => $pRec->storeId, 'batch' => $batch, 'fromAccId' => $fromAccId);
                     $consumable[$pRec->productId] = $pRec->productId;
                 }
 
@@ -1801,6 +1803,9 @@ class planning_Jobs extends core_Master
 
                 // Ако артикула е заготовка, но вече е заскладен в посочения склад ще се приспада к-то от него
                 if(array_key_exists($dRec->productId, $consumable) && $cSign > 0){
+                    $fromAccId = ($dRec->canStore == 'yes') ? null : '61102';
+                    $storeId = ($dRec->canStore == 'yes') ?  $dRec->storeId : null;
+
                     $aArray = array('' => $dRec->quantity);
 
                     if(core_Packs::isInstalled('batch')){
@@ -1817,7 +1822,7 @@ class planning_Jobs extends core_Master
 
                     $cSign = $sign;
                     foreach ($aArray as $batch => $q){
-                        $key1 = "{$dRec->productId}|{$dRec->packagingId}|||{$dRec->storeId}|{$batch}";
+                        $key1 = "{$dRec->productId}|{$dRec->packagingId}||{$fromAccId}|{$storeId}|{$batch}";
 
                         if(array_key_exists($key1, $convertedArr)){
                             $convertedArr[$key1]->quantityExpected -= $q;

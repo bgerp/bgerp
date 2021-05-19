@@ -91,8 +91,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * Активен таб
      */
     public $currentTab = 'Протоколи->Производство';
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
