@@ -204,7 +204,7 @@ class hr_Sickdays extends core_Master
         $this->FLD('icdCode', 'varchar(5)', 'caption=Информация->MKB код, hint=Международна класификация на болестите');
         $this->FLD('answerGSM', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Отговаря на моб. телефон, maxRadio=3,columns=3,notNull,value=yes');
         $this->FLD('answerSystem', 'enum(yes=Да, no=Не, partially=Частично)', 'caption=По време на отсъствието->Достъп до системата, maxRadio=3,columns=3,notNull,value=yes');
-        $this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees)', 'caption=По време на отсъствието->Заместник');
+        $this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=По време на отсъствието->Заместник');
         $this->FLD('paidByEmployer', 'double(Min=0)', 'caption=Заплащане->Работодател, input=hidden, changable');
         $this->FLD('paidByHI', 'double(Min=0)', 'caption=Заплащане->НЗК, input=hidden,changable');
         $this->FNC('title', 'varchar', 'column=none');
