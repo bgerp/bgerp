@@ -44,6 +44,8 @@ class sens2_ServMon extends sens2_ProtoDriver
         'conn3' => array('caption' => 'Връзка до conn3'),
         
         'cpuLoad' => array('caption' => 'Натоварване процесор'),
+        
+        'IPDomain' => array('caption' => 'SPF статус'),
     );
     
     
@@ -60,6 +62,8 @@ class sens2_ServMon extends sens2_ProtoDriver
         $form->FLD('conn2', 'varchar', 'caption=Връзки->Conn2');
         $form->FLD('conn3', 'varchar', 'caption=Връзки->Conn3');
         $form->FLD('cpuLoad', 'varchar', 'caption=Процесор->cpuLoad');
+    
+        $form->FLD('IPDomain', 'varchar', 'caption=SPF->IPDomain');
     }
     
     
@@ -122,6 +126,40 @@ class sens2_ServMon extends sens2_ProtoDriver
         
         // Проверка натовареността на процесора
         $res['cpuLoad'] = self::getServerLoad();
+
+        if ($inputs['IPDomain']) {
+            $res['IPDomain'] = self::getSPF($config->IPDomain);
+        }
+
+        return $res;
+    }
+    
+    
+    /**
+     * Връща SPF статус
+     */
+    public static function getSPF($IPDomain)
+    {
+        if (core_Packs::isInstalled('spflib')) {
+            list($ip, $domain) = explode('_', $IPDomain);
+            $res = spflib_Checker::check($ip, $domain)->getCode();
+        } else {
+            $res = 'spflib not installed.';
+        }
+        switch ($res) {
+            case 'pass':
+                $res = 1;
+                break;
+            case 'none':
+                $res = 0;
+                break;
+            case 'softfail':
+                $res = -1;
+                break;
+            case 'fail':
+                $res = -2;
+                break;
+        }
         
         return $res;
     }
@@ -205,4 +243,5 @@ class sens2_ServMon extends sens2_ProtoDriver
     public function writeOutputs($outputs, $config, &$persistentState)
     {
     }
-}
+ 
+} 

@@ -253,6 +253,9 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
+        // Ако записа е клониран не правим нищо
+        if ($rec->_isClone === true) return;
+
         // ако има източник ПО, копират се вложените неща по нея
         if(isset($rec->originId)){
             $origin = doc_Containers::getDocument($rec->originId);

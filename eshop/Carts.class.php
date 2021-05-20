@@ -86,8 +86,14 @@ class eshop_Carts extends core_Master
      * Кой може да го разглежда?
      */
     public $canViewexternal = 'every_one';
-    
-    
+
+
+    /**
+     * Кой има достъп до последните продажби?
+     */
+    public $canShowlastorder = 'user';
+
+
     /**
      * Кой може да откаже плащане?
      */
@@ -159,6 +165,12 @@ class eshop_Carts extends core_Master
      * @see drdata_plg_Canonize
      */
     public $canonizeFields = 'invoiceUicNo=uic';
+
+
+    /**
+     * Систем ид на екшъна за последни продажби?
+     */
+    const LAST_SALES_SYSTEM_ID = -2;
 
 
     /**
@@ -293,13 +305,14 @@ class eshop_Carts extends core_Master
             $warning = '';
             if (!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)) {
                 $msg = $warning;
-                $success = false;
                 $skip = true;
             }
         }
         
         // Ако има избран склад, проверка дали к-то е допустимо
-        $msg = '|Проблем при добавянето на артикула|*!';
+        if(!empty($msg)){
+            $msg = '|Проблем при добавянето на артикула|*!';
+        }
         
         $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack, $eshopProductId);
         if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
@@ -314,10 +327,16 @@ class eshop_Carts extends core_Master
             $success = false;
             $skip = true;
         }
-        
+
+        $now = dt::now();
+        $startSale = cat_Products::getParams($productId, 'startSales');
+        if((!empty($startSale) && $now < $startSale) || eshop_ProductDetails::hasSaleEnded($productId)){
+            $msg = '|Артикулът не може да бъде добавен в количка|*';
+            $skip = true;
+        }
+
         if (!eshop_ProductDetails::getPublicDisplayPrice($productId, $packagingId)) {
             $msg = '|Артикулът няма цена|*';
-            $success = false;
             $skip = true;
         }
         
@@ -842,6 +861,7 @@ class eshop_Carts extends core_Master
         if (isset($rec->saleFolderId)) {
             $Cover = doc_Folders::getCover($rec->saleFolderId);
             $folderId = $rec->saleFolderId;
+            $routerExplanation = 'Рутиране по ръчно избрана папка';
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : (isset($rec->deliveryCountry) ? $rec->deliveryCountry : $rec->country);
             if (!empty($rec->invoicePCode) || !empty($rec->invoicePlace) || !empty($rec->invoiceAddress)) {
@@ -1888,6 +1908,18 @@ class eshop_Carts extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'showlastorder'){
+            if(empty($userId)){
+                $requiredRoles = 'no_one';
+            } else {
+                // Потребителят трябва да има любими артикули
+                $products = static::getLastOrderedProducts($userId);
+                if(!countR($products)){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
@@ -2027,9 +2059,9 @@ class eshop_Carts extends core_Master
         
         $cu = core_Users::getCurrent('id', false);
         if (isset($cu) && $form->rec->makeInvoice != 'none') {
-            $profileRec = crm_Profiles::getProfile($cu);
             if (isset($form->rec->saleFolderId)) {
-                $form->rec->makeInvoice = ($form->rec->saleFolderId == $profileRec->folderId) ? 'person' : 'company';
+                $Cover = doc_Folders::getCover($form->rec->saleFolderId);
+                $form->rec->makeInvoice = ($Cover->isInstanceOf('crm_Persons')) ? 'person' : 'company';
             }
         }
         
@@ -2815,5 +2847,96 @@ class eshop_Carts extends core_Master
         if($rec->makeInvoice != 'company'){
             unset($res['uicNo']);
         }
+    }
+
+
+    /**
+     * Връща каноничното URL на статията за външния изглед
+     */
+    public static function getLastOrderedUrl()
+    {
+        $settings = cms_Domains::getSettings();
+        $vId = str::mbUcfirst(str::removeWhiteSpace($settings->favouriteProductBtnCaption, '-'));
+        $url = array('A', 'LO', $vId);
+
+        return $url;
+    }
+
+
+    /**
+     * Рендира бутона за последно продавани артикул
+     *
+     * @return core_ET $tpl
+     */
+    public static function renderLastOrderedProductsBtnInNavigation()
+    {
+        $cu = core_Users::getCurrent();
+        if(isset($cu)){
+            $products = static::getLastOrderedProducts($cu);
+
+            if(countR($products)){
+                $lastOrderUrl = eshop_Carts::getLastOrderedUrl();
+                $cId = Request::get('id') == static::LAST_SALES_SYSTEM_ID;
+                $selClass = $cId ? 'sel_page' : '';
+                $settings = cms_Domains::getSettings();
+                $caption = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
+                if($cMenuId = Request::get('cMenuId', 'int')){
+                    $lastOrderUrl['cMenuId'] = $cMenuId;
+                }
+
+                $tpl = new core_ET("<div class='{$selClass} lastOrderedLink navWithIcon nav_item level-1'>" . ht::createLink($caption, $lastOrderUrl, null, 'ef_icon=img/16/shopping.png')  . '</div>');
+
+                return $tpl;
+            }
+        }
+
+        return new core_ET(" ");
+    }
+
+
+    /**
+     * Връща последно поръчваните артикули
+     *
+     * @param int|null $userId    - ид на потребител, null ако е анонимен
+     * @param int|null $domainId  - ид на домейн, null ако е текущия
+     * @param string|null $brid   - brid, null, ако е текущия
+     * @return array $result
+     */
+    public static function getLastOrderedProducts($userId, $domainId = null, $brid = null)
+    {
+        $domainId = isset($domainId) ? $domainId : cms_Domains::getPublicDomain()->id;
+        $brid = !empty($brid) ? $brid : log_Browsers::getBrid();
+
+        $query = eshop_CartDetails::getQuery();
+        $query->EXT('state', 'eshop_Carts', 'externalName=state,externalKey=cartId');
+        $query->EXT('domainId', 'eshop_Carts', 'externalName=domainId,externalKey=cartId');
+        $query->EXT('brid', 'eshop_Carts', 'externalName=brid,externalKey=cartId');
+        $query->EXT('userId', 'eshop_Carts', 'externalName=userId,externalKey=cartId');
+        $query->EXT('activatedOn', 'eshop_Carts', 'externalName=activatedOn,externalKey=cartId');
+
+        $query->where("#state = 'active' AND #domainId = {$domainId}");
+        if(isset($userId)){
+            $query->where("#userId = {$userId}");
+        } else {
+            $query->where("#userId IS NULL AND #brid = '{$brid}'");
+        }
+
+        $result = array();
+        while($rec = $query->fetch()){
+            $result[$rec->id] = (object)array('eshopProductId' => $rec->eshopProductId,'productId' => $rec->productId,'quantity' => $rec->quantity, 'amount' => $rec->amount, 'date' => dt::verbal2mysql($rec->activatedOn, false));
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * Екшън за единичен изглед на групата във витрината
+     */
+    public function act_ShowLastOrders()
+    {
+        self::requireRightFor('showlastorder');
+
+        return Request::forward(array('Ctr' => 'eshop_Groups', 'Act' => 'Show', 'id' => static::LAST_SALES_SYSTEM_ID));
     }
 }

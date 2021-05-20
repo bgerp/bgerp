@@ -115,7 +115,7 @@ class purchase_Setup extends core_ProtoSetup
      * Връзки от менюто, сочещи към модула
      */
     public $menuItems = array(
-        array(3.1, 'Логистика', 'Доставки', 'purchase_Purchases', 'default', 'purchase, ceo, acc'),
+        array(3.1, 'Логистика', 'Доставки', 'purchase_Purchases', 'default', 'purchase, ceo, acc, purchaseAll'),
     );
     
     
@@ -131,8 +131,8 @@ class purchase_Setup extends core_ProtoSetup
         'PURCHASE_ADD_BY_PRODUCT_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в покупка от->Артикул'),
         'PURCHASE_ADD_BY_LIST_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в покупка от->Списък'),
         'PURCHASE_NEW_PURCHASE_AUTO_ACTION_BTN' => array(
-            'enum(none=Няма,form=Форма за покупка,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни покупки)',
-            'mandatory,caption=Действие на бързите бутони в папките->Покупка,customizeBy=ceo|sales|purchase',
+            'enum(none=Договор в "Чернова",form=Създаване на договор,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни покупки)',
+            'mandatory,caption=Действие на бързия бутон "Покупка" в папките->Избор,customizeBy=ceo|sales|purchase',
         ),
     );
     

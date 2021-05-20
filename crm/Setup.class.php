@@ -151,8 +151,6 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::updateUics',
-        'migrate::updateGroupsCountry2106',
     );
     
     
@@ -229,104 +227,5 @@ class crm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
 
         return $html;
-    }
-
-
-    /**
-     * Обновява националните номера
-     */
-    public function updateUics()
-    {
-        $Canonized = cls::get('drdata_CanonizedStrings');
-        $Canonized->setupMvc();
-
-        // Всички фирми с национални номера
-        $Companies = cls::get('crm_Companies');
-        $query = $Companies->getQuery();
-        $query->where("#uicId IS NOT NULL AND #uicId != ''");
-        $query->show('id,uicId');
-        $count =  $query->count();
-        core_App::setTimeLimit($count * 0.6, false,300);
-
-        // Нормализиране на националния номер според държавата на контрагента
-        $save = $update = array();
-        while($rec = $query->fetch()){
-
-            // Канонизиране на номера
-            $canonized = drdata_CanonizedStrings::canonize($rec->uicId, 'uic', false);
-
-            // Подмяна на нац. номер с канонизирания
-            if(!empty($canonized)){
-                if(!array_key_exists($rec->uicId, $save)){
-                    $save[$rec->uicId] = (object)array('string' => $rec->uicId, 'canonized' => $canonized, 'type' => 'uic');
-                }
-
-                $rec->uicId = $canonized;
-                $update[$rec->id] = $rec;
-            }
-        }
-
-        // Канонизация на номерата
-        if(countR($save)) {
-            $eQuery = $Canonized->getQuery();
-            $all = $eQuery->fetchAll();
-
-            $res = arr::syncArrays($save, $all, 'string,type', 'string,canonized');
-            if(countR($res['insert'])){
-                $Canonized->saveArray($res['insert']);
-            }
-
-            if(countR($res['update'])){
-                $Canonized->saveArray($res['update'], 'id,string,canonized');
-            }
-        }
-
-        // Ъпдейт на фирмите
-        if(countR($update)) {
-            $Companies->saveArray($update, 'id,uicId');
-        }
-    }
-
-
-    /**
-     * Миграция за добавяне на групи за държави
-     */
-    public function updateGroupsCountry2106()
-    {
-        $gIdArr = crm_ContragentGroupsPlg::getGroupsId();
-
-        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
-            $clsInst = cls::get($clsName);
-            $query = $clsInst->getQuery();
-
-            $query->show('groupListInput, groupList, country');
-            while ($rec = $query->fetch()) {
-                if (!$rec->country) {
-
-                    continue;
-                }
-
-                $gForAdd = drdata_CountryGroups::getGroupsArr($rec->country);
-
-                foreach ($gForAdd as $id => $gRec) {
-                    $gId = $gIdArr[$id];
-
-                    $rec->groupListInput = type_Keylist::addKey($rec->groupListInput, $gId);
-                }
-
-                // Вземаме всички въведени от потребителя стойност
-                $inputArr = type_Keylist::toArray($rec->groupListInput);
-
-                // Намираме всички свъразани
-                $resArr = $clsInst->expandInput($inputArr);
-
-                $rec->groupList = type_Keylist::fromArray($resArr);
-
-                $clsInst->save_($rec, 'groupListInput, groupList');
-            }
-        }
-
-        crm_Groups::updateGroupsCnt('crm_Companies', 'companiesCnt');
-        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
     }
 }

@@ -7,9 +7,14 @@
 			<div style='padding-bottom:5px'><b style='font-size:1.4em'>[#ONLY_PRODUCT_NAME#]</b></div>
 			<!--ET_END ONLY_PRODUCT_NAME-->
 			<div>
-			<!--ET_BEGIN code--><span><b>|Код|*: [#code#]</b></span><!--ET_END code-->
+			<!--ET_BEGIN code--><span>|код|*: <b>[#code#]</b></span><!--ET_END code-->
 			</div>
 		<div class="inqRow">[#coInquiry#] <!--ET_BEGIN coMoq--><span title='|Минимално Количество за Поръчка|*'>|МКП|*: <b>[#coMoq#]</b></span><!--ET_END coMoq--></div>
+		<!--ET_BEGIN FAVOURITES_BTN-->
+		<span id="addToFavouritesBtn">
+			[#FAVOURITES_BTN#]
+		</span>
+		<!--ET_END FAVOURITES_BTN-->
 	</div>
 	<!--ET_BEGIN STATE_EXTERNAL-->
 	<div style='padding-bottom:5px'>[#STATE_EXTERNAL#]</div>

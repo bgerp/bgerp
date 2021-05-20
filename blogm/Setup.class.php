@@ -102,8 +102,6 @@ class blogm_Setup extends core_ProtoSetup
         'blogm_Categories',
         'blogm_Comments',
         'blogm_Links',
-        'migrate::updateCategories',
-        'migrate::updateCategories2',
     );
     
     
@@ -158,45 +156,5 @@ class blogm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
         
         return $html;
-    }
-
-
-    /**
-     * Мигриране на категориите
-     */
-    public function updateCategories()
-    {
-        if(!blogm_Categories::count()) return;
-        $Categories = cls::get('blogm_Categories');
-        $Categories->setupMvc();
-        $sourceId = blogm_Articles::getClassId();
-
-        $cQuery = $Categories->getQuery();
-        $cQuery->where("#menuId IS NULL");
-        while ($rec = $cQuery->fetch()){
-            $contQuery = cms_Content::getQuery();
-            $contQuery->where("#domainId = {$rec->domainId} AND #source = {$sourceId}");
-            $contQuery->orderBy('state,id', 'asc');
-
-            $foundRec = $contQuery->fetch();
-            $rec->menuId = $foundRec->id;
-            $Categories->save($rec, 'menuId');
-        }
-    }
-
-
-    /**
-     * Мигриране на категориите
-     */
-    public function updateCategories2()
-    {
-        if(!blogm_Categories::count()) return;
-        $Categories = cls::get('blogm_Categories');
-        $Categories->setupMvc();
-
-        $cQuery = $Categories->getQuery();
-        while ($rec = $cQuery->fetch()){
-            $Categories->save($rec);
-        }
     }
 }

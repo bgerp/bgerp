@@ -62,9 +62,20 @@ function render_changeInputWidth()
 
 
 function eshopActions() {
-
 	changeInputWidth();
-	
+
+	// Добавяне/махане на артикул от любими
+	$(document.body).on("click", '.favouritesBtn', function(event){
+
+		var url = $(this).attr("data-url");
+		if(!url) return;
+
+		resObj = new Object();
+		resObj['url'] = url;
+
+		getEfae().process(resObj);
+	});
+
 	// Изтриване на ред от кошницата
 	$(document.body).on("click", '.remove-from-cart', function(event){
 		

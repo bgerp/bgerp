@@ -76,7 +76,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=За влагане,quantityFromBom=От рецептата,storeId';
+    public $listFields = 'tools=№,productId=Материал, packagingId, packQuantity=Количество->Въведено,quantityFromBom=Количество->Рецепта,quantityExpected=Количество->Очаквано,storeId';
     
     
     /**
@@ -84,27 +84,29 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'quantityFromBom';
+    public $hideListFieldsIfEmpty = 'quantityFromBom,quantityExpected';
     
     
     /**
      * Активен таб
      */
     public $currentTab = 'Протоколи->Производство';
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('noteId', 'key(mvc=planning_DirectProductionNote)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък)', 'caption=Действие,silent,input=hidden');
+        $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,allocated=Разходи)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
         $this->setField('quantity', 'caption=Количества');
         $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter');
+        $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,smartCenter');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
+        $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,lists=600)', 'input=none,after=expenses,caption=Разходен обект');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('noteId,type');
@@ -121,9 +123,32 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : 'материал';
-        $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
-        
+        $data->singleTitle = ($rec->type == 'pop') ? 'отпадък' : (($rec->type == 'input') ? 'материал' : 'отнесен разход');
+        $data->defaultMeta = ($rec->type == 'pop') ? 'canConvert,canStore' : (($rec->type == 'input') ? 'canConvert' : null);
+
+        $productOptions = $expenseItemIdOptions = array();
+        if($rec->type == 'allocated'){
+            $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
+            $allocatedArr = planning_Jobs::getAllocatedServices($jobRec);
+            if(!countR($allocatedArr)){
+                $form->setError('productId', 'Няма все още отнесени разходи към производствени операции по заданието');
+                $form->setReadOnly('productId');
+            } else {
+                foreach ($allocatedArr as $aObject){
+                    $productOptions[$aObject->productId] = cat_Products::getTitleById($aObject->productId, false);
+                    $expenseItemIdOptions[$aObject->expenseItemId] = acc_Items::getVerbal($aObject->expenseItemId, 'title');
+                }
+
+                if(countR($productOptions) == 1){
+                    $form->setDefault('productId', key($productOptions));
+                } else {
+                    $productOptions = array('' => '') + $productOptions;
+                }
+
+                $form->setFieldType('productId', 'int');
+                $form->setOptions('productId', $productOptions);
+            }
+        }
         if (isset($rec->productId)) {
             $prodRec = cat_Products::fetch($rec->productId, 'canStore');
             if ($prodRec->canStore == 'yes') {
@@ -135,6 +160,13 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $options = array('' => '', '61102' => 'Разходи за услуги (всички)');
                 $form->setOptions('fromAccId', $options);
                 $form->setField('fromAccId', 'input');
+                if($rec->type == 'allocated'){
+                    $form->setField('expenseItemId', 'input');
+                    $form->setOptions('expenseItemId', $expenseItemIdOptions);
+                    $form->setDefault('expenseItemId', key($expenseItemIdOptions));
+                    $form->setDefault('fromAccId', '61102');
+                    $form->setReadOnly('fromAccId');
+                }
             }
         }
         
@@ -193,16 +225,22 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             
             return;
         }
-        
+
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
-            $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : 'row-removed';
+            $row->ROW_ATTR['class'] = ($rec->type == 'pop') ? 'row-removed' : 'row-added';
+
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
             
             if ($rec->type == 'pop') {
                 $row->packQuantity .= " {$row->packagingId}";
+            }
+
+            if(!empty($rec->expenseItemId)){
+                $itemLink = acc_Items::getVerbal($rec->expenseItemId, 'titleLink');
+                $row->productId .= "<br><small><span class='quiet'>" . tr('Раз. обект') . "</span>: {$itemLink}</small>";
             }
         }
     }
@@ -227,7 +265,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 }
                 
                 // Разделяме записите според това дали са вложими или не
-                if ($rec->type == 'input') {
+                if ($rec->type == 'input' || $rec->type == 'allocated') {
                     $num = $Int->toVerbal($countInputed);
                     $data->inputArr[$id] = $row;
                     $countInputed++;
@@ -274,6 +312,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $rec->quantityFromBom /= $rec->quantityInPack;
                 $row->quantityFromBom = $this->getFieldType('quantityFromBom')->fromVerbal($rec->quantityFromBom);
             }
+
+            if(!empty($rec->quantityExpected)){
+                $rec->quantityExpected /= $rec->quantityInPack;
+                $row->quantityExpected = $this->getFieldType('quantityExpected')->fromVerbal($rec->quantityExpected);
+            }
         }
     }
 
@@ -288,7 +331,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
     public function renderDetail_($data)
     {
         $tpl = new ET('');
-        
+
+        // Ако протокола е само за заготовка и няма детайли няма да се рендират
+        if(!countR($data->recs) && !planning_DirectProductionNote::isForJobProductId($data->masterData->rec)) return $tpl;
+
         if (Mode::is('printing')) {
             unset($data->listFields['tools']);
         }
@@ -309,6 +355,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         plg_AlignDecimals2::alignDecimals($this, $iData->recs, $iData->rows);
         
         $iData->listFields = core_TableView::filterEmptyColumns($iData->rows, $iData->listFields, $this->hideListFieldsIfEmpty);
+        if(empty($iData->listFields['quantityFromBom']) && empty($iData->listFields['quantityExpected'])){
+            $iData->listFields['packQuantity'] = 'Количество';
+        }
+
         $this->modifyRows($iData);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
         $tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
@@ -319,7 +369,11 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
         }
 
-        // Рендираме таблицата с отпадъците
+        if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'allocated'))) {
+            $tpl->append(ht::createBtn('Отнесени разходи', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'allocated', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Влагане на отнесен разход')), 'planning_DirectProductNoteDetails');
+        }
+
+        // Рендиране на таблицата с отпадъците
         if (countR($data->popArr) || $data->masterData->rec->state == 'draft') {
             $data->listFields['productId'] = "Отпадъци|* <small style='font-weight:normal'>( |остават в незавършеното производство|* )</small>";
             unset($data->listFields['storeId']);
@@ -360,6 +414,30 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             unset($res->operation);
         } else {
             $res->operation[key($res->operation)] = $rec->storeId;
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if ($action == 'add' && isset($rec)) {
+
+            if(!planning_DirectProductionNote::isForJobProductId($rec->noteId)){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'add' && isset($rec->type)){
+            if($rec->type == 'allocated'){
+                $jobRec = planning_DirectProductionNote::getJobRec($rec->noteId);
+                $jobTaskCostObjectArr = planning_Jobs::getTaskCostObjectItems($jobRec);
+                if(!countR($jobTaskCostObjectArr)){
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
 }

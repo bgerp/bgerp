@@ -638,9 +638,17 @@ class colab_FolderToPartners extends core_Manager
                 }
             }
         }
-        
+
+        $userName = '';
+        if($rec->className == 'crm_Persons'){
+            $personUserId = crm_Profiles::getUserByPerson($rec->companyId);
+            if(empty($personUserId)){
+                $userName = crm_Persons::fetchField($rec->companyId, 'name');
+            }
+        }
+
         $PML->Encoding = 'quoted-printable';
-        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => '', 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), 604800);
+        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), 604800);
         $rec->body = str_replace($rec->placeHolder, "[link=${url}]link[/link]", $rec->body);
         
         Mode::push('text', 'plain');
@@ -708,7 +716,7 @@ class colab_FolderToPartners extends core_Manager
         expect($objectId = Request::get('companyId', 'int'));
         expect($contragentRec = $Class::fetch($objectId));
         $onlyPartner = Request::get('onlyPartner');
-        
+
         $Users = cls::get('core_Users');
         core_Lg::push(drdata_Countries::getLang($contragentRec->country));
         $rand = Request::get('rand');

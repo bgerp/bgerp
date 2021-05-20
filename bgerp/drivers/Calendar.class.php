@@ -444,7 +444,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $query->where("#state != 'rejected'");
         $query->where("#state != 'draft'");
-        
+
         $query->likeKeylist('assign', $pArr['_userId']);
         
         $query->where('#timeStart IS NOT NULL');

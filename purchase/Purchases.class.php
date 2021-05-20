@@ -64,7 +64,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,purchase,acc';
+    public $canList = 'ceo,purchase,acc,purchaseAll';
     
     
     /**

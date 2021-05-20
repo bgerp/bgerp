@@ -47,8 +47,6 @@ class colab_Setup extends core_ProtoSetup
     public $managers = array(
         'colab_FolderToPartners',
         'colab_DocumentLog',
-        'migrate::addAgentToPartners',
-        'migrate::creatableDocuments',
     );
     
     
@@ -202,60 +200,7 @@ class colab_Setup extends core_ProtoSetup
         if (strlen($config->COLAB_CREATABLE_DOCUMENTS_LIST) === 0) {
             $res = self::forceCreatableDocuments();
         }
-        
-        $res .= $this->callMigrate('addPowerPartnerToPartners5', 'colab');
-        
+
         return $res;
-    }
-    
-    
-    /**
-     * Миграция за добавяне на допълнителна роля на партньори
-     */
-    public function addAgentToPartners()
-    {
-        if(core_Users::count()){
-            $partners = core_Users::getByRole('partner');
-            if(is_array($partners)){
-                foreach ($partners as $userId){
-                    if(!haveRole('agent,distributor', $userId)){
-                        core_Users::addRole($userId, 'agent');
-                    }
-                }
-            }
-        }
-    }
-    
-    
-    /**
-     * Миграция за добавяне на допълнителна роля на партньори
-     */
-    public function addPowerPartnerToPartners5()
-    {
-        if(core_Users::count()){
-            $partners = core_Users::getByRole('partner');
-            if(is_array($partners)){
-                core_Roles::addOnce('powerPartner', 'partner', 'rang');
-                
-                $powerPartnerId = core_Roles::fetchByName('powerPartner');
-                $partnerId = core_Roles::fetchByName('partner');
-                foreach ($partners as $userId){
-                    
-                    $userRec = core_Users::fetch($userId);
-                    $userRec->rolesInput = keylist::addKey($userRec->rolesInput, $powerPartnerId);
-                    $userRec->rolesInput = keylist::removeKey($userRec->rolesInput, $partnerId);
-                    core_Users::save($userRec, 'rolesInput,roles');
-                }
-            }
-        }
-    }
-    
-    
-    /**
-     * Миграция на кои документи, могат да се създават
-     */
-    public function creatableDocuments()
-    {
-        self::forceCreatableDocuments();
     }
 }

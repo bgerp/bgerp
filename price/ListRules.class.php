@@ -892,7 +892,7 @@ class price_ListRules extends core_Detail
                     $toolbar->addBtn('Стойност', $url, null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
                 }
 
-                if ($this->haveRightFor('import')) {
+                if ($this->haveRightFor('import', (object)array($this->masterKey => $data->masterId))) {
                     $url = array($this, 'import', 'listId' => $masterRec->id, 'ret_url' => true);
                     $toolbar->addBtn('Импорт', $url, null, 'row=2,ef_icon=img/16/import.png,title=Импортиране на ' . mb_strtolower($mvc->title));
                 }

@@ -790,7 +790,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $types += array('fromSource' => "Артикулите от #" . doc_Containers::getDocument($rec->sourceContainerId)->getHandle());
             }
 
-            $data->form->FNC('importProducts', "enum(" . arr::fromArray($types) . ")", 'caption=Попълване на артикули след създаване->Избор, input,after=dpReason');
+            $data->form->FNC('importProducts', "enum(" . arr::fromArray($types) . ")", 'caption=Допълнително->Артикули, input,after=additionalInfo');
             if(isset($rec->sourceContainerId)){
                 $form->setDefault('importProducts', 'fromSource');
             }

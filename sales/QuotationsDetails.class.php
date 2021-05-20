@@ -800,10 +800,10 @@ class sales_QuotationsDetails extends doc_Detail
                             $hasQuantityColOpt = true;
                         }
                     }
-                    
+
                     $row->index = $id++;
                     $rowTpl->placeObject($row);
-                    $rowTpl->removeBlocks();
+                    $rowTpl->removeBlocksAndPlaces();
                     $rowTpl->append2master();
                 }
             }

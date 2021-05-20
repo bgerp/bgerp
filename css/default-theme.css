@@ -68,7 +68,7 @@ form[method="post"] input[type="submit"] {
   background-color: #9999ff;
   border: solid 1px #8888ee; }
 
-.vertical .formGroup {
+.vertical .formGroup, .vertical .formMiddleCaption  {
   color: white;
   background-color: #9999ff; }
 
@@ -101,7 +101,7 @@ div.tab-control.alphabet div.tab-row .tab {
   div.tab-control.alphabet div.tab-row .tab:hover a {
     color: red !important; }
   div.tab-control.alphabet div.tab-row .tab.selected {
-    background: #ffffcc;
+    background: #ffffcc !important;
     border: 1px solid #aaaaaa; }
   div.tab-control.alphabet div.tab-row .tab:hover {
     background-color: #ffffcc; }

@@ -321,13 +321,13 @@ class sales_Setup extends core_ProtoSetup
         ),
         
         'SALES_NEW_SALE_AUTO_ACTION_BTN' => array(
-            'enum(none=Няма,form=Форма за продажба,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни продажби)',
-            'mandatory,caption=Действие на бързите бутони в папките->Продажба,customizeBy=ceo|sales|purchase',
+            'enum(none=Договор в "Чернова",form=Създаване на договор,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни продажби)',
+            'mandatory,caption=Действие на бързите бутони "Продажба" и "Оферта" в папките->Продажба,customizeBy=ceo|sales|purchase',
         ),
         
         'SALES_NEW_QUOTATION_AUTO_ACTION_BTN' => array(
-            'enum(none=Няма,form=Форма за оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
-            'mandatory,caption=Действие на бързите бутони в папките->Оферта,customizeBy=ceo|sales',
+            'enum(none=Оферта в "Чернова",form=Създаване на оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
+            'mandatory,caption=Действие на бързите бутони "Продажба" и "Оферта" в папките->Оферта,customizeBy=ceo|sales',
         ),
         'SALES_STATISTIC_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
     
@@ -369,7 +369,7 @@ class sales_Setup extends core_ProtoSetup
             'Продажби',
             'sales_Sales',
             'default',
-            'sales, ceo, acc'
+            'sales, ceo, acc, saleAll'
         )
     );
     

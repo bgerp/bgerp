@@ -4176,6 +4176,11 @@ fieldset.sharing-history {
 	&.waitingDelivery {
 		background-color: rgba(41, 86, 222, 0.8) !important;
 	}
+
+	&.saleSoon {
+		background-color: rgba(241, 223, 11, 0.9) !important;
+		color:black !important;
+	}
 }
 .eshop-product-list-param {
 	font-size: 0.85em;
@@ -5691,7 +5696,10 @@ div.location.public {
 	min-width: 250px;
 }
 .productCell {
-	max-width: none !important;
+	max-width: 600px !important;
+	.productPreviewHolder img{
+		max-width: 200px;
+	}
 }
 
 .wide .inline-form {
@@ -6235,6 +6243,26 @@ div.location.public {
 		padding-right: 10px;
 	}
 }
+#cmsNavigation .navWithIcon {
+	&.favouriteNavigationLink .linkWithIcon{
+		color: #A00505;
+	}
+	.linkWithIcon {
+		background-position: 5px 3px !important;
+		margin-left: 0 !important;
+		margin-bottom: 5px !important;
+	}
+	&.favouriteNavigationLink.sel_page .linkWithIcon, &.favouriteNavigationLink:hover .linkWithIcon {
+		background-color: #fdc3c3 !important;
+		border-color: #fb9292 !important;
+		color: #A00505 !important;
+	}
+}
+
+.favouritesBtn.linkWithIcon:hover {
+	cursor: pointer;
+}
+
 .narrow .externalPage #maincontent.hasLogoutBlock {
 	padding-top: 29px !important;
 }
@@ -6283,7 +6311,6 @@ div.location.public {
 	font-size:0.8em;
 	background-color:#e6e6e6;
 	border: solid 1px #d8d8d8;
-	text-shadow: 1px 1px 1px #ccc;
 	display: inline-block;
 	margin-bottom:5px;
 	&:last-child {
@@ -7382,6 +7409,10 @@ body.narrow {
 	page-break-after: auto;
 	page-break-inside: avoid;
 	margin-bottom: 10mm;
+}
+
+.labelBreak:last-child {
+	margin-bottom: 0mm;
 }
 
 /*стилове за принтиране*/

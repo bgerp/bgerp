@@ -1914,7 +1914,7 @@ input:focus[type=button] {
   background-image: none;
   padding: 9px 7px 7px; }
 
-.vertical .formGroup {
+.vertical .formGroup, .vertical .formMiddleCaption {
   padding: 5px;
   margin: 10px 0 5px;
   border-radius: 3px; }
