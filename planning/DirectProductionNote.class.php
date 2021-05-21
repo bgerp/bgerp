@@ -681,10 +681,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             if(countR($details2)){
                 foreach ($details2 as $d2){
                     $d2->_realData = true;
+
                     if(array_key_exists("{$d2->productId}|{$d2->type}", $detailsFromBom)){
-                        unset($detailsFromBom["{$d2->productId}|{$d2->type}"]);
                         $d2->quantityFromBom = $detailsFromBom["{$d2->productId}|{$d2->type}"]->quantityFromBom;
                         $d2->quantity = $d2->quantityFromBom;
+                        unset($detailsFromBom["{$d2->productId}|{$d2->type}"]);
+
                     } else {
                         $d2->quantity = 0;
                     }
@@ -720,6 +722,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     }
                 }
             }
+
         } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = array();
         } else {

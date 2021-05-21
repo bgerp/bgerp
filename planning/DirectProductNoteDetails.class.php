@@ -162,8 +162,9 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
                 $form->setField('fromAccId', 'input');
                 if($rec->type == 'allocated'){
                     $form->setField('expenseItemId', 'input');
-                    $form->setOptions('expenseItemId', $expenseItemIdOptions);
                     $form->setDefault('expenseItemId', key($expenseItemIdOptions));
+                    $form->setOptions('expenseItemId', array('' => '') + $expenseItemIdOptions);
+
                     $form->setDefault('fromAccId', '61102');
                     $form->setReadOnly('fromAccId');
                 }
@@ -365,8 +366,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         
         // Добавяне на бутон за нов материал
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'input'))) {
-            $tpl->append(ht::createBtn('Артикул', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
-            $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Влагане', array($this, 'add', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/wooden-box.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
+            $tpl->append(ht::createBtn('Импортиране', array($this, 'import', 'noteId' => $data->masterId, 'type' => 'input', 'ret_url' => true), null, null, array('style' => 'margin-top:5px;margin-bottom:15px;', 'ef_icon' => 'img/16/import.png', 'title' => 'Добавяне на нов материал')), 'planning_DirectProductNoteDetails');
         }
 
         if ($this->haveRightFor('add', (object) array('noteId' => $data->masterId, 'type' => 'allocated'))) {
