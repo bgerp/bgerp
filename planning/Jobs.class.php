@@ -1444,6 +1444,26 @@ class planning_Jobs extends core_Master
 
 
     /**
+     * Връща свързаните нишки към заданието (неговата и тази на неговите операции)
+     *
+     * @param mixed $id
+     * @return array $threadsArr
+     */
+    public static function getJobLinkedThreads($id)
+    {
+        $rec = static::fetchRec($id);
+
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$rec->containerId}");
+        $tQuery->show("threadId");
+
+        $threadsArr = array($rec->threadId => $rec->threadId) + arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
+
+        return $threadsArr;
+    }
+
+
+    /**
      * Връща планираните наличности
      *
      * @param stdClass $rec
@@ -1473,10 +1493,7 @@ class planning_Jobs extends core_Master
         $quantityToProduce = round($rec->quantity - $rec->quantityProduced, 4);
 
         // В кои нишки има документи отнасящи се за заданието
-        $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#originId = {$rec->containerId}");
-        $tQuery->show("threadId");
-        $threadsArr = array($rec->threadId => $rec->threadId) + arr::extractValuesFromArray($tQuery->fetchAll(), 'threadId');
+        $threadsArr = static::getJobLinkedThreads($rec);
 
         // Ако има протокол за производство на заявка с по-голяма ефективна дата от заданието, ще се използва тя
         $dnQuery = planning_DirectProductionNote::getQuery();

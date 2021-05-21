@@ -369,7 +369,7 @@ class sales_Setup extends core_ProtoSetup
             'Продажби',
             'sales_Sales',
             'default',
-            'sales, ceo, acc'
+            'sales, ceo, acc, saleAll'
         )
     );
     

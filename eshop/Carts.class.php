@@ -305,13 +305,14 @@ class eshop_Carts extends core_Master
             $warning = '';
             if (!deals_Helper::checkQuantity($packagingId, $packQuantity, $warning)) {
                 $msg = $warning;
-                $success = false;
                 $skip = true;
             }
         }
         
         // Ако има избран склад, проверка дали к-то е допустимо
-        $msg = '|Проблем при добавянето на артикула|*!';
+        if(!empty($msg)){
+            $msg = '|Проблем при добавянето на артикула|*!';
+        }
         
         $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack, $eshopProductId);
         if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
@@ -326,10 +327,16 @@ class eshop_Carts extends core_Master
             $success = false;
             $skip = true;
         }
-        
+
+        $now = dt::now();
+        $startSale = cat_Products::getParams($productId, 'startSales');
+        if((!empty($startSale) && $now < $startSale) || eshop_ProductDetails::hasSaleEnded($productId)){
+            $msg = '|Артикулът не може да бъде добавен в количка|*';
+            $skip = true;
+        }
+
         if (!eshop_ProductDetails::getPublicDisplayPrice($productId, $packagingId)) {
             $msg = '|Артикулът няма цена|*';
-            $success = false;
             $skip = true;
         }
         
@@ -854,6 +861,7 @@ class eshop_Carts extends core_Master
         if (isset($rec->saleFolderId)) {
             $Cover = doc_Folders::getCover($rec->saleFolderId);
             $folderId = $rec->saleFolderId;
+            $routerExplanation = 'Рутиране по ръчно избрана папка';
         } else {
             $country = isset($rec->invoiceCountry) ? $rec->invoiceCountry : (isset($rec->deliveryCountry) ? $rec->deliveryCountry : $rec->country);
             if (!empty($rec->invoicePCode) || !empty($rec->invoicePlace) || !empty($rec->invoiceAddress)) {
@@ -2051,9 +2059,9 @@ class eshop_Carts extends core_Master
         
         $cu = core_Users::getCurrent('id', false);
         if (isset($cu) && $form->rec->makeInvoice != 'none') {
-            $profileRec = crm_Profiles::getProfile($cu);
             if (isset($form->rec->saleFolderId)) {
-                $form->rec->makeInvoice = ($form->rec->saleFolderId == $profileRec->folderId) ? 'person' : 'company';
+                $Cover = doc_Folders::getCover($form->rec->saleFolderId);
+                $form->rec->makeInvoice = ($Cover->isInstanceOf('crm_Persons')) ? 'person' : 'company';
             }
         }
         

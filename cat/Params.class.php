@@ -122,7 +122,7 @@ class cat_Params extends bgerp_ProtoParam
             1 => 'driverClass',
             2 => 'suffix',
             3 => 'sysId',
-            4 => 'options',
+            4 => 'csv_options',
             5 => 'default',
             6 => 'showInPublicDocuments',
             7 => 'state',
