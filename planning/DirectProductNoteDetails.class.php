@@ -102,8 +102,8 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,allocated=Разходи)', 'caption=Действие,silent,input=hidden');
         parent::setDetailFields($this);
         $this->setField('quantity', 'caption=Количества');
-        $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter');
-        $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,smartCenter');
+        $this->FLD('quantityFromBom', 'double', 'caption=От рецепта,input=none,smartCenter,tdClass=noteBomCol');
+        $this->FLD('quantityExpected', 'double', 'caption=Реално вложено,input=none,smartCenter,tdClass=noteExpectedCol');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         $this->FLD('fromAccId', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'caption=Изписване от,input=none,tdClass=small-field nowrap,placeholder=Незавършено производство');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,lists=600)', 'input=none,after=expenses,caption=Разходен обект');
@@ -360,6 +360,14 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $iData->listFields['packQuantity'] = 'Количество';
         }
 
+        if(isset($iData->listFields['quantityFromBom'])){
+            $iData->listFields['quantityFromBom'] = 'Количество->|*<small>|Рецепта|*</small>';
+        }
+
+        if(isset($iData->listFields['quantityExpected'])){
+            $iData->listFields['quantityExpected'] = 'Количество->|*<small>|Очаквано|*</small>';
+        }
+
         $this->modifyRows($iData);
         $detailsInput = $table->get($iData->rows, $iData->listFields);
         $tpl->append($detailsInput, 'planning_DirectProductNoteDetails');
@@ -389,9 +397,16 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             $pData->listFields = core_TableView::filterEmptyColumns($pData->rows, $pData->listFields, $this->hideListFieldsIfEmpty);
             $this->modifyRows($pData);
 
+            if(isset($pData->listFields['quantityFromBom'])){
+                $pData->listFields['quantityFromBom'] = 'Количество->|*<small>|Рецепта|*</small>';
+            }
+
+            if(empty($pData->listFields['quantityFromBom'])){
+                $pData->listFields['packQuantity'] = 'Количество';
+            }
+
             $popTable = $table->get($pData->rows, $pData->listFields);
             $detailsPop = new core_ET("<span style='margin-top:5px;'>[#1#]</span>", $popTable);
-            
             $tpl->append($detailsPop, 'planning_DirectProductNoteDetails');
         }
         
