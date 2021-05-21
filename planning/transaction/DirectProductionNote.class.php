@@ -55,10 +55,12 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
             if($redirectError = deals_Helper::getContoRedirectError($productArr, null, 'generic', 'са генерични и трябва да бъдат заменени')){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
-            
+
+
             $returnProductArr = array_filter($rec->_details, function($a) { return $a->type == 'pop';});
             if(countR($returnProductArr)){
-                if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canStore', null, 'трябва да са складируеми за да са отпадъци')){
+                $returnProductArr = arr::extractValuesFromArray($returnProductArr, 'productId');
+                if($redirectError = deals_Helper::getContoRedirectError($returnProductArr, 'canStore', null, 'трябва да са складируеми за да са отпадъци')){
                     acc_journal_RejectRedirect::expect(false, $redirectError);
                 }
             }
