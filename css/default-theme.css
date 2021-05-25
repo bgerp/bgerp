@@ -68,7 +68,7 @@ form[method="post"] input[type="submit"] {
   background-color: #9999ff;
   border: solid 1px #8888ee; }
 
-.vertical .formGroup {
+.vertical .formGroup, .vertical .formMiddleCaption  {
   color: white;
   background-color: #9999ff; }
 
