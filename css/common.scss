@@ -3153,7 +3153,10 @@ a.lang {
 } 
 /* край на стилове за елемента 'RichEdit' */
 
-
+.vertical .formMiddleCaption .richtext {
+	padding:1px;
+	color: #fff !important;
+}
 /*richtext*/
 .richtext {
 	color: #333;
