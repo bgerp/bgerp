@@ -157,6 +157,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         parent::setDocumentFields($this);
         $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
         $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно връщане,notNull,default=yes,maxRadio=2,before=note');
+        $this->setField('storeId', 'placeholder=Без (Само услуги),silent,removeAndRefreshForm=quantity');
     }
     
     
@@ -172,7 +173,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     {
         $Detail = cls::get($this->mainDetail);
         $id = $rec->clonedFromId;
-        
+
         if (isset($rec->originId) && empty($rec->id)) {
             $origin = doc_Containers::getDocument($rec->originId);
             if ($origin->isInstanceOf('planning_ConsumptionNotes')) {
@@ -180,10 +181,15 @@ class planning_ReturnNotes extends deals_ManifactureMaster
                 $id = $origin->that;
             }
         }
-        
+
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$id}");
-        
+        $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        if(!isset($rec->storeId)){
+            $dQuery->where("#canStore = 'no'");
+        }
+
+        //bp($rec, $dQuery->fetchAll());
         return $dQuery->fetchAll();
     }
     
@@ -207,7 +213,13 @@ class planning_ReturnNotes extends deals_ManifactureMaster
                 return $data;
             }
         }
-        
+
+        if(isset($rec->id)){
+            if(planning_ReturnNoteDetails::getStorableProductsCount($rec->id)){
+                $form->setField('storeId', 'mandatory');
+            }
+        }
+
         return $data;
     }
     
@@ -242,6 +254,10 @@ class planning_ReturnNotes extends deals_ManifactureMaster
         
         if (isset($rec->departmentId)) {
             $row->departmentId = planning_Centers::getHyperlink($rec->departmentId, true);
+        }
+
+        if(empty($rec->storeId)){
+            $row->storeId = ht::createHint("<i style='color:blue'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
         }
     }
 

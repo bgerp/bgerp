@@ -8,11 +8,11 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Импорт на артикули от последната работна рецепта
+ * @title     Импорт на артикули от последната активна рецепта
  */
 class planning_interface_ImportFromLastBom extends planning_interface_ImportDriver
 {
@@ -130,7 +130,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         if (!empty($bomId)) {
             $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
             if (countR($details)) {
-                
+
                 return $bomId;
             }
         }
@@ -150,18 +150,14 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
      */
     public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
     {
-        if (!($mvc instanceof planning_ConsumptionNoteDetails)) {
-            
-            return false;
-        }
+        if (!($mvc instanceof planning_ConsumptionNoteDetails)) return false;
         
         if (isset($masterId)) {
             $masterRec = $mvc->Master->fetchRec($masterId);
+            if(empty($masterRec->storeId)) return;
+
             $bomId = self::getLastActiveBom($masterRec);
-            if (empty($bomId)) {
-                
-                return false;
-            }
+            if (empty($bomId)) return false;
         }
         
         return true;
