@@ -96,38 +96,21 @@ hvac.air_temp_lower_1.settings,str,,HVAC,system,Donkger/XY-MD02/2,Air temperatur
 hvac.air_temp_lower_1.value,float,/,HVAC,system,0.0,Air temperature sensor lower value
 hvac.air_temp_upper_1.settings,str,,HVAC,system,Dallas/DS18B20/28FF2B70C11604B7,Air temperature sensor upper settings
 hvac.air_temp_upper_1.value,float,/,HVAC,system,0.0,Air temperature sensor upper value
-hvac.convector_1.settings,str,,HVAC,system,silpa/klimafan,Convector settings
-hvac.convector_1.stage_1.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO0,Convector stage 1 output
-hvac.convector_1.stage_2.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO1,Convector stage 2 output
-hvac.convector_1.stage_3.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO2,Convector stage 3 output
+hvac.convector_1.settings,str,,HVAC,system,Silpa/Klimafan/RO0/RO1/RO2,Convector settings
 hvac.delta_time_1,float,0.0/,HVAC,system,5.0,Measuring delta time
 hvac.enabled,bool,true|false,HVAC,system,false,Plugin enabled
 hvac.goal_building_temp,float,-50.0/50.0,HVAC,system,20.0,Goal of the building temperature
 hvac.loop1_1.cnt.tpl,float,0.0/,HVAC,system,1.0,Loop 1 water flow meter ticks per liter scale
 hvac.loop1_1.cnt.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,HVAC,system,off,Loop 1 water flow meter signal input
-hvac.loop1_1.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600/AO3,Loop 1 fan settings
-hvac.loop1_1.fan.min_speed,float,0.0/100.0,HVAC,system,0.0,Loop 1 fan minimum speed [%]
-hvac.loop1_1.fan.max_speed,float,0.0/100.0,HVAC,system,30.0,Loop 1 fan maximum speed [%]
 hvac.loop1_1.temp.settings,str,,HVAC,system,Dallas/DS18B20/28FF2B70C11604B7,Loop 1 temperature sensor settings
 hvac.loop1_1.temp.value,float,/,HVAC,system,0.0,Loop 1 temperature sensor value
 hvac.loop1_1.temp.down_limit,int,0.0/,HVAC,system,15,Loop 1 temperature down limit
 hvac.loop1_1.valve.settings,str,,HVAC,system,Tonhe/a20m15b2c/RO4/off/0/100,Loop 1 valve settings
-hvac.loop1_1.valve.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO4,Loop 1 valve output
-hvac.loop1_1.valve.feedback,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AI1,Loop 1 valve feedback
-hvac.loop1_1.valve.max_pos,float,0.0/100.0,HVAC,system,100.0,Loop 1 valve maximum position
-hvac.loop1_1.valve.min_pos,float,0.0/100.0,HVAC,system,0.0,Loop 1 valve minimum position
 hvac.loop2_1.cnt.tpl,float,0.0/,HVAC,system,1.0,Loop 2 water flow meter ticks per liter scale
 hvac.loop2_1.cnt.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,HVAC,system,off,Loop 1 water flow meter signal input
-hvac.loop2_1.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600/AO0,Loop 2 fan settings
-hvac.loop2_1.fan.min_speed,float,0.0/100.0,HVAC,system,0.0,Loop 2 fan minimum speed [%]
-hvac.loop2_1.fan.max_speed,float,0.0/100.0,HVAC,system,30.0,Loop 2 fan maximum speed [%]
 hvac.loop2_1.temp.settings,str,,HVAC,system,Dallas/DS18B20/28FFC4EE00170349,Loop 2 temperature sensor settings
 hvac.loop2_1.temp.value,float,/,HVAC,system,0.0,Loop 1 temperature sensor value
 hvac.loop2_1.valve.settings,str,,HVAC,system,Tonhe/a20m15b2c/RO3/off/0/100,Loop 2 valve settings
-hvac.loop2_1.valve.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO3,Loop 2 valve output
-hvac.loop2_1.valve.feedback,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AI2,Loop 2 valve feedback
-hvac.loop2_1.valve.max_pos,float,0.0/100.0,HVAC,system,100.0,Loop 2 valve maximum position
-hvac.loop2_1.valve.min_pos,float,0.0/100.0,HVAC,system,0.0,Loop 2 valve minimum position
 hvac.temp_1.actual,float,-50.0/50.0,HVAC,system,0.0,Actual temperature
 hvac.temp_1.max,float,-50.0/50.0,HVAC,system,30.0,Maximum achievable
 hvac.temp_1.min,float,-50.0/50.0,HVAC,system,20.0,Minimum achievable
@@ -194,3 +177,13 @@ echp.hpcg.wp_warm_p.settings,str,,ECHP,system,Grundfos/Pump/4,Heat Pump Control 
 echp.hpcg.wp_warm_g.settings,str,,ECHP,system,Grundfos/Pump/5,Heat Pump Control Group / Water Pump / Warm
 echp.hpcg.hp.settings,str,,ECHP,system,HstarsGuangzhouRefrigeratingEquipmentGroup/HeatPump/5,Heat Pump Control Group / Heat Pump
 echp.enabled,bool,true|false,Energy Center Heat Pump,system,false,Plugin enabled
+vent.lower_1.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600/AO3,Lower fan settings
+vent.lower_1.fan.min_speed,float,0.0/100.0,Ventilation,system,0.0,Lower fan minimum speed [%]
+vent.lower_1.fan.max_speed,float,0.0/100.0,Ventilation,system,30.0,Lower fan maximum speed [%]
+vent.lower_1.fan.speed,float,0.0/100.0,Ventilation,system,0.0,Upper fan speed [%]
+vent.upper_1.fan.settings,str,,Ventilation,system,HangzhouAirflowElectricApplications/f3p146ec072600/AO0,Upper fan settings
+vent.upper_1.fan.min_speed,float,0.0/100.0,Ventilation,system,0.0,Upper fan minimum speed [%]
+vent.upper_1.fan.speed,float,0.0/100.0,Ventilation,system,0.0,Upper fan speed [%]
+vent.upper_1.fan.max_speed,float,0.0/100.0,Ventilation,system,30.0,Upper fan maximum speed [%]
+vent.zones_count,int,0/,Ventilation,system,1,Count of the ventilation zones.
+vent.enabled,bool,,Ventilation,system,true,Ventilation enable flag.
