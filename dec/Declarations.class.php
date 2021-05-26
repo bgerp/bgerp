@@ -122,7 +122,6 @@ class dec_Declarations extends core_Master
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'statements' => 'lastDocUser|lastDoc|lastDocSameCountry',
         'materials' => 'lastDocUser|lastDoc|lastDocSameCountry',
     );
     
@@ -156,7 +155,7 @@ class dec_Declarations extends core_Master
         $this->FLD('inv', 'int', 'caption=Фактура, input=none');
         
         // на какви твърдения отговарят
-        $this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory,remember');
+        $this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory');
         
         // от какви материали е
         $this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory,remember');
@@ -234,12 +233,18 @@ class dec_Declarations extends core_Master
             // взимаме продуктите от детаийла на фактурата
             $dQuery = sales_InvoiceDetails::getQuery();
             $dQuery->where("#invoiceId = {$rec->id}");
-
-            while ($dRec = $dQuery->fetch()) {
+            $statements = "";
+            while ($dRec = $dQuery->fetch()) { 
                 $productName[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
+                // твърдения
+                $st = cat_Products::getParams($dRec->productId, 'decStatements');
+                // обединяваме твърденията
+                $statements = keylist::merge ($statements,$st);
+
             }
 
             $data->form->setSuggestions('productId', $productName);
+            $data->form->setDefault('statements', $statements);
             $data->form->setDefault('inv', $rec->id);
         }
 
