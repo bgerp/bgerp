@@ -147,4 +147,19 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
             }
         }
     }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if(empty($data->masterRec->storeId)){
+            unset($data->defaultMeta);
+            $data->form->setFieldTypeParams('productId', array('hasProperties' => 'canConvert', 'hasnotProperties' => 'canStore'));
+        }
+    }
 }
