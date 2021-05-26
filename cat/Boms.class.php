@@ -686,6 +686,14 @@ class cat_Boms extends core_Master
                 $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->modifiedOn);
                 $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
                 $row->primeCost = $Double->toVerbal($rec->primeCost);
+
+                if($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')){
+                    $row->primeCost = "<span class='red'>???</span>";
+                } else {
+                    $row->primeCost = ht::styleNumber($row->primeCost, $rec->primeCost);
+                    $row->primeCost = "<b>{$row->primeCost}</b>";
+                }
+
                 $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
                 $row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
             }
