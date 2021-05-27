@@ -306,7 +306,7 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             } elseif($rec->type != 'pop') {
                 $threadId = $origin->fetchField('threadId');
                 $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;
-                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate, $threadId);
+                deals_Helper::getQuantityHint($row->packQuantity, $this, $rec->productId, $rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate, $threadId);
             }
 
             if(!empty($rec->quantityFromBom)){

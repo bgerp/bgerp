@@ -148,7 +148,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         $storeId = $data->masterData->rec->storeId;
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state, $data->masterData->rec->valior);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state, $data->masterData->rec->valior);
         }
     }
 }
