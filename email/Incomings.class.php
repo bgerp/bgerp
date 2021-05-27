@@ -332,7 +332,11 @@ class email_Incomings extends core_Master
         
         // Номер на първото не-свалено писмо
         $firstUnreadMsgNo = $this->getFirstUnreadMsgNo($imapConn, $numMsg);
-        
+
+        if (!isset($firstUnreadMsgNo) && $imapConn->accRec->protocol == 'pop3') {
+            $firstUnreadMsgNo = $this->getFirstUnreadMsgNo($imapConn, 1);
+        }
+
         $startTime = time();
         
         $doExpunge = false;
