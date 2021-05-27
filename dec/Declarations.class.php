@@ -166,6 +166,18 @@ class dec_Declarations extends core_Master
         // поле събирателно за плейсхолдерите
         $this->FLD('formatParams', 'blob(serialize, compress)', 'caption=Параметри, title=Параметри за конвертиране на шаблона, input=none');
     }
+    
+    
+    /**
+     * Извиква се след описанието на модела
+     *
+     * @param core_Mvc $mvc
+     */
+    public static function on_AfterDescription(core_Master &$mvc)
+    {
+        // рефрешваме формата при избор на шаблон
+        $mvc->setField('template', 'silent,removeAndRefreshForm=statements');
+    }
 
 
     /**
@@ -177,14 +189,17 @@ class dec_Declarations extends core_Master
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
         $form = &$data->form;
-   
+    
         // Масива, който ще връщаме
         static $placesArr = array();
         
         // Проверяваме имаме ли зареден шаблон
         if($data->form->rec->template) {
+            // кой е езика на шаблона
+            $lang = doc_TplManager::fetch($form->rec->template)->lang;
+        
             // зареждаме шаблонха
-            $tpl = doc_TplManager::getTemplate($data->form->rec->template);
+            $tpl = doc_TplManager::getTemplate($data->form->rec->template); 
             // взимаме всичките плейсхолдери на шаблона
             $allPlaceholders = label_Templates::getPlaceholders($tpl->content);
        
@@ -206,7 +221,7 @@ class dec_Declarations extends core_Master
                 }
             } 
         }
-
+   
         // Записваме blob полето
         $data->form->rec->formatParams  = (array) $placesArr;
        
@@ -233,14 +248,38 @@ class dec_Declarations extends core_Master
             // взимаме продуктите от детаийла на фактурата
             $dQuery = sales_InvoiceDetails::getQuery();
             $dQuery->where("#invoiceId = {$rec->id}");
+            
             $statements = "";
+            
             while ($dRec = $dQuery->fetch()) { 
                 $productName[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                 // твърдения
                 $st = cat_Products::getParams($dRec->productId, 'decStatements');
                 // обединяваме твърденията
                 $statements = keylist::merge ($statements,$st);
-
+            }
+            
+            $staArr = array();
+            //масив от твърденията
+            $statementArr = keylist::toArray($statements);
+            
+            foreach($statementArr as $st) { 
+                // фечваме езика на твърдението
+                $lgStatement = dec_Statements::fetch($st)->lg;
+          
+                // ако нямаме зададен език на трърдението и нямаме зададен език на шаблона
+                // премахваме тези твърдения, които имат зададен език
+                if($lang !== "" && $lgStatement!== "") {
+                    unset($statementArr[$st]);
+                    $statements = keylist::fromArray($statementArr);
+                }
+                
+                // ако зададения език на шаблона и езика на твърдението съвпадат
+                // правим нов лист с твърдения
+                if($lgStatement!== "" && $lgStatement == $lang) {
+                    $staArr[$st] = $st;
+                    $statements = keylist::fromArray($staArr);
+                }
             }
 
             $data->form->setSuggestions('productId', $productName);
