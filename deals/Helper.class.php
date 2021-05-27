@@ -795,8 +795,10 @@ abstract class deals_Helper
                 $hint = "Недостатъчна |*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
             }
         } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
-            $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-            $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+            if($showNegativeWarning) {
+                $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+                $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+            }
         }
         
         if (!empty($hint)) {
