@@ -776,7 +776,7 @@ abstract class deals_Helper
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $inStockVerbal = $Double->toVerbal($stRec->quantity);
-        $class = 'doc-warning-quantiy';
+        $class = 'doc-warning-quantity';
         $showNegativeWarning = $makeLink = true;
 
         if($mvc instanceof sales_SalesDetails){
