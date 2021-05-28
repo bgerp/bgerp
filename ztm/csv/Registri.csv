@@ -159,18 +159,18 @@ echp.hp.cold_min,float,3.0/8.0,ECHP,system,5.0,Energy Center Heat Pump cold mini
 echp.hp.cold_max,float,3.0/8.0,ECHP,system,7.0,Energy Center Heat Pump cold maximum
 echp.hp.hot_min,float,40.0/47.0,ECHP,system,41.0,Energy Center Heat Pump hot minimum
 echp.hp.hot_max,float,40.0/47.0,ECHP,system,46.0,Energy Center Heat Pump hot maximum
-echp.hpcg.vcg_cold_buf.input,str,,ECHP,system,Flowx/FLX-05F/U1:M1:R0:DO0/DO1/DI0/DI1,Heat Pump Control Group / Valve Controll Group / Cold Buffer / Input
-echp.hpcg.vcg_cold_buf.output,str,,ECHP,system,Flowx/FLX-05F/DO2/DO3/DI2/DI3,Heat Pump Control Group / Valve Controll Group / Cold Buffer / Output
-echp.hpcg.vcg_cold_buf.short,str,,ECHP,system,Flowx/FLX-05F/DO4/DO5/DI4/DI5,Heat Pump Control Group / Valve Controll Group / Cold Buffer / Short
-echp.hpcg.vcg_cold_geo.input,str,,ECHP,system,Flowx/FLX-05F/U1:M5:DO0/U1:M5:DO1/U1:M5:DI0/U1:M5:DI1,Heat Pump Control Group / Valve Controll Group / Cold Geo / Input
-echp.hpcg.vcg_cold_geo.output,str,,ECHP,system,Flowx/FLX-05F/U1:M5:DO2/U1:M5:DO3/U1:M5:DI2/U1:M5:DI3,Heat Pump Control Group / Valve Controll Group / Cold Geo / Output
-echp.hpcg.vcg_cold_geo.short,str,,ECHP,system,Flowx/FLX-05F/U1:M5:DO4/U1:M5:DO5/U1:M5:DI4/U1:M5:DI5,Heat Pump Control Group / Valve Controll Group / Cold Geo / Short
-echp.hpcg.vcg_warm_geo.input,str,,ECHP,system,Flowx/FLX-05F/U1:M6:DO0/U1:M6:DO1/U1:M6:DI0/U1:M6:DI1,Heat Pump Control Group / Valve Controll Group / Warm Geo / Input
-echp.hpcg.vcg_warm_geo.output,str,,ECHP,system,Flowx/FLX-05F/U1:M6:DO2/U1:M6:DO3/U1:M6:DI2/U1:M6:DI3,Heat Pump Control Group / Valve Controll Group / Warm Geo / Output
-echp.hpcg.vcg_warm_geo.short,str,,ECHP,system,Flowx/FLX-05F/U1:M6:DO4/U1:M6:DO5/U1:M6:DI4/U1:M6:DI5,Heat Pump Control Group / Valve Controll Group / Warm Geo / Short
-echp.hpcg.vcg_warm_floor.input,str,,ECHP,system,Flowx/FLX-05F/U1:M7:DO0/U1:M6:DO1/U1:M7:DI0/U1:M7:DI1,Heat Pump Control Group / Valve Controll Group / Warm Geo / Input
-echp.hpcg.vcg_warm_floor.output,str,,ECHP,system,Flowx/FLX-05F/U1:M7:DO2/U1:M6:DO3/U1:M7:DI2/U1:M7:DI3,Heat Pump Control Group / Valve Controll Group / Warm Geo / Output
-echp.hpcg.vcg_warm_floor.short,str,,ECHP,system,Flowx/FLX-05F/U1:M7:DO4/U1:M6:DO5/U1:M7:DI4/U1:M7:DI5,Heat Pump Control Group / Valve Controll Group / Warm Geo / Output
+echp.hpcg.vcg_cold_buf.input,str,,ECHP,system,Flowx/FLX-05F/U1:ID1:R0:DO0/U1:ID1:R0:DO1/U1:ID1:R0:DI0/U1:ID1:R0:DI1,Heat Pump Control Group / Valve Controll Group / Cold Buffer / Input
+echp.hpcg.vcg_cold_buf.output,str,,ECHP,system,Flowx/FLX-05F/U1:ID6:R16:DO0/U1:ID6:R16:DO1/U1:ID6:R16:DI0/U1:ID6:R16:DO1,Heat Pump Control Group / Valve Controll Group / Cold Buffer / Output
+echp.hpcg.vcg_cold_buf.short,str,,ECHP,system,Flowx/FLX-05F/U1:ID6:R16:DO2/U1:ID6:R16:DO3/U1:ID6:R16:DI2/U1:ID6:R16:DO3,Heat Pump Control Group / Valve Controll Group / Cold Buffer / Short
+echp.hpcg.vcg_cold_geo.input,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Cold Geo / Input
+echp.hpcg.vcg_cold_geo.output,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Cold Geo / Output
+echp.hpcg.vcg_cold_geo.short,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Cold Geo / Short
+echp.hpcg.vcg_warm_geo.input,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Input
+echp.hpcg.vcg_warm_geo.output,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Output
+echp.hpcg.vcg_warm_geo.short,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Short
+echp.hpcg.vcg_warm_floor.input,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Input
+echp.hpcg.vcg_warm_floor.output,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Output
+echp.hpcg.vcg_warm_floor.short,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Output
 echp.hpcg.wp_cold.settings,str,,ECHP,system,Grundfos/Pump/2,Heat Pump Control Group / Water Pump / Cold
 echp.hpcg.wp_hot.settings,str,,ECHP,system,Grundfos/Pump/3,Heat Pump Control Group / Water Pump / Hot
 echp.hpcg.wp_warm_p.settings,str,,ECHP,system,Grundfos/Pump/4,Heat Pump Control Group / Water Pump / Warm
