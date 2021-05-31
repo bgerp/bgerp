@@ -266,9 +266,60 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
 
+        $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+                                    <div class='small'>
+                                        <!--ET_BEGIN period--><div>|Период|*: [#period#]</div><!--ET_END period-->
+                                        <!--ET_BEGIN groups--><div>|Групи артикули|*: [#groups#]</div><!--ET_END groups-->
+                                        <!--ET_BEGIN stores--><div>|Склад|*: [#stores#]</div><!--ET_END stores-->
+                                    </div>
+                                </fieldset><!--ET_END BLOCK-->"));
 
+
+        if (isset($data->rec->period)) {
+            $fieldTpl->append('<b>' . acc_Periods::fetch($data->rec->period)->title . '</b>', 'period');
+        }
+
+        if (isset($data->rec->groups)) {
+            $marker = 0;
+            $groupVerb = '';
+            foreach (type_Keylist::toArray($data->rec->groups) as $group) {
+                $marker++;
+
+                $groupVerb .= (cat_Groups::getTitleById($group));
+
+                if ((countR((type_Keylist::toArray($data->rec->groups))) - $marker) != 0) {
+                    $groupVerb .= ', ';
+                }
+            }
+
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
+        }
+
+
+        if (isset($data->rec->stores)) {
+            $marker = 0;
+            $storeIdVerb = '';
+            foreach (type_Keylist::toArray($data->rec->stores) as $store) {
+                $marker++;
+
+                $storeIdVerb .= (store_Stores::getTitleById($store));
+
+                if ((countR(type_Keylist::toArray($data->rec->stores))) - $marker != 0) {
+                    $storeIdVerb .= ', ';
+                }
+            }
+
+            $fieldTpl->append('<b>' . $storeIdVerb . '</b>', 'stores');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'stores');
+        }
+
+
+        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
-
 
     /**
      * След подготовка на реда за експорт
