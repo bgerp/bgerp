@@ -177,15 +177,11 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
                 $obj = &$recs[$id];
 
                 $obj->quantity += $quantity;
-                $obj->primeCost += $amount;
+                $obj->amount += $amount;
 
             }
 
         }
-
-
-        //  bp($recs);
-
 
         return $recs;
     }
