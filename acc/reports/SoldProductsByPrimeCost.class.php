@@ -67,6 +67,10 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
         //Период
         $fieldset->FLD('period', 'key(mvc=acc_Periods,title=title)', 'caption = Период,after=title,single=none');
 
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=period,placeholder=Всички,silent,single=none');
+
+        $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name)', 'caption=Склад,after=groups,placeholder=Всички,silent,single=none');
+
     }
 
 
@@ -131,10 +135,19 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
 
         while ($saleDetRec = $sallDetQuery->fetch()) {
 
+            //Филтър по склад
+            if($rec->stores) {
+                $storeRec = store_Stores::fetch(acc_Items::fetch($saleDetRec->creditItem1)->objectId);
+               if(!keylist::isIn($storeRec->id,$rec->stores))continue;
+            }
+
             //Артикул
             $pRec = cat_Products::fetch(acc_Items::fetch($saleDetRec->creditItem2)->objectId);
 
-            $storeRec = store_Stores::fetch(acc_Items::fetch($saleDetRec->creditItem1)->objectId);
+            //Филтър по групи артикули
+            if($rec->groups) {
+                if(!keylist::isIn(keylist::toArray($pRec->groups),$rec->groups))continue;
+            }
 
             $artCode = $pRec->code;
 
@@ -158,8 +171,6 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
 
                     'quantity' => $quantity,                              //количество
                     'amount' => $amount,                                  //стойност на продажбите за артикула
-
-                    'groups' => $pRec->groups,                            // В кои групи е включен артикула
 
                 );
             } else {
