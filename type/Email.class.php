@@ -241,8 +241,8 @@ class type_Email extends type_Varchar
      */
     public static function extractEmails($string)
     {
-        preg_match_all('/[=\+\/\._a-zA-Z0-9-]+@[\._a-zA-Z0-9-]+/i', $string, $matches);
-        
+        preg_match_all('/[=\+\/\._a-zA-Z0-9-\']+@[\._a-zA-Z0-9-]+/i', $string, $matches);
+
         if (is_array($matches[0])) {
             foreach ($matches[0] as $id => $eml) {
                 if (!self::isValidEmail($eml)) {
