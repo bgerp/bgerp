@@ -84,7 +84,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,single=none');
+        $fieldset->FLD('date', 'datetyme', 'caption=Към дата,after=title,single=none');
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=date,single=none');
 
         $fieldset->FLD('selfPrices', 'enum(balance=По баланс, manager=Мениджърска)', 'notNull,caption=Филтри->Вид цени,after=storeId,single=none');
@@ -158,15 +158,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-
-        if(is_null($rec->date)){
-            $today = dt::today();
-            $from = $today.' 00:00:00' ;
-            $to = $today.' 23:59:59';
-        }else{
-            $from =$rec->date.' 00:00:00' ;
-            $to = $rec->date.' 23:59:59' ;
-        }
+        $date = (is_null($rec->date)) ? dt::today() : $rec->date;
 
         $recs = array();
 
@@ -182,7 +174,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $rec->products)->id : null;
 
-        $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
+        $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => '321', 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
 
         foreach ($bRecs as $item) {
