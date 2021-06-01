@@ -84,7 +84,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('date', 'datetyme', 'caption=Към дата,after=title,single=none');
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,single=none');
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=date,single=none');
 
         $fieldset->FLD('selfPrices', 'enum(balance=По баланс, manager=Мениджърска)', 'notNull,caption=Филтри->Вид цени,after=storeId,single=none');
