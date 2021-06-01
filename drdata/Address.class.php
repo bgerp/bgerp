@@ -408,6 +408,7 @@ class drdata_Address extends core_MVC
         // Подготваме данни за държавите
         if (!($cData = core_Cache::get('drdata', 'cData'))) {
             $query = drdata_Countries::getQuery();
+            $cData = new stdClass();
             while ($rec = $query->fetch("#type = 'Independent State'")) {
                 $cData->domains[trim($rec->domain, '.')] = $rec->id;
                 $lgArr = explode(',', $rec->languages);
