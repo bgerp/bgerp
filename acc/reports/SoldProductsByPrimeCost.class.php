@@ -127,9 +127,9 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
         $sallDetQuery = acc_JournalDetails::getQuery();
 
         $sallDetQuery->EXT('state', 'acc_Journal', 'externalName=state,externalKey=journalId');
-        $sallDetQuery->EXT('createdOnJournal', 'acc_Journal', 'externalName=createdOn,externalKey=journalId');
+        $sallDetQuery->EXT('valior', 'acc_Journal', 'externalName=valior,externalKey=journalId');
 
-        $sallDetQuery->where(array("#createdOnJournal >= '[#1#]' AND #createdOnJournal <= '[#2#]'", $from . ' 00:00:00', $to . ' 23:59:59'));
+        $sallDetQuery->where(array("#valior >= '[#1#]' AND #valior <= '[#2#]'", $from . ' 00:00:00', $to . ' 23:59:59'));
 
         $sallDetQuery->where("#debitAccId = $debitAccId AND #creditAccId = $creditAccId");
 
