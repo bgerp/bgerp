@@ -158,8 +158,15 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $date = (is_null($rec->date)) ? dt::now() : $rec->date;
 
+        if(is_null($rec->date)){
+            $today = dt::today();
+            $from = $today.' 00:00:00' ;
+            $to = $today.' 23:59:59';
+        }else{
+            $from =$rec->date.' 00:00:00' ;
+            $to = $rec->date.' 23:59:59' ;
+        }
 
         $recs = array();
 
@@ -175,7 +182,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $productItemId = $rec->products ? acc_Items::fetchItem('cat_Products', $rec->products)->id : null;
 
-        $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => '321', 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
+        $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
 
         foreach ($bRecs as $item) {
