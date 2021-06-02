@@ -14,7 +14,7 @@
  * @since     v 0.1
  * @title     Интерфейс за допълнителна обработка на сервизните инейли
  */
-class email_ServiceRulesIntf
+class email_ServiceRulesIntf extends embed_DriverIntf
 {
     
     
@@ -22,14 +22,13 @@ class email_ServiceRulesIntf
      * Обработва имейла
      *
      * @param email_Mime  $mime
-     * @param integer $accId
-     * @param integer $uid
+     * @param stdClass  $serviceRec
      *
      * @return string|null
      */
-    public function process($mime)
+    public function process($mime, $serviceRec)
     {
         
-        return $this->class->process($mime, $accId, $uid);
+        return $this->class->process($mime, $serviceRec);
     }
 }
