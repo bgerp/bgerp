@@ -29,7 +29,7 @@ class email_drivers_RouteByFolder extends core_BaseClass
      */
     public static function addFields(&$mvc)
     {
-        $mvc->FLD('folderId', 'key2(mvc=doc_Folders, allowEmpty, restrictViewAccess=no)', 'caption=Папка, before=note, class=w100 clearSelect');
+        $mvc->FLD('folderId', 'key2(mvc=doc_Folders, allowEmpty, restrictViewAccess=no)', 'caption=Папка, before=note, mandatory, class=w100 clearSelect');
     }
 
 

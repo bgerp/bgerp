@@ -29,7 +29,7 @@ class email_drivers_DeleteEmails extends core_BaseClass
      */
     public static function addFields(&$mvc)
     {
-        $mvc->FLD('keepDays', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Изтриване->След, before=note, class=w100 clearSelect');
+        $mvc->FLD('keepDays', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Изтриване->След, before=note, mandatory, class=w100 clearSelect');
     }
 
 
