@@ -83,8 +83,6 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 $Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
             }
             
-            $subCaption = 'К-во';
-            
             // Ако е инсталиран пакета за партиди, ще се показват и те
             if ($installedBatch && is_object($Def) && $dRec->autoBatches !== true) {
                 $subCaption = 'Без партида';
@@ -103,7 +101,8 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     $verbal = strip_tags($Def->toVerbal($bRec->batch));
                     $b = str_replace(',', '', $bRec->batch);
                     $b = str_replace('.', '', $b);
-                    
+                    $b = str::removeWhiteSpace($b);
+
                     $bQuantity = $bRec->{$Detail->quantityFld} / $bRec->quantityInPack;
                     $quantity -= $bQuantity;
                     
@@ -215,6 +214,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                     foreach ($det->batches as &$bRec) {
                         $b = str_replace(',', '', $bRec->batch);
                         $b = str_replace('.', '', $b);
+                        $b = str::removeWhiteSpace($b);
                         $key = "quantity|{$b}|{$det->id}|";
                         
                         
