@@ -120,8 +120,10 @@ class type_Double extends core_Type
                     // Колко са?
                     $decimals = strlen(substr(strrchr($v, '.'), 1));
 
-                    // Ако е въведена формула, резултата ѝ се закръгля до указания брой
-                    if(strpos($value, '*') !== false || strpos($value, '+') || strpos($value, '-')){
+                    // Ако стойността е въведена като формула
+                    if (preg_match("/\d\s*[\*\-\+\/\%]\s*\d/", $value)) {
+
+                        // твърдо се закръгля до максималния допустим знак
                         $v = round($v, $this->params['maxAllowedDecimals']);
                     } elseif($decimals > $this->params['maxAllowedDecimals']){
 
