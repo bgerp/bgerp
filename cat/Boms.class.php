@@ -205,6 +205,12 @@ class cat_Boms extends core_Master
 
 
     /**
+     * Брояч
+     */
+    public static $calcPriceCounter = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -677,7 +683,14 @@ class cat_Boms extends core_Master
         if ($fields['-single'] && !doc_HiddenContainers::isHidden($rec->containerId)) {
             $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
             $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
-            $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
+
+            try{
+                $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
+            } catch(core_exception_Expect $e){
+                core_Statuses::newStatus($e->getMessage(), 'error');
+                reportException($e);
+                $price = 0;
+            }
             
             if (haveRole('ceo, acc, cat, price')) {
                 $row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
@@ -1191,8 +1204,8 @@ class cat_Boms extends core_Master
         
         return $scope;
     }
-    
-    
+
+
     /**
      * Връща цената на материала за рецептата
      *
@@ -1211,7 +1224,7 @@ class cat_Boms extends core_Master
             
             // Първо проверяваме имали цена по политиката
             $price = price_ListRules::getPrice($priceListId, $productId, null, $date);
-            
+
             if (!isset($price)) {
                 
                 // Ако няма, търсим по последната търговска рецепта, ако има
@@ -1468,12 +1481,23 @@ class cat_Boms extends core_Master
      */
     public static function getBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials = array())
     {
-        $price = null;
         $primeCost1 = $primeCost2 = null;
         
         // Трябва да има такъв запис
         expect($rec = static::fetchRec($id));
-        
+
+        if(!array_key_exists($rec->id, static::$calcPriceCounter)){
+            static::$calcPriceCounter[$rec->id] = 1;
+        } else {
+            static::$calcPriceCounter[$rec->id]++;
+        }
+
+        // Ако случайно изчисляването на рецептата е зациклило да се прекъсне да не върти вечно
+        if(static::$calcPriceCounter[$rec->id] > 500){
+
+            throw new core_exception_Expect("Има проблем при изчисляването на рецептата:|* #Bom{$rec->id}", 'Несъответствие');
+        }
+
         $savePrimeCost = false;
         $bomQuantity = ($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
         
