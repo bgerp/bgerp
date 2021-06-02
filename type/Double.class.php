@@ -115,18 +115,18 @@ class type_Double extends core_Type
                 $v = (float) $val;
 
                 // Ако е указан макс брой десетични знаци
-                if(isset($this->params['maxDecimals'])){
+                if(isset($this->params['maxAllowedDecimals'])){
 
                     // Колко са?
                     $decimals = strlen(substr(strrchr($v, '.'), 1));
 
                     // Ако е въведена формула, резултата ѝ се закръгля до указания брой
                     if(strpos($value, '*') !== false || strpos($value, '+') || strpos($value, '-')){
-                        $v = round($v, $this->params['maxDecimals']);
-                    } elseif($decimals > $this->params['maxDecimals']){
+                        $v = round($v, $this->params['maxAllowedDecimals']);
+                    } elseif($decimals > $this->params['maxAllowedDecimals']){
 
                         // Ако е въведено чисто число и е надвишен посочения брой, сетва се грешка
-                        $this->error = "Максимален брой знаци в дробната част:|* {$this->params['maxDecimals']}";
+                        $this->error = "Максимален брой знаци в дробната част:|* {$this->params['maxAllowedDecimals']}";
 
                         return false;
                     }
