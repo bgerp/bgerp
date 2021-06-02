@@ -744,7 +744,14 @@ class cat_Boms extends core_Master
         expect($rec = static::fetchRec($id));
         $resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
         $resources['expenses'] = null;
-        $resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials);
+
+        try{
+            $resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials);
+        } catch(core_exception_Expect $e){
+            reportException($e);
+            $resources['primeCost'] = null;
+        }
+
         $resources['resources'] = array_values($materials);
         
         if (is_array($materials)) {
