@@ -256,11 +256,20 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             if ($rec->type == 'long'){
                 $reservedQuantity = $expectedQuantity = $freeQuantity = 0;
 
-                foreach (keylist::toArray($rec->storeId) as $storeId) {
-                    $qRec = store_Products::getQuantities($productId,$storeId);
+                if ($rec->storeId) {
+                    foreach (keylist::toArray($rec->storeId) as $storeId) {
+                        $qRec = store_Products::getQuantities($productId, $storeId);
+
+                        $reservedQuantity += $qRec->reserved;
+                        $expectedQuantity += $qRec->expected;
+                        $freeQuantity += $qRec->free;
+                    }
+                }else{
+                    $qRec = store_Products::getQuantities($productId);
                     $reservedQuantity += $qRec->reserved;
                     $expectedQuantity += $qRec->expected;
                     $freeQuantity += $qRec->free;
+
                 }
 
 
