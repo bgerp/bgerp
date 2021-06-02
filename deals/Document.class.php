@@ -67,10 +67,10 @@ abstract class deals_Document extends deals_PaymentDocument
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор,mandatory');
         $mvc->FLD('name', 'varchar(255)', 'caption=Име,mandatory');
         $mvc->FLD('dealId', 'key(mvc=doc_Containers,select=id,allowEmpty)', 'caption=Сделка,input=none');
-        $mvc->FLD('amount', 'double(decimals=2)', 'caption=Платени,mandatory,summary=amount');
+        $mvc->FLD('amount', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Платени,mandatory,summary=amount');
         $mvc->FNC('dealFolderId', 'key2(mvc=doc_Folders, restrictViewAccess=yes,coverInterface=crm_ContragentAccRegIntf,allowEmpty)', 'caption=Насрещна сделка->Папка,mandatory,input,silent,removeAndRefreshForm=dealHandler|currencyId|rate|amountDeal|dealId');
         $mvc->FNC('dealHandler', 'varchar', 'caption=Насрещна сделка->Сделка,mandatory,input,silent,removeAndRefreshForm=currencyId|rate|amountDeal|dealId');
-        $mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
+        $mvc->FLD('amountDeal', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Насрещна сделка->Заверени,mandatory,input=none');
         $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута->Код,input=none');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
         $mvc->FLD('description', 'richtext(bucket=Notes,rows=6)', 'caption=Допълнително->Бележки');
