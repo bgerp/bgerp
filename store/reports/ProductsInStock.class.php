@@ -84,7 +84,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,single=none');
+        $fieldset->FLD('type', 'enum(short=Кратка, long=Разширена)', 'notNull,caption=Тип на справката,after=title,removeAndRefreshForm,silent,single=none');
+
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=type,single=none');
+
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=date,single=none');
 
         $fieldset->FLD('selfPrices', 'enum(balance=По баланс, manager=Мениджърска)', 'notNull,caption=Филтри->Вид цени,after=storeId,single=none');
@@ -129,6 +132,13 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $form->setDefault('selfPrices', 'balance');
         $form->setDefault('availability', 'Всички');
         $form->setDefault('orderBy', 'name');
+        $form->setDefault('type', 'short');
+
+        if ($rec->type == 'long') {
+            $today = dt::today();
+            $rec->date = $today;
+            $form->setReadOnly('date');
+        }
 
         $sQuery = store_Stores::getQuery();
 
@@ -239,9 +249,31 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                 continue;
             }
 
-
             //Стойност в края на периода
             $blAmount = $item->blAmount;
+
+            //Ако е избран разширен вариант на справката
+            if ($rec->type == 'long') {
+                $reservedQuantity = $expectedQuantity = $freeQuantity = 0;
+
+                if ($rec->storeId) {
+                    foreach (keylist::toArray($rec->storeId) as $storeId) {
+                        $qRec = store_Products::getQuantities($productId, $storeId);
+
+                        $reservedQuantity += $qRec->reserved;
+                        $expectedQuantity += $qRec->expected;
+                        $freeQuantity += $qRec->free;
+                    }
+                } else {
+                    $qRec = store_Products::getQuantities($productId);
+                    $reservedQuantity += $qRec->reserved;
+                    $expectedQuantity += $qRec->expected;
+                    $freeQuantity += $qRec->free;
+
+                }
+
+
+            }
 
             // добавя в масива
             if (!array_key_exists($id, $recs)) {
@@ -265,6 +297,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
                     'blQuantity' => $blQuantity,
                     'blAmount' => $blAmount,
+
+                    'reservedQuantity' => $reservedQuantity,
+                    'expectedQuantity' => $expectedQuantity,
+                    'freeQuantity' => $freeQuantity,
 
                 );
             } else {
@@ -298,6 +334,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             } else {
                 $val->amount = $val->blAmount;
             }
+
         }
 
         if (!is_null($recs) && $rec->orderBy) {
@@ -327,9 +364,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $fld->FLD('productName', 'varchar', 'caption=Артикул');
         $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
 
-        $fld->FLD('quantyti', 'double(smartRound,decimals=2)', 'caption=Количество');
+        $fld->FLD('quantyti', 'double(smartRound,decimals=2)', 'caption=Налично');
         $fld->FLD('selfPrice', 'double(smartRound,decimals=2)', 'caption=Себестойност');
         $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Стойност');
+
+        //Ако е избран разширен вариант на справката
+        if ($rec->type == 'long') {
+            $fld->FLD('reservedQuantity', 'double(smartRound,decimals=2)', 'caption=Запазено');
+            $fld->FLD('expectedQuantity', 'double(smartRound,decimals=2)', 'caption=Очаквано');
+            $fld->FLD('freeQuantity', 'double(smartRound,decimals=2)', 'caption=Разполагаемо');
+        }
 
         return $fld;
     }
@@ -355,7 +399,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             $row->code = $dRec->code;
         }
 
-
         if (isset($dRec->productName)) {
             $row->productName = cat_Products::getLinkToSingle($dRec->productId, 'name');
         }
@@ -375,6 +418,20 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $row->amount = $Double->toVerbal($dRec->amount);
         $row->amount = ht::styleNumber($row->amount, $dRec->amount);
+
+        //Ако е избран разширен вариант на справката
+        if ($rec->type == 'long') {
+
+            $row->reservedQuantity = $Double->toVerbal($dRec->reservedQuantity);
+            $row->reservedQuantity = ht::styleNumber($row->reservedQuantity, $dRec->reservedQuantity);
+
+            $row->expectedQuantity = $Double->toVerbal($dRec->expectedQuantity);
+            $row->expectedQuantity = ht::styleNumber($row->expectedQuantity, $dRec->expectedQuantity);
+
+            $row->freeQuantity = $Double->toVerbal($dRec->freeQuantity);
+            $row->freeQuantity = ht::styleNumber($row->freeQuantity, $dRec->freeQuantity);
+
+        }
 
         return $row;
     }

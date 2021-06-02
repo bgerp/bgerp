@@ -415,6 +415,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             } catch (core_exception_Expect $e) {
                 $failed++;
+                $mvc->logNotice('Грешка при импорт: ' . $e->getMessage());
+                if (haveRole('debug')) {
+                    status_Messages::newStatus('Грешка при импорт: ' . $e->getMessage());
+                }
             }
         }
         

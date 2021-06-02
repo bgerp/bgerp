@@ -31,6 +31,8 @@
  *
  * @since     v 0.1
  * @see       https://github.com/bgerp/bgerp/issues/253
+ *
+ * @deprecated
  */
 class email_Filters extends core_Manager
 {
@@ -52,34 +54,40 @@ class email_Filters extends core_Manager
     public $singleTitle = 'Правило за рутиране';
     
     
-    public $canList = 'admin, email';
+    public $canList = 'debug';
     
     
-    public $canEdit = 'admin, email';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'admin';
+    public $canRead = 'debug';
     
     
     /**
      * Кой има право да пише?
      */
-    public $canWrite = 'admin';
+    public $canWrite = 'no_one';
     
     
     /**
      * Кой може да го отхвърли?
      */
-    public $canReject = 'admin';
+    public $canReject = 'no_one';
+
+
+    /**
+     * Кой може да клонира запис
+     */
+    public $canClonerec = 'no_one';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    public $canEditsysdata = 'admin';
+    public $canEditsysdata = 'no_one';
     
     
     public $listFields = 'id, email, subject, body, action, folderId, note,state';
@@ -184,10 +192,10 @@ class email_Filters extends core_Manager
         
         // ... махаме нашите имейли
         $emails = static::filterOurEmails($emails);
-        
+
         // ... и махаме имейлите присъщи на услугата
         $emails = static::filterServiceEmails($emails, $serviceRec);
-        
+
         // Ако нещо е останало ...
         if (countR($emails) > 0) {
             
@@ -338,24 +346,24 @@ class email_Filters extends core_Manager
         
         return array_values($emails);
     }
-    
-    
+
+
     protected static function filterServiceEmails($emails, $serviceRec)
     {
         $self = get_called_class();
-        
+
         return array_filter($emails, function ($email) use ($serviceRec, $self) {
-            
+
             return !$self::isServiceEmail($email, $serviceRec);
         });
     }
-    
-    
+
+
     public static function isServiceEmail($email, $serviceRec)
     {
         return false; // @TODO
     }
-    
+
     
     /**
      *
