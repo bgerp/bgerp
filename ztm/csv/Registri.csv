@@ -59,9 +59,7 @@ monitoring.hw.tpl,float,0.0/,Monitoring,system,1.0,Hot water tics per liter
 monitoring.hw.value,float,0.0/,Monitoring,device,0.0,Hot water liters
 monitoring.hw.leak,float,0.0/,Monitoring,device,1.0,Hot water leaked liters
 monitoring.pa.settings,str,,Monitoring,system,off,Power analyser settings
-monitoring.pa.l1,json,,Monitoring,device,"""{}""",Power analyser L1 parameters
-monitoring.pa.l2,json,,Monitoring,device,"""{}""",Power analyser L2 parameters
-monitoring.pa.l3,json,,Monitoring,device,"""{}""",Power analyser L3 parameters
+monitoring.pa.measurements,json,,Monitoring,device,"""[]""",Power analyser measurements
 monitoring.enabled,bool,true|false,Monitoring,system,false,Plugin enabled
 envm.is_empty,bool,true|false,Environment,device,true,Is empty flag
 envm.is_empty_timeout,int,0/,Environment,system,3600,Is empty time out [s]
@@ -144,18 +142,85 @@ sys.col.info_message.enable,bool,true|false,System,system,true,Enable info messa
 sys.col.warning_message.enable,bool,true|false,System,system,true,Enable warning messages
 sys.col.error_message.enable,bool,true|false,System,system,true,Enable error messages
 ecc.enabled,bool,true|false,Energy Center Common,system,false,Plugin enabled
-ecd.underfloor_heating_foyer.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO0/U1:ID1:R0:DO1/U1:ID1:R0:DI0/U1:ID1:R0:DI1,Energy Distribution Controll / Foyer Floor Heating
+ecd.underfloor_heating_foyer.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO0/U1:ID1:R0:DO1/U1:ID1:R0:DI0/U1:ID1:R0:DI1,Energy Distribution Controll / Foyer Floor Heating Settings
+ecd.underfloor_heating_foyer.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Foyer Floor Heating Position
 ecd.underfloor_heating_trestle.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO2/U1:ID1:R0:DO3/U1:ID1:R0:DI2/U1:ID1:R0:DI3,Energy Distribution Controll / Underfloor Heating Trestle
+ecd.underfloor_heating_trestle.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Underfloor Heating Trestle Position
 ecd.underfloor_heating_pool.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Underfloor Heating Pool
-ecd.vcg_pool_heating.valve,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / UValve Controll Group / Pool Heating
-ecd.vcg_pool_heating.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / UValve Controll Group / Pool Heating
-ecd.vcg_tva_pool.cold,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Cooling
-ecd.vcg_tva_pool.hot,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Heating
-ecd.vcg_tva_pool.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / UValve Controll Group / Pump
+ecd.underfloor_heating_pool.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Underfloor Heating Pool Position
+ecd.air_cooling.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Air Cooling Valve Settings
+ecd.air_cooling.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Air Cooling Valve Position
+ecd.ground_drill.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Ground Drilling Valve
+ecd.ground_drill.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Ground Drill Valve Position
+ecd.generators_cooling.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Generators Cooling Valve / Settings
+ecd.generators_cooling.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Generators Cooling Valve / Position
+ecd.short_green_purple.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Short Green/Purple Valve Settings
+ecd.short_green_purple.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Short Green/Purple Valve Position
+ecd.underfloor_west_bypass.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Underfloor West Bypass Valve Settings
+ecd.underfloor_west_bypass.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Underfloor West Bypass Valve Position
+ecd.underfloor_east_bypass.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Underfloor East Bypass Valve Settings
+ecd.underfloor_east_bypass.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Underfloor East Bypass Valve Position
+ecd.vcg_pool_heating.valve,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Heating
+ecd.vcg_pool_heating.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Pool Heating
+ecd.vcg_tva_pool.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Cooling In
+ecd.vcg_tva_pool.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Cooling In
+ecd.vcg_tva_pool.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Heating In
+ecd.vcg_tva_pool.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Heating Out
+ecd.vcg_tva_pool.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Pump
+ecd.convectors_east.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors East Cooling In
+ecd.convectors_east.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors East Cooling Out
+ecd.convectors_east.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors East Hot In
+ecd.convectors_east.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors East Hot Out
+ecd.convectors_east.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Convectors East Pump
+ecd.floor_east.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor East Cooling In
+ecd.floor_east.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor East Cooling Out
+ecd.floor_east.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor East Hot In
+ecd.floor_east.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor East Hot Out
+ecd.floor_east.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Floor East Pump
+ecd.convectors_west.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors West Cooling In
+ecd.convectors_west.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors West Cooling Out
+ecd.convectors_west.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors West Hot In
+ecd.convectors_west.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors West Hot Out
+ecd.convectors_west.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Convectors West Pump
+ecd.tva_roof_floor.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor In
+ecd.tva_roof_floor.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor Out
+ecd.tva_roof_floor.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor In
+ecd.tva_roof_floor.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor Out
+ecd.tva_roof_floor.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor
+ecd.tva_fitness.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Fitness In
+ecd.tva_fitness.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Fitness Out
+ecd.tva_fitness.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Fitness In
+ecd.tva_fitness.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Fitness Out
+ecd.tva_fitness.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Fitness
+ecd.tva_roof_floor.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor In
+ecd.tva_roof_floor.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor Out
+ecd.tva_roof_floor.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor In
+ecd.tva_roof_floor.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor Out
+ecd.tva_roof_floor.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor
+ecd.floor_west.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor West Cooling In
+ecd.floor_west.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor West Cooling Out
+ecd.floor_west.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor West Hot In
+ecd.floor_west.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor West Hot Out
+ecd.floor_west.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Floor West Pump
+ecd.tva_conference_center.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center In
+ecd.tva_conference_center.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center Out
+ecd.tva_conference_center.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center In
+ecd.tva_conference_center.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center Out
+ecd.tva_conference_center.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center
+ecd.convectors_kitchen.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Cold In
+ecd.convectors_kitchen.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Cold Out
+ecd.convectors_kitchen.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Hot In
+ecd.convectors_kitchen.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Hot Out
+ecd.convectors_kitchen.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Pump
+ecd.tva_warehouse.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse Cold In
+ecd.tva_warehouse.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse Cold Out
+ecd.tva_warehouse.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse Hot In
+ecd.tva_warehouse.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse Hot Out
+ecd.tva_warehouse.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse
 ecd.enabled,bool,true|false,Energy Center Distribution,system,false,Plugin enabled
 echp.hp.count,int,0/,ECHP,system,3,Energy Center Heat Pump machines count
 echp.hp.index,int,0/,ECHP,system,0,Energy Center Heat Pump machine index
-echp.hp.power,int,-100/100,ECHP,system,0,The power of machine
+echp.hp.power,int,-100.0/100.0,ECHP,system,0,The power of machine
 echp.hp.mode,int,,ECHP,system,0,The mode of the machine
 echp.hp.run,int,,ECHP,device,0,The state of the machine
 echp.hp.cold_min,float,3.0/8.0,ECHP,system,5.0,Energy Center Heat Pump cold minimum
@@ -189,4 +254,4 @@ vent.upper_1.fan.min_speed,float,0.0/100.0,Ventilation,system,0.0,Upper fan mini
 vent.upper_1.fan.speed,float,0.0/100.0,Ventilation,system,0.0,Upper fan speed [%]
 vent.upper_1.fan.max_speed,float,0.0/100.0,Ventilation,system,30.0,Upper fan maximum speed [%]
 vent.zones_count,int,0/,Ventilation,system,1,Count of the ventilation zones.
-vent.enabled,bool,,Ventilation,system,true,Ventilation enable flag.
+vent.enabled,bool,,Ventilation,system,false,Ventilation enable flag.

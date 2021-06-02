@@ -158,8 +158,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $date = (is_null($rec->date)) ? dt::now() : $rec->date;
-
+        $date = (is_null($rec->date)) ? dt::today() : $rec->date;
 
         $recs = array();
 
@@ -444,6 +443,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
 
         if (isset($data->rec->storeId)) {
+            $marker = 0;
             $storeIdVerb = '';
             foreach (type_Keylist::toArray($data->rec->storeId) as $store) {
                 $marker++;
