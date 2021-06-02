@@ -28,7 +28,17 @@ class payment_ParserIso20022 extends core_BaseClass
      * SPAM рейтинга, над който ще се игнорират
      */
     protected $maxSpamScore = 3;
-    
+
+
+
+
+    /**
+     * Добавяне на полета към наследниците
+     */
+    public static function addFields(&$mvc)
+    {
+    }
+
     
     /**
      * Парсира и връща обекти отговарящи на банковите трансакции в XML файла
@@ -142,13 +152,14 @@ class payment_ParserIso20022 extends core_BaseClass
      * Проверява дали в $mime се съдържа спам писмо и ако е
      * така - съхранява го за определено време в този модел
      *
-     * @param email_Mime  $mime
+     * @param email_Mime $mime
+     * @param stdClass   $serviceRec
      *
      * @return string|null
      *
      * @see email_ServiceRulesIntf
      */
-    public function process($mime)
+    public function process($mime, $serviceRec)
     {
         $sScore = email_Spam::getSpamScore($mime->parts[1]->headersArr, true, $mime);
         
