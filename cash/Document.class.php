@@ -220,7 +220,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $amount = round($amount, 2);
         }
        
-        return $amount;
+        return abs($amount);
     }
     
     
