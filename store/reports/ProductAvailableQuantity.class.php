@@ -96,6 +96,8 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $fieldset->FLD('seeByStores', 'set(yes = )', 'caption=Детайлно,after=orderBy,single=none');
 
+        $fieldset->FNC('groupsChecked', 'varchar', 'caption=Избрани групи,after=seeByStores,input=hidden,single=none');
+
     }
 
 
@@ -120,6 +122,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if ($rec->limmits == 'no') {
 
             unset($rec->orderBy);
+            unset($rec->groupsChecked);
             $form->setField('orderBy', 'input=none');
         }
 
@@ -249,10 +252,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             if ($form->rec->limmits == 'no') {
                 $form->rec->additional = array();
+                $rec->groupsChecked = $rec->groupId;
             }
 
             if ($form->rec->limmits == 'yes') {
                 if ($form->cmd == 'refresh' && $rec->groupId) {
+
                     $maxPost = ini_get('max_input_vars') - self::MAX_POST_ART;
 
                     $arts = countR($details->code);
@@ -275,6 +280,11 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                         // Добавя цяла група артикули
 
                         $rQuery = cat_Products::getQuery();
+                        if (!$rec->groupsChecked){
+                            $rec->groupsChecked = $rec->groupId;
+                        }else{
+                            $rec->groupsChecked .= ','.$rec->groupId;
+                        }
 
                         $details = (array)$details;
 
@@ -632,10 +642,22 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
 
         if (isset($data->rec->groupsChecked)) {
-            $fieldTpl->append('<b>' . $data->rec->groupsChecked . '</b>', 'groupsChecked');
+            $marker = 0;
+            $arr = explode(',',$data->rec->groupsChecked);
+            foreach ($arr as $group) {
+                $marker++;
+
+                $groupVerb .= cat_Groups::fetch($group)->name;
+
+                if ((countR($arr)) - $marker != 0) {
+                    $groupVerb .= ', ';
+                }
+            }
+
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groupsChecked');
         }
 
-        if ($data->rec->limmits == 'no') {
+      //  if ($data->rec->limmits == 'no') {
             if (isset($data->rec->storeId)) {
 
                 $marker = 0;
@@ -647,13 +669,14 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                     if ((countR(type_Keylist::toArray($data->rec->storeId))) - $marker != 0) {
                         $storeIdVerb .= ', ';
                     }
+
                 }
 
                 $fieldTpl->append('<b>' . $storeIdVerb . '</b>', 'storeId');
             } else {
                 $fieldTpl->append('<b>' . 'Всички' . '</b>', 'storeId');
             }
-        }
+       // }
 
         $data->rec->ariculsData = countR($data->rec->data->recs) - 1;
 
