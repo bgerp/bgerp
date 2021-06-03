@@ -160,7 +160,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $suggestions[$val] = planning_Jobs::getTitleById($val);
         }
 
-        $stateArr = array('active', 'wakeup, closed');
+        $stateArr = array('active', 'wakeup', 'closed');
 
         $jQuery = planning_Jobs::getQuery();
         $jQuery->in('state', $stateArr);
@@ -395,7 +395,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             arr::sortObjects($recs, $orderBy, $orderType, $order);
         }
-//bp($aaa,$recs);
+
         return $recs;
     }
 
