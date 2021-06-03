@@ -89,6 +89,9 @@ class email_drivers_DeleteEmails extends core_BaseClass
 
             $iQuery->show('id, threadId, containerId, subject');
 
+            // @todo - да се премахне след като се направи да не се трият
+            $iQuery->where("#state != 'rejected'");
+
             foreach ($fieldArrMap as $serviceFieldName => $recFieldName) {
 
                 if (!strlen(trim($sRec->{$serviceFieldName}, '*')) || !strlen(trim($sRec->{$serviceFieldName}))) {
@@ -125,22 +128,43 @@ class email_drivers_DeleteEmails extends core_BaseClass
                     }
                 }
 
-                doc_Threads::logNotice('Изтрита нишка: ' . $iRec->subject, $iRec->threadId);
+//                doc_Threads::logNotice('Изтрита нишка: ' . $iRec->subject, $iRec->threadId);
 //                doc_Containers::logNotice('Изтрит документ: ' . $iRec->subject, $iRec->containerId);
 //                email_Incomings::logNotice('Изтрит имейл: ' . $iRec->subject, $iRec->id);
 
-                doc_Threads::delete($iRec->threadId);
-                doc_Containers::delete($iRec->containerId);
-                email_Incomings::delete($iRec->id);
+                // @todo - да е изтриване
+                doc_Threads::logNotice('Оттеглена нишка (вместо изтриване)', $iRec->threadId);
+//                doc_Threads::delete($iRec->threadId);
+//                doc_Containers::delete($iRec->containerId);
+//                email_Incomings::delete($iRec->id);
+
+                // @todo - да е изтриване
+                $incRec = email_Incomings::fetch($iRec->id);
+                $incRec->brState = $incRec->state;
+                $incRec->state = 'rejected';
+                email_Incomings::save($incRec, 'state, brState, modifiedOn, modifiedBy');
+
+                // @todo - да е изтриване
+                $cRec = doc_Containers::fetch($iRec->containerId);
+                $cRec->state = 'rejected';
+                doc_Containers::save($cRec, 'state, modifiedOn, modifiedBy');
+
+                // @todo - да е изтриване
+                $tRec = doc_Threads::fetch($iRec->threadId);
+                $tRec->state = 'rejected';
+                doc_Threads::save($tRec, 'state, modifiedOn, modifiedBy');
 
                 $delCnt++;
             }
 
             if ($delCnt) {
+                // @todo - да е изтриване
+//                $nMsg = "Изтрити имейли - {$delCnt}";
+                $nMsg = "Оттеглени имейли - {$delCnt}";
                 $msg .= $msg ? '\n' : '';
-                $msg = email_ServiceRules::getLinkToSingle_($sRec->id, null, false, array('ef_icon' => false)) . ": Изтрити документи - {$delCnt}";
+                $msg = email_ServiceRules::getLinkToSingle_($sRec->id, null, false, array('ef_icon' => false)) . ": {$nMsg}";
 
-                $rulesInst->logNotice("Изтрити документи - {$delCnt}", $sRec->id);
+                $rulesInst->logNotice($nMsg, $sRec->id);
             }
 
             doc_Folders::updateFolderByContent($iRec->folderId);
