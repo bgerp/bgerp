@@ -278,7 +278,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $rec->amountDeal = $fields['amountDeal'];
         $from = currency_Currencies::getCodeById($rec->dealCurrencyId);
         $to = currency_Currencies::getCodeById($rec->currencyId);
-        
+
         if(empty($fields['amountFromAccountId'])){
             if($rec->dealCurrencyId == $rec->currencyId){
                 $rec->amount = $rec->amountDeal;
@@ -551,7 +551,7 @@ abstract class bank_Document extends deals_PaymentDocument
     protected function setDefaultsFromOrigin(core_ObjectReference $origin, core_Form &$form, &$options)
     {
         $dealInfo = $origin->getAggregateDealInfo();
-        
+
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
         $form->setDefault('rate', $dealInfo->get('rate'));
@@ -591,7 +591,7 @@ abstract class bank_Document extends deals_PaymentDocument
         } else {
             $form->setDefault('currencyId', $form->rec->dealCurrencyId);
         }
-        
+
         $pOperations = $dealInfo->get('allowedPaymentOperations');
         $defaultOperation = $dealInfo->get('defaultBankOperation');
         $options = static::getOperations($pOperations);
@@ -602,17 +602,17 @@ abstract class bank_Document extends deals_PaymentDocument
                 $expectedPayment = $form->rec->amountDeal * $dealInfo->get('rate');
             }
             
-            $amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
+            $amount = round($expectedPayment / $dealInfo->get('rate'), 2);
             
             if ($form->rec->currencyId == $form->rec->dealCurrencyId) {
-                $form->setDefault('amount', $amount);
+                $form->setDefault('amount',$amount);
             }
         }
         
         if (isset($defaultOperation) && array_key_exists($defaultOperation, $options)) {
             $form->setDefault('operationSysId', $defaultOperation);
             
-            $dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+            $dAmount = round($amount, 2);
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);
             }
