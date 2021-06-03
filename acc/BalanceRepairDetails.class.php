@@ -43,9 +43,9 @@ class acc_BalanceRepairDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'accountId, blQuantity,blAmount';
-    
-    
+    public $listFields = 'accountId, blQuantity=Поправка на количеството->Салдо под, blRoundQuantity=Поправка на количеството->Закръгляне, blAmount=Поправка на сумата->Салдо под, blRoundAmount=Поправка на сумата->Закръгляне';
+
+
     /**
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
@@ -110,13 +110,15 @@ class acc_BalanceRepairDetails extends doc_Detail
         $this->FLD('repairId', 'key(mvc=acc_BalanceRepairs)', 'column=none,input=hidden,silent,mandatory');
         $this->FLD('accountId', 'acc_type_Account(allowEmpty)', 'caption=Сметка,mandatory');
         $this->FLD('reason', 'varchar', 'caption=Информация');
-        $this->FLD('blQuantity', 'double', 'caption=Зануляване на крайно салдо под->Количество');
-        $this->FLD('blAmount', 'double', 'caption=Зануляване на крайно салдо под->Сума');
+        $this->FLD('blRoundQuantity', 'enum(,1,2,3,4,5)', 'caption=Поправка на стойността на количеството->Закръгляне,silent,removeAndRefreshForm=blQuantity');
+        $this->FLD('blQuantity', 'double', 'caption=Поправка на стойността на количеството->Зануляване на крайно салдо');
+        $this->FLD('blRoundAmount', 'enum(,1,2,3,4,5)', 'caption=Поправка на стойността на сумата->Закръгляне,silent,removeAndRefreshForm=blAmount');
+        $this->FLD('blAmount', 'double', 'caption=Поправка на стойността на сумата->Зануляване на крайно салдо');
         
         $this->setDbUnique('repairId,accountId');
     }
-    
-    
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -125,11 +127,20 @@ class acc_BalanceRepairDetails extends doc_Detail
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
+        $rec = &$form->rec;
         if ($form->isSubmitted()) {
-            if ($form->rec->blQuantity > $mvc->allowedLimit) {
+            if(!empty($rec->blRoundQuantity) && !empty($rec->blQuantity)){
+                $form->setWarning('blRoundQuantity,blQuantity', "За количеството трябва да е попълнено само едно от двете полета");
+            }
+
+            if(!empty($rec->blRoundAmount) && !empty($rec->blAmount)){
+                $form->setWarning('blRoundAmount,blAmount', "За сумата трябва да е попълнено само едно от двете полета");
+            }
+
+            if ($rec->blQuantity > $mvc->allowedLimit ) {
                 $form->setWarning('blQuantity', "Въведеното к-ва е над '{$mvc->allowedLimit}'");
             }
-            
+
             if ($form->rec->blAmount > $mvc->allowedLimit) {
                 $form->setWarning('blAmount', "Въведената сума е над '{$mvc->allowedLimit}'");
             }
@@ -178,7 +189,8 @@ class acc_BalanceRepairDetails extends doc_Detail
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
+        $rec = &$form->rec;
+
         // Извличаме само сметките с посочените номера
         $nums = arr::make($mvc->selectAccountsFromByNum);
         $options = array();
@@ -191,8 +203,13 @@ class acc_BalanceRepairDetails extends doc_Detail
         // Задаване на дефолти при нужда
         $useDefaults = acc_Setup::get('BALANCE_REPAIR_NO_DEFAULTS');
         if($useDefaults != 'yes'){
-            $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANITITY_BELLOW'));
-            $form->setDefault('blAmount', acc_Setup::get('BALANCE_REPAIR_AMOUNT_BELLOW'));
+            if(empty($rec->blRoundQuantity)){
+                $form->setDefault('blQuantity', acc_Setup::get('BALANCE_REPAIR_QUANITITY_BELLOW'));
+            }
+
+            if(empty($rec->blRoundAmount)){
+                $form->setDefault('blAmount', acc_Setup::get('BALANCE_REPAIR_AMOUNT_BELLOW'));
+            }
         }
     }
 }

@@ -95,7 +95,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         
         $Items = cls::get('acc_Items');
         $itemsArr = $Items->getCachedItems();
-        
+
         // За всеки запис
         while ($bRec = $bQuery->fetch()) {
             $continue = true;
@@ -112,6 +112,13 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                         $var = $diff;
                         $continue = false;
                     }
+                } elseif(!empty($dRec->{"blRound{$fld}"})){
+                    $var = &${"bl{$fld}"};
+                    $diff = round(round($bRec->{"bl{$fld}"}, $dRec->{"blRound{$fld}"}) - $bRec->{"bl{$fld}"}, 5);
+                    if($diff){
+                        $var = $diff;
+                        $continue = false;
+                    }
                 }
             }
             
@@ -119,15 +126,16 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
             if ($continue) {
                 continue;
             }
-            
+
             // Ако има поне едно перо
             if (!empty($bRec->ent1Id) || !empty($bRec->ent2Id) || !empty($bRec->ent3Id)) {
-                
+
                 // Проверяваме всички пера
                 $continue = true;
+
                 foreach (array('ent1Id', 'ent2Id', 'ent3Id') as $ent) {
                     if (!empty($bRec->{$ent})) {
-                        
+
                         // Ако има поне едно затворено, и то е затворено преди края на периода
                         if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
                             if($itemsArr['items'][$bRec->{$ent}]->closedOn <= $periodRec->end){
@@ -137,15 +145,15 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                         }
                     }
                 }
-                
+
                 // Ако всички пера са отворени продължаваме без да правим нищо
                 if ($continue) {
                     continue;
                 }
             }
-            
+
             $ourSideArr = array($sysId, $bRec->ent1Id, $bRec->ent2Id, $bRec->ent3Id);
-            
+
             $entry = array('amount' => abs($blAmount));
             $total += abs($blAmount);
             
@@ -185,7 +193,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
             $entry['reason'] = 'Разлики от закръгляния';
             $entries[] = $entry;
         }
-        
+
         // Връщаме ентритата
         return $entries;
     }

@@ -1602,6 +1602,14 @@ a.tUnsighted {
   .bgerp_drivers_Tasks .tagsHolder {
     margin-right: -45px; }
 
+.noteBomCol {
+  color: green;
+  font-size: 0.9em; }
+
+.noteExpectedCol {
+  color: blue;
+  font-size: 0.9em; }
+
   .narrow .document span.state {
     padding: 2px 5px;
     border-radius: 3px;
@@ -3555,6 +3563,9 @@ span.sharing-history-title {
   top: -2px; }
   .option-not-in-stock.waitingDelivery {
     background-color: rgba(41, 86, 222, 0.8) !important; }
+  .option-not-in-stock.saleSoon {
+    background-color: rgba(241, 223, 11, 0.9) !important;
+    color: black !important; }
 
 .eshop-product-list-param {
   font-size: 0.85em;
@@ -5253,11 +5264,11 @@ div.location.public {
 /*
  * край на стилове за състояния на SMS' ите в колцентъра
  */
-.doc-negative-quantiy {
+.doc-negative-quantity {
   color: red;
   font-weight: bold; }
 
-.doc-warning-quantiy {
+.doc-warning-quantity {
   color: #d66737;
   font-weight: bold; }
 
@@ -6517,6 +6528,9 @@ only screen and (max-width: 320px) {
   page-break-after: auto;
   page-break-inside: avoid;
   margin-bottom: 10mm; }
+
+.labelBreak:last-child {
+  margin-bottom: 0mm; }
 
 /*
  * стилове за принтиране

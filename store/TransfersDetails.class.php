@@ -206,7 +206,7 @@ class store_TransfersDetails extends doc_Detail
             $rec = $data->recs[$id];
 
             $deliveryDate = !empty($data->masterData->rec->deliveryTime) ? $data->masterData->rec->deliveryTime : $data->masterData->rec->valior;
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
         }
     }
     

@@ -82,10 +82,10 @@ class ztm_Registers extends core_Master
      */
     protected function description()
     {
-        $this->FLD('name', 'varchar(32)', 'caption=Име');
+        $this->FLD('name', 'varchar(64)', 'caption=Име');
         $this->FLD('type', 'enum(int,bool,float,str,json)', 'caption=Тип');
         $this->FLD('range', 'text', 'caption=Диапазон');
-        $this->FLD('plugin', 'varchar(32)', 'caption=Модул');
+        $this->FLD('plugin', 'varchar(64)', 'caption=Модул');
         $this->FLD('scope', 'enum(system=Система, device=Устройство, global=Глобално, both=И двете)', 'caption=Обхват, oldFieldName=priority');
         $this->FLD('default', 'text', 'caption=Дефолтна стойност');
         $this->FLD('description', 'text', 'caption=Описание на регистъра');

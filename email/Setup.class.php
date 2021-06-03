@@ -311,6 +311,31 @@ class email_Setup extends core_ProtoSetup
      * Необходими пакети
      */
     public $depends = 'fileman=0.1,doc=0.1';
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'DeleteOldServiceMails',
+            'description' => 'Изтриване на стари сервизни имейли',
+            'controller' => 'email_ServiceEmails',
+            'action' => 'DeleteOldServiceMails',
+            'period' => 1440,
+            'offset' => 60,
+            'timeLimit' => 100
+        ),
+        array(
+            'systemId' => 'DeleteEmails',
+            'description' => 'Изтриване на имейлите по шаблон',
+            'controller' => 'email_drivers_DeleteEmails',
+            'action' => 'DeleteEmails',
+            'period' => 1440,
+            'offset' => 120,
+            'timeLimit' => 300
+        ),
+    );
     
     
     /**
@@ -418,7 +443,6 @@ class email_Setup extends core_ProtoSetup
         'email_Router',
         'email_Addresses',
         'email_FaxSent',
-        'email_Filters',
         'email_Returned',
         'email_Receipts',
         'email_Spam',
@@ -432,13 +456,15 @@ class email_Setup extends core_ProtoSetup
         'email_ServiceRulesData',
         'email_AddressesInfo',
         'migrate::repairSpamScore1219',
+        'migrate::serviceRules2121',
+        'migrate::filtersToServiceRules2121',
     );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'email_reports_Spam';
+    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_DeleteEmails';
     
     
     /**
@@ -598,20 +624,63 @@ class email_Setup extends core_ProtoSetup
         core_CallOnTime::setCall('email_Spam', 'repairSpamScore', null, dt::addSecs(120));
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'email_Spam', dt::addSecs(180));
     }
-    
-    
+
+
     /**
-     * Настройки за Cron
+     * Поправка на записите за сервизните имейли
      */
-    public $cronSettings = array(
-            array(
-                    'systemId' => 'DeleteOldServiceMails',
-                    'description' => 'Изтриване на стари сервизни имейли',
-                    'controller' => 'email_ServiceEmails',
-                    'action' => 'DeleteOldServiceMails',
-                    'period' => 1440,
-                    'offset' => 60,
-                    'timeLimit' => 100
-            ),
-    );
+    public static function serviceRules2121()
+    {
+        $inst = cls::get('email_ServiceRules');
+
+        $inst->FLD('classId', 'class(interface=email_ServiceRulesIntf, select=title)', 'caption=Обработвач, mandatory', array('attr' => array('style' => 'width: 350px;')));
+
+        $query = $inst->getQuery();
+        while ($rec = $query->fetch()) {
+            if ($rec->classId && !$rec->driverClass) {
+                $rec->driverClass = $rec->classId;
+
+                $inst->save($rec, 'driverClass');
+            }
+        }
+    }
+
+
+
+
+    /**
+     * Прехвърляне на записите от email_Filters към сервизните имейли
+     */
+    public static function filtersToServiceRules2121()
+    {
+        $fInst = cls::get('email_Filters');
+        $fQuery = $fInst->getQuery();
+
+        while ($fRec = $fQuery->fetch()) {
+            $nRec = new stdClass();
+            $nRec->state = $fRec->state;
+            $nRec->email = $fRec->email;
+            $nRec->subject = $fRec->subject;
+            $nRec->body = $fRec->body;
+            $nRec->note = $fRec->note;
+            $nRec->createdOn = $fRec->createdOn;
+            $nRec->createdBy = $fRec->createdBy;
+
+            if ($fRec->action == 'email') {
+                $nRec->driverClass = email_drivers_RouteByFirstEmail::getClassId();
+            } elseif ($fRec->action == 'folder') {
+                $nRec->driverClass = email_drivers_RouteByFolder::getClassId();
+                $nRec->folderId = $fRec->folderId;
+            } else {
+                continue ;
+            }
+
+            try {
+                email_ServiceRules::save($nRec, null, 'REPLACE');
+            } catch (core_exception_Expect $e) {
+
+                continue;
+            }
+        }
+    }
 }

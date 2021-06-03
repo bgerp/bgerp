@@ -44,18 +44,23 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
         }
 
         if (Mode::get('saveTransaction')) {
+            $notAllocatedInputProductArr = array_filter($rec->_details, function($a) { return $a->type != 'allocated';});
+
             $productArr = arr::extractValuesFromArray($rec->_details, 'productId');
-            if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canConvert', null, 'трябва да са вложими')){
+            $notAllocatedInputProductArr = arr::extractValuesFromArray($notAllocatedInputProductArr, 'productId');
+            if($redirectError = deals_Helper::getContoRedirectError($notAllocatedInputProductArr, 'canConvert', null, 'трябва да са вложими')){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
             
             if($redirectError = deals_Helper::getContoRedirectError($productArr, null, 'generic', 'са генерични и трябва да бъдат заменени')){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
-            
-            $returnProductArr = array_filter($rec->_details, function($a) { return $a->type != 'input';});
+
+
+            $returnProductArr = array_filter($rec->_details, function($a) { return $a->type == 'pop';});
             if(countR($returnProductArr)){
-                if($redirectError = deals_Helper::getContoRedirectError($productArr, 'canStore', null, 'трябва да са складируеми за да са отпадъци')){
+                $returnProductArr = arr::extractValuesFromArray($returnProductArr, 'productId');
+                if($redirectError = deals_Helper::getContoRedirectError($returnProductArr, 'canStore', null, 'трябва да са складируеми за да са отпадъци')){
                     acc_journal_RejectRedirect::expect(false, $redirectError);
                 }
             }
@@ -79,9 +84,6 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     }
                 }
             }
-
-
-
         }
         
         return $result;
@@ -223,7 +225,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     
                     // Влагаме артикула, само ако е складируем, ако не е
                     // се предполага ,че вече е вложен в незавършеното производство
-                    if ($dRec->type == 'input') {
+                    if ($dRec->type == 'input' || $dRec->type == 'allocated') {
                         $canStore = cat_Products::fetchField($dRec->productId, 'canStore');
                         
                         if ($canStore == 'yes') {
@@ -241,8 +243,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                            'reason' => 'Влагане на материал в производството');
                         } else {
                             if(empty($dRec->fromAccId)) continue;
-
-                            $item = acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
+                            $item = isset($dRec->expenseItemId) ? $dRec->expenseItemId : acc_Items::forceSystemItem('Неразпределени разходи', 'unallocated', 'costObjects')->id;
                             $entry = array('debit' => array('61101',
                                                       array('cat_Products', $dRec->productId),
                                                       'quantity' => $dRec->quantity),
@@ -261,17 +262,18 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                 
                 $costAmount = $index = 0;
                 foreach ($details as $dRec1) {
-                    $sign = ($dRec1->type == 'input') ? 1 : -1;
+                    $sign = ($dRec1->type == 'pop') ? -1 : 1;
                     $canStore = cat_Products::fetchField($dRec1->productId, 'canStore');
                     
-                    if ($dRec1->type == 'input') {
+                    if ($dRec1->type == 'input' || $dRec1->type == 'allocated') {
                         // Ако артикула е складируем търсим средната му цена във всички складове, иначе търсим в незавършеното производство
                         if ($canStore == 'yes') {
                             $primeCost = cat_Products::getWacAmountInStore($dRec1->quantity, $dRec1->productId, $valior, $dRec1->storeId);
                         } else {
                             $primeCost = planning_GenericMapper::getWacAmountInProduction($dRec1->quantity, $dRec1->productId, $valior);
                         }
-                        
+
+                        //@todo ами разпределените услуги?
                         $sign = 1;
                     } else {
                         $primeCost = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $dRec1->productId, null, $valior);
@@ -289,7 +291,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                     $quantityD = ($index == 0) ? $quantity : 0;
                     
                     // Ако е материал го изписваме към произведения продукт
-                    if ($dRec1->type == 'input') {
+                    if ($dRec1->type != 'pop') {
                         $reason = ($index == 0) ? 'Засклаждане на произведен артикул' : (($canStore != 'yes' ? 'Вложен нескладируем артикул в производството на продукт' : 'Вложен материал в производството на артикул'));
                         
                         $array['quantity'] = $quantityD;

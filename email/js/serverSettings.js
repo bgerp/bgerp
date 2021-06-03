@@ -38,6 +38,7 @@ function mailServerSettings() {
 		    	protocol.value = "imap";
 		    	security.value = "ssl";
 		    	cert.value = "validate";
+				folder.value = "INBOX";
 		    	smtpServer.value = "smtp.gmail.com:587";
 		    	smtpSecure.value = "tls";
 		    	smtpAuth.value = "LOGIN";
@@ -77,6 +78,19 @@ function mailServerSettings() {
 		    	user.value = email.value;
 		    	smtpUser.value = email.value;
 		        break;
+
+			case "yandex.com":
+				server.value = "imap.yandex.com:993";
+				protocol.value = "imap";
+				security.value = "ssl";
+				cert.value = "validate";
+				folder.value = "Inbox";
+				smtpServer.value = "smtp.yandex.com:465";
+				smtpSecure.value = "ssl";
+				smtpAuth.value = "LOGIN";
+				user.value = email.value;
+				smtpUser.value = email.value;
+				break;
 
 		    default:
 		    	protocol.value = "imap";

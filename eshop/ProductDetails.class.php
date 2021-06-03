@@ -57,7 +57,7 @@ class eshop_ProductDetails extends core_Detail
     /**
      * Кои полета да се показват в листовия изглед
      */
-    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Опаковки/Мерки,moq,deliveryTime,action,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
+    public $listFields = 'eshopProductId=Е-артикул,productId,title,packagings=Настройки->Опаковки,moq=Настройки->МКП,deliveryTime=Настройки->Доставка,action==Настройки->Действия,state=Състояние->Детайл,pState=Състояние->Артикул,modifiedOn,modifiedBy';
     
     
     /**
