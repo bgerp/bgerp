@@ -35,7 +35,9 @@ class plg_SystemWrapper extends plg_ProtoWrapper
         
         $this->TAB('log_Data', 'Логове->Потребителски', 'admin');
         $this->TAB('log_System', 'Логове->Системен', 'admin');
-        $this->TAB('log_Debug', 'Логове->Дебъг', 'debug');
+        if (defined('DEBUG_FATAL_ERRORS_PATH')) {
+            $this->TAB('log_Debug', 'Логове->Дебъг', 'debug');
+        }
         $this->TAB('core_LoginLog', 'Логове->Логин', 'admin');
         $this->TAB('log_Browsers', 'Логове->Браузъри', 'admin');
         $this->TAB('log_Ips', 'Логове->IP-та', 'admin');

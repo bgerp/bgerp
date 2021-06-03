@@ -1154,7 +1154,7 @@ if ($step == 'setup') {
     }
 
     if ($haveNewVersion) {
-        $links[] = "inf|{$selfUrl}&amp;step=3|Има по-нова версия. Обновете я »|_parent";
+        $links[] = "inf|{$selfUrl}&amp;step=2|Има по-нова версия. Обновете я »|_parent";
     }    
     $links[] = "new|{$appUri}|Стартиране на bgERP »|_parent";
   

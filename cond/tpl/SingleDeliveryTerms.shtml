@@ -2,9 +2,9 @@
     [#SingleToolbar#]
     <h2 style="line-height:30px" class=" [#STATE_CLASS#]"> |Условие на доставка|* <span style="color:green;">[#codeName#]</span></h2>
     <p>[#term#]</p>
-    <!--ET_BEGIN address-->
-    <b>|Свойства|*</b>: [#address#]
-    <!--ET_END address-->
+    <!--ET_BEGIN properties-->
+    <p><b>|Свойства|*:</b> [#properties#]</p>
+    <!--ET_END properties-->
     <!--ET_BEGIN costCalc-->
     <p><b>|Калкулатор|*:</b> [#costCalc#]</p>
     <!--ET_END costCalc-->
@@ -20,7 +20,6 @@
     <!--ET_BEGIN forBuyer-->
     <p><b>|За купувача|*:</b> [#forBuyer#]</p>
     <!--ET_END forBuyer-->
-    
     <!--ET_BEGIN address-->
     <b>|Показване на мястото на доставка|*</b>: [#address#]
     <!--ET_END address-->

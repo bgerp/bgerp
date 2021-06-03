@@ -82,14 +82,14 @@ class type_Double extends core_Type
             
             return;
         }
-        
+
         $value = $this->prepareVal($value, $allowOct, $allowHex);
-        
+
         if (!strlen($value)) {
             
             return;
         }
-        
+
         // Превръщаме 16-тичните числа в десетични
         //$value = trim(preg_replace('/[^0123456789]{0,1}0x([a-fA-F0-9]*)/e', "substr('\\0',0,1).hexdec('\\0')", ' '.$value));
         
@@ -112,8 +112,29 @@ class type_Double extends core_Type
         try {
             if (!preg_match($pattern, $value) && @eval('return TRUE;' . $code)) {
                 @eval($code);
-                
-                return (float) $val;
+                $v = (float) $val;
+
+                // Ако е указан макс брой десетични знаци
+                if(isset($this->params['maxAllowedDecimals'])){
+
+                    // Колко са?
+                    $decimals = strlen(substr(strrchr($v, '.'), 1));
+
+                    // Ако стойността е въведена като формула
+                    if (preg_match("/\d\s*[\*\-\+\/\%]\s*\d/", $value)) {
+
+                        // твърдо се закръгля до максималния допустим знак
+                        $v = round($v, $this->params['maxAllowedDecimals']);
+                    } elseif($decimals > $this->params['maxAllowedDecimals']){
+
+                        // Ако е въведено чисто число и е надвишен посочения брой, сетва се грешка
+                        $this->error = "Максимален брой знаци в дробната част:|* {$this->params['maxAllowedDecimals']}";
+
+                        return false;
+                    }
+                }
+
+                return $v;
             }
         } catch (Throwable $e) {
             // Нищо не се прави - основно за PARSE_ERROR

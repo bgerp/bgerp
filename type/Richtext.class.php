@@ -506,7 +506,7 @@ class type_Richtext extends type_Blob
         
         for ($i = 0; $i < $linesCnt; $i++) {
             $l = $lines[$i];
-            
+
             $type = '';
             $level = 0;
             if ($matches = self::getListMatches($l)) {
@@ -527,7 +527,7 @@ class type_Richtext extends type_Blob
                 
                 $level = round((strlen($matches['begin'])) / 2);
                 $level = max($level, 1);
-                
+
                 // 1,2,3,4,
                 if ($matches['list'][0] == '%') {
                     $type = 'ol';
@@ -572,7 +572,7 @@ class type_Richtext extends type_Blob
             
             $debug[] = array($l, $state, $level, $oldLevel);
         }
-        
+
         Debug::stopTimer('RichtextReplaceList');
         
         return $res;
@@ -597,10 +597,14 @@ class type_Richtext extends type_Blob
             return $matchedLinesArr[$hash];
         }
         
-        $pattern = "/^(?'begin'\ *)(?'list'\[li\]|\*\ |%\.)(?'text'.+)/i";
-        
+        $pattern = "/(?'begin'(\<nbsp\>)*[\s\t]*)(\<nbsp\>)*(?'list'\[li\]|\*\s|%\.)(?'text'.+)/i";
+
         preg_match($pattern, $line, $matches);
-        
+
+        if ($matches) {
+            $matches['begin'] = str_replace("<nbsp><nbsp><nbsp><nbsp>", ' ', $matches['begin']);
+        }
+
         $matchedLinesArr[$hash] = $matches;
         
         return $matchedLinesArr[$hash];

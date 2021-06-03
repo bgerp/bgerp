@@ -226,7 +226,7 @@ class sales_SalesDetails extends deals_DealDetail
                         $deliveryDate = dt::addSecs($masterRec->deliveryTermTime, $deliveryDate);
                     }
                 }
-                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
+                deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
             }
             
             if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {

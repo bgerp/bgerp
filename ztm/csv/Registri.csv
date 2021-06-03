@@ -59,11 +59,9 @@ monitoring.hw.tpl,float,0.0/,Monitoring,system,1.0,Hot water tics per liter
 monitoring.hw.value,float,0.0/,Monitoring,device,0.0,Hot water liters
 monitoring.hw.leak,float,0.0/,Monitoring,device,1.0,Hot water leaked liters
 monitoring.pa.settings,str,,Monitoring,system,off,Power analyser settings
-monitoring.pa.l1,json,,Monitoring,device,"""[]""",Power analyser L1 parameters
-monitoring.pa.l2,json,,Monitoring,device,"""[]""",Power analyser L2 parameters
-monitoring.pa.l3,json,,Monitoring,device,"""[]""",Power analyser L3 parameters
+monitoring.pa.measurements,json,,Monitoring,device,"""[]""",Power analyser measurements
 monitoring.enabled,bool,true|false,Monitoring,system,false,Plugin enabled
-envm.is_empty,int,0/1,Environment,device,1,Is empty flag
+envm.is_empty,bool,true|false,Environment,device,true,Is empty flag
 envm.is_empty_timeout,int,0/,Environment,system,3600,Is empty time out [s]
 envm.temp.actual,float,-50/50,Environment,system,20.0,Actual outside temperature [C]
 envm.temp.a6,float,-50/50,Environment,system,30.0,Actual outside temperature for 6 hours [C]
@@ -90,57 +88,38 @@ envm.sun.azimuth,float,0.0/360.0,Blinds,system,0.0,Sun azimuth value
 envm.sun.elevation,float,0.0/360.0,Blinds,system,0.0,Sun elevation value
 hvac.zones_count,int,0/,HVAC,system,1,Count of the HVAC zones.
 hvac.adjust_temp_1,float,-50.0/50.0,HVAC,system,0.0,Adjust temperature
-hvac.air_temp_cent_1.settings,str,,HVAC,system,temp/DS18B20/28FFFCD0001703AE,Air temperature sensor center settings
+hvac.air_temp_cent_1.settings,str,,HVAC,system,Dallas/DS18B20/28FFFCD0001703AE,Air temperature sensor center settings
 hvac.air_temp_cent_1.value,float,/,HVAC,system,0.0,Air temperature sensor center value
-hvac.air_temp_lower_1.settings,str,,HVAC,system,temp/DS18B20/28FFC4EE00170349,Air temperature sensor lower settings
+hvac.air_temp_lower_1.settings,str,,HVAC,system,Donkger/XY-MD02/2,Air temperature sensor lower settings
 hvac.air_temp_lower_1.value,float,/,HVAC,system,0.0,Air temperature sensor lower value
-hvac.air_temp_upper_1.settings,str,,HVAC,system,temp/DS18B20/28FF2B70C11604B7,Air temperature sensor upper settings
+hvac.air_temp_upper_1.settings,str,,HVAC,system,Dallas/DS18B20/28FF2B70C11604B7,Air temperature sensor upper settings
 hvac.air_temp_upper_1.value,float,/,HVAC,system,0.0,Air temperature sensor upper value
-hvac.convector_1.settings,str,,HVAC,system,silpa/klimafan,Convector settings
-hvac.convector_1.stage_1.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO0,Convector stage 1 output
-hvac.convector_1.stage_2.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO1,Convector stage 2 output
-hvac.convector_1.stage_3.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO2,Convector stage 3 output
+hvac.convector_1.settings,str,,HVAC,system,Silpa/Klimafan/RO0/RO1/RO2,Convector settings
 hvac.delta_time_1,float,0.0/,HVAC,system,5.0,Measuring delta time
 hvac.enabled,bool,true|false,HVAC,system,false,Plugin enabled
 hvac.goal_building_temp,float,-50.0/50.0,HVAC,system,20.0,Goal of the building temperature
 hvac.loop1_1.cnt.tpl,float,0.0/,HVAC,system,1.0,Loop 1 water flow meter ticks per liter scale
 hvac.loop1_1.cnt.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,HVAC,system,off,Loop 1 water flow meter signal input
-hvac.loop1_1.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600,Loop 1 fan settings
-hvac.loop1_1.fan.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,HVAC,system,AO3,Loop 1 fan output
-hvac.loop1_1.fan.min_speed,float,0.0/100.0,HVAC,system,0.0,Loop 1 fan minimum speed [%]
-hvac.loop1_1.fan.max_speed,float,0.0/100.0,HVAC,system,30.0,Loop 1 fan maximum speed [%]
-hvac.loop1_1.temp.settings,str,,HVAC,system,temp/DS18B20/28FF2B70C11604B7,Loop 1 temperature sensor settings
+hvac.loop1_1.temp.settings,str,,HVAC,system,Dallas/DS18B20/28FF2B70C11604B7,Loop 1 temperature sensor settings
 hvac.loop1_1.temp.value,float,/,HVAC,system,0.0,Loop 1 temperature sensor value
 hvac.loop1_1.temp.down_limit,int,0.0/,HVAC,system,15,Loop 1 temperature down limit
-hvac.loop1_1.valve.settings,str,,HVAC,system,TONHE/a20m15b2c,Loop 1 valve settings
-hvac.loop1_1.valve.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO4,Loop 1 valve output
-hvac.loop1_1.valve.feedback,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AI1,Loop 1 valve feedback
-hvac.loop1_1.valve.max_pos,float,0.0/100.0,HVAC,system,100.0,Loop 1 valve maximum position
-hvac.loop1_1.valve.min_pos,float,0.0/100.0,HVAC,system,0.0,Loop 1 valve minimum position
+hvac.loop1_1.valve.settings,str,,HVAC,system,Tonhe/a20m15b2c/RO4/off/0/100,Loop 1 valve settings
 hvac.loop2_1.cnt.tpl,float,0.0/,HVAC,system,1.0,Loop 2 water flow meter ticks per liter scale
 hvac.loop2_1.cnt.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,HVAC,system,off,Loop 1 water flow meter signal input
-hvac.loop2_1.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600,Loop 2 fan settings
-hvac.loop2_1.fan.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,HVAC,system,AO4,Loop 2 fan output
-hvac.loop2_1.fan.min_speed,float,0.0/100.0,HVAC,system,0.0,Loop 2 fan minimum speed [%]
-hvac.loop2_1.fan.max_speed,float,0.0/100.0,HVAC,system,30.0,Loop 2 fan maximum speed [%]
-hvac.loop2_1.temp.settings,str,,HVAC,system,temp/DS18B20/28FFC4EE00170349,Loop 2 temperature sensor settings
+hvac.loop2_1.temp.settings,str,,HVAC,system,Dallas/DS18B20/28FFC4EE00170349,Loop 2 temperature sensor settings
 hvac.loop2_1.temp.value,float,/,HVAC,system,0.0,Loop 1 temperature sensor value
-hvac.loop2_1.valve.settings,str,,HVAC,system,TONHE/a20m15b2c,Loop 2 valve settings
-hvac.loop2_1.valve.output,str,off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8,HVAC,system,RO3,Loop 2 valve output
-hvac.loop2_1.valve.feedback,str,off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8,HVAC,system,AI2,Loop 2 valve feedback
-hvac.loop2_1.valve.max_pos,float,0.0/100.0,HVAC,system,100.0,Loop 2 valve maximum position
-hvac.loop2_1.valve.min_pos,float,0.0/100.0,HVAC,system,0.0,Loop 2 valve minimum position
+hvac.loop2_1.valve.settings,str,,HVAC,system,Tonhe/a20m15b2c/RO3/off/0/100,Loop 2 valve settings
 hvac.temp_1.actual,float,-50.0/50.0,HVAC,system,0.0,Actual temperature
 hvac.temp_1.max,float,-50.0/50.0,HVAC,system,30.0,Maximum achievable
 hvac.temp_1.min,float,-50.0/50.0,HVAC,system,20.0,Minimum achievable
 hvac.thermal_force_limit_1,float,0.0/100.0,HVAC,system,100.0,Thermal force limit
 hvac.thermal_mode_1,int,1|2|3|4,HVAC,system,2,Thermal mode
-hvac.update_rate_1,float,0.0/,HVAC,system,3.0,Update rate of the plugin [s]
+hvac.update_rate_1,float,0.0/,HVAC,system,5.0,Update rate of the plugin [s]
 light.min,float,0.0/10000.0,Light,system,800.0,Minimum limit
 light.max,float,0.0/10000.0,Light,system,10000.0,Maximum limit
 light.v1.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,Light,system,AO1,Analog output 1
 light.v2.output,str,off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8,Light,system,AO2,Analog output 2
-light.sensor.settings,str,,Light,system,1wdevice/26607314020000F8,Sensor settings
+light.sensor.settings,str,,Light,system,SEDtronic/u1wtvs/1wdevice/26607314020000F8,Sensor settings
 light.target_illum,float,0.0/10000.0,Light,system,0.0,Target illumination
 light.enabled,bool,true|false,Light,system,false,Plugin enabled
 sys.last_update_errs,json,,System,device,"""[]""",Last update cycle error
@@ -163,19 +142,116 @@ sys.col.info_message.enable,bool,true|false,System,system,true,Enable info messa
 sys.col.warning_message.enable,bool,true|false,System,system,true,Enable warning messages
 sys.col.error_message.enable,bool,true|false,System,system,true,Enable error messages
 ecc.enabled,bool,true|false,Energy Center Common,system,false,Plugin enabled
-ecd.pool_heating.output_fw,str,,Energy Center Distribution,system,U3.M4.DO0,Pool heating valve output.
-ecd.pool_heating.output_rev,str,,Energy Center Distribution,system,U3.M4.DO1,Pool heating valve output.
-ecd.pool_heating.feedback,str,,Energy Center Distribution,system,U3.M4.DI0,Pool heating valve feedback.
-ecd.pool_heating.max_pos,int,0/100,Energy Center Distribution,system,100,Pool heating valve max position.
-ecd.pool_heating.min_pos,int,0/100,Energy Center Distribution,system,0,Pool heating valve min position.
+ecd.underfloor_heating_foyer.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO0/U1:ID1:R0:DO1/U1:ID1:R0:DI0/U1:ID1:R0:DI1,Energy Distribution Controll / Foyer Floor Heating Settings
+ecd.underfloor_heating_foyer.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Foyer Floor Heating Position
+ecd.underfloor_heating_trestle.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO2/U1:ID1:R0:DO3/U1:ID1:R0:DI2/U1:ID1:R0:DI3,Energy Distribution Controll / Underfloor Heating Trestle
+ecd.underfloor_heating_trestle.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Underfloor Heating Trestle Position
+ecd.underfloor_heating_pool.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Underfloor Heating Pool
+ecd.underfloor_heating_pool.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Underfloor Heating Pool Position
+ecd.air_cooling.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Air Cooling Valve Settings
+ecd.air_cooling.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Air Cooling Valve Position
+ecd.ground_drill.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Ground Drilling Valve
+ecd.ground_drill.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Ground Drill Valve Position
+ecd.generators_cooling.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Generators Cooling Valve / Settings
+ecd.generators_cooling.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Generators Cooling Valve / Position
+ecd.short_green_purple.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Short Green/Purple Valve Settings
+ecd.short_green_purple.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Short Green/Purple Valve Position
+ecd.underfloor_west_bypass.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Underfloor West Bypass Valve Settings
+ecd.underfloor_west_bypass.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Underfloor West Bypass Valve Position
+ecd.underfloor_east_bypass.valve.enabled,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Underfloor East Bypass Valve Settings
+ecd.underfloor_east_bypass.valve.position,float,0.0/100.0,ECD,system,0.0,Energy Distribution Controll / Underfloor East Bypass Valve Position
+ecd.vcg_pool_heating.valve,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Heating
+ecd.vcg_pool_heating.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Pool Heating
+ecd.vcg_tva_pool.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Cooling In
+ecd.vcg_tva_pool.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Cooling In
+ecd.vcg_tva_pool.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Heating In
+ecd.vcg_tva_pool.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Pool Heating Out
+ecd.vcg_tva_pool.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Pump
+ecd.convectors_east.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors East Cooling In
+ecd.convectors_east.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors East Cooling Out
+ecd.convectors_east.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors East Hot In
+ecd.convectors_east.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors East Hot Out
+ecd.convectors_east.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Convectors East Pump
+ecd.floor_east.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor East Cooling In
+ecd.floor_east.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor East Cooling Out
+ecd.floor_east.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor East Hot In
+ecd.floor_east.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor East Hot Out
+ecd.floor_east.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Floor East Pump
+ecd.convectors_west.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors West Cooling In
+ecd.convectors_west.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors West Cooling Out
+ecd.convectors_west.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors West Hot In
+ecd.convectors_west.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors West Hot Out
+ecd.convectors_west.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Convectors West Pump
+ecd.tva_roof_floor.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor In
+ecd.tva_roof_floor.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor Out
+ecd.tva_roof_floor.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor In
+ecd.tva_roof_floor.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor Out
+ecd.tva_roof_floor.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor
+ecd.tva_fitness.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Fitness In
+ecd.tva_fitness.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Fitness Out
+ecd.tva_fitness.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Fitness In
+ecd.tva_fitness.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Fitness Out
+ecd.tva_fitness.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Fitness
+ecd.tva_roof_floor.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor In
+ecd.tva_roof_floor.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor Out
+ecd.tva_roof_floor.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor In
+ecd.tva_roof_floor.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor Out
+ecd.tva_roof_floor.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Roof Floor
+ecd.floor_west.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor West Cooling In
+ecd.floor_west.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor West Cooling Out
+ecd.floor_west.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor West Hot In
+ecd.floor_west.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Floor West Hot Out
+ecd.floor_west.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Floor West Pump
+ecd.tva_conference_center.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center In
+ecd.tva_conference_center.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center Out
+ecd.tva_conference_center.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center In
+ecd.tva_conference_center.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center Out
+ecd.tva_conference_center.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Conference Center
+ecd.convectors_kitchen.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Cold In
+ecd.convectors_kitchen.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Cold Out
+ecd.convectors_kitchen.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Hot In
+ecd.convectors_kitchen.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Hot Out
+ecd.convectors_kitchen.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / Convectors Kitchen Pump
+ecd.tva_warehouse.cold_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse Cold In
+ecd.tva_warehouse.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse Cold Out
+ecd.tva_warehouse.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse Hot In
+ecd.tva_warehouse.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse Hot Out
+ecd.tva_warehouse.pump,str,,ECD,system,Grundfos/Pump/5,Energy Distribution Controll / Valve Controll Group / TVA Wearhouse
 ecd.enabled,bool,true|false,Energy Center Distribution,system,false,Plugin enabled
 echp.hp.count,int,0/,ECHP,system,3,Energy Center Heat Pump machines count
 echp.hp.index,int,0/,ECHP,system,0,Energy Center Heat Pump machine index
+echp.hp.power,int,-100.0/100.0,ECHP,system,0,The power of machine
+echp.hp.mode,int,,ECHP,system,0,The mode of the machine
+echp.hp.run,int,,ECHP,device,0,The state of the machine
 echp.hp.cold_min,float,3.0/8.0,ECHP,system,5.0,Energy Center Heat Pump cold minimum
 echp.hp.cold_max,float,3.0/8.0,ECHP,system,7.0,Energy Center Heat Pump cold maximum
 echp.hp.hot_min,float,40.0/47.0,ECHP,system,41.0,Energy Center Heat Pump hot minimum
 echp.hp.hot_max,float,40.0/47.0,ECHP,system,46.0,Energy Center Heat Pump hot maximum
-echp.hp.power,int,-100/100,ECHP,system,0,The power of machine
-echp.hp.mode,int,,ECHP,system,0,The mode of the machine
-echp.hp.run,int,,ECHP,device,0,The state of the machine
+echp.hpcg.vcg_cold_buf.input,str,,ECHP,system,Flowx/FLX-05F/U1:ID1:R0:DO0/U1:ID1:R0:DO1/U1:ID1:R0:DI0/U1:ID1:R0:DI1,Heat Pump Control Group / Valve Controll Group / Cold Buffer / Input
+echp.hpcg.vcg_cold_buf.output,str,,ECHP,system,Flowx/FLX-05F/U1:ID6:R16:DO0/U1:ID6:R16:DO1/U1:ID6:R16:DI0/U1:ID6:R16:DO1,Heat Pump Control Group / Valve Controll Group / Cold Buffer / Output
+echp.hpcg.vcg_cold_buf.short,str,,ECHP,system,Flowx/FLX-05F/U1:ID6:R16:DO2/U1:ID6:R16:DO3/U1:ID6:R16:DI2/U1:ID6:R16:DO3,Heat Pump Control Group / Valve Controll Group / Cold Buffer / Short
+echp.hpcg.vcg_cold_geo.input,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Cold Geo / Input
+echp.hpcg.vcg_cold_geo.output,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Cold Geo / Output
+echp.hpcg.vcg_cold_geo.short,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Cold Geo / Short
+echp.hpcg.vcg_warm_geo.input,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Input
+echp.hpcg.vcg_warm_geo.output,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Output
+echp.hpcg.vcg_warm_geo.short,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Short
+echp.hpcg.vcg_warm_floor.input,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Input
+echp.hpcg.vcg_warm_floor.output,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Output
+echp.hpcg.vcg_warm_floor.short,str,,ECHP,system,Flowx/FLX-05F/off/off/off/off,Heat Pump Control Group / Valve Controll Group / Warm Geo / Output
+echp.hpcg.wp_cold.settings,str,,ECHP,system,Grundfos/Pump/2,Heat Pump Control Group / Water Pump / Cold
+echp.hpcg.wp_hot.settings,str,,ECHP,system,Grundfos/Pump/3,Heat Pump Control Group / Water Pump / Hot
+echp.hpcg.wp_warm_p.settings,str,,ECHP,system,Grundfos/Pump/4,Heat Pump Control Group / Water Pump / Warm
+echp.hpcg.wp_warm_g.settings,str,,ECHP,system,Grundfos/Pump/5,Heat Pump Control Group / Water Pump / Warm
+echp.hpcg.hp.settings,str,,ECHP,system,HstarsGuangzhouRefrigeratingEquipmentGroup/HeatPump/5,Heat Pump Control Group / Heat Pump
 echp.enabled,bool,true|false,Energy Center Heat Pump,system,false,Plugin enabled
+vent.lower_1.fan.settings,str,,HVAC,system,HangzhouAirflowElectricApplications/f3p146ec072600/AO3,Lower fan settings
+vent.lower_1.fan.min_speed,float,0.0/100.0,Ventilation,system,0.0,Lower fan minimum speed [%]
+vent.lower_1.fan.max_speed,float,0.0/100.0,Ventilation,system,30.0,Lower fan maximum speed [%]
+vent.lower_1.fan.speed,float,0.0/100.0,Ventilation,system,0.0,Upper fan speed [%]
+vent.upper_1.fan.settings,str,,Ventilation,system,HangzhouAirflowElectricApplications/f3p146ec072600/AO0,Upper fan settings
+vent.upper_1.fan.min_speed,float,0.0/100.0,Ventilation,system,0.0,Upper fan minimum speed [%]
+vent.upper_1.fan.speed,float,0.0/100.0,Ventilation,system,0.0,Upper fan speed [%]
+vent.upper_1.fan.max_speed,float,0.0/100.0,Ventilation,system,30.0,Upper fan maximum speed [%]
+vent.zones_count,int,0/,Ventilation,system,1,Count of the ventilation zones.
+vent.enabled,bool,,Ventilation,system,false,Ventilation enable flag.

@@ -119,7 +119,7 @@ class import2_Plugin extends core_Plugin
             $rec->{$mvc->masterKey} = $data->masterId;
         }
         if ($mvc->haveRightFor('import2', $rec)) {
-            $data->toolbar->addBtn('Импорт', $url, null, 'title=Импортиране на записи,ef_icon=img/16/import.png');
+            $data->toolbar->addBtn('Импорт', $url, null, 'title=Импортиране на записи,ef_icon=img/16/import.png,order=15');
         }
     }
     

@@ -276,4 +276,22 @@ abstract class deals_ManifactureDetail extends doc_Detail
         
         return $Master::addRow($masterId, $pRec->productId,$pRec->packagingId,$packQuantity, $quantityInPack);
     }
+
+
+    /**
+     * Връща броя на складируемите артикули в детайла
+     *
+     * @param $masterId
+     * @return int
+     */
+    public static function getStorableProductsCount($masterId)
+    {
+        $me = cls::get(get_called_class());
+        $dQuery = $me->getQuery();
+
+        $dQuery->where("#{$me->masterKey} = {$masterId} AND #canStore = 'yes'");
+        $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+
+        return $dQuery->count();
+    }
 }

@@ -8,7 +8,7 @@
  * @package   eshop
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -92,6 +92,43 @@ class eshop_plg_ProductSync extends core_Plugin
 
 
     /**
+     * Извиква се след подготовката на формата за редактиране/добавяне $data->form
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$res, $data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+
+        // При клониране, ако артикула може да бъде добавен към ешоп се добавя поле за избор
+        if($data->action == 'clone' && eshop_Products::canProductBeAddedToEshop($rec->id)){
+            if(eshop_ProductDetails::fetchField("#productId = {$rec->id}")){
+                $form->FLD('cloneToEshop', 'enum(yes=Да,no=Не)', 'caption=Добавяне в Е-маг след клониране->Избор');
+
+                $default = core_Permanent::get("addToEshopAfterClone{$rec->id}");
+                $form->setDefault('cloneToEshop', $default);
+            }
+        }
+    }
+
+
+    /**
+     * Проверка и валидиране на формата
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = &$form->rec;
+
+        if ($form->isSubmitted()) {
+
+            // Запомняне при клониране дали този артикул да се добавя към ешопа или не
+            if(isset($rec->cloneToEshop)){
+                core_Permanent::set("addToEshopAfterClone{$rec->id}", $rec->cloneToEshop, core_Permanent::IMMORTAL_VALUE);
+            }
+        }
+    }
+
+
+    /**
      * След клониране на записа
      *
      * @param core_Mvc $mvc
@@ -100,23 +137,24 @@ class eshop_plg_ProductSync extends core_Plugin
      */
     public static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
     {
-        $eDetails = cls::get('eshop_ProductDetails');
+        // Ако потребителя иска да клонира връзката към Е-маг
+        if($nRec->cloneToEshop == 'yes'){
+            $eDetails = cls::get('eshop_ProductDetails');
 
-        if(!$eDetails->haveRightFor('linktoeshop', (object)array('productId' => $nRec->id))) return;
+            $dQuery = $eDetails->getQuery();
+            $dQuery->where("#productId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $newRec = (object)array('eshopProductId' => $dRec->eshopProductId,
+                    'productId'      => $nRec->id,
+                    'packagings'     => keylist::addKey('', $nRec->measureId),
+                    'action'         => $dRec->action,
+                    'moq'            => $dRec->moq,
+                    'state'          => 'active');
 
-        $dQuery = eshop_ProductDetails::getQuery();
-        $dQuery->where("#productId = {$rec->id}");
-        while($dRec = $dQuery->fetch()){
-            $newRec = (object)array('eshopProductId' => $dRec->eshopProductId,
-                                    'productId'      => $nRec->id,
-                                    'packagings'     => keylist::addKey('', $nRec->measureId),
-                                    'action'         => $dRec->action,
-                                    'moq'            => $dRec->moq,
-                                    'state'          => 'active');
+                $eDetails->save($newRec);
+            }
 
-            $eDetails->save($newRec);
+            $mvc->logWrite("Връзване в е-маг след клониране", $nRec->id);
         }
-
-        $mvc->logWrite("Връзване в е-маг след клониране", $nRec->id);
     }
 }
