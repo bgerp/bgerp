@@ -5,7 +5,7 @@
 <h4 style='margin-top:0px;margin-bottom:10px;color:green'>[#title#]</h4>
 <!--ET_END title-->
     <!--ET_BEGIN primeCost-->
-    	<div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: [#primeCost#]</div>
+    	<div style='margin-top:5px'><span class='quiet'>|Себестойност|*</span>: <b>[#primeCost#]</b></div>
     <!--ET_END primeCost-->
    
     <!--ET_BEGIN expenses-->

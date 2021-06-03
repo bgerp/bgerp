@@ -140,7 +140,7 @@ class email_SpamRules extends core_Manager
         $points = null;
         
         foreach ($allFilters as $filterRec) {
-            if (email_Filters::match($sDataArr, $filterRec)) {
+            if (email_ServiceRules::match($sDataArr, $filterRec)) {
                 $points += $filterRec->points;
             }
         }
@@ -204,7 +204,7 @@ class email_SpamRules extends core_Manager
     /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
-     * @param email_Filters $mvc
+     * @param email_SpamRules $mvc
      * @param stdClass      $res
      * @param stdClass      $rec
      *

@@ -1,14 +1,14 @@
 <?php 
 
 /**
- * Клас 'email_Spam' - регистър на квалифицираните като твърд спам писма
+ * Клас 'email_ServiceEmails' - регистър на квалифицираните като твърд спам писма
  *
  *
  * @category  bgerp
  * @package   email
  *
- * @author    Milen Georgiev <milen2experta.bg>
- * @copyright 2006 - 2013 Experta OOD
+ * @author    Yusein Yuseinov <yyuseinov@gmnail.com>
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1

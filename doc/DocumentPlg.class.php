@@ -858,7 +858,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($fields && !isset($fields['modifiedOn'])) {
                 $updateAll = false;
             }
-            
+
             doc_Containers::update($containerId, $updateAll);
         }
         
@@ -2291,7 +2291,7 @@ class doc_DocumentPlg extends core_Plugin
                 $sP = cls::get('store_Products');
                 $sP->updateOnShutdown = true;
             }
-            
+
             if ($form->cmd == 'save_pending' && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
                 // Преизчисляване на запазените количествата, ако новото състояние е "Заявка"
                 if ($rec->state != 'pending') {
@@ -2300,6 +2300,11 @@ class doc_DocumentPlg extends core_Plugin
                 }
                 $form->rec->state = 'pending';
                 $form->rec->pendingSaved = true;
+
+                if ($form->rec->id) {
+                    $oldRec = $mvc->fetch($form->rec->id);
+                    doc_Containers::changeNotifications($rec, $oldRec->sharedUsers, $rec->sharedUsers);
+                }
             }
         }
     }

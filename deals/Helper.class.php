@@ -725,6 +725,7 @@ abstract class deals_Helper
      * Връща хинт с количеството в склада
      *
      * @param mixed $html
+     * @param core_Mvc $mvc
      * @param int   $productId
      * @param int   $storeId
      * @param float $quantity
@@ -734,7 +735,7 @@ abstract class deals_Helper
      *
      * @return void
      */
-    public static function getQuantityHint(&$html, $productId, $storeId, $quantity, $state, $date = null, $ignoreFirstDocumentPlannedInThread = null)
+    public static function getQuantityHint(&$html, $mvc, $productId, $storeId, $quantity, $state, $date = null, $ignoreFirstDocumentPlannedInThread = null)
     {
         if (!in_array($state, array('draft', 'pending'))) {
             return;
@@ -775,19 +776,29 @@ abstract class deals_Helper
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $inStockVerbal = $Double->toVerbal($stRec->quantity);
-        $class = 'doc-warning-quantiy';
-        $makeLink = true;
-        
+        $class = 'doc-warning-quantity';
+        $showNegativeWarning = $makeLink = true;
+
+        if($mvc instanceof sales_SalesDetails){
+            $showNegativeWarning = cat_Products::fetchField($productId, 'isPublic') == 'yes';
+        }
+
         if ($futureQuantity < 0 && $freeQuantity < 0) {
-            $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
-            $class = 'doc-negative-quantiy';
-            $makeLink = false;
+            if($showNegativeWarning){
+                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                $class = 'doc-negative-quantity';
+                $makeLink = false;
+            }
         } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
-            $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-            $hint = "Недостатъчна |*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+            if($showNegativeWarning) {
+                $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+                $hint = "Недостатъчна |*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+            }
         } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
-            $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-            $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+            if($showNegativeWarning) {
+                $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+                $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+            }
         }
         
         if (!empty($hint)) {

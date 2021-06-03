@@ -1455,19 +1455,37 @@ class eshop_Products extends core_Master
         
         return $tpl;
     }
-    
-    
+
+
+    /**
+     * Може ли артикула да се добави към онлайн магазина
+     *
+     * @param $productId
+     * @return false
+     */
+    public static function canProductBeAddedToEshop($productId)
+    {
+        $pRec = cat_Products::fetch($productId, 'isPublic,canSell,state');
+        if ($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes') {
+
+            return false;
+        }
+
+        return true;
+    }
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'linktoeshop' && isset($rec->productId)) {
-            $pRec = cat_Products::fetch($rec->productId, 'isPublic,canSell,state');
-            
-            if ($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes') {
+            if(!static::canProductBeAddedToEshop($rec->productId)){
                 $requiredRoles = 'no_one';
-            } elseif(eshop_ProductDetails::hasSaleEnded($rec->productId)) {
+            }
+
+            if(eshop_ProductDetails::hasSaleEnded($rec->productId)){
                 $requiredRoles = 'no_one';
             }
         }

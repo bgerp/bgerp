@@ -151,9 +151,9 @@ class bank_ExchangeDocument extends core_Master
         $this->FLD('reason', 'varchar(255)', 'caption=Основание,input,mandatory');
         $this->FLD('peroFrom', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=От->Банк. сметка');
         $this->FLD('creditPrice', 'double(smartRound,decimals=2)', 'input=none');
-        $this->FLD('creditQuantity', 'double(smartRound,decimals=2)', 'caption=От->Сума');
+        $this->FLD('creditQuantity', 'double(smartRound,decimals=2,maxAllowedDecimals=2)', 'caption=От->Сума');
         $this->FLD('peroTo', 'key(mvc=bank_OwnAccounts, select=bankAccountId)', 'input,caption=Към->Банк. сметка');
-        $this->FLD('debitQuantity', 'double(smartRound,decimals=2)', 'caption=Към->Сума');
+        $this->FLD('debitQuantity', 'double(smartRound,decimals=2,maxAllowedDecimals=2)', 'caption=Към->Сума');
         $this->FLD('debitPrice', 'double(smartRound,decimals=2)', 'input=none');
         $this->FLD('equals', 'double(smartRound,decimals=2)', 'input=none,caption=Общо,summary=amount');
         $this->FLD('rate', 'double(smartRound,decimals=5)', 'input=none');

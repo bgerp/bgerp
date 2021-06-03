@@ -153,10 +153,10 @@ class cash_ExchangeDocument extends core_Master
         $this->FLD('peroFrom', 'key(mvc=cash_Cases, select=name)', 'caption=От->Каса');
         $this->FLD('creditCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=От->Валута');
         $this->FLD('creditPrice', 'double(smartRound)', 'input=none');
-        $this->FLD('creditQuantity', 'double(smartRound)', 'caption=От->Сума');
+        $this->FLD('creditQuantity', 'double(smartRound,maxAllowedDecimals=2)', 'caption=От->Сума');
         $this->FLD('peroTo', 'key(mvc=cash_Cases, select=name)', 'caption=Към->Каса');
         $this->FLD('debitCurrency', 'key(mvc=currency_Currencies, select=code)', 'caption=Към->Валута');
-        $this->FLD('debitQuantity', 'double(smartRound)', 'caption=Към->Сума');
+        $this->FLD('debitQuantity', 'double(smartRound,maxAllowedDecimals=2)', 'caption=Към->Сума');
         $this->FLD('debitPrice', 'double(smartRound)', 'input=none');
         $this->FLD('equals', 'double(smartRound)', 'input=none,caption=Общо,summary=amount');
         $this->FLD('rate', 'double(decimals=5)', 'input=none');
