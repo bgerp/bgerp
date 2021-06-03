@@ -426,9 +426,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             if ($rec->typeOfQuantity == 'TRUE') {
                 // Гледаме разполагаемото количество
 
-                $quantity = store_Products::getQuantities($productId, null, $rec->date)->free;
+               // $quantity = store_Products::getQuantities($productId, null, $rec->date)->free;
 
-                //  $quantity = $recProduct->quantity - $recProduct->reservedQuantity + $recProduct->expectedQuantity;
+                  $quantity = $recProduct->quantity - $recProduct->reservedQuantity + $recProduct->expectedQuantity;
             } else {
                 // Гледаме наличното количество
                 $quantity = $recProduct->quantity;
