@@ -215,10 +215,11 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $recs = array();
 
         //Избрани задания за производство
-        if ($rec->option == 'job') {
+        if ($rec->option != 'yes') {
             if ($rec->jobses) {
 
                 $jobsThreadArr = array();
+
                 foreach (keylist::toArray($rec->jobses) as $val) {
 
                     //Масив с ID-та на нишките на избраните ЗАДАНИЯ - $jobsThreadArr
@@ -467,7 +468,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         }
 
         if ($rec->groupBy == 'jobArt') {
-            $row->jobArt = cat_Products::getLinkToSingle($dRec->jobArt);
+            $row->jobArt = cat_Products::getLinkToSingle($dRec->jobArt,'name');
         }
 
         if (isset($dRec->code)) {
