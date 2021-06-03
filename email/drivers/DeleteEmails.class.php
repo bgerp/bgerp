@@ -128,7 +128,6 @@ class email_drivers_DeleteEmails extends core_BaseClass
                     }
                 }
 
-
 //                doc_Threads::logNotice('Изтрита нишка: ' . $iRec->subject, $iRec->threadId);
 //                doc_Containers::logNotice('Изтрит документ: ' . $iRec->subject, $iRec->containerId);
 //                email_Incomings::logNotice('Изтрит имейл: ' . $iRec->subject, $iRec->id);
