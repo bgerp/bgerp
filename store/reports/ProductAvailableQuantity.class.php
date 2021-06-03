@@ -82,7 +82,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     {
         $fieldset->FLD('limmits', 'enum(no=Без лимити,yes=С лимити)', 'caption=Вид,removeAndRefreshForm,after=title,silent');
 
-        $fieldset->FLD('typeOfQuantity', 'enum(FALSE=Налично,TRUE=Разполагаемо)', 'caption=Количество,removeAndRefreshForm,single=none,silent,after=limmits');
+        $fieldset->FLD('typeOfQuantity', 'enum(available=Налично,free=Разполагаемо)', 'caption=Количество,removeAndRefreshForm,single=none,silent,after=limmits');
 
         $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,input=hidden,single=none');
 
@@ -115,7 +115,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $form->setDefault('orderBy', 'conditionQuantity');
         $form->input('additional');
-        $form->setDefault('typeOfQuantity', 'TRUE');
+        $form->setDefault('typeOfQuantity', 'free');
 
         if ($rec->limmits == 'no') {
 
@@ -123,7 +123,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $form->setField('orderBy', 'input=none');
         }
 
-        if ($rec->typeOfQuantity == 'TRUE') {
+        if ($rec->typeOfQuantity == 'free') {
             $form->setField('date', 'input');
             $today = dt::today();
             if (!$rec->date) {
@@ -392,7 +392,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $minQuantity = $maxQuantity = array();
 
         // Подготвяме заявката за извличането на записите от store_Products
+
         $sQuery = store_Products::getQuery();
+
         $sQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $sQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
         $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
@@ -411,6 +413,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 }
                 $codeList = '|' . implode('|', $codes) . '|';
             }
+
             $sQuery->where(array("'[#1#]' LIKE CONCAT('%|', LOWER(COALESCE(#code, CONCAT('Art', #id))), '|%')", $codeList));
         }
 
@@ -420,15 +423,16 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $sQuery->in('storeId', $storArr);
         }
 
+
         while ($recProduct = $sQuery->fetch()) {
             $productId = $recProduct->productId;
 
-            if ($rec->typeOfQuantity == 'TRUE') {
+            if ($rec->typeOfQuantity == 'free') {
                 // Гледаме разполагаемото количество
 
-               // $quantity = store_Products::getQuantities($productId, null, $rec->date)->free;
+                $quantity = store_Products::getQuantities($productId, $recProduct->storeId, $rec->date)->free;
 
-                  $quantity = $recProduct->quantity - $recProduct->reservedQuantity + $recProduct->expectedQuantity;
+                //  $quantity = $recProduct->quantity - $recProduct->reservedQuantity + $recProduct->expectedQuantity;
             } else {
                 // Гледаме наличното количество
                 $quantity = $recProduct->quantity;
@@ -662,7 +666,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
                 $fieldTpl->append('<b>' . $data->rec->ariculsData . '</b>', 'ariculsData');
             }
         }
-        if ($data->rec->typeOfQuantity == 'TRUE') {
+        if ($data->rec->typeOfQuantity == 'free') {
 
             $dateVerb = dt::mysql2verbal($data->rec->date, 'd.m.Y');
             $fieldTpl->append('<b>' . 'Разполагаемо към ' . $dateVerb . '</b>', 'typeOfQuantity');
