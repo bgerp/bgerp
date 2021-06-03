@@ -99,7 +99,7 @@ class email_drivers_DeleteEmails extends core_BaseClass
                     continue ;
                 }
 
-                if ($recFieldName == 'textPart') {$sRec->{$serviceFieldName} = 'Test';
+                if ($recFieldName == 'textPart') {
                     $iQuery->EXT('searchKeywords', 'doc_Containers', 'externalKey=containerId, externalName=searchKeywords');
 
                     plg_Search::applySearch('"' . $sRec->{$serviceFieldName} . '"', $iQuery, 'searchKeywords');
