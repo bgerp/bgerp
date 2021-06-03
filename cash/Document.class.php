@@ -260,7 +260,7 @@ abstract class cash_Document extends deals_PaymentDocument
         }
         
         if ($expectedPayment) {
-            $amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
+            $amount = round($expectedPayment / $dealInfo->get('rate'), 2);
             
             if ($form->rec->currencyId == $form->rec->dealCurrencyId) {
                 $form->setDefault('amount', $amount);
@@ -278,7 +278,7 @@ abstract class cash_Document extends deals_PaymentDocument
         if ($mvc instanceof cash_Rko || (isset($defaultOperation) && array_key_exists($defaultOperation, $options))) {
             $form->setDefault('operationSysId', $defaultOperation);
            
-            $dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+            $dAmount = round($amount, 2);
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);
             }
