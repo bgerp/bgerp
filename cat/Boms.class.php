@@ -1864,7 +1864,7 @@ class cat_Boms extends core_Master
     protected static function on_BeforeChangeState($mvc, &$rec, $state)
     {
         if($state == 'active' && !$mvc->isOk($rec)){
-            followRetUrl(null, 'Рецептата не може да се активира, защото артикула се съдържа в рецептата на някой от материалите ѝ|*!', 'error');
+            followRetUrl(null, 'Рецептата не може да се активира, защото артикулът се съдържа в рецептата на някой от вложените в него|*!', 'error');
         }
     }
 }
