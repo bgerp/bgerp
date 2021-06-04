@@ -131,8 +131,8 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         $rec = &$form->rec;
         
         if (isset($rec->productId)) {
-            $masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->storeId, $masterRec->valior);
             $form->info = $storeInfo->formInfo;
         }
     }

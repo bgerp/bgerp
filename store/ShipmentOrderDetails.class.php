@@ -194,7 +194,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 $masterStore = $masterRec->storeId;
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
                 if ($canStore == 'yes') {
-                    $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $foundQuantity);
+                    $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
+                    $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $deliveryDate, $foundQuantity);
                     $form->info = $storeInfo->formInfo;
                     if (!empty($foundQuantity) && $foundQuantity > 0) {
                         $form->setSuggestions('baseQuantity', array('' => '', "{$foundQuantity}" => $foundQuantity));
