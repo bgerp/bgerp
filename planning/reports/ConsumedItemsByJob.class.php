@@ -291,7 +291,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             while ($pRec = $pQuery->fetch()) {
 
-                if ($master == 'planning_DirectProductionNote' && !$pRec->inputStoreId) continue;
+                if ($master == 'planning_DirectProductionNote' && !$pRec->storeId){
+
+                    continue;
+                }
 
                 $consumedQuantity = $returnedQuantity = $pRec->quantity;
 
