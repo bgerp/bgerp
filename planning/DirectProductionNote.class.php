@@ -724,6 +724,14 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
             }
 
+            // Ако е избрано с приоритет очакваното количество, то се попълва
+            if(planning_Setup::get('PRODUCTION_NOTE_PRIORITY') == 'expected'){
+                foreach ($details as &$d3){
+                    if(isset($d3->quantityExpected) && isset($d3->quantityFromBom)){
+                        $d3->quantity = $d3->quantityExpected;
+                    }
+                }
+            }
         } elseif($origin->isInstanceOf('planning_Tasks')){
             $details = array();
         } else {

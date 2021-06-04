@@ -80,6 +80,12 @@ defIfNot('PLANNING_JOB_AUTO_COMPLETION_DELAY', '21600');
 
 
 /**
+ * Приоритет при попълване на количеството в протокола за производство
+ */
+defIfNot('PLANNING_PRODUCTION_NOTE_PRIORITY', 'bom');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -140,6 +146,7 @@ class planning_Setup extends core_ProtoSetup
 
         'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на заданието->Изпълнени над,callOnChange=planning_Setup::setJobAutoClose'),
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на заданието->Без модификации от'),
+        'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Очаквано)', 'caption=Протокол за производство приоритет за попълване на количеството на материалите->Избор'),
     );
     
     
