@@ -1846,7 +1846,7 @@ class cat_Boms extends core_Master
                 $notAllowed[] = array();
                 $Detail->findNotAllowedProducts($dRec->resourceId, $rec->productId, $notAllowed);
                 if (isset($notAllowed[$dRec->resourceId])) {
-                    followRetUrl(null, 'Рецептата не може да се активира, защото артикула се съдържа в рецептата на някой от материалите ѝ|*!', 'error');
+                    followRetUrl(null, 'Рецептата не може да се активира, защото артикулът се съдържа в рецептата на някой от вложените в него|*!', 'error');
                 }
             }
         }
