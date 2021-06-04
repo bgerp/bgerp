@@ -127,11 +127,50 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         $recs = array();
 
-        $cartQuery = eshop_Carts::getQuery();
         $vQuery = vislog_Referer::getQuery();
 
 
-        bp($vQuery->fetch("#ip = '94.155.222.30'"),$cartQuery->fetchAll());
+        //$cartQuery = eshop_Carts::getQuery();
+        $cartQuery = eshop_CartDetails::getQuery();
+        $cartQuery->EXT('activatedOn', 'eshop_Carts', 'externalName=activatedOn,externalKey=cartId');
+        $cartQuery->EXT('createdOn', 'eshop_Carts', 'externalName=createdOn,externalKey=cartId');
+        $cartQuery->EXT('state', 'eshop_Carts', 'externalName=state,externalKey=cartId');
+        $cartQuery->EXT('totalNoVat', 'eshop_Carts', 'externalName=totalNoVat,externalKey=cartId');
+        $cartQuery->EXT('ip', 'eshop_Carts', 'externalName=ip,externalKey=cartId');
+        $cartQuery->EXT('brid', 'eshop_Carts', 'externalName=brid,externalKey=cartId');
+
+        $cartQuery->where("#state = 'active'");
+        $cartQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from. ' 00:00:00', $rec->to . ' 23:59:59'));
+
+        while ($cartRec = $cartQuery->fetch()) {
+
+            $id = $cartRec->cartId;
+            $date =  date('d-m-Y',strtotime($cartRec->activatedOn));
+            $time =  date(' H:i:s',strtotime($cartRec->activatedOn));
+//bp($cartRec,$cartRec->activatedOn,$date,$time);
+
+            if (!array_key_exists($id, $recs)) {
+                $recs[$id] = (object)array(
+
+                    'cartId' =>  $cartRec->cartId,
+                    'dt' => $cartRec->activatedOn,
+                    'date' => $date,
+                    'time' => $time,
+                    'productId' => array($cartRec->productId),
+                    'totalNoVat' => $cartRec->totalNoVat,
+                    'ip' => $cartRec->ip,
+                    'brid' => $cartRec->brid,
+
+                );
+            } else {
+                $obj = &$recs[$id];
+
+                array_push($obj->productId,$cartRec->productId);
+
+            }
+        }
+
+       // bp($recs);
 
 
         return $recs;
@@ -152,8 +191,12 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         if ($export === false) {
 
-            $fld->FLD('field1', 'varchar', 'caption=Група,tdClass=leftAlign');
-            $fld->FLD('field2', 'varchar', 'caption=Дисциплина,tdClass=leftAlign');
+            $fld->FLD('dt', 'datetime', 'caption=Дата/час,tdClass=leftAlign');
+            $fld->FLD('products', 'varchar', 'caption=Артикули,tdClass=leftAlign');
+            $fld->FLD('totalNoVat', 'double(decimals=2)', 'caption=Сума,smartCenter');
+            $fld->FLD('ip', 'ip(15,showNames)', 'caption=Ip,smartCenter');
+            $fld->FLD('brid', 'varchar(8)', 'caption=Браузър,smartCenter');
+
 
 
 
@@ -182,8 +225,13 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->groupId = "fghf";
-        $row->subjectId ='sfvdvgd';
+        $row->dt = dt::mysql2verbal($dRec->dt);
+
+       // $row->subjectId ='sfvdvgd';
+
+        //$row->ip = $dRec->ip;
+        $row->ip = type_Ip::decorateIp($dRec->ip,null, true, true);
+        $row->brid = $dRec->brid;
 
 
 
