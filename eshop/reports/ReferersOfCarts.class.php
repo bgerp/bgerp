@@ -138,7 +138,6 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
         $cartQuery->where("#state = 'active'");
         $cartQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
 
-
         while ($cartRec = $cartQuery->fetch()) {
 
             $id = $cartRec->cartId;
