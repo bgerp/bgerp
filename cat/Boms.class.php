@@ -376,21 +376,24 @@ class cat_Boms extends core_Master
         $query = $this->getQuery();
         $query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
         $query->orderBy('id', 'DESC');
-        $query->limit(1);
-        
-        $nextActiveBomRec = $query->fetch();
-        if ($nextActiveBomRec) {
-            $nextActiveBomRec->state = 'active';
-            $nextActiveBomRec->brState = 'closed';
-            $nextActiveBomRec->modifiedOn = dt::now();
-            
-            // Ако има такава я активираме
-            $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
-            $this->logWrite("Активиране на последна '" . $this->getVerbal($rec, 'type') . "' рецепта", $id);
-            doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
-            
-            return $id;
+
+        while ($nextActiveBomRec = $query->fetch()) {
+
+            // Ако предишната активна рецепта е ОК - активира се
+            if($this->isOk($nextActiveBomRec)){
+                $nextActiveBomRec->state = 'active';
+                $nextActiveBomRec->brState = 'closed';
+                $nextActiveBomRec->modifiedOn = dt::now();
+
+                $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
+                $this->logWrite("Активиране на последна '" . $this->getVerbal($rec, 'type') . "' рецепта", $id);
+                doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
+
+                return $id;
+            }
         }
+
+        return false;
     }
     
     
@@ -1832,23 +1835,36 @@ class cat_Boms extends core_Master
 
 
     /**
+     * Дали рецептата е ОК - тоест няма да предизвика рекурсивно зацикляне
+     *
+     * @param $rec
+     * @return bool
+     */
+    private function isOk($rec)
+    {
+        $Detail = cls::get('cat_BomDetails');
+
+        // Проверка дали активирането на рецептата ще предизвика зацикляне
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#bomId = {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+            $notAllowed[] = array();
+            $Detail->findNotAllowedProducts($dRec->resourceId, $rec->productId, $notAllowed);
+
+            if (isset($notAllowed[$dRec->resourceId])) return false;
+        }
+
+        return true;
+    }
+
+
+    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     protected static function on_BeforeChangeState($mvc, &$rec, $state)
     {
-        if($state == 'active'){
-            $Detail = cls::get('cat_BomDetails');
-
-            // Проверка дали активирането на рецептата ще предизвика зацикляне
-            $dQuery = $Detail->getQuery();
-            $dQuery->where("#bomId = {$rec->id}");
-            while($dRec = $dQuery->fetch()){
-                $notAllowed[] = array();
-                $Detail->findNotAllowedProducts($dRec->resourceId, $rec->productId, $notAllowed);
-                if (isset($notAllowed[$dRec->resourceId])) {
-                    followRetUrl(null, 'Рецептата не може да се активира, защото артикула се съдържа в рецептата на някой от материалите ѝ|*!', 'error');
-                }
-            }
+        if($state == 'active' && !$mvc->isOk($rec)){
+            followRetUrl(null, 'Рецептата не може да се активира, защото артикула се съдържа в рецептата на някой от материалите ѝ|*!', 'error');
         }
     }
 }
