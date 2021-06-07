@@ -227,7 +227,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         $row->dt = dt::mysql2verbal($dRec->dt);
 
-        $url = eshop_Carts::getSingleUrlArray_($dRec->cartId,);
+        $url = eshop_Carts::getSingleUrlArray_($dRec->cartId);
 
 
         $row->products = ht::createLinkRef($dRec->products,$url);
