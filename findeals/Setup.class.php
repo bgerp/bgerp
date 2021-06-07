@@ -60,6 +60,7 @@ class findeals_Setup extends core_ProtoSetup
         'findeals_ClosedDeals',
         'findeals_AdvanceReports',
         'findeals_AdvanceReportDetails',
+        'migrate::updatePaymentDocuments',
     );
     
     
@@ -79,4 +80,15 @@ class findeals_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.3, 'Финанси', 'Сделки', 'findeals_Deals', 'default', 'findeals, ceo, acc'),
     );
+
+
+    /**
+     * Миграция за обновяване на платежните документи
+     */
+    public function updatePaymentDocuments()
+    {
+        foreach (array('findeals_DebitDocuments', 'findeals_CreditDocuments') as $mvc){
+            deals_InvoicesToDocuments::migrateContainerIds($mvc);
+        }
+    }
 }

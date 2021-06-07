@@ -1,0 +1,4 @@
+<!--ET_BEGIN INVOICE-->
+[#INVOICE#]
+<tr><td class="nowrap">|Към|* [#documentName#] [#containerId#]</td><td class='amount' style = 'font-size:0.8em'><span class="cCode">[#currencyId#]</span> <b>[#amount#]</b></td></tr>
+<!--ET_END INVOICE-->

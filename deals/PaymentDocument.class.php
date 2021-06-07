@@ -99,4 +99,23 @@ abstract class deals_PaymentDocument extends core_Master
         
         return $row;
     }
+
+
+    /**
+     * Връща информация за сумите по платежния документ
+     *
+     * @param mixed $id
+     * @return object
+     */
+    public function getPaymentData($id)
+    {
+        if(is_object($id)){
+            $rec = $id;
+        } else {
+            $rec = $this->fetchRec($id, '*', false);
+        }
+        $res = (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId);
+
+        return (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId);
+    }
 }
