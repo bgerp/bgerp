@@ -150,7 +150,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
             if ($vRec = vislog_Referer::fetch("#ip = '{$cartRec->ip}' AND #createdOn >= '{$chekTyme}' AND #createdOn <= '{$cartRec->createdOn}'")) {
 
-                $referer = $vRec->referer;
+                $referer = $vRec->id;
             } else {
                 $referer = '';
             }
@@ -162,7 +162,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
                     'dt' => $cartRec->activatedOn,
                     'date' => $date,
                     'time' => $time,
-                    'productId' => array($cartRec->productId),
+                    'products' => 1,
                     'totalNoVat' => $cartRec->totalNoVat,
                     'ip' => $cartRec->ip,
                     'brid' => $cartRec->brid,
@@ -171,14 +171,9 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
                 );
             } else {
                 $obj = &$recs[$id];
-
-                array_push($obj->productId, $cartRec->productId);
-
+                $obj->products++;
             }
         }
-
-        // bp($recs);
-
 
         return $recs;
     }
@@ -199,7 +194,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
         if ($export === false) {
 
             $fld->FLD('dt', 'datetime', 'caption=Дата/час,tdClass=leftAlign');
-            $fld->FLD('products', 'varchar', 'caption=Артикули,tdClass=leftAlign');
+            $fld->FLD('products', 'int', 'caption=Артикули,tdClass=leftAlign');
             $fld->FLD('totalNoVat', 'double(decimals=2)', 'caption=Сума,smartCenter');
             $fld->FLD('ip', 'ip(15,showNames)', 'caption=Ip,smartCenter');
             $fld->FLD('brid', 'varchar(8)', 'caption=Браузър,smartCenter');
@@ -232,20 +227,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         $row->dt = dt::mysql2verbal($dRec->dt);
 
-
-        $marker = 0;
-        $row->products = '';
-        foreach ($dRec->productId as $productId) {
-            $marker++;
-
-            $row->products .= cat_Products::getHyperlink($productId);
-
-
-            if ((countR($dRec->productId)) - $marker != 0) {
-                $row->products .= "</br>";
-            }
-
-        }
+        $row->products = $dRec->products;
 
         $row->totalNoVat = $Double->toVerbal($dRec->totalNoVat);
 
@@ -254,7 +236,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         // row->userId .= type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>" .log_Browsers::getLink($rec->brid);
 
-        $row->referer = $dRec->referer;
+        $row->referer = vislog_Referer::getVerbal_($dRec->referer, 'referer');
 
         return $row;
     }
