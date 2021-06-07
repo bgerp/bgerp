@@ -194,7 +194,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
         if ($export === false) {
 
             $fld->FLD('dt', 'datetime', 'caption=Дата/час,tdClass=leftAlign');
-            $fld->FLD('products', 'int', 'caption=Артикули,tdClass=leftAlign');
+            $fld->FLD('products', 'int', 'caption=Брой артикули,tdClass=leftAlign');
             $fld->FLD('totalNoVat', 'double(decimals=2)', 'caption=Сума,smartCenter');
             $fld->FLD('ip', 'ip(15,showNames)', 'caption=Ip,smartCenter');
             $fld->FLD('brid', 'varchar(8)', 'caption=Браузър,smartCenter');
@@ -227,7 +227,10 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         $row->dt = dt::mysql2verbal($dRec->dt);
 
-        $row->products = $dRec->products;
+        $url = eshop_Carts::getSingleUrlArray_($dRec->cartId,);
+
+
+        $row->products = ht::createLinkRef($dRec->products,$url);
 
         $row->totalNoVat = $Double->toVerbal($dRec->totalNoVat);
 
