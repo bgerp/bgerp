@@ -239,8 +239,11 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         // row->userId .= type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>" .log_Browsers::getLink($rec->brid);
 
-        $row->referer = vislog_Referer::getVerbal_($dRec->referer, 'referer');
-
+        if (is_numeric($dRec->referer)) {
+            $row->referer = vislog_Referer::getVerbal_($dRec->referer, 'referer');
+        }else{
+            $row->referer ='';
+        }
         return $row;
     }
 
