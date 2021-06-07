@@ -150,7 +150,7 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
             if ($vRec = vislog_Referer::fetch("#ip = '{$cartRec->ip}' AND #createdOn >= '{$chekTyme}' AND #createdOn <= '{$cartRec->createdOn}'")) {
 
-                $referer = $vRec;
+                $referer = $vRec->id;
             } else {
                 $referer = '';
             }
