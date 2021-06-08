@@ -10,3 +10,4 @@ syntax: regexp
 /composer.lock
 /composer.phar
 /myself/
+.vscode/launch.json
