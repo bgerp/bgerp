@@ -329,6 +329,9 @@ class deals_InvoicesToDocuments extends core_Manager
         $recs = $query->fetchAll();
 
         $count = countR($recs);
+
+        if(empty($count)) return;
+
         core_App::setTimeLimit($count * 0.4, false, 200);
 
         foreach($recs as $rec){

@@ -114,7 +114,6 @@ abstract class deals_PaymentDocument extends core_Master
         } else {
             $rec = $this->fetchRec($id, '*', false);
         }
-        $res = (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId);
 
         return (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId);
     }

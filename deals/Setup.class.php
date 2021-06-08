@@ -93,6 +93,7 @@ class deals_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'deals_OpenDeals',
+        'deals_InvoicesToDocuments',
     );
     
     

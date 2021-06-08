@@ -57,18 +57,27 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
 
 
     /**
+     * Изпълнява се след създаване на нов запис
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        if(isset($rec->fromContainerId)){
+
+            // След създаване синхронизиране на модела
+            $amount = $mvc->getPaymentData($rec)->amount;
+            $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $amount);
+            deals_InvoicesToDocuments::save($dRec);
+        }
+    }
+
+
+    /**
      * Извиква се след успешен запис в модела
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
         if($rec->_resetInvoices){
             deals_InvoicesToDocuments::delete("#documentContainerId = {$rec->containerId}");
-        }
-
-        if(isset($rec->fromContainerId)){
-            $amount = $mvc->getPaymentData($rec)->amount;
-            $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $amount);
-            deals_InvoicesToDocuments::save($dRec);
         }
     }
 
