@@ -89,7 +89,7 @@ class bulmar_BankDocumentExport extends core_Manager
                 $nonCashRecs = $cQuery->fetchAll();
             }
         }
-        
+
         if (!countR($recs) && !countR($nonCashRecs)) {
             $title = mb_strtolower($this->mvc->title);
             core_Statuses::newStatus("Няма налични {$title} за експортиране");
@@ -152,26 +152,47 @@ class bulmar_BankDocumentExport extends core_Manager
         $data->recs = $data->error = array();
         
         $count = 0;
-       
+
         foreach (array('recs' => $recs, 'nonCashRecs' => $nonCashRecs) as $key => $arr){
             foreach ($arr as $rec) {
                 $count++;
-                $newRec = ($key == 'recs') ? $this->prepareRec($rec, $count) : $this->prepareNoncashRec($rec, $count);
-                
-                $accountId = null;
-                $ownAccountId = $newRec->accountId;
-                array_walk($data->static->mapAccounts, function($a) use ($ownAccountId, &$accountId) {if($a->ownAccountId == $ownAccountId) {$accountId = $a->itemId;}});
-                
-                if($accountId){
-                    $newRec->accountId = $accountId;
-                    $data->recs[$rec->containerId] = $newRec;
+
+                $newRecs = array();
+                if($key == 'recs'){
+                    $iArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+                    if(countR($iArr)){
+                        $r = $rec->amountDeal / $rec->amount;
+
+                        foreach ($iArr as $iRec){
+                            $clone = clone $rec;
+                            $clone->amount = $iRec->amount;
+                            $clone->amountDeal = $iRec->amount * $r;
+                            $clone->fromContainerId = $iRec->containerId;
+                            $newRecs[] = $this->prepareRec($clone, $count);
+                        }
+                    } else {
+                        $newRecs[] = $this->prepareRec($rec, $count);
+                    }
                 } else {
-                    $data->error[$ownAccountId] = bank_OwnAccounts::getTitleById($ownAccountId);
+                    $newRecs[] = $this->prepareNoncashRec($rec, $count);
+                }
+
+                foreach ($newRecs as $newRec){
+
+                    $accountId = null;
+                    $ownAccountId = $newRec->accountId;
+                    array_walk($data->static->mapAccounts, function($a) use ($ownAccountId, &$accountId) {if($a->ownAccountId == $ownAccountId) {$accountId = $a->itemId;}});
+
+                    if($accountId){
+                        $newRec->accountId = $accountId;
+                        $data->recs[] = $newRec;
+                    } else {
+                        $data->error[$ownAccountId] = bank_OwnAccounts::getTitleById($ownAccountId);
+                    }
                 }
             }
         }
-        
-        
+
         return $data;
     }
     
@@ -326,8 +347,11 @@ class bulmar_BankDocumentExport extends core_Manager
     private function prepareRec($rec, $count)
     {
         $nRec = new stdClass();
-        
+
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
+
+
+
         if ($rec->currencyId == $baseCurrencyId) {
             $amount = $rec->amount;
         } elseif ($rec->dealCurrencyId == $baseCurrencyId) {
@@ -335,6 +359,8 @@ class bulmar_BankDocumentExport extends core_Manager
         } else {
             $amount = $rec->amount * $rec->rate;
         }
+
+       // bp($amount, $rec, deals_InvoicesToDocuments::getInvoiceArr($rec->containerId));
 
 
         if($rec->contragentClassId == crm_Companies::getClassId()){
