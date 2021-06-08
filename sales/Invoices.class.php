@@ -853,11 +853,18 @@ class sales_Invoices extends deals_InvoiceMaster
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('store_ShipmentOrders')) {
                 
-                // Ако източника на ф-та е ЕН, записва се че е към нея
-                $sRec = $Source->fetch('fromContainerId,containerId');
-                if (empty($sRec->fromContainerId)) {
+                // Ако източника на ф-та е ЕН, по което няма разпределени фактури значи е то
+                $sRec = $Source->fetch();
+                $invArr = deals_InvoicesToDocuments::getInvoiceArr($sRec->containerId);
+                if (empty($sRec->fromContainerId) && !countR($invArr)) {
                     $sRec->fromContainerId = $rec->containerId;
                     $Source->getInstance()->save_($sRec, 'fromContainerId');
+
+                    // След създаване синхронизиране на модела
+                    $amount = $Source->getPaymentData($sRec)->amount;
+                    $dRec = (object)array('documentContainerId' => $sRec->containerId, 'containerId' => $sRec->fromContainerId, 'amount' => $amount);
+                    deals_InvoicesToDocuments::save($dRec);
+
                     doc_DocumentCache::cacheInvalidation($sRec->containerId);
                 }
             }

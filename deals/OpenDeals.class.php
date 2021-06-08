@@ -385,4 +385,16 @@ class deals_OpenDeals extends core_Manager
         Mode::set('pageMenu', $menu);
         Mode::set('pageSubMenu', $subMenu);
     }
+
+
+    /**
+     * Тестов екшън за разпределението на фактурите
+     * @todo да се премахне след тестване
+     */
+    function act_Test()
+    {
+        requireRole('debug');
+        $inv = deals_Helper::getInvoicePayments(78789);
+        bp($inv);
+    }
 }

@@ -58,6 +58,10 @@ class deals_InvoicesToDocuments extends core_Manager
         $this->setDbUnique('documentContainerId,containerId');
     }
 
+
+    /**
+     * Екшън за избор на ф-ри към документ
+     */
     function act_SelectInvoice()
     {
         expect($documentId = Request::get('documentId', 'int'));
@@ -76,6 +80,7 @@ class deals_InvoicesToDocuments extends core_Manager
         $form->info = tr("За разпределяне:") . " <b>{$tVerbal} {$currencyCode}</b>";
         $form->FLD('invoices', "table(columns=containerId|amount,captions=Документ|Сума ({$currencyCode}),validate=deals_InvoicesToDocuments::validateTable)", "caption=Избор");
 
+        // Задаване на наличните фактури за избор
         $invoices = $Document->getReasonContainerOptions($rec);
         $form->setFieldTypeParams('invoices', array('amount_sgt' => array('' => '', "{$paymentData->amount}" => $paymentData->amount), 'containerId_opt' => array('' => '') + $invoices, 'totalAmount' => $paymentData->amount, 'currencyId' => $paymentData->currencyId));
         $curInvoiceArr = static::getInvoicesTableArr($rec->containerId);
@@ -83,6 +88,14 @@ class deals_InvoicesToDocuments extends core_Manager
 
         $form->input();
         if($form->isSubmitted()){
+            $fRec = $form->rec;
+
+            $iData =  @json_decode($fRec->invoices, true);
+            if(countR($iData['containerId']) == 1 && empty($iData['amount'][0])){
+                $iData['amount'][0] = $paymentData->amount;
+            }
+            $fRec->invoices = @json_encode($iData);
+
             $invArr = type_Table::toArray($form->rec->invoices);
             $newArr = array();
             foreach ($invArr as $obj){
@@ -105,9 +118,25 @@ class deals_InvoicesToDocuments extends core_Manager
                 $this->delete("#id IN ({$inStr})");
             }
             plg_Search::forceUpdateKeywords($Document, $rec);
-            $Document->touchRec($rec);
-            $Document->logWrite("Промяна към кои фактури е документа", $rec->id);
-            followRetUrl();
+
+            if ($Document instanceof deals_PaymentDocument) {
+                deals_Helper::updateAutoPaymentTypeInThread($rec->threadId);
+                doc_DocumentCache::cacheInvalidation($rec->containerId);
+            }
+
+            $count = countR($invArr);
+            if($count == 1){
+                $rec->fromContainerId = $invArr[0]->containerId;
+                $Document->save($rec, 'fromContainerId');
+            } elseif(isset($rec->fromContainerId)) {
+                $rec->fromContainerId = null;
+                $Document->save($rec, 'fromContainerId');
+            } else {
+                $Document->touchRec($rec);
+            }
+
+            $Document->logWrite("Отнасяне към документ", $rec->id);
+            followRetUrl(null, 'Промяната е записана успешно');
         }
 
         // Добавяне на тулбар
@@ -140,11 +169,6 @@ class deals_InvoicesToDocuments extends core_Manager
         $res = $containers = $error = $errorFields = array();
 
         foreach ($tableData['containerId'] as $key => $containerId) {
-            if (!empty($containerId) && empty($tableData['amount'][$key])) {
-                $error[] = 'Липсва сума при избран документ';
-                $errorFields['amount'][$key] = 'Липсва сума при избран документ';
-            }
-
             if (array_key_exists($containerId, $containers)) {
                 $error[] = 'Повтарящ се документ';
                 $errorFields['containerId'][$key] = 'Повтарящ се документ';
@@ -160,24 +184,21 @@ class deals_InvoicesToDocuments extends core_Manager
                 $errorFields['amount'][$key] = 'Зададенa сума без посочен документ';
             }
 
-            if (empty($amount)) {
-                $error[] = 'Сумата не може да е 0';
-                $errorFields['amount'][$key] = 'Невалидна сума не може да е 0';
-            }
+            if(!empty($amount)){
+                $Double = core_Type::getByName('double');
+                $q2 = $Double->fromVerbal($amount);
+                if (!$q2) {
+                    $error[] = 'Невалидна сума';
+                    $errorFields['amount'][$key] = 'Невалидна сума';
+                }
 
-            $Double = core_Type::getByName('double');
-            $q2 = $Double->fromVerbal($amount);
-            if (!$q2) {
-                $error[] = 'Невалидна сума';
-                $errorFields['amount'][$key] = 'Невалидна сума';
-            }
-
-            if(!isset($errorFields['amount'][$key])){
-                $totalAmount += $amount;
+                if(!isset($errorFields['amount'][$key])){
+                    $totalAmount += $amount;
+                }
             }
         }
 
-        if(round($totalAmount, 2) != round($Type->params['totalAmount'], 2)){
+        if(!empty($totalAmount) && round($totalAmount, 2) != round($Type->params['totalAmount'], 2)){
             $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($Type->params['totalAmount']);
             $currencyCode = currency_Currencies::getCodeById($Type->params['currencyId']);
             $error[] = "Общата сума трябва да прави точно:|* <b>{$tVerbal}</b> {$currencyCode}";
