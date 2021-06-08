@@ -381,4 +381,30 @@ class deals_InvoicesToDocuments extends core_Manager
 
         $me->saveArray($res);
     }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->FLD('documentId', 'varchar', 'caption=Документ, silent');
+        $data->listFilter->showFields = 'documentId';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input(null, 'silent');
+        $data->listFilter->input();
+        $data->query->orderBy('id', 'DESC');
+
+        if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->documentId)) {
+
+                // Търсене и на последващите документи
+                if ($document = doc_Containers::getDocumentByHandle($rec->documentId)) {
+                    $containerId = $document->fetchField('containerId');
+                    $data->query->where("#documentContainerId = {$containerId} OR #containerId = {$containerId}");
+                }
+            }
+        }
+    }
 }

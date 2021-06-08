@@ -394,7 +394,9 @@ class deals_OpenDeals extends core_Manager
     function act_Test()
     {
         requireRole('debug');
-        $inv = deals_Helper::getInvoicePayments(78789);
+        $threadId = Request::get('threadId', 'int');
+
+        $inv = deals_Helper::getInvoicePayments($threadId);
         bp($inv);
     }
 }
