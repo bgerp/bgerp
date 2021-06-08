@@ -24,6 +24,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     protected static function on_AfterDescription(core_Master &$mvc)
     {
         $mvc->FLD('fromContainerId', 'int', 'caption=Към,input=hidden,silent');
+        setIfNot($mvc->canSelectOnlyOneInvoice, true);
     }
 
 
@@ -92,7 +93,11 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     {
         // Ако има права за отпечатване
         if ($mvc->haveRightFor('selectinvoice', $data->rec)) {
-            $data->toolbar->addBtn('Към фактури', array('deals_InvoicesToDocuments', 'selectinvoice', 'documentId' => $data->rec->id, 'documentClassId' => $mvc->getClassId(), 'ret_url' => true), 'ef_icon=img/16/edit.png, order=30, title=Избор на фактури към които е документа');
+            $onlyOneInvoice = $mvc->canBeOnlyToOneInvoice($data->rec);
+            $caption = ($onlyOneInvoice) ? "Избор ф-ра" : "Избор ф-ри";
+            $title = ($onlyOneInvoice) ? "Избор на фактура към която е документа" : "Избор на фактури към които е документа";
+
+            $data->toolbar->addBtn($caption, array('deals_InvoicesToDocuments', 'selectinvoice', 'documentId' => $data->rec->id, 'documentClassId' => $mvc->getClassId(), 'ret_url' => true), "ef_icon=img/16/edit.png, order=30, title={$title}");
         }
     }
 
@@ -177,6 +182,17 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
             if ($rec->state == 'rejected' || !$hasInvoices) {
                 $requiredRoles = 'no_one';
             }
+        }
+    }
+
+
+    /**
+     * Може ли документа да се отнася към повече от една ф-ри
+     */
+    protected static function on_AfterCanBeOnlyToOneInvoice($mvc, &$res, $rec)
+    {
+        if(!$res){
+            $res = $mvc->canSelectOnlyOneInvoice;
         }
     }
 }

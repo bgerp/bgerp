@@ -78,25 +78,40 @@ class deals_InvoicesToDocuments extends core_Manager
         $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($paymentData->amount);
         $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
         $form->info = tr("За разпределяне:") . " <b>{$tVerbal} {$currencyCode}</b>";
-        $form->FLD('invoices', "table(columns=containerId|amount,captions=Документ|Сума ({$currencyCode}),validate=deals_InvoicesToDocuments::validateTable)", "caption=Избор");
+
+        $onlyOneAllowedInvoice = $Document->canBeOnlyToOneInvoice($rec);
 
         // Задаване на наличните фактури за избор
         $invoices = $Document->getReasonContainerOptions($rec);
-        $form->setFieldTypeParams('invoices', array('amount_sgt' => array('' => '', "{$paymentData->amount}" => $paymentData->amount), 'containerId_opt' => array('' => '') + $invoices, 'totalAmount' => $paymentData->amount, 'currencyId' => $paymentData->currencyId));
-        $curInvoiceArr = static::getInvoicesTableArr($rec->containerId);
-        $form->setDefault('invoices', $curInvoiceArr);
+
+        if($onlyOneAllowedInvoice){
+            $form->FLD('fromContainerId', "int", "caption=Избор");
+            $form->setOptions('fromContainerId', array('' => '') + $invoices);
+            $form->setDefault('fromContainerId', $rec->fromContainerId);
+        } else {
+            $form->FLD('invoices', "table(columns=containerId|amount,captions=Документ|Сума ({$currencyCode}),validate=deals_InvoicesToDocuments::validateTable)", "caption=Избор");
+            $form->setFieldTypeParams('invoices', array('amount_sgt' => array('' => '', "{$paymentData->amount}" => $paymentData->amount), 'containerId_opt' => array('' => '') + $invoices, 'totalAmount' => $paymentData->amount, 'currencyId' => $paymentData->currencyId));
+            $curInvoiceArr = static::getInvoicesTableArr($rec->containerId);
+            $form->setDefault('invoices', $curInvoiceArr);
+        }
 
         $form->input();
         if($form->isSubmitted()){
             $fRec = $form->rec;
 
-            $iData =  @json_decode($fRec->invoices, true);
-            if(countR($iData['containerId']) == 1 && empty($iData['amount'][0])){
-                $iData['amount'][0] = $paymentData->amount;
-            }
-            $fRec->invoices = @json_encode($iData);
+            $invArr = array();
+            if(!empty($fRec->invoices)){
+                $iData =  @json_decode($fRec->invoices, true);
+                if(countR($iData['containerId']) == 1 && empty($iData['amount'][0])){
+                    $iData['amount'][0] = $paymentData->amount;
+                }
+                $fRec->invoices = @json_encode($iData);
 
-            $invArr = type_Table::toArray($form->rec->invoices);
+                $invArr = type_Table::toArray($form->rec->invoices);
+            } elseif(!empty($fRec->fromContainerId)){
+                $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $paymentData->amount));
+            }
+
             $newArr = array();
             foreach ($invArr as $obj){
                 $newArr[] = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $obj->containerId, 'amount' => $obj->amount);
@@ -298,6 +313,8 @@ class deals_InvoicesToDocuments extends core_Manager
     {
         $query = static::getQuery();
         $query->where("#documentContainerId = {$documentContainerId}");
+        $query->orderBy('id', 'ASC');
+
         $skipClasses = arr::make($skipClasses, true);
         if(countR($skipClasses)){
             $classIds = array();
