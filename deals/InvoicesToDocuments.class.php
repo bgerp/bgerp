@@ -213,10 +213,10 @@ class deals_InvoicesToDocuments extends core_Manager
             }
         }
 
-        if(!empty($totalAmount) && round($totalAmount, 2) != round($Type->params['totalAmount'], 2)){
+        if(!empty($totalAmount) && round($totalAmount, 2) >= round($Type->params['totalAmount'], 2)){
             $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($Type->params['totalAmount']);
             $currencyCode = currency_Currencies::getCodeById($Type->params['currencyId']);
-            $error[] = "Общата сума трябва да прави точно:|* <b>{$tVerbal}</b> {$currencyCode}";
+            $error[] = "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> {$currencyCode}";
         }
 
         if (countR($error)) {
