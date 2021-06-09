@@ -1403,11 +1403,16 @@ class core_Query extends core_FieldSet
     public function getIndexes()
     {
         $res = '';
-        
+
+        if (defined('CORE_QUERY_USE_INDEXES') && (CORE_QUERY_USE_INDEXES === 'no')) {
+
+            return $res;
+        }
+
         if (countR($this->indexes)) {
             $res = "\nUSE INDEX(" . implode(',', array_keys($this->indexes)) . ')';
         }
-        
+
         return  $res;
     }
 }
