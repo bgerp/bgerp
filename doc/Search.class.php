@@ -72,6 +72,21 @@ class doc_Search extends core_Manager
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
         $this->dbIndexes = $DC->dbIndexes;
+
+        if (defined('SEARCH_DB_NAME') && defined('SEARCH_DB_USER') && defined('SEARCH_DB_PASS') && defined('SEARCH_DB_HOST')) {
+            $conn = mysqli_init();
+            $conn->options(MYSQLI_OPT_CONNECT_TIMEOUT, 1);
+            if (!@$conn->real_connect(SEARCH_DB_HOST, SEARCH_DB_USER, SEARCH_DB_PASS, SEARCH_DB_NAME)) {
+                if (rand(1, 100)%7 == 0) {
+                    $this->logWarning("Дефинирани, но не работещи константи за SEARCH");
+                }
+            } else {
+                    $this->db->dbName = SEARCH_DB_NAME;
+                    $this->db->dbPass = SEARCH_DB_PASS;
+                    $this->db->dbUser = SEARCH_DB_USER;
+                    $this->db->host = SEARCH_DB_HOST;
+            }
+        }
     }
     
     
