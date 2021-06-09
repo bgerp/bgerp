@@ -40,8 +40,14 @@ class sales_QuotationsDetails extends doc_Detail
      * Кой може да променя?
      */
     public $canAdd = 'ceo,sales';
-    
-    
+
+
+    /**
+     * Кой може да импортира?
+     */
+    public $canImport = 'ceo,sales';
+
+
     /**
      * Кой може да променя?
      */
