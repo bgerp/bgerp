@@ -236,7 +236,7 @@ class crm_Setup extends core_ProtoSetup
      */
     function fixCountryGroupsImput2109()
     {
-        $gArr = crm_ContragentGroupsPlg::getGroupsId();
+        $gArr = crm_ContragentGroupsPlg::getGroupsId(true);
 
         foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
             $clsInst = cls::get($clsName);
