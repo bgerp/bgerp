@@ -51,7 +51,9 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
             $nData = $mvc->getPaymentData($rec);
 
             if($oData->amount != $nData->amount || $oData->currencyId != $nData->currencyId){
-                $rec->_resetInvoices = true;
+                if(deals_InvoicesToDocuments::count("#documentContainerId = {$rec->containerId}")){
+                    $rec->_resetInvoices = true;
+                }
             }
         }
     }
@@ -79,6 +81,11 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     {
         if($rec->_resetInvoices){
             deals_InvoicesToDocuments::delete("#documentContainerId = {$rec->containerId}");
+            core_Statuses::newStatus('Информацията за отнасянията по фактури е изтрита, поради промяна на сумата и/или валутата на документа. Моля разпределете ги отново');
+            if(isset($rec->fromContainerId)){
+                $rec->fromContainerId = null;
+                $mvc->save_($rec, 'fromContainerId');
+            }
         }
     }
 
