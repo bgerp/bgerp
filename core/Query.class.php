@@ -1404,7 +1404,7 @@ class core_Query extends core_FieldSet
     {
         $res = '';
 
-        if (defined('CORE_QUERY_USE_INDEXES') && (CORE_QUERY_USE_INDEXES === 'no')) {
+        if (countR($this->indexes) && defined('CORE_QUERY_USE_INDEXES') && (CORE_QUERY_USE_INDEXES === 'no')) {
 
             return $res;
         }
