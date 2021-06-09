@@ -34,9 +34,7 @@ class crm_ContragentGroupsPlg extends core_Plugin
      */
     public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        $suggArr = $data->form->fields[$mvc->groupFieldName]->type->getSuggestions();
         $suggArr = $data->form->getSuggestions($mvc->groupFieldName);
-
 
         $gIdArr = self::getGroupsId(true);
 
