@@ -332,7 +332,7 @@ class email_SendOnTime extends core_Manager
             if (core_App::checkCurrentHostIsPrivate()) {
                 $msg = 'Спряно изпращене по разписание. Прави се опит за изпращане от частна мрежа';
 
-                $this->logErr($msg);
+                $this->logErr($msg, $rec->id);
 
                 return $msg;
             }
