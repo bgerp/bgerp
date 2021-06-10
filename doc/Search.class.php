@@ -84,7 +84,7 @@ class doc_Search extends core_Manager
                     $this->db->dbName = SEARCH_DB_NAME;
                     $this->db->dbPass = SEARCH_DB_PASS;
                     $this->db->dbUser = SEARCH_DB_USER;
-                    $this->db->host = SEARCH_DB_HOST;
+                    $this->db->dbHost = SEARCH_DB_HOST;
             }
         }
     }
