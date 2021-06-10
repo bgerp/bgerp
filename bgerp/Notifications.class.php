@@ -1707,7 +1707,7 @@ class bgerp_Notifications extends core_Manager
         
         while ($rec = $query->fetch()) {
             $urlArr = self::getUrl($rec);
-            
+
             $act = strtolower($urlArr['Act']);
             
             if ($act == 'default') {
@@ -1729,7 +1729,12 @@ class bgerp_Notifications extends core_Manager
                     self::delete($rec->id);
                     self::logInfo('Изтрита нотификация за премахнат ресурс', $rec->id);
                 } else {
-                    $haveRight = $ctr::haveRightFor($act, $urlArr['id'], $rec->userId);
+                    if ($ctr == 'doc_Threads' && $urlArr['folderId'] && $act == 'list') {
+                        $haveRight = doc_Folders::haveRightFor('single', $urlArr['folderId'], $rec->userId);
+                    } else {
+                        $haveRight = $ctr::haveRightFor($act, $urlArr['id'], $rec->userId);
+                    }
+
                     if (!$haveRight && ($rec->hidden == 'no')) {
                         $rec->hidden = 'yes';
                         self::save($rec, 'hidden,modifiedOn,modifiedBy');
