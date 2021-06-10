@@ -100,6 +100,7 @@ class deals_InvoicesToDocuments extends core_Manager
             $fRec = $form->rec;
 
             $invArr = array();
+
             if(!empty($fRec->invoices)){
                 $iData =  @json_decode($fRec->invoices, true);
                 if(countR($iData['containerId']) == 1 && empty($iData['amount'][0])){
@@ -108,11 +109,14 @@ class deals_InvoicesToDocuments extends core_Manager
                     $defAmount = min($paymentData->amount, $vAmount);
                     $iData['amount'][0] = $defAmount;
                 }
-                $fRec->invoices = @json_encode($iData);
 
+                $fRec->invoices = @json_encode($iData);
                 $invArr = type_Table::toArray($form->rec->invoices);
             } elseif(!empty($fRec->fromContainerId)){
-                $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $paymentData->amount));
+                $iRec = doc_Containers::getDocument($fRec->fromContainerId)->fetch();
+                $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->rate, 2);
+                $defAmount = min($paymentData->amount, $vAmount);
+                $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $defAmount));
             }
 
             $newArr = array();
