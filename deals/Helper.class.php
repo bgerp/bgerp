@@ -1538,6 +1538,7 @@ abstract class deals_Helper
 
                 $sign = ($pRec->isReverse == 'yes') ? -1 : 1;
                 $invArr = deals_InvoicesToDocuments::getInvoiceArr($pRec->containerId);
+                $pData = $Pdoc->getPaymentData($pRec->id);
 
                 if (in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))) {
                     $type = 'intercept';
@@ -1551,8 +1552,14 @@ abstract class deals_Helper
 
                 if(countR($invArr)){
                     foreach ($invArr as $iRec){
+                        $pData->amount -= $iRec->amount;
                         $iAmount = $sign * round($iRec->amount / $rate, 2);
                         $payArr["{$pRec->containerId}|{$iRec->containerId}"] = (object) array('containerId' => $pRec->containerId, 'amount' => $iAmount, 'available' => $iAmount, 'to' => $invMap[$iRec->containerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
+                    }
+                    $pData->amount = round($pData->amount, 2);
+                    if(!empty($pData->amount)){
+                        $rAmount = $sign * $amount;
+                        $payArr["{$pRec->containerId}|"] = (object) array('containerId' => $pRec->containerId, 'amount' => $rAmount, 'available' => $rAmount, 'to' => null, 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
                     }
                 } else {
                     $amount = $sign * $amount;
@@ -1562,8 +1569,6 @@ abstract class deals_Helper
         }
 
         self::allocationOfPayments($newInvoiceArr, $payArr);
-
-        //bp($newInvoiceArr, $payArr);
 
         return $newInvoiceArr;
     }

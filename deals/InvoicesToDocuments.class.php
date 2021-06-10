@@ -213,7 +213,7 @@ class deals_InvoicesToDocuments extends core_Manager
             }
         }
 
-        if(!empty($totalAmount) && round($totalAmount, 2) >= round($Type->params['totalAmount'], 2)){
+        if(!empty($totalAmount) && round($totalAmount, 2) > round($Type->params['totalAmount'], 2)){
             $tVerbal = core_Type::getByName('double(decimals=2)')->toVerbal($Type->params['totalAmount']);
             $currencyCode = currency_Currencies::getCodeById($Type->params['currencyId']);
             $error[] = "Общата сума не трябва да е повече от:|* <b>{$tVerbal}</b> {$currencyCode}";
@@ -242,11 +242,19 @@ class deals_InvoicesToDocuments extends core_Manager
         $masterRec = $data->masterData->rec;
         $paymentData = $data->masterMvc->getPaymentData($data->masterId);
         $data->recs = static::getInvoiceArr($masterRec->containerId);
+        $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
+        $unallocated = $paymentData->amount;
 
         $data->rows = array();
         foreach ($data->recs as $key => $rec) {
+            $unallocated -= $rec->amount;
             $data->rows[$key] = $this->recToVerbal($rec);
-            $data->rows[$key]->currencyId = currency_Currencies::getCodeById($paymentData->currencyId);
+            $data->rows[$key]->currencyId = $currencyCode;
+            $data->rows[$key]->documentName = tr("Kъм") . " {$data->rows[$key]->documentName}";
+        }
+
+        if(round($unallocated, 2) > 0){
+            $data->rows['u'] = (object)array('documentName' => tr('Неразпределени'), 'currencyId' => $currencyCode, 'amount' => core_Type::getByName('double(decimals=2)')->toVerbal($unallocated));
         }
 
         return $data;

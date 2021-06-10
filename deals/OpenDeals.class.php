@@ -397,6 +397,6 @@ class deals_OpenDeals extends core_Manager
         $threadId = Request::get('threadId', 'int');
 
         $inv = deals_Helper::getInvoicePayments($threadId);
-        bp($inv);
+        bp($inv, $threadId);
     }
 }
