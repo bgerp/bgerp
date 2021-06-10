@@ -159,15 +159,30 @@ class bulmar_BankDocumentExport extends core_Manager
 
                 $newRecs = array();
                 if($key == 'recs'){
+                    $Document = doc_Containers::getDocument($rec->containerId);
+                    $pData = $Document->getPaymentData();
                     $iArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+
                     if(countR($iArr)){
                         $r = $rec->amountDeal / $rec->amount;
 
                         foreach ($iArr as $iRec){
+                            $pData->amount -= $iRec->amount;
+
+
                             $clone = clone $rec;
                             $clone->amount = $iRec->amount;
                             $clone->amountDeal = $iRec->amount * $r;
                             $clone->fromContainerId = $iRec->containerId;
+                            $newRecs[] = $this->prepareRec($clone, $count);
+                        }
+
+                        $pData->amount = round($pData->amount, 2);
+                        if(!empty($pData->amount)){
+                            $clone = clone $rec;
+                            $clone->amount = $pData->amount;
+                            $clone->amountDeal = $pData->amount * $r;
+                            $clone->fromContainerId = null;
                             $newRecs[] = $this->prepareRec($clone, $count);
                         }
                     } else {
@@ -359,9 +374,6 @@ class bulmar_BankDocumentExport extends core_Manager
         } else {
             $amount = $rec->amount * $rec->rate;
         }
-
-       // bp($amount, $rec, deals_InvoicesToDocuments::getInvoiceArr($rec->containerId));
-
 
         if($rec->contragentClassId == crm_Companies::getClassId()){
             $connectedCompanies = keylist::toArray(crm_Setup::get('CONNECTED_COMPANIES'));
