@@ -10,7 +10,8 @@ defIfNot('RECENTLY_MAX_SUGGESTION', 20);
 /**
  * Максимален брой дни за запазване на стойност след нейната последна употреба
  */
-defIfNot('RECENTLY_MAX_KEEPING_DAYS', 60);
+defIfNot('RECENTLY_MAX_KEEPING_DAYS', 30);
+
 
 
 /**
@@ -65,6 +66,22 @@ class recently_Setup extends core_ProtoSetup
         
         // Максимален брой дни за запазване на стойност след нейната последна употреба
         'RECENTLY_MAX_KEEPING_DAYS' => array('int', 'caption=Максимален брой дни за запазване на стойност след нейната последна употреба->Дни'),
+
+    );
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Delete old values',
+            'description' => 'Изтриване на стари стойности',
+            'controller' => 'recently_Values',
+            'action' => 'deleteOldValues',
+            'period' => 1440,
+            'offset' => 90,
+            'timeLimit' => 100
+        )
     );
     
     
