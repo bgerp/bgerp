@@ -151,6 +151,7 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
+        'migrate::fixCountryGroupsImput2109'
     );
     
     
@@ -227,5 +228,31 @@ class crm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
 
         return $html;
+    }
+
+
+    /**
+     * Миграция за поправка на groupsInput полето на фирмите и лицата
+     */
+    function fixCountryGroupsImput2109()
+    {
+        $gArr = crm_ContragentGroupsPlg::getGroupsId(true);
+
+        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
+            $clsInst = cls::get($clsName);
+
+            $query = $clsInst->getQuery();
+            while ($rec = $query->fetch()) {
+                $prevVal = $rec->{$clsInst->groupFieldName};
+
+                foreach ($gArr as $gId) {
+                    $rec->{$clsInst->groupFieldName} = type_Keylist::removeKey($rec->{$clsInst->groupFieldName}, $gId);
+                }
+
+                if ($prevVal != $rec->{$clsInst->groupFieldName}) {
+                    $clsInst->save_($rec, $clsInst->groupFieldName);
+                }
+            }
+        }
     }
 }

@@ -30,6 +30,23 @@ class crm_ContragentGroupsPlg extends core_Plugin
 
 
     /**
+     * Добавя помощен шаблон за попълване на полетата
+     */
+    public static function on_AfterPrepareEditForm($mvc, $data)
+    {
+        $suggArr = $data->form->fields[$mvc->groupFieldName]->type->prepareSuggestions();
+
+        $gIdArr = self::getGroupsId(true);
+
+        foreach ($gIdArr as $gId) {
+            unset($suggArr[$gId]);
+        }
+
+        $data->form->setSuggestions($mvc->groupFieldName, $suggArr);
+    }
+
+
+    /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
     protected static function on_BeforeSave($mvc, $id, $rec)
@@ -40,41 +57,55 @@ class crm_ContragentGroupsPlg extends core_Plugin
             $oCountryId = $mvc->fetchField($rec->id, $mvc->countryFieldName);
 
             if ($oCountryId != $rec->{$mvc->countryFieldName}) {
-                $mustUpdateGroups = true;
                 $oCountryId = $oCountryId;
             }
-        } else {
-            $mustUpdateGroups = true;
         }
 
-        if ($mustUpdateGroups) {
-            $gIdArr = self::getGroupsId();
+        $gIdArr = self::getGroupsId();
 
-            $gForAdd = array();
-            if ($rec->{$mvc->countryFieldName}) {
-                $gForAdd = drdata_CountryGroups::getGroupsArr($rec->{$mvc->countryFieldName});
-            }
+        $gForAdd = array();
+        if ($rec->{$mvc->countryFieldName}) {
+            $gForAdd = drdata_CountryGroups::getGroupsArr($rec->{$mvc->countryFieldName});
+        }
 
-            if ($oCountryId) {
-                $gForRemove = drdata_CountryGroups::getGroupsArr($oCountryId);
+        if ($oCountryId) {
+            $gForRemove = drdata_CountryGroups::getGroupsArr($oCountryId);
 
-                foreach ($gForRemove as $id => $gRec) {
-                    if ($gForAdd[$id]) {
+            foreach ($gForRemove as $id => $gRec) {
+                if ($gForAdd[$id]) {
 
-                        continue;
-                    }
-
-                    $gId = $gIdArr[$id];
-
-                    $rec->{$mvc->groupFieldName} = type_Keylist::removeKey($rec->{$mvc->groupFieldName}, $gId);
+                    continue;
                 }
-            }
 
-            foreach ($gForAdd as $id => $gRec) {
                 $gId = $gIdArr[$id];
 
-                $rec->{$mvc->groupFieldName} = type_Keylist::addKey($rec->{$mvc->groupFieldName}, $gId);
+                $rec->{$mvc->groupFieldName} = type_Keylist::removeKey($rec->{$mvc->groupFieldName}, $gId);
             }
+        }
+
+        foreach ($gForAdd as $id => $gRec) {
+            $gId = $gIdArr[$id];
+
+            $rec->{$mvc->groupFieldName} = type_Keylist::addKey($rec->{$mvc->groupFieldName}, $gId);
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        $gArr = self::getGroupsId(true);
+
+        $prevVal = $rec->{$mvc->groupFieldName};
+
+        foreach ($gArr as $gId) {
+            $rec->{$mvc->groupFieldName} = type_Keylist::removeKey($rec->{$mvc->groupFieldName}, $gId);
+        }
+
+        if ($prevVal != $rec->{$mvc->groupFieldName}) {
+            $mvc->save_($rec, $mvc->groupFieldName);
         }
     }
 
@@ -93,7 +124,7 @@ class crm_ContragentGroupsPlg extends core_Plugin
      *
      * @return array
      */
-    public static function getGroupsId()
+    public static function getGroupsId($getParent = false)
     {
         static $resArr = null;
 
@@ -112,6 +143,12 @@ class crm_ContragentGroupsPlg extends core_Plugin
             $gId = crm_Groups::force("Държави » {$cRec->name}");
 
             $resArr[$cRec->id] = $gId;
+        }
+
+        if ($getParent) {
+            $gId = crm_Groups::force("Държави");
+
+            $resArr[''] = $gId;
         }
 
         return $resArr;
