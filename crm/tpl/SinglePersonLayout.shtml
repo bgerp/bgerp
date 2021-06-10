@@ -59,14 +59,14 @@
             <!--ET_END contacts-->
 
 
-            <!--ET_BEGIN groupList-->
+            <!--ET_BEGIN groupListInput-->
             <fieldset class="detail-info">
                 <legend class="groupTitle">|Групи|*</legend>
                 <div class="groupList">
-                    [#groupList#]
+                    [#groupListInput#]
                 </div>
             </fieldset>
-            <!--ET_END groupList-->
+            <!--ET_END groupListInput-->
             <!--ET_BEGIN business-->
             [#business#]
             <fieldset class="detail-info">
