@@ -42,6 +42,7 @@ class recently_Values extends core_Manager
         $this->FLD('value', 'varchar', 'caption=Стойност');
         
         $this->setDbUnique('name,value,createdBy');
+        $this->setDbIndex('name,createdBy');
     }
     
     
@@ -111,8 +112,29 @@ class recently_Values extends core_Manager
             self::save($rec);
         }
     }
-    
-    
+
+    /**
+     * Изтриване на стари стойности
+     *
+     * @param datetime $olderThan
+     * @return void
+     */
+    private function deleteOldValues()
+    {
+        if($olderThan = recently_Setup::get('MAX_KEEPING_DAYS')){
+
+            // Всички движения преди X време
+            $createdBefore = dt::addDays(-1 * $olderThan);
+
+            Mode::push('valuesDeleteByCron', true);
+            recently_Values::delete("#createdOn <= '{$createdBefore}'");
+            Mode::pop('valuesDeleteByCron');
+        }
+
+    }
+
+
+
     /**
      * Преди да се извлекат записите за листови изглед,
      * задава подреждане от най-новите към по-старите
@@ -120,5 +142,15 @@ class recently_Values extends core_Manager
     public static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->query->orderBy('#createdOn=DESC');
+    }
+
+    /**
+     * Изтриване на стари движения по разписание
+     */
+    public function cron_DeleteOldValues()
+    {
+        // Изтриване на старите стойности
+        $this->deleteOldValues();
+
     }
 }
