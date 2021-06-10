@@ -19,7 +19,7 @@
      /**
       * Кой може да избира драйвъра
       */
-     public $canSelectDriver = 'ceo,planning';
+     public $canSelectDriver = 'ceo,planning,hrMaster';
      
      
      /**

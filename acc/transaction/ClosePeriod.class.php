@@ -729,18 +729,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 // Ако разходния обект е ПО - пропуска се
                 continue;
             } else {
-                
-                // Ако разхода не е към продажба, отива към Общите разходи
-                if ($dRec->blQuantity > 0) {
-                    $entry = array('amount' => round($dRec->blAmount, 7),
-                        'debit' => array('61102'),
-                        'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
-                } elseif ($dRec->blQuantity <= 0) {
-                    $entry = array('amount' => round(abs($dRec->blAmount), 7),
-                        'debit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => abs($dRec->blQuantity)),
-                        'credit' => array('61102'), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
-                }
-                
+
+                $entry = array('amount' => round($dRec->blAmount, 7),
+                            'debit' => array('61102'),
+                            'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
                 $amount602 += abs($dRec->blAmount);
             }
             
