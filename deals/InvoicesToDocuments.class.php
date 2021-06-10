@@ -246,15 +246,17 @@ class deals_InvoicesToDocuments extends core_Manager
         $unallocated = $paymentData->amount;
 
         $data->rows = array();
-        foreach ($data->recs as $key => $rec) {
-            $unallocated -= $rec->amount;
-            $data->rows[$key] = $this->recToVerbal($rec);
-            $data->rows[$key]->currencyId = $currencyCode;
-            $data->rows[$key]->documentName = tr("Kъм") . " {$data->rows[$key]->documentName}";
-        }
+        if(countR($data->recs)){
+            foreach ($data->recs as $key => $rec) {
+                $unallocated -= $rec->amount;
+                $data->rows[$key] = $this->recToVerbal($rec);
+                $data->rows[$key]->currencyId = $currencyCode;
+                $data->rows[$key]->documentName = tr("Kъм") . " {$data->rows[$key]->documentName}";
+            }
 
-        if(round($unallocated, 2) > 0){
-            $data->rows['u'] = (object)array('documentName' => tr('Неразпределени'), 'currencyId' => $currencyCode, 'amount' => core_Type::getByName('double(decimals=2)')->toVerbal($unallocated));
+            if(round($unallocated, 2) > 0){
+                $data->rows['u'] = (object)array('documentName' => tr('Неразпределени'), 'currencyId' => $currencyCode, 'amount' => core_Type::getByName('double(decimals=2)')->toVerbal($unallocated));
+            }
         }
 
         return $data;
