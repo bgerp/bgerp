@@ -54,7 +54,7 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields;
+    protected $changeableFields = 'period,groups,stores';
 
 
     /**
