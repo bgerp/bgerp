@@ -1558,7 +1558,7 @@ abstract class deals_Helper
                     }
                     $pData->amount = round($pData->amount, 2);
                     if(!empty($pData->amount)){
-                        $rAmount = $sign * $amount;
+                        $rAmount = $sign * $pData->amount;
                         $payArr["{$pRec->containerId}|"] = (object) array('containerId' => $pRec->containerId, 'amount' => $rAmount, 'available' => $rAmount, 'to' => null, 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
                     }
                 } else {
