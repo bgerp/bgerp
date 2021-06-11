@@ -213,7 +213,7 @@ class accda_Da extends core_Master
                 
                 // Ако е избран склад
                 if ($rec->storeId) {
-                    $form->info = deals_Helper::checkProductQuantityInStore($rec->productId, null, 1, $rec->storeId)->formInfo;
+                    $form->info = deals_Helper::checkProductQuantityInStore($rec->productId, null, 1, $rec->storeId, $rec->valior)->formInfo;
                 }
             } else {
                 $form->setFieldTypeParams('accountId', 'root=21');

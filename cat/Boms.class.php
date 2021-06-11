@@ -205,6 +205,12 @@ class cat_Boms extends core_Master
 
 
     /**
+     * Брояч
+     */
+    public static $calcPriceCounter = array();
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -370,21 +376,24 @@ class cat_Boms extends core_Master
         $query = $this->getQuery();
         $query->where("#state = 'closed' AND #id != {$rec->id} AND #productId = {$rec->productId} AND #type = '{$rec->type}'");
         $query->orderBy('id', 'DESC');
-        $query->limit(1);
-        
-        $nextActiveBomRec = $query->fetch();
-        if ($nextActiveBomRec) {
-            $nextActiveBomRec->state = 'active';
-            $nextActiveBomRec->brState = 'closed';
-            $nextActiveBomRec->modifiedOn = dt::now();
-            
-            // Ако има такава я активираме
-            $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
-            $this->logWrite("Активиране на последна '" . $this->getVerbal($rec, 'type') . "' рецепта", $id);
-            doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
-            
-            return $id;
+
+        while ($nextActiveBomRec = $query->fetch()) {
+
+            // Ако предишната активна рецепта е ОК - активира се
+            if($this->isOk($nextActiveBomRec)){
+                $nextActiveBomRec->state = 'active';
+                $nextActiveBomRec->brState = 'closed';
+                $nextActiveBomRec->modifiedOn = dt::now();
+
+                $id = $this->save_($nextActiveBomRec, 'state,brState,modifiedOn');
+                $this->logWrite("Активиране на последна '" . $this->getVerbal($rec, 'type') . "' рецепта", $id);
+                doc_DocumentCache::cacheInvalidation($nextActiveBomRec->containerId);
+
+                return $id;
+            }
         }
+
+        return false;
     }
     
     
@@ -677,7 +686,14 @@ class cat_Boms extends core_Master
         if ($fields['-single'] && !doc_HiddenContainers::isHidden($rec->containerId)) {
             $row->title = empty($rec->title) ? null : $mvc->getVerbal($rec, 'title');
             $rec->quantityForPrice = isset($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
-            $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
+
+            try{
+                $price = cat_Boms::getBomPrice($rec->id, $rec->quantityForPrice, 0, 0, dt::now(), price_ListRules::PRICE_LIST_COST);
+            } catch(core_exception_Expect $e){
+                core_Statuses::newStatus($e->getMessage(), 'error');
+                reportException($e);
+                $price = 0;
+            }
             
             if (haveRole('ceo, acc, cat, price')) {
                 $row->quantityForPrice = $mvc->getFieldType('quantity')->toVerbal($rec->quantityForPrice);
@@ -686,6 +702,14 @@ class cat_Boms extends core_Master
                 $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->modifiedOn);
                 $Double = cls::get('type_Double', array('params' => array('decimals' => 2)));
                 $row->primeCost = $Double->toVerbal($rec->primeCost);
+
+                if($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')){
+                    $row->primeCost = "<span class='red'>???</span>";
+                } else {
+                    $row->primeCost = ht::styleNumber($row->primeCost, $rec->primeCost);
+                    $row->primeCost = "<b>{$row->primeCost}</b>";
+                }
+
                 $row->primeCost = ($rec->primeCost === 0 && cat_BomDetails::fetchField("#bomId = {$rec->id}", 'id')) ? "<b class='red'>???</b>" : "<b>{$row->primeCost}</b>";
                 $row->primeCost .= tr("|* <span class='cCode'>{$baseCurrencyCode}</span>, |при тираж|* {$row->quantityForPrice} {$shortUom}");
             }
@@ -723,7 +747,14 @@ class cat_Boms extends core_Master
         expect($rec = static::fetchRec($id));
         $resources['quantity'] = ($rec->quantity) ? $rec->quantity : 1;
         $resources['expenses'] = null;
-        $resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials);
+
+        try{
+            $resources['primeCost'] = static::getBomPrice($id, $quantity, 0, 0, $date, price_ListRules::PRICE_LIST_COST, $materials);
+        } catch(core_exception_Expect $e){
+            reportException($e);
+            $resources['primeCost'] = null;
+        }
+
         $resources['resources'] = array_values($materials);
         
         if (is_array($materials)) {
@@ -1183,8 +1214,8 @@ class cat_Boms extends core_Master
         
         return $scope;
     }
-    
-    
+
+
     /**
      * Връща цената на материала за рецептата
      *
@@ -1203,7 +1234,7 @@ class cat_Boms extends core_Master
             
             // Първо проверяваме имали цена по политиката
             $price = price_ListRules::getPrice($priceListId, $productId, null, $date);
-            
+
             if (!isset($price)) {
                 
                 // Ако няма, търсим по последната търговска рецепта, ако има
@@ -1460,12 +1491,23 @@ class cat_Boms extends core_Master
      */
     public static function getBomPrice($id, $quantity, $minDelta, $maxDelta, $date, $priceListId, &$materials = array())
     {
-        $price = null;
         $primeCost1 = $primeCost2 = null;
         
         // Трябва да има такъв запис
         expect($rec = static::fetchRec($id));
-        
+
+        if(!array_key_exists($rec->id, static::$calcPriceCounter)){
+            static::$calcPriceCounter[$rec->id] = 1;
+        } else {
+            static::$calcPriceCounter[$rec->id]++;
+        }
+
+        // Ако случайно изчисляването на рецептата е зациклило да се прекъсне да не върти вечно
+        if(static::$calcPriceCounter[$rec->id] > 500){
+
+            throw new core_exception_Expect("Има проблем при изчисляването на рецептата:|* #Bom{$rec->id}", 'Несъответствие');
+        }
+
         $savePrimeCost = false;
         $bomQuantity = ($rec->quantityForPrice) ? $rec->quantityForPrice : $rec->quantity;
         
@@ -1789,5 +1831,40 @@ class cat_Boms extends core_Master
         $title = str::limitLen($title, 94);
 
         return $title;
+    }
+
+
+    /**
+     * Дали рецептата е ОК - тоест няма да предизвика рекурсивно зацикляне
+     *
+     * @param $rec
+     * @return bool
+     */
+    private function isOk($rec)
+    {
+        $Detail = cls::get('cat_BomDetails');
+
+        // Проверка дали активирането на рецептата ще предизвика зацикляне
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#bomId = {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+            $notAllowed[] = array();
+            $Detail->findNotAllowedProducts($dRec->resourceId, $rec->productId, $notAllowed);
+
+            if (isset($notAllowed[$dRec->resourceId])) return false;
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    protected static function on_BeforeChangeState($mvc, &$rec, $state)
+    {
+        if($state == 'active' && !$mvc->isOk($rec)){
+            followRetUrl(null, 'Рецептата не може да се активира, защото артикулът се съдържа в рецептата на някой от вложените в него|*!', 'error');
+        }
     }
 }

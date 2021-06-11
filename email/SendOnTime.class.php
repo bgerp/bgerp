@@ -328,6 +328,15 @@ class email_SendOnTime extends core_Manager
         $cnt = 0;
         
         while ($rec = $query->fetch()) {
+            // Ако се изпраща от частна мрежа, спираме процеса
+            if (core_App::checkCurrentHostIsPrivate()) {
+                $msg = 'Спряно изпращене по разписание. Прави се опит за изпращане от частна мрежа';
+
+                $this->logErr($msg, $rec->id);
+
+                return $msg;
+            }
+
             $sudoUser = core_Users::sudo($rec->createdBy);
             try {
                 $inst = cls::get($rec->class);

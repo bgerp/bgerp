@@ -72,11 +72,17 @@ class price_interface_LastActiveBomCostPolicy extends price_interface_BaseCostPo
             
             // Търсим му рецептата
             if ($bomRec = cat_Products::getLastActiveBom($productId)) {
+
+                // Ако има, намираме и цената
+                $t = ($bomRec->quantityForPrice) ? $bomRec->quantityForPrice : $bomRec->quantity;
+
                 if (!isset($cache[$bomRec->id])) {
-                    
-                    // Ако има, намираме и цената
-                    $t = ($bomRec->quantityForPrice) ? $bomRec->quantityForPrice : $bomRec->quantity;
-                    $cache[$bomRec->id] = cat_Boms::getBomPrice($bomRec, $t, 0, 0, $now, price_ListRules::PRICE_LIST_COST);
+                    try{
+                        $cache[$bomRec->id] = cat_Boms::getBomPrice($bomRec, $t, 0, 0, $now, price_ListRules::PRICE_LIST_COST);
+                    } catch(core_exception_Expect $e){
+                        reportException($e);
+                        continue;
+                    }
                 }
                 
                 $primeCost = $cache[$bomRec->id];

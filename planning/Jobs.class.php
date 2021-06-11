@@ -58,7 +58,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dueDate,packQuantity,notes,tolerance,sharedUsers';
+    public $changableFields = 'storeId,dueDate,packQuantity,notes,tolerance,sharedUsers';
     
     
     /**
@@ -1261,9 +1261,10 @@ class planning_Jobs extends core_Master
                 // Клониране на стара операция
                 $Tasks = cls::get('planning_Tasks');
                 $taskRec = planning_Tasks::fetch($actionArr[1]);
-                
+
                 $newTask = clone $taskRec;
                 plg_Clone::unsetFieldsNotToClone($Tasks, $newTask, $taskRec);
+                $newTask->plannedQuantity = $taskRec->plannedQuantity;
                 $newTask->_isClone = true;
                 $newTask->originId = $jobRec->containerId;
                 $newTask->state = 'draft';

@@ -107,6 +107,7 @@ class cat_products_Params extends doc_Detail
         
         $this->setDbUnique('classId,productId,paramId');
         $this->setDbIndex('classId,productId');
+        $this->setDbIndex('productId,classId');
     }
     
     

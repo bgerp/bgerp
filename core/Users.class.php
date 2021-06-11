@@ -2448,12 +2448,12 @@ class core_Users extends core_Manager
     {
         $currUrl = core_Url::parseUrl($url);
         
-        $currUrl[scheme] = 'https';
-        
-        if ($currUrl[port] != '443' && $currUrl[scheme] === 'https') {
-            $newUrl = $currUrl[scheme]. '://' . $currUrl[host] . ':' . $currUrl[port]. $currUrl[path] . '?' . $currUrl[query];
+        $currUrl['scheme'] = 'https';
+
+        if ($currUrl['port'] != '443' && $currUrl['scheme'] === 'https') {
+            $newUrl = $currUrl['scheme']. '://' . $currUrl['host'] . ':' . $currUrl['port']. $currUrl['path'] . '?' . $currUrl['query'];
         } else {
-            $newUrl = $currUrl[scheme]. '://' . $currUrl[host] . $currUrl[path] . '?' . $currUrl[query];
+            $newUrl = $currUrl['scheme']. '://' . $currUrl['host'] . $currUrl['path'] . '?' . $currUrl['query'];
         }
         
         return $newUrl;

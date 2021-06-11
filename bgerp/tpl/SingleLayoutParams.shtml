@@ -48,7 +48,21 @@
                 <td>[#round#]</td>
             </tr>
             <!--ET_END round-->
-            
+
+            <!--ET_BEGIN class-->
+            <tr>
+                <td class="title-style">|Клас|*</td>
+                <td>[#class#]</td>
+            </tr>
+            <!--ET_END class-->
+
+            <!--ET_BEGIN select-->
+            <tr>
+                <td class="title-style">|Поле на класа|*</td>
+                <td>[#select#]</td>
+            </tr>
+            <!--ET_END select-->
+
             <!--ET_BEGIN translate-->
             <tr>
                 <td class="title-style">|Превод|*</td>

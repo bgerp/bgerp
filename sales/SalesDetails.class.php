@@ -180,7 +180,8 @@ class sales_SalesDetails extends deals_DealDetail
             $pInfo = cat_Products::getProductInfo($rec->productId);
             
             if (isset($pInfo->meta['canStore'])) {
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->shipmentStoreId);
+                $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->shipmentStoreId, $deliveryDate);
                 $form->info = $storeInfo->formInfo;
             }
         }
@@ -194,8 +195,8 @@ class sales_SalesDetails extends deals_DealDetail
             sales_TransportValues::prepareFee($rec, $form, $masterRec);
         }
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -219,14 +220,8 @@ class sales_SalesDetails extends deals_DealDetail
             }
             
             if (isset($pInfo->meta['canStore'])) {
-                $deliveryDate = $masterRec->deliveryTime;
-                if(empty($deliveryDate)){
-                    $deliveryDate = $masterRec->valior;
-                    if(!empty($masterRec->deliveryTermTime)){
-                        $deliveryDate = dt::addSecs($masterRec->deliveryTermTime, $deliveryDate);
-                    }
-                }
-                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
+                $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
+                deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
             }
             
             if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {

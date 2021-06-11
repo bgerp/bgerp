@@ -174,7 +174,7 @@ abstract class cash_Document extends deals_PaymentDocument
     protected function getFields(core_Mvc &$mvc)
     {
         $mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
+        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Платени,mandatory,silent');
         $mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
         $mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основание');
         $mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
@@ -189,7 +189,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
-        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
+        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Валута (и сума) на плащането->Сума,summary=amount,input=hidden');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
@@ -220,7 +220,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $amount = round($amount, 2);
         }
        
-        return $amount;
+        return abs($amount);
     }
     
     
@@ -260,7 +260,7 @@ abstract class cash_Document extends deals_PaymentDocument
         }
         
         if ($expectedPayment) {
-            $amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
+            $amount = round($expectedPayment / $dealInfo->get('rate'), 2);
             
             if ($form->rec->currencyId == $form->rec->dealCurrencyId) {
                 $form->setDefault('amount', $amount);
@@ -278,7 +278,7 @@ abstract class cash_Document extends deals_PaymentDocument
         if ($mvc instanceof cash_Rko || (isset($defaultOperation) && array_key_exists($defaultOperation, $options))) {
             $form->setDefault('operationSysId', $defaultOperation);
            
-            $dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+            $dAmount = round($amount, 2);
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);
             }

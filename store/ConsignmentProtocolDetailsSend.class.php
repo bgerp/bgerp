@@ -79,7 +79,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Предадено на Клиент/Доставчик, packagingId, packQuantity, weight=Тегло,volume=Обем,packPrice, amount,transUnitId=ЛЕ';
+    public $listFields = 'productId=Предадено, packagingId, packQuantity, weight=Тегло,volume=Обем,packPrice, amount,transUnitId=ЛЕ';
     
     
     /**
@@ -131,8 +131,8 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         $rec = &$form->rec;
         
         if (isset($rec->productId)) {
-            $masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->storeId, $masterRec->valior);
             $form->info = $storeInfo->formInfo;
         }
     }
@@ -148,7 +148,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         $storeId = $data->masterData->rec->storeId;
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state, $data->masterData->rec->valior);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state, $data->masterData->rec->valior);
         }
     }
 }

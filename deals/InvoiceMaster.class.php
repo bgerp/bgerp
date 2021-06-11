@@ -548,6 +548,10 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        if(isset($rec->threadId)){
+            doc_DocumentCache::threadCacheInvalidation($rec->threadId);
+        }
+
         $Source = $mvc->getSourceOrigin($rec);
         if (!$Source) {
             return;

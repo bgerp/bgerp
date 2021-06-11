@@ -154,6 +154,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         parent::setDocumentFields($this);
         $this->FLD('departmentId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р на дейност,before=note');
         $this->FLD('useResourceAccounts', 'enum(yes=Да,no=Не)', 'caption=Детайлно влагане,notNull,default=yes,maxRadio=2,before=note');
+        $this->setField('storeId', 'placeholder=Само услуги');
     }
     
     
@@ -162,11 +163,19 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
+        $form = &$data->form;
+        $rec = &$form->rec;
+        $form->setDefault('useResourceAccounts', planning_Setup::get('CONSUMPTION_USE_AS_RESOURCE'));
         
-        $folderCover = doc_Folders::getCover($data->form->rec->folderId);
+        $folderCover = doc_Folders::getCover($rec->folderId);
         if ($folderCover->isInstanceOf('planning_Centers')) {
-            $data->form->setDefault('departmentId', $folderCover->that);
+            $form->setDefault('departmentId', $folderCover->that);
+        }
+
+        if(isset($rec->id)){
+            if(planning_ConsumptionNoteDetails::getStorableProductsCount($rec->id)){
+                $form->setField('storeId', 'mandatory');
+            }
         }
     }
     
@@ -185,6 +194,10 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
         
         if (isset($rec->departmentId)) {
             $row->departmentId = planning_Centers::getHyperlink($rec->departmentId, true);
+        }
+
+        if(empty($rec->storeId)){
+            $row->storeId = ht::createHint("<i style='color:blue'>" . tr('Не е посочен') . "</i>", 'В протокола могат да се избират само услуги|*!');
         }
     }
     
@@ -261,7 +274,13 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
             $origin = doc_Containers::getDocument($rec->originId);
             $dQuery = planning_ProductionTaskProducts::getQuery();
             $dQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
-            $dQuery->where("#taskId = {$origin->that} AND #totalQuantity != 0 AND #type = 'input' AND #canStore = 'yes' AND (#storeId = {$rec->storeId} OR #storeId IS NULL)");
+            $dQuery->where("#taskId = {$origin->that} AND #totalQuantity != 0 AND #type = 'input'");
+            if(isset($rec->storeId)){
+                $dQuery->where("#storeId = {$rec->storeId} OR #storeId IS NULL");
+            } else {
+                $dQuery->where("#canStore = 'no'");
+            }
+
             while($dRec = $dQuery->fetch()){
                 $newRec = (object)array('noteId' => $rec->id, 'productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'quantity' => $dRec->totalQuantity);
                 planning_ConsumptionNoteDetails::save($newRec);

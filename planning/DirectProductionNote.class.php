@@ -322,6 +322,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $form->setField('storeId', 'input=none');
                 $form->setField('inputStoreId', array('caption' => 'Допълнително->Влагане от'));
             } else {
+                $form->setField('storeId', 'mandatory');
                 $form->setField('packagingId', 'input');
                 if(cat_Products::haveDriver($rec->productId, 'planning_interface_StageDriver')){
                     $form->setField('inputStoreId', 'mandatory');
@@ -681,10 +682,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             if(countR($details2)){
                 foreach ($details2 as $d2){
                     $d2->_realData = true;
+
                     if(array_key_exists("{$d2->productId}|{$d2->type}", $detailsFromBom)){
-                        unset($detailsFromBom["{$d2->productId}|{$d2->type}"]);
                         $d2->quantityFromBom = $detailsFromBom["{$d2->productId}|{$d2->type}"]->quantityFromBom;
                         $d2->quantity = $d2->quantityFromBom;
+                        unset($detailsFromBom["{$d2->productId}|{$d2->type}"]);
+
                     } else {
                         $d2->quantity = 0;
                     }
@@ -717,6 +720,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                         $obj1->quantityFromBom = 0;
                         $details[$key] = $obj1;
                         $details[$key]->quantityFromBom += $d3->quantityFromBom;
+                    }
+                }
+            }
+
+            // Ако е избрано с приоритет очакваното количество, то се попълва
+            if(planning_Setup::get('PRODUCTION_NOTE_PRIORITY') == 'expected'){
+                foreach ($details as &$d3){
+                    if(isset($d3->quantityExpected) && isset($d3->quantityFromBom)){
+                        $d3->quantity = $d3->quantityExpected;
                     }
                 }
             }

@@ -1602,6 +1602,14 @@ a.tUnsighted {
   .bgerp_drivers_Tasks .tagsHolder {
     margin-right: -45px; }
 
+.noteBomCol {
+  color: green;
+  font-size: 0.9em; }
+
+.noteExpectedCol {
+  color: blue;
+  font-size: 0.9em; }
+
   .narrow .document span.state {
     padding: 2px 5px;
     border-radius: 3px;
@@ -5256,11 +5264,11 @@ div.location.public {
 /*
  * край на стилове за състояния на SMS' ите в колцентъра
  */
-.doc-negative-quantiy {
+.doc-negative-quantity {
   color: red;
   font-weight: bold; }
 
-.doc-warning-quantiy {
+.doc-warning-quantity {
   color: #d66737;
   font-weight: bold; }
 

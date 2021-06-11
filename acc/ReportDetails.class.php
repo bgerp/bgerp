@@ -14,7 +14,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,14 @@ class acc_ReportDetails extends core_Manager
         setIfNot($data->masterMvc->canAddacclimits, 'ceo,accLimits');
         setIfNot($data->masterMvc->balanceRefShowZeroRows, true);
         setIfNot($data->masterMvc->showAccReportsInTab, true);
-        
+
+        // Перото с което мастъра фигурира в счетоводството
+        $data->itemRec = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
+        if(empty($data->itemRec)) {
+            $data->renderReports = false;
+            return;
+        }
+
         $data->TabCaption = 'Счетоводство';
         
         $balanceRec = acc_Balances::getLastBalance();
@@ -65,15 +72,13 @@ class acc_ReportDetails extends core_Manager
         if (!$prepareTab || $prepareTab == 'AccReports') {
             $data->prepareTab = true;
         }
-        
+
         // Ако потребителя има достъп до репортите
         if (haveRole($data->masterMvc->canReports) && ($data->Tab == 'top' || $data->isCurrent)) {
             
             // Извличане на счетоводните записи
             $this->prepareBalanceReports($data);
             $data->renderReports = true;
-        
-        //$data->Order = 1;
         } else {
             $data->renderReports = false;
         }
@@ -111,9 +116,6 @@ class acc_ReportDetails extends core_Manager
      */
     private function prepareBalanceReports(&$data)
     {
-        // Перото с което мастъра фигурира в счетоводството
-        $data->itemRec = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
-        
         // Ако мастъра не е перо, няма какво да се показва
         if (empty($data->itemRec)) {
             $data->renderReports = false;

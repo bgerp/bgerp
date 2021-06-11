@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -91,7 +91,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'no_one';
+    public $canList = 'debug';
     
     
     /**
@@ -103,7 +103,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
+    public $listFields = 'bomId=Рецепта,position=№, resourceId, packagingId=Мярка,propQuantity=Формула,rowQuantity=Вложено->Количество,primeCost,coefficient';
     
     
     /**
@@ -175,6 +175,10 @@ class cat_BomDetails extends doc_Detail
         $data->listFields['primeCost'] = "|К-во влагане за|* {$data->masterData->row->quantity}->|Сума|* <small>({$baseCurrencyCode})</small>";
         if (!haveRole('ceo, acc, cat, price')) {
             unset($data->listFields['primeCost']);
+        }
+
+        if(isset($data->masterMvc)){
+            unset($data->listFields['bomId']);
         }
     }
     
@@ -323,7 +327,7 @@ class cat_BomDetails extends doc_Detail
      *
      * @return void
      */
-    private function findNotAllowedProducts($objectId, $needle, &$notAllowed, $path = array())
+    public function findNotAllowedProducts($objectId, $needle, &$notAllowed, $path = array())
     {
         // Добавяме текущия продукт
         $path[$objectId] = $objectId;
@@ -558,7 +562,10 @@ class cat_BomDetails extends doc_Detail
         // Показваме подробната информация за опаковката при нужда
         deals_Helper::getPackInfo($row->packagingId, $rec->resourceId, $rec->packagingId, $rec->quantityInPack);
         $row->resourceId = cat_Products::getAutoProductDesc($rec->resourceId, null, 'short', 'internal');
-        
+        if(isset($fields['bomId'])){
+            $row->bomId = cat_Boms::getHyperlink($rec->bomId, true);
+        }
+
         if ($rec->type == 'stage') {
             $row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
             $row->ROW_ATTR['title'] = tr('Етап');
@@ -723,9 +730,11 @@ class cat_BomDetails extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'edit' || $action == 'delete' || $action == 'add' || $action == 'expand' || $action == 'shrink') && isset($rec)) {
-            $masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
-            if ($masterRec->state != 'draft') {
-                $requiredRoles = 'no_one';
+            if(isset($rec->bomId)){
+                $masterRec = cat_Boms::fetch($rec->bomId, 'state,originId');
+                if ($masterRec->state != 'draft') {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         

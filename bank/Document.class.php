@@ -150,7 +150,7 @@ abstract class bank_Document extends deals_PaymentDocument
     protected function getFields(core_Mvc &$mvc)
     {
         $mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
+        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Платени,mandatory,silent');
         $mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
         $mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
         
@@ -160,7 +160,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $mvc->FLD('contragentName', 'varchar(255)', 'caption=От->Контрагент,mandatory');
         $mvc->FLD('contragentIban', 'iban_Type(64)', 'caption=От->Сметка');
         $mvc->FLD('ownAccount', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=В->Сметка,silent,removeAndRefreshForm=currencyId|amount');
-        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
+        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Сума,summary=amount,input=hidden');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
         
         $mvc->FLD('contragentId', 'int', 'input=hidden,notNull');
@@ -278,7 +278,7 @@ abstract class bank_Document extends deals_PaymentDocument
         $rec->amountDeal = $fields['amountDeal'];
         $from = currency_Currencies::getCodeById($rec->dealCurrencyId);
         $to = currency_Currencies::getCodeById($rec->currencyId);
-        
+
         if(empty($fields['amountFromAccountId'])){
             if($rec->dealCurrencyId == $rec->currencyId){
                 $rec->amount = $rec->amountDeal;
@@ -551,7 +551,7 @@ abstract class bank_Document extends deals_PaymentDocument
     protected function setDefaultsFromOrigin(core_ObjectReference $origin, core_Form &$form, &$options)
     {
         $dealInfo = $origin->getAggregateDealInfo();
-        
+
         $cId = currency_Currencies::getIdByCode($dealInfo->get('currency'));
         $form->setDefault('dealCurrencyId', $cId);
         $form->setDefault('rate', $dealInfo->get('rate'));
@@ -591,7 +591,7 @@ abstract class bank_Document extends deals_PaymentDocument
         } else {
             $form->setDefault('currencyId', $form->rec->dealCurrencyId);
         }
-        
+
         $pOperations = $dealInfo->get('allowedPaymentOperations');
         $defaultOperation = $dealInfo->get('defaultBankOperation');
         $options = static::getOperations($pOperations);
@@ -602,17 +602,17 @@ abstract class bank_Document extends deals_PaymentDocument
                 $expectedPayment = $form->rec->amountDeal * $dealInfo->get('rate');
             }
             
-            $amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
+            $amount = round($expectedPayment / $dealInfo->get('rate'), 2);
             
             if ($form->rec->currencyId == $form->rec->dealCurrencyId) {
-                $form->setDefault('amount', $amount);
+                $form->setDefault('amount',$amount);
             }
         }
         
         if (isset($defaultOperation) && array_key_exists($defaultOperation, $options)) {
             $form->setDefault('operationSysId', $defaultOperation);
             
-            $dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+            $dAmount = round($amount, 2);
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);
             }
