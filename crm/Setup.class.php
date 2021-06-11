@@ -151,8 +151,7 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::fixCountryGroupsImput2109',
-        'migrate::removeWrongNotifications'
+        'migrate::fixCountryGroupsInput2109'
     );
     
     
@@ -235,7 +234,7 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Миграция за поправка на groupsInput полето на фирмите и лицата
      */
-    function fixCountryGroupsImput2109()
+    function fixCountryGroupsInput2109()
     {
         $gArr = crm_ContragentGroupsPlg::getGroupsId(true);
 
@@ -257,6 +256,20 @@ class crm_Setup extends core_ProtoSetup
         }
     }
 
+
+
+
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        $res .= $this->callMigrate('removeWrongNotifications', 'crm');
+
+        return $res;
+    }
 
     /**
      * Миграция за изтриване на грешно създадени известия
