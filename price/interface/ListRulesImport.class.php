@@ -59,6 +59,8 @@ class price_interface_ListRulesImport extends core_Manager
         $listId = Request::get('listId', 'int');
         expect($this->listRec = price_Lists::fetch($listId));
 
+        $fields['validFrom'] = array('caption' => 'Уточнения->В сила от', 'notColumn' => true, 'type' => 'datetime');
+        $fields['validUntil'] = array('caption' => 'Уточнения->В сила до', 'notColumn' => true, 'type' => 'datetime');
         $fields['currencyId'] = array('caption' => 'Уточнения->Валута', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => 'customKey(mvc=currency_Currencies,key=code,select=code)', 'default' => $this->listRec->currency);
         $fields['vat'] = array('caption' => 'Уточнения->ДДС', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => 'enum(yes=С ДДС,no=Без ДДС)', 'default' => $this->listRec->vat);
 
@@ -77,7 +79,7 @@ class price_interface_ListRulesImport extends core_Manager
     public function checkRows(&$rows, $fields, &$errArr)
     {
         $errArr = $recs = array();
-        //bp($errArr, $rows);
+
         $i = 1;
         foreach ($rows as $row) {
             $rec = new stdClass();
@@ -113,6 +115,7 @@ class price_interface_ListRulesImport extends core_Manager
             } else {
                 $rec->price = $price;
             }
+
             $recs[] = $rec;
 
             $i++;
@@ -177,7 +180,7 @@ class price_interface_ListRulesImport extends core_Manager
             }
 
             $vat = ($rec->vat == 'yes');
-            price_ListRules::addProductRule($this->listRec->id, $rec->productId, $price, $rec->currencyId, $vat);
+            price_ListRules::addProductRule($this->listRec->id, $rec->productId, $price, $rec->currencyId, $vat, $rec->validFrom, $rec->validUntil);
             $added++;
         }
 
