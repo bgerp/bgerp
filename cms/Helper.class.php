@@ -124,8 +124,8 @@ class cms_Helper extends core_BaseClass
         // Ако има потребител с този имейл той трябва да е логнат
         if (core_Users::getUserByEmail($email)) {
 
-            $link = ht::createLink('логнете |*',array('core_Users','login'));
-            return "Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се |* $link.";
+            $link = ht::createLink('логнете|*',array('core_Users','login'));
+            return "Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се|* $link.";
         }
     }
 }
