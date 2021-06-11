@@ -151,7 +151,8 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::fixCountryGroupsInput21232'
+        'migrate::updateGroupsCountry2123',
+        'migrate::fixCountryGroupsInput21233'
     );
     
     
@@ -232,9 +233,52 @@ class crm_Setup extends core_ProtoSetup
 
 
     /**
+     * Миграция за добавяне на групи за държави
+     */
+    public function updateGroupsCountry2123()
+    {
+        $gIdArr = crm_ContragentGroupsPlg::getGroupsId();
+
+        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
+            $clsInst = cls::get($clsName);
+            $query = $clsInst->getQuery();
+
+            $query->show('groupListInput, groupList, country');
+            while ($rec = $query->fetch()) {
+                if (!$rec->country) {
+
+                    continue;
+                }
+
+                $gForAdd = drdata_CountryGroups::getGroupsArr($rec->country);
+
+                foreach ($gForAdd as $id => $gRec) {
+                    $gId = $gIdArr[$id];
+
+                    $rec->groupListInput = type_Keylist::addKey($rec->groupListInput, $gId);
+                }
+
+                // Вземаме всички въведени от потребителя стойност
+                $inputArr = type_Keylist::toArray($rec->groupListInput);
+
+                // Намираме всички свъразани
+                $resArr = $clsInst->expandInput($inputArr);
+
+                $rec->groupList = type_Keylist::fromArray($resArr);
+
+                $clsInst->save_($rec, 'groupListInput, groupList');
+            }
+        }
+
+        crm_Groups::updateGroupsCnt('crm_Companies', 'companiesCnt');
+        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+    }
+
+
+    /**
      * Миграция за поправка на groupsInput полето на фирмите и лицата
      */
-    function fixCountryGroupsInput21232()
+    function fixCountryGroupsInput21233()
     {
         $gArr = crm_ContragentGroupsPlg::getGroupsId(true);
 
