@@ -257,8 +257,6 @@ class crm_Setup extends core_ProtoSetup
     }
 
 
-
-
     /**
      * Зареждане на данни
      */
