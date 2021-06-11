@@ -151,7 +151,7 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::fixCountryGroupsInput2109'
+        'migrate::fixCountryGroupsInput2123'
     );
     
     
@@ -234,7 +234,7 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Миграция за поправка на groupsInput полето на фирмите и лицата
      */
-    function fixCountryGroupsInput2109()
+    function fixCountryGroupsInput2123()
     {
         $gArr = crm_ContragentGroupsPlg::getGroupsId(true);
 
@@ -266,7 +266,7 @@ class crm_Setup extends core_ProtoSetup
     {
         $res = parent::loadSetupData($itr);
 
-        $res .= $this->callMigrate('removeWrongNotifications', 'crm');
+        $res .= $this->callMigrate('removeWrongNotifications2123', 'crm');
 
         return $res;
     }
@@ -274,7 +274,7 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Миграция за изтриване на грешно създадени известия
      */
-    function removeWrongNotifications()
+    function removeWrongNotifications2123()
     {
         $query = bgerp_Notifications::getQuery();
         $query->where("#modifiedOn >= '2021-06-09'");
