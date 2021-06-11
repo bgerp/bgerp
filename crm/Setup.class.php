@@ -151,7 +151,7 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::fixCountryGroupsImput2109'
+        'migrate::fixCountryGroupsInput2123'
     );
     
     
@@ -234,7 +234,7 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Миграция за поправка на groupsInput полето на фирмите и лицата
      */
-    function fixCountryGroupsImput2109()
+    function fixCountryGroupsInput2123()
     {
         $gArr = crm_ContragentGroupsPlg::getGroupsId(true);
 
@@ -253,6 +253,37 @@ class crm_Setup extends core_ProtoSetup
                     $clsInst->save_($rec, $clsInst->groupFieldName);
                 }
             }
+        }
+    }
+
+
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        $res .= $this->callMigrate('removeWrongNotifications2123', 'crm');
+
+        return $res;
+    }
+
+    /**
+     * Миграция за изтриване на грешно създадени известия
+     */
+    function removeWrongNotifications2123()
+    {
+        $query = bgerp_Notifications::getQuery();
+        $query->where("#modifiedOn >= '2021-06-09'");
+        $query->where("#modifiedBy = '-1'");
+
+        $nick = mb_strtolower(core_Setup::get('SYSTEM_NICK'));
+
+        $query->where("LOWER(#msg) LIKE '%{$nick} |създаде и сподели папка|* %'");
+
+        while ($rec = $query->fetch()) {
+            bgerp_Notifications::delete($rec->id);
         }
     }
 }
