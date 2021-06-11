@@ -733,10 +733,10 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 $entry = array('amount' => round($dRec->blAmount, 7),
                             'debit' => array('61102'),
                             'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
-                $amount602 += abs($dRec->blAmount);
+                $amount602 += $dRec->blAmount;
             }
             
-            $total += abs($dRec->blAmount);
+            $total += $dRec->blAmount;
             $entries[] = $entry;
         }
         
