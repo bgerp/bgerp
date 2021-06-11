@@ -269,6 +269,7 @@ class crm_Setup extends core_ProtoSetup
         return $res;
     }
 
+
     /**
      * Миграция за изтриване на грешно създадени известия
      */
