@@ -898,7 +898,7 @@ class colab_FolderToPartners extends core_Manager
             
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
-            core_Statuses::newStatus(toUrl($redirectUrl), 'warning');
+
             if($fromEmail){
                 return new Redirect($redirectUrl, '|Успешно са създадени потребител и визитка на нов партньор');
             } else {
