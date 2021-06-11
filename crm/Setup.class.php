@@ -280,7 +280,7 @@ class crm_Setup extends core_ProtoSetup
 
         $nick = core_Setup::get('SYSTEM_NICK');
 
-        $query->where("#msg = '[#1#]'", "{$nick} |създаде и сподели папка|* ");
+        $query->like('msg', "{$nick} |създаде и сподели папка|* ");
 
         while ($rec = $query->fetch()) {
             bgerp_Notifications::delete($rec->id);
