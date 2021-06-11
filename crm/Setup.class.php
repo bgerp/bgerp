@@ -151,7 +151,7 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::fixCountryGroupsInput2123'
+        'migrate::fixCountryGroupsInput21232'
     );
     
     
@@ -234,7 +234,7 @@ class crm_Setup extends core_ProtoSetup
     /**
      * Миграция за поправка на groupsInput полето на фирмите и лицата
      */
-    function fixCountryGroupsInput2123()
+    function fixCountryGroupsInput21232()
     {
         $gArr = crm_ContragentGroupsPlg::getGroupsId(true);
 

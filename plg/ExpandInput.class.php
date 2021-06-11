@@ -145,34 +145,4 @@ class plg_ExpandInput extends core_Plugin
             }
         }
     }
-    
-    
-    /**
-     * Изпълнява се след създаването на модела
-     */
-    public static function on_AfterSetupMVC($mvc, &$res)
-    {
-        $query = $mvc->getQuery();
-        $query->where(array("#{$mvc->expandFieldName} IS NOT NULL"));
-        $query->where(array("#{$mvc->expandFieldName} != ''"));
-        
-        $query->where(array("#{$mvc->expandInputFieldName} IS NULL"));
-        $query->orWhere(array("#{$mvc->expandInputFieldName} = ''"));
-        
-        $cnt = 0;
-        while ($rec = $query->fetch()) {
-            $rec->{$mvc->expandInputFieldName} = $rec->{$mvc->expandFieldName};
-            
-            try {
-                $mvc->save($rec, "{$mvc->expandInputFieldName}, {$mvc->expandFieldName}");
-                $cnt++;
-            } catch (Exception $e) {
-                reportException($e);
-            }
-        }
-        
-        if ($cnt) {
-            $res .= '<li>Мигрирани данни: ' . $cnt;
-        }
-    }
 }
