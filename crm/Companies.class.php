@@ -77,7 +77,13 @@ class crm_Companies extends core_Master
      * Икона на единичния обект
      */
     public $singleIcon = 'img/16/office-building.png';
-    
+
+
+    /**
+     * @see plg_ExpandInput
+     */
+    public $fixExpandFieldOnSetup = false;
+
     
     /**
      *
