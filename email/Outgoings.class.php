@@ -326,6 +326,7 @@ class email_Outgoings extends core_Master
             
             // Нулираме закъснението, за да не сработи при отложеното изпращане
             $options->delay = null;
+            $rec->state = 'pending';
             if (email_SendOnTime::add($className, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay)) {
                 status_Messages::newStatus('|Добавено в списъка за отложено изпращане');
                 self::logWrite('Добавяне за отложено изпращане', $rec->id);
@@ -340,8 +341,6 @@ class email_Outgoings extends core_Master
                 }
                 
                 $saveStr .= ',state';
-                
-                $rec->state = 'pending';
                 
                 email_Outgoings::save($rec, $saveStr);
             } else {
@@ -369,7 +368,7 @@ class email_Outgoings extends core_Master
             
             return ;
         }
-        
+
         //Вземаме всички избрани файлове
         $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
         
@@ -641,7 +640,7 @@ class email_Outgoings extends core_Master
                 $nRec->state = 'closed';
                 $saveArray['state'] = 'state';
             }
-            
+
             // Ако ще се изчаква
             if ($options->waiting) {
                 
@@ -651,17 +650,17 @@ class email_Outgoings extends core_Master
                 $saveArray['state'] = 'state';
                 $saveArray['waiting'] = 'waiting';
             }
-            
+
             // От кого и кога е изпратено последно
             $nRec->lastSendedOn = dt::now();
             $nRec->lastSendedBy = core_Users::getCurrent();
             $saveArray['lastSendedOn'] = 'lastSendedOn';
             $saveArray['lastSendedBy'] = 'lastSendedBy';
-            
+
             // Записваме
             $inst->save($nRec, $saveArray);
         }
-        
+
         // Добавя FROM правила за всички имейли, за които няма никакви правила
         if ($successEmailsStr) {
             $successArr = type_Emails::toArray($successEmailsStr);
