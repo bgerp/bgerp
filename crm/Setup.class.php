@@ -276,11 +276,11 @@ class crm_Setup extends core_ProtoSetup
     {
         $query = bgerp_Notifications::getQuery();
         $query->where("#modifiedOn >= '2021-06-09'");
-        $query->where("#modifiedBy >= '-1'");
+        $query->where("#modifiedBy = '-1'");
 
         $nick = core_Setup::get('SYSTEM_NICK');
 
-        $query->where("#msg = '[#1#]'", "{$nick} |създаде и сподели папка|* ");
+        $query->like('msg', "{$nick} |създаде и сподели папка|* ");
 
         while ($rec = $query->fetch()) {
             bgerp_Notifications::delete($rec->id);
