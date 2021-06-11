@@ -151,7 +151,8 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::fixCountryGroupsImput2109'
+        'migrate::fixCountryGroupsImput2109',
+        'migrate::removeWrongNotifications'
     );
     
     
@@ -253,6 +254,25 @@ class crm_Setup extends core_ProtoSetup
                     $clsInst->save_($rec, $clsInst->groupFieldName);
                 }
             }
+        }
+    }
+
+
+    /**
+     * Миграция за изтриване на грешно създадени известия
+     */
+    function removeWrongNotifications()
+    {
+        $query = bgerp_Notifications::getQuery();
+        $query->where("#modifiedOn >= '2021-06-09'");
+        $query->where("#modifiedBy >= '-1'");
+
+        $nick = core_Setup::get('SYSTEM_NICK');
+
+        $query->where("#msg = '[#1#]'", "{$nick} |създаде и сподели папка|* ");
+
+        while ($rec = $query->fetch()) {
+            bgerp_Notifications::delete($rec->id);
         }
     }
 }
