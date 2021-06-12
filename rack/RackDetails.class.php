@@ -179,7 +179,7 @@ class rack_RackDetails extends core_Detail
                 $y2 = ord($rec->nextRow);
                 
                 list($unusable, $reserved) = rack_RackDetails::getUnusableAndReserved();
-                $used = rack_Pallets::getUsed();
+                $used = rack_Pallets::getUsed($rec->productId);
                 list($movedFrom, $movedTo) = rack_Movements::getExpected();
                 
                 for ($x = 1; $x <= $maxX; $x++) {
