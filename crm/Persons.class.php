@@ -211,7 +211,13 @@ class crm_Persons extends core_Master
      * Кой има право да оттегля системните данни?
      */
     public $canRejectsysdata = 'admin, ceo';
-    
+
+
+    /**
+     * @see plg_ExpandInput
+     */
+    public $fixExpandFieldOnSetup = false;
+
     
     /**
      * Шаблон за единичния изглед
