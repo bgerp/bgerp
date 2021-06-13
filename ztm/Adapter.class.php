@@ -48,7 +48,7 @@ class ztm_Adapter extends core_Mvc
         $tempImg = ht::createImg(array('path' => "ztm/img/temp-plus-4.png"));
         $lampImg = ht::createImg(array('path' => "ztm/img/lamp-on-50.png"));
         $blindsImg = ht::createImg(array('path' => "ztm/img/lines.png"));
-        $fanImg = ht::createImg(array('path' => "ztm/img/fan.png"));
+        $fanImg = ht::createImg(array('path' => "ztm/img/fan.png", 'class' => 'rotating-css'));
 
 
         $tpl->replace($tempImg, 'temp');

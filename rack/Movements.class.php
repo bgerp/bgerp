@@ -148,7 +148,7 @@ class rack_Movements extends rack_MovementAbstract
                 $transaction = $mvc->validateTransaction($transaction);
                
                 if($rec->state == 'pending' && $rec->fromIncomingDocument == 'yes'){
-                    
+                  
                     $transaction->warningFields = array_merge($transaction->errorFields, $transaction->warningFields);
                     if (!empty($transaction->errors)) {
                         $transaction->warnings[] = $transaction->errors;
@@ -157,7 +157,7 @@ class rack_Movements extends rack_MovementAbstract
                     unset($transaction->errors);
                     unset($transaction->errorFields);
                 }
-                
+       
                 if (!empty($transaction->errors)) {
                     $form->setError($transaction->errorFields, $transaction->errors);
                 }
@@ -278,7 +278,7 @@ class rack_Movements extends rack_MovementAbstract
      * Изпълнява посоченото движение
      */
     private function doTransaction($transaction)
-    {
+    { 
         $rMvc = cls::get('rack_Racks');
         
         // Ако има начална позиция и тя не е пода обновява се палета на нея
@@ -316,9 +316,10 @@ class rack_Movements extends rack_MovementAbstract
                 rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $batch);
             }
         }
-        
-        core_Cache::remove('UsedRacksPossitions', $transaction->storeId);
-        
+       
+        $cacheType = 'UsedRacksPossitions' . $transaction->storeId;
+        core_Cache::removeByType($cacheType);
+
         return true;
     }
     
@@ -820,7 +821,7 @@ class rack_Movements extends rack_MovementAbstract
         
         $fromPallet = $fromQuantity = $toQuantity = null;
         if (!empty($transaction->from) && $transaction->from != rack_PositionType::FLOOR) {
-            $fromPallet = rack_Pallets::getByPosition($transaction->from, $transaction->storeId);
+            $fromPallet = rack_Pallets::getByPosition($transaction->from, $transaction->storeId, $transaction->productId);
             if (empty($fromPallet)) {
                 $res->errors = 'Палетът вече не е активен';
                 $res->errorFields[] = 'palletId';
@@ -847,7 +848,7 @@ class rack_Movements extends rack_MovementAbstract
                 return $res;
             }
             
-            if ($toPallet = rack_Pallets::getByPosition($transaction->to, $transaction->storeId)) {
+            if ($toPallet = rack_Pallets::getByPosition($transaction->to, $transaction->storeId, $transaction->productId)) {
                 $toProductId = $toPallet->productId;
                 $toQuantity = $toPallet->quantity;
                 
@@ -859,8 +860,22 @@ class rack_Movements extends rack_MovementAbstract
             
             // Ако има нова позиция и тя е заета от различен продукт - грешка
             if (isset($toProductId) && $toProductId != $transaction->productId) {
-                $res->errors = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
-                $res->errorFields[] = 'positionTo,productId';
+                $storeId = $transaction->storeId;
+                $sRec = store_Stores::fetch($storeId);
+                if($sRec) {
+                    $samePosPallets = $sRec->samePosPallets;
+                }
+                if(!isset($samePosPallets)) {
+                    $samePosPallets = rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
+                }
+
+                if($samePosPallets == 'no') {
+                    $res->errors = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
+                    $res->errorFields[] = 'positionTo,productId';
+                } else {
+                    $res->warnings[] = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
+                    $res->warningFields[] = 'positionTo,productId';
+                }
                 
                 return $res;
             }

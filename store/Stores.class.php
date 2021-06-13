@@ -204,6 +204,8 @@ class store_Stores extends core_Master
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглено,closed=Затворено)', 'caption=Състояние,notNull,default=active,input=none');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
 
+        $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
+
         $this->setDbUnique('name');
     }
     

@@ -12,6 +12,10 @@ defIfNot('RACK_DELETE_OLD_MOVEMENTS', 5184000);
  */
 defIfNot('RACK_DELETE_ARCHIVED_MOVEMENTS', dt::SECONDS_IN_MONTH * 12);
 
+/**
+ * Да се допуска ли колизия на палети
+ */
+defIfNot('RACK_DIFF_PALLETS_IN_SAME_POS', 'no');
 
 /**
  * class rack_Setup
@@ -161,6 +165,7 @@ class rack_Setup extends core_ProtoSetup
     public $configDescription = array(
         'RACK_DELETE_OLD_MOVEMENTS' => array('time','caption=Изтриване на стари движения->Период'),
         'RACK_DELETE_ARCHIVED_MOVEMENTS' => array('time','caption=Изтриване на архивирани движения->Период'),
+        'RACK_DIFF_PALLETS_IN_SAME_POS' => array('enum(no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване'),
     );
 
 

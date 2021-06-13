@@ -201,7 +201,7 @@ class rack_Pallets extends core_Manager
         }
         
         list($unusable, $reserved) = rack_RackDetails::getunUsableAndReserved();
-        $used = rack_Pallets::getUsed();
+        $used = rack_Pallets::getUsed($productId);
         list(, $movedTo) = rack_Movements::getExpected();
         
         // Ако намерим палет с този продукт и свободно място към края на стелажа - вземаме него
@@ -344,7 +344,8 @@ class rack_Pallets extends core_Manager
         }
         
         self::recalc($rec->productId, $rec->storeId);
-        core_Cache::remove('UsedRacksPossitions', $rec->storeId);
+        $cacheType = 'UsedRacksPossitions' . $rec->storeId;
+        core_Cache::removeByType($cacheType);
     }
 
 
@@ -406,7 +407,21 @@ class rack_Pallets extends core_Manager
     public static function increment($productId, $storeId, $position, $quantity, $batch)
     {
         // Ако няма палет се създава нов
-        $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+        $rec = self::fetch(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+        if(!$rec) {
+            $sRec = store_Stores::fetch($storeId);
+            if($sRec) {
+                $samePosPallets = $sRec->samePosPallets;
+            }
+            if(!isset($samePosPallets)) {
+                $samePosPallets = rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
+            }
+
+            if(!$samePosPallets) {
+                $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+            }
+        }            
+      
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position, $batch);
         } else {
@@ -632,23 +647,43 @@ class rack_Pallets extends core_Manager
     /**
      * Връща масив с всички използвани палети
      */
-    public static function getUsed($storeId = null)
+    public static function getUsed($productId = '*', $storeId = null)
     {
         if (!$storeId) {
             $storeId = store_Stores::getCurrent();
         }
-        
-        if (!($res = core_Cache::get('UsedRacksPossitions', $storeId))) {
-            $res = array();
-            $query = self::getQuery();
-            while ($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
-                if ($rec->position) {
-                    $res[$rec->position] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
-                }
-            }
-            core_Cache::set('UsedRacksPossitions', $storeId, $res, 1440);
+
+        if(!$productId) {
+            $productId = '*';
         }
         
+        $cacheType = 'UsedRacksPossitions' . $storeId;
+        $cacheKey = '@' . $productId;
+
+        if (!($res = core_Cache::get($cacheType, $cacheKey))) {
+            $res = array();
+            $query = self::getQuery();
+            $query->orderBy('id', 'DESC');
+            while ($rec = $query->fetch("#storeId = {$storeId} AND #state != 'closed'")) {
+                if ($rec->position) {
+                    if(isset($res[$rec->position])) {
+                        if($rec->productId == $productId) {
+                            // Swap
+                            $res[$rec->position]->all[ $res[$rec->position]->productId] = 
+                                (object)array('productId' => $res[$rec->position]->productId, 'batch' => $res[$rec->position]->batch);
+                            $res[$rec->position]->productId = $rec->productId;
+                            $res[$rec->position]->batch = $rec->batch;
+                        } else {
+                            $res[$rec->position]->all[$rec->productId] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
+                        }
+                    } else {
+                        $res[$rec->position] = (object)array('productId' => $rec->productId, 'batch' => $rec->batch);
+                    }
+                }
+            }
+            core_Cache::set($cacheType, $cacheKey, $res, 1440);
+        }
+
         return $res;
     }
     
@@ -784,14 +819,20 @@ class rack_Pallets extends core_Manager
      *
      * @return null|stdClass
      */
-    public static function getByPosition($position, $storeId)
+    public static function getByPosition($position, $storeId, $productId = null)
     {
         if (empty($position) || $position == rack_PositionType::FLOOR) {
             
             return;
         }
         
-        $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+        if($productId) {
+            $rec = self::fetch(array("#productId = {$productId} AND #position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+        }
+
+        if(!$rec) {
+            $rec = self::fetch(array("#position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
+        }
         
         return is_object($rec) ? (object) array('id' => $rec->id, 'productId' => $rec->productId, 'batch' => $rec->batch, 'quantity' => $rec->quantity, 'state' => $rec->state) : null;
     }
