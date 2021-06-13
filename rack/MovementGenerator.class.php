@@ -418,7 +418,7 @@ class rack_MovementGenerator extends core_Manager
                 'position' => $obj->pallet,
             );
             
-            if ($palletRec = rack_Pallets::getByPosition($obj->pallet, $storeId)) {
+            if ($palletRec = rack_Pallets::getByPosition($obj->pallet, $storeId, $productId)) {
                 $newRec->palletId = $palletRec->id;
                 $newRec->palletToId = $palletRec->id;
                 $newRec->batch = $palletRec->batch;

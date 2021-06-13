@@ -573,179 +573,77 @@ input:checked + .sliderToggle:before {
     filter: invert(100%);
     -webkit-filter: invert(100%);
 }
-@media (min-width: 1200px ) and (max-width: 1600px){
-    .container {
-        max-width: 98% !important;
-    }
-     .count {
-        padding-top: 25px;
-        padding-bottom: 10px;
-    }
-    .count_bottom{
-        margin-top: 16px;
-    }
-    .scroll-vertical {
-        max-height:480px;
-    }
+ 
+
+
+:root {
+  --rotation-speed: -2s;
 }
-@media (max-width: 800px ) {
-	.container {
-        max-width: 781px;
-    }
-	.marginFix {
-		margin-top: 25px !important;
-	}
-    .rangeslider {
-        margin-top: 15px;
-        margin-bottom: 0px;
-    }
-	.nav-item {
-		padding: 0px 30px;
-	}
-	.col-md-6 {
-		max-width: 100% !important;
-		width: 100%;
-		flex:100% !important;
-	}
-    .x_content {
-        padding: 15px 0;
-        align-items: stretch;
-    }
+.rotating-css {
+	animation: rotating var(--rotation-speed) linear;
+	animation-iteration-count: infinite;
 }
 
-@media (min-height: 800px ) and (max-width: 1280px){
-	body, h6, .count_bottom {
-		font-size: 18px;
-	}
-	h5 {
-		font-size: 24px !important;
-	}
-	.downVal .i, .upperVal .i, .downVal i, .upperVal i {
-		font-size:54px;
-	}
-	.downVal, .upperVal {
-		margin-top:-56px;
-	}
-    .nav-item {
-		font-size:24px;
-	}
-    .rangeslider {
-        margin-top: 45px;
-    }
-	.count {
-        padding-top: 30px;
-        padding-bottom: 25px;
-		font-size: 90px;
-    }
-	.x_title h2 {
-		font-size:34px;
-	}
-    .count_bottom{
-        margin-top: 16px;
-    }
-	.table-dark td, .table-dark th {
-	    padding: 0.4rem !important;
-	}
-    .scroll-vertical {
-        max-height:880px;
-    }
-    .container {
-        height: 98vh !important;
-    }
-    .x_content {
-        padding: 31px 0;
-        align-items: stretch;
-    }
-    .output {
-        margin-top: 30px;
-        font-size: 4em;
-    }
-    p {
-        font-size: 22px;
-    }
+.blink05 {
+	animation: blinker 1s infinite;
+	padding-bottom:25px;
+	vertical-align:middle;
 }
 
-@media (min-width: 800px ) and (max-height: 1280px) and (orientation : portrait){
-    .x_content {
-        padding: 0;
-    }
-    .x_title h2 {
-        font-size:31px;
-    }
-}
-@media (max-width: 800px ) and (max-height: 1208px) {
-    .container {
-        height: 98vh !important;
-    }
-    .x_content {
-        padding: 5px 0;
-    }
-    .x_title h2 {
-        font-size: 26px;
-    }
-    .output {
-        margin-top: 7px;
-        font-size: 3.8em;
-    }
-    p {
-        font-size: 22px;
-    }
+@keyframes blinker {
+	60% {
+		opacity: 0;
+	}
 }
 
-@media (max-height: 728px ) and (max-width: 1280px) {
-    .container {
-        padding-top: 45px;
-        height: 98vh !important;
-    }
-    .rangeslider {
-        margin-top: 40px;
-        margin-bottom: 20px;
-    }
-    .x_content {
-        padding: 15px 0;
-    }
-    .output {
-        margin-top: 20px;
-        font-size: 4em;
-    }
-    .x_title h2 {
-        font-size: 30px;
-    }
-    .x_panel {
-        height: 306px;
-    }
-    p {
-        font-size: 24px;
-    }
+@keyframes rotating {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 
-@media (min-width: 992px){
-    .container {
-        max-width: 981px;
-    }
+#grid {
+	display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+ 	height: 100vh;
+    column-gap: 10px;
+    row-gap: 10px;
+	padding:10px;
 }
 
-@media (max-width: 576px) {
-    .x_panel {
-        height: auto;
-    }
-    .row {
-        padding-bottom: 0;
-    }
-    .tile {
-        margin-bottom: 25px;
-    }
-    .container {
-        padding-top: 15px;
-    }
-    .tab-pane.active {
-        min-height: 0;
-    }
-    .first-panel {
-        order: -1;
-    }
-    .marginFix {
-        margin-top: 0 !important;
-    }
+.cont {
+  display:inline-block;
+  height:100% !important;
+  width:100%;
+  text-align: center;
+}
+
+.tile {
+	display: flex;
+    align-items: center;
+	border-radius:20px;
+}
+
+.x_content {
+  width:100%;
+}
+ 
+
+
+@media (min-width: 1280px) {
+	#grid {
+		grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+		column-gap:15px;
+		row-gap: 15px;
+		padding:15px;
+	}
+}
+
+@media (min-width: 1600px) {
+	#grid {
+		grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+		column-gap:20px;
+		row-gap: 20px;
+		padding:20px;
+	}
 }

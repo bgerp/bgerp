@@ -19,7 +19,7 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,admin,debug';
+    public $canSelectDriver = 'ceo,acc';
 
 
     /**
