@@ -758,8 +758,9 @@ class colab_FolderToPartners extends core_Manager
                 $form->setOptions('personId', $pOpt);
             }
         }
-        
-        $form->setDefault('roleRank', core_Roles::fetchByName('partner'));
+
+        $defaultRole = ($onlyPartner == 'yes') ? 'partner' : 'powerPartner';
+        $form->setDefault('roleRank', core_Roles::fetchByName($defaultRole));
         $Users->invoke('AfterPrepareEditForm', array((object) array('form' => $form), (object) array('form' => $form)));
         $form->setDefault('state', 'active');
         
@@ -778,7 +779,6 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Задаваме дефолтните роли
-        $defaultRole = ($onlyPartner == 'yes') ? 'partner' : 'powerPartner';
         $dRolesArr = array($defaultRole);
         
         $defRoles = array();
@@ -846,7 +846,7 @@ class colab_FolderToPartners extends core_Manager
                 $form->setWarning($fields, $wStr);
             }
         }
-        
+
         // След събмит ако всичко е наред създаваме потребител, лице и профил
         if ($form->isSubmitted()) {
             $force = true;
@@ -885,10 +885,12 @@ class colab_FolderToPartners extends core_Manager
                 
                 crm_Persons::save($personRec);
             }
-            
+
             $folderId = $Class->forceCoverAndFolder($objectId);
+            $redirectUrl = array('core_Users', 'login');
             if($force === true){
-                static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
+                colab_FolderToPartners::force($folderId, $uId);
+                $redirectUrl = array('colab_Threads', 'list', 'folderId' => $folderId);
             }
             
             $Class->logInAct('Регистрация на нов партньор', $objectId);
@@ -896,11 +898,11 @@ class colab_FolderToPartners extends core_Manager
             
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
-            
+
             if($fromEmail){
-                return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+                return new Redirect($redirectUrl, '|Успешно са създадени потребител и визитка на нов партньор');
             } else {
-                return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+                return followRetUrl($redirectUrl, '|Успешно са създадени потребител и визитка на нов партньор');
             }
         }
         

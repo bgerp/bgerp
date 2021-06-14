@@ -139,10 +139,11 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         if (isset($rec->productId)) {
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-            $storeId = planning_ConsumptionNotes::fetchField($rec->noteId, 'storeId');
+            $masterRec = planning_ConsumptionNotes::fetch($rec->noteId, 'storeId,deadline,valior');
             
-            if (isset($storeId) && $canStore == 'yes') {
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+            if (isset($masterRec->storeId) && $canStore == 'yes') {
+                $deliveryDate = (!empty($masterRec->deadline)) ? $masterRec->deadline : $masterRec->valior;
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->storeId, $deliveryDate);
                 $form->info = $storeInfo->formInfo;
             }
         }

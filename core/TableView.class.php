@@ -154,8 +154,11 @@ class core_TableView extends core_BaseClass
             
             foreach ($fieldList as $place => $dummy) {
                 $colHeaders = $fields[$place];
-                
-                if ($colHeaders[0][0] != '@') {
+                $fieldObj = new stdClass();
+                if(isset($this->mvc->fields[$place])) {
+                    $fieldObj = $this->mvc->fields[$place];
+                }
+                if ($colHeaders[0][0] != '@' && !isset($fieldObj->singleRow)) {
                     
                     // Задаваме класа на колоната
                     $class = '';

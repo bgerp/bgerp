@@ -30,7 +30,7 @@ function prepareDashboard(data){
     $('.currentDate').html(date);
 
     var min = today.getMinutes() >= 10 ? today.getMinutes() : '0' + today.getMinutes();
-    var time = today.getHours() + "<span>:</span>" + min;
+    var time = today.getHours() + "<span class='blink05'>:</span>" + min;
     $('#currentTime').append(time);
 
     var weatherStat = data.low ? "Температурите ще са в интервала от " + parseInt(data.low) + " до " + parseInt(data.high) + "°C." : "Няма информация за текущата прогноза.";
@@ -39,11 +39,7 @@ function prepareDashboard(data){
 
 
     $('#navbarCollapse a:first').tab('show');
-    var toggle;
-    setInterval(function() {
-        $("h1 span").css({ visibility: toggle?"visible":"hidden"});
-        toggle=!toggle;
-    },1000);
+ 
 
     $(document).on('click', '.dropdown-menu', function (e) {
         e.stopPropagation();
@@ -217,4 +213,14 @@ function setIcon(el, icon) {
             icons.add(el, Skycons.PARTLY_CLOUDY_NIGHT);
             break;
     }
+}
+
+function changeVent(input)
+{
+	const vent = parseInt(input.value, 10);
+
+	const speed = (270-2*vent)/100;
+	let root = document.documentElement;
+	root.style.setProperty('--rotation-speed', speed + "s");
+	console.log(speed);
 }

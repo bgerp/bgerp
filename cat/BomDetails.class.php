@@ -327,7 +327,7 @@ class cat_BomDetails extends doc_Detail
      *
      * @return void
      */
-    private function findNotAllowedProducts($objectId, $needle, &$notAllowed, $path = array())
+    public function findNotAllowedProducts($objectId, $needle, &$notAllowed, $path = array())
     {
         // Добавяме текущия продукт
         $path[$objectId] = $objectId;

@@ -151,6 +151,8 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
+        'migrate::updateGroupsCountry2123',
+        'migrate::fixCountryGroupsInput21233'
     );
     
     
@@ -227,5 +229,106 @@ class crm_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
 
         return $html;
+    }
+
+
+    /**
+     * Миграция за добавяне на групи за държави
+     */
+    public function updateGroupsCountry2123()
+    {
+        $gIdArr = crm_ContragentGroupsPlg::getGroupsId();
+
+        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
+            $clsInst = cls::get($clsName);
+            $query = $clsInst->getQuery();
+
+            $query->show('groupListInput, groupList, country');
+            while ($rec = $query->fetch()) {
+                if (!$rec->country) {
+
+                    continue;
+                }
+
+                $gForAdd = drdata_CountryGroups::getGroupsArr($rec->country);
+
+                foreach ($gForAdd as $id => $gRec) {
+                    $gId = $gIdArr[$id];
+
+                    $rec->groupListInput = type_Keylist::addKey($rec->groupListInput, $gId);
+                }
+
+                // Вземаме всички въведени от потребителя стойност
+                $inputArr = type_Keylist::toArray($rec->groupListInput);
+
+                // Намираме всички свъразани
+                $resArr = $clsInst->expandInput($inputArr);
+
+                $rec->groupList = type_Keylist::fromArray($resArr);
+
+                $clsInst->save_($rec, 'groupListInput, groupList');
+            }
+        }
+
+        crm_Groups::updateGroupsCnt('crm_Companies', 'companiesCnt');
+        crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+    }
+
+
+    /**
+     * Миграция за поправка на groupsInput полето на фирмите и лицата
+     */
+    function fixCountryGroupsInput21233()
+    {
+        $gArr = crm_ContragentGroupsPlg::getGroupsId(true);
+
+        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
+            $clsInst = cls::get($clsName);
+
+            $query = $clsInst->getQuery();
+            while ($rec = $query->fetch()) {
+                $prevVal = $rec->{$clsInst->groupFieldName};
+
+                foreach ($gArr as $gId) {
+                    $rec->{$clsInst->groupFieldName} = type_Keylist::removeKey($rec->{$clsInst->groupFieldName}, $gId);
+                }
+
+                if ($prevVal != $rec->{$clsInst->groupFieldName}) {
+                    $clsInst->save_($rec, $clsInst->groupFieldName);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        $res .= $this->callMigrate('removeWrongNotifications2123', 'crm');
+
+        return $res;
+    }
+
+
+    /**
+     * Миграция за изтриване на грешно създадени известия
+     */
+    function removeWrongNotifications2123()
+    {
+        $query = bgerp_Notifications::getQuery();
+        $query->where("#modifiedOn >= '2021-06-09'");
+        $query->where("#modifiedBy = '-1'");
+
+        $nick = mb_strtolower(core_Setup::get('SYSTEM_NICK'));
+
+        $query->where("LOWER(#msg) LIKE '%{$nick} |създаде и сподели папка|* %'");
+
+        while ($rec = $query->fetch()) {
+            bgerp_Notifications::delete($rec->id);
+        }
     }
 }

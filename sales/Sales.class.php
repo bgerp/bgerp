@@ -1940,4 +1940,25 @@ class sales_Sales extends deals_DealMaster
             return false;
         }
     }
+
+
+    /**
+     * Каква е датата на доставка
+     *
+     * @param $rec
+     * @return date $deliveryDate
+     */
+    public function getDeliveryDate($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $deliveryDate = $rec->deliveryTime;
+        if(empty($deliveryDate)){
+            $deliveryDate = $rec->valior;
+            if(!empty($rec->deliveryTermTime)){
+                $deliveryDate = dt::addSecs($rec->deliveryTermTime, $deliveryDate);
+            }
+        }
+
+        return $deliveryDate;
+    }
 }
