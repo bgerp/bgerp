@@ -30,6 +30,11 @@ class email_Sent
      */
     public static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc = null, &$error = null)
     {
+        if (defined('DEV_SERVER')) {
+
+            return ;
+        }
+
         // Премахване на всички картинки, които са в css стилове за фон
         if ($body->html) {
             $body->html = preg_replace_callback("/(<[^>]+)background\\-image\\:\\s*url\\(\\'([^\\']+)\\'\\)\\s*\\;/i", array('email_Sent', 'replaceBgImg'), $body->html);
