@@ -18,7 +18,7 @@ class vtotal_Api extends core_Master
      */
     public static function VTGetReport($md5Hash)
     {
-        if (defined('DEV_SERVER') &&  (DEV_SERVER == true)) {
+        if (defined('DEV_SERVER') &&  (DEV_SERVER === true)) {
 
             return ;
         }
