@@ -758,8 +758,9 @@ class colab_FolderToPartners extends core_Manager
                 $form->setOptions('personId', $pOpt);
             }
         }
-        
-        $form->setDefault('roleRank', core_Roles::fetchByName('partner'));
+
+        $defaultRole = ($onlyPartner == 'yes') ? 'partner' : 'powerPartner';
+        $form->setDefault('roleRank', core_Roles::fetchByName($defaultRole));
         $Users->invoke('AfterPrepareEditForm', array((object) array('form' => $form), (object) array('form' => $form)));
         $form->setDefault('state', 'active');
         
@@ -778,7 +779,6 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Задаваме дефолтните роли
-        $defaultRole = ($onlyPartner == 'yes') ? 'partner' : 'powerPartner';
         $dRolesArr = array($defaultRole);
         
         $defRoles = array();
@@ -846,7 +846,7 @@ class colab_FolderToPartners extends core_Manager
                 $form->setWarning($fields, $wStr);
             }
         }
-        
+
         // След събмит ако всичко е наред създаваме потребител, лице и профил
         if ($form->isSubmitted()) {
             $force = true;
