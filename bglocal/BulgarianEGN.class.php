@@ -167,7 +167,7 @@ class bglocal_BulgarianEGN
         
         // digit 9 (which translates to index 8) is even for males, odd for females
         // Gender equality rulez, but is_male is assigned first! ;)
-        $this->is_female = !($this->is_male = $egn_string{8} % 2 == 0);
+        $this->is_female = !($this->is_male = $egn_string[8] % 2 == 0);
         
         // detect birth region
         $this->region = self::getRegion($egn_string);

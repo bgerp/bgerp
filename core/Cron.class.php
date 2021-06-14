@@ -898,6 +898,10 @@ class core_Cron extends core_Manager
      */
     public function act_Watchdog()
     {
+        if (defined('CORE_RUN_WATCHDOG') && (CORE_RUN_WATCHDOG === false)) {
+            core_App::shutdown(false);
+        }
+
         set_time_limit(90);
         core_App::flushAndClose(false);
         

@@ -2268,12 +2268,12 @@ class crm_Persons extends core_Master
         
         return $resArr;
     }
-    
-    
+
+
     /**
      * Подготвяме рожденния ден. Ако няма въведение хубави данни, използваме ЕГН' то
      */
-    protected static function prepareBirthday(&$rec)
+    public static function prepareBirthday(&$rec)
     {
         list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
         
@@ -2283,7 +2283,7 @@ class crm_Persons extends core_Master
             } catch (bglocal_exception_EGN $e) {
                 $err = $e->getMessage();
             }
-            
+
             if (!$err) {
                 $rec->birthday = type_Combodate::create($Egn->birth_year, $Egn->birth_month, $Egn->birth_day);
             }
