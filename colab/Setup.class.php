@@ -47,6 +47,7 @@ class colab_Setup extends core_ProtoSetup
     public $managers = array(
         'colab_FolderToPartners',
         'colab_DocumentLog',
+        'migrate::fixPowerPartnerRoles',
     );
     
     
@@ -202,5 +203,34 @@ class colab_Setup extends core_ProtoSetup
         }
 
         return $res;
+    }
+
+
+    /**
+     * Оправя ролите на powerPartners
+     */
+    public function fixPowerPartnerRoles()
+    {
+        $Users = cls::get('core_Users');
+        $powerPartnerRoleId = core_Roles::fetchByName('powerPartner');
+        $partnerRoleId = core_Roles::fetchByName('partner');
+
+        $recs = array();
+        $query = $Users->getQuery();
+        $query->where("LOCATE('|{$powerPartnerRoleId}|', #rolesInput)");
+
+        // Тези, които имат изрично и partner и powerPartner роли ще им се махне излишната partner
+        while($rec = $query->fetch()){
+            if(keylist::isIn($partnerRoleId, $rec->rolesInput)){
+                $rec->rolesInput = keylist::removeKey($rec->rolesInput, $partnerRoleId);
+                $recs[$rec->id] = $rec;
+            }
+        }
+
+        if(countR($recs)){
+            foreach ($recs as $rec){
+                $Users->save_($rec, 'rolesInput');
+            }
+        }
     }
 }
