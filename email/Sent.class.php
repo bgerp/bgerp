@@ -30,7 +30,7 @@ class email_Sent
      */
     public static function sendOne($boxFrom, $emailsTo, $subject, $body, $options, $emailsCc = null, &$error = null)
     {
-        if (defined('DEV_SERVER')) {
+        if (defined('DEV_SERVER') &&  (DEV_SERVER == true)) {
 
             return ;
         }
