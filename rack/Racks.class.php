@@ -404,54 +404,41 @@ class rack_Racks extends core_Master
                 $url = toUrl(array('rack_RackDetails', 'add', 'rackId' => $rec->id, 'row' => $row, 'col' => $i));
                 $attr['ondblclick'] = "document.location='{$url}';";
                 $pId = null;
-                
 
-                // Ако са заети някои от вътрешните му местао
-                if (!isset($title) && ($pArr = $used[$posFull . '*'])) {
-                    if($pRec = $used[$posFull]) {
-                        array_unshift($pArr, $pRec);
-                    }
-
-                    $attrA = array();
-                    $color = null;
-                    $bgColor = '';
-
-                    foreach($pArr as $pRec) {
-                        $prodTitle = cat_Products::getTitleById($pRec->productId);
-                        if(!empty($pRec->batch)){
-                            $prodTitle .= " / {$pRec->batch}";
-                        }
-                        
-                        $attrA['title'] .= ($attrA['title'] ? "\n" : '') . $prodTitle;
-                        if(!$color) {
-                            $color = self::getColor($prodTitle, 0, 110);
-                        }
-                        $bgColor .= ($bgColor ? ', ' : '') . '#' . self::getColor($prodTitle, 130, 240);
-                    }
-                    
-                    if(countR($pArr) > 1) {
-                        $attrA['style'] = "color:#{$color};background-image: linear-gradient(to right, {$bgColor});";
-                    } else {
-                        $attrA['style'] = "color:#{$color};background-color: {$bgColor};";
-                    }
-                    
-                    $title = ht::createLink($pos, array('rack_Pallets', 'list', 'search' => "{$rec->num}-{$pos}"), null, $attrA);
-                }
-
+                $bgColorAll = '';
+                $tdBackground = '';
                 // Ако е заето с нещо
                 if (!isset($title) && ($pRec = $used[$posFull])) {
                     $prodTitle = cat_Products::getTitleById($pRec->productId);
+                    $color = self::getColor($prodTitle, 0, 110);
+                    $bgColor = self::getColor($prodTitle, 130, 240);
+                    if(isset($pRec->all)) {
+                        foreach($pRec->all as $pid => $info) {
+                            $prodTitle .= "\n" . ($p = cat_Products::getTitleById($pid));
+                            $bgColorAll .= ',#' . self::getColor($p, 130, 240);
+                        }
+                    }
                     if(!empty($pRec->batch)){
                         $prodTitle .= " / {$pRec->batch}";
                     }
                     
                     $attrA = array();
+
+                    if (($pos == $hlPos) || (isset($pId) && $hlProdId == $pId)) {
+                        $attrA['class'] = 'cd-l3';
+                    }
+
                     $attrA['title'] = $prodTitle;
-                    $color = self::getColor($prodTitle, 0, 110);
-                    $bgColor = self::getColor($prodTitle, 130, 240);
-                    
-                    $attrA['style'] = "color:#{$color};background-color:#{$bgColor};";
-                    
+                   //$attrA['style'] = "color:#{$color};background-color:#{$bgColor};";
+                    if(isset($pRec->all)) {
+                        $attrA['style'] = "color:#{$color};";
+                        $tdBackground = "background: linear-gradient(to right,#{$bgColor}{$bgColorAll});";
+                    } else {
+                        $attrA['style'] = "color:#{$color};";
+                        $tdBackground = "background-color:#{$bgColor};";
+                    }
+                    $attrA['style'] .= $blink;
+
                     $title = ht::createLink($pos, array('rack_Pallets', 'list', 'search' => "{$rec->num}-{$pos}"), null, $attrA);
                 }
                 
@@ -490,23 +477,21 @@ class rack_Racks extends core_Master
                     $attr['style'] = 'color:#ccc;';
                 }
                 
-                if ($pos == $hlPos) {
-                    $attr['class'] .= ' rack-hl';
-                } elseif (isset($pId) && $hlProdId == $pId) {
-                    $attr['class'] .= ' rack-same';
-                }
                 
+                $border = 'border-left:solid 1px #bbb;border-right:solid 1px #bbb;';
                 if ($c = $rec->constrColumnsStep) {
                     if ($i % $c == 1) {
-                        $attr['style'] .= 'border-left:solid 2px #999;';
+                        $border = 'border-left:solid 2px #999;';
                     }
                     if ($i % $c == 0) {
-                        $attr['style'] .= 'border-right:solid 2px #999;';
+                        $border = 'border-right:solid 2px #999;';
                     }
                 }
+
+                $attr['style'] .= $border;
                 
                 $attr['nowrap'] = 'nowrap';
-                $attr['style'] .= 'font-size:0.8em;';
+                $attr['style'] .= "font-size:0.8em;{$tdBackground};padding:3px;";
                 
                 if ($hint) {
                     $attr['title'] = "{$hint}";
@@ -520,7 +505,7 @@ class rack_Racks extends core_Master
             $row = chr(ord($row) - 1);
         }
         
-        $res = "<table class='listTable'>{$res}</table>";
+        $res = "<table style='border: 1px solid #bbb;margin-bottom:15px;'>{$res}</table>";
         
         return $res;
     }
@@ -648,8 +633,8 @@ class rack_Racks extends core_Master
         // Изчисляваме заетите палети
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#storeId = {$rec->storeId} AND #position LIKE '{$rec->num}-%' AND #state = 'active'");
-        $pQuery->XPR('count', 'int', 'count(#id)');
-        
+        $pQuery->XPR('count', 'int', 'count(DISTINCT #position)');
+ 
         $rec->used = $pQuery->fetch()->count;
         $rR = cls::get('rack_Racks');
         $rR->save_($rec, 'used');

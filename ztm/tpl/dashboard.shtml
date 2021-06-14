@@ -1,6 +1,18 @@
-<div class="container">
-    <div class="row">
-        <div class="col-md-4 col-sm-6 col-xs-12">
+<div id='grid'>
+         <div class="cont last">
+            <div class="x_panel tile">
+				<div class="x_content" style="display: block;">
+					<div class="roomNum">Стая - 123</div>
+					<div class="state  eco">ECO</div>
+					<div class="clearfix"></div>
+					<h1 id="currentTime"></h1>
+					<h2 class="currentDate">27 октомври, четв.</h2>
+					<div class="clearfix"></div>
+					<i class="fa fa-gear optionsBtn" data-toggle="modal" data-target="#toolsModal"></i>
+				</div>
+            </div>
+        </div>
+        <div class="cont">
             <div class="x_panel tile">
                 <div class="x_title">
                     <h2>Температура <span id="currentTemp" class="text-danger">26</span></h2>
@@ -13,8 +25,9 @@
                     <div class="output"><output id="temperature"></output><span>°C</span></div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4 col-sm-6 col-xs-12">
+		</div>
+	
+        <div class="cont">
             <div class="x_panel tile">
                 <div class="x_title">
                     <h2>Вентилация</h2>
@@ -22,25 +35,15 @@
                 </div>
                 <div class="x_content" style="display: block;">
                     <span class="iconBlock">[#vent#]</span>
-                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider>
+                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider onchange="changeVent(this);">
                     <div class="output"><output></output><span>%</span></div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-sm-6 col-xs-12 first-panel">
-            <div class="x_panel tile">
-                <div class="roomNum">Стая - 123</div>
-                <div class="state  eco">ECO</div>
-                <div class="clearfix"></div>
-                <h1 id="currentTime"></h1>
-                <h2 class="currentDate">27 октомври, четв.</h2>
-                <div class="clearfix"></div>
-                <i class="fa fa-gear optionsBtn" data-toggle="modal" data-target="#toolsModal"></i>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-4 col-sm-4 col-xs-12">
+
+
+ 
+        <div class="cont">
             <div class="x_panel tile">
                 <div class="x_title">
                     <h2>Осветление</h2>
@@ -53,7 +56,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-sm-4 col-xs-12 marginFix">
+
+        <div class="cont">
             <div class="x_panel tile">
                 <div class="x_title">
                     <h2>Щори</h2>
@@ -66,7 +70,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-sm-4 col-xs-12">
+
+        <div class="cont">
             <div class="x_panel tile">
                 <div class="x_content">
                     <figure class="icons">
@@ -89,9 +94,11 @@
                     </div>
                 </div>
             </div>
-        </div>
+ 
     </div>
 </div>
+
+
 <div class="modal" tabindex="-1" role="dialog" id="toolsModal">
     <div class="modal-dialog " role="document">
         <div class="modal-content x_panel">
