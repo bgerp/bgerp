@@ -588,20 +588,22 @@ class eshop_CartDetails extends core_Detail
         $quantity = rtrim($quantity, '.');
         $quantity = rtrim($quantity, ',');
         expect($quantity && $quantity > 0, 'Количеството трябва да е положително');
-        
+
         $rec = self::fetch($id);
-        $rec->quantity = $quantity * $rec->quantityInPack;
-        self::save($rec, 'quantity');
-        vislog_History::add("Обновяване на количество в количка");
-        
-        Mode::set('currentExternalTab', 'eshop_Carts');
-        
-        // Ако заявката е по ajax
-        if (Request::get('ajax_mode')) {
-            
-            return self::getUpdateCartResponse($cartId);
+        if(is_object($rec)){
+            $rec->quantity = $quantity * $rec->quantityInPack;
+            self::save($rec, 'quantity');
+            vislog_History::add("Обновяване на количество в количка");
+
+            Mode::set('currentExternalTab', 'eshop_Carts');
+
+            // Ако заявката е по ajax
+            if (Request::get('ajax_mode')) {
+
+                return self::getUpdateCartResponse($cartId);
+            }
         }
-        
+
         return followRetUrl();
     }
     

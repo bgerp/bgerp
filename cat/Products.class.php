@@ -2159,7 +2159,7 @@ class cat_Products extends embed_Manager
             }
             
             if ($meta['canSell']) {
-                if ($rec->price = price_ListRules::getPrice(cat_Setup::get('DEFAULT_PRICELIST'), $rec->id)) {
+                if ($rec->price = price_ListRules::getPrice(cat_Setup::get('DEFAULT_PRICELIST'), $rec->id, null, dt::now())) {
                     $vat = self::getVat($rec->id);
                     $rec->price *= (1 + $vat);
                     $row->price = $mvc->getVerbal($rec, 'price');

@@ -1486,6 +1486,11 @@ class email_Incomings extends core_Master
      */
     public function cron_DownloadEmails()
     {
+        if (defined('DEV_SERVER') &&  (DEV_SERVER === true)) {
+
+            return 'Спряно сваляне на имейли';
+        }
+
         // Закръгляме текущите секунди към най-близкото делящо се на 30 число
         $time = round(time() / 30) * 30;
         
