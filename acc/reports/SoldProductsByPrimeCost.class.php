@@ -334,6 +334,8 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
 
+        $res->code = $dRec->code;
+        $res->productId = cat_Products::fetch($dRec->productId)->name;
         $res->quantity = $Double->toVerbal($dRec->quantity);
         $res->amount = $Double->toVerbal($dRec->amount);
         $res->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
