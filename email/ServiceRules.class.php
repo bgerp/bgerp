@@ -20,6 +20,12 @@ class email_ServiceRules extends embed_Manager
     /**
      * @var string
      */
+    public $recTitleTpl = ' ';
+
+
+    /**
+     * @var string
+     */
     public $driverInterface = 'email_ServiceRulesIntf';
 
 
