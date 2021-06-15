@@ -430,13 +430,15 @@ class purchase_Purchases extends deals_DealMaster
             
             // Ако има метод за плащане и той няма авансова част, махаме авансовите операции
             if (!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)) {
-                unset($allowedPaymentOperations['case2supplierAdvance'],
-                    $allowedPaymentOperations['bank2supplierAdvance'],
-                    $allowedPaymentOperations['supplierAdvance2case'],
-                    $allowedPaymentOperations['supplierAdvance2bank'],
-                    $allowedPaymentOperations['supplierAdvance2caseRet'],
-                    $allowedPaymentOperations['supplierAdvance2bankRet']
-                );
+                if(!haveRole('accMaster,ceo')){
+                    unset($allowedPaymentOperations['case2supplierAdvance'],
+                        $allowedPaymentOperations['bank2supplierAdvance'],
+                        $allowedPaymentOperations['supplierAdvance2case'],
+                        $allowedPaymentOperations['supplierAdvance2bank'],
+                        $allowedPaymentOperations['supplierAdvance2caseRet'],
+                        $allowedPaymentOperations['supplierAdvance2bankRet']
+                    );
+                }
             }
         }
         
