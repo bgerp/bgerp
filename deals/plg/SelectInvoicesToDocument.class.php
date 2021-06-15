@@ -91,25 +91,6 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
 
 
     /**
-     * Добавя бутон за настройки в единичен изглед
-     *
-     * @param stdClass $mvc
-     * @param stdClass $data
-     */
-    protected static function on_AfterPrepareSingleToolbar($mvc, &$res, $data)
-    {
-        // Ако има права за отпечатване
-        if ($mvc->haveRightFor('selectinvoice', $data->rec)) {
-            $onlyOneInvoice = $mvc->canBeOnlyToOneInvoice($data->rec);
-            $caption = ($onlyOneInvoice) ? "Избор ф-ра" : "Избор ф-ри";
-            $title = ($onlyOneInvoice) ? "Избор на фактура към която е документа" : "Избор на фактури към които е документа";
-
-            $data->toolbar->addBtn($caption, array('deals_InvoicesToDocuments', 'selectinvoice', 'documentId' => $data->rec->id, 'documentClassId' => $mvc->getClassId(), 'ret_url' => true), "ef_icon=img/16/edit.png, order=30, title={$title}");
-        }
-    }
-
-
-    /**
      * Изпълнява се след закачане на детайлите
      */
     protected static function on_BeforeAttachDetails(core_Mvc $mvc, &$res, &$details)

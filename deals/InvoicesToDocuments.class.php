@@ -252,13 +252,26 @@ class deals_InvoicesToDocuments extends core_Manager
         $currencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
         $unallocated = $paymentData->amount;
 
+        // Бутон за редакция
+        if ($data->masterMvc->haveRightFor('selectinvoice', $data->rec)) {
+            $onlyOneInvoice = $data->masterMvc->canBeOnlyToOneInvoice($data->rec);
+            $title = ($onlyOneInvoice) ? "Избор на фактура към която е документа" : "Избор на фактури към които е документа";
+            $data->btn = ht::createLink('', array('deals_InvoicesToDocuments', 'selectinvoice', 'documentId' => $data->masterId, 'documentClassId' => $data->masterMvc->getClassId(), 'ret_url' => true), false, "ef_icon=img/16/edit.png,title={$title}");
+        }
+
         $data->rows = array();
+        $count = 0;
         if(countR($data->recs)){
             foreach ($data->recs as $key => $rec) {
+                $count++;
                 $unallocated -= $rec->amount;
                 $data->rows[$key] = $this->recToVerbal($rec);
                 $data->rows[$key]->currencyId = $currencyCode;
                 $data->rows[$key]->documentName = tr("Kъм") . " {$data->rows[$key]->documentName}";
+
+                if($count == 1 && isset($data->btn)){
+                    $data->rows[$key]->invoiceBtn = $data->btn;
+                }
             }
 
             if(round($unallocated, 2) > 0){
@@ -313,7 +326,13 @@ class deals_InvoicesToDocuments extends core_Manager
                 $clone->placeObject($row);
                 $tpl->append($clone);
             }
+        } elseif(isset($data->btn)) {
+            $block->replace('Към фактура', 'documentName');
+            $block->append("<div class='border-field'></div>", 'amount');
+            $block->append($data->btn, 'amount');
+            $tpl->append($block);
         }
+
         $tpl->removeBlocksAndPlaces();
 
         return $tpl;

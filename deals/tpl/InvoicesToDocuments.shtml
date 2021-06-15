@@ -1,4 +1,4 @@
 <!--ET_BEGIN INVOICE-->
 [#INVOICE#]
-<tr><td class="nowrap" style="border:0px">[#documentName#]: [#containerId#]</td><td class='amount' style = 'font-size:0.8em;border:0px'><span class="cCode">[#currencyId#]</span> <b>[#amount#]</b></td></tr>
+<tr><td class="nowrap" style="border:0px">[#documentName#]: [#containerId#]</td><td class='amount' style = 'font-size:0.8em;border:0px'><!--ET_BEGIN currencyId--><span class="cCode">[#currencyId#]</span><!--ET_END currencyId--> <b>[#amount#]</b> </td><td style="border:0px">[#invoiceBtn#]</td></td></tr>
 <!--ET_END INVOICE-->
