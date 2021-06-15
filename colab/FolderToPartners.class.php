@@ -854,15 +854,21 @@ class colab_FolderToPartners extends core_Manager
             // Ако регистрацията ще е към папка на лице
             if($Class instanceof crm_Persons){
                 if(empty(crm_Profiles::fetch("#personId = {$objectId}"))){
+
                     $personEmails = arr::make(type_Emails::toArray($contragentRec->email), true);
+                    $msg = "Person: {$contragentRec->name} emails: (" . implode($personEmails) . ") - User: {$form->rec->names} email: '{$form->rec->email}'";
                     if(in_array($form->rec->email, $personEmails)){
                         
                         // И потребителя е със същия имейл и име, то ще му се присвои въпросната папка като лична
                         if(trim($contragentRec->name) == trim($form->rec->names)){
                             $form->rec->personId = $objectId;
                             $force = false;
+                            $msg = "TAKEN-" . $msg;
+                            $Class->logWrite('Присвоена визитка към новорегистриран партньор', $objectId);
                         }
                     }
+
+                    $Class->logDebug($msg, $objectId);
                 }
             }
             
