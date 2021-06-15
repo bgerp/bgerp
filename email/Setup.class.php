@@ -531,8 +531,7 @@ class email_Setup extends core_ProtoSetup
         
         $res .= $this->addOurImgData();
 
-        $res .= $this->callMigrate('filtersToServiceRules2121', 'email');
-        $res .= $this->callMigrate('fixEmptyDriverForServiceRules2115', 'email');
+        $res .= $this->callMigrate('filtersToServiceRules21212', 'email');
 
         return $res;
     }
@@ -653,7 +652,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Прехвърляне на записите от email_Filters към сервизните имейли
      */
-    public static function filtersToServiceRules2121()
+    public static function filtersToServiceRules21212()
     {
         $fInst = cls::get('email_Filters');
         $fQuery = $fInst->getQuery();
@@ -685,27 +684,6 @@ class email_Setup extends core_ProtoSetup
 
                 continue;
             }
-        }
-    }
-
-
-
-    /**
-     * Поправка на счупените записи за сервизните имейли
-     */
-    public static function fixEmptyDriverForServiceRules2115()
-    {
-        $inst = cls::get('email_ServiceRules');
-
-        $query = $inst->getQuery();
-        $query->where("#driverClass IS NULL");
-        $query->orWhere("#driverClass = ''");
-        while ($rec = $query->fetch()) {
-            $rec->driverClass = email_drivers_RouteByFirstEmail::getClassId();
-
-            expect($rec->driverClass);
-
-            $inst->save_($rec, 'driverClass');
         }
     }
 }
