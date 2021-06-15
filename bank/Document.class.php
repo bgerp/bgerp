@@ -328,7 +328,7 @@ abstract class bank_Document extends deals_PaymentDocument
                 $form->setField('amount', "input,caption={$caption}->Заверени");
             }
         }
-        
+
         if ($form->isSubmitted()) {
             if (!isset($rec->amount) && $rec->currencyId != $rec->dealCurrencyId) {
                 $form->setField('amount', 'input');
@@ -339,7 +339,13 @@ abstract class bank_Document extends deals_PaymentDocument
             
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
-            
+
+            if(!cond_PaymentMethods::hasDownpayment($dealInfo->paymentMethodId)){
+                if(stripos($rec->operationSysId, 'advance')){
+                    $form->setWarning('operationSysId', 'По сделката не се очаква авансово плащане');
+                }
+            }
+
             // Коя е дебитната и кредитната сметка
             $operations = $dealInfo->get('allowedPaymentOperations');
             $operation = $operations[$rec->operationSysId];
