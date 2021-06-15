@@ -253,7 +253,7 @@ class deals_InvoicesToDocuments extends core_Manager
         $unallocated = $paymentData->amount;
 
         // Бутон за редакция
-        if ($data->masterMvc->haveRightFor('selectinvoice', $data->rec)) {
+        if ($data->masterMvc->haveRightFor('selectinvoice', $data->rec) && !Mode::isReadOnly()) {
             $onlyOneInvoice = $data->masterMvc->canBeOnlyToOneInvoice($data->rec);
             $title = ($onlyOneInvoice) ? "Избор на фактура към която е документа" : "Избор на фактури към които е документа";
             $data->btn = ht::createLink('', array('deals_InvoicesToDocuments', 'selectinvoice', 'documentId' => $data->masterId, 'documentClassId' => $data->masterMvc->getClassId(), 'ret_url' => true), false, "ef_icon=img/16/edit.png,title={$title}");
