@@ -457,7 +457,6 @@ class email_Setup extends core_ProtoSetup
         'email_AddressesInfo',
         'migrate::repairSpamScore1219',
         'migrate::serviceRules2121',
-        'migrate::filtersToServiceRules2121',
     );
     
     
@@ -531,7 +530,9 @@ class email_Setup extends core_ProtoSetup
         $res = parent::loadSetupData($itr);
         
         $res .= $this->addOurImgData();
-        
+
+        $res .= $this->callMigrate('filtersToServiceRules21212', 'email');
+
         return $res;
     }
     
@@ -651,7 +652,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Прехвърляне на записите от email_Filters към сервизните имейли
      */
-    public static function filtersToServiceRules2121()
+    public static function filtersToServiceRules21212()
     {
         $fInst = cls::get('email_Filters');
         $fQuery = $fInst->getQuery();
@@ -674,6 +675,8 @@ class email_Setup extends core_ProtoSetup
             } else {
                 continue ;
             }
+
+            expect($nRec->driverClass);
 
             try {
                 email_ServiceRules::save($nRec, null, 'REPLACE');

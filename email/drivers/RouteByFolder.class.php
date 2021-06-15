@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за рутиране по папка
+ * Драйвер за рутиране към папка
  *
  * @category  bgerp
  * @package   payment
@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Рутиране по папка
+ * @title     Рутиране към папка
  */
 class email_drivers_RouteByFolder extends core_BaseClass
 {
