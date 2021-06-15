@@ -320,7 +320,13 @@ abstract class cash_Document extends deals_PaymentDocument
             
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
-            
+
+            if(!cond_PaymentMethods::hasDownpayment($dealInfo->paymentMethodId)){
+                if(stripos($rec->operationSysId, 'advance')){
+                    $form->setWarning('operationSysId', 'По сделката не се очаква авансово плащане');
+                }
+            }
+
             $operation = $dealInfo->allowedPaymentOperations[$rec->operationSysId];
             $debitAcc = empty($operation['reverse']) ? $operation['debit'] : $operation['credit'];
             $creditAcc = empty($operation['reverse']) ? $operation['credit'] : $operation['debit'];
