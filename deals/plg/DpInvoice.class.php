@@ -155,7 +155,7 @@ class deals_plg_DpInvoice extends core_Plugin
         $rec = $form->rec;
         
         // Договореното до момента
-        $aggreedDp = $form->dealInfo->get('agreedDownpayment');
+        $agreedDp = $form->dealInfo->get('agreedDownpayment');
         $actualDp = $form->dealInfo->get('downpayment');
         $invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
         $deductedDp = $form->dealInfo->get('downpaymentDeducted');
@@ -240,11 +240,11 @@ class deals_plg_DpInvoice extends core_Plugin
                 }
                 break;
             case 'none':
-            if (isset($aggreedDp)) {
+            if (isset($agreedDp)) {
                 $dpField = $form->getField('amountAccrued');
                 unset($dpField->autohide);
                 
-                $sAmount = core_Math::roundNumber($aggreedDp / $rate);
+                $sAmount = core_Math::roundNumber($agreedDp / $rate);
                 $suggestions = array('' => '', "{$sAmount}" => $sAmount);
                 $form->setSuggestions('amountAccrued', $suggestions);
             }
@@ -285,7 +285,7 @@ class deals_plg_DpInvoice extends core_Plugin
             
             $rec = &$form->rec;
             
-            $aggreedDp = $form->dealInfo->get('agreedDownpayment');
+            $agreedDp = $form->dealInfo->get('agreedDownpayment');
             $actualDp = $form->dealInfo->get('downpayment');
             $invoicedDp = $form->dealInfo->get('downpaymentInvoiced');
             $deductedDp = $form->dealInfo->get('downpaymentDeducted');
@@ -308,12 +308,11 @@ class deals_plg_DpInvoice extends core_Plugin
             
             if (isset($rec->amountAccrued)) {
                 $rec->dpOperation = 'accrued';
-                
-                $downpayment = (!isset($actualDp)) ? $aggreedDp  : $actualDp;
+
                 if (empty($actualDp) && (!empty($invoicedDp) && !empty($deductedDp) && $invoicedDp == $deductedDp)) {
                     $downpayment = $actualDp;
                 } else {
-                    $downpayment = $aggreedDp;
+                    $downpayment = $agreedDp;
                 }
                 
                 $downpayment = core_Math::roundNumber($downpayment / $rec->rate);
