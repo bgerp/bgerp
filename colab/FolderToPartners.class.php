@@ -1062,4 +1062,16 @@ class colab_FolderToPartners extends core_Manager
             }
         }
     }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(isset($rec->folderId)){
+            $Cover = doc_Folders::getCover($rec->folderId);
+            $Cover->getInstance()->logWrite('Споделяне към партньор', $Cover->that);
+        }
+    }
 }
