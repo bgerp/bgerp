@@ -391,28 +391,8 @@ class rack_Pallets extends core_Manager
             $data->query->orderBy('#createdOn', 'DESC');
         }
     }
-
-
-    /**
-     * Може ли в склада да има повече от един палет на една позиция
-     *
-     * @param $storeId
-     * @return bool
-     */
-    public static function canHaveMultipleOnOnePosition($storeId)
-    {
-        $sRec = store_Stores::fetch($storeId);
-        if($sRec) {
-            $samePosPallets = $sRec->samePosPallets;
-        }
-        if(!isset($samePosPallets)) {
-            $samePosPallets = rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
-        }
-
-        return $samePosPallets == 'yes';
-    }
-
-
+    
+    
     /**
      * Увеличава/намалява к-то в палета, ако няма палет създава нов
      *
@@ -427,42 +407,34 @@ class rack_Pallets extends core_Manager
     public static function increment($productId, $storeId, $position, $quantity, $batch)
     {
         // Ако няма палет се създава нов
-        $samePosPallets = static::canHaveMultipleOnOnePosition($storeId);
-        if($samePosPallets) {
-            $query = static::getQuery();
-            $query->where(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
-            $query->orderBy('quantity', 'ASC');
-            $query->limit(1);
-            $rec = $query->fetch();
-        } else {
-            $rec = self::fetch(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
-        }
+        $rec = self::fetch(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+        if(!$rec) {
+            $sRec = store_Stores::fetch($storeId);
+            if($sRec) {
+                $samePosPallets = $sRec->samePosPallets;
+            }
+            if(!isset($samePosPallets)) {
+                $samePosPallets = rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
+            }
 
-        if(!$rec && !$samePosPallets) {
-            $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
-        }
+            if(!$samePosPallets) {
+                $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
+            }
+        }            
       
         if (empty($rec)) {
             $rec = self::create($productId, $storeId, $quantity, $position, $batch);
         } else {
-
-            $defaultQuantity = rack_Pallets::getDefaultQuantity($productId, $storeId);
+            
+            // Ако има променя му се количеството
+            expect($rec->productId == $productId, 'Артикулът е различен');
+            expect($rec->storeId == $storeId, 'Склада е различен');
+            
             $incrementQuantity = $quantity;
-            $newQuantity = $rec->quantity + $incrementQuantity;
-
-            core_Statuses::newStatus("{$rec->id}>{$newQuantity}>{$defaultQuantity}>{$position}");
-            if($newQuantity > $defaultQuantity){
-                $rec = self::create($productId, $storeId, $quantity, $position, $batch);
-            } else {
-                // Ако има променя му се количеството
-                expect($rec->productId == $productId, 'Артикулът е различен');
-                expect($rec->storeId == $storeId, 'Склада е различен');
-
-                $rec->quantity += $incrementQuantity;
-                $rec->quantity = round($rec->quantity, 5);
-
-                self::save($rec, 'position,quantity,state,closedOn');
-            }
+            $rec->quantity += $incrementQuantity;
+            $rec->quantity = round($rec->quantity, 5);
+            
+            self::save($rec, 'position,quantity,state,closedOn');
         }
         
         return $rec->id;
