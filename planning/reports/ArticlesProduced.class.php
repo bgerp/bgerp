@@ -224,7 +224,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                         unset($amount, $quantity, $matRec, $matItemRec, $matClassName);
 
                         if ($dpRecDet->creditItem1) {
-                            $matItemRec = acc_Items::fetch($dpRecDet->creditItem2);
+                            $matItemRec = acc_Items::fetch($dpRecDet->creditItem1);
                             $matClassName = core_Classes::fetch($matItemRec->classId)->name;
 
                             //rec-а на вложения материал
@@ -243,10 +243,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                 //Ако е избрана опция за вложените материали по РЕЦЕПТИ
                 if ($rec->consumedFrom == 'boms') {
                     $lastActivBomm = cat_Products::getLastActiveBom($planningRec->productId);
-
+                    $arr = array();
                     if ($lastActivBomm) {
-                        $arr = array();
-                        //Вложени материали по рецепта (някои може да са заготовки т.е. да имат рецепти за влагане на по низши материали или заготовки)
+
+                        //Вложени материали по рецепта (някои може да са заготовки т.е. да имат рецепти за влагане
+                        // на по низши материали или заготовки)
                         $bommMaterials= self::getBaseMaterialFromBoms($lastActivBomm,$arr);
 
                     }else{
@@ -661,14 +662,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
                 if (!array_key_exists($id, $arr)) {
                     $arr[$id] = (object)array(
-
                         'productId' => $material->productId,
-
                         'quantity' => $jobsQuantityMaterial
                     );
                 } else {
                     $obj = &$arr[$id];
-
                     $obj->quantity += $jobsQuantityMaterial;
                 }
             }
