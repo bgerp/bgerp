@@ -1004,7 +1004,9 @@ class crm_Profiles extends core_Master
             if (core_Packs::isInstalled('colab') && core_Users::isContractor($user)) {
                 $privateFolderId = crm_Persons::forceCoverAndFolder($person->id);
                 if (!colab_FolderToPartners::fetch("#folderId = {$privateFolderId} AND #contractorId = {$user->id}")) {
-                    colab_FolderToPartners::save((object) array('folderId' => $privateFolderId, 'contractorId' => $user->id));
+                    $fRec = (object) array('folderId' => $privateFolderId, 'contractorId' => $user->id);
+                    colab_FolderToPartners::save($fRec);
+                    crm_Persons::logWrite('Споделяне на личната папка на партньор', $person->id);
                 }
             }
             Mode::pop('preventNotifications');
