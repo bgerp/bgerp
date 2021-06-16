@@ -1006,6 +1006,7 @@ class crm_Profiles extends core_Master
                 if (!colab_FolderToPartners::fetch("#folderId = {$privateFolderId} AND #contractorId = {$user->id}")) {
                     $fRec = (object) array('folderId' => $privateFolderId, 'contractorId' => $user->id);
                     colab_FolderToPartners::save($fRec);
+                    crm_Persons::logWrite('Споделяне на личната папка на партньор', $person->id);
                 }
             }
             Mode::pop('preventNotifications');
