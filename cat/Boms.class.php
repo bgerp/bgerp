@@ -1792,19 +1792,26 @@ class cat_Boms extends core_Master
             
             return $res;
         }
-        
+
         foreach ($bomInfo['resources'] as $pRec) {
-            $canStore = cat_Products::fetchField($pRec->productId, 'canStore');
-            if ($canStore != 'yes' || $pRec->type != 'input') {
+            $productRec = cat_Products::fetch($pRec->productId, 'canStore,generic');
+            if ($productRec->canStore != 'yes' || $pRec->type != 'input') {
                 continue;
             }
             
             // Ако има склад се отсяват артикулите, които имат нулева наличност
             if (isset($storeId)) {
-                $quantity = store_Products::getQuantities($pRec->productId, $storeId)->free;
-                if (empty($quantity)) {
-                    continue;
+
+                // Ако артикула или някой от заместителите му са налични в склада остава
+                $productArr = array_keys(planning_GenericMapper::getEquivalentProducts($pRec->productId));
+                if(!countR($productArr)){
+                    $productArr = array($pRec->productId);
                 }
+
+                $quantity = 0;
+                array_walk($productArr, function($pId) use (&$quantity, $storeId) {$quantity += store_Products::getQuantities($pId, $storeId)->free;});
+
+                if (empty($quantity)) continue;
             }
             
             $res[] = (object) array('productId' => $pRec->productId,
