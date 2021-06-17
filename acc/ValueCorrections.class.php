@@ -118,7 +118,7 @@ class acc_ValueCorrections extends core_Master
     public function description()
     {
         $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
-        $this->FLD('amount', 'double(decimals=2,Min=0)', 'caption=Сума,mandatory');
+        $this->FLD('amount', 'double(decimals=2,Min=0,maxAllowedDecimals=2)', 'caption=Сума,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=rate,silent');
         $this->FLD('rate', 'double(decimals=5)', 'caption=Курс');
         
