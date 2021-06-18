@@ -50,7 +50,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,to,duration,compare,compareStart,seeCrmGroup,seeGroup,group,groups,groupBy,orderBy,consumed,groupsMat,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
+    protected $changeableFields = 'from,duration,compare,compareStart,seeCrmGroup,seeGroup,group,groups,groupBy,orderBy,consumed,groupsMat,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
 
 
     /**
@@ -243,10 +243,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                 //Ако е избрана опция за вложените материали по РЕЦЕПТИ
                 if ($rec->consumedFrom == 'boms') {
                     $lastActivBomm = cat_Products::getLastActiveBom($planningRec->productId);
-
+                    $arr = array();
                     if ($lastActivBomm) {
-                        $arr = array();
-                        //Вложени материали по рецепта (някои може да са заготовки т.е. да имат рецепти за влагане на по низши материали или заготовки)
+
+                        //Вложени материали по рецепта (някои може да са заготовки т.е. да имат рецепти за влагане
+                        // на по низши материали или заготовки)
                         $bommMaterials= self::getBaseMaterialFromBoms($lastActivBomm,$arr);
 
                     }else{
@@ -661,14 +662,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
                 if (!array_key_exists($id, $arr)) {
                     $arr[$id] = (object)array(
-
                         'productId' => $material->productId,
-
                         'quantity' => $jobsQuantityMaterial
                     );
                 } else {
                     $obj = &$arr[$id];
-
                     $obj->quantity += $jobsQuantityMaterial;
                 }
             }

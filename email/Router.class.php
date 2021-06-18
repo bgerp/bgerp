@@ -509,7 +509,8 @@ class email_Router extends core_Manager
      */
     public static function createMessageIdFromMid($mid, $boxFrom = null)
     {
-        $hash = str::addHash($mid, 8, 'MID');
+        $hash = str::addHash($mid, 8, 'MID', '.');
+
         $hostName = self::getServerHostName($boxFrom);
         
         $res = '<' . $hash . '@' . $hostName . '>';
@@ -584,8 +585,12 @@ class email_Router extends core_Manager
         
         list($messageId) = explode('@', $messageId);
         
-        $mid = str::checkHash($messageId, 8, 'MID');
-        
+        $mid = str::checkHash($messageId, 8, 'MID', '.');
+
+        if (!$mid) {
+            $mid = str::checkHash($messageId, 8, 'MID');
+        }
+
         // Deprecated, за съвмесимост със стария формат
         if (!$mid && defined('BGERP_DEFAULT_EMAIL_DOMAIN')) {
             $myDomain = preg_quote(BGERP_DEFAULT_EMAIL_DOMAIN, '/');

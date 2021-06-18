@@ -1258,43 +1258,52 @@ abstract class deals_Helper
     public static function recalcRate($masterMvc, $masterId, $newRate, $priceFld = 'price', $rateFld = 'currencyRate')
     {
         $rec = $masterMvc->fetchRec($masterId);
-        $Detail = cls::get($masterMvc->mainDetail);
-        $dQuery = $Detail->getQuery();
-        
+
         if ($masterMvc instanceof deals_InvoiceMaster) {
             $rateFld = 'rate';
         }
-        
-        $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-        while ($dRec = $dQuery->fetch()) {
-            $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
-            
-            if ($masterMvc instanceof deals_InvoiceMaster) {
-                $dRec->packPrice = $dRec->{$priceFld} * $dRec->quantityInPack;
-                $dRec->amount = $dRec->packPrice * $dRec->quantity;
+
+        if ($masterMvc instanceof acc_ValueCorrections) {
+            $updateMaster = false;
+            $rec->amount = round(($rec->amount / $rec->rate) * $newRate, 6);
+            foreach ($rec->productsData as &$pData){
+                $pData->allocated = round(($pData->allocated / $rec->rate) * $newRate, 6);
             }
-            
-            $Detail->save($dRec);
-        }
-        
-        $updateMaster = true;
-        $rec->{$rateFld} = $newRate;
-        if ($masterMvc instanceof deals_InvoiceMaster) {
-            $rec->displayRate = $newRate;
-            
-            if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
-                // Изчисляване на стойността на ддс-то
-                $vat = acc_Periods::fetchByDate()->vatRate;
-                if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
-                    $vat = 0;
+            $rec->rate = $newRate;
+        } else {
+            $Detail = cls::get($masterMvc->mainDetail);
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            while ($dRec = $dQuery->fetch()) {
+                $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+
+                if ($masterMvc instanceof deals_InvoiceMaster) {
+                    $dRec->packPrice = $dRec->{$priceFld} * $dRec->quantityInPack;
+                    $dRec->amount = $dRec->packPrice * $dRec->quantity;
                 }
-                
-                $diff = $rec->changeAmount * $newRate;
-                $rec->vatAmount = $diff * $vat;
-                
-                // Стойността е променената сума
-                $rec->dealValue = $diff;
-                $updateMaster = false;
+
+                $Detail->save($dRec);
+            }
+
+            $updateMaster = true;
+            $rec->{$rateFld} = $newRate;
+            if ($masterMvc instanceof deals_InvoiceMaster) {
+                $rec->displayRate = $newRate;
+
+                if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
+                    // Изчисляване на стойността на ддс-то
+                    $vat = acc_Periods::fetchByDate()->vatRate;
+                    if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
+                        $vat = 0;
+                    }
+
+                    $diff = $rec->changeAmount * $newRate;
+                    $rec->vatAmount = $diff * $vat;
+
+                    // Стойността е променената сума
+                    $rec->dealValue = $diff;
+                    $updateMaster = false;
+                }
             }
         }
         
