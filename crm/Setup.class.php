@@ -152,7 +152,8 @@ class crm_Setup extends core_ProtoSetup
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
         'migrate::updateGroupsCountry2123',
-        'migrate::fixCountryGroupsInput21233'
+        'migrate::fixCountryGroupsInput21233',
+        'migrate::companiesRepairSerchKeywords2124',
     );
     
     
@@ -302,33 +303,10 @@ class crm_Setup extends core_ProtoSetup
 
 
     /**
-     * Зареждане на данни
+     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
      */
-    public function loadSetupData($itr = '')
+    public static function companiesRepairSerchKeywords2124()
     {
-        $res = parent::loadSetupData($itr);
-
-        $res .= $this->callMigrate('removeWrongNotifications2123', 'crm');
-
-        return $res;
-    }
-
-
-    /**
-     * Миграция за изтриване на грешно създадени известия
-     */
-    function removeWrongNotifications2123()
-    {
-        $query = bgerp_Notifications::getQuery();
-        $query->where("#modifiedOn >= '2021-06-09'");
-        $query->where("#modifiedBy = '-1'");
-
-        $nick = mb_strtolower(core_Setup::get('SYSTEM_NICK'));
-
-        $query->where("LOWER(#msg) LIKE '%{$nick} |създаде и сподели папка|* %'");
-
-        while ($rec = $query->fetch()) {
-            bgerp_Notifications::delete($rec->id);
-        }
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Companies', dt::addSecs(180));
     }
 }
