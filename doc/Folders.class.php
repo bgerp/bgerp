@@ -924,6 +924,12 @@ class doc_Folders extends core_Master
             $rec->state = 'active';
             $mustSave = true;
         }
+
+        if (!$mustSave && $rec->id) {
+            if (cls::get('doc_Folders')->getSearchKeywords($rec) != $rec->searchKeywords) {
+                $mustSave = true;
+            }
+        }
         
         if ($mustSave) {
             if ($isRevert || !$rec->state) {
@@ -1815,7 +1821,7 @@ class doc_Folders extends core_Master
                 $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
             }
         }
-        
+
         if ($rec->coverId) {
             $plugins = arr::make($class->loadList, true);
             if ($plugins['plg_Search'] || method_exists($class, 'getSearchKeywords')) {
