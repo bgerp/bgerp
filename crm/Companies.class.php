@@ -335,6 +335,7 @@ class crm_Companies extends core_Master
         if ($visibleNKID == 'yes') {
             // Добавяме поле във формата
             $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=НКИД,after=folderName, hint=Номер по НКИД');
+            $this->searchFields .= ',nkid';
         }
         
         // Допълнителна информация
