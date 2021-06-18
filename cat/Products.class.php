@@ -2136,7 +2136,7 @@ class cat_Products extends embed_Manager
             }
 
             if (isset($rec->proto)) {
-                $row->proto = $mvc->getHyperlink($rec->proto);
+                $row->proto = core_Users::isContractor() ? $mvc->getTitleById($rec->proto) : $mvc->getHyperlink($rec->proto);
             }
             
             if ($mvc->haveRightFor('edit', $rec)) {
