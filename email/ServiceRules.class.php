@@ -26,6 +26,12 @@ class email_ServiceRules extends embed_Manager
     /**
      * @var string
      */
+    public $driverClassCaption = 'Действие';
+
+
+    /**
+     * @var string
+     */
     public $driverInterface = 'email_ServiceRulesIntf';
 
 
@@ -106,10 +112,10 @@ class email_ServiceRules extends embed_Manager
     public function description()
     {
         $this->FLD('systemId', 'varchar(32)', 'caption=Ключ,input=none');
-        $this->FLD('email', 'varchar', 'caption=Условие->Изпращач', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('emailTo', 'varchar', 'caption=Условие->Получател', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('subject', 'varchar', 'caption=Условие->Относно', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('body', 'varchar', 'caption=Условие->Текст', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('email', 'varchar', 'caption=Условие->Изпращач, silent', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('emailTo', 'varchar', 'caption=Условие->Получател, silent', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('subject', 'varchar', 'caption=Условие->Относно, silent', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('body', 'varchar', 'caption=Условие->Текст, silent', array('attr' => array('style' => 'width: 350px;')));
         $this->FLD('note', 'text', 'caption=Забележка', array('attr' => array('style' => 'width: 100%;', 'rows' => 4)));
         
         $this->setDbUnique('systemId');
@@ -244,6 +250,21 @@ class email_ServiceRules extends embed_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->query->orderBy('createdOn', 'DESC');
+
+        $driverClassField = $mvc->driverClassField;
+
+        // Добавяме поле във формата за търсене
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        // Показваме само това поле. Иначе и другите полета
+        // на модела ще се появят
+        $data->listFilter->showFields = $driverClassField;
+        $data->listFilter->input(null, 'silent');
+
+        if ($data->listFilter->rec->{$driverClassField}) {
+            $data->query->where(array("#{$driverClassField} = '[#1#]'", $data->listFilter->rec->{$driverClassField}));
+        }
     }
     
     
