@@ -1933,9 +1933,12 @@ class email_Incomings extends core_Master
             // Добавяме начина на рутиране
             $rec->routeBy = 'preroute';
 
-            return;
+            if ($rec->_prerouteRecArr['folderId']) {
+
+                return ;
+            }
         }
-        
+
         if ($rec->accId) {
             // Извличаме записа на сметката, от която е изтеглено това писмо
             $accRec = email_Accounts::fetch($rec->accId);
