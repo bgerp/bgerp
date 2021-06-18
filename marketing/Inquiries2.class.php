@@ -550,7 +550,7 @@ class marketing_Inquiries2 extends embed_Manager
         $row->time = core_DateTime::mysql2verbal($rec->createdOn);
         
         if (isset($rec->proto)) {
-            $row->proto = cat_Products::getHyperlink($rec->proto);
+            $row->proto = core_Users::isContractor() ? cat_Products::getTitleById($rec->proto) : cat_Products::getHyperlink($rec->proto);
             $protoRec = cat_Products::fetch($rec->proto, 'state');
             $row->protoCaption = ($protoRec->state != 'template') ? 'Запитване за' : 'Базирано на';
         }

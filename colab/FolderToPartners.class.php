@@ -901,11 +901,13 @@ class colab_FolderToPartners extends core_Manager
             $folderId = $Class->forceCoverAndFolder($objectId);
             $redirectUrl = array('core_Users', 'login');
             if($force === true){
-                $Class->logWrite("Споделяне на папка към партньор след покана за регистрация", $objectId);
-                colab_FolderToPartners::force($folderId, $uId);
                 $redirectUrl = array('colab_Threads', 'list', 'folderId' => $folderId);
             }
-            
+
+            // Подсигуряваме се че винаги папката ще е споделена
+            colab_FolderToPartners::force($folderId, $uId);
+            $Class->logWrite("Споделяне на папка към партньор след покана за регистрация", $objectId);
+
             $Class->logInAct('Регистрация на нов партньор', $objectId);
             vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$contragentName}»");
             
