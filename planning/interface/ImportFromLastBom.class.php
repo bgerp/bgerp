@@ -48,6 +48,14 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
             // Подготовка на полетата
             $key = "{$dRec->productId}|{$dRec->packagingId}";
             $shortUom = cat_UoM::getShortName($dRec->packagingId);
+
+            $equivalentArr = planning_GenericMapper::getEquivalentProducts($dRec->productId);
+            if(countR($equivalentArr) > 1){
+                unset($equivalentArr[$dRec->productId]);
+                $form->FLD("{$key}|replaceId", 'int', "input,caption={$dRec->caption}->Заместител");
+                $form->setOptions("{$key}|replaceId", array('' => '') + $equivalentArr);
+            }
+
             $form->FLD($key, 'double(Min=0)', "input,caption={$dRec->caption}->К-во,unit={$shortUom}");
             $form->setDefault($key, $dRec->quantity / $dRec->quantityInPack);
             $rec->detailsDef[$key] = $dRec;
@@ -72,22 +80,31 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     private function getImportRecs(core_Manager $mvc, $rec)
     {
         $recs = array();
-        if (!is_array($rec->detailsDef)) {
-            
-            return $recs;
-        }
+        if (!is_array($rec->detailsDef)) return $recs;
+
         foreach ($rec->detailsDef as $key => $dRec) {
-            
+
             // Ако има въведено количество записва се
             if (!empty($rec->{$key})) {
                 unset($dRec->id);
                 $dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
+
+                if(!empty($rec->{"{$key}|replaceId"})){
+                    $originalMeasureId = cat_Products::fetchField($dRec->productId, 'measureId');
+                    $newMeasureId = cat_Products::fetchField($rec->{"{$key}|replaceId"}, 'measureId');
+                    $dRec->packagingId = $newMeasureId;
+
+                    $dRec->quantity = cat_Uom::convertValue($dRec->quantity, $originalMeasureId, $newMeasureId);
+                    $dRec->quantityInPack = 1;
+                    $dRec->productId = $rec->{"{$key}|replaceId"};
+                }
+
                 $dRec->noteId = $rec->{$mvc->masterKey};
                 $dRec->isEdited = true;
                 $recs[] = $dRec;
             }
         }
-        
+
         return $recs;
     }
     
@@ -151,7 +168,7 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
     public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
     {
         if (!($mvc instanceof planning_ConsumptionNoteDetails)) return false;
-        
+
         if (isset($masterId)) {
             $masterRec = $mvc->Master->fetchRec($masterId);
             if(empty($masterRec->storeId)) return;

@@ -335,6 +335,15 @@ class email_Setup extends core_ProtoSetup
             'offset' => 120,
             'timeLimit' => 300
         ),
+        array(
+            'systemId' => 'RejectEmails',
+            'description' => 'Оттегляне на имейлите по шаблон',
+            'controller' => 'email_drivers_RejectEmails',
+            'action' => 'RejectEmails',
+            'period' => 1440,
+            'offset' => 60,
+            'timeLimit' => 300
+        ),
     );
     
     
@@ -463,7 +472,7 @@ class email_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_DeleteEmails';
+    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_RejectEmails, email_drivers_DeleteEmails';
     
     
     /**

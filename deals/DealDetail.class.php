@@ -91,7 +91,7 @@ abstract class deals_DealDetail extends doc_Detail
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,tdClass=small-field nowrap,silent,removeAndRefreshForm=packPrice|discount,mandatory,input=hidden');
         
         // Количество в основна мярка
-        $mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
+        $mvc->FLD('quantity', 'double', 'caption=Количество (Основна),input=none');
         
         // Количество (в осн. мярка) в опаковката, зададена от 'packagingId'; Ако 'packagingId'
         // няма стойност, приема се за единица.
