@@ -269,7 +269,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_LinkedLast',
         'migrate::showDocumentsAsButtons0419',
         'migrate::updateHiddenDocCreated0120',
-        'migrate::foldersRepairSerchKeywords3120',
+        'migrate::foldersRepairSerchKeywords2124',
     );
     
     
@@ -576,7 +576,7 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
      */
-    public static function foldersRepairSerchKeywords3120()
+    public static function foldersRepairSerchKeywords2124()
     {
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'doc_Folders', dt::addSecs(120));
     }
