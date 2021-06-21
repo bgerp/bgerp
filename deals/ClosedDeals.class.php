@@ -71,8 +71,20 @@ abstract class deals_ClosedDeals extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'tools';
-    
-    
+
+
+    /**
+     * Дали може да се използват затворени пера
+     */
+    public $canUseClosedItems = true;
+
+
+    /**
+     * Дали се очаква в документа да има файлове
+     */
+    public $expectFiles = false;
+
+
     /**
      * Файл за единичен изглед
      */

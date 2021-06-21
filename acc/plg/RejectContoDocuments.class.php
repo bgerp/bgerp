@@ -77,6 +77,10 @@ class acc_plg_RejectContoDocuments extends core_Plugin
                 
                 $msg .= ' ' . tr('са затворени');
                 core_Statuses::newStatus($msg, 'error');
+
+                if(core_Users::isSystemUser()){
+                    $mvc->logWrite("Неуспешно контиране от системата, поради затворени пера", $id);
+                }
             }
             
             // Ако документа е използван в контировката на документ от друг тред, показваме съобщение и връщаме FALSE
