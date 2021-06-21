@@ -611,7 +611,10 @@ abstract class deals_ClosedDeals extends core_Master
         }
         
         // Създаване на документа
-        return static::save($newRec);
+        $id = static::save($newRec);
+        $this->logWrite('Автоматично създаване', $id);
+
+        return $id;
     }
     
     
