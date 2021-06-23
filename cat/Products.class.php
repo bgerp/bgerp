@@ -2574,7 +2574,7 @@ class cat_Products extends embed_Manager
         }
         
         if (sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))) {
-            $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба');
+            $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
         }
     }
     
