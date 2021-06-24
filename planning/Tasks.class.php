@@ -228,13 +228,13 @@ class planning_Tasks extends core_Master
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Време за производство->Разпределяне,smartCenter,notNull,value=common');
         
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes');
-        $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-');
-        $this->FLD('weightDeviationWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Предупреждение,unit=+/-');
-        $this->FLD('weightDeviationAverageWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отклонение,unit=от средното +/-');
+        $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-,autohide');
+        $this->FLD('weightDeviationWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Предупреждение,unit=+/-,autohide');
+        $this->FLD('weightDeviationAverageWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отклонение,unit=от средното +/-,autohide');
         
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Начало, changable, tdClass=leftColImportant');
-        $this->FLD('timeDuration', 'time', 'caption=Времена за планиране->Продължителност,changable');
-        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Край,changable, tdClass=leftColImportant,formOrder=103');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Начало, changable, tdClass=leftColImportant,input=none');
+        $this->FLD('timeDuration', 'time', 'caption=Времена за планиране->Продължителност,changable,input=none');
+        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Край,changable, tdClass=leftColImportant,formOrder=103,input=none');
         
         $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
@@ -494,14 +494,6 @@ class planning_Tasks extends core_Master
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
-                $form->setError('timeEnd', 'Крайният срок трябва да е след началото на операцията');
-            }
-            if (!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)) {
-                if (strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)) {
-                    $form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителността не отговарят на въведената крайната дата');
-                }
-            }
             
             // Може да се избират само оборудвания от една група
             if (isset($rec->fixedAssets)) {
@@ -779,9 +771,16 @@ class planning_Tasks extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
+
+        $defaultShowAdditionalUom = planning_Setup::get('TASK_WEIGHT_MODE');
         $form->setField('weightDeviationWarning', "placeholder=" . core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING')));
-        $form->setDefault('showadditionalUom', planning_Setup::get('TASK_WEIGHT_MODE'));
+        $form->setDefault('showadditionalUom', $defaultShowAdditionalUom);
+
+        if($defaultShowAdditionalUom == $rec->showadditionalUom){
+            $form->setField('showadditionalUom', 'autohide=any');
+        }
+
+        if($rec->showadditionalUom)
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
         }
@@ -1319,7 +1318,11 @@ class planning_Tasks extends core_Master
         if ($mvc->haveRightFor('single', $rec)) {
             $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция');
         }
-        
+
+        if ($mvc->haveRightFor('edit', $rec)) {
+            $data->toolbar->addBtn('Планиране', array($mvc, 'setTimes', $rec->id, 'ret_url' => true), null, 'ef_icon=img/16/alarm_clock.png,title=Планиране на времената');
+        }
+
         // Бутон за добавяне на документ за производство
         if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
@@ -1335,7 +1338,7 @@ class planning_Tasks extends core_Master
         // Бутон за добавяне на документ за влагане
         if (planning_ConsumptionNotes::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
             $pUrl = array('planning_ReturnNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => true);
-            $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието,rows=2');
+            $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието,row=2');
         }
     }
     
@@ -1350,5 +1353,56 @@ class planning_Tasks extends core_Master
             $rec->timeEnd =  dt::now();
             $mvc->save_($rec, 'timeEnd');
         }
+    }
+
+
+    /**
+     * Екшън за планиране на времената
+     */
+    public function act_setTimes()
+    {
+        $this->requireRightFor('edit');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('edit', $rec);
+
+        $form = cls::get('core_Form');
+        $form->title = 'Планиране на времена на|* ' . $this->getFormTitleLink($rec->id);
+        $form->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Начало, tdClass=leftColImportant');
+        $form->FLD('timeDuration', 'time', 'caption=Продължителност');
+        $form->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Край, tdClass=leftColImportant,formOrder=103');
+        $form->setDefault('timeStart', $rec->timeStart);
+        $form->setDefault('timeDuration', $rec->timeDuration);
+        $form->setDefault('timeEnd', $rec->timeEnd);
+
+        $form->input();
+
+        if ($form->isSubmitted()) {
+            if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
+                $form->setError('timeEnd', 'Крайният срок трябва да е след началото на операцията');
+            }
+
+            if (!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)) {
+                if (strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)) {
+                    $form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителността не отговарят на въведената крайната дата');
+                }
+            }
+
+            if(!$form->gotErrors()){
+                $rec->timeStart = $form->rec->timeStart;
+                $rec->timeDuration = $form->rec->timeDuration;
+                $rec->timeEnd = $form->rec->timeEnd;
+
+                $this->save($rec, 'timeStart,timeDuration,timeEnd');
+
+                followRetUrl(null, 'Времената са променени');
+            }
+        }
+
+        // Добавяне на бутони
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Преизчисляване на делтите');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+        return $form->renderHtml();
     }
 }

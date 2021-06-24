@@ -787,8 +787,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listFilter->setOptions('employees', array('' => '') + $usedEmployeeIds);
             $data->listFilter->showFields .= ",employees";
         }
-        
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $caption = isset($data->masterMvc) ? '' : 'Филтрирай';
+        $data->listFilter->toolbar->addSbBtn($caption, 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
         // Филтър по избраните стойности
