@@ -250,6 +250,11 @@ class batch_Templates extends embed_Manager
                 cls::get('batch_Defs')->save($nRec);
             }
         }
+
+        // След запис, нотифицира се драйвера на партидността, че е използван
+        if($Driver = static::getDriver($rec)){
+            $Driver->afterSavedTemplate($rec);
+        }
     }
 
 
