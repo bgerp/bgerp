@@ -413,11 +413,9 @@ class crm_Locations extends core_Master
     public function prepareContragentLocations($data)
     {
         $data->TabCaption = 'Локации';
-        
-        if ($data->isCurrent === false) {
-            
-            return;
-        }
+        $tabName = Request::get('Tab');
+
+        if (!empty($tabName) && $tabName != 'ContragentLocations') return;
         
         expect($data->masterId);
         expect($data->contragentCls = core_Classes::getId($data->masterMvc));
