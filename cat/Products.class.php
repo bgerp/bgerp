@@ -1457,7 +1457,7 @@ class cat_Products extends embed_Manager
         
         return $res;
     }
-    
+
     
     /**
      * Връща достъпните продаваеми артикули
@@ -1484,9 +1484,9 @@ class cat_Products extends embed_Manager
             } else {
                 $query->where("#state = 'active'");
             }
-            
+
             $reverseOrder = false;
-            
+
             // Ако е зададен контрагент, оставяме само публичните + частните за него
             if (isset($params['customerClass'], $params['customerId'])) {
                 $reverseOrder = true;
@@ -1538,6 +1538,16 @@ class cat_Products extends embed_Manager
 
             if (isset($params['notIn'])) {
                 $query->notIn('id', $params['notIn']);
+            }
+
+            // Ако има посочени артикули, които винаги да се показват да се показват
+            if (isset($params['alwaysShow'])) {
+                $inArr = arr::make($params['alwaysShow'], true);
+                $inArr = implode(',', $inArr);
+                $wAndH = $query->getWhereAndHaving();
+                $newWhere = str_replace('WHERE', '', $wAndH->w);
+                $newWhere = "#id IN ({$inArr}) OR ({$newWhere})";
+                $query->where = array(0 => $newWhere);
             }
         }
 

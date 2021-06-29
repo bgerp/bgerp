@@ -172,6 +172,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
         
         if ($rec->type == 'pop') {
+
+            // Артикула, по която е ПО да може винаги да се избира, ако е складируем
+            $noteProductId = planning_DirectProductionNote::fetchField($rec->noteId, 'productId');
+            if(cat_Products::fetchField($noteProductId, 'canStore') == 'yes'){
+                $form->setFieldTypeParams('productId', array('alwaysShow' => array($noteProductId)));
+            }
             $form->setField('storeId', 'input=none');
         }
     }
