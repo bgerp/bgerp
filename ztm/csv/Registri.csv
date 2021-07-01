@@ -13,7 +13,7 @@ ac.exit_reader_1.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600
 ac.exit_reader_1.port.name,str,,Access Control,system,COM5,Card reader 1 port name
 ac.exit_button_1.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,Access Control,system,off,Exit button 1 input
 ac.lock_mechanism_1.output,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8|!DO0|!DO1|!DO2|!DO3|!DO4|!DO5|!DO6|!DO7|!DO8,Access Control,system,off,Lock mechanism output
-ac.time_to_open_1,int,0/60,Access Control,system,10,Lock mechanism time to open [s]
+ac.time_to_open_1,int,0/60,Access Control,system,2,Lock mechanism time to open [s]
 ac.door_closed_1.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,Access Control,system,off,Door closed input
 ac.door_closed_1.state,bool,true|false,Access Control,device,false,Door closed input state
 ac.entry_reader_2.enabled,str,,Access Control,system,off,Card reader settings
@@ -24,7 +24,7 @@ ac.exit_reader_2.port.baudrate,int,300|600|1200|2400|4800|9600|19200|38400|57600
 ac.exit_reader_2.port.name,str,,Access Control,system,COM9,Card reader port name
 ac.exit_button_2.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,Access Control,system,off,Exit button 2 input
 ac.lock_mechanism_2.output,str,off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8|!DO0|!DO1|!DO2|!DO3|!DO4|!DO5|!DO6|!DO7|!DO8,Access Control,system,off,Lock 2 mechanism output
-ac.time_to_open_2,int,0/60,Access Control,system,10,Lock 2 mechanism time to open
+ac.time_to_open_2,int,0/60,Access Control,system,2,Lock 2 mechanism time to open
 ac.door_closed_2.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,Access Control,system,off,Door 2 closed input
 ac.door_closed_2.state,bool,true|false,Access Control,device,false,Door 2 closed input state
 ac.pir_1.input,str,off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8,Access Control,system,off,PIR 1 sensor input
