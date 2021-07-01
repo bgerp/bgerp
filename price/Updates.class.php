@@ -542,10 +542,11 @@ class price_Updates extends core_Manager
                 
                 // Дали датата е петък 23:00 часа
                 $normNow = dt::mysql2verbal($date, 'D:H', 'en');
-                $lastAppliedOn = ($rec->appliedOn) ? dt::mysql2verbal($rec->appliedOn, 'D:H', 'en') : null;
+                $normDate = dt::mysql2verbal($date, 'd.m.y D:H');
+                $normApplied = dt::mysql2verbal($rec->appliedOn, 'd.m.y D:H');
 
                 $res = false;
-                if($lastAppliedOn != $normNow){
+                if($normApplied != $normDate){
                     if($normNow == 'Fri:23'){
                         $res = true;
                     }
