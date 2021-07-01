@@ -1280,6 +1280,8 @@ class doc_Linked extends core_Manager
                 $dQuery->groupBy('folderId');
                 
                 $dQuery->show('folderId');
+
+                $dQuery->limit(10000);
                 
                 $fArr = array();
                 while ($dRec = $dQuery->fetch()) {
