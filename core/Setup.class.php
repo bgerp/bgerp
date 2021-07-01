@@ -8,6 +8,12 @@ defIfNot('EF_APP_TITLE', 'Application Title');
 
 
 /**
+ * Вербално заглавие на приложението
+ */
+defIfNot('EF_BGERP_LINK_TITLE', 'За bgERP||About');
+
+
+/**
  * Дали да се презаписват .htaccess файловете?
  * Може да се зададе друга стойност в конфигурационния файл (напр. conf/bgerp.cfg.php)
  */
