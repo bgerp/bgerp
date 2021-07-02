@@ -1008,12 +1008,12 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $invForm->cmd = 'save';
                 
                 // Ид-то не трябва да се инпутва
-                $fields = $invForm->selectFields();
+                $fields = $invForm->selectFields("#input != 'none'");
                 unset($fields['id']);
                 $invForm->input(implode(',', array_keys($fields)));
                 
                 $clsInst->invoke('AfterInputEditForm', array($invForm));
-                
+
                 // Инпутваме емулираната форма и ако няма грешки, записваме
                 if ($invForm->isSubmitted()) {
                     $rec = $invForm->rec;
