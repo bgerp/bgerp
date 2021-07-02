@@ -560,7 +560,11 @@ abstract class deals_ClosedDeals extends core_Master
     {
         $plugins = $mvc->getPlugins();
         $docClassId = null;
-        
+
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
         if (isset($plugins['sales_Wrapper'])) {
             $docClassId = sales_Sales::getClassId();
         } elseif (isset($plugins['purchase_Wrapper'])) {
