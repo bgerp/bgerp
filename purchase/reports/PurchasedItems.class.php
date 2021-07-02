@@ -859,8 +859,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
             } else {
                     
                     //Когато е без сравнение
-                $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Покупки');
-                $fld->FLD('amount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Стойност');
+                $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Покупки->Количество');
+                $fld->FLD('amount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Покупки->Стойност');
             }
         }
         

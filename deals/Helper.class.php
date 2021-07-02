@@ -762,19 +762,28 @@ abstract class deals_Helper
         // Ако има посочена нишка, чийто първи документ да се игнорира от хоризонтите,
         if(isset($ignoreFirstDocumentPlannedInThread)){
             if($firstDocument = doc_Threads::getFirstDocument($ignoreFirstDocumentPlannedInThread)){
+                $skip = false;
+                if($firstDocument->isInstanceOf('deals_DealMaster')){
+                    $firstDocumentStoreId = $firstDocument->fetchField('shipmentStoreId');
+                    if(empty($firstDocumentStoreId)){
+                        $skip = true;
+                    }
+                }
 
-                $iQuery = store_StockPlanning::getQuery();
-                $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that}");
-                $iQuery->show('quantityIn,quantityOut');
-                $iRec = $iQuery->fetch();
+                if($skip != true){
+                    $iQuery = store_StockPlanning::getQuery();
+                    $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that}");
+                    $iQuery->show('quantityIn,quantityOut');
+                    $iRec = $iQuery->fetch();
 
-                // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
-                if(is_object($iRec) && is_object($stRec)){
-                    $stRec->reserved -= $iRec->quantityOut;
-                    $stRec->reserved = abs($stRec->reserved);
-                    $stRec->expected -= $iRec->quantityIn;
-                    $stRec->expected = abs($stRec->expected);
-                    $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                    // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
+                    if(is_object($iRec) && is_object($stRec)){
+                        $stRec->reserved -= $iRec->quantityOut;
+                        $stRec->reserved = abs($stRec->reserved);
+                        $stRec->expected -= $iRec->quantityIn;
+                        $stRec->expected = abs($stRec->expected);
+                        $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                    }
                 }
             }
         }

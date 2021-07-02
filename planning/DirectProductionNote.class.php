@@ -877,7 +877,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id}")) {
                 if (cat_Boms::haveRightFor('add', (object) array('productId' => $rec->productId, 'originId' => $rec->originId))) {
                     $bomUrl = array($mvc, 'createBom', $data->rec->id);
-                    $data->toolbar->addBtn('Рецепта', $bomUrl, null, 'ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
+                    $data->toolbar->addBtn('Рецепта', $bomUrl, null, 'warning=Наистина ли желаете да създадете нова работна рецепта от протокола|*!,ef_icon = img/16/add.png,title=Създаване на нова рецепта по протокола');
                 }
             }
         }
@@ -891,7 +891,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         if(haveRole('debug') && $rec->state != 'rejected'){
-            $data->toolbar->addBtn('Зареди очакваното', array($mvc, 'fillNote', $rec->id, 'ret_url' => true), null, 'ef_icon = img/16/bug.png,title=Зареди очакваните количества');
+            $data->toolbar->addBtn('Зареди очакваното', array($mvc, 'fillNote', $rec->id, 'ret_url' => true), null, 'ef_icon = img/16/bug.png,title=Зареди очакваните количества,row=2');
         }
     }
 

@@ -129,7 +129,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         if ($rec->consumed == 'yes') {
             $form->setField('groupsMat', 'input');
             $form->setField('consumedFrom', 'input');
-            $form->setField('groups', 'input=hidden');
+           // $form->setField('groups', 'input=hidden');
             $form->setField('groupBy', 'input=hidden');
             $form->setOptions('orderBy', array('code' => 'Код'));
 

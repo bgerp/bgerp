@@ -3003,18 +3003,24 @@ class email_Incomings extends core_Master
             // Вземаме записите за файла
             $rec = $this->fetch($rec);
         }
-        
+
+        if (!property_exists($rec, 'files') && $rec->id) {
+            $cRec = $this->fetch($rec->id);
+        } else {
+            $cRec = clone $rec;
+        }
+
         // Превръщаме в масив
-        $filesArr = keylist::toArray($rec->files);
+        $filesArr = keylist::toArray($cRec->files);
         
         // Ако има HTML файл, добавяме го към файловете
-        if ($rec->htmlFile) {
-            $filesArr[$rec->htmlFile] = $rec->htmlFile;
+        if ($cRec->htmlFile) {
+            $filesArr[$cRec->htmlFile] = $cRec->htmlFile;
         }
         
         // Ако има, добавяме EML файла, към файловете
-        if ($rec->emlFile) {
-            $filesArr[$rec->emlFile] = $rec->emlFile;
+        if ($cRec->emlFile) {
+            $filesArr[$cRec->emlFile] = $cRec->emlFile;
         }
         
         $fhArr = array();
@@ -3028,7 +3034,7 @@ class email_Incomings extends core_Master
             // Създаваме масив с прикачените файлове
             $fhArr[$fRec->fileHnd] = $fRec->name;
         }
-        
+
         return $fhArr;
     }
     

@@ -611,8 +611,8 @@ class batch_BatchesInDocuments extends core_Manager
                 }
                 $msg = null;
                 if (!$Def->isValid($batch, $tableData['quantity'][$key], $msg)) {
-                    $error[] = "<b>{$batch}</b>:|* {$msg}";
-                    $errorFields['batch'][$key] = "<b>{$batch}</b>:|* {$msg}";
+                    $error[] = "{$batch} :|* {$msg}";
+                    $errorFields['batch'][$key] = "{$batch} :|* {$msg}";
                 }
                 
                 if (array_key_exists($batch, $bArray)) {

@@ -43,8 +43,8 @@ class purchase_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable,plg_Clone, doc_DocumentPlg,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing, cond_plg_DefaultValues,deals_plg_DpInvoice,
+    public $loadList = 'plg_RowTools2, purchase_Wrapper, doc_plg_TplManager, plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,plg_Clone, doc_DocumentPlg,
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Printing,deals_plg_DpInvoice,
                     doc_plg_HidePrices, acc_plg_DocumentSummary, drdata_plg_Canonize,cat_plg_AddSearchKeywords, plg_Search,change_Plugin,bgerp_plg_Export';
     
     
@@ -1008,12 +1008,12 @@ class purchase_Invoices extends deals_InvoiceMaster
                 $invForm->cmd = 'save';
                 
                 // Ид-то не трябва да се инпутва
-                $fields = $invForm->selectFields();
+                $fields = $invForm->selectFields("#input != 'none'");
                 unset($fields['id']);
                 $invForm->input(implode(',', array_keys($fields)));
                 
                 $clsInst->invoke('AfterInputEditForm', array($invForm));
-                
+
                 // Инпутваме емулираната форма и ако няма грешки, записваме
                 if ($invForm->isSubmitted()) {
                     $rec = $invForm->rec;

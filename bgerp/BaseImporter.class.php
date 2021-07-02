@@ -120,7 +120,7 @@ class bgerp_BaseImporter extends core_Manager
                     $row['__errStr'] = $rec->__errStr;
                 }
                 $errArr[] = $row;
-                
+
                 continue ;
             }
 
@@ -162,7 +162,7 @@ class bgerp_BaseImporter extends core_Manager
             } else {
                 $errCntW = $errCnt . ' |записа|. |Записани са в|*: ';
             }
-            status_Messages::newStatus('|Грешка в|* ' . $errCntW . fileman::getLinkToSingle($fh));
+            status_Messages::newStatus('|Грешка в|* ' . $errCntW . fileman::getLinkToSingle($fh), 'warning');
         }
         
         core_Debug::stopTimer('import');
