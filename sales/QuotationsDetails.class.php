@@ -91,7 +91,7 @@ class sales_QuotationsDetails extends doc_Detail
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'packPrice,discount,amount';
+    public $priceFields = 'packPrice,discount,amount,vatPackPrice';
     
     
     /**

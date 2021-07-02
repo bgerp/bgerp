@@ -1591,6 +1591,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 // Създаване на приключващ документ-чернова
                 $clId = $ClosedDeals->create($className, $rec);
                 $ClosedDeals->conto($clId);
+                $ClosedDeals->logWrite('Автоматично контиране на документа', $clId);
             } catch (core_exception_Expect $e) {
                 reportException($e);
             }

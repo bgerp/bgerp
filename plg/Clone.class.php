@@ -383,23 +383,17 @@ class plg_Clone extends core_Plugin
                             }
                             
                             if($Detail->invoke('BeforeSaveClonedDetail', array($dRec, $oldRec))){
+                                $fields = null;
                                 if ($Detail->isUnique($dRec, $fields)) {
                                     
                                     // Записваме клонирания детайл
                                     $Detail->save($dRec);
                                     $Detail->invoke('AfterSaveClonedDetail', array($dRec, $oldRec));
-                                } else {
-                                    $notClones = true;
                                 }
                             }
                         }
                     }
                 }
-            }
-            
-            // Ако някой от записите не са клонирани защото са уникални сетваме предупреждение
-            if ($notClones) {
-                core_Statuses::newStatus('Някои от детайлите не бяха клонирани, защото са уникални', 'warning');
             }
         }
     }

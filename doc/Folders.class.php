@@ -150,6 +150,8 @@ class doc_Folders extends core_Master
         $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
         
         $this->setDbUnique('coverId,coverClass');
+
+        $this->setDbIndex('last');
     }
     
     
@@ -923,6 +925,12 @@ class doc_Folders extends core_Master
         if ($isActivated) {
             $rec->state = 'active';
             $mustSave = true;
+        }
+
+        if (!$mustSave && $rec->id) {
+            if (cls::get('doc_Folders')->getSearchKeywords($rec) != $rec->searchKeywords) {
+                $mustSave = true;
+            }
         }
         
         if ($mustSave) {
@@ -1815,7 +1823,7 @@ class doc_Folders extends core_Master
                 $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
             }
         }
-        
+
         if ($rec->coverId) {
             $plugins = arr::make($class->loadList, true);
             if ($plugins['plg_Search'] || method_exists($class, 'getSearchKeywords')) {

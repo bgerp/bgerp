@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -88,12 +88,13 @@ class batch_Templates extends embed_Manager
     public function description()
     {
         $this->FLD('name', 'varchar', 'caption=Име,mandatory');
-        
+        $this->FNC('productId', 'int', 'caption=Артикул,silent,input=hidden,before=driverClass');
+
         $this->FLD('autoAllocate', 'enum(yes=Да,no=Не)', 'caption=Автоматично разпределение в документи->Избор,notNull,value=yes,formOrder=1000');
         $this->FLD('uniqueProduct', 'enum(no=Не,yes=Да)', 'caption=Партидния № може да се използва само в един артикул->Избор,notNull,value=no,formOrder=1001');
         $this->FLD('alwaysRequire', 'enum(no=Не,yes=Да)', 'caption=Използване в документи->Задължително,notNull,value=no,formOrder=1002');
         $this->FLD('onlyExistingBatches', 'enum(no=Не,yes=Да)', 'caption=Използване в документи->Задължителна наличност,notNull,value=no,formOrder=1003');
-        
+
         $this->setDbUnique('name');
     }
     
@@ -195,7 +196,11 @@ class batch_Templates extends embed_Manager
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
+        if(isset($rec->productId)){
+            $form->setField('productId', 'input');
+            $form->setOptions('productId', array($rec->productId => cat_Products::getTitleById($rec->productId, false)));
+        }
         if ($rec->createdBy == core_Users::SYSTEM_USER && isset($rec->id)) {
             $fields = array_keys($form->selectFields("#input != 'none' AND #input != 'hidden'"));
             foreach ($fields as $name) {
@@ -211,6 +216,56 @@ class batch_Templates extends embed_Manager
                 if ($Driver->canChangeBatchUniquePerProduct() !== true) {
                     $form->setField('uniqueProduct', 'input=none');
                 }
+            }
+        }
+    }
+
+
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако се иска директно контиране редирект към екшъна за контиране
+        if ($data->form->isSubmitted()) {
+            if(isset($data->form->rec->productId)){
+                $data->retUrl = cat_Products::getSingleUrlArray($data->form->rec->productId);
+            }
+        }
+    }
+
+
+    /**
+     * След всеки запис в журнала
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id
+     * @param stdClass $rec
+     */
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        if(isset($rec->productId)){
+            $nRec = (object) array('productId' => $rec->productId, 'templateId' => $rec->id);
+            if (!batch_Defs::fetchField("#productId = {$rec->productId}", 'id')) {
+                cls::get('batch_Defs')->save($nRec);
+            }
+        }
+
+        // След запис, нотифицира се драйвера на партидността, че е използван
+        if($Driver = static::getDriver($rec)){
+            $Driver->afterSavedTemplate($rec);
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'add' && isset($rec->productId)){
+            if(!batch_Defs::haveRightFor('add', (object)array('productId' => $rec->productId))){
+                $requiredRoles = 'no_one';
             }
         }
     }
