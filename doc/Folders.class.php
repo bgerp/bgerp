@@ -150,6 +150,8 @@ class doc_Folders extends core_Master
         $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
         
         $this->setDbUnique('coverId,coverClass');
+
+        $this->setDbIndex('last');
     }
     
     
