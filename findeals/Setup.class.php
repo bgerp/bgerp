@@ -60,6 +60,7 @@ class findeals_Setup extends core_ProtoSetup
         'findeals_ClosedDeals',
         'findeals_AdvanceReports',
         'findeals_AdvanceReportDetails',
+        'migrate::recontoDocuments',
     );
     
     
@@ -79,4 +80,13 @@ class findeals_Setup extends core_ProtoSetup
     public $menuItems = array(
         array(2.3, 'Финанси', 'Сделки', 'findeals_Deals', 'default', 'findeals, ceo, acc'),
     );
+
+
+    /**
+     * Миграция за реконтиране на документи
+     */
+    public function recontoDocuments()
+    {
+        deals_Setup::recontoPaymentDocuments(array('findeals_DebitDocuments', 'findeals_CreditDocuments'));
+    }
 }

@@ -294,4 +294,30 @@ class deals_Setup extends core_ProtoSetup
         $query = "UPDATE {$mvc->dbTableName},{$ClosedDocumentMvc->dbTableName} SET {$mvc->dbTableName}.{$closeWithColName} = {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} WHERE {$ClosedDocumentMvc->dbTableName}.{$docIdColName} = {$mvc->dbTableName}.id AND {$ClosedDocumentMvc->dbTableName}.{$classIdColName} = {$mvc->getClassId()} AND {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} IS NOT NULL AND {$ClosedDocumentMvc->dbTableName}.{$stateColName} = 'active'";
         $mvc->db->query($query);
     }
+
+
+    /**
+     * Помощна ф-я за реконтиране на платежните документи
+     */
+    public static function recontoPaymentDocuments($documents)
+    {
+        $start = acc_Periods::getFirstActive()->start;
+        if(!empty($start)){
+            $res = acc_Journal::getDocsByDigitCounts($start, 0, $documents);
+            $count = countR($res);
+
+            if(!$count) return;
+            core_App::setTimeLimit($count * 0.4, false, 200);
+
+            foreach ($res as $containerId){
+                $document = doc_Containers::getDocument($containerId);
+                try{
+                    acc_Journal::reconto($containerId);
+                    $document->getInstance()->logWrite('Ре-контиране на документа', $document->that);
+                } catch(core_exception_Expect $e){
+                    reportException($e);
+                }
+            }
+        }
+    }
 }
