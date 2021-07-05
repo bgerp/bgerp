@@ -961,4 +961,50 @@ class acc_Journal extends core_Master
         
         return $success;
     }
+
+
+    /**
+     * Кои документи имат в журнала брой десетични символи над указания
+     *
+     * @param $valior                - от коя дата насетне
+     * @param $number                - брой десетични знаци
+     * @param $documentClasses       - от коит документи
+     * @param mixed $journalFields   - кои полета
+     * @return array $res            - контейнерите на намерените документи
+     */
+    public static function getDocsByDigitCounts($valior, $number, $documentClasses, $journalFields = 'debitQuantity,creditQuantity')
+    {
+        $classes = array();
+        $documentClasses = arr::make($documentClasses, true);
+        $journalFields = arr::make($journalFields, true);
+        foreach ($documentClasses as $doc) {
+            $classId = $doc::getClassId();
+            $classes[$classId] = $classId;
+        }
+
+        $number += 1;
+        $query = acc_JournalDetails::getQuery();
+        $query->EXT('valior', 'acc_Journal', 'externalKey=journalId,externalName=valior');
+        $query->EXT('docType', 'acc_Journal', 'externalKey=journalId,externalName=docType');
+        $query->EXT('docId', 'acc_Journal', 'externalKey=journalId,externalName=docId');
+        $query->where("#valior > '{$valior}'");
+
+        $whereArr = array();
+        foreach ($journalFields as $field){
+            $query->XPR("{$field}Length", 'double', 'LENGTH(SUBSTR(#' . $field . ', INSTR(#' . $field . ',".")))');
+            $whereArr[] = "#{$field}Length >= {$number}";
+        }
+        $where = implode(' OR ', $whereArr);
+        $query->where($where);
+        $query->in('docType', $classes);
+        $query->groupBy('docType,docId');
+        $query->show('docType, docId');
+
+        $res = array();
+        while($rec = $query->fetch()){
+            $res[$rec->journalId] = cls::get($rec->docType)->fetchField($rec->docId, 'containerId');
+        }
+
+        return $res;
+    }
 }
