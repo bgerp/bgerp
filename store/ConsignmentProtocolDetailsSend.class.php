@@ -79,7 +79,7 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Предадено, packagingId, packQuantity, weight=Тегло,volume=Обем,packPrice, amount,transUnitId=ЛЕ';
+    public $listFields = 'productId=Предадено на Клиент/Доставчик, packagingId, packQuantity, weight=Тегло,volume=Обем,packPrice, amount,transUnitId=ЛЕ';
     
     
     /**
