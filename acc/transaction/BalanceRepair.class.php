@@ -2,13 +2,13 @@
 
 
 /**
- * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа planning_ConsumptionNotes
+ * Помощен клас-имплементация на интерфейса acc_TransactionSourceIntf за класа acc_BalanceRepairs
  *
  * @category  bgerp
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -41,6 +41,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
      * @return stdClass
      *
      * @see acc_TransactionSourceIntf::getTransaction
+     * @throws core_exception_Expect
      */
     public function getTransaction($id)
     {
@@ -78,20 +79,27 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         
         return $result;
     }
-    
-    
+
+
     /**
      * Връща ентритата
+     *
+     * @param $dRec
+     * @param $total
+     * @param $periodRec
+     * @return array $entries
      */
     private function getEntries($dRec, &$total, $periodRec)
     {
         $entries = array();
-        $sysId = acc_Accounts::fetchField($dRec->accountId, 'systemId');
+        $accRec = acc_Accounts::fetch($dRec->accountId);
         $bQuery = acc_BalanceDetails::getQuery();
-        acc_BalanceDetails::filterQuery($bQuery, $this->balanceRec->id, $sysId);
-        //$bQuery->where('#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL');
-        
-        //$bQuery->where("#ent1Id = 10405 AND #ent2Id = 10509");
+        acc_BalanceDetails::filterQuery($bQuery, $this->balanceRec->id, $accRec->systemId);
+
+        // Ако сметката има аналитичности, то няма да се поправя обобщаващия ред
+        if(!empty($accRec->groupId1) || !empty($accRec->groupId2) || !empty($accRec->groupId3)){
+            $bQuery->where('#ent1Id IS NOT NULL || #ent2Id IS NOT NULL || #ent3Id IS NOT NULL');
+        }
         
         $Items = cls::get('acc_Items');
         $itemsArr = $Items->getCachedItems();
@@ -152,7 +160,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                 }
             }
 
-            $ourSideArr = array($sysId, $bRec->ent1Id, $bRec->ent2Id, $bRec->ent3Id);
+            $ourSideArr = array($accRec->systemId, $bRec->ent1Id, $bRec->ent2Id, $bRec->ent3Id);
 
             $entry = array('amount' => abs($blAmount));
             $total += abs($blAmount);
