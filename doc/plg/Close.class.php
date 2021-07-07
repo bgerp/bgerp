@@ -66,10 +66,20 @@ class doc_plg_Close extends core_Plugin
     public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec, $newState)
     {
         if (empty($res)) {
+            $firstContainerId = doc_Threads::getFirstContainerId($rec->threadId);
+
             if ($rec->state == 'closed') {
-                $res = ($mvc->hasPlugin('doc_FolderPlg')) ? 'Сигурни ли сте, че искате да откриете тази папка и да може да се добавят документи в нея|*?' : 'Сигурни ли сте, че искате да откриете тази нишка и да може да се добавят документи в нея|*?';
+                if($firstContainerId == $rec->containerId){
+                    $res = ($mvc->hasPlugin('doc_FolderPlg')) ? 'Сигурни ли сте, че искате да откриете тази папка и да може да се добавят документи в нея|*?' : 'Сигурни ли сте, че искате да откриете тази нишка и да може да се добавят документи в нея|*?';
+                } else {
+                    $res = 'Сигурни ли сте, че искате да откриете този документ|*?';
+                }
             } elseif (in_array($rec->state, array('active', 'pending', 'template', 'draft'))) {
-                $res = ($mvc->hasPlugin('doc_FolderPlg')) ? 'Сигурни ли сте, че искате да закриете тази папка и да не може да се добавят документи в нея|*?' : 'Сигурни ли сте, че искате да закриете тази нишка и да не може да се добавят документи в нея|*?';
+                if($firstContainerId == $rec->containerId){
+                    $res = ($mvc->hasPlugin('doc_FolderPlg')) ? 'Сигурни ли сте, че искате да закриете тази папка и да не може да се добавят документи в нея|*?' : 'Сигурни ли сте, че искате да закриете тази нишка и да не може да се добавят документи в нея|*?';
+                } else {
+                    $res = 'Сигурни ли сте, че искате да закриете този документ|*?';
+                }
             }
         }
     }
