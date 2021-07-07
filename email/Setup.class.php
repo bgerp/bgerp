@@ -327,21 +327,12 @@ class email_Setup extends core_ProtoSetup
             'timeLimit' => 100
         ),
         array(
-            'systemId' => 'DeleteEmails',
-            'description' => 'Изтриване на имейлите по шаблон',
-            'controller' => 'email_drivers_DeleteEmails',
-            'action' => 'DeleteEmails',
+            'systemId' => 'checkEmailsForState',
+            'description' => 'Проверка на имейли за промяна на състояние според потребителските правила',
+            'controller' => 'email_drivers_CheckEmails',
+            'action' => 'checkEmails',
             'period' => 1440,
             'offset' => 120,
-            'timeLimit' => 300
-        ),
-        array(
-            'systemId' => 'RejectEmails',
-            'description' => 'Оттегляне на имейлите по шаблон',
-            'controller' => 'email_drivers_RejectEmails',
-            'action' => 'RejectEmails',
-            'period' => 1440,
-            'offset' => 60,
             'timeLimit' => 300
         ),
     );
@@ -466,13 +457,14 @@ class email_Setup extends core_ProtoSetup
         'email_AddressesInfo',
         'migrate::repairSpamScore1219',
         'migrate::serviceRules2121',
+        'migrate::repairServiceRules2127',
     );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_RejectEmails, email_drivers_DeleteEmails';
+    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_CheckEmails';
     
     
     /**
@@ -599,7 +591,7 @@ class email_Setup extends core_ProtoSetup
         }
         
         Mode::pop('text');
-
+// @todo - ret url при създаване на правило от имейл
         // Добавяме всички лога към нашите файлове
         $logoArr = array();
         $logoArr['BGERP_COMPANY_LOGO'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO');
@@ -693,6 +685,45 @@ class email_Setup extends core_ProtoSetup
 
                 continue;
             }
+        }
+    }
+
+
+    /**
+     * Поправя лошите записи и премахване на старите класове
+     */
+    public function repairServiceRules2127()
+    {
+        expect(cls::load('email_drivers_CheckEmails'));
+
+        $checkEmailsClsId = email_drivers_CheckEmails::getClassId();
+
+        expect($checkEmailsClsId);
+
+        foreach (array('email_drivers_DeleteEmails', 'email_drivers_RejectEmails') as $clsName) {
+            if (!cls::load($clsName, true)) {
+                continue;
+            }
+
+            $query = email_ServiceRules::getQuery();
+            $query->where(array("#driverClass = '[#1#]'", $clsName::getClassId()));
+
+            while ($rec = $query->fetch()) {
+                $rec->driverClass = $checkEmailsClsId;
+                if ($clsName == 'email_drivers_DeleteEmails') {
+                    $rec->deleteAfter = $rec->keepDays;
+                }
+
+                if ($clsName == 'email_drivers_RejectEmails') {
+                    $rec->rejectAfter = $rec->keepDays;
+                }
+
+                email_ServiceRules::save($rec);
+            }
+
+            core_Classes::delete(array("#name = '[#1#]'", $clsName));
+
+            core_Cron::delete(array("#controller = '[#1#]'", $clsName));
         }
     }
 }
