@@ -2846,7 +2846,7 @@ class email_Incomings extends core_Master
 
         if (email_ServiceRules::haveRightFor('add')) {
 
-            $url = array('email_ServiceRules', 'add', 'email' => $rec->fromEml, 'subject' => $rec->subject);
+            $url = array('email_ServiceRules', 'add', 'email' => $rec->fromEml, 'subject' => $rec->subject, 'ret_url' => true);
 
             $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=2, order=19');
         }

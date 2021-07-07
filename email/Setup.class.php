@@ -457,7 +457,6 @@ class email_Setup extends core_ProtoSetup
         'email_AddressesInfo',
         'migrate::repairSpamScore1219',
         'migrate::serviceRules2121',
-        'migrate::repairServiceRules2127',
     );
     
     
@@ -533,6 +532,7 @@ class email_Setup extends core_ProtoSetup
         $res .= $this->addOurImgData();
 
         $res .= $this->callMigrate('filtersToServiceRules21212', 'email');
+        $res .= $this->callMigrate('repairServiceRules2127', 'email');
 
         return $res;
     }
@@ -591,7 +591,7 @@ class email_Setup extends core_ProtoSetup
         }
         
         Mode::pop('text');
-// @todo - ret url при създаване на правило от имейл
+
         // Добавяме всички лога към нашите файлове
         $logoArr = array();
         $logoArr['BGERP_COMPANY_LOGO'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO');
