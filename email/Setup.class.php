@@ -591,7 +591,7 @@ class email_Setup extends core_ProtoSetup
         }
         
         Mode::pop('text');
-// @todo - ret url при създаване на правило от имейл
+
         // Добавяме всички лога към нашите файлове
         $logoArr = array();
         $logoArr['BGERP_COMPANY_LOGO'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO');
