@@ -66,6 +66,7 @@ class doc_plg_Close extends core_Plugin
     public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec, $newState)
     {
         if (empty($res)) {
+            $firstContainerId = ($rec->threadId) ? doc_Threads::getFirstContainerId($rec->threadId) : null;
             if ($rec->state == 'closed') {
                 $res = ($mvc->hasPlugin('doc_FolderPlg')) ? 'Сигурни ли сте, че искате да откриете тази папка и да може да се добавят документи в нея|*?' : 'Сигурни ли сте, че искате да откриете тази нишка и да може да се добавят документи в нея|*?';
             } elseif (in_array($rec->state, array('active', 'pending', 'template', 'draft'))) {
