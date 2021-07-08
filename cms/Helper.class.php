@@ -139,7 +139,7 @@ class cms_Helper extends core_BaseClass
     public static function getErrorIfCompanyNameIsInvalid($name)
     {
         $normalizedName = str::removeWhiteSpace(mb_strtolower($name), ' ');
-        if(in_array($normalizedName, array('няма', 'нямам', 'no', 'no company', 'частно лице', 'лице', 'private person')) || mb_strlen($normalizedName) == 1){
+        if(in_array($normalizedName, array('няма', 'нямам', 'no', 'no company', 'частно лице', 'лице', 'private person', 'нямам фирма', 'няма фирма', 'без фирма')) || mb_strlen($normalizedName) == 1){
 
             return "Отговаряме само на запитвания получени от представители на реални, регистрирани в България или чужбина фирми и други юридически организации|*!";
         }
