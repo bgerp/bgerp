@@ -66,7 +66,7 @@ class doc_plg_Close extends core_Plugin
     public static function on_AfterGetChangeStateWarning($mvc, &$res, $rec, $newState)
     {
         if (empty($res)) {
-            $firstContainerId = doc_Threads::getFirstContainerId($rec->threadId);
+            $firstContainerId = ($rec->threadId) ? doc_Threads::getFirstContainerId($rec->threadId) : null;
 
             if ($rec->state == 'closed') {
                 if($firstContainerId == $rec->containerId){
