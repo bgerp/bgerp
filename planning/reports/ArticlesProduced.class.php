@@ -75,7 +75,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
 
         $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
-        $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent');
+        $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent,single=none');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
             $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени материали->Група артикули,placeholder = Всички,after=consumedFrom,single=none,input=hidden');
@@ -529,7 +529,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         }
 
 
-        if ($rec->groupBy == 'month' && is_array($dRec->monthQuantity)) {
+        if (($rec->groupBy == 'month') && (is_array($dRec->monthQuantity))) {
             foreach ($dRec->monthQuantity as $key => $val) {
 
                 $row->$key = $Double->toVerbal($val);
