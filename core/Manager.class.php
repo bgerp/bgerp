@@ -146,6 +146,17 @@ class core_Manager extends core_Mvc
         } else {
             $title = $inst->className;
         }
+
+        if (!trim($title)) {
+            $title = $inst->title;
+            if ($objId) {
+                $title .= ' №' . $objId;
+            }
+        }
+
+        if (!trim($title)) {
+            $title = '????????';
+        }
         
         $linkArr = array();
         

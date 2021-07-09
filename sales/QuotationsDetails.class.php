@@ -1089,7 +1089,7 @@ class sales_QuotationsDetails extends doc_Detail
 
         $cloneQuery = clone $query;
         $query->where("#productId = {$productId} AND #quantity = {$quantity}");
-        $query->orderBy('date=DESC,quotationId,quantity=ASC');
+        $query->orderBy('date=DESC,quotationId=DESC,quantity=ASC');
 
         $cloneQuery->where("#productId = {$productId} AND #quantity < {$quantity}");
         $cloneQuery->orderBy('date,quotationId,quantity', 'DESC');

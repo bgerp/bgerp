@@ -1121,7 +1121,13 @@ class marketing_Inquiries2 extends embed_Manager
             if ($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)) {
                 $form->setError('email', $error);
             }
-            
+
+            if(!empty($rec->company)){
+                if ($error = cms_Helper::getErrorIfCompanyNameIsInvalid($rec->company)) {
+                    $form->setError('company', $error);
+                }
+            }
+
             if (!$form->gotErrors()) {
                 $rec->state = 'active';
                 $rec->ip = core_Users::getRealIpAddr();

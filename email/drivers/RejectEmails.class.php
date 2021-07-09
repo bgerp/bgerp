@@ -13,6 +13,8 @@
  *
  * @since     v 0.1
  * @title     Оттегляне на имейли
+ *
+ * @deprecated
  */
 class email_drivers_RejectEmails extends core_BaseClass
 {

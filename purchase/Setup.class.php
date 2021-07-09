@@ -108,6 +108,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_InvoiceDetails',
         'purchase_Vops',
         'purchase_PurchasesData',
+        'migrate::updateInvoiceJournalDate',
     );
     
     
@@ -169,5 +170,22 @@ class purchase_Setup extends core_ProtoSetup
         }
         
         return $html;
+    }
+
+
+    /**
+     * Мигриране на сч. дата на активираните ф-ри ако е празна
+     */
+    public function updateInvoiceJournalDate()
+    {
+        $Invoices = cls::get('purchase_Invoices');
+        if (!$Invoices->count()) return;
+
+        $stateColName = str::phpToMysqlName('state');
+        $dateFieldName = str::phpToMysqlName('date');
+        $journalDateFieldName = str::phpToMysqlName('journalDate');
+
+        $query = "UPDATE {$Invoices->dbTableName} SET {$Invoices->dbTableName}.{$journalDateFieldName} = {$Invoices->dbTableName}.{$dateFieldName} WHERE {$Invoices->dbTableName}.{$journalDateFieldName} IS NULL AND ({$Invoices->dbTableName}.{$stateColName} = 'active' OR {$Invoices->dbTableName}.{$stateColName} = 'stopped')";
+        $Invoices->db->query($query);
     }
 }
