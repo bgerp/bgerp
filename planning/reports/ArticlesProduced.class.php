@@ -529,7 +529,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         }
 
 
-        if ($rec->groupBy == 'month') {
+        if ($rec->groupBy == 'month' && is_array($dRec->monthQuantity)) {
             foreach ($dRec->monthQuantity as $key => $val) {
 
                 $row->$key = $Double->toVerbal($val);
