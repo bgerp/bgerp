@@ -940,14 +940,22 @@ class planning_Tasks extends core_Master
                     }
                 }
             }
-            
+
             if (countR($arr)) {
                 $form->setSuggestions($field, $arr);
             } else {
                 $form->setField($field, 'input=none');
             }
+
+            if($field == 'fixedAssets'){
+                $plannedAssets = cat_Products::getParams($rec->productId, 'planningAssets');
+                if(!empty($plannedAssets)){
+                    $plannedAssets = keylist::toArray($plannedAssets);
+                    $form->setDefault('fixedAssets', $plannedAssets);
+                }
+            }
         }
-        
+
         if (isset($rec->id)) {
             $form->setReadOnly('productId');
             if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
