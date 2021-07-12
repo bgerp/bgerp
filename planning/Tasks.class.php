@@ -862,7 +862,13 @@ class planning_Tasks extends core_Master
                         if ($ParamType instanceof fileman_FileType) {
                             $form->setDefault("paramcat{$pId}", $v);
                         } else {
-                            $form->setSuggestions("paramcat{$pId}", array('' => '', "{$v}" => "{$v}"));
+                            if(cat_Params::haveDriver($paramRec, 'cond_type_Keylist')){
+                                $defaults = keylist::toArray($v);
+                                $v = array_intersect_key($ParamType->getSuggestions(), $defaults);
+                            } else {
+                                $v = array('' => '', "{$v}" => "{$v}");
+                            }
+                            $form->setSuggestions("paramcat{$pId}", $v);
                         }
                     }
                     
