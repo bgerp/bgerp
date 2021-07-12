@@ -1002,11 +1002,6 @@ class eshop_Products extends core_Master
             if (!empty($data->detailData->rows[0]->saleInfo)) {
                 $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
             }
-            
-            $defaultName = eshop_ProductDetails::getPublicProductTitle($data->rec->id, $data->detailData->recs[0]->productId);
-            if ($data->row->name != $defaultName) {
-                $data->row->ONLY_PRODUCT_NAME = $defaultName;
-            }
         }
     }
     
