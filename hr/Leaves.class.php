@@ -877,7 +877,7 @@ class hr_Leaves extends core_Master
                 if ($userId > 0 && doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
                     $rec->message = '|Отказана е |* "' . self::getRecTitle($rec) . '"';
                     $rec->url = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-                    $rec->customUrl = array($mvc, 'single',  $rec->id);
+                    $rec->customUrl = array(get_called_class(), 'single',  $rec->id);
                     $rec->priority = 0;
                     
                     bgerp_Notifications::add($rec->message, $rec->url, $userId, $rec->priority, $rec->customUrl);
