@@ -246,7 +246,7 @@ class plg_Search extends core_Plugin
             foreach ($words as $w) {
                 $w = trim($w);
 
-                if (preg_match('/[a-zа-я]+[^a-zа-я]+[a-zа-я]+/iu', $w)) {
+                if (preg_match('/[a-zа-я0-9]+[^a-zа-я\s0-9]+[a-zа-я0-9]+/iu', $w)) {
                     $w = rtrim($w, '*');
                     $w .= '*';
                 }
