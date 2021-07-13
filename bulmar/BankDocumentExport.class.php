@@ -60,23 +60,22 @@ class bulmar_BankDocumentExport extends core_Manager
      */
     public function export($filter)
     {
-        $ownAccounts = bank_OwnAccounts::getOwnAccounts(true, 'BGN');
-        
-        if(!countR($ownAccounts)){
-            core_Statuses::newStatus('|Няма наши банкови сметки в лева');
-            
+        $selectedOwnAccounts = bulmar_Setup::get('SELECTED_ACCOUNTS');
+        $selectedOwnAccountsArr = keylist::toArray($selectedOwnAccounts);
+
+        if(!countR($selectedOwnAccountsArr)){
+            core_Statuses::newStatus("Няма избрани банкови сметки за експортиране");
+
             return;
         }
-        
-        $ownAccounts = array_keys($ownAccounts);
-        
+
         $query = $this->mvc->getQuery();
         $query->where("#state = 'active'");
         $query->between('valior', $filter->from, $filter->to);
-        $query->in("ownAccount", $ownAccounts);
+        $query->in("ownAccount", $selectedOwnAccountsArr);
         $query->orderBy('valior', 'ASC');
         $recs = $query->fetchAll();
-       
+
         $nonCashRecs = array();
         if($this->mvc instanceof bank_IncomeDocuments){
             if($filter->exportNonCash == 'yes'){
@@ -84,12 +83,12 @@ class bulmar_BankDocumentExport extends core_Manager
                 $cQuery->EXT('sourceClassId', 'doc_Containers', 'externalName=docClass,externalKey=sourceId');
                 $cQuery->where("#state = 'active' AND #operationSysId = 'nonecash2bank' AND #sourceId IS NOT NULL AND #sourceClassId = " . cash_Pko::getClassId());
                 
-                $cQuery->in('debitBank', $ownAccounts);
+                $cQuery->in('debitBank', $selectedOwnAccountsArr);
                 $cQuery->between('valior', $filter->from, $filter->to);
                 $nonCashRecs = $cQuery->fetchAll();
             }
         }
-        
+
         if (!countR($recs) && !countR($nonCashRecs)) {
             $title = mb_strtolower($this->mvc->title);
             core_Statuses::newStatus("Няма налични {$title} за експортиране");
@@ -98,7 +97,7 @@ class bulmar_BankDocumentExport extends core_Manager
         }
         
         $data = $this->prepareExportData($recs, $nonCashRecs);
-        
+
         if(countR($data->error)){
             $msg = implode(', ', $data->error);
             core_Statuses::newStatus("Сметките|* {$msg} нямат въведени съответните аналитичности от bulmarOffice");
@@ -150,7 +149,8 @@ class bulmar_BankDocumentExport extends core_Manager
         
         $data->static = $this->getStaticData();
         $data->recs = $data->error = array();
-        
+        $mapAccounts = countR($data->static->mapAccounts);
+
         $count = 0;
        
         foreach (array('recs' => $recs, 'nonCashRecs' => $nonCashRecs) as $key => $arr){
@@ -160,9 +160,10 @@ class bulmar_BankDocumentExport extends core_Manager
                 
                 $accountId = null;
                 $ownAccountId = $newRec->accountId;
+
                 array_walk($data->static->mapAccounts, function($a) use ($ownAccountId, &$accountId) {if($a->ownAccountId == $ownAccountId) {$accountId = $a->itemId;}});
-                
-                if($accountId){
+
+                if(empty($mapAccounts) || $accountId){
                     $newRec->accountId = $accountId;
                     $data->recs[$rec->containerId] = $newRec;
                 } else {
@@ -170,7 +171,6 @@ class bulmar_BankDocumentExport extends core_Manager
                 }
             }
         }
-        
         
         return $data;
     }
@@ -316,7 +316,7 @@ class bulmar_BankDocumentExport extends core_Manager
         $myCompany = crm_Companies::fetchOwnCompany();
         $num = (!empty($myCompany->vatNo)) ? str_replace('BG', '', $myCompany->vatNo) : $myCompany->uicId;
         $staticData->OWN_COMPANY_BULSTAT = $num;
-        
+
         return $staticData;
     }
     
