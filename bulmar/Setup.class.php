@@ -236,6 +236,12 @@ defIfNot('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', '');
 
 
 /**
+ * Избрани левови сметки за експорт
+ */
+defIfNot('BULMAR_SELECTED_ACCOUNTS', '');
+
+
+/**
  * class bulmar_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -328,6 +334,8 @@ class bulmar_Setup extends core_ProtoSetup
         'BULMAR_BANK_DOCUMENT_CREDIT_UNKNOWN' => array('varchar(10)', 'caption=Експорт на Приходни и разходни банкови документи->Кредитна сметка неуточнено плащане'),
         'BULMAR_BANK_DOCUMENT_DEBIT_CLIENT' => array('varchar(10)', 'caption=Експорт на Приходни и разходни банкови документи->Дебитна сметка за връщане на клиент'),
         'BULMAR_BANK_DOCUMENT_CREDIT_SUPPLIER' => array('varchar(10)', 'caption=Експорт на Приходни и разходни банкови документи->Кредитна сметка за връщане от доставчик'),
+
+        'BULMAR_SELECTED_ACCOUNTS' => array('keylist(mvc=bank_OwnAccounts,select=name)', 'caption=Експорт на Приходни и разходни банкови документи->Банкови сметки'),
         'BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP' => array('table(columns=ownAccountId|itemId,captions=Наша сметка|№ в Bulmar Office)', 'caption=Експорт на Приходни и разходни банкови документи->Аналитичности'),
     );
     
@@ -342,5 +350,6 @@ class bulmar_Setup extends core_ProtoSetup
     {
         $ownAccounts = array('' => '') + cls::get('bank_OwnAccounts')->makeArray4Select('title');
         $configForm->setFieldTypeParams('BULMAR_BANK_DOCUMENT_OWN_ACCOUNT_MAP', array('ownAccountId_opt' => $ownAccounts));
+        $configForm->setSuggestions('BULMAR_SELECTED_ACCOUNTS', $ownAccounts);
     }
 }
