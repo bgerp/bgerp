@@ -2087,24 +2087,27 @@ abstract class deals_Helper
             return 'Артикулите|*: ' . implode(', ', $productCheck['metasError']) . " |{$metaError}|*!";
         }
     }
-    
-    
+
+
     /**
      * Проверка дали цената е под очакваната за клиента
      *
-     * @param int           $productId
-     * @param double        $price
-     * @param double        $discount
-     * @param double        $quantity
-     * @param double        $quantityInPack
-     * @param int           $contragentClassId
-     * @param int           $contragentId
-     * @param datetime|null $valior
-     * @param int           $listId
+     * @param $productId
+     * @param $price
+     * @param $discount
+     * @param $quantity
+     * @param $quantityInPack
+     * @param $contragentClassId
+     * @param $contragentId
+     * @param $valior
+     * @param null $listId
+     * @param bool $useQuotationPrice
+     * @param $mvc
+     * @param $threadId
      *
-     * @return stdClass|null $obj
+     * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId)
     {
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
@@ -2114,8 +2117,26 @@ abstract class deals_Helper
             $foundMinPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $minListId, $useQuotationPrice);
         }
 
-        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
-        
+        $foundPrice = null;
+        if($mvc instanceof store_ShipmentOrderDetails){
+            if($firstDocument = doc_Threads::getFirstDocument($threadId)){
+                if($firstDocument->isInstanceOf('sales_Sales')){
+                    $sQuery = sales_SalesDetails::getQuery();
+                    $sQuery->where("#saleId = {$firstDocument->that} AND #productId = {$productId}");
+                    $sQuery->orderBy('price', 'ASC');
+                    $sQuery->limit(1);
+                    $sRec = $sQuery->fetch();
+                    if(is_object($sRec)){
+                        $foundPrice = (object)array('price' => $sRec->price, 'discount' => $sRec->discount);
+                    }
+                }
+            }
+        }
+
+        if(empty($foundPrice)){
+            $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
+        }
+
         foreach (array($foundMinPrice, $foundPrice) as $i => $var){
             if(is_object($var)){
                 
@@ -2200,7 +2221,7 @@ abstract class deals_Helper
 
             while ($dRec = $dQuery->fetch()) {
                 $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice)){
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId)){
                     if($checkedObject['hintType'] == 'error'){
                         $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
