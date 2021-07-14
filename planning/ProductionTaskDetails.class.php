@@ -97,12 +97,13 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,quantityExtended,typeExtended,additional';
+    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,quantityExtended,typeExtended,additional,batch';
     
     
     /**
      * Активен таб на менюто
      */
+
     public $currentTab = 'Операции->Прогрес';
     
     
