@@ -1283,7 +1283,9 @@ class doc_Linked extends core_Manager
 
                 $dQuery->limit(10000);
 
-                $dQuery->where(array("#last > '[#1#]'", dt::addMonths(-1)));
+                if ($docTypeInst->fileds['modifiedOn']) {
+                    $dQuery->where(array("#modifiedOn > '[#1#]'", dt::addMonths(-1)));
+                }
 
                 $fArr = array();
                 while ($dRec = $dQuery->fetch()) {
