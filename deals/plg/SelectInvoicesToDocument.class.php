@@ -166,7 +166,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     {
         if ($action == 'selectinvoice' && isset($rec)) {
             $hasInvoices = $mvc->getReasonContainerOptions($rec);
-            //bp($hasInvoices, $rec);
+
             if ($rec->state == 'rejected' || !$hasInvoices) {
                 $requiredRoles = 'no_one';
             }

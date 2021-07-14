@@ -100,7 +100,7 @@ class bulmar_BankDocumentExport extends core_Manager
 
         if(countR($data->error)){
             $msg = implode(', ', $data->error);
-            core_Statuses::newStatus("Сметките|* {$msg} нямат въведени съответните аналитичности от bulmarOffice");
+            core_Statuses::newStatus("Следните сметки  нямат въведени съответните аналитичности от bulmarOffice|*: <b>{$msg}</b>");
             
             return;
         }
@@ -155,23 +155,58 @@ class bulmar_BankDocumentExport extends core_Manager
        
         foreach (array('recs' => $recs, 'nonCashRecs' => $nonCashRecs) as $key => $arr){
             foreach ($arr as $rec) {
-                $count++;
-                $newRec = ($key == 'recs') ? $this->prepareRec($rec, $count) : $this->prepareNoncashRec($rec, $count);
-                
-                $accountId = null;
-                $ownAccountId = $newRec->accountId;
 
-                array_walk($data->static->mapAccounts, function($a) use ($ownAccountId, &$accountId) {if($a->ownAccountId == $ownAccountId) {$accountId = $a->itemId;}});
+                $newRecs = array();
+                if($key == 'recs') {
+                    $Document = doc_Containers::getDocument($rec->containerId);
+                    $pData = $Document->getPaymentData();
+                    $iArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
 
-                if(empty($mapAccounts) || $accountId){
-                    $newRec->accountId = $accountId;
-                    $data->recs[$rec->containerId] = $newRec;
+                    if (countR($iArr)) {
+                        $r = $rec->amountDeal / $rec->amount;
+
+                        foreach ($iArr as $iRec) {
+                            $pData->amount -= $iRec->amount;
+
+
+                            $clone = clone $rec;
+                            $clone->amount = $iRec->amount;
+                            $clone->amountDeal = $iRec->amount * $r;
+                            $clone->fromContainerId = $iRec->containerId;
+                            $newRecs[] = $this->prepareRec($clone, $count);
+                        }
+
+                        $pData->amount = round($pData->amount, 2);
+                        if (!empty($pData->amount)) {
+                            $clone = clone $rec;
+                            $clone->amount = $pData->amount;
+                            $clone->amountDeal = $pData->amount * $r;
+                            $clone->fromContainerId = null;
+                            $newRecs[] = $this->prepareRec($clone, $count);
+                        }
+                    } else {
+                        $newRecs[] = $this->prepareRec($rec, $count);
+                    }
                 } else {
-                    $data->error[$ownAccountId] = bank_OwnAccounts::getTitleById($ownAccountId);
+                    $newRecs[] = $this->prepareNoncashRec($rec, $count);
+                }
+
+                foreach ($newRecs as $newRec) {
+
+                    $accountId = null;
+                    $ownAccountId = $newRec->accountId;
+                    array_walk($data->static->mapAccounts, function($a) use ($ownAccountId, &$accountId) {if($a->ownAccountId == $ownAccountId) {$accountId = $a->itemId;}});
+
+                    if(empty($mapAccounts) || $accountId){
+                        $newRec->accountId = $accountId;
+                        $data->recs[] = $newRec;
+                    } else {
+                        $data->error[$ownAccountId] = bank_OwnAccounts::getTitleById($ownAccountId);
+                    }
                 }
             }
         }
-        
+
         return $data;
     }
     
