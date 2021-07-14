@@ -762,19 +762,28 @@ abstract class deals_Helper
         // Ако има посочена нишка, чийто първи документ да се игнорира от хоризонтите,
         if(isset($ignoreFirstDocumentPlannedInThread)){
             if($firstDocument = doc_Threads::getFirstDocument($ignoreFirstDocumentPlannedInThread)){
+                $skip = false;
+                if($firstDocument->isInstanceOf('deals_DealMaster')){
+                    $firstDocumentStoreId = $firstDocument->fetchField('shipmentStoreId');
+                    if(empty($firstDocumentStoreId)){
+                        $skip = true;
+                    }
+                }
 
-                $iQuery = store_StockPlanning::getQuery();
-                $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that}");
-                $iQuery->show('quantityIn,quantityOut');
-                $iRec = $iQuery->fetch();
+                if($skip != true){
+                    $iQuery = store_StockPlanning::getQuery();
+                    $iQuery->where("#productId = {$productId} AND #sourceClassId = {$firstDocument->getInstance()->getClassId()} AND #sourceId = {$firstDocument->that}");
+                    $iQuery->show('quantityIn,quantityOut');
+                    $iRec = $iQuery->fetch();
 
-                // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
-                if(is_object($iRec) && is_object($stRec)){
-                    $stRec->reserved -= $iRec->quantityOut;
-                    $stRec->reserved = abs($stRec->reserved);
-                    $stRec->expected -= $iRec->quantityIn;
-                    $stRec->expected = abs($stRec->expected);
-                    $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                    // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
+                    if(is_object($iRec) && is_object($stRec)){
+                        $stRec->reserved -= $iRec->quantityOut;
+                        $stRec->reserved = abs($stRec->reserved);
+                        $stRec->expected -= $iRec->quantityIn;
+                        $stRec->expected = abs($stRec->expected);
+                        $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                    }
                 }
             }
         }
@@ -1258,43 +1267,52 @@ abstract class deals_Helper
     public static function recalcRate($masterMvc, $masterId, $newRate, $priceFld = 'price', $rateFld = 'currencyRate')
     {
         $rec = $masterMvc->fetchRec($masterId);
-        $Detail = cls::get($masterMvc->mainDetail);
-        $dQuery = $Detail->getQuery();
-        
+
         if ($masterMvc instanceof deals_InvoiceMaster) {
             $rateFld = 'rate';
         }
-        
-        $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
-        while ($dRec = $dQuery->fetch()) {
-            $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
-            
-            if ($masterMvc instanceof deals_InvoiceMaster) {
-                $dRec->packPrice = $dRec->{$priceFld} * $dRec->quantityInPack;
-                $dRec->amount = $dRec->packPrice * $dRec->quantity;
+
+        if ($masterMvc instanceof acc_ValueCorrections) {
+            $updateMaster = false;
+            $rec->amount = round(($rec->amount / $rec->rate) * $newRate, 6);
+            foreach ($rec->productsData as &$pData){
+                $pData->allocated = round(($pData->allocated / $rec->rate) * $newRate, 6);
             }
-            
-            $Detail->save($dRec);
-        }
-        
-        $updateMaster = true;
-        $rec->{$rateFld} = $newRate;
-        if ($masterMvc instanceof deals_InvoiceMaster) {
-            $rec->displayRate = $newRate;
-            
-            if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
-                // Изчисляване на стойността на ддс-то
-                $vat = acc_Periods::fetchByDate()->vatRate;
-                if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
-                    $vat = 0;
+            $rec->rate = $newRate;
+        } else {
+            $Detail = cls::get($masterMvc->mainDetail);
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            while ($dRec = $dQuery->fetch()) {
+                $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
+
+                if ($masterMvc instanceof deals_InvoiceMaster) {
+                    $dRec->packPrice = $dRec->{$priceFld} * $dRec->quantityInPack;
+                    $dRec->amount = $dRec->packPrice * $dRec->quantity;
                 }
-                
-                $diff = $rec->changeAmount * $newRate;
-                $rec->vatAmount = $diff * $vat;
-                
-                // Стойността е променената сума
-                $rec->dealValue = $diff;
-                $updateMaster = false;
+
+                $Detail->save($dRec);
+            }
+
+            $updateMaster = true;
+            $rec->{$rateFld} = $newRate;
+            if ($masterMvc instanceof deals_InvoiceMaster) {
+                $rec->displayRate = $newRate;
+
+                if ($rec->dpOperation == 'accrued' || isset($rec->changeAmount)) {
+                    // Изчисляване на стойността на ддс-то
+                    $vat = acc_Periods::fetchByDate()->vatRate;
+                    if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
+                        $vat = 0;
+                    }
+
+                    $diff = $rec->changeAmount * $newRate;
+                    $rec->vatAmount = $diff * $vat;
+
+                    // Стойността е променената сума
+                    $rec->dealValue = $diff;
+                    $updateMaster = false;
+                }
             }
         }
         
@@ -2088,24 +2106,27 @@ abstract class deals_Helper
             return 'Артикулите|*: ' . implode(', ', $productCheck['metasError']) . " |{$metaError}|*!";
         }
     }
-    
-    
+
+
     /**
      * Проверка дали цената е под очакваната за клиента
      *
-     * @param int           $productId
-     * @param double        $price
-     * @param double        $discount
-     * @param double        $quantity
-     * @param double        $quantityInPack
-     * @param int           $contragentClassId
-     * @param int           $contragentId
-     * @param datetime|null $valior
-     * @param int           $listId
+     * @param $productId
+     * @param $price
+     * @param $discount
+     * @param $quantity
+     * @param $quantityInPack
+     * @param $contragentClassId
+     * @param $contragentId
+     * @param $valior
+     * @param null $listId
+     * @param bool $useQuotationPrice
+     * @param $mvc
+     * @param $threadId
      *
-     * @return stdClass|null $obj
+     * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId)
     {
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
@@ -2115,8 +2136,26 @@ abstract class deals_Helper
             $foundMinPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $minListId, $useQuotationPrice);
         }
 
-        $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
-        
+        $foundPrice = null;
+        if($mvc instanceof store_ShipmentOrderDetails){
+            if($firstDocument = doc_Threads::getFirstDocument($threadId)){
+                if($firstDocument->isInstanceOf('sales_Sales')){
+                    $sQuery = sales_SalesDetails::getQuery();
+                    $sQuery->where("#saleId = {$firstDocument->that} AND #productId = {$productId}");
+                    $sQuery->orderBy('price', 'ASC');
+                    $sQuery->limit(1);
+                    $sRec = $sQuery->fetch();
+                    if(is_object($sRec)){
+                        $foundPrice = (object)array('price' => $sRec->price, 'discount' => $sRec->discount);
+                    }
+                }
+            }
+        }
+
+        if(empty($foundPrice)){
+            $foundPrice = cls::get('price_ListToCustomers')->getPriceInfo($contragentClassId, $contragentId, $productId, null, $quantity, $valior, 1, 'no', $listId, $useQuotationPrice);
+        }
+
         foreach (array($foundMinPrice, $foundPrice) as $i => $var){
             if(is_object($var)){
                 
@@ -2201,7 +2240,7 @@ abstract class deals_Helper
 
             while ($dRec = $dQuery->fetch()) {
                 $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice)){
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId)){
                     if($checkedObject['hintType'] == 'error'){
                         $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }

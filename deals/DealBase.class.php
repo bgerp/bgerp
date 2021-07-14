@@ -805,7 +805,7 @@ abstract class deals_DealBase extends core_Master
             
             // Рекалкулиране на определени документи в нишката и
             $dealDocuments = $this->getDescendants($rec->id);
-            $arr = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId());
+            $arr = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId(), acc_ValueCorrections::getClassId());
             foreach ($dealDocuments as $d) {
                 if (!in_array($d->getClassId(), $arr)) {
                     continue;
@@ -816,8 +816,8 @@ abstract class deals_DealBase extends core_Master
             followRetUrl(null, 'Документите са преизчислени успешно');
         }
         
-        $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс');
-        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png');
+        $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс,order=9');
+        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png,order=911');
         
         // Рендиране на формата
         return $this->renderWrapping($form->renderHtml());

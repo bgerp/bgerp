@@ -50,7 +50,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'from,to,duration,compare,compareStart,seeCrmGroup,seeGroup,group,groups,groupBy,orderBy,consumed,groupsMat,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
+    protected $changeableFields = 'from,duration,compare,compareStart,seeCrmGroup,seeGroup,group,groups,groupBy,orderBy,consumed,groupsMat,dealers,contragent,crmGroup,articleType,orderBy,grouping,updateDays,updateTime';
 
 
     /**
@@ -75,7 +75,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
 
         $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
-        $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent');
+        $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent,single=none');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
             $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени материали->Група артикули,placeholder = Всички,after=consumedFrom,single=none,input=hidden');
@@ -129,7 +129,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         if ($rec->consumed == 'yes') {
             $form->setField('groupsMat', 'input');
             $form->setField('consumedFrom', 'input');
-            $form->setField('groups', 'input=hidden');
+           // $form->setField('groups', 'input=hidden');
             $form->setField('groupBy', 'input=hidden');
             $form->setOptions('orderBy', array('code' => 'Код'));
 
@@ -243,10 +243,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                 //Ако е избрана опция за вложените материали по РЕЦЕПТИ
                 if ($rec->consumedFrom == 'boms') {
                     $lastActivBomm = cat_Products::getLastActiveBom($planningRec->productId);
-
+                    $arr = array();
                     if ($lastActivBomm) {
-                        $arr = array();
-                        //Вложени материали по рецепта (някои може да са заготовки т.е. да имат рецепти за влагане на по низши материали или заготовки)
+
+                        //Вложени материали по рецепта (някои може да са заготовки т.е. да имат рецепти за влагане
+                        // на по низши материали или заготовки)
                         $bommMaterials= self::getBaseMaterialFromBoms($lastActivBomm,$arr);
 
                     }else{
@@ -528,7 +529,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         }
 
 
-        if ($rec->groupBy == 'month') {
+        if (($rec->groupBy == 'month') && (is_array($dRec->monthQuantity))) {
             foreach ($dRec->monthQuantity as $key => $val) {
 
                 $row->$key = $Double->toVerbal($val);
@@ -661,14 +662,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
                 if (!array_key_exists($id, $arr)) {
                     $arr[$id] = (object)array(
-
                         'productId' => $material->productId,
-
                         'quantity' => $jobsQuantityMaterial
                     );
                 } else {
                     $obj = &$arr[$id];
-
                     $obj->quantity += $jobsQuantityMaterial;
                 }
             }

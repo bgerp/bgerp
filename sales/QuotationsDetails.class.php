@@ -91,7 +91,7 @@ class sales_QuotationsDetails extends doc_Detail
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'packPrice,discount,amount';
+    public $priceFields = 'packPrice,discount,amount,vatPackPrice';
     
     
     /**
@@ -1082,15 +1082,23 @@ class sales_QuotationsDetails extends doc_Detail
         $query->XPR('expireOn', 'datetime', 'CAST(DATE_ADD(#date, INTERVAL #validFor SECOND) AS DATE)');
         
         // Филтрираме офертите за да намерим на каква цена последно сме оферирали артикула за посоченото количество
-        $query->where("#productId = {$productId} AND #quantity = {$quantity}");
         $query->where("#contragentClassId = {$customerClass} AND #contragentId = {$customerId}");
         $query->where("#state = 'active'");
         $query->where("(#expireOn IS NULL AND #date >= '{$date}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$date}')");
-        $query->orderBy('date,quotationId', 'DESC');
         $query->limit(1);
-        
+
+        $cloneQuery = clone $query;
+        $query->where("#productId = {$productId} AND #quantity = {$quantity}");
+        $query->orderBy('date=DESC,quotationId=DESC,quantity=ASC');
+
+        $cloneQuery->where("#productId = {$productId} AND #quantity < {$quantity}");
+        $cloneQuery->orderBy('date,quotationId,quantity', 'DESC');
+
+        $rec1 = $query->fetch();
+        $rec = is_object($rec1) ? $rec1 : $cloneQuery->fetch();
+
         $res = (object) array('price' => null);
-        if ($rec = $query->fetch()) {
+        if ($rec) {
             $res->price = $rec->price;
             $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
             

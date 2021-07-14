@@ -1280,7 +1280,13 @@ class doc_Linked extends core_Manager
                 $dQuery->groupBy('folderId');
                 
                 $dQuery->show('folderId');
-                
+
+                $dQuery->limit(10000);
+
+                if ($docTypeInst->fileds['modifiedOn']) {
+                    $dQuery->where(array("#modifiedOn > '[#1#]'", dt::addMonths(-1)));
+                }
+
                 $fArr = array();
                 while ($dRec = $dQuery->fetch()) {
                     $fArr[$dRec->folderId] = $dRec->folderId;

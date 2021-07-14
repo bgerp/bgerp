@@ -245,7 +245,12 @@ class plg_Search extends core_Plugin
             
             foreach ($words as $w) {
                 $w = trim($w);
-                
+
+                if (preg_match('/[a-zа-я0-9]+[^a-zа-я\s0-9]+[a-zа-я0-9]+/iu', $w)) {
+                    $w = rtrim($w, '*');
+                    $w .= '*';
+                }
+
                 // Предпазване от търсене на повтарящи се думи
                 if (isset($wCacheArr[$w])) {
                     continue;
@@ -304,7 +309,7 @@ class plg_Search extends core_Plugin
                 }
                 
                 $w = trim(static::normalizeText($w, array('*')));
-                
+
                 // Ако търсената дума е празен интервал
                 $wTrim = trim($w);
                 if (!strlen($wTrim)) {

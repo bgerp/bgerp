@@ -7,7 +7,7 @@
             <div class="groupList">
                 <table>
                 	<tr><td class="quiet">|Тип|*:</td> <td>[#driverClass#]</td></tr>
-                	
+
                 	<!--ET_BEGIN batchCaption-->
                 	<tr><td class="quiet">|Заглавие на партидата|*:</td> <td>[#batchCaption#]</td></tr>
                 	<!--ET_END batchCaption-->
@@ -23,7 +23,15 @@
                 	<!--ET_BEGIN delimiter-->
                 	<tr><td class="quiet">|Разделител|*:</td> <td>[#delimiter#]</td></tr>
                 	<!--ET_END delimiter-->
-                	
+
+					<!--ET_BEGIN sizes-->
+					<tr><td class="quiet">|Размери|*:</td> <td>[#sizes#]</td></tr>
+					<!--ET_END sizes-->
+
+					<!--ET_BEGIN colors-->
+					<tr><td class="quiet">|Цветове|*:</td> <td>[#colors#]</td></tr>
+					<!--ET_END colors-->
+
                 	<!--ET_BEGIN time-->
                 	<tr><td class="quiet">|Срок до|*:</td> <td>[#time#]</td></tr>
                 	<!--ET_END time-->

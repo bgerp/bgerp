@@ -538,7 +538,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         // Съответстващи колонки на полета
         $form->FLD('codecol', $type, "caption=Съответствие в данните->Код{$unit},mandatory");
         $form->FLD('quantitycol', $type, "caption=Съответствие в данните->Количество{$unit},mandatory");
-        $form->FLD('packcol', $type, "caption=Съответствие в данните->Мярка/Опаковка{$unit}");
+        $form->FLD('packcol', $type, "caption=Съответствие в данните->Мярка/Опаковка{$unit},mandatory");
         
         $fields = array('codecol', 'quantitycol', 'packcol');
         if (!core_Users::haveRole('partner')) {
@@ -588,6 +588,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         $form->setDefault('quantitycol', $caption);
                     }
 
+                    if (mb_stripos($form->fields['packcol']->caption, $caption) !== false) {
+                        $form->setDefault('packcol', $caption);
+                    }
                 }
 
                 $form->_cMap = $cMap;

@@ -329,4 +329,16 @@ abstract class batch_definitions_Proto extends core_BaseClass
     {
         return true;
     }
+
+
+    /**
+     * Какво да се изпълни след запис на нов вид партида
+     *
+     * @string stdClass $templateRec
+     * @return void
+     */
+    public function afterSavedTemplate($templateRec)
+    {
+        return null;
+    }
 }

@@ -80,8 +80,14 @@ class colab_FolderToPartners extends core_Manager
      * Заглавие в единствено число
      */
     public $singleTitle = 'Споделяне с партньор';
-    
-    
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'folderId,contractorId';
+
+
     /**
      * Описание на модела на нишките от контейнери за документи
      */
@@ -895,10 +901,13 @@ class colab_FolderToPartners extends core_Manager
             $folderId = $Class->forceCoverAndFolder($objectId);
             $redirectUrl = array('core_Users', 'login');
             if($force === true){
-                colab_FolderToPartners::force($folderId, $uId);
                 $redirectUrl = array('colab_Threads', 'list', 'folderId' => $folderId);
             }
-            
+
+            // Подсигуряваме се че винаги папката ще е споделена
+            colab_FolderToPartners::force($folderId, $uId);
+            $Class->logWrite("Споделяне на папка към партньор след покана за регистрация", $objectId);
+
             $Class->logInAct('Регистрация на нов партньор', $objectId);
             vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$contragentName}»");
             
@@ -1026,5 +1035,45 @@ class colab_FolderToPartners extends core_Manager
         Request::removeProtected('companyId,rand,className,fromEmail,userNames,email');
         
         return $url;
+    }
+
+
+    /**
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     */
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        // Логване на изтриванията
+        foreach ($query->getDeletedRecs() as $rec) {
+            $Cover = doc_Folders::getCover($rec->folderId);
+            $Cover->getInstance()->logWrite('Премахване на споделяне към партньор', $Cover->that);
+        }
+    }
+
+
+    /**
+     * Преди изтриване на запис
+     */
+    protected static function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    {
+        // Добавено следене как се трие споделената лична папка на партньора
+        while ($rec = $query->fetch($cond)) {
+            $profileFolderId = crm_Profiles::getProfile($rec->contractorId)->folderId;
+            if($profileFolderId == $rec->folderId){
+                wp($query, $cond, $res);
+            }
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(isset($rec->folderId)){
+            $Cover = doc_Folders::getCover($rec->folderId);
+            $Cover->getInstance()->logWrite('Споделяне към партньор', $Cover->that);
+        }
     }
 }

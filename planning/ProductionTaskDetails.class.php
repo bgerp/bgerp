@@ -97,12 +97,13 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,quantityExtended,typeExtended,additional';
+    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,quantityExtended,typeExtended,additional,batch';
     
     
     /**
      * Активен таб на менюто
      */
+
     public $currentTab = 'Операции->Прогрес';
     
     
@@ -787,8 +788,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listFilter->setOptions('employees', array('' => '') + $usedEmployeeIds);
             $data->listFilter->showFields .= ",employees";
         }
-        
-        $data->listFilter->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $caption = isset($data->masterMvc) ? '' : 'Филтрирай';
+        $data->listFilter->toolbar->addSbBtn($caption, 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
         // Филтър по избраните стойности

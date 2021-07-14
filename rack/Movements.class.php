@@ -861,15 +861,9 @@ class rack_Movements extends rack_MovementAbstract
             // Ако има нова позиция и тя е заета от различен продукт - грешка
             if (isset($toProductId) && $toProductId != $transaction->productId) {
                 $storeId = $transaction->storeId;
-                $sRec = store_Stores::fetch($storeId);
-                if($sRec) {
-                    $samePosPallets = $sRec->samePosPallets;
-                }
-                if(!isset($samePosPallets)) {
-                    $samePosPallets = rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
-                }
 
-                if($samePosPallets == 'no') {
+                $samePosPallets = rack_Pallets::canHaveMultipleOnOnePosition($storeId);
+                if(!$samePosPallets) {
                     $res->errors = "|* <b>{$transaction->to}</b> |е заета от артикул|*: <b>" . cat_Products::getTitleById($toProductId, false) . '</b>';
                     $res->errorFields[] = 'positionTo,productId';
                 } else {

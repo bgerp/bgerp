@@ -2619,8 +2619,13 @@ class doc_Containers extends core_Manager
         // Ако има такъв запис, връщаме TRUE
         return (boolean) static::fetch("#threadId = '{$threadId}' AND #docClass = '{$documentClassId}' AND #state != 'rejected'");
     }
-    
-    
+
+
+    /**
+     * @param $mvc
+     * @param $id
+     * @param $rec
+     */
     public static function on_AfterSave($mvc, &$id, $rec)
     {
         // Обновяваме записите за файловете

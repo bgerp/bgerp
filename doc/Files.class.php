@@ -169,7 +169,7 @@ class doc_Files extends core_Manager
         
         return $resArr;
     }
-    
+
     
     /**
      * Преизчислява дали да се показват файловете или не
@@ -345,7 +345,7 @@ class doc_Files extends core_Manager
             // Всички файлове от предишния запис
             $savedFh[$fRec->fileHnd] = $fRec->fileHnd;
         }
-        
+
         // Обхождаме всички линкнати файлове
         foreach ($linked as $fh => $name) {
             // Данните за файла
@@ -737,14 +737,14 @@ class doc_Files extends core_Manager
     public static function updateRec($cRec)
     {
         // Ако няма containerId не се прави нищо
-        if (!$cRec->containerId) {
+        if (!$cRec->id || !$cRec->folderId) {
             
             return ;
         }
         
         // Вземаем всички записи от модела от съответния контейнер
         $query = static::getQuery();
-        $query->where("#containerId = '{$cRec->containerId}'");
+        $query->where("#containerId = '{$cRec->id}'");
         
         // Обхождаме всички записи
         while ($rec = $query->fetch()) {
@@ -752,12 +752,9 @@ class doc_Files extends core_Manager
             // Ако се е променило id' то на папката
             if ($rec->folderId != $cRec->folderId) {
                 
-                // Обновяваме id' то
-                $nRec = new stdClass();
-                $nRec->id = $rec->id;
-                $nRec->folderId = $cRec->folderId;
+                $rec->folderId = $cRec->folderId;
                 
-                static::save($nRec);
+                static::save($rec, 'folderId');
             }
         }
     }

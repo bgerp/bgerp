@@ -71,8 +71,20 @@ abstract class deals_ClosedDeals extends core_Master
      * Полето в което автоматично се показват иконките за редакция и изтриване на реда от таблицата
      */
     public $rowToolsField = 'tools';
-    
-    
+
+
+    /**
+     * Дали може да се използват затворени пера
+     */
+    public $canUseClosedItems = true;
+
+
+    /**
+     * Дали се очаква в документа да има файлове
+     */
+    public $expectFiles = false;
+
+
     /**
      * Файл за единичен изглед
      */
@@ -548,7 +560,11 @@ abstract class deals_ClosedDeals extends core_Master
     {
         $plugins = $mvc->getPlugins();
         $docClassId = null;
-        
+
+        $data->listFilter->showFields = 'search';
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
         if (isset($plugins['sales_Wrapper'])) {
             $docClassId = sales_Sales::getClassId();
         } elseif (isset($plugins['purchase_Wrapper'])) {
@@ -599,7 +615,10 @@ abstract class deals_ClosedDeals extends core_Master
         }
         
         // Създаване на документа
-        return static::save($newRec);
+        $id = static::save($newRec);
+        $this->logWrite('Автоматично създаване', $id);
+
+        return $id;
     }
     
     

@@ -172,6 +172,12 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         }
         
         if ($rec->type == 'pop') {
+
+            // Артикула, по която е ПО да може винаги да се избира, ако е складируем
+            $noteProductId = planning_DirectProductionNote::fetchField($rec->noteId, 'productId');
+            if(cat_Products::fetchField($noteProductId, 'canStore') == 'yes'){
+                $form->setFieldTypeParams('productId', array('alwaysShow' => array($noteProductId)));
+            }
             $form->setField('storeId', 'input=none');
         }
     }
@@ -188,8 +194,17 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         
         if (isset($rec->productId)) {
+            if($rec->type == 'pop'){
+
+                // Ако отпадъка ще е произведения артикул, само мярката в която е произведен ще е позволена
+                $noteRec = planning_DirectProductionNote::fetch($rec->noteId, 'productId,packagingId');
+                if($rec->productId == $noteRec->productId){
+                    $form->rec->_onlyAllowedPackId = $noteRec->packagingId;
+                }
+            }
+
             if ($form->isSubmitted()) {
-                
+
                 // Проверка на к-то
                 $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {

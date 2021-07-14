@@ -68,24 +68,26 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
         
         $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
         if ($rec->currencyId == $baseCurrencyId) {
-            $amount = $rec->amount;
+            $amount = round($rec->amount, 2);
         } elseif ($rec->dealCurrencyId == $baseCurrencyId) {
-            $amount = $rec->amountDeal;
+            $amount = round($rec->amountDeal, 2);
         } else {
-            $amount = $rec->amount * $rec->rate;
+            $amount = round($rec->amount * $rec->rate, 2);
         }
-        
+
+
         $entry = array('amount' => $sign * $amount,
             'debit' => array($rec->debitAccount,
                 array('cash_Cases', $rec->peroCase),
                 array('currency_Currencies', $rec->currencyId),
-                'quantity' => $sign * $rec->amount),
+                'quantity' => $sign * round($rec->amount, 2)),
             
             'credit' => array($rec->creditAccount,
                 array($rec->contragentClassId, $rec->contragentId),
                 array($origin->className, $origin->that),
                 array('currency_Currencies', $rec->dealCurrencyId),
-                'quantity' => $sign * $rec->amountDeal),);
+                'quantity' => $sign * round($rec->amountDeal, 2)
+            ),);
         
         $entry = array($entry);
         
@@ -97,7 +99,7 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
                 $baseAmount = $dRec->amount;
                 $dRec->amount = cond_Payments::toBaseCurrency($dRec->paymentId, $baseAmount, $rec->valior);
                 $dRec->amount /= $rec->rate;
-                $amount = $dRec->amount * $rec->rate;
+                $amount = round($dRec->amount * $rec->rate, 2);
                 
                 $type = cond_Payments::getTitleById($dRec->paymentId);
                 
@@ -105,12 +107,12 @@ class cash_transaction_Pko extends acc_DocumentTransactionSource
                     'debit' => array('502',
                         array('cash_Cases', $rec->peroCase),
                         array('cond_Payments', $dRec->paymentId),
-                        'quantity' => $sign * $baseAmount),
+                        'quantity' => $sign * round($baseAmount,2)),
                     
                     'credit' => array($rec->debitAccount,
                         array('cash_Cases', $rec->peroCase),
                         array('currency_Currencies', $rec->currencyId),
-                        'quantity' => $sign * $dRec->amount),
+                        'quantity' => $sign * round($dRec->amount, 2)),
                     'reason' => "Плащане с '{$type}'",
                 );
             }

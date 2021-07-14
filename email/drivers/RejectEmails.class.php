@@ -2,7 +2,7 @@
 
 
 /**
- * Драйвер за изтриване на имейли по шаблон
+ * Драйвер за оттегляне на имейли по шаблон
  *
  * @category  bgerp
  * @package   payment
@@ -12,13 +12,19 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Изтриване на имейли
+ * @title     Оттегляне на имейли
  *
  * @deprecated
  */
-class email_drivers_DeleteEmails extends core_BaseClass
+class email_drivers_RejectEmails extends core_BaseClass
 {
-    
+
+
+    /**
+     * @var string
+     */
+    public $oldClassName = 'email_drivers_DeleteEmails';
+
     
     /**
      * Инрерфейси
@@ -31,7 +37,7 @@ class email_drivers_DeleteEmails extends core_BaseClass
      */
     public static function addFields(&$mvc)
     {
-        $mvc->FLD('keepDays', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Изтриване->След, before=note, mandatory, class=w100 clearSelect');
+        $mvc->FLD('keepDays', 'time(suggestions=10 дни|15 дни|20 дни|30 дни,uom=days)', 'caption=Оттегляне->След, before=note, mandatory, class=w100 clearSelect');
     }
 
 
@@ -57,7 +63,7 @@ class email_drivers_DeleteEmails extends core_BaseClass
      *
      * @return string
      */
-    public function cron_DeleteEmails()
+    public function cron_RejectEmails()
     {
         $rulesInst = cls::get('email_ServiceRules');
         $sQuery = $rulesInst->getQuery();
@@ -90,6 +96,8 @@ class email_drivers_DeleteEmails extends core_BaseClass
             $iQuery->limit(100);
 
             $iQuery->show('id, threadId, containerId, subject');
+
+            $iQuery->where("#state != 'rejected'");
 
             foreach ($fieldArrMap as $serviceFieldName => $recFieldName) {
 
@@ -127,19 +135,26 @@ class email_drivers_DeleteEmails extends core_BaseClass
                     }
                 }
 
-//                doc_Threads::logNotice('Изтрита нишка: ' . $iRec->subject, $iRec->threadId);
-//                doc_Containers::logNotice('Изтрит документ: ' . $iRec->subject, $iRec->containerId);
-                email_Incomings::logNotice('Изтрит имейл със сервизно правило - ' . $iRec->subject, $iRec->id);
+                doc_Threads::logNotice('Оттеглена нишка със сервизно правило', $iRec->threadId);
 
-                doc_Threads::delete($iRec->threadId);
-                doc_Containers::delete($iRec->containerId);
-                email_Incomings::delete($iRec->id);
+                $incRec = email_Incomings::fetch($iRec->id);
+                $incRec->brState = $incRec->state;
+                $incRec->state = 'rejected';
+                email_Incomings::save($incRec, 'state, brState, modifiedOn, modifiedBy');
+
+                $cRec = doc_Containers::fetch($iRec->containerId);
+                $cRec->state = 'rejected';
+                doc_Containers::save($cRec, 'state, modifiedOn, modifiedBy');
+
+                $tRec = doc_Threads::fetch($iRec->threadId);
+                $tRec->state = 'rejected';
+                doc_Threads::save($tRec, 'state, modifiedOn, modifiedBy');
 
                 $delCnt++;
             }
 
             if ($delCnt) {
-                $nMsg = "Изтрити имейли - {$delCnt}";
+                $nMsg = "Оттеглени имейли - {$delCnt}";
                 $msg .= $msg ? '\n' : '';
                 $msg = email_ServiceRules::getLinkToSingle_($sRec->id, null, false, array('ef_icon' => false)) . ": {$nMsg}";
 

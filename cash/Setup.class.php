@@ -59,7 +59,7 @@ class cash_Setup extends core_ProtoSetup
         'cash_InternalMoneyTransfer',
         'cash_ExchangeDocument',
         'cash_NonCashPaymentDetails',
-        'migrate::updatePaymentDocuments'
+        'migrate::recontoDocuments',
     );
     
     
@@ -87,12 +87,10 @@ class cash_Setup extends core_ProtoSetup
 
 
     /**
-     * Миграция за обновяване на платежните документи
+     * Миграция за реконтиране на документи
      */
-    public function updatePaymentDocuments()
+    public function recontoDocuments()
     {
-        foreach (array('cash_Pko', 'cash_Rko') as $mvc){
-            deals_InvoicesToDocuments::migrateContainerIds($mvc);
-        }
+        deals_Setup::recontoPaymentDocuments(array('cash_Pko', 'cash_Rko'));
     }
 }

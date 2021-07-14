@@ -269,7 +269,8 @@ class doc_Setup extends core_ProtoSetup
         'doc_LinkedLast',
         'migrate::showDocumentsAsButtons0419',
         'migrate::updateHiddenDocCreated0120',
-        'migrate::foldersRepairSerchKeywords3120',
+        'migrate::foldersRepairSerchKeywords2124',
+        'migrate::showFiles2126',
     );
     
     
@@ -576,8 +577,60 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
      */
-    public static function foldersRepairSerchKeywords3120()
+    public static function foldersRepairSerchKeywords2124()
     {
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'doc_Folders', dt::addSecs(120));
+    }
+
+
+    /**
+     * Миграция, за показване/скирване на файловете в документите
+     */
+    public function showFiles2126()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2126', NULL, $callOn);
+    }
+
+
+    /**
+     * Постепенна миграция, която се вика от showFiles2126 и се самонавива
+     */
+    public static function callback_migrateShowFiles2126()
+    {
+        core_App::setTimeLimit(100);
+        $query = doc_Files::getQuery();
+
+        $query->orderBy('id', 'ASC');
+        $query->show('containerId, dataId');
+
+        if ($lastId = core_Permanent::get('docFilesLastId')) {
+            $query->where(array("#id >= [#1#]", $lastId));
+        }
+
+        $cnt = $query->count();
+
+        $query->limit(1000);
+        $query->groupBy("dataId");
+
+        if ($cnt) {
+            $callOn = dt::addSecs(120);
+            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2126', NULL, $callOn);
+        } else {
+            doc_Files::logDebug("Няма повече файлове за миграция в документите");
+
+            return ;
+        }
+
+        doc_Files::logDebug("Файлове за миграция в документите - " . $cnt);
+
+        while ($rec = $query->fetch()) {
+            doc_Files::recalcFiles($rec->containerId);
+            $lastId = $rec->id;
+        }
+
+        $lastId++;
+
+        core_Permanent::set('docFilesLastId', $lastId);
     }
 }
