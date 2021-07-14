@@ -114,7 +114,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 $invArr = type_Table::toArray($form->rec->invoices);
             } elseif(!empty($fRec->fromContainerId)){
                 $iRec = doc_Containers::getDocument($fRec->fromContainerId)->fetch();
-                $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->rate, 2);
+                $vAmount = abs(round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->rate, 2));
                 $defAmount = min($paymentData->amount, $vAmount);
                 $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $defAmount));
             }
@@ -253,8 +253,8 @@ class deals_InvoicesToDocuments extends core_Manager
         $unallocated = $paymentData->amount;
 
         // Бутон за редакция
-        if ($data->masterMvc->haveRightFor('selectinvoice', $data->rec) && !Mode::isReadOnly()) {
-            $onlyOneInvoice = $data->masterMvc->canBeOnlyToOneInvoice($data->rec);
+        if ($data->masterMvc->haveRightFor('selectinvoice', $data->masterData->rec) && !Mode::isReadOnly()) {
+            $onlyOneInvoice = $data->masterMvc->canBeOnlyToOneInvoice($data->masterData->rec);
             $title = ($onlyOneInvoice) ? "Избор на фактура към която е документа" : "Избор на фактури към които е документа";
             $data->btn = ht::createLink('', array('deals_InvoicesToDocuments', 'selectinvoice', 'documentId' => $data->masterId, 'documentClassId' => $data->masterMvc->getClassId(), 'ret_url' => true), false, "ef_icon=img/16/edit.png,title={$title}");
         }
