@@ -468,7 +468,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране"');
     
         return $options;
     }
@@ -511,11 +511,18 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'active' OR #state = 'closed'");
                 break;
             case 'notInvoiced':
-                $query->where('(#deliveredRound - #invRound) > 0.05');
+                $query->where("#makeInvoice = 'yes' AND (#deliveredRound - #invRound) > 0.05");
                 $query->where("#state = 'active' OR #state = 'closed'");
                 break;
             case 'notInvoicedActive':
-                $query->where("(#deliveredRound - #invRound) > 0.05 AND #state = 'active'");
+                $query->where("#makeInvoice = 'yes' AND (#deliveredRound - #invRound) > 0.05 AND #state = 'active'");
+                break;
+            case 'noActiveInvoice':
+                $query->where("#makeInvoice = 'no' AND #state = 'active'");
+                break;
+            case 'noInvoice':
+                $query->where("#makeInvoice = 'no'");
+                $query->where("#state = 'active' OR #state = 'closed'");
                 break;
             case 'invoiceDownpaymentToDeduct':
                 $query->where('#invoicedDownpaymentToDeductRound > 0.01');
