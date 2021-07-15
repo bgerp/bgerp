@@ -300,7 +300,7 @@ class bulmar_BankDocumentExport extends core_Manager
                 
                 break;
                 case 'debitClient';
-                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitClient}|PN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
+                    $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitClient}|AN|{$rec->reason}|{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
                 
                 break;
                 case 'creditUnknown';
@@ -310,7 +310,7 @@ class bulmar_BankDocumentExport extends core_Manager
                     $line .= "{$rec->num}|1|{$static->operationType}|{$static->debitUnknown}|||{$rec->amount}||{$static->creditBank}|{$rec->accountId}||{$rec->amount}||" . "\r\n";
                 break;
             }
-            
+
             $content .= $line;
         }
        
