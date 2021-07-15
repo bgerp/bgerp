@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -63,8 +63,8 @@ class planning_Tasks extends core_Master
      * Клас обграждащ горния таб
      */
     public $tabTopClass = 'portal planning';
-    
-    
+
+
     /**
      * Поле за начало на търсенето
      */
@@ -111,8 +111,14 @@ class planning_Tasks extends core_Master
      * Кой може да го добавя?
      */
     public $canAdd = 'ceo, taskPlanning';
-    
-    
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,taskPlanning';
+
+
     /**
      * Кой може да го активира?
      */
@@ -1021,7 +1027,7 @@ class planning_Tasks extends core_Master
 
                 $costsCount = !empty($costsCount) ? $costsCount : 0;
                 $linkArr = array();
-                if (haveRole('ceo, acc, purchase, sales') && $this->haveRightFor('single')) {
+                if (haveRole('ceo, acc, purchase, sales') && $this->haveRightFor('single', $rec->id)) {
                     $linkArr = array($this, 'single', $rec->id, 'Sid' => $rec->containerId);
                 }
                 $costsCount = core_Type::getByName('int')->toVerbal($costsCount);
