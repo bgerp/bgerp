@@ -145,7 +145,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         $iArr = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, false);
         foreach ($iArr as $k => $number){
             $iRec = doc_Containers::getDocument($k)->fetch();
-            $vAmount = abs(round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->rate, 2));
+            $vAmount = abs(round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2));
             $res[$k] = "{$number} ({$vAmount} {$iRec->currencyId})";
         }
 
