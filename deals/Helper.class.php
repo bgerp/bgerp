@@ -140,7 +140,7 @@ abstract class deals_Helper
             $discountVal = isset($rec->{$map['discount']}) ? $rec->{$map['discount']} : $rec->{$map['autoDiscount']};
             
             if ($discountVal) {
-                $withoutVatAndDisc = round($noVatAmount * (1 - $discountVal), $vatDecimals);
+                $withoutVatAndDisc = $noVatAmount * (1 - $discountVal);
             } else {
                 $withoutVatAndDisc = $noVatAmount;
             }
@@ -172,15 +172,28 @@ abstract class deals_Helper
                     }
                 }
             } else {
-                
+                $testRound = deals_Setup::get('TEST_VAT_CALC');
+
                 // За всички останали събираме нормално
-                $amountRow += $rec->{$map['amountFld']};
-                $amount += $noVatAmount;
+                if($testRound == 'yes'){
+                    $amountRow += round($rec->{$map['amountFld']}, 2);
+                    $amount += round($noVatAmount, 2);
+                } else {
+                    $amountRow += $rec->{$map['amountFld']};
+                    $amount += $noVatAmount;
+                }
+
                 $amountVat += $vatRow;
-                
-                $amountJournal += $withoutVatAndDisc;
+
                 if ($masterRec->{$map['chargeVat']} == 'yes') {
+                    $amountJournal += $withoutVatAndDisc;
                     $amountJournal += $vatRow;
+                } else {
+                    if($testRound == 'yes') {
+                        $amountJournal += round($withoutVatAndDisc, 2);
+                    } else {
+                        $amountJournal += $withoutVatAndDisc;
+                    }
                 }
             }
             
