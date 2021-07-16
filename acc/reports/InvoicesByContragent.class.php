@@ -261,8 +261,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 core_App::setTimeLimit($maxTimeLimit);
             }
 
+
             while ($salesInvoice = $invQuery->fetch()) {
                 $firstDocument = doc_Threads::getFirstDocument($salesInvoice->threadId);
+
 
                 $firstDocumentArr[$salesInvoice->threadId] = $firstDocument->that;
 
@@ -286,20 +288,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     }
                 }
 
+                //Масив от нишки в които има фактури
                 $threadsId[$salesInvoice->threadId] = $salesInvoice->threadId;
 
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
 
                     // масив от фактури в тази нишка //
-                    $invoicePayments = (deals_Helper::getInvoicePayments($salesInvoice->threadId, $rec->checkDate));
+                    $invoicePayments = deals_Helper::getInvoicePayments($salesInvoice->threadId, $rec->checkDate);
 
                     $paydocs = $invoicePayments[$salesInvoice->containerId];
 
                     //Намиране на плащанията насочени към ДИ и КИ
                     if ($salesInvoice->type != 'invoice') {
                         $dcPay = array();
+
                         foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay) {
+
                             $q = $Pay::getQuery()->where("#fromContainerId IS NOT NULL AND #fromContainerId = {$salesInvoice->containerId}");
 
                             $q->in('state', array('active', 'closed'));
@@ -378,7 +383,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($invoicePayments as $inv => $paydocs) {
-
+                          //  bp($invoicePayments,$paydocs,$inv,);
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
 
@@ -888,7 +893,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
         }
-
+//bp($recs);
         return $recs;
     }
 
@@ -991,9 +996,21 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $payDocClass = $Document->className;
 
                 if ($dRec->type != 'invoice') continue;
-                if ($dRec->invoiceContainerId != $payDocClass::fetch($Document->that)->fromContainerId) continue;
 
-                $paidDatesList .= ',' . $payDocClass::fetch($Document->that)->valior;
+                if($payDocClass::fetch($Document->that)->fromContainerId) {
+                    if ($dRec->invoiceContainerId != $payDocClass::fetch($Document->that)->fromContainerId) continue;
+                }else{
+                    if(is_array(deals_InvoicesToDocuments::getInvoiceArr($payDocClass::fetch($Document->that)->containerId))){
+                        foreach (deals_InvoicesToDocuments::getInvoiceArr($payDocClass::fetch($Document->that)->containerId) as $val){
+
+                            $pDocumnt = doc_Containers::getDocument($val->documentContainerId);
+                            $paidDatesList .= ',' . $payDocClass::fetch($pDocumnt->that)->valior;break;
+                        }
+
+                    }
+
+                }
+
             }
         }
         if ($verbal === true) {
