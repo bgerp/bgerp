@@ -117,14 +117,15 @@ abstract class deals_Helper
         
         // Комбиниране на дефолт стойнсотите с тези подадени от потребителя
         $map = array_merge(self::$map, $map);
-        
+
         // Дали трябва винаги да не се показва ддс-то към цената
         $hasVat = ($map['alwaysHideVat']) ? false : (($masterRec->{$map['chargeVat']} == 'yes') ? true : false);
         $amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
         $vats = array();
         
         $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
-        
+        $testRound = deals_Setup::get('TEST_VAT_CALC');
+
         // Обработваме всеки запис
         foreach ($recs as &$rec) {
             $vat = 0;
@@ -172,7 +173,6 @@ abstract class deals_Helper
                     }
                 }
             } else {
-                $testRound = deals_Setup::get('TEST_VAT_CALC');
 
                 // За всички останали събираме нормално
                 if($testRound == 'yes'){
@@ -203,7 +203,12 @@ abstract class deals_Helper
                 }
                 
                 $vats[$vat]->amount += $vatRow;
-                $vats[$vat]->sum += $withoutVatAndDisc;
+
+                if($testRound == 'yes') {
+                    $vats[$vat]->sum += round($withoutVatAndDisc, 2);
+                } else {
+                    $vats[$vat]->sum += $withoutVatAndDisc;
+                }
             }
         }
         
