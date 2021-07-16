@@ -115,7 +115,7 @@ class ztm_Registers extends core_Master
         
 //         $fields = array(
 //             0 => 'name',
-//             1 => 'type',
+//             1 => 'data_type',
 //             2 => 'range',
 //             3 => 'plugin',
 //             4 => 'scope',
