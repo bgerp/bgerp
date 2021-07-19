@@ -57,7 +57,7 @@
                                 <td> [#reason#]</td>
                             </tr>
                              <!--ET_END reason-->
-                            [#Invoices#]
+                            [#InvoicesToDocuments#]
                             <!--ET_BEGIN termDate-->
                             <tr>
                                  <td>|Срок|*: </td>

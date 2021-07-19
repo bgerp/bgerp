@@ -13,7 +13,7 @@
             <td>|Заверено по|* [#nextHandle#]</td>
             <td><span class='cCode'>[#currencyId#]</span> [#amountDeal#]</td>
         </tr>
-        [#Invoices#]
+        [#InvoicesToDocuments#]
     </table>
     <div>
         [#description#]

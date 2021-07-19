@@ -42,7 +42,7 @@
                      <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
                          <!--ET_BEGIN Invoices-->
                          <table>
-                             [#Invoices#]
+                             [#InvoicesToDocuments#]
                          </table>
                          <!--ET_END Invoices-->
                      <!--ET_BEGIN reason-->

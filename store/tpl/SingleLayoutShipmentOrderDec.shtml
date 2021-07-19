@@ -91,7 +91,7 @@
                      <td>[#lineNotes#]</td>
                   </tr>
                   <!--ET_END lineNotes-->
-                  [#Invoices#]
+                  [#InvoicesToDocuments#]
                   <!--ET_BEGIN note-->
                   <tr>
                      <td colspan="2" >

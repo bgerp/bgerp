@@ -244,7 +244,7 @@ class deals_InvoicesToDocuments extends core_Manager
      *
      * @param stdClass $data
      */
-    public function prepareInvoices($data)
+    public function prepareInvoicesToDocuments($data)
     {
         $masterRec = $data->masterData->rec;
         $paymentData = $data->masterMvc->getPaymentData($data->masterId);
@@ -315,7 +315,7 @@ class deals_InvoicesToDocuments extends core_Manager
      *
      * @return core_ET $tpl
      */
-    public function renderInvoices($data)
+    public function renderInvoicesToDocuments($data)
     {
         $tpl = new core_ET("");
         $block = getTplFromFile('deals/tpl/InvoicesToDocuments.shtml');
