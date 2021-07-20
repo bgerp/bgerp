@@ -1561,13 +1561,14 @@ abstract class deals_Helper
                 if (in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))) {
                     $type = 'intercept';
                     $amount = round($pRec->amount, 2);
-                    $rate = round($pRec->amount / $pRec->amount, 4);
+                    //$rate = round($pRec->amount / $pRec->amount, 4);
                 } else {
                     $amount = round($pRec->amountDeal, 2);
                     $type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
-                    $rate = round($pRec->amount / $pRec->amountDeal, 4);
+                    //$rate = round($pRec->amount / $pRec->amountDeal, 4);
                 }
 
+                $rate = 1;
                 if(countR($invArr)){
                     foreach ($invArr as $iRec){
                         $pData->amount -= $iRec->amount;
@@ -1714,7 +1715,7 @@ abstract class deals_Helper
                 }
             }
         }
-        //bp($invArr, $pay);
+
         // Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
         $rest = 0;
         $used = $payments = array();
