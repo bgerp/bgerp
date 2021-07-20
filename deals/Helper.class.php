@@ -1561,20 +1561,19 @@ abstract class deals_Helper
                 if (in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))) {
                     $type = 'intercept';
                     $amount = round($pRec->amount, 2);
-                    //$rate = round($pRec->amount / $pRec->amount, 4);
                 } else {
                     $amount = round($pRec->amountDeal, 2);
                     $type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
-                    //$rate = round($pRec->amount / $pRec->amountDeal, 4);
                 }
+                $rate = !empty($pRec->amountDeal) ? round($pRec->amount / $pRec->amountDeal, 4) : 0;
 
-                $rate = 1;
                 if(countR($invArr)){
                     foreach ($invArr as $iRec){
                         $pData->amount -= $iRec->amount;
-                        $iAmount = $sign * round($iRec->amount / $rate, 2);
+                        $iAmount = !empty($rate) ? $sign * round($iRec->amount / $rate, 2) : 0;
                         $payArr["{$pRec->containerId}|{$iRec->containerId}"] = (object) array('containerId' => $pRec->containerId, 'amount' => $iAmount, 'available' => $iAmount, 'to' => $invMap[$iRec->containerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
                     }
+
                     $pData->amount = round($pData->amount, 2);
                     if(!empty($pData->amount)){
                         $rAmount = $sign * $pData->amount;
