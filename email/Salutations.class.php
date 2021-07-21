@@ -4,7 +4,7 @@
  * Обръщения, които ще се търсят
  * Включва 'Здравейте,Здравей,Привет,Скъпи,Скъпа,Скъпо,Уважаеми,Уважаема,Уважаемо,Dear,Gentlemen,Ladies,Hi;
  */
-defIfNot('EMAIL_SALUTATIONS_BEGIN', 'Здравей,Привет,Скъп,Уважаем,Dear,Gentlemen,Ladies,Hi,Hello');
+defIfNot('EMAIL_SALUTATIONS_BEGIN', 'Здравей,Привет,Скъп,Уважаем,Dear,Gentlemen,Ladies,Hi,Hello,Здрасти,Господин,Госпожо,Господа,Госпожи,Госпожице,Hey');
 
 
 /**
