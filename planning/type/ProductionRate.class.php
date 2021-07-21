@@ -124,7 +124,7 @@ class planning_type_ProductionRate extends type_Varchar
 
         $options = array();
         foreach ($allowedOptions as $aRate => $aCaption){
-            $num = ($aRate == 'secsPer1') ? 1 : 2;
+            $num = in_array($aRate, array('secsPer1', 'minPer1')) ? 1 : 2;
             $pluralOrSingularMeasureName = str::getPlural($num, $measureName, true);
             $aCaption = str_replace('[#measureId#]', $pluralOrSingularMeasureName, $aCaption);
             $options[$aRate] = tr($aCaption);
@@ -183,5 +183,40 @@ class planning_type_ProductionRate extends type_Varchar
 
         // Връщане на готовото поле
         return $inputLeft;
+    }
+
+    public static function getInSecsByQuantity($value, $quantity)
+    {
+        $me = cls::get(get_called_class());
+
+        $parseValue = $me->parseValue($value);
+
+        switch($parseValue['right'])
+        {
+            case 'secsPer1':
+                $secs = $parseValue['left'];
+                break;
+            case 'minPer1':
+                $secs = round(60 * $parseValue['left'] * $quantity);
+                break;
+            case 'minPer10':
+                $secs = round((60 * $parseValue['left'] / 10) * $quantity);
+                break;
+            case 'minPer100':
+                $secs = (60 * $parseValue['left'] / 100);
+                $secs *= $quantity;
+                $secs = round($secs);
+                break;
+            case 'per1Hour':
+                $perSec = 3600 / $parseValue['left'];
+                $secs = round($perSec * $quantity);
+                break;
+            case 'per8Hour':
+                $perSec = 3600 * 8 / $parseValue['left'];
+                $secs = round($perSec * $quantity);
+                break;
+        }
+
+        return $secs;
     }
 }
