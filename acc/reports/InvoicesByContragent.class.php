@@ -408,7 +408,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                             //Данни по тази фактура
                             $iRec = $Invoice->fetch(
-                                'id,number,dealValue,discountAmount,vatAmount,rate,type,originId,containerId,
+                                'id,number,dealValue,discountAmount,vatAmount,displayRate,type,originId,containerId,
                                      currencyId,date,dueDate,contragentName'
                             );
 
@@ -434,20 +434,20 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             if (!array_key_exists($iRec->id, $sRecs)) {
                                 if (!array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
                                     $totalInvoiceContragent[$iRec->contragentName] = (object)array(
-                                        'totalInvoiceValue' => $paydocs->amount* $iRec->rate,                            //общо стойност на фактурите за контрагента
-                                        'totalInvoicePayout' => $paydocs->payout* $iRec->rate,                           //плащания по фактурите за контрагента
-                                        'totalInvoiceNotPaid' => $salesInvoiceNotPaid* $iRec->rate,                      //стойност на НЕДОплатените суми по фактурите за контрагента
-                                        'totalInvoiceOverPaid' => $salesInvoiceOverPaid* $iRec->rate,                    //стойност на НАДплатените суми по фактурите за контрагента
-                                        'totalInvoiceOverDue' => $salesInvoiceOverDue* $iRec->rate,                      //стойност за плащане по просрочените фактури за контрагента
+                                        'totalInvoiceValue' => $paydocs->amount* $iRec->displayRate,                            //общо стойност на фактурите за контрагента
+                                        'totalInvoicePayout' => $paydocs->payout* $iRec->displayRate,                           //плащания по фактурите за контрагента
+                                        'totalInvoiceNotPaid' => $salesInvoiceNotPaid* $iRec->displayRate,                      //стойност на НЕДОплатените суми по фактурите за контрагента
+                                        'totalInvoiceOverPaid' => $salesInvoiceOverPaid* $iRec->displayRate,                    //стойност на НАДплатените суми по фактурите за контрагента
+                                        'totalInvoiceOverDue' => $salesInvoiceOverDue* $iRec->displayRate,                      //стойност за плащане по просрочените фактури за контрагента
                                     );
                                 } else {
                                     $obj = &$totalInvoiceContragent[$iRec->contragentName];
 
-                                    $obj->totalInvoiceValue += $paydocs->amount* $iRec->rate;
-                                    $obj->totalInvoicePayout += $paydocs->payout* $iRec->rate;
-                                    $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid* $iRec->rate;
-                                    $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid* $iRec->rate;
-                                    $obj->totalInvoiceOverDue += $salesInvoiceOverDue* $iRec->rate;
+                                    $obj->totalInvoiceValue += $paydocs->amount* $iRec->displayRate;
+                                    $obj->totalInvoicePayout += $paydocs->payout* $iRec->displayRate;
+                                    $obj->totalInvoiceNotPaid += $salesInvoiceNotPaid* $iRec->displayRate;
+                                    $obj->totalInvoiceOverPaid += $salesInvoiceOverPaid* $iRec->displayRate;
+                                    $obj->totalInvoiceOverDue += $salesInvoiceOverDue* $iRec->displayRate;
                                 }
                             }
 
@@ -462,7 +462,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'dueDate' => $iRec->dueDate,
                                     'invoiceContainerId' => $iRec->containerId,
                                     'currencyId' => $iRec->currencyId,
-                                    'rate' => $iRec->rate,
+                                    'rate' => $iRec->displayRate,
                                     'invoiceValue' => $paydocs->amount,
                                     'invoiceVAT' => $iRec->vatAmount,
                                     'invoicePayout' => $paydocs->payout,
