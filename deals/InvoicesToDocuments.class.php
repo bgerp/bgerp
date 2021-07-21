@@ -100,13 +100,21 @@ class deals_InvoicesToDocuments extends core_Manager
             $fRec = $form->rec;
 
             $invArr = array();
+            $paymentCurrencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
 
             if(!empty($fRec->invoices)){
                 $iData =  @json_decode($fRec->invoices, true);
                 if(countR($iData['containerId']) == 1 && empty($iData['amount'][0])){
                     $iRec = doc_Containers::getDocument($iData['containerId'][0])->fetch();
+                    $iBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($iRec->date);
+
                     $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2);
-                    $vAmount = currency_CurrencyRates::convertAmount($vAmount, null, $iRec->currencyId, currency_Currencies::getCodeById($paymentData->currencyId));
+                    if($paymentCurrencyCode == $iBaseCurrencyCode){
+                        $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount), 2);
+                    } else {
+                        $vAmount = currency_CurrencyRates::convertAmount($vAmount, null, $iRec->currencyId, $paymentCurrencyCode);
+                    }
+
                     $defAmount = min($paymentData->amount, $vAmount);
                     $iData['amount'][0] = $defAmount;
                 }
@@ -115,9 +123,15 @@ class deals_InvoicesToDocuments extends core_Manager
                 $invArr = type_Table::toArray($form->rec->invoices);
             } elseif(!empty($fRec->fromContainerId)){
                 $iRec = doc_Containers::getDocument($fRec->fromContainerId)->fetch();
+                $iBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($iRec->date);
 
-                $vAmount = abs(round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2));
-                $vAmount = currency_CurrencyRates::convertAmount($vAmount, null, $iRec->currencyId, currency_Currencies::getCodeById($paymentData->currencyId));
+                $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2);
+                if($paymentCurrencyCode == $iBaseCurrencyCode){
+                    $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount), 2);
+                } else {
+                    $vAmount = currency_CurrencyRates::convertAmount($vAmount, null, $iRec->currencyId, $paymentCurrencyCode);
+                }
+
                 $defAmount = min($paymentData->amount, $vAmount);
                 $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $defAmount));
             }
