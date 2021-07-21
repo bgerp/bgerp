@@ -327,7 +327,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         }
                     }
 
-                    $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) / $salesInvoice->rate + $salesInvoice->vatAmount;
+                    $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) / $salesInvoice->displayRate + $salesInvoice->vatAmount;
                     $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
 
                     // масива с фактурите за показване
@@ -342,7 +342,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             'dueDate' => $salesInvoice->dueDate,
                             'invoiceContainerId' => $salesInvoice->containerId,
                             'currencyId' => $salesInvoice->currencyId,
-                            'rate' => $salesInvoice->rate,
+                            'rate' => $salesInvoice->displayRate,
                             'invoiceValue' => $invoiceValue,
                             'invoiceVAT' => $salesInvoice->vatAmount,
                             'contragent' => $salesInvoice->contragentName,
@@ -999,6 +999,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 if($payDocClass::fetch($Document->that)->fromContainerId) {
                     if ($dRec->invoiceContainerId != $payDocClass::fetch($Document->that)->fromContainerId) continue;
+                    $paidDatesList .= ',' . $payDocClass::fetch($Document->that)->valior;
+
                 }else{
                     if(is_array(deals_InvoicesToDocuments::getInvoiceArr($payDocClass::fetch($Document->that)->containerId))){
                         foreach (deals_InvoicesToDocuments::getInvoiceArr($payDocClass::fetch($Document->that)->containerId) as $val){
