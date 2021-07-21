@@ -96,7 +96,7 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
     protected static function on_BeforeAttachDetails(core_Mvc $mvc, &$res, &$details)
     {
         $details = arr::make($details);
-        $details['Invoices'] = 'deals_InvoicesToDocuments';
+        $details['InvoicesToDocuments'] = 'deals_InvoicesToDocuments';
         $details = arr::fromArray($details);
     }
 

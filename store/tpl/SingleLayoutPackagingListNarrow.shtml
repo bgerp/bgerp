@@ -87,7 +87,7 @@
                             <td>[#lineId#]</td>
                         </tr>
                         <!--ET_END lineId-->
-                       [#Invoices#]
+                       [#InvoicesToDocuments#]
                        <!--ET_BEGIN lineNotes-->
                        <tr>
                            <td class="quiet aright">Remarks:</td><td>[#lineNotes#]</td>

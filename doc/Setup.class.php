@@ -271,6 +271,7 @@ class doc_Setup extends core_ProtoSetup
         'migrate::updateHiddenDocCreated0120',
         'migrate::foldersRepairSerchKeywords2124',
         'migrate::showFiles2126',
+        'migrate::updateOldShipmentTemplate'
     );
     
     
@@ -632,5 +633,24 @@ class doc_Setup extends core_ProtoSetup
         $lastId++;
 
         core_Permanent::set('docFilesLastId', $lastId);
+    }
+
+
+    /**
+     * Обновяване ан стар шаблон за ЕН
+     */
+    public static function updateOldShipmentTemplate()
+    {
+        $rec = doc_TplManager::fetch("#name = 'Експедиционно нареждане с цени (Онлайн поръчка)'");
+        if(is_object($rec)){
+            $rec->state = 'closed';
+            $rec->path = null;
+            $contentTpl = new core_ET($rec->content);
+            $contentTpl->removeBlock('fromContainerId');
+            $rec->content = $contentTpl->content;
+            $rec->content = str_replace("<!--ET_END lineId-->", "<!--ET_END lineId-->[#InvoicesToDocuments#]", $rec->content);
+
+            doc_TplManager::save($rec);
+        }
     }
 }

@@ -808,7 +808,7 @@ class eshop_Groups extends core_Master
             }
             
             foreach ($recs as $r) {
-                $title = tr($r->name);
+                $title = eshop_Products::getDisplayTitle($r);
                 $url = eshop_Products::getUrl($r);
                 $url['q'] = $q;
                 

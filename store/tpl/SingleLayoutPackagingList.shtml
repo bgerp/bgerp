@@ -82,7 +82,7 @@
 
                         <!--ET_END locationData-->
                         <!--ET_BEGIN lineId-->
-                       [#Invoices#]
+                       [#InvoicesToDocuments#]
                         <tr>
                             <td class='nowrap quiet aright'>Transport: </td>
                             <td>[#lineId#]</td>

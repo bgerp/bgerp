@@ -100,12 +100,21 @@ class deals_InvoicesToDocuments extends core_Manager
             $fRec = $form->rec;
 
             $invArr = array();
+            $paymentCurrencyCode = currency_Currencies::getCodeById($paymentData->currencyId);
 
             if(!empty($fRec->invoices)){
                 $iData =  @json_decode($fRec->invoices, true);
                 if(countR($iData['containerId']) == 1 && empty($iData['amount'][0])){
                     $iRec = doc_Containers::getDocument($iData['containerId'][0])->fetch();
+                    $iBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($iRec->date);
+
                     $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2);
+                    if($paymentCurrencyCode == $iBaseCurrencyCode){
+                        $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount), 2);
+                    } else {
+                        $vAmount = currency_CurrencyRates::convertAmount($vAmount, null, $iRec->currencyId, $paymentCurrencyCode);
+                    }
+
                     $defAmount = min($paymentData->amount, $vAmount);
                     $iData['amount'][0] = $defAmount;
                 }
@@ -114,7 +123,15 @@ class deals_InvoicesToDocuments extends core_Manager
                 $invArr = type_Table::toArray($form->rec->invoices);
             } elseif(!empty($fRec->fromContainerId)){
                 $iRec = doc_Containers::getDocument($fRec->fromContainerId)->fetch();
-                $vAmount = abs(round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2));
+                $iBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($iRec->date);
+
+                $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2);
+                if($paymentCurrencyCode == $iBaseCurrencyCode){
+                    $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount), 2);
+                } else {
+                    $vAmount = currency_CurrencyRates::convertAmount($vAmount, null, $iRec->currencyId, $paymentCurrencyCode);
+                }
+
                 $defAmount = min($paymentData->amount, $vAmount);
                 $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $defAmount));
             }
@@ -244,7 +261,7 @@ class deals_InvoicesToDocuments extends core_Manager
      *
      * @param stdClass $data
      */
-    public function prepareInvoices($data)
+    public function prepareInvoicesToDocuments($data)
     {
         $masterRec = $data->masterData->rec;
         $paymentData = $data->masterMvc->getPaymentData($data->masterId);
@@ -315,7 +332,7 @@ class deals_InvoicesToDocuments extends core_Manager
      *
      * @return core_ET $tpl
      */
-    public function renderInvoices($data)
+    public function renderInvoicesToDocuments($data)
     {
         $tpl = new core_ET("");
         $block = getTplFromFile('deals/tpl/InvoicesToDocuments.shtml');

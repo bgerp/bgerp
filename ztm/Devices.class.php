@@ -117,7 +117,9 @@ class ztm_Devices extends core_Master
         $this->FLD('ident', 'varchar(64)', 'caption=Идентификатор');
         $this->FLD('model', 'varchar(32)', 'caption=Модел');
         $this->FLD('name', 'varchar(32)', 'caption=Име, mandatory');
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация, mandatory');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация->Обект, mandatory');
+        $this->FLD('floor', 'int(min=-100,max=100)', 'caption=Локация->Етаж');
+        $this->FLD('sector', 'varchar(8)', 'caption=Локация->Сектор');
         $this->FLD('state', 'enum(draft=Чакащо,active=Активно,rejected=Оттеглено )', 'caption=Състояние,input=none');
         $this->FLD('profileId', 'key(mvc=ztm_Profiles,select=name)', 'caption=Профил, mandatory');
         $this->FLD('accessGroupId', 'key(mvc=ztm_Groups,select=name, allowEmpty)', 'caption=Група->Достъп');
@@ -213,8 +215,35 @@ class ztm_Devices extends core_Master
         
         return ($token === false) ? true : false;
     }
-    
-    
+
+
+    /**
+     * Връща всичките етажи и сектори взети от устройствата
+     *
+     * @return array
+     */
+    public static function getFloorsArr()
+    {
+        $query = self::getQuery();
+        $query->where("#state = 'active'");
+        $query->orderBy('floor', 'ASC');
+        $query->orderBy('sector', 'ASC');
+
+        $query->show('floor, sector');
+
+        $resArr = array();
+        while ($rec = $query->fetch()) {
+            $fName = trim($rec->sector) . trim($rec->floor);
+            $resArr[$fName] = $fName;
+        }
+
+        return $resArr;
+    }
+
+
+    /**
+     * @throws core_exception_Expect
+     */
     public function act_Register()
     {
         $ident = Request::get('serial_number');
@@ -314,7 +343,7 @@ class ztm_Devices extends core_Master
         
         $data->form->setOptions('accessGroupId', ztm_Groups::getOptionsByType('access'));
         $data->form->setOptions('fireGroupId', ztm_Groups::getOptionsByType('fire'));
-        
+
         $data->form->setOptions('locationId', crm_Locations::getOwnLocations());
     }
     

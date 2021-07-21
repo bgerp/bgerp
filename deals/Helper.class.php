@@ -117,14 +117,15 @@ abstract class deals_Helper
         
         // Комбиниране на дефолт стойнсотите с тези подадени от потребителя
         $map = array_merge(self::$map, $map);
-        
+
         // Дали трябва винаги да не се показва ддс-то към цената
         $hasVat = ($map['alwaysHideVat']) ? false : (($masterRec->{$map['chargeVat']} == 'yes') ? true : false);
         $amountJournal = $discount = $amount = $amountVat = $amountTotal = $amountRow = 0;
         $vats = array();
         
         $vatDecimals = sales_Setup::get('SALE_INV_VAT_DISPLAY', true) == 'yes' ? 20 : 2;
-        
+        $testRound = deals_Setup::get('TEST_VAT_CALC');
+
         // Обработваме всеки запис
         foreach ($recs as &$rec) {
             $vat = 0;
@@ -140,7 +141,7 @@ abstract class deals_Helper
             $discountVal = isset($rec->{$map['discount']}) ? $rec->{$map['discount']} : $rec->{$map['autoDiscount']};
             
             if ($discountVal) {
-                $withoutVatAndDisc = round($noVatAmount * (1 - $discountVal), $vatDecimals);
+                $withoutVatAndDisc = $noVatAmount * (1 - $discountVal);
             } else {
                 $withoutVatAndDisc = $noVatAmount;
             }
@@ -172,15 +173,27 @@ abstract class deals_Helper
                     }
                 }
             } else {
-                
+
                 // За всички останали събираме нормално
-                $amountRow += $rec->{$map['amountFld']};
-                $amount += $noVatAmount;
+                if($testRound == 'yes'){
+                    $amountRow += round($rec->{$map['amountFld']}, 2);
+                    $amount += round($noVatAmount, 2);
+                } else {
+                    $amountRow += $rec->{$map['amountFld']};
+                    $amount += $noVatAmount;
+                }
+
                 $amountVat += $vatRow;
-                
-                $amountJournal += $withoutVatAndDisc;
+
                 if ($masterRec->{$map['chargeVat']} == 'yes') {
+                    $amountJournal += $withoutVatAndDisc;
                     $amountJournal += $vatRow;
+                } else {
+                    if($testRound == 'yes') {
+                        $amountJournal += round($withoutVatAndDisc, 2);
+                    } else {
+                        $amountJournal += $withoutVatAndDisc;
+                    }
                 }
             }
             
@@ -190,7 +203,12 @@ abstract class deals_Helper
                 }
                 
                 $vats[$vat]->amount += $vatRow;
-                $vats[$vat]->sum += $withoutVatAndDisc;
+
+                if($testRound == 'yes') {
+                    $vats[$vat]->sum += round($withoutVatAndDisc, 2);
+                } else {
+                    $vats[$vat]->sum += $withoutVatAndDisc;
+                }
             }
         }
         
@@ -1561,19 +1579,19 @@ abstract class deals_Helper
                 if (in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))) {
                     $type = 'intercept';
                     $amount = round($pRec->amount, 2);
-                    $rate = round($pRec->amount / $pRec->amount, 4);
                 } else {
                     $amount = round($pRec->amountDeal, 2);
                     $type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
-                    $rate = round($pRec->amount / $pRec->amountDeal, 4);
                 }
+                $rate = !empty($pRec->amountDeal) ? round($pRec->amount / $pRec->amountDeal, 4) : 0;
 
                 if(countR($invArr)){
                     foreach ($invArr as $iRec){
                         $pData->amount -= $iRec->amount;
-                        $iAmount = $sign * round($iRec->amount / $rate, 2);
+                        $iAmount = !empty($rate) ? $sign * round($iRec->amount / $rate, 2) : 0;
                         $payArr["{$pRec->containerId}|{$iRec->containerId}"] = (object) array('containerId' => $pRec->containerId, 'amount' => $iAmount, 'available' => $iAmount, 'to' => $invMap[$iRec->containerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
                     }
+
                     $pData->amount = round($pData->amount, 2);
                     if(!empty($pData->amount)){
                         $rAmount = $sign * $pData->amount;
@@ -1714,7 +1732,7 @@ abstract class deals_Helper
                 }
             }
         }
-        //bp($invArr, $pay);
+
         // Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
         $rest = 0;
         $used = $payments = array();

@@ -82,7 +82,7 @@
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
-                  [#Invoices#]
+                  [#InvoicesToDocuments#]
 
                   <!--ET_BEGIN lineNotes-->
                   <tr>

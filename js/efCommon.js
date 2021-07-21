@@ -132,8 +132,18 @@ function showTooltip() {
             if($(element).closest('.overflow-scroll').length && $(element).parent().offset().top - 150 < $(element).closest('.overflow-scroll').offset().top){
                 $(element).addClass('bottom');
             }
-            var iconLeftOffset = $(element).parent().offset().left - $(element).closest('table').offset().left;
-            var iconRightOffset = $(element).closest('table').width() - iconLeftOffset;
+
+            var tOffset = $(element).closest('table').offset();
+            var iconLeftOffset = $(element).parent().offset().left;
+            if (typeof tOffset != 'undefined') {
+                iconLeftOffset = $(element).parent().offset().left - tOffset.left;
+            }
+
+            var tWidth = $(element).closest('table').width()
+            var iconRightOffset = iconLeftOffset;
+            if (typeof tWidth != 'undefined') {
+                iconRightOffset = tWidth - iconLeftOffset;
+            }
 
             // ако е при скролиране и отляво от иконката има повече място отколкото вдясно, показваме попъпа напред
             if ($(element).closest('.scrolling-holder').length && iconLeftOffset > iconRightOffset) {

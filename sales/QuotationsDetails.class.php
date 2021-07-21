@@ -244,7 +244,7 @@ class sales_QuotationsDetails extends doc_Detail
                 
                 if(isset($rec->price)) {
                     $vat = cat_Products::getVat($rec->productId, $masterRec->date);
-                    $rec->vatPackPrice = $rec->packPrice * (1 + $vat);
+                    $rec->vatPackPrice = ($rec->packPrice * (1 + $vat) / $masterRec->currencyRate);
                 }
                 
                 if ($rec->optional == 'no') {

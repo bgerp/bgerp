@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -111,12 +111,12 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
         $this->FLD('type', 'enum(input=Влагане,waste=Отпадък,production=Произвеждане)', 'caption=За,remember,silent,input=hidden');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax,titleFld=name)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|limit|indTime,tdClass=productCell leftCol wrap');
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,tdClass=small-field nowrap');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,tdClass=small-field nowrap,silent,removeAndRefreshForm');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('quantityInPack', 'double', 'mandatory,input=none');
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull');
-        $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Норма');
+        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма');
         $this->FLD('limit', 'double(min=0)', 'caption=Макс. к-во,input=none');
         $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,input=none');
         
@@ -160,6 +160,7 @@ class planning_ProductionTaskProducts extends core_Detail
                         
                         // Задаване на дефолтен лимит ако има
                         $norm = planning_AssetGroups::getNorm($masterRec->fixedAssets, $rec->productId);
+
                         if (array_key_exists($rec->productId, $norm)) {
                             $form->setDefault('limit', $norm[$rec->productId]->limit);
                             $form->setDefault('indTime', $norm[$rec->productId]->indTime);
@@ -186,12 +187,15 @@ class planning_ProductionTaskProducts extends core_Detail
                 if($data->action != 'replaceproduct'){
                     $form->setReadOnly('productId');
                     $form->setReadOnly('packagingId');
+                    $form->setReadOnly('indTime');
                 }
                 
                 if (!haveRole('ceo,planningMaster')) {
                     $form->setReadOnly('indTime');
                 }
             }
+
+            $form->setFieldTypeParams('indTime', array('measureId' => $rec->packagingId));
         } else {
             $form->setField('packagingId', 'input=none');
         }
@@ -267,6 +271,8 @@ class planning_ProductionTaskProducts extends core_Detail
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
+
+        $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($rec->indTime);
     }
     
     
@@ -320,13 +326,13 @@ class planning_ProductionTaskProducts extends core_Detail
         $rec->totalQuantity = $rec->totalTime = 0;
         $query = planning_ProductionTaskDetails::getQuery();
         $query->where("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}' AND #state != 'rejected'");
-        $query->show('quantity,norm');
-        
+
         while ($dRec = $query->fetch()) {
+            $normInSecs = planning_type_ProductionRate::getInSecsByQuantity($dRec->norm, $dRec->quantity);
+            $rec->totalTime += $normInSecs;
             $rec->totalQuantity += $dRec->quantity;
-            $rec->totalTime += ($dRec->norm * $dRec->quantity);
         }
-        
+
         self::save($rec, 'totalQuantity,totalTime');
     }
     
@@ -531,14 +537,15 @@ class planning_ProductionTaskProducts extends core_Detail
     private static function canAddProductToTask($rec, &$msg = null, &$error = null)
     {
         $taskRec = planning_Tasks::fetch($rec->taskId);
-        
+
         // Ако има норма за артикула
         if (isset($taskRec->fixedAssets)) {
             $norm = planning_AssetGroups::getNorm($taskRec->fixedAssets, $rec->productId);
+
             if (array_key_exists($rec->productId, $norm)) {
                 if ($rec->indTime != $norm[$rec->productId]->indTime) {
-                    $indTime = core_Type::getByName('time(noSmart)')->toVerbal($norm[$rec->productId]->indTime);
-                    $msg = "Нормата се различава от очакваната|* <b>{$indTime}</b>";
+                    $defaultIndTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($norm[$rec->productId]->indTime);
+                    $msg = "Нормата се различава от очакваната|* <b>{$defaultIndTime}</b>";
                     $error = 'FALSE';
                     
                     return false;

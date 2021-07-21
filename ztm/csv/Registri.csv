@@ -1,4 +1,4 @@
-name,type,range,plugin,scope,default,description
+name,data_type,range,plugin,scope,default,description
 ac.enabled,bool,true|false,Access Control,system,false,Plugin enabled
 ac.allowed_attendees,json,,Access Control,system,"""[]""",Allowed attendees
 ac.zones_count,int,1/,Access Control,system,2,Number of security zones
@@ -233,7 +233,7 @@ ecd.tva_warehouse.cold_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0
 ecd.tva_warehouse.hot_in,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,ECD / VCG / TVA Wearhouse Hot In
 ecd.tva_warehouse.hot_out,str,,ECD,system,Flowx/FLX-05F/U1:ID1:R0:DO4/U1:ID1:R0:DO5/U1:ID1:R0:DI4/U1:ID1:R0:DI5,ECD / VCG / TVA Wearhouse Hot Out
 ecd.tva_warehouse.pump,str,,ECD,system,Grundfos/Pump/5,ECD / VCG / TVA Wearhouse
-ecd.tva_warehouse.enabled,bool,"""{'DI': 'off|DI0|DI1|DI2|DI3|DI4|DI5|DI6|DI7|DI8|!DI0|!DI1|!DI2|!DI3|!DI4|!DI5|!DI6|!DI7|!DI8', 'DO': 'off|DO0|DO1|DO2|DO3|DO4|DO5|DO6|DO7|DO8|!DO0|!DO1|!DO2|!DO3|!DO4|!DO5|!DO6|!DO7|!DO8', 'RO': 'off|RO0|RO1|RO2|RO3|RO4|RO5|RO6|RO7|RO8|!RO0|!RO1|!RO2|!RO3|!RO4|!RO5|!RO6|!RO7|!RO8', 'AO': 'off|AO0|AO1|AO2|AO3|AO4|AO5|AO6|AO7|AO8', 'AI': 'off|AI0|AI1|AI2|AI3|AI4|AI5|AI6|AI7|AI8', 'LED': 'off|LED0|LED1|LED2|LED3|!LED0|!LED1|!LED2|!LED3', 'BAUD': '300|600|1200|2400|4800|9600|19200|38400|57600|115200', 'BOOL': 'true|false', 'PERCENTAGE_F': '0.0/100.0', 'PERCENTAGE_I': '0/100', 'PERCENTAGE_0_100': '0.0|100.0'}""",ECD,system,true,ECD / VCG / TVA Wearhouse
+ecd.tva_warehouse.enabled,bool,true|false,ECD,system,true,ECD / VCG / TVA Wearhouse
 ecd.enabled,bool,true|false,Energy Center Distribution,system,false,Plugin enabled
 echp.hp.count,int,0/,ECHP,system,3,Energy Center Heat Pump machines count
 echp.hp.index,int,0/,ECHP,system,0,Energy Center Heat Pump machine index
