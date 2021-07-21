@@ -146,7 +146,7 @@ class purchase_Offers extends core_Master
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Доставчик');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
-        $this->FLD('product', 'varchar', 'caption=Продукт,summary=amount');
+        $this->FLD('product', 'varchar', 'caption=Продукт');
         $this->FLD('sum', 'double', 'caption=Оферта->Цена, summary=amount');
         $this->FLD('date', 'date', 'caption=Оферта->Дата');
         $this->FLD('offer', 'richtext(bucket=Notes)', 'caption=Оферта->Детайли');
