@@ -64,6 +64,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
         $mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
+
+        $mvc->setDbIndex('productId,packagingId');
     }
     
     

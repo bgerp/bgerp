@@ -50,6 +50,12 @@ defIfNot('DEALS_ISSUER_USER', '');
 
 
 /**
+ * Включено тестово закръгляне
+ */
+defIfNot('DEALS_TEST_VAT_CALC', 'no');
+
+
+/**
  * class deals_Setup
  *
  *
@@ -109,6 +115,7 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_OVERDUE_PENDING_DAYS_3' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Трето след,unit=дни'),
         'DEALS_ACTIVE_DEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни продажби и покупки без нови документи->Хоризонт'),
         'DEALS_ACTIVE_FINDEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни финансови сделки без нови документи->Хоризонт'),
+        'DEALS_TEST_VAT_CALC' => array('enum(no=Не,yes=Да)', 'caption=Дебъг->Тестово закръгляне,autohide=any'),
     );
     
     

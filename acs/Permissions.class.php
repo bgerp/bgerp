@@ -18,13 +18,19 @@ class acs_Permissions extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = '';
+    public $title = 'Права за достъп';
     
     
     /**
      * Титлата на обекта в единичен изглед
      */
-    public $singleTitle = '';
+    public $singleTitle = 'Права за достъп';
+
+
+    /**
+     * @var string
+     */
+    public $recTitleTpl = ' ';
     
     
     /**

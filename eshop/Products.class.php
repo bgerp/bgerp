@@ -301,14 +301,41 @@ class eshop_Products extends core_Master
         
         return $moq;
     }
-    
-    
+
+
+    /**
+     * Връща заглавието на е-артикула
+     *
+     * @param stdClass $rec
+     * @return string $name
+     */
+    public static function getDisplayTitle($rec)
+    {
+        $name = static::getVerbal($rec, 'name');
+
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->where("#eshopProductId = {$rec->id}");
+        if($dQuery->count() == 1){
+            $dRec = $dQuery->fetch();
+            if(!empty($dRec->title)){
+                $name = eshop_ProductDetails::getVerbal($dRec, 'title');
+            }
+        }
+
+        return $name;
+    }
+
+
     /**
      * След обработка на вербалните стойностти
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->name = tr($row->name);
+        $row->name = tr($rec->name);
+        if(Mode::is('wrapper', 'cms_page_External')){
+            $row->name = tr(static::getDisplayTitle($rec));
+        }
+        
         $uomId = self::getUomId($rec);
         $rec->coMoq = $mvc->getMoq($rec);
         
