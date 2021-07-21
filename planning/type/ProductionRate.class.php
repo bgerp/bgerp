@@ -185,10 +185,17 @@ class planning_type_ProductionRate extends type_Varchar
         return $inputLeft;
     }
 
+
+    /**
+     * Връща нормата за 1-ца спрямо избраната норма и направеното к-во
+     *
+     * @param $value
+     * @param $quantity
+     * @return int $secs
+     */
     public static function getInSecsByQuantity($value, $quantity)
     {
         $me = cls::get(get_called_class());
-
         $parseValue = $me->parseValue($value);
 
         switch($parseValue['right'])
