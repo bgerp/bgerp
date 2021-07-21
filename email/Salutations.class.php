@@ -4,7 +4,7 @@
  * Обръщения, които ще се търсят
  * Включва 'Здравейте,Здравей,Привет,Скъпи,Скъпа,Скъпо,Уважаеми,Уважаема,Уважаемо,Dear,Gentlemen,Ladies,Hi;
  */
-defIfNot('EMAIL_SALUTATIONS_BEGIN', 'Здравей,Привет,Скъп,Уважаем,Dear,Gentlemen,Ladies,Hi');
+defIfNot('EMAIL_SALUTATIONS_BEGIN', 'Здравей,Привет,Скъп,Уважаем,Dear,Gentlemen,Ladies,Hi,Hello');
 
 
 /**
@@ -103,7 +103,7 @@ class email_Salutations extends core_Manager
         
         // Вземаме обръщенито в текстовата част
         $salutation = self::getSalutations($eRec->body);
-        
+
         // Ако няма обръщение да не се записва празен запис
         if (!trim($salutation)) {
             
@@ -409,7 +409,7 @@ class email_Salutations extends core_Manager
                 self::$salutationsPattern = false;
             }
         }
-        
+
         // Връщаме резултата
         return self::$salutationsPattern;
     }
