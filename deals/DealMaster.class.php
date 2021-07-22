@@ -2546,7 +2546,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Изпращане на нотификации за сделки с направено плащане, но без фактура
      */
-    public function sendNotificationIfInvoiceIsTooLate()
+    protected function sendNotificationIfInvoiceIsTooLate()
     {
         $bgId = drdata_Countries::getIdByName('Bulgaria');
 
@@ -2589,7 +2589,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 if(!empty($paymentValiors[0])){
 
                     // Ако е минало определено време след неговата дата, и още няма ф-ра
-                    $deadline = dt::addSecs(3600 * 32, $paymentValiors[0]);
+                    $deadline = dt::addSecs((3600 * (24*5 - 8)), $paymentValiors[0]);
                     if($now > $deadline){
 
                         // Изпраща се нотификация на създателя на документа
