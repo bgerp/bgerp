@@ -923,17 +923,13 @@ class planning_ProductionTaskDetails extends doc_Detail
         $classId = planning_Tasks::getClassId();
         $indicatorId = $iRec->id;
 
-
         while ($rec = $query->fetch()) {
             
             // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
-            if (!countR($persons)) {
-                continue;
-            }
+            if (!countR($persons)) continue;
             
             $quantity = $rec->quantity;
-
             if($rec->type == 'production'){
                 $quantityInPack = 1;
                 if(isset($rec->indPackagingId)){
@@ -946,8 +942,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
 
             // Колко е заработката за 1 човек
-            $norm = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
-            $timePerson = ($rec->indTimeAllocation == 'individual') ? $quantity * $norm : (($quantity * $norm) / countR($persons));
+            $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
+            $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
             
             $date = dt::verbal2mysql($rec->createdOn, false);
             foreach ($persons as $personId) {
@@ -972,8 +968,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
-     *
-     * @param datetime $date
      *
      * @return array $result
      */
