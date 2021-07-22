@@ -201,7 +201,7 @@ class planning_type_ProductionRate extends type_Varchar
         switch($parseValue['right'])
         {
             case 'secsPer1':
-                $secs = $parseValue['left'];
+                $secs = $parseValue['left'] * $quantity;
                 break;
             case 'minPer1':
                 $secs = round(60 * $parseValue['left'] * $quantity);
