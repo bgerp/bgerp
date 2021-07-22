@@ -645,14 +645,14 @@ class purchase_Purchases extends deals_DealMaster
         // Проверка по крон дали покупката е просрочена
         $rec2 = new stdClass();
         $rec2->systemId = 'IsPurchaseOverdue';
-        $rec2->description = 'Проверява дали покупката е просрочена';
+        $rec2->description = 'Проверяване на плащанията по покупките';
         $rec2->controller = 'purchase_Purchases';
         $rec2->action = 'CheckPurchasePayments';
         $rec2->period = 60;
         $rec2->offset = mt_rand(0, 30);
         $rec2->isRandOffset = true;
         $rec2->delay = 0;
-        $rec2->timeLimit = 100;
+        $rec2->timeLimit = 300;
         $res .= core_Cron::addOnce($rec2);
     }
     
@@ -667,6 +667,9 @@ class purchase_Purchases extends deals_DealMaster
         $overdueDelay = $conf->PURCHASE_OVERDUE_CHECK_DELAY;
         
         $this->checkPayments($overdueDelay);
+
+        // Изпращане на нотификации, за нефактурирани покупки
+        $this->sendNotificationIfInvoiceIsTooLate();
     }
     
     
