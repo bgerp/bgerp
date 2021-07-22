@@ -2560,6 +2560,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
         $query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
         $query->where("#state = 'active' AND #invRound = 0 AND #deliveredRound = 0 AND #paidRound != 0");
+
         while($rec = $query->fetch()){
 
             // Ако клиента им е от България
@@ -2572,8 +2573,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 $exId = bgerp_Notifications::fetchField("#msg = '{$message}' AND #userId = {$rec->createdBy}");
                 if($exId) continue;
 
-                // Намира се най-малкия вальор на активен платежен документ в нишката
+                // Ако е платено със сделката, взима се и нейния вальор
                 $paymentValiors = array();
+                $contoActions = type_Set::toArray($rec->contoActions);
+                if(isset($contoActions['pay'])){
+                    $paymentValiors[] = $rec->valior;
+                }
+
+                // Намира се най-малкия вальор на активен платежен документ в нишката
                 $cQuery = doc_Containers::getQuery();
                 $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
                 $cQuery->in('docClass', $paymentClasses);
@@ -2585,7 +2592,9 @@ abstract class deals_DealMaster extends deals_DealBase
                     }
                 }
 
+                // Сортиране във възходящ ред
                 sort($paymentValiors);
+
                 if(!empty($paymentValiors[0])){
 
                     // Ако е минало определено време след неговата дата, и още няма ф-ра
