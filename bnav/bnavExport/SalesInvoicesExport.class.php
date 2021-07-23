@@ -191,10 +191,10 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             //$rec->docType = $sRec->type;
 
 
-            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {if ($sRec->number == 480)bp($sRec);
+            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {//if ($sRec->number == 480)bp($sRec);
                 $dealValue = $sRec->changeAmount ? $sRec->dealValue : $sRec->dpAmount;
                 
-                if (!array_key_exists($id, $recs)) {if ($sRec->number == 480)bp($sRec);
+                if (!array_key_exists($id, $recs)) {//if ($sRec->number == 480)bp($sRec);
                     $recs[$id] = (object) array(
                         
                         'type' => $rec->docType,
@@ -253,7 +253,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
         while ($dRec = $dQuery->fetch()) {
             $id = $dRec->id;
-if ($dRec->invoiceId == 717)bp($dRec,$invoices[$dRec->invoiceId]);
+//if ($dRec->invoiceId == 717)bp($dRec,$invoices[$dRec->invoiceId]);
             if ($invoices[$dRec->invoiceId]->dpOperation == 'deducted') {
                 $id = $invoices[$dRec->invoiceId]->number;
 
@@ -332,7 +332,7 @@ if ($dRec->invoiceId == 717)bp($dRec,$invoices[$dRec->invoiceId]);
         }
         
         arr::sortObjects($recs, 'number', 'ASC');
-       bp($recs);
+      // bp($recs);
         return $recs;
     }
     
