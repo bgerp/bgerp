@@ -293,6 +293,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 }
             }
 
+
             $pRec = cat_Products::fetch($dRec->productId);
 
             //Ако има регистрирана "ОСНОВНА ГРУПА", определяме група на артикула спрямо нея
