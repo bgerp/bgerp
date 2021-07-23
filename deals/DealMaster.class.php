@@ -2556,10 +2556,9 @@ abstract class deals_DealMaster extends deals_DealBase
         // Всички сделки, по които има направено плащане, няма доставка и няма фактуриране
         $query = $this->getQuery();
         $query->XPR('paidRound', 'double', 'ROUND(COALESCE(#amountPaid, 0), 2)');
-        $query->XPR('dealRound', 'double', 'ROUND(COALESCE(#amountDeal, 0), 2)');
         $query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
         $query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
-        $query->where("#state = 'active' AND #invRound = 0 AND #deliveredRound = 0 AND #paidRound != 0");
+        $query->where("#state = 'active' AND #invRound = 0 AND #paidRound != 0");
 
         while($rec = $query->fetch()){
 
@@ -2581,16 +2580,24 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
 
                 // Намира се най-малкия вальор на активен платежен документ в нишката
+                $hasAdvancePayment = array();
                 $cQuery = doc_Containers::getQuery();
                 $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
                 $cQuery->in('docClass', $paymentClasses);
                 while($cRec = $cQuery->fetch()){
                     $Doc = cls::get($cRec->docClass);
-                    $docRec = $Doc->fetch($cRec->docId, "{$Doc->valiorFld},isReverse");
+                    $docRec = $Doc->fetch($cRec->docId, "{$Doc->valiorFld},isReverse,operationSysId");
+                    if(stripos($docRec->operationSysId, 'Advance') !== false){
+                        $hasAdvancePayment = true;
+                    }
+
                     if($docRec->isReverse == 'no'){
                         $paymentValiors[] = $docRec->{$Doc->valiorFld};
                     }
                 }
+
+                // Да няма доставено гледаш само, ако имаме плащане не по аванс
+                if(!$hasAdvancePayment && !empty($rec->deliveredRound)) continue;
 
                 // Сортиране във възходящ ред
                 sort($paymentValiors);
