@@ -83,17 +83,28 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             // Ако разликата е положителна, тоест имаме излишък
             if ($dRec->delta > 0) {
                 $productsArr[$dRec->productId] = $dRec->productId;
-                $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
-                if (!$amount) {
-                    if (Mode::get('saveTransaction')) {
-                        $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
-                    } else {
-                        $amount = 0;
-                    }
+
+                if($dRec->quantity == 0){
+
+                    // Ако ще се занулява отрицателно к-во винаги ще е със складовата себестойност към момента
+                    Mode::push('feedStrategyWithNegativeQuantity', true);
+                    $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+                    Mode::pop('feedStrategyWithNegativeQuantity', true);
                 } else {
-                    $amount = $dRec->delta * $amount;
+
+                    // Ако не се занулява, ще се засклади с мениджърската сб-ст или със складовата, ако първата не е зададена
+                    $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
+                    if (!$amount) {
+                        if (Mode::get('saveTransaction')) {
+                            $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+                        } else {
+                            $amount = 0;
+                        }
+                    } else {
+                        $amount = $dRec->delta * $amount;
+                    }
                 }
-                
+
                 if (!$amount) {
                     $errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                 }
