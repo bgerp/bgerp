@@ -70,6 +70,13 @@ defIfNot('FILEINFO_MIN_FILE_LEN_BARCODE', 1024);
 defIfNot('FILEINFO_MAX_FILE_LEN_BARCODE', 3145728);
 
 
+
+/**
+ * Максимален размер на файловете в които автоматично ще се търси за баркод
+ */
+defIfNot('FILEMAN_MAX_BARCODE_AUTO_FIND', 3145728);
+
+
 /**
  * Разширения на файловете, в които няма да се търси баркод
  */
@@ -122,6 +129,7 @@ defIfNot('FILEMAN_TEMP_PATH', EF_TEMP_PATH . '/fileman');
  * Колко време да се съхраняват индексите на файлвое - 2 години
  */
 defIfNot('FILEMAN_INDEXES_KEEP_DAYS', 63113904);
+
 
 
 /**
@@ -193,7 +201,9 @@ class fileman_Setup extends core_ProtoSetup
         'FILEINFO_MIN_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
         
         'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
-        
+
+        'FILEMAN_MAX_BARCODE_AUTO_FIND' => array('fileman_FileSize', 'caption=Максимален размер на файловете в които автоматично ще се търси за баркод->Размер, suggestions=500 KB|1 MB|2 MB|3 MB'),
+
         'FILEINFO_EXCLUDE_FILE_EXT_BARCODE' => array('varchar', 'caption=Разширения на файловете|*&comma;| в които няма да се търси баркод->Тип'),
         
         'FILEINFO_MAX_PREVIEW_PAGES' => array('int(min=1)', 'caption=Максимален брой на страниците|*&comma;| които ще се показват в изгледа->Брой'),
