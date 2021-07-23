@@ -69,9 +69,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
      */
     private function getEntries($rec, &$total)
     {
-        $entries = array();
-        $errorArr = array();
-        $productsArr = array();
+        $errorArr = $productsArr = $entries = array();
         
         // Намираме тези редове, които няма да се начисляват към МОЛ
         $dQuery = store_InventoryNoteSummary::getQuery();
@@ -81,10 +79,10 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
         core_App::setTimeLimit(600);
         
         while ($dRec = $dQuery->fetch()) {
-            $productsArr[$dRec->productId] = $dRec->productId;
-            
+
             // Ако разликата е положителна, тоест имаме излишък
             if ($dRec->delta > 0) {
+                $productsArr[$dRec->productId] = $dRec->productId;
                 $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
                 if (!$amount) {
                     if (Mode::get('saveTransaction')) {
@@ -114,6 +112,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             
             // Ако разликата е отрицателна, имаме липса
             } elseif ($dRec->delta < 0) {
+                $productsArr[$dRec->productId] = $dRec->productId;
                 $delta = abs($dRec->delta);
                 
                 $entries[] = array(
