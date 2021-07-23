@@ -191,7 +191,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             //$rec->docType = $sRec->type;
 
 
-            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {//if ($sRec->number == 480)bp($sRec);
+            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {if ($sRec->number == 480)bp($sRec);
                 $dealValue = $sRec->changeAmount ? $sRec->dealValue : $sRec->dpAmount;
                 
                 if (!array_key_exists($id, $recs)) {//if ($sRec->number == 480)bp($sRec);
@@ -285,10 +285,11 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
                 $mvc = cls::get('sales_InvoiceDetails');
                 $sRec = sales_Invoices::fetch($dRec->invoiceId);
-                sales_InvoiceDetails::modifyDcDetails($detRec, $sRec, $mvc);
 
-                if (($dRec->quantity == $detRec[$dRec->id]->quantity) && ($dRec->price == $detRec[$dRec->id]->price)) {
-                    //continue;
+
+             //   if (($dRec->quantity == $detRec[$dRec->id]->quantity) && ($dRec->price == $detRec[$dRec->id]->price)) {
+                if ($detRec->changedPrice ) {
+                    continue;
                 }
             }
 
