@@ -87,9 +87,9 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                 if($dRec->quantity == 0){
 
                     // Ако ще се занулява отрицателно к-во винаги ще е със складовата себестойност към момента
-                    Mode::push('feedStrategyWithNegativeQuantity', true);
+                    Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
                     $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
-                    Mode::pop('feedStrategyWithNegativeQuantity', true);
+                    Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
                 } else {
 
                     // Ако не се занулява, ще се засклади с мениджърската сб-ст или със складовата, ако първата не е зададена
