@@ -287,12 +287,16 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 $sRec = sales_Invoices::fetch($dRec->invoiceId);
 
 
-             //   if (($dRec->quantity == $detRec[$dRec->id]->quantity) && ($dRec->price == $detRec[$dRec->id]->price)) {
-                if ($detRec->changedPrice ) {
-                    continue;
+                sales_InvoiceDetails::modifyDcDetails($detRec, $sRec, $mvc);
+
+              // if($dRec->id != 1034) bp($detRec,$dRec,$sRec);
+
+               // if (($dRec->quantity == $detRec[$dRec->id]->quantity) && ($dRec->price == $detRec[$dRec->id]->price)) {
+                   if($detRec[$dRec->id]->changedQuantity && $detRec[$dRec->id]->changedPrice){
+                       continue;
+
                 }
             }
-
 
             $pRec = cat_Products::fetch($dRec->productId);
 
