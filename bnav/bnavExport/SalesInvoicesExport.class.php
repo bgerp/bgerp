@@ -153,11 +153,11 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 $rec->to . ' 23:59:59'
             ));
         }
-        
-        
+
+
         $invoices = array();
         
-        while ($sRec = $sQuery->fetch()) {
+        while ($sRec = $sQuery->fetch()) {//if ($sRec->number == 480)bp($sRec);
             
             //Масив с фактури от продажбите
             $id = $sRec->id;
@@ -189,12 +189,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             
             
             //$rec->docType = $sRec->type;
-            
-            
-            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {
+
+
+            if ($sRec->changeAmount || $sRec->dpOperation == 'accrued') {if ($sRec->number == 480)bp($sRec);
                 $dealValue = $sRec->changeAmount ? $sRec->dealValue : $sRec->dpAmount;
                 
-                if (!array_key_exists($id, $recs)) {
+                if (!array_key_exists($id, $recs)) {if ($sRec->number == 480)bp($sRec);
                     $recs[$id] = (object) array(
                         
                         'type' => $rec->docType,
@@ -219,7 +219,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     );
                 }
             }
-            
+
             // Запис в масива
             if (!array_key_exists($id, $invoices)) {
                 $invoices[$id] = (object) array(
@@ -245,18 +245,18 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 );
             }
         }
-        
-        $invArr = array_keys($invoices);
+
+        $invArr = array_keys($invoices,);
         
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->in('invoiceId', $invArr);
-        
+
         while ($dRec = $dQuery->fetch()) {
             $id = $dRec->id;
-            
+if ($dRec->invoiceId == 717)bp($dRec,$invoices[$dRec->invoiceId]);
             if ($invoices[$dRec->invoiceId]->dpOperation == 'deducted') {
                 $id = $invoices[$dRec->invoiceId]->number;
-                
+
                 $recs[$id] = (object) array(
                     'type' => $invoices[$dRec->invoiceId]->type,
                     'dealType' => $rec->dealType,
@@ -277,21 +277,21 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 );
                 $id = $dRec->id;
             }
-            
+
             if ($invoices[$dRec->invoiceId]->type == $this->confCache->FSD_DOC_DEBIT_NOTE_TYPE ||
                 $invoices[$dRec->invoiceId]->type == $this->confCache->FSD_DOC_CREDIT_NOTE_TYPE) {
                 $detRec = clone $dRec;
                 $detRec = array($detRec->id => $detRec) ;
-                
+
                 $mvc = cls::get('sales_InvoiceDetails');
                 $sRec = sales_Invoices::fetch($dRec->invoiceId);
                 sales_InvoiceDetails::modifyDcDetails($detRec, $sRec, $mvc);
-                
+
                 if (($dRec->quantity == $detRec[$dRec->id]->quantity) && ($dRec->price == $detRec[$dRec->id]->price)) {
-                    continue;
+                    //continue;
                 }
             }
-            
+
             $pRec = cat_Products::fetch($dRec->productId);
 
             //Ако има регистрирана "ОСНОВНА ГРУПА", определяме група на артикула спрямо нея
@@ -332,7 +332,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         }
         
         arr::sortObjects($recs, 'number', 'ASC');
-        
+       bp($recs);
         return $recs;
     }
     
