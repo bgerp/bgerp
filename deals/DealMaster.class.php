@@ -2541,4 +2541,79 @@ abstract class deals_DealMaster extends deals_DealBase
             return false;
         }
     }
+
+
+    /**
+     * Изпращане на нотификации за сделки с направено плащане, но без фактура
+     */
+    protected function sendNotificationIfInvoiceIsTooLate()
+    {
+        $bgId = drdata_Countries::getIdByName('Bulgaria');
+
+        $now = dt::now();
+        $paymentClasses = array(cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
+
+        // Всички сделки, по които има направено плащане, няма доставка и няма фактуриране
+        $query = $this->getQuery();
+        $query->XPR('paidRound', 'double', 'ROUND(COALESCE(#amountPaid, 0), 2)');
+        $query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
+        $query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
+        $query->where("#state = 'active' AND #invRound = 0 AND #paidRound != 0");
+
+        while($rec = $query->fetch()){
+
+            // Ако клиента им е от България
+            $contragentCountryId = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
+            if(empty($contragentCountryId) || $contragentCountryId == $bgId){
+
+                // Ако вече има нотификация за просрочие, пропуска се
+                $handle = $this->getHandle($rec->id);
+                $message = "Има направено плащане, но не е издадена фактура по|* #{$handle}";
+                $exId = bgerp_Notifications::fetchField("#msg = '{$message}' AND #userId = {$rec->createdBy}");
+                if($exId) continue;
+
+                // Ако е платено със сделката, взима се и нейния вальор
+                $paymentValiors = array();
+                $contoActions = type_Set::toArray($rec->contoActions);
+                if(isset($contoActions['pay'])){
+                    $paymentValiors[] = $rec->valior;
+                }
+
+                // Намира се най-малкия вальор на активен платежен документ в нишката
+                $hasAdvancePayment = array();
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
+                $cQuery->in('docClass', $paymentClasses);
+                while($cRec = $cQuery->fetch()){
+                    $Doc = cls::get($cRec->docClass);
+                    $docRec = $Doc->fetch($cRec->docId, "{$Doc->valiorFld},isReverse,operationSysId");
+                    if(stripos($docRec->operationSysId, 'Advance') !== false){
+                        $hasAdvancePayment = true;
+                    }
+
+                    if($docRec->isReverse == 'no'){
+                        $paymentValiors[] = $docRec->{$Doc->valiorFld};
+                    }
+                }
+
+                // Да няма доставено гледаш само, ако имаме плащане не по аванс
+                if(!$hasAdvancePayment && !empty($rec->deliveredRound)) continue;
+
+                // Сортиране във възходящ ред
+                sort($paymentValiors);
+
+                if(!empty($paymentValiors[0])){
+
+                    // Ако е минало определено време след неговата дата, и още няма ф-ра
+                    $deadline = dt::addSecs((3600 * (24*5 - 8)), $paymentValiors[0]);
+                    if($now > $deadline){
+
+                        // Изпраща се нотификация на създателя на документа
+                        $url = array($this, 'single', $rec->id);
+                        bgerp_Notifications::add($message, $url, $rec->createdBy, 'normal');
+                    }
+                }
+            }
+        }
+    }
 }

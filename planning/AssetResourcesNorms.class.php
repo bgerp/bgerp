@@ -83,8 +83,8 @@ class planning_AssetResourcesNorms extends core_Manager
     {
         $this->FLD('objectId', 'int', 'caption=Оборудване/Група,mandatory,silent,input=hidden,tdClass=leftCol');
         $this->FLD('classId', 'class', 'caption=Клас,mandatory,silent,input=hidden');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул');
-        $this->FLD('indTime', 'time(noSmart)', 'caption=Норма,smartCenter,mandatory');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'silent,mandatory,caption=Артикул,removeAndRefreshForm=indTime');
+        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма,smartCenter,mandatory');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'caption=Опаковка,smartCenter,input=hidden');
         $this->FLD('quantityInPack', 'double', 'input=hidden');
         $this->FLD('limit', 'double(min=0)', 'caption=Лимит,smartCenter');
@@ -179,14 +179,20 @@ class planning_AssetResourcesNorms extends core_Manager
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        
+        $rec = $form->rec;
+
         // Добавяне само на вложимите услуги
         $productOptions = cat_Products::getByProperty('canConvert', 'canStore');
         $form->setOptions('productId', array('' => '') + $productOptions);
         $form->setSuggestions('limit', array('' => '', '1' => '1'));
+
+        if(isset($rec->productId)){
+            $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+            $form->setFieldTypeParams('indTime', array('measureId' => $measureId));
+        }
     }
-    
-    
+
+
     /**
      * След подготовката на заглавието на формата
      */
@@ -220,6 +226,9 @@ class planning_AssetResourcesNorms extends core_Manager
         if (!isset($rec->limit)) {
             $row->limit = "<i class='quiet'>" . tr('няма||no') . '</i>';
         }
+
+        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+        $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$measureId})")->toVerbal($rec->indTime);
     }
     
     

@@ -152,7 +152,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки,autohide');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
-        $this->FLD('norm', 'time', 'caption=Време,input=none');
+        $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
         
         $this->setDbIndex('type');
         $this->setDbIndex('serial');
@@ -922,14 +922,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
         $indicatorId = $iRec->id;
-        
+
         while ($rec = $query->fetch()) {
             
             // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
-            if (!countR($persons)) {
-                continue;
-            }
+            if (!countR($persons)) continue;
             
             $quantity = $rec->quantity;
             if($rec->type == 'production'){
@@ -942,9 +940,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                 
                 $quantity = round(($rec->quantity / $quantityInPack), 2);
             }
-            
+
             // Колко е заработката за 1 човек
-            $timePerson = ($rec->indTimeAllocation == 'individual') ? $quantity * $rec->norm : (($quantity * $rec->norm) / countR($persons));
+            $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
+            $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
             
             $date = dt::verbal2mysql($rec->createdOn, false);
             foreach ($persons as $personId) {
@@ -969,8 +968,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
-     *
-     * @param datetime $date
      *
      * @return array $result
      */

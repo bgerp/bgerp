@@ -242,11 +242,34 @@ class plg_Search extends core_Plugin
             
             $stopWordsCnt = $notStopWordsCnt = $shortWordsCnt = $longWordsCnt = 0;
             $shortWordLen = 4;
-            
+
+            $nWordsArr = array();
+
+            $wPattern = '/[a-zа-я0-9]+[^a-zа-я\s0-9]+[a-zа-я0-9]+/iu';
+
+            // Ако има дума разделена със символ, дългите думи да се търсят с FTS и после заедно с LIKE
             foreach ($words as $w) {
                 $w = trim($w);
 
-                if (preg_match('/[a-zа-я0-9]+[^a-zа-я\s0-9]+[a-zа-я0-9]+/iu', $w)) {
+                if (preg_match($wPattern, $w)) {
+                    $nWord = trim(static::normalizeText($w, array('*')));
+                    $nWordArr = explode(' ', $nWord);
+                    foreach ($nWordArr as $nw) {
+                        if (!self::isStopWord($nw)) {
+                            $nWordsArr[] = $nw;
+                        }
+                    }
+                }
+
+                $nWordsArr[] = $w;
+            }
+
+            $words = $nWordsArr;
+
+            foreach ($words as $w) {
+                $w = trim($w);
+
+                if (preg_match($wPattern, $w)) {
                     $w = rtrim($w, '*');
                     $w .= '*';
                 }

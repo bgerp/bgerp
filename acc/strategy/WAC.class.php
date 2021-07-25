@@ -143,8 +143,8 @@ class acc_strategy_WAC extends acc_strategy_Strategy
             
             while ($bRec = $bQuery->fetch()) {
                 
-                // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
-                if ($bRec->blQuantity >= 0) {
+                // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно (освен изрично не се иска)
+                if ($bRec->blQuantity >= 0 || Mode::is('alwaysFeedWacStrategyWithBlQuantity')) {
                     $strategy->feed($bRec->blQuantity, $bRec->blAmount);
                 }
             }
