@@ -197,7 +197,8 @@ class bank_Accounts extends core_Master
             if (!$form->rec->bank) {
                 $form->rec->bank = $bank;
             } else {
-                if ($bank && $form->rec->bank != $bank) {
+
+                if (trim($bank) && (trim(mb_strtolower($form->rec->bank)) != trim(mb_strtolower($bank)))) {
                     $form->setWarning('bank', "|*<b>|Банка|*:</b> |въвели сте |*\"<b>|{$form->rec->bank}|*</b>\", |а IBAN-ът е на банка |*\"<b>|{$bank}|*</b>\". |Сигурни ли сте, че искате да продължите?");
                 }
             }

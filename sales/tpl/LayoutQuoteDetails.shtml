@@ -39,7 +39,7 @@
             <td class='misc-info nowrap aright vtop'>
                 <span class="aright"><b>[#packPrice#]</b></span>
                 <!--ET_BEGIN vatPackPrice-->
-                <div class="aright"><small>|С ДДС|*: [#vatPackPrice#]</small></div>
+                <div class="aright"><small>|с ДДС|*: [#vatPackPrice#]</small></div>
                 <!--ET_END vatPackPrice-->
                 
                 <!--ET_BEGIN discount-->

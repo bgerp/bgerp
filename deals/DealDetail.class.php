@@ -560,6 +560,7 @@ abstract class deals_DealDetail extends doc_Detail
             // Подготовка на записите
             $error = $error2 = $warnings = $toSave = $toUpdate = $multiError = array();
             foreach ($listed as $lId => $lRec) {
+
                 $packQuantity = $rec->{"quantity{$lId}"};
                 $quantityInPack = $rec->{"quantityInPack{$lId}"};
                 $recId = $rec->{"rec{$lId}"};
@@ -572,7 +573,8 @@ abstract class deals_DealDetail extends doc_Detail
                 if (empty($packQuantity)) {
                     continue;
                 }
-                
+
+
                 if (!isset($rec->id)) {
                     $listId = ($saleRec->priceListId) ? $saleRec->priceListId : null;
                     
@@ -657,12 +659,28 @@ abstract class deals_DealDetail extends doc_Detail
             }
             
             if (!countR($error) && (!countR($error2) || (countR($error2) && Request::get('Ignore'))) && (!countR($multiError) || (countR($multiError) && Request::get('Ignore')))) {
-                
+
+                $msg = null;
+                $logText = "Импортиране на списък без промяна";
+
                 // Запис на обновените записи
                 if (countR($toUpdate)) {
+                    $hasChangedQuantity = false;
                     foreach ($toUpdate as $uRec) {
+                        if($hasChangedQuantity === false){
+                            $oldQuantity = $this->fetchField($uRec->id, 'quantity');
+                            if(trim($oldQuantity) != trim($uRec->quantity)){
+                                $hasChangedQuantity = true;
+                            }
+                        }
+
                         $uRec->isEdited = true;
                         $this->save($uRec, 'id,quantity');
+                    }
+
+                    if($hasChangedQuantity){
+                        $msg = "Списъкът е импортиран успешно";
+                        $logText = "Импортиране на артикули от списък";
                     }
                 }
                 
@@ -670,12 +688,15 @@ abstract class deals_DealDetail extends doc_Detail
                     foreach ($toSave as $saveRec) {
                         $this->save($saveRec);
                     }
+                    $msg = "Списъкът е импортиран успешно";
+                    $logText = "Импортиране на артикули от списък";
                 }
                 
                 $this->Master->invoke('AfterUpdateDetail', array($saleId, $this));
-                
+                $this->Master->logWrite($logText, $saleId);
+
                 // Редирект към продажбата
-                followRetUrl(null, 'Списъкът е импортиран успешно');
+                followRetUrl(null, $msg);
             }
         }
         
@@ -686,7 +707,8 @@ abstract class deals_DealDetail extends doc_Detail
         // Рендиране на опаковката
         $tpl = $this->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);
-        
+        $this->logInAct('Разглеждане на импортиране на артикули от списък', $saleId);
+
         return $tpl;
     }
     

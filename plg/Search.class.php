@@ -187,7 +187,7 @@ class plg_Search extends core_Plugin
             
             // Ако ключовата дума е число, търсим и по ид
             if (type_Int::isInt($filterRec->{$mvc->searchInputField}) && ($mvc->searchInId !== false)) {
-                $data->query->orWhere($filterRec->{$mvc->searchInputField});
+                $data->query->addId = $filterRec->{$mvc->searchInputField};
             }
         }
     }
@@ -242,11 +242,34 @@ class plg_Search extends core_Plugin
             
             $stopWordsCnt = $notStopWordsCnt = $shortWordsCnt = $longWordsCnt = 0;
             $shortWordLen = 4;
-            
+
+            $nWordsArr = array();
+
+            $wPattern = '/[a-zа-я0-9]+[^a-zа-я\s0-9]+[a-zа-я0-9]+/iu';
+
+            // Ако има дума разделена със символ, дългите думи да се търсят с FTS и после заедно с LIKE
             foreach ($words as $w) {
                 $w = trim($w);
 
-                if (preg_match('/[a-zа-я0-9]+[^a-zа-я\s0-9]+[a-zа-я0-9]+/iu', $w)) {
+                if (preg_match($wPattern, $w)) {
+                    $nWord = trim(static::normalizeText($w, array('*')));
+                    $nWordArr = explode(' ', $nWord);
+                    foreach ($nWordArr as $nw) {
+                        if (!self::isStopWord($nw)) {
+                            $nWordsArr[] = $nw;
+                        }
+                    }
+                }
+
+                $nWordsArr[] = $w;
+            }
+
+            $words = $nWordsArr;
+
+            foreach ($words as $w) {
+                $w = trim($w);
+
+                if (preg_match($wPattern, $w)) {
                     $w = rtrim($w, '*');
                     $w .= '*';
                 }
@@ -364,19 +387,24 @@ class plg_Search extends core_Plugin
                         } else {
                             $field1 = "#{$field}";
                         }
-                        $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
+                        $cond = "LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}";
                     } else {
+                        $cond = '';
                         if ($mode == '+') {
-                            $query->where("MATCH(#{$field}) AGAINST('+{$w}{$wordEndQ}' IN BOOLEAN MODE)");
+                            $cond .= ($cond ? " AND " : '' ) . "MATCH(#{$field}) AGAINST('+{$w}{$wordEndQ}' IN BOOLEAN MODE)";
                         }
                         if ($mode == '"') {
-                            $query->where("MATCH(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)");
+                            $cond .= ($cond ? " AND " : '' ) . "MATCH(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)";
                         }
                         if ($mode == '-') {
-                            $query->where("LOCATE('{$w}', #{$field}) = 0");
+                            $cond .= ($cond ? " AND " : '' ) . "LOCATE('{$w}', #{$field}) = 0";
                         }
                     }
                 }
+            }
+
+            if($cond) {
+                $query->where($cond);
             }
             
             if (!$longWordsCnt && self::isBigTable($query)) {

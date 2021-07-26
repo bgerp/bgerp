@@ -259,7 +259,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                         $difference = -1;
                     } else {
                         $difference = (trim($priceByPolicy) - trim($oldPrice)) / $oldPrice;
-                        $difference = round($difference, 2);
+                        $difference = round($difference, 4);
                         $differenceHint = "Стара цена|*: {$oldPrice}; |Нова цена|*: {$priceByPolicy}";
                     }
                     
@@ -370,7 +370,7 @@ class price_reports_PriceList extends frame2_driver_TableData
             } elseif ($dRec->type == 'removed') {
                 $row->difference = "<span class='price-list-removed-item'>" . tr('Премахнат') . '</span>';
             } else {
-                $row->difference = core_Type::getByName('percent')->toVerbal($dRec->difference);
+                $row->difference = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->difference);
                 if ($dRec->difference > 0) {
                     $row->difference = "<span class='green'>+{$row->difference}</span>";
                 } else {

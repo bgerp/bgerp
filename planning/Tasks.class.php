@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -63,8 +63,8 @@ class planning_Tasks extends core_Master
      * Клас обграждащ горния таб
      */
     public $tabTopClass = 'portal planning';
-    
-    
+
+
     /**
      * Поле за начало на търсенето
      */
@@ -111,8 +111,14 @@ class planning_Tasks extends core_Master
      * Кой може да го добавя?
      */
     public $canAdd = 'ceo, taskPlanning';
-    
-    
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'ceo,taskPlanning';
+
+
     /**
      * Кой може да го активира?
      */
@@ -223,8 +229,8 @@ class planning_Tasks extends core_Master
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=none,tdClass=small-field nowrap,placeholder=Няма');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both');
         
-        $this->FLD('indTime', 'time(noSmart,decimals=2)', 'caption=Време за производство->Норма,smartCenter');
-        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Време за производство->Опаковка,input=hidden,tdClass=small-field nowrap');
+        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Време за производство->Норма,smartCenter');
+        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,removeAndRefreshForm,caption=Време за производство->Опаковка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Време за производство->Разпределяне,smartCenter,notNull,value=common');
         
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes');
@@ -562,6 +568,10 @@ class planning_Tasks extends core_Master
         if(empty($rec->weightDeviationWarning)){
             $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
         }
+
+        if(isset($rec->indPackagingId)){
+            $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->indPackagingId})")->toVerbal($rec->indTime);
+        }
     }
     
     
@@ -862,7 +872,13 @@ class planning_Tasks extends core_Master
                         if ($ParamType instanceof fileman_FileType) {
                             $form->setDefault("paramcat{$pId}", $v);
                         } else {
-                            $form->setSuggestions("paramcat{$pId}", array('' => '', "{$v}" => "{$v}"));
+                            if(cat_Params::haveDriver($paramRec, 'cond_type_Keylist')){
+                                $defaults = keylist::toArray($v);
+                                $v = array_intersect_key($ParamType->getSuggestions(), $defaults);
+                            } else {
+                                $v = array('' => '', "{$v}" => "{$v}");
+                            }
+                            $form->setSuggestions("paramcat{$pId}", $v);
                         }
                     }
                     
@@ -911,7 +927,6 @@ class planning_Tasks extends core_Master
                 $form->setField('labelType', 'input=hidden');
                 $form->setField('labelType', 'print');
                 $form->setDefault('indPackagingId', $rec->measureId);
-                $form->setField('indTime', "unit=за|* 1 |{$measureShort}|*");
             }
             
             if ($rec->productId == $originRec->productId) {
@@ -921,6 +936,10 @@ class planning_Tasks extends core_Master
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
                     $form->setDefault('plannedQuantity', $toProduce / $quantityInPack);
                 }
+            }
+
+            if(isset($rec->indPackagingId)){
+                $form->setFieldTypeParams('indTime', array('measureId' => $rec->indPackagingId));
             }
         }
         
@@ -934,14 +953,22 @@ class planning_Tasks extends core_Master
                     }
                 }
             }
-            
+
             if (countR($arr)) {
                 $form->setSuggestions($field, $arr);
             } else {
                 $form->setField($field, 'input=none');
             }
+
+            if($field == 'fixedAssets'){
+                $plannedAssets = cat_Products::getParams($rec->productId, 'planningAssets');
+                if(!empty($plannedAssets)){
+                    $plannedAssets = keylist::toArray($plannedAssets);
+                    $form->setDefault('fixedAssets', $plannedAssets);
+                }
+            }
         }
-        
+
         if (isset($rec->id)) {
             $form->setReadOnly('productId');
             if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
@@ -1007,7 +1034,7 @@ class planning_Tasks extends core_Master
 
                 $costsCount = !empty($costsCount) ? $costsCount : 0;
                 $linkArr = array();
-                if (haveRole('ceo, acc, purchase, sales') && $this->haveRightFor('single')) {
+                if (haveRole('ceo, acc, purchase, sales') && $this->haveRightFor('single', $rec->id)) {
                     $linkArr = array($this, 'single', $rec->id, 'Sid' => $rec->containerId);
                 }
                 $costsCount = core_Type::getByName('int')->toVerbal($costsCount);

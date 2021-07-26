@@ -16,7 +16,7 @@ defIfNot('PML_DEF_NICK', 'support');
 /**
  * Адреса във 'From' хедър-а на съобщението
  */
-defIfNot('PML_FROM_EMAIL', PML_DEF_NICK . '@' . $_SERVER['SERVER_NAME']);
+defIfNot('PML_FROM_EMAIL', PML_DEF_NICK . '@' . str_replace("www.", "", $_SERVER['SERVER_NAME']));
 
 
 /**

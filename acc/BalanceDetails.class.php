@@ -1014,7 +1014,9 @@ class acc_BalanceDetails extends core_Detail
         if (!$isMiddleBalance) {
             $query->where('#blQuantity != 0 OR #blAmount != 0');
         }
-        
+
+        $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');
+
         while ($rec = $query->fetch()) {
             $accId = $rec->accountId;
             $ent1Id = !empty($rec->ent1Id) ? $rec->ent1Id : null;
@@ -1022,7 +1024,7 @@ class acc_BalanceDetails extends core_Detail
             $ent3Id = !empty($rec->ent3Id) ? $rec->ent3Id : null;
             
             // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
-            if ($rec->blQuantity >= 0) {
+            if ($rec->blQuantity >= 0 || $feedWithNegativeBlQuantity == 'yes') {
                 if ($strategy = $this->getStrategyFor($accId, $ent1Id, $ent2Id, $ent3Id)) {
                     $strategy->feed($rec->blQuantity, $rec->blAmount);
                 }

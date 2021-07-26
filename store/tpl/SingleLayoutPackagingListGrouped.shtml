@@ -70,11 +70,6 @@
                             <td>[#deliveryTime#]</td>
                         </tr>
                         <!--ET_END deliveryTime-->
-                       <!--ET_BEGIN fromContainerId-->
-                       <tr>
-                           <td class='quiet nowrap aright'>To[#fromContainerName#]:</td><td>[#fromContainerId#]</td>
-                       </tr>
-                       <!--ET_END fromContainerId-->
                        <!--ET_BEGIN deliveryAddressBlock-->
                         [#deliveryAddressBlock#]
                         <tr>
@@ -92,6 +87,7 @@
                             <td>[#lineId#]</td>
                         </tr>
                         <!--ET_END lineId-->
+                       [#InvoicesToDocuments#]
                        <!--ET_BEGIN lineNotes-->
                        <tr>
                            <td class='quiet nowrap aright'>Remarks: </td>
