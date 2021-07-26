@@ -648,7 +648,7 @@ class core_Query extends core_FieldSet
             foreach ($this->unions as $cond) {
                 $q = clone($this);
                 $q->unions = null;
-                if(is_array($q->orderBy)) {
+                if(is_array($q->orderBy) && count($q->show)) {
                     foreach($q->orderBy as $ordObj) {  
                         $f = ltrim($ordObj->field, '#');
                         $q->show[$f] = $f;
