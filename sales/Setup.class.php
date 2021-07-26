@@ -34,7 +34,7 @@ defIfNot('SALES_DELTA_CAT_GROUPS', '');
 /**
  * Колко време след като не е платена една продажба, да се отбелязва като просрочена
  */
-defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
+defIfNot('SALES_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 
 
 /**
@@ -176,6 +176,12 @@ defIfNot('SALES_MIN_PRICE_POLICY', '');
 
 
 /**
+ * Нотификацията за нефактурирани авансови сделки
+ */
+defIfNot('SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '432000');
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -218,7 +224,7 @@ class sales_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'SALE_OVERDUE_CHECK_DELAY' => array(
+        'SALES_OVERDUE_CHECK_DELAY' => array(
             'time',
             'caption=Толеранс за просрочване на продажбата->Време'
         ),
@@ -332,6 +338,8 @@ class sales_Setup extends core_ProtoSetup
         'SALES_STATISTIC_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
     
         'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
+
+        'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификацията за нефактурирани авансови сделки->Време'),
     );
     
     

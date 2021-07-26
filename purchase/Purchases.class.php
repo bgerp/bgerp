@@ -663,13 +663,12 @@ class purchase_Purchases extends deals_DealMaster
     public function cron_CheckPurchasePayments()
     {
         core_App::setTimeLimit(300);
-        $conf = core_Packs::getConfig('purchase');
-        $overdueDelay = $conf->PURCHASE_OVERDUE_CHECK_DELAY;
-        
+        $overdueDelay = purchase_Setup::get('OVERDUE_CHECK_DELAY');
         $this->checkPayments($overdueDelay);
 
         // Изпращане на нотификации, за нефактурирани покупки
-        $this->sendNotificationIfInvoiceIsTooLate();
+        $lateTime = purchase_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');
+        $this->sendNotificationIfInvoiceIsTooLate($lateTime);
     }
     
     
