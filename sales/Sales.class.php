@@ -826,17 +826,17 @@ class sales_Sales extends deals_DealMaster
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
         
-        // Проверка по крон дали продажбата е просрочена
+        // Проверка по крон на плащанията на продажбите
         $rec2 = new stdClass();
         $rec2->systemId = 'IsSaleOverdue';
-        $rec2->description = 'Проверяване за просрочени продажби';
+        $rec2->description = 'Проверяване на плащанията по продажбите';
         $rec2->controller = 'sales_Sales';
         $rec2->action = 'CheckSalesPayments';
         $rec2->period = 60;
         $rec2->offset = mt_rand(0, 30);
         $rec2->isRandOffset = true;
         $rec2->delay = 0;
-        $rec2->timeLimit = 200;
+        $rec2->timeLimit = 300;
         $res .= core_Cron::addOnce($rec2);
     }
     
@@ -866,10 +866,12 @@ class sales_Sales extends deals_DealMaster
     public function cron_CheckSalesPayments()
     {
         core_App::setTimeLimit(300);
-        $conf = core_Packs::getConfig('sales');
-        $overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
-        
-        $this->checkPayments($overdueDelay);
+        $overdueDelay =sales_Setup::get('OVERDUE_CHECK_DELAY');
+        //$this->checkPayments($overdueDelay);
+
+        // Изпращане на нотификации, за нефактурирани продажби
+        $lateTime = sales_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');
+        $this->sendNotificationIfInvoiceIsTooLate($lateTime);
     }
     
     

@@ -34,7 +34,7 @@ abstract class cash_Document extends deals_PaymentDocument
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting,deals_plg_SaveValiorOnActivation, acc_plg_Contable,
-                     plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice,acc_plg_DocumentSummary,
+                     plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoicesToDocument,acc_plg_DocumentSummary,
                      plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, cond_plg_DefaultValues,trans_plg_LinesPlugin, doc_SharablePlg,deals_plg_SetTermDate';
     
     
@@ -47,7 +47,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'termDate=Очаквано,valior=Вальор, title=Документ, reason, fromContainerId, folderId, currencyId=Валута, amount,state, createdOn, createdBy';
+    public $listFields = 'termDate=Очаквано,valior=Вальор, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy';
     
     
     /**

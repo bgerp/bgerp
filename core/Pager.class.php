@@ -118,7 +118,7 @@ class core_Pager extends core_BaseClass
         }
         
         $this->pagesCount = round($this->itemsCount / $this->itemsPerPage);
-        
+
         if ($this->itemsCount > 0 && $this->pagesCount == 0) {
             $this->pagesCount = 1;
         }
@@ -127,7 +127,7 @@ class core_Pager extends core_BaseClass
         
         $this->rangeStart = $this->itemsPerPage * ($this->page - 1);
         $this->rangeEnd = $this->rangeStart + $this->itemsPerPage;
-        
+     
         if (isset($this->itemsCount)) {
             if ($this->page == $this->pagesCount) {
                 $this->rangeEnd = $this->itemsCount;
@@ -246,14 +246,16 @@ class core_Pager extends core_BaseClass
         $query->limit($limit);
         $query->startFrom($this->rangeStart);
         
-        
+        if($query->addId) {
+            $ids[] =$query->addId;  
+        }
         while ($rec = $query->fetch()) {
             $ids[] = $rec->id;
         }
         
         $idCnt = countR($ids);
-        
-        if ($useCache) {
+      
+        if ($useCache) {  
             $resCnt = null;
             
             if ($idCnt == 0) {
@@ -295,45 +297,52 @@ class core_Pager extends core_BaseClass
             $dbRes = $qCnt->mvc->db->query('SELECT FOUND_ROWS()');
             $cntArr = $qCnt->mvc->db->fetchArray($dbRes);
             $resCnt = array_shift($cntArr);
+            if($query->addId) {
+                $resCnt++;   
+            }
         }
         
         // До тук задължително трябва да сме изчислили колко резултата имаме
         expect(isset($resCnt));
-        
+  
         $this->itemsCount = $resCnt;
         $query = $qWork;
         
-        
+ 
         $exRangeStart = $this->rangeStart;
         
         $this->calc();
-        
+      
         if ($exRangeStart != $this->rangeStart) {
             $rQuery->limit($this->rangeEnd - $this->rangeStart);
             $rQuery->startFrom($this->rangeStart);
-            $ids = array();
-            
+            $ids = array();  
+            if($query->addId) {
+                $ids[] =$query->addId;  
+            }
             while ($rec = $rQuery->fetch()) {
                 $ids[] = $rec->id;
             }
             $idCnt = countR($ids);
         }
         
-        if ($idCnt) {
+        if ($idCnt) { 
             $ids = array_slice($ids, 0, $this->rangeEnd - $this->rangeStart);
+          
             $ids = implode(',', $ids);
             $query->where("#id IN (${ids})");
-            
+             
             foreach ($query->where as $i => $cond) {
                 if ((stripos($cond, 'match(') !== false) || (stripos($cond, 'locate(') !== false)) {
                     unset($query->where[$i]);
                 }
             }
+
         } else {
             $this->calc();
             $query->limit(0);
         }
-        
+         
         if ($ui = Request::get('useIndex')) {
             $uiArr = explode(',', $ui);
             foreach ($uiArr as $ind) {

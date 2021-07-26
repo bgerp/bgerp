@@ -117,6 +117,7 @@ class forum_Categories extends core_Manager
             $cat->title = static::getVerbal($rec, 'title');
             $url = array('forum_Boards', 'Forum', 'cat' => $cat->id);
             $cat->title = ht::createLink($cat->title, $url);
+            $cat->boards = new stdClass();
             $data->categories[] = $cat;
         }
     }

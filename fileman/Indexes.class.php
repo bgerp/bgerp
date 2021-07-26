@@ -900,7 +900,13 @@ class fileman_Indexes extends core_Manager
             if (!$fRec) {
                 continue;
             }
-            
+
+            // Максимален размер за автоматично търсене на баркод
+            if ($fRec->fileLen >= fileman_Setup::get('MAX_BARCODE_AUTO_FIND')) {
+
+                continue;
+            }
+
             $ext = fileman_Files::getExt($fName);
             
             if (!$bGet) {

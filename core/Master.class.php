@@ -73,7 +73,18 @@ class core_Master extends core_Manager
         } else {
             $title = $inst->className;
         }
-        
+
+        if (!trim($title)) {
+            $title = $inst->singleTitle ? $inst->singleTitle : $inst->title;
+            if ($objId) {
+                $title .= ' №' . $objId;
+            }
+        }
+
+        if (!trim($title)) {
+            $title = '????????';
+        }
+
         $linkArr = array();
         
         if (self::haveRightFor('single', $objId)) {

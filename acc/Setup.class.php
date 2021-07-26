@@ -106,6 +106,12 @@ defIfNot('ACC_ALTERNATE_WINDOW', '');
 
 
 /**
+ * Захранване на стратегия с отрицателни крайни салда
+ */
+defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'no');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -157,8 +163,8 @@ class acc_Setup extends core_ProtoSetup
      * Дефолтни сметки за добавяне към документа за корекция от грешки
      */
     protected static $accAccount = '321,323,401,411,61101,6911,6912,699,701,703,706,7911,7912';
-    
-    
+
+
     /**
      * Списък с мениджърите, които съдържа пакета
      */
@@ -250,6 +256,11 @@ class acc_Setup extends core_ProtoSetup
         'ACC_ALTERNATE_WINDOW' => array(
             'time(suggestions=3 месец|4 месеца|5 месеца|6 месеца|7 месеца|8 месеца|9 месеца|10 месеца|11 месеца|12 месеца)',
             'caption=Преизчисляване на балансите при промяна на документи не по-стари от->Срок,placeholder=Винаги'
+        ),
+
+        'ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY' => array(
+            'enum(no=Не,yes=Да)',
+            'caption=Захранване на стратегия с отрицателни крайни салда->Избор'
         ),
     );
     

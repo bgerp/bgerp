@@ -85,16 +85,16 @@ class findeals_transaction_CreditDocument extends acc_DocumentTransactionSource
             array($rec->contragentClassId, $rec->contragentId),
             array($origin->className, $origin->that),
             array('currency_Currencies', currency_Currencies::getIdByCode($origin->fetchField('currencyId'))),
-            'quantity' => $sign * $rec->amount);
+            'quantity' => $sign * round($rec->amount, 2));
         
         // Дебитираме разчетната сметка на сделката, начало на нишка
         $creditArr = array($rec->creditAccount,
             array($dealRec->contragentClassId, $dealRec->contragentId),
             array($doc->getClassId(), $doc->that),
             array('currency_Currencies', $dealCodeId),
-            'quantity' => $sign * $rec->amountDeal);
+            'quantity' => $sign * round($rec->amountDeal, 2));
         
-        $entry = array('amount' => $sign * $amount,
+        $entry = array('amount' => $sign * round($amount, 2),
             'debit' => $debitArr,
             'credit' => $creditArr,);
         

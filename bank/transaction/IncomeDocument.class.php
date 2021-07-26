@@ -73,17 +73,17 @@ class bank_transaction_IncomeDocument extends acc_DocumentTransactionSource
             $amount = $rec->amount * $rec->rate;
         }
         
-        $entry1 = array('amount' => $sign * $amount,
+        $entry1 = array('amount' => $sign * round($amount, 2),
             'debit' => array($rec->debitAccId,
                 array('bank_OwnAccounts', $rec->ownAccount),
                 array('currency_Currencies', $rec->currencyId),
-                'quantity' => $sign * $rec->amount),
+                'quantity' => $sign * round($rec->amount, 2)),
             
             'credit' => array($rec->creditAccId,
                 array($rec->contragentClassId, $rec->contragentId),
                 array($origin->className, $origin->that),
                 array('currency_Currencies', $rec->dealCurrencyId),
-                'quantity' => $sign * $rec->amountDeal),);
+                'quantity' => $sign * round($rec->amountDeal, 2)),);
         
         $entry[] = $entry1;
         

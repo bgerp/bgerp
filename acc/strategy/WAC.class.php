@@ -96,7 +96,8 @@ class acc_strategy_WAC extends acc_strategy_Strategy
     {
         // Увеличаваме брояча
         $currentTry++;
-        
+
+
         // Изчисляваме начална и крайна дата, която ще извличаме
         $from = dt::mysql2timestamp($date);
         $from = date('Y-m-01', $from);
@@ -131,7 +132,8 @@ class acc_strategy_WAC extends acc_strategy_Strategy
         
         // Трябва сметката да е със стратегия
         expect(isset($accRec->strategy));
-        
+        $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');
+
         // Ако има предишен баланс, захранваме стратегията с крайните му салда, ако са положителни
         if ($balanceRec = cls::get('acc_Balances')->getBalanceBefore($from)) {
             $bQuery = acc_BalanceDetails::getQuery();
@@ -143,8 +145,8 @@ class acc_strategy_WAC extends acc_strategy_Strategy
             
             while ($bRec = $bQuery->fetch()) {
                 
-                // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно
-                if ($bRec->blQuantity >= 0) {
+                // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно (освен изрично не се иска)
+                if ($bRec->blQuantity >= 0 || Mode::is('alwaysFeedWacStrategyWithBlQuantity') || $feedWithNegativeBlQuantity == 'yes') {
                     $strategy->feed($bRec->blQuantity, $bRec->blAmount);
                 }
             }

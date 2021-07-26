@@ -468,7 +468,7 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected function getListFilterTypeOptions_($data)
     {
-        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки');
+        $options = arr::make('all=Всички,active=Активни,closed=Приключени,draft=Чернови,clAndAct=Активни и приключени,notInvoicedActive=Активни и нефактурирани,pending=Заявки,paid=Платени,overdue=Просрочени,unpaid=Неплатени,paidnotdelivered=Платени и недоставени,delivered=Доставени,undelivered=Недоставени,invoiced=Фактурирани,invoiceDownpaymentToDeduct=С аванс за приспадане,notInvoiced=Нефактурирани,unionDeals=Обединяващи сделки,notUnionDeals=Без обединяващи сделки,closedWith=Приключени с други сделки,notClosedWith=Без обединени сделки,noInvoice=Без фактуриране,noActiveInvoice=Активни "Без фактуриране"');
     
         return $options;
     }
@@ -511,11 +511,18 @@ abstract class deals_DealMaster extends deals_DealBase
                 $query->where("#state = 'active' OR #state = 'closed'");
                 break;
             case 'notInvoiced':
-                $query->where('(#deliveredRound - #invRound) > 0.05');
+                $query->where("#makeInvoice = 'yes' AND (#deliveredRound - #invRound) > 0.05");
                 $query->where("#state = 'active' OR #state = 'closed'");
                 break;
             case 'notInvoicedActive':
-                $query->where("(#deliveredRound - #invRound) > 0.05 AND #state = 'active'");
+                $query->where("#makeInvoice = 'yes' AND (#deliveredRound - #invRound) > 0.05 AND #state = 'active'");
+                break;
+            case 'noActiveInvoice':
+                $query->where("#makeInvoice = 'no' AND #state = 'active'");
+                break;
+            case 'noInvoice':
+                $query->where("#makeInvoice = 'no'");
+                $query->where("#state = 'active' OR #state = 'closed'");
                 break;
             case 'invoiceDownpaymentToDeduct':
                 $query->where('#invoicedDownpaymentToDeductRound > 0.01');
@@ -2532,6 +2539,87 @@ abstract class deals_DealMaster extends deals_DealBase
             core_Statuses::newStatus( "Документа не може да се оттегли, докато следните документи имат нагласени количества в зона|*: {$msg}", 'error');
 
             return false;
+        }
+    }
+
+
+    /**
+     * Изпращане на нотификации за сделки с направено плащане, но без фактура
+     *
+     * @param int $secs - секунди
+     * @return void
+     */
+    protected function sendNotificationIfInvoiceIsTooLate($secs)
+    {
+        $time = $secs - 8 * 3600;
+        $bgId = drdata_Countries::getIdByName('Bulgaria');
+
+        $now = dt::now();
+        $paymentClasses = array(cash_Pko::getClassId(), cash_Rko::getClassId(), bank_IncomeDocuments::getClassId(), bank_SpendingDocuments::getClassId());
+
+        // Всички сделки, по които има направено плащане, няма доставка и няма фактуриране
+        $query = $this->getQuery();
+        $query->XPR('paidRound', 'double', 'ROUND(COALESCE(#amountPaid, 0), 2)');
+        $query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
+        $query->where("#state = 'active' AND #invRound = 0 AND #paidRound != 0");
+
+        while($rec = $query->fetch()){
+
+            // Ако клиента им е от България
+            $contragentCountryId = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
+            if(empty($contragentCountryId) || $contragentCountryId == $bgId){
+
+                // Ако вече има нотификация за просрочие, пропуска се
+                $handle = $this->getHandle($rec->id);
+                $message = "Има направено плащане, но не е издадена фактура по|* #{$handle}";
+                $exId = bgerp_Notifications::fetchField("#msg = '{$message}' AND #userId = {$rec->createdBy}");
+                if($exId) continue;
+
+                // Ако е платено със сделката, взима се и нейния вальор
+                $paymentValiors = array();
+                $contoActions = type_Set::toArray($rec->contoActions);
+                if(isset($contoActions['pay'])){
+                    $paymentValiors[] = $rec->valior;
+                }
+
+                // Намира се най-малкия вальор на активен платежен документ в нишката
+                $hasBankPayment = false;
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
+                $cQuery->in('docClass', $paymentClasses);
+                while($cRec = $cQuery->fetch()){
+                    $Doc = cls::get($cRec->docClass);
+                    $docRec = $Doc->fetch($cRec->docId, "{$Doc->valiorFld},isReverse,operationSysId");
+
+                    if($docRec->isReverse == 'no'){
+                        $paymentValiors[] = $docRec->{$Doc->valiorFld};
+                    }
+
+                    if($Doc instanceof bank_SpendingDocuments || $Doc instanceof bank_IncomeDocuments){
+                        $hasBankPayment = true;
+                    }
+                }
+
+                // Ако е без фактуриране и няма банково плащане, нищо няма да се прави
+                if($rec->makeInvoice = 'no') {
+                    if(!$hasBankPayment) continue;
+                }
+
+                // Сортиране във възходящ ред по вальор на платежните документи
+                sort($paymentValiors);
+
+                if(!empty($paymentValiors[0])){
+
+                    // Ако е минало определено време след неговата дата, и още няма ф-ра
+                    $deadline = dt::addSecs($time, $paymentValiors[0]);
+                    if($now > $deadline){
+
+                        // Изпраща се нотификация на създателя на документа
+                        $url = array($this, 'single', $rec->id);
+                        bgerp_Notifications::add($message, $url, $rec->createdBy, 'normal');
+                    }
+                }
+            }
         }
     }
 }

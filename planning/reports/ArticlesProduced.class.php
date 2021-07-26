@@ -64,7 +64,11 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
 
-        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Произведени артикули->Групи артикули,after=to,removeAndRefreshForm,placeholder=Всички,silent,single=none');
+        //accProd Функционалност
+        $fieldset->FLD('accProd', 'enum(yes=ДА, no=НЕ)', 'caption=Справка по accProd,after=to,removeAndRefreshForm,silent,single=none');
+
+
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Произведени артикули->Групи артикули,after=accProd,removeAndRefreshForm,placeholder=Всички,silent,single=none');
 
 
         //Групиране на резултата
@@ -75,13 +79,14 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $fieldset->FLD('orderBy', 'enum(code=Код,name=Артикул,quantity=Количество)', 'caption=Групиране и подреждане->Подреждане по,after=groupBy');
 
         $fieldset->FLD('consumed', 'enum(no=НЕ, yes=ДА)', 'caption=Вложени материали->Покажи вложените материали,removeAndRefreshForm,after=orderBy,silent');
-        $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent');
+        $fieldset->FLD('consumedFrom', 'enum(protocols= протоколи, boms= рецепти)', 'caption=Вложени материали->Вложени по,removeAndRefreshForm,after=consumed,input=hidden,silent,single=none');
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
             $fieldset->FLD('groupsMat', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени материали->Група артикули,placeholder = Всички,after=consumedFrom,single=none,input=hidden');
         } else {
             $fieldset->FLD('groupsMat', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Вложени материали->Група артикули,placeholder = Всички,after=consumed,single=none,input=hidden');
         }
+
 
         $fieldset->FNC('montsArr', 'varchar', 'caption=Месеци по,after=groupsMat,input=hiden,single=none');
         $fieldset->FNC('totalConsumed', 'varchar', 'caption=Обща стойност на вложените материали,after=montsArr,input=hiden,single=none');
@@ -125,6 +130,16 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         $form->setDefault('orderBy', 'code');
         $form->setDefault('totalConsumed', null);
         $form->setDefault('consumedFrom', 'protocols');
+        $form->setDefault('accProd', 'no');
+
+        if(!core_Packs::isInstalled('extrapack')){
+            $form->setField('accProd', 'input=hidden');
+        }
+        if ($rec->accProd == 'yes'){
+            $form->setField('orderBy', 'input=hidden');
+            $form->setField('groupBy', 'input=hidden');
+            $form->setField('consumed', 'input=hidden');
+        }
 
         if ($rec->consumed == 'yes') {
             $form->setField('groupsMat', 'input');
@@ -348,6 +363,42 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                 $monthQuantityArr[$planningRec->productId][$month] += $quantity;
             }
 
+            if ($rec->accProd == 'yes'){
+
+                //ID на параметрите
+                $transportWeightId = cat_Params::force('transportWeight', 'transportWeight', 'varchar', null, '');
+                $weightId = cat_Params::force('weight', 'weight', 'varchar', null, '');
+                $weightKgId = cat_Params::force('weightKg', 'weightKg', 'varchar', null, '');
+                $accProdParamId = cat_Params::force('accProd', 'accProd', 'varchar', null, '');
+
+                //Масив с параметрите на артикула
+                $prodParamsArr = cat_Products::getParams($planningRec->productId);
+
+                //Параметър accProd
+                list($a, $accProd) = explode('.', $prodParamsArr[$accProdParamId]);
+                //$accProd = trim($a);
+                $accProd = $prodParamsArr[$accProdParamId];
+
+                //Определяне на теглото
+                $prodTransportWeight = $prodParamsArr[$transportWeightId];
+
+                $prodWeight = $prodParamsArr[$weightId] / 1000;
+
+                $prodWeightKg = $prodParamsArr[$weightKgId];
+
+                $prodWeight = $prodWeight ? $prodWeight  : $prodWeightKg;
+
+                $prodWeight = $prodWeight ? $prodWeight  : $prodTransportWeight;
+
+                //Ако сновната мерна единица е кг, то параметъра тегло е 1
+                $prodMeasureId = cat_Products::fetch($planningRec->productId)->measureId;
+                $kgMeasureId = cat_UoM::getQuery()->fetch("#name = 'килограм'")->id;
+                if ($prodMeasureId == $kgMeasureId) {
+                    $prodWeight = 1;
+                }
+                $weight = $prodWeight ? $quantity * $prodWeight : 0;
+            }
+
             // Запис в масива на артикула
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -355,12 +406,14 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                     'code' => $artCode,                                              //Код на артикула
                     'productId' => $planningRec->productId,                          //Id на артикула
                     'measure' => $measureArtId,                                      //Мярка
+                    'accProd' => $accProd,                                           //accProd
                     'name' => cat_Products::getTitleById($planningRec->productId),   //Име
                     'storeId' => $storeId,                                           //Склад на заприхождаване
                     'department' => $departmentId,                                   //Център на дейност
 
                     'quantity' => $quantity,                                         //Текущ период - количество
                     'amount' => $amountTotal[$planningRec->productId],
+                    'weight' => $weight,
 
 
                     'monthQuantity' => $monthQuantityArr[$planningRec->productId],
@@ -374,6 +427,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
                 $obj = &$recs[$id];
 
                 $obj->quantity += $quantity;
+                $obj->weight += $weight;
                 $obj->amount = $amountTotal[$planningRec->productId];
                 $obj->monthQuantity = $monthQuantityArr[$planningRec->productId];
             }
@@ -392,8 +446,33 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         $rec->montsArr = $montArr;
 
+
+        //Ако е избрана опция за accProd преработваме масива
+        if ($rec->accProd == 'yes') {
+            $temp = array();
+            foreach ($recs as $val){
+                $id = $val->accProd;
+                if (!array_key_exists($id, $temp)) {
+                    $temp[$id] = (object)array(
+
+                        'accProd' => $val->accProd,                                           //accProd
+                        'weight' => $val->weight,
+                    );
+                } else {
+                    $obj = &$temp[$id];
+                    $obj->weight += $val->weight;
+                }
+
+
+            }
+            arsort($temp);
+
+            $recs = array();
+            $recs = $temp;
+        }
+
         //Подредба на резултатите
-        if (!is_null($recs)) {
+        if (!is_null($recs) && $rec->accProd == 'no') {
             $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
 
             $orderBy = $rec->orderBy;
@@ -404,7 +483,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         }
 
-        if (!empty($amountTotal)) {
+        if (!empty($amountTotal && $rec->accProd == 'no')) {
             $rec->totalConsumed = array_sum($amountTotal);
         }
         return $recs;
@@ -422,6 +501,13 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
+
+        if ($rec->accProd == 'yes'){
+            $fld->FLD('accProd', 'varchar', "caption=accProd");
+            $fld->FLD('weight', 'double(smartRound,decimals=2)', "smartCenter,caption=Тегло");
+
+            return $fld;
+        }
 
         $text = ($rec->groupBy != 'month') ? 'Количество' : 'Общо';
         if ($rec->consumed == 'yes') {
@@ -476,14 +562,24 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
         $row = new stdClass();
 
+        if ($rec->accProd == 'yes') {
+
+            $accProd = $dRec->accProd ? $dRec->accProd : 'Няма';
+            $row->accProd = $accProd;
+            $row->weight = $Double->toVerbal($dRec->weight);
+
+            return $row;
+
+
+        }
+
+
         $row->type = $Enum->toVerbal($dRec->consumedType);
 
         if (isset($dRec->code)) {
             $row->code = $dRec->code;
         }
         if (isset($dRec->productId)) {
-        //    $row->productId = cat_Products::getLinkToSingle_($dRec->productId, 'name');
-
             $aaa= ($dRec->consumedType == 'prod') ? true : false;
             $row->productId = cat_Products::getHyperlink($dRec->productId, $aaa);
         } else {
@@ -498,9 +594,9 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
 
             if ($rec->data->groupByField == 'storeId') {
                 $row->storeId .= 'Склад: ';
+                $row->storeId .= store_Stores::getLinkToSingle_($dRec->storeId, 'name');
             }
 
-            $row->storeId .= store_Stores::getLinkToSingle_($dRec->storeId, 'name');
         }
         if ($dRec->consumedType == 'consum') {
             $row->storeId = '';
@@ -529,7 +625,7 @@ class planning_reports_ArticlesProduced extends frame2_driver_TableData
         }
 
 
-        if ($rec->groupBy == 'month') {
+        if (($rec->groupBy == 'month') && (is_array($dRec->monthQuantity))) {
             foreach ($dRec->monthQuantity as $key => $val) {
 
                 $row->$key = $Double->toVerbal($val);

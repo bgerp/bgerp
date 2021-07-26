@@ -34,7 +34,7 @@ abstract class bank_Document extends deals_PaymentDocument
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, bank_Wrapper, acc_plg_RejectContoDocuments, acc_plg_Contable,
-         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice, acc_plg_DocumentSummary,doc_plg_HidePrices,
+         plg_Sorting, plg_Clone, doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoicesToDocument, acc_plg_DocumentSummary,doc_plg_HidePrices,
          plg_Search, bgerp_plg_Blank, doc_EmailCreatePlg, doc_SharablePlg, deals_plg_SetTermDate,deals_plg_SaveValiorOnActivation,bgerp_plg_Export';
     
     
@@ -53,7 +53,7 @@ abstract class bank_Document extends deals_PaymentDocument
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'valior, title=Документ, reason, fromContainerId, folderId, currencyId, amount, state, createdOn, createdBy';
+    public $listFields = 'valior, title=Документ, reason, folderId, currencyId, amount, state, createdOn, createdBy';
     
     
     /**
@@ -108,8 +108,16 @@ abstract class bank_Document extends deals_PaymentDocument
      * Основна сч. сметка
      */
     public static $baseAccountSysId = '503';
-    
-    
+
+
+    /**
+     * Дали към документа може да се отнася повече от една ф-ра
+     *
+     * @see deals_InvoicesToDocuments
+     */
+    public $canSelectOnlyOneInvoice = false;
+
+
     /**
      * До потребители с кои роли може да се споделя документа
      *

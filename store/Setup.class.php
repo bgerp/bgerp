@@ -95,6 +95,7 @@ class store_Setup extends core_ProtoSetup
         'store_StockPlanning',
         'migrate::migratePendings',
         'migrate::reconto3231v1',
+        'migrate::updateShipmentOrders'
     );
     
     
@@ -342,6 +343,17 @@ class store_Setup extends core_ProtoSetup
                     Mode::pop('recontoTransaction');
                 }
             }
+        }
+    }
+
+
+    /**
+     * Миграция за обновяване на ЕН-та
+     */
+    public function updateShipmentOrders()
+    {
+        foreach (array('store_ShipmentOrders') as $mvc){
+            deals_InvoicesToDocuments::migrateContainerIds($mvc);
         }
     }
 }

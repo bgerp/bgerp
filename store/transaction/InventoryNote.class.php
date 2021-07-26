@@ -69,9 +69,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
      */
     private function getEntries($rec, &$total)
     {
-        $entries = array();
-        $errorArr = array();
-        $productsArr = array();
+        $errorArr = $productsArr = $entries = array();
         
         // Намираме тези редове, които няма да се начисляват към МОЛ
         $dQuery = store_InventoryNoteSummary::getQuery();
@@ -81,21 +79,32 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
         core_App::setTimeLimit(600);
         
         while ($dRec = $dQuery->fetch()) {
-            $productsArr[$dRec->productId] = $dRec->productId;
-            
+
             // Ако разликата е положителна, тоест имаме излишък
             if ($dRec->delta > 0) {
-                $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
-                if (!$amount) {
-                    if (Mode::get('saveTransaction')) {
-                        $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
-                    } else {
-                        $amount = 0;
-                    }
+                $productsArr[$dRec->productId] = $dRec->productId;
+
+                if($dRec->quantity == 0){
+
+                    // Ако ще се занулява отрицателно к-во винаги ще е със складовата себестойност към момента
+                    Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
+                    $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+                    Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
                 } else {
-                    $amount = $dRec->delta * $amount;
+
+                    // Ако не се занулява, ще се засклади с мениджърската сб-ст или със складовата, ако първата не е зададена
+                    $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
+                    if (!$amount) {
+                        if (Mode::get('saveTransaction')) {
+                            $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
+                        } else {
+                            $amount = 0;
+                        }
+                    } else {
+                        $amount = $dRec->delta * $amount;
+                    }
                 }
-                
+
                 if (!$amount) {
                     $errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                 }
@@ -114,6 +123,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             
             // Ако разликата е отрицателна, имаме липса
             } elseif ($dRec->delta < 0) {
+                $productsArr[$dRec->productId] = $dRec->productId;
                 $delta = abs($dRec->delta);
                 
                 $entries[] = array(
