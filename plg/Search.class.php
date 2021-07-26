@@ -187,7 +187,7 @@ class plg_Search extends core_Plugin
             
             // Ако ключовата дума е число, търсим и по ид
             if (type_Int::isInt($filterRec->{$mvc->searchInputField}) && ($mvc->searchInId !== false)) {
-                $data->query->orWhere($filterRec->{$mvc->searchInputField});
+                $data->query->addId = $filterRec->{$mvc->searchInputField};
             }
         }
     }
@@ -387,21 +387,26 @@ class plg_Search extends core_Plugin
                         } else {
                             $field1 = "#{$field}";
                         }
-                        $query->where("LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}");
+                        $cond = "LOCATE('{$wordBegin}{$w}{$wordEnd}', {$field1}){$equalTo}";
                     } else {
+                        $cond = '';
                         if ($mode == '+') {
-                            $query->where("MATCH(#{$field}) AGAINST('+{$w}{$wordEndQ}' IN BOOLEAN MODE)");
+                            $cond .= ($cond ? " AND " : '' ) . "MATCH(#{$field}) AGAINST('+{$w}{$wordEndQ}' IN BOOLEAN MODE)";
                         }
                         if ($mode == '"') {
-                            $query->where("MATCH(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)");
+                            $cond .= ($cond ? " AND " : '' ) . "MATCH(#{$field}) AGAINST('\"{$w}\"' IN BOOLEAN MODE)";
                         }
                         if ($mode == '-') {
-                            $query->where("LOCATE('{$w}', #{$field}) = 0");
+                            $cond .= ($cond ? " AND " : '' ) . "LOCATE('{$w}', #{$field}) = 0";
                         }
                     }
                 }
             }
 
+            if($cond) {
+                $query->where($cond);
+            }
+            
             if (!$longWordsCnt && self::isBigTable($query)) {
                 $query->isSlowQuery = true;
             }

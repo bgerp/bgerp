@@ -16,12 +16,7 @@
             <td>|Заверено по|* [#nextHandle#]</td>
             <td><span class='cCode'>[#currencyId#]</span> [#amountDeal#]</td>
         </tr>
-        <!--ET_BEGIN fromContainerId-->
-        <tr>
-            <td>|Към|* [#fromContainerName#]</td>
-            <td>[#fromContainerId#]</td>
-        </tr>
-        <!--ET_END fromContainerId-->
+        [#InvoicesToDocuments#]
     </table>
     <div>
         [#description#]

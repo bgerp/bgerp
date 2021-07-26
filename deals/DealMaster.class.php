@@ -2545,9 +2545,13 @@ abstract class deals_DealMaster extends deals_DealBase
 
     /**
      * Изпращане на нотификации за сделки с направено плащане, но без фактура
+     *
+     * @param int $secs - секунди
+     * @return void
      */
-    protected function sendNotificationIfInvoiceIsTooLate()
+    protected function sendNotificationIfInvoiceIsTooLate($secs)
     {
+        $time = $secs - 8 * 3600;
         $bgId = drdata_Countries::getIdByName('Bulgaria');
 
         $now = dt::now();
@@ -2557,7 +2561,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $query = $this->getQuery();
         $query->XPR('paidRound', 'double', 'ROUND(COALESCE(#amountPaid, 0), 2)');
         $query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
-        $query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
         $query->where("#state = 'active' AND #invRound = 0 AND #paidRound != 0");
 
         while($rec = $query->fetch()){
@@ -2580,32 +2583,35 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
 
                 // Намира се най-малкия вальор на активен платежен документ в нишката
-                $hasAdvancePayment = array();
+                $hasBankPayment = false;
                 $cQuery = doc_Containers::getQuery();
                 $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
                 $cQuery->in('docClass', $paymentClasses);
                 while($cRec = $cQuery->fetch()){
                     $Doc = cls::get($cRec->docClass);
                     $docRec = $Doc->fetch($cRec->docId, "{$Doc->valiorFld},isReverse,operationSysId");
-                    if(stripos($docRec->operationSysId, 'Advance') !== false){
-                        $hasAdvancePayment = true;
-                    }
 
                     if($docRec->isReverse == 'no'){
                         $paymentValiors[] = $docRec->{$Doc->valiorFld};
                     }
+
+                    if($Doc instanceof bank_SpendingDocuments || $Doc instanceof bank_IncomeDocuments){
+                        $hasBankPayment = true;
+                    }
                 }
 
-                // Да няма доставено гледаш само, ако имаме плащане не по аванс
-                if(!$hasAdvancePayment && !empty($rec->deliveredRound)) continue;
+                // Ако е без фактуриране и няма банково плащане, нищо няма да се прави
+                if($rec->makeInvoice = 'no') {
+                    if(!$hasBankPayment) continue;
+                }
 
-                // Сортиране във възходящ ред
+                // Сортиране във възходящ ред по вальор на платежните документи
                 sort($paymentValiors);
 
                 if(!empty($paymentValiors[0])){
 
                     // Ако е минало определено време след неговата дата, и още няма ф-ра
-                    $deadline = dt::addSecs((3600 * (24*5 - 8)), $paymentValiors[0]);
+                    $deadline = dt::addSecs($time, $paymentValiors[0]);
                     if($now > $deadline){
 
                         // Изпраща се нотификация на създателя на документа

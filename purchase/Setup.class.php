@@ -56,6 +56,12 @@ defIfNot('PURCHASE_NEW_PURCHASE_AUTO_ACTION_BTN', 'form');
 
 
 /**
+ * Нотификацията за нефактурирани авансови сделки
+ */
+defIfNot('PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '432000');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -134,7 +140,8 @@ class purchase_Setup extends core_ProtoSetup
         'PURCHASE_NEW_PURCHASE_AUTO_ACTION_BTN' => array(
             'enum(none=Договор в "Чернова",form=Създаване на договор,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни покупки)',
             'mandatory,caption=Действие на бързия бутон "Покупка" в папките->Избор,customizeBy=ceo|sales|purchase',
-        ),
+         ),
+        'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификацията за нефактурирани авансови сделки->Време'),
     );
     
     
