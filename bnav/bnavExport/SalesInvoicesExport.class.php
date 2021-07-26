@@ -240,7 +240,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             }
         }
         $invArr = array_keys($invoices);
-
+        if (empty($invArr)){
+            return $recs;
+        }
         $dQuery = sales_InvoiceDetails::getQuery();
         $dQuery->in('invoiceId', $invArr);
 
@@ -257,7 +259,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         //На тези които имат промяна и се добавят полета changedQuantity или changedPrice
         foreach ($detArr as $k => $v) {
             $sdRec = sales_Invoices::fetch($k);
-            sales_InvoiceDetails::modifyDcDetails($v, $sdRec, cls::get('sales_InvoiceDetails'));
+            if ($sdRec->type != 'invoice'){
+                sales_InvoiceDetails::modifyDcDetails($v, $sdRec, cls::get('sales_InvoiceDetails'));
+            }else{
+                continue;
+            }
+
         }
 
         foreach ($details as $dRec) {
