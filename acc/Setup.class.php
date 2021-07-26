@@ -260,7 +260,7 @@ class acc_Setup extends core_ProtoSetup
 
         'ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY' => array(
             'enum(no=Не,yes=Да)',
-            'caption=Захранване на стратегия с отрицателни крайни салда->Избор'
+            'caption=Захранване на стратегия WAC с отрицателни начални салда->Избор'
         ),
     );
     
