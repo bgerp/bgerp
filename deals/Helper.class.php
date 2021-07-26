@@ -1559,19 +1559,23 @@ abstract class deals_Helper
                 $newInvoiceArr[$key]->amount += $amount;
             }
         }
-        
+
         foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay) {
             $Pdoc = cls::get($Pay);
             $pQuery = $Pdoc->getQuery();
             $pQuery->in('threadId', $threads);
             $pQuery->where("#state = 'active'");
-            $pQuery->show('containerId,amountDeal,amount,fromContainerId,isReverse,activatedOn,valior');
+            $pQuery->show('containerId,amountDeal,amount,isReverse,activatedOn,valior');
             if (isset($valior)) {
                 $pQuery->where("#valior <= '{$valior}'");
             }
             
             while ($pRec = $pQuery->fetch()) {
+
                 $sign = ($pRec->isReverse == 'yes') ? -1 : 1;
+                $invArr = deals_InvoicesToDocuments::getInvoiceArr($pRec->containerId);
+                $pData = $Pdoc->getPaymentData($pRec->id);
+
                 if (in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))) {
                     $type = 'intercept';
                     $amount = round($pRec->amount, 2);
@@ -1579,14 +1583,29 @@ abstract class deals_Helper
                     $amount = round($pRec->amountDeal, 2);
                     $type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
                 }
-                
-                $amount = $sign * $amount;
-                $payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
+                $rate = !empty($pRec->amountDeal) ? round($pRec->amount / $pRec->amountDeal, 4) : 0;
+
+                if(countR($invArr)){
+                    foreach ($invArr as $iRec){
+                        $pData->amount -= $iRec->amount;
+                        $iAmount = !empty($rate) ? $sign * round($iRec->amount / $rate, 2) : 0;
+                        $payArr["{$pRec->containerId}|{$iRec->containerId}"] = (object) array('containerId' => $pRec->containerId, 'amount' => $iAmount, 'available' => $iAmount, 'to' => $invMap[$iRec->containerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
+                    }
+
+                    $pData->amount = round($pData->amount, 2);
+                    if(!empty($pData->amount)){
+                        $rAmount = $sign * $pData->amount;
+                        $payArr["{$pRec->containerId}|"] = (object) array('containerId' => $pRec->containerId, 'amount' => $rAmount, 'available' => $rAmount, 'to' => null, 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
+                    }
+                } else {
+                    $amount = $sign * $amount;
+                    $payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
+                }
             }
         }
-        
+
         self::allocationOfPayments($newInvoiceArr, $payArr);
-        
+
         return $newInvoiceArr;
     }
     
@@ -1673,7 +1692,7 @@ abstract class deals_Helper
             if ($pay->to) {
                 $invArr[$pay->to]->payout += $pay->available;
                 $pay->available = 0;
-                $invArr[$pay->to]->used[$pay->containerId] = $pay;
+                $invArr[$pay->to]->used[$i] = $pay;
                 self::pushPaymentType($invArr[$pay->to]->payments, $pay);
             }
         }
@@ -1681,7 +1700,7 @@ abstract class deals_Helper
         $revInvArr = array_reverse($invArr, true);
         
         // Разпределяме всички остатъци от плащания
-        foreach ($payArr as $pay) {
+        foreach ($payArr as $k => $pay) {
             if ($pay->available > 0) {
                 // Обикаляме по фактурите от начало към край и попълваме само дупките
                 foreach ($invArr as $inv) {
@@ -1690,7 +1709,7 @@ abstract class deals_Helper
                         $inv->payout += $sum;
                         $pay->available -= $sum;
                         
-                        $inv->used[$pay->containerId] = $pay;
+                        $inv->used[$k] = $pay;
                         self::pushPaymentType($inv->payments, $pay);
                     }
                 }
@@ -1707,13 +1726,13 @@ abstract class deals_Helper
                         $inv->payout -= $sum;
                         $pay->available += $sum;
                         
-                        $inv->used[$pay->containerId] = $pay;
+                        $inv->used[$k] = $pay;
                         self::pushPaymentType($inv->payments, $pay);
                     }
                 }
             }
         }
-        
+
         // Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
         $rest = 0;
         $used = $payments = array();
