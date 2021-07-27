@@ -84,7 +84,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
             if ($dRec->delta > 0) {
                 $productsArr[$dRec->productId] = $dRec->productId;
 
-                if($dRec->quantity == 0){
+                if($dRec->quantity === 0){
 
                     // Ако ще се занулява отрицателно к-во винаги ще е със складовата себестойност към момента
                     Mode::push('alwaysFeedWacStrategyWithBlQuantity', true);
