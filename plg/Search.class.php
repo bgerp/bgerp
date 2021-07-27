@@ -351,7 +351,7 @@ class plg_Search extends core_Plugin
                     setIfNot($maxLen, $query->mvc->maxSearchKeywordLen, PLG_SEARCH_MAX_KEYWORD_LEN, 10);
                     $w = substr($w, 0, $maxLen);
                 }
-                
+
                 if (strpos($w, '*') !== false) {
                     $w = str_replace('*', '%', $w);
                     $w = trim($w, '%');
@@ -380,7 +380,7 @@ class plg_Search extends core_Plugin
                             }
                         }
                     }
-                    
+
                     if (self::isStopWord($w) || !empty($query->mvc->dbEngine) || $limit > 0 || $query->dontUseFts) {
                         if ($limit > 0 && $like == 'LIKE') {
                             $field1 = "LEFT(#{$field}, {$limit})";
@@ -400,13 +400,13 @@ class plg_Search extends core_Plugin
                             $cond .= ($cond ? " AND " : '' ) . "LOCATE('{$w}', #{$field}) = 0";
                         }
                     }
+
+                    if($cond) {
+                        $query->where($cond);
+                    }
                 }
             }
 
-            if($cond) {
-                $query->where($cond);
-            }
-            
             if (!$longWordsCnt && self::isBigTable($query)) {
                 $query->isSlowQuery = true;
             }
