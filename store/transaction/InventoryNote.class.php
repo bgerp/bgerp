@@ -98,7 +98,8 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                         if (Mode::get('saveTransaction')) {
                             $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
                         } else {
-                            $amount = 0;
+                            // $amount = 0;
+                            $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
                         }
                     } else {
                         $amount = $dRec->delta * $amount;
