@@ -92,7 +92,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                     Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
                     //---
                 if (!isset($amount)) {
-                    $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
+                    $amount = cat_Products::getPrimeCost($dRec->productId, null, null, $rec->valior);
                 }
                 //---
                 } else {
