@@ -134,8 +134,6 @@ class acc_strategy_WAC extends acc_strategy_Strategy
         expect(isset($accRec->strategy));
         $feedWithNegativeBlQuantity = acc_Setup::get('FEED_STRATEGY_WITH_NEGATIVE_QUANTITY');
 
-        $haveBQ = $haveJQ = false;
-
         // Ако има предишен баланс, захранваме стратегията с крайните му салда, ако са положителни
         if ($balanceRec = cls::get('acc_Balances')->getBalanceBefore($from)) {
             $bQuery = acc_BalanceDetails::getQuery();
@@ -150,13 +148,10 @@ class acc_strategy_WAC extends acc_strategy_Strategy
                 // "Захранваме" обекта стратегия с количество и сума, ако к-то е неотрицателно (освен изрично не се иска)
                 if ($bRec->blQuantity >= 0 || Mode::is('alwaysFeedWacStrategyWithBlQuantity') || $feedWithNegativeBlQuantity == 'yes') {
                     $strategy->feed($bRec->blQuantity, $bRec->blAmount);
-                    $haveBQ = true;
                 }
             }
         }
-
-        $strategyArr = array();
-
+        
         // За всеки запис
         while ($rec = $jQuery->fetch()) {
             
@@ -180,8 +175,6 @@ class acc_strategy_WAC extends acc_strategy_Strategy
                         
                         // Захранваме сметката със съответното к-во и сума
                         $strategy->feed($rec->{"{$type}Quantity"}, $rec->amount);
-                        $strategyArr[] = array('q' => $rec->{"{$type}Quantity"}, 'a' => $rec->amount);
-                        $haveJQ = true;
                     }
                 }
             }
@@ -189,18 +182,7 @@ class acc_strategy_WAC extends acc_strategy_Strategy
         
         // Опитваме се да намерим сумата за к-то
         $amount = $strategy->consume($quantity);
-
-        // Ако стойностите от баланса и журнала се самоизключват, да се взема само журнала
-        if (!isset($amount) && $haveJQ && $haveBQ) {
-            $strategy = new acc_strategy_WAC($accRec->id);
-            foreach ($strategyArr as $sArr) {
-                $strategy->feed($sArr['q'], $sArr['a']);
-
-                // Опитваме се да намерим сумата за к-то
-                $amount = $strategy->consume($quantity);
-            }
-        }
-
+        
         // Ако няма сума и няма максимален брой опити или има максимален брой и не сме ги достигнали
         if (!isset($amount) && (!isset($maxTries) || (isset($maxTries) && $currentTry < $maxTries))) {
             
