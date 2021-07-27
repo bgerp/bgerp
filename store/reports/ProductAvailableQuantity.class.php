@@ -84,7 +84,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $fieldset->FLD('typeOfQuantity', 'enum(available=Налично,free=Разполагаемо)', 'caption=Количество,removeAndRefreshForm,single=none,silent,after=limmits');
 
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,input=hidden,single=none');
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,input=hidden,silent,single=none');
 
         $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на артикула|Мярка / Наименование|Мин к-во|Макс к-во,widths=5em|20em|5em|5em)', 'caption=Артикули||Additional,autohide,advanced,after=date,single=none');
 
@@ -128,10 +128,6 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         if ($rec->typeOfQuantity == 'free') {
             $form->setField('date', 'input');
-            $today = dt::today();
-            if (!$rec->date) {
-                $rec->date = $today;
-            }
         }
 
         if (!$rec->additional) {
@@ -163,7 +159,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if ($form->isSubmitted()) {
 
             //При избрано количество РАЗПОЛАГАЕМО проверяваме датата да е поголяма от днес
-            if ($form->rec->date < dt::today()) {
+            if ($form->rec->date && $form->rec->date < dt::today()) {
                 $form->setError('date', 'Датата не може да бъде минала');
             }
 
