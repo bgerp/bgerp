@@ -105,7 +105,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                     }
                 }
 
-                if (!$amount) {
+                if (!isset($amount)) {
                     $errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                 }
                 
