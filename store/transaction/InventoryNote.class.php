@@ -91,6 +91,10 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                     $amount = cat_Products::getWacAmountInStore($dRec->delta, $dRec->productId, $rec->valior, $rec->storeId);
                     Mode::pop('alwaysFeedWacStrategyWithBlQuantity');
 
+                    if (!isset($amount)) {
+                        $amount = cat_Products::getPrimeCost($dRec->productId, null, $dRec->delta, $rec->valior);
+                    }
+
                 } else {
 
                     // Ако не се занулява, ще се засклади с мениджърската сб-ст или със складовата, ако първата не е зададена
