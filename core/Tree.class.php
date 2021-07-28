@@ -44,7 +44,9 @@ class core_Tree extends core_BaseClass
         $pid = -1;
         
         $nodesCnt = countR($nodes);
-        
+
+        $currentPath = '';
+
         foreach ($nodes as $key => $node) {
             $currentPath .= ($currentPath ? '->' : '') . $node;
             
@@ -114,15 +116,58 @@ class core_Tree extends core_BaseClass
         $jsTpl->append("\n{$name}.icon.minusBottom = " . sbf('img/dtree/minusbottom.gif', "'") . ';', 'treeDesciption');
         $jsTpl->append("\n{$name}.icon.nlPlus = " . sbf('img/dtree/nolines_plus.gif', "'") . ';', 'treeDesciption');
         $jsTpl->append("\n{$name}.icon.nlMinus = " . sbf('img/dtree/nolines_minus.gif', "'") . ';', 'treeDesciption');
-        
-        foreach ($this->nodes as $path => $n) {
+
+        $treeDescription = '';
+
+        // Ако има файл, който не е в папка, тогава добавяме едно подниво, за да се показва иконата
+        $fixPid = false;
+        foreach ($this->nodes as $n) {
+            if (($n->pid == -1) && ($n->url)) {
+                $fixPid = true;
+
+                break;
+            }
+        }
+
+        if ($fixPid) {
+            $treeDescription .= "\n{$name}.add(0,-1,'');";
+            foreach ($this->nodes as $n) {
+                $n->id++;
+                $n->pid++;
+            }
+        }
+
+        foreach ($this->nodes as $n) {
+            $iconPath = '';
+
+            if ($n->url) {
+                $title = mb_strtolower($n->title);
+                $ext = fileman::getExt($title);
+
+                $iconPath = "fileman/icons/16/{$ext}.png";
+
+                //Ако не можем да намерим икона за съответното разширение
+                if (!is_file(getFullPath($iconPath))) {
+
+                    // Използваме иконата по подразбиране
+                    $iconPath = 'fileman/icons/16/default.png';
+                }
+
+                $iconPath = sbf($iconPath, "");
+                $iconPath = json_encode($iconPath);
+            }
+
+
             $n->title = json_encode($n->title);
             $n->url = json_encode($n->url);
-            
-            // Генерираме стринга
-            $treeDescription .= "\n{$name}.add({$n->id}, {$n->pid}, {$n->title}, {$n->url});";
+
+            if ($iconPath) {
+                $treeDescription .= "\n{$name}.add({$n->id}, {$n->pid}, {$n->title}, {$n->url}, '', '', {$iconPath});";
+            } else {
+                $treeDescription .= "\n{$name}.add({$n->id}, {$n->pid}, {$n->title}, {$n->url});";
+            }
         }
-        
+
         // Аппендваме стринга
         $jsTpl->append($treeDescription, 'treeDesciption');
         
