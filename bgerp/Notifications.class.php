@@ -418,7 +418,7 @@ class bgerp_Notifications extends core_Manager
      * Скрива посочените записи
      * Обикновено след Reject
      */
-    public static function setHidden($urlArr, $hidden = 'yes', $userId = null)
+    public static function setHidden($urlArr, $hidden = 'yes', $userId = null, $tId = null)
     {
         $url = toUrl($urlArr, 'local', false);
         
@@ -434,7 +434,14 @@ class bgerp_Notifications extends core_Manager
         if ($userId) {
             $query->where("#userId = '{$userId}'");
         }
-        
+
+        if ($tId) {
+            $shareArr = doc_ThreadUsers::getShared($tId);
+            $subArr = doc_ThreadUsers::getSubscribed($tId);
+        } else {
+            $shareArr = $subArr = array();
+        }
+
         while ($rec = $query->fetch()) {
             
             // Ако ще се скрива
@@ -449,21 +456,44 @@ class bgerp_Notifications extends core_Manager
                 
                 // Ако няма нито един брой
                 if ($rec->cnt == 0) {
-                    
-                    // Скриваме
-                    $rec->hidden = $hidden;
+                    if (!$tId) {
+                        // Скриваме
+                        $rec->hidden = $hidden;
+                    } else {
+                        if ($rec->userId) {
+                            if (!$shareArr[$rec->userId] && !$subArr[$rec->userId]) {
+                                $rec->hidden = $hidden;
+                            } else {
+                                $rec->cnt++;
+                            }
+                        }
+                    }
                 }
             } elseif ($hidden == 'no') {
                 
                 // Ако ще се визуализира
                 
-                // Увеличаваме с единица
-                $rec->cnt++;
-                
-                // Показваме
-                $rec->hidden = $hidden;
+                if (!$tId) {
+                    // Увеличаваме с единица
+                    $rec->cnt++;
+
+                    // Показваме
+                    $rec->hidden = $hidden;
+                } else {
+                    if ($rec->userId) {
+
+                        if ($shareArr[$rec->userId] || $subArr[$rec->userId]) {
+                            $rec->hidden = $hidden;
+                            $rec->cnt++;
+                        } else {
+                            $rec->cnt++;
+                        }
+                    } else {
+                        $rec->cnt++;
+                    }
+                }
             }
-            
+
             self::save($rec);
         }
     }
