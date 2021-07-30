@@ -230,10 +230,10 @@ class distro_Group extends core_Master
     {
         // Ако ще разглеждаме сингъла на документа
         if ($action == 'single') {
-            
+
             // Ако нямаме права в нишката
-            if (!doc_Threads::haveRightFor('single', $rec->threadId)) {
-                
+            if (!doc_Threads::haveRightFor('single', $rec->threadId, $userId)) {
+
                 // Никой да не може
                 $requiredRoles = 'no_one';
             }
