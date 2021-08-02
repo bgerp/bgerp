@@ -83,7 +83,39 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             }
         }
 
-        foreach ($sendAll as $sendRec) {
+        $receivedQuery = store_ConsignmentProtocolDetailsReceived::getQuery();
+        $receivedQuery->where("#protocolId = {$rec->id}");
+
+        $receivedAll = $receivedQuery->fetchAll();
+
+        $sendArr = $receivedArr = array();
+        array_walk($sendAll, function($a) use (&$sendArr) {$sendArr[$a->productId] = $a;});
+        array_walk($receivedAll, function($a) use (&$receivedArr) {$receivedArr[$a->productId] = $a;});
+
+        // Ако е за "Наши артикули"
+        if($rec->productType == 'ours'){
+
+            // Има ли артикули, които се предават и връщат със същия документ
+            $intersectedArr = array_keys(array_intersect_key($sendArr, $receivedArr));
+
+            // Ако има ще се отчита само резултатната операция, целта е да не се кръстостват сметките със стратегия
+            foreach ($intersectedArr as $intersectedProductId){
+                $clone = clone $sendArr[$intersectedProductId];
+                $clone->quantity = $sendArr[$intersectedProductId]->quantity -= $receivedArr[$intersectedProductId]->quantity;
+                $clone->packQuantity = $clone->quantity /= $clone->quantityInPack;
+                unset($sendArr[$intersectedProductId], $receivedArr[$intersectedProductId]);
+
+                if($clone->quantity > 0){
+                    $sendArr[$intersectedProductId] = $clone;
+                } elseif($clone->quantity < 0){
+                    $clone->quantity = abs($clone->quantity);
+                    $clone->packQuantity = abs($clone->packQuantity);
+                    $receivedArr[$intersectedProductId] = $clone;
+                }
+            }
+        }
+
+        foreach ($sendArr as $sendRec) {
             $productsArr[$sendRec->productId] = $sendRec->productId;
             $quantity = $sendRec->quantityInPack * $sendRec->packQuantity;
             $debitAccId = ($rec->productType == 'ours') ? '3231' : '3232';
@@ -108,9 +140,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
         }
         
         // Намираме всички върнати артикули
-        $receivedQuery = store_ConsignmentProtocolDetailsReceived::getQuery();
-        $receivedQuery->where("#protocolId = {$rec->id}");
-        while ($recRec = $receivedQuery->fetch()) {
+        foreach ($receivedArr as $recRec) {
             $productsArr[$recRec->productId] = $recRec->productId;
             $quantity = $recRec->quantityInPack * $recRec->packQuantity;
             $creditAccId = ($rec->productType == 'ours') ? '3231' : '3232';
