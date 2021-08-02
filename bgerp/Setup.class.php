@@ -100,12 +100,6 @@ Conto,Реконтиране = K
 
 
 /**
- * Изглед на портала на системата
- */
-defIfNot('BGERP_PORTAL_VIEW', 'customized');
-
-
-/**
  * class 'bgerp_Setup' - Начално установяване на 'bgerp'
  *
  *
@@ -171,8 +165,6 @@ class bgerp_Setup extends core_ProtoSetup
         'BGERP_CLOSE_UNDELIVERED_OVER' => array('percent(min=0)', 'caption=Допустимо автоматично приключване на сделка при "Доставено" минимум->Процент'),
         
         'BGERP_ACCESS_KEYS' => array('text(rows=6)', 'caption=Клавиши за бързо избиране на бутони->Дефиниции, customizeBy=powerUser'),
-        
-        'BGERP_PORTAL_VIEW' => array('enum(standard=Стандартен,customized=Настройваем)', 'caption=Портал на системата->Изглед, customizeBy=powerUser'),
         
         'BGERP_NOTIFY_ALERT' => array('time(suggestions=1 min|5 min|10 min|20 min|30 min|60 min|2 hours|3 hours|6 hours|12 hours|24 hours)', 'caption=Изчакване преди сигнализация за нови известия->Критични,placeholder=Неограничено, customizeBy=powerUser'),
         
