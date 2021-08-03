@@ -1,0 +1,112 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+    <div class='scrolling-holder'>
+        <table class="innerTable quote-header paddingCells" style='width:100%;'>
+            <tbody>
+                <tr>
+                    <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
+                    <td class="cellm centered" rowspan="2" style='width:30%;'>
+                        <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|Входяща оферта от доставчик|* </b></div>
+                        <div><b>№[#number#]</b></div>
+                        <div style='margin-top:5px;'><b>[#date#]</b></div>
+                        <!--ET_BEGIN clonedFromId-->
+                        <div style='font-size:0.8em'>(|клонирано от|* [#clonedFromId#])</div>
+                        <!--ET_END clonedFromId-->
+                        <!--ET_BEGIN buzPlace-->
+                        <div class='quiet-small'>|Място|*</div>
+                        <div><b>[#buzPlace#]</b></div>
+                        <!--ET_END buzPlace-->
+                        <!--ET_BEGIN reff-->
+                        <div class='quiet-small'>|Ваш реф. №|*</div>
+                        <div><b>[#reff#]</b></div>
+                        <!--ET_END reff-->
+                    </td>
+                    <td class="cell custom-header-bg" style='width:35%;'><b>|Доставчик|*</b> </td>
+                </tr>
+                <tr>
+                    <td class="cell">
+                        <!--ET_BEGIN company--><div><b>[#company#]</b></div><!--ET_END company-->
+                        <!--ET_BEGIN person--> <div><b>[#person#]</b></div><!--ET_END person-->
+                        <div class='address-block'>
+                         [#contragentCountryId#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]<!--ET_BEGIN tel-->,<br>
+                         <!--ET_BEGIN tel-->[#tel#]<!--ET_END tel--><!--ET_BEGIN fax-->, [#fax#] <!--ET_END fax--><!--ET_BEGIN email-->, [#email#]<!--ET_END email-->
+                        </div>
+                    </td>
+                    <td class="cell">
+                        <b>[#MyCompany#]</b>
+                        <div class='address-block'>
+                         [#mycompanyCountryId#]<br> <!--ET_BEGIN mycompanypCode-->[#mycompanypCode#] <!--ET_END mycompanypCode-->[#mycompanyplace#]<br> [#mycompanyaddress#]
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!--ET_BEGIN TRANSPORT_BAR-->
+            [#sales/tpl/TransportStatistic.shtml#]
+        <!--ET_END TRANSPORT_BAR-->
+    </div>
+    <div class="clearfix21"></div>
+    <!--ET_BEGIN MANDATORY-->
+    <div id='details-holder'>
+        [#MANDATORY#]
+    </div>
+    <!--ET_END MANDATORY-->
+    <!--ET_BEGIN OPTIONAL-->
+    <div id='optional-holder'>
+        [#OPTIONAL#]
+    </div>
+    <!--ET_END OPTIONAL-->
+    [#ListToolbar#]
+     <div class='scrolling-holder'>
+	    <table  class = 'products-table' style='width:100%;'>
+	        <tr>
+	            <th>|Условия на офертата|*</th>
+	            <th>|Съставил|*</th>
+	        </tr>
+	        <tr>
+	            <td> 
+	                <ol id='conditions'>
+	                    <!--ET_BEGIN validFor-->
+			            <li> |Валидност на офертата|*: [#validFor#] (|до|* [#validDate#])</li>
+			            <!--ET_END validFor-->
+			            <!--ET_BEGIN paymentMethodId-->
+			            <li>|Начин на плащане|*: [#paymentMethodId#]</li>
+			            <!--ET_END paymentMethodId-->
+			            <!--ET_BEGIN bankAccountId-->
+			            <li>|Банкова сметка|*: [#bankAccountId#]</li>
+			            <!--ET_END bankAccountId-->
+			            <!--ET_BEGIN deliveryTermId-->
+				        <li>|Доставка|*: [#deliveryTermId#]</li>
+				        <!--ET_END deliveryTermId-->
+				        [#deliveryBlock#]
+				        <!--ET_BEGIN deliveryTermTime-->
+				        <li>|Срок на доставка|*: [#deliveryTermTime#]</li>
+				        <!--ET_END deliveryTermTime-->
+				        <!--ET_BEGIN deliveryTime-->
+				        <li>|Доставка до|*: [#deliveryTime#]</li>
+				        <!--ET_END deliveryTime-->
+				        
+				        <!--ET_BEGIN deliveryError-->
+	                    <li><b class='red'>[#deliveryError#]</b></li>
+	                    <!--ET_END deliveryError-->
+				        <!--ET_BEGIN deliveryPlaceId-->
+				        <li>[#deliveryPlaceCaption#]: [#deliveryPlaceId#]</li>
+				        <!--ET_END deliveryPlaceId-->
+				        <!--ET_BEGIN others-->
+				        [#others#]
+				        <!--ET_END others-->
+				        <!--ET_BEGIN commonConditionQuote-->
+				        <li>|Общи условия по продажба|*: [#commonConditionQuote#]</li>
+				        <!--ET_END commonConditionQuote-->
+			        </ol>
+	            </td>
+	            <td class="centered" style='vertical-align: bottom !important;'>
+	              <div class='sign_names' style='margin-top: 50px;'>/ [#username#] /</div>
+	            </td>
+	        </tr>
+	    </table>
+    </div>
+    <div class='footerDocBlock no-border-top'>
+        [#/doc/tpl/Copyright.shtml#]
+    </div>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

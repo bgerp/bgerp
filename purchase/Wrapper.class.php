@@ -28,6 +28,8 @@ class purchase_Wrapper extends plg_ProtoWrapper
         $this->TAB('purchase_Vops', 'Протоколи->ВОП', 'ceo,purchase');
         $this->TAB('purchase_ClosedDeals', 'Приключвания', 'ceo,purchase');
         $this->TAB('purchase_PurchasesData', 'Дебъг->Покупки', 'admin,ceo,debug');
+        $this->TAB('purchase_Quotations', 'Дебъг->Оферти', 'ceo,debug');
+
         
         $this->title = 'Покупки « Доставки';
         Mode::set('menuPage', 'Доставки:Покупки');

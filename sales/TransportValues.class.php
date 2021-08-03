@@ -577,10 +577,10 @@ class sales_TransportValues extends core_Manager
         
         // Ако може да се изчислява скрит транспорт
         if ($params['deliveryCalcTransport'] != 'yes' && !cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
-           
+
             return;
         }
-        
+
         // Пощенския код и ид-то на държавата
         $codeAndCountryArr = self::getCodeAndCountryId($contragentClassId, $contragentId, $pCode, $countryId, $deliveryLocationId);
         
@@ -590,7 +590,7 @@ class sales_TransportValues extends core_Manager
         $ourCompany = crm_Companies::fetchOurCompany();
         $params = $params + array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode'], 'fromCountry' => $ourCompany->country, 'fromPostalCode' => $ourCompany->pCode);
         $feeArr = self::getTransportCost($deliveryTermId, $productId, $packagingId, $quantity, $totalWeight, $params);
-        
+
         return $feeArr;
     }
     

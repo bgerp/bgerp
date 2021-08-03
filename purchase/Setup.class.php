@@ -114,6 +114,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_InvoiceDetails',
         'purchase_Vops',
         'purchase_PurchasesData',
+        'purchase_Quotations',
         'migrate::updateInvoiceJournalDate',
     );
     
