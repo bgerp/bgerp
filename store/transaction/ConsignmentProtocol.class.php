@@ -105,12 +105,12 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
                 $clone->packQuantity = $clone->quantity /= $clone->quantityInPack;
                 unset($sendArr[$intersectedProductId], $receivedArr[$intersectedProductId]);
 
-                if($clone->quantity > 0){
-                    $sendArr[$intersectedProductId] = $clone;
-                } elseif($clone->quantity < 0){
+                if($clone->quantity < 0){
                     $clone->quantity = abs($clone->quantity);
                     $clone->packQuantity = abs($clone->packQuantity);
                     $receivedArr[$intersectedProductId] = $clone;
+                } else {
+                    $sendArr[$intersectedProductId] = $clone;
                 }
             }
         }
