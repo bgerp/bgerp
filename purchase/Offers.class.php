@@ -44,7 +44,7 @@ class purchase_Offers extends core_Master
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/doc_table.png';
+    public $singleIcon = 'img/16/view.png';
     
     
     /**

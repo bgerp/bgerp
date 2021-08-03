@@ -75,7 +75,6 @@ class deals_QuotationDetails extends doc_Detail
      */
     protected function addDetailFields($mvc)
     {
-        $mvc->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
         $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Артикул,notNull,mandatory,silent,removeAndRefreshForm=packPrice|discount|packagingId');
 
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName)', 'caption=Мярка,mandatory', 'tdClass=small-field nowrap,smartCenter,input=hidden');
@@ -111,6 +110,7 @@ class deals_QuotationDetails extends doc_Detail
         $masterRec = $data->masterRec;
 
         $form->setDefault('showMode', 'detailed');
+
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $this->metaProducts, 'hasnotProperties' => 'generic'));
         if (isset($rec->id)) {
             $data->form->setReadOnly('productId');
@@ -221,8 +221,11 @@ class deals_QuotationDetails extends doc_Detail
             }
 
             // Ако артикула няма опаковка к-то в опаковка е 1, ако има и вече не е свързана към него е това каквото е било досега, ако още я има опаковката обновяваме к-то в опаковка
-            $productInfo = cat_Products::getProductInfo($rec->productId);
-            $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            $rec->quantityInPack = 1;
+            if(isset($rec->productId)){
+                $productInfo = cat_Products::getProductInfo($rec->productId);
+                $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
+            }
             $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
 
             // Проверка дали к-то е под МКП
@@ -359,17 +362,13 @@ class deals_QuotationDetails extends doc_Detail
     {
         $newRows = array();
         $error = '';
+
         // Подготвяме бутоните за добавяне на нов артикул
         if ($this->haveRightFor('add', (object) array('quotationId' => $data->masterId))) {
-            $products = cat_Products::getProducts($data->masterData->rec->contragentClassId, $data->masterData->rec->contragentId, $data->masterData->rec->date, 'canSell', null, 1);
-            if (!countR($products)) {
-                $error = 'error=Няма продаваеми артикули,';
-            }
-
             $data->addNotOptionalBtn = ht::createBtn('Артикул', array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => true), false, false, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
             $data->addOptionalBtn = ht::createBtn('Опционален артикул', array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на опционален артикул към офертата");
 
-            if ($this->haveRightFor('createProduct', (object) array('quotationId' => $data->masterId))) {
+            if ($this->hasPlugin('cat_plg_CreateProductFromDocument') && $this->haveRightFor('createProduct', (object) array('quotationId' => $data->masterId))) {
                 $data->addNewProductBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
                 $data->addNewProductOptionalBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
             }
@@ -852,9 +851,9 @@ class deals_QuotationDetails extends doc_Detail
 
         // Шаблон за задължителните продукти
         $shortest = false;
-        $templateFile = ($data->countNotOptional && $data->notOptionalHaveOneQuantity) ? 'sales/tpl/LayoutQuoteDetailsShort.shtml' : 'sales/tpl/LayoutQuoteDetails.shtml';
+        $templateFile = ($data->countNotOptional && $data->notOptionalHaveOneQuantity) ? $this->shortDetailFile : $this->normalDetailFile;
         if ($data->countNotOptional == 1 && $data->notOptionalHaveOneQuantity) {
-            $templateFile = 'sales/tpl/LayoutQuoteDetailsShortest.shtml';
+            $templateFile = $this->shortestDetailFile;
             $shortest = true;
         }
 

@@ -58,10 +58,29 @@ class sales_QuotationsDetails extends deals_QuotationDetails
 
 
     /**
+     * Дефолтен шаблон за показване на детайлите
+     */
+    public $normalDetailFile = 'sales/tpl/LayoutQuoteDetails.shtml';
+
+
+    /**
+     * Кратък шаблон за показване на детайлите
+     */
+    public $shortDetailFile = 'sales/tpl/LayoutQuoteDetailsShort.shtml';
+
+
+    /**
+     * Най-кратък шаблон за показване на детайлите
+     */
+    public $shortestDetailFile = 'sales/tpl/LayoutQuoteDetailsShortest.shtml';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
+        $this->FLD('quotationId', 'key(mvc=sales_Quotations)', 'column=none,notNull,silent,hidden,mandatory');
         parent::addDetailFields($this);
     }
     

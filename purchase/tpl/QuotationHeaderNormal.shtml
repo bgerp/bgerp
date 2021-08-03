@@ -5,7 +5,7 @@
                 <tr>
                     <td class="cell custom-header-bg" style='width:35%;'><b>|Получател|*</b></td>
                     <td class="cellm centered" rowspan="2" style='width:30%;'>
-                        <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|Входяща оферта от доставчик|* </b></div>
+                        <div class='invoiceTitle' style='font-size:1.2em;margin-bottom:5px'><b>|ОФЕРТА ОТ ДОСТАВЧИК|* </b></div>
                         <div><b>№[#number#]</b></div>
                         <div style='margin-top:5px;'><b>[#date#]</b></div>
                         <!--ET_BEGIN clonedFromId-->
@@ -24,26 +24,22 @@
                 </tr>
                 <tr>
                     <td class="cell">
-                        <!--ET_BEGIN company--><div><b>[#company#]</b></div><!--ET_END company-->
-                        <!--ET_BEGIN person--> <div><b>[#person#]</b></div><!--ET_END person-->
+                        <b>[#MyCompany#]</b>
                         <div class='address-block'>
-                         [#contragentCountryId#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]<!--ET_BEGIN tel-->,<br>
-                         <!--ET_BEGIN tel-->[#tel#]<!--ET_END tel--><!--ET_BEGIN fax-->, [#fax#] <!--ET_END fax--><!--ET_BEGIN email-->, [#email#]<!--ET_END email-->
+                            [#mycompanyCountryId#]<br> <!--ET_BEGIN mycompanypCode-->[#mycompanypCode#] <!--ET_END mycompanypCode-->[#mycompanyplace#]<br> [#mycompanyaddress#]
                         </div>
                     </td>
                     <td class="cell">
-                        <b>[#MyCompany#]</b>
+                        <!--ET_BEGIN company--><div><b>[#company#]</b></div><!--ET_END company-->
+                        <!--ET_BEGIN person--> <div><b>[#person#]</b></div><!--ET_END person-->
                         <div class='address-block'>
-                         [#mycompanyCountryId#]<br> <!--ET_BEGIN mycompanypCode-->[#mycompanypCode#] <!--ET_END mycompanypCode-->[#mycompanyplace#]<br> [#mycompanyaddress#]
+                            [#contragentCountryId#]<br> <!--ET_BEGIN pCode-->[#pCode#] <!--ET_END pCode-->[#place#]<br> [#address#]<!--ET_BEGIN tel-->,<br>
+                            <!--ET_BEGIN tel-->[#tel#]<!--ET_END tel--><!--ET_BEGIN fax-->, [#fax#] <!--ET_END fax--><!--ET_BEGIN email-->, [#email#]<!--ET_END email-->
                         </div>
                     </td>
                 </tr>
             </tbody>
         </table>
-        
-        <!--ET_BEGIN TRANSPORT_BAR-->
-            [#sales/tpl/TransportStatistic.shtml#]
-        <!--ET_END TRANSPORT_BAR-->
     </div>
     <div class="clearfix21"></div>
     <!--ET_BEGIN MANDATORY-->

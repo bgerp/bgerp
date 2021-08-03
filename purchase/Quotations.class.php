@@ -58,7 +58,7 @@ class purchase_Quotations extends deals_QuotationMaster
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/quotation.png';
+    public $singleIcon = 'img/16/doc_table.png';
 
 
     /**
@@ -82,7 +82,7 @@ class purchase_Quotations extends deals_QuotationMaster
     /**
      * Детайла, на модела
      */
-    //public $details = 'purchase_QuotationsDetails';
+    public $details = 'purchase_QuotationDetails';
 
 
     /**
@@ -90,7 +90,7 @@ class purchase_Quotations extends deals_QuotationMaster
      *
      * @var string - име на клас
      */
-    //public $mainDetail = 'purchase_QuotationsDetails';
+    public $mainDetail = 'purchase_QuotationDetails';
 
 
     /**
@@ -110,7 +110,7 @@ class purchase_Quotations extends deals_QuotationMaster
      *
      * @see plg_Clone
      */
-    //public $cloneDetails = 'purchase_QuotationsDetails';
+    public $cloneDetails = 'purchase_QuotationDetails';
 
 
     /**
