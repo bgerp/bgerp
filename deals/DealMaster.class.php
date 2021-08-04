@@ -2017,16 +2017,17 @@ abstract class deals_DealMaster extends deals_DealBase
             // Подаваме намерената форма в урл-то за връщане
             return new Redirect($retUrl);
         }
-        
+
+        $singleTitle = mb_strtolower($this->singleTitle);
         $quotationId = Request::get('quotationId', 'int');
         $rejectUrl = toUrl(array('sales_Quotations', 'single', $quotationId));
-        $form->title = '|Прехвърляне в|* ' . mb_strtolower($this->singleTitle) . ' ' . tr('на') . ' ' . cls::get('sales_Quotations')->getFormTitleLink($quotationId);
+        $form->title = '|Прехвърляне в|* ' . $singleTitle . ' ' . tr('на') . ' ' . cls::get('sales_Quotations')->getFormTitleLink($quotationId);
         
         $forceUrl = $retUrl;
         $forceUrl['force'] = true;
         
         $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
-        $form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = Създаване на нова продажба');
+        $form->toolbar->addBtn("Нова {$singleTitle}", $forceUrl, "ef_icon = img/16/star_2.png, title = Създаване на нова {$singleTitle}");
         $form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         if (core_Users::haveRole('partner')) {

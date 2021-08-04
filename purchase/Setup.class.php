@@ -62,6 +62,12 @@ defIfNot('PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '432000');
 
 
 /**
+ * Дефолтно действие при създаване на нова продажба в папка
+ */
+defIfNot('PURCHASE_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -141,8 +147,12 @@ class purchase_Setup extends core_ProtoSetup
         'PURCHASE_ADD_BY_LIST_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в покупка от->Списък'),
         'PURCHASE_NEW_PURCHASE_AUTO_ACTION_BTN' => array(
             'enum(none=Договор в "Чернова",form=Създаване на договор,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни покупки)',
-            'mandatory,caption=Действие на бързия бутон "Покупка" в папките->Избор,customizeBy=ceo|sales|purchase',
+            'mandatory,caption=Действие на бързия бутон "Покупка" и "Оферта от доставчик" в папките->Покупка,customizeBy=ceo|sales|purchase',
          ),
+        'PURCHASE_NEW_QUOTATION_AUTO_ACTION_BTN' => array(
+            'enum(none=Оферта в "Чернова",form=Създаване на оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
+            'mandatory,caption=Действие на бързия бутон "Покупка" и "Оферта от доставчик" в папките->Оферта от доставчик,customizeBy=ceo|sales|purchase',
+        ),
         'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификацията за нефактурирани авансови сделки->Време'),
     );
     
@@ -160,8 +170,23 @@ class purchase_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'purchase_PurchaseLastPricePolicy,purchase_reports_PurchasedItems';
-    
-    
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Close invalid quotations from suppliers',
+            'description' => 'Затваряне на остарелите оферти от доставчици',
+            'controller' => 'purchase_Quotations',
+            'action' => 'CloseQuotations',
+            'period' => 1440,
+            'timeLimit' => 360
+        ),
+    );
+
+
     /**
      * Инсталиране на пакета
      */

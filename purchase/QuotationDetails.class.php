@@ -80,7 +80,7 @@ class purchase_QuotationDetails extends deals_QuotationDetails
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'tolerance,term,weight,quantityInPack';
+    public $fieldsNotToClone = '';
 
 
     /**

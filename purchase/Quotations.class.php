@@ -171,10 +171,27 @@ class purchase_Quotations extends deals_QuotationMaster
     public function loadSetupData()
     {
         $tplArr = array();
-        $tplArr[] = array('name' => 'Входяща оферта от доставчик нормален изглед', 'content' => 'purchase/tpl/QuotationHeaderNormal.shtml', 'lang' => 'bg', 'narrowContent' => null);
-        //$tplArr[] = array('name' => 'Quotation', 'content' => 'sales/tpl/QuotationHeaderNormalEng.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/QuotationHeaderNormalEngNarrow.shtml');
+        $tplArr[] = array('name' => 'Оферта от доставчик', 'content' => 'purchase/tpl/QuotationHeaderNormal.shtml', 'lang' => 'bg', 'narrowContent' => 'purchase/tpl/QuotationHeaderNormalNarrow.shtml');
+        $tplArr[] = array('name' => 'Quotation from supplier', 'content' => 'purchase/tpl/QuotationHeaderNormalEng.shtml', 'lang' => 'en', 'narrowContent' => 'purchase/tpl/QuotationHeaderNormalEngNarrow.shtml');
         $res = doc_TplManager::addOnce($this, $tplArr);
 
         return $res;
+    }
+
+
+    /**
+     * Функция, която прихваща след активирането на документа
+     * Ако офертата е базирана на чернова  артикула, активираме и нея
+     */
+    protected static function on_AfterActivation($mvc, &$rec)
+    {
+        $rec = $mvc->fetch($rec->id, 'contragentClassId,contragentId');
+
+        // Ако офертата е в папка на контрагент вкарва се в група Доставчици->Оферти
+        $supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+        $groupRec = (object)array('name' => 'Оферти', 'sysId' => 'supplierQuote', 'parentId' => $supplierGroupId);
+        $groupId = crm_Groups::forceGroup($groupRec);
+
+        cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
     }
 }
