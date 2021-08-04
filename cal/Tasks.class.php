@@ -1237,18 +1237,6 @@ class cal_Tasks extends embed_Manager
             // Задаваме броя на елементите в страница
             $mvc->listItemsPerPage = 1000000;
         }
-        
-        if ($data->usePortalArrange !== false) {
-            if (Request::get('Ctr') == 'Portal') {
-                // Задаваме броя на елементите в страница
-                $portalArrange = core_Setup::get('PORTAL_ARRANGE');
-                if ($portalArrange == 'recentlyNotifyTaskCal') {
-                    $mvc->listItemsPerPage = 10;
-                } else {
-                    $mvc->listItemsPerPage = 20;
-                }
-            }
-        }
     }
     
     

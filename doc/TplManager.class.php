@@ -156,12 +156,13 @@ class doc_TplManager extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->setOptions('docClassId', static::getClassesWithTemplates());
-        $data->listFilter->setField('docClassId', "placeholder=Всички документи");
+        $data->listFilter->setField('docClassId', "placeholder=Всички документи,silent");
         $data->listFilter->showFields = 'docClassId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input(null, 'silent');
         $data->listFilter->input();
-        
+
         if($data->listFilter->isSubmitted()){
             if(!empty($data->listFilter->rec->docClassId)){
                 $data->query->where("#docClassId = {$data->listFilter->rec->docClassId}");
@@ -424,7 +425,8 @@ class doc_TplManager extends core_Master
     {
         $skipped = $added = $updated = 0;
         $mvc = cls::get($mvc);
-        
+
+        $notificationArr = array();
         foreach ($tplArr as $object) {
             $object['docClassId'] = $mvc->getClassId();
             $object = (object) $object;
@@ -473,12 +475,33 @@ class doc_TplManager extends core_Master
             
             $object->createdBy = core_Users::SYSTEM_USER;
             $object->state = $newState;
-            
+
+            // Ако ще се обновява съществуващ системен шаблон
+            if($object->id){
+                $clQuery = static::getQuery();
+                $clQuery->where("#originId = {$object->id}");
+
+                // и той вече е клониран в други шаблони
+                while($clRec = $clQuery->fetch()){
+                    $url = array('doc_TplManager', 'list', 'docClassId' => $clRec->docClassId);
+                    $notificationArr[$clRec->createdBy][$object->id] = (object)array('url' => $url, 'msg' => "Променен е шаблон|* '{$object->name}', |моля редактирайте шаблоните, които са клонирани от него|*!");
+                }
+            }
+
             static::save($object);
             
             ($object->id) ? $updated++ : $added++;
         }
-        
+
+        // Нотифициране на потребителите, клонирали променен вече шаблон
+        if(countR($notificationArr)){
+            foreach ($notificationArr as $userId => $messages){
+                foreach ($messages as $msgArr){
+                    bgerp_Notifications::add($msgArr->msg, $msgArr->url, $userId, 'alert');
+                }
+            }
+        }
+
         $class = ($added > 0 || $updated > 0) ? ' class="green"' : '';
         
         $res = "<li{$class}>Добавени са {$added} шаблона за " . mb_strtolower($mvc->title) . ", обновени са {$updated}, пропуснати са {$skipped}</li>";

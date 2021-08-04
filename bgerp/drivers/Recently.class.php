@@ -97,8 +97,6 @@ class bgerp_drivers_Recently extends core_BaseClass
             
             $Recently->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 15;
             
-            $data->usePortalArrange = false;
-            
             // Подготвяме навигацията по страници
             $Recently->prepareListPager($data);
             

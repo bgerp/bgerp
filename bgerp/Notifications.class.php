@@ -993,29 +993,24 @@ class bgerp_Notifications extends core_Manager
             return new Redirect(array('Portal', 'show'), "|Успешно {$msg} нотификацията|*{$notifyMsg}");
         }
         
-        if (bgerp_Setup::get('PORTAL_VIEW') == 'customized') {
-            
-            // Да не прескача страницата - при маркиране/отмаркиране или отписване
-            if ($parentUrlStr = Request::get('parentUrl')) {
-                $parentUrlArr = parseLocalUrl($parentUrlStr);
-                $rArr = array();
-                foreach ($parentUrlArr as $fName => $fVal) {
-                    $r = Request::get($fName);
-                    if (!isset($r)) {
-                        $rArr[$fName] = $fVal;
-                    }
-                }
-                
-                if (!empty($rArr)) {
-                    Request::push($rArr);
+        // Да не прескача страницата - при маркиране/отмаркиране или отписване
+        if ($parentUrlStr = Request::get('parentUrl')) {
+            $parentUrlArr = parseLocalUrl($parentUrlStr);
+            $rArr = array();
+            foreach ($parentUrlArr as $fName => $fVal) {
+                $r = Request::get($fName);
+                if (!isset($r)) {
+                    $rArr[$fName] = $fVal;
                 }
             }
-            
-            $res = cls::get('bgerp_Portal')->getPortalBlockForAJAX();
-        } else {
-            $res = $this->action('render');
+
+            if (!empty($rArr)) {
+                Request::push($rArr);
+            }
         }
-        
+
+        $res = cls::get('bgerp_Portal')->getPortalBlockForAJAX();
+
         // Добавяме резултата и броя на нотификациите
         if (is_array($res)) {
             $notifCnt = static::getOpenCnt();

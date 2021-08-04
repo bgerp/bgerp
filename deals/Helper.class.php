@@ -2141,10 +2141,12 @@ abstract class deals_Helper
      * @param bool $useQuotationPrice
      * @param $mvc
      * @param $threadId
+     * @param double $rate
+     * @param string $currencyId
      *
      * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId)
     {
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
@@ -2190,14 +2192,15 @@ abstract class deals_Helper
                 if ($price2Round) {
                     $percent = core_Math::diffInPercent($price1Round, $price2Round);
                     $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
-                    
+                    $price2Round /= $rate;
+
                     if ($diff > $toleranceDiff) {
                         $obj = array();
 
                         if($i == 0 && $percent >= 0){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
                             $obj['hint'] ='Цената е под минималната за клиента';
-                            $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
+                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*";
                             $obj['hintType'] = 'error';
                             
                             return $obj;
@@ -2206,7 +2209,7 @@ abstract class deals_Helper
                         if($i == 1){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
                             $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
-                            $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
+                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
                         
                             return $obj;
@@ -2258,7 +2261,7 @@ abstract class deals_Helper
 
             while ($dRec = $dQuery->fetch()) {
                 $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId)){
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId)){
                     if($checkedObject['hintType'] == 'error'){
                         $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }

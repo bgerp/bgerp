@@ -576,7 +576,7 @@ class sales_TransportValues extends core_Manager
         }
         
         // Ако може да се изчислява скрит транспорт
-        if ($params['deliveryCalcTransport'] != 'yes' && !cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
+        if ($params['deliveryCalcTransport'] != 'yes' || !cond_DeliveryTerms::canCalcHiddenCost($deliveryTermId, $productId)) {
            
             return;
         }
