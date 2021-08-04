@@ -95,7 +95,7 @@ class store_Setup extends core_ProtoSetup
         'store_StockPlanning',
         'migrate::migratePendings',
         'migrate::reconto3231v1',
-        'migrate::updateShipmentOrders'
+        'migrate::updateShipmentOrders1'
     );
     
     
@@ -350,9 +350,9 @@ class store_Setup extends core_ProtoSetup
     /**
      * Миграция за обновяване на ЕН-та
      */
-    public function updateShipmentOrders()
+    public function updateShipmentOrders1()
     {
-        foreach (array('store_ShipmentOrders') as $mvc){
+        foreach (array('store_ShipmentOrders', 'store_Receipts') as $mvc){
             deals_InvoicesToDocuments::migrateContainerIds($mvc);
         }
     }
