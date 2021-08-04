@@ -850,9 +850,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
             // Проверка дали националния номер е валиден за държавата
             if ($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)) {
-                if(!empty($rec->uicNo)){
-                    drdata_type_Uic::check($form, $rec->uicNo, $rec->contragentCountryId, 'uicNo');
-                }
+                drdata_type_Uic::check($form, $rec->uicNo, $rec->contragentCountryId, 'uicNo');
             }
 
             // Ако е ДИ или КИ
