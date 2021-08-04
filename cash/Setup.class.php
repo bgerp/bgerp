@@ -60,6 +60,7 @@ class cash_Setup extends core_ProtoSetup
         'cash_ExchangeDocument',
         'cash_NonCashPaymentDetails',
         'migrate::recontoDocuments',
+        'migrate::updateCashDocuments'
     );
     
     
@@ -92,5 +93,16 @@ class cash_Setup extends core_ProtoSetup
     public function recontoDocuments()
     {
         deals_Setup::recontoPaymentDocuments(array('cash_Pko', 'cash_Rko'));
+    }
+
+
+    /**
+     * Миграция за обновяване на ЕН-та
+     */
+    public function updateCashDocuments()
+    {
+        foreach (array('cash_Pko', 'cash_Rko') as $mvc){
+            deals_InvoicesToDocuments::migrateContainerIds($mvc);
+        }
     }
 }

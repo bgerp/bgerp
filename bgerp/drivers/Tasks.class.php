@@ -141,8 +141,6 @@ class bgerp_drivers_Tasks extends core_BaseClass
             
             $Tasks->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 15;
             
-            $resData->data->usePortalArrange = false;
-            
             // Подготвяме навигацията по страници
             $Tasks->prepareListPager($resData->data);
             

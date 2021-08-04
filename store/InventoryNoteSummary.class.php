@@ -183,7 +183,7 @@ class store_InventoryNoteSummary extends doc_Detail
             return;
         }
         
-        $rec->delta = round($rec->quantity - $rec->blQuantity, 4);
+        $rec->delta = round($rec->quantity - $rec->blQuantity, 6);
     }
     
     

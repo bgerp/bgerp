@@ -111,6 +111,14 @@ class drdata_type_Uic extends type_Varchar
             // Дали е валидно ЕИК ?
             $res = drdata_Vats::isBulstat($uicNo);
             if ($res) {
+                if(!preg_match('/^[0-9]+$/', $uicNo)){
+                    $msg = 'За контрагенти от България, трябва да оставите само цифри.';
+                    if(strpos($uicNo, 'BG') == 0){
+                        $msg = 'За контрагенти от България, трябва да премахнете двубуквения префикс. Или въведете номера в полето за ДДС №!';
+                    }
+                    $isError = true;
+                    return false;
+                }
 
                 return true;
             }
