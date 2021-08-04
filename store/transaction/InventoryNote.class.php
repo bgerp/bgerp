@@ -75,7 +75,7 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
         $dQuery = store_InventoryNoteSummary::getQuery();
         $dQuery->where("#noteId = {$rec->id}");
         $dQuery->where('#charge IS NULL');
-        
+
         core_App::setTimeLimit(600);
         
         while ($dRec = $dQuery->fetch()) {
@@ -113,7 +113,9 @@ class store_transaction_InventoryNote extends acc_DocumentTransactionSource
                 if (!isset($amount)) {
                     $errorArr[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                 }
-                
+                if($amount == -0){
+                    $amount = 0;
+                }
                 $amount = round($amount, 2);
                 $total += $amount;
                 
