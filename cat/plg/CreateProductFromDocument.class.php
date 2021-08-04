@@ -352,18 +352,18 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 
                 $productId = null;
                 $hash = cat_Products::getHash($pRec);
-                
+
                 // Ако артикула има хеш търси се имали друг артикул със същия хеш ако има се добавя
                 if (isset($hash)) {
                     
                     // Филтрираме id-тата само на детайла от текущия документ
                     $ids = array();
-                    
-                    $detDocs = array('quotationId' => 'sales_QuotationsDetails', 'requestId' => 'purchase_PurchasesDetails', 'saleId' => 'sales_SalesDetails');
-                    foreach ($detDocs as $part => $detMvc) {
-                        if ($rec->{$part}) {
+
+                    $detDocs = array('purchase_QuotationDetails' => 'quotationId', 'sales_QuotationsDetails' => 'quotationId', 'purchase_PurchasesDetails' => 'requestId', 'sales_SalesDetails' => 'saleId');
+                    foreach ($detDocs as $detMvc => $masterKey) {
+                        if ($rec->{$masterKey}) {
                             $detQuery = $detMvc::getQuery();
-                            while ($detRec = $detQuery->fetch("#{$part} = " . $rec->{$part})) {
+                            while ($detRec = $detQuery->fetch("#{$masterKey} = " . $rec->{$masterKey})) {
                                 $ids[] = $detRec->productId;
                             }
                         }
@@ -466,7 +466,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                         }
                     }
 
-                    if (!$dRec->autoPrice) {
+                    if (!$dRec->autoPrice && $action != 'cloneRecInDocument') {
                         $vat = cat_Products::getVat($productId, $masterRec->valior);
                         if ($masterRec->chargeVat == 'yes') {
                             $dRec->price = $dRec->price / (1 + $vat);
