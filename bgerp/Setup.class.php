@@ -592,7 +592,7 @@ class bgerp_Setup extends core_ProtoSetup
                 //Известия - Задачи - Календар и Последно
 
                 $iArr['bgerp_drivers_Notifications']['column'] = 'left';
-                $pArrange['bgerp_drivers_Notifications']['order'] = '800';
+                $iArr['bgerp_drivers_Notifications']['order'] = '800';
 
                 $iArr['bgerp_drivers_Calendar']['column'] = 'right';
                 $iArr['bgerp_drivers_Calendar']['order'] = '600';
