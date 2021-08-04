@@ -177,7 +177,10 @@ class purchase_Setup extends core_ProtoSetup
                 core_Packs::setConfig('purchase', array($const => $keylist));
             }
         }
-        
+
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('purQuoteFiles', 'Прикачени файлове в офертите от доставчици', null, '104857600', 'user', 'user');
+
         return $html;
     }
 

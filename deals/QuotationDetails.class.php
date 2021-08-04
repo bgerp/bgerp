@@ -368,7 +368,7 @@ class deals_QuotationDetails extends doc_Detail
             $data->addNotOptionalBtn = ht::createBtn('Артикул', array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => true), false, false, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на артикул към офертата");
             $data->addOptionalBtn = ht::createBtn('Опционален артикул', array($this, 'add', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, "{$error} ef_icon = img/16/shopping.png, title=Добавяне на опционален артикул към офертата");
 
-            if ($this->hasPlugin('cat_plg_CreateProductFromDocument') && $this->haveRightFor('createProduct', (object) array('quotationId' => $data->masterId))) {
+            if ($this->haveRightFor('createProduct', (object) array('quotationId' => $data->masterId))) {
                 $data->addNewProductBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'optional' => 'no', 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
                 $data->addNewProductOptionalBtn = ht::createBtn('Създаване', array($this, 'CreateProduct', 'quotationId' => $data->masterId, 'optional' => 'yes', 'ret_url' => true), false, false, 'id=btnNewProduct,title=Създаване на нов нестандартен артикул,ef_icon = img/16/bag-new.png,order=12');
             }

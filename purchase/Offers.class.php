@@ -14,6 +14,7 @@
  *
  * @since     v 0.1
  * @title     Оферти за покупки
+ * @deprecated
  */
 class purchase_Offers extends core_Master
 {
@@ -81,13 +82,13 @@ class purchase_Offers extends core_Master
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,purchase';
+    public $canAdd = 'no_one';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,purchase';
+    public $canList = 'debug';
     
     
     /**
@@ -123,7 +124,7 @@ class purchase_Offers extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = '4.1|Логистика';
+    public $newBtnGroup = '4.199|Логистика';
     
     
     public $filterDateField = 'date';

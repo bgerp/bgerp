@@ -100,6 +100,12 @@ abstract class deals_QuotationMaster extends core_Master
 
 
     /**
+     * Кои полета да са нередактируеми, ако има вече детайли
+     */
+    protected $readOnlyFieldsIfHaveDetail;
+
+
+    /**
      * Задължителни полета на модела
      */
     protected static function setQuotationFields($mvc)
@@ -158,7 +164,8 @@ abstract class deals_QuotationMaster extends core_Master
 
         if (isset($form->rec->id)) {
             if (cls::get($this->mainDetail)->fetch("#quotationId = {$form->rec->id}")) {
-                foreach (array('chargeVat', 'currencyRate', 'currencyId', 'deliveryTermId', 'deliveryPlaceId', 'deliveryAdress', 'deliveryCalcTransport') as $fld) {
+                $readOnlyFields = arr::make($this->readOnlyFieldsIfHaveDetail, true);
+                foreach ($readOnlyFields as $fld) {
                     $form->setReadOnly($fld);
                 }
             }

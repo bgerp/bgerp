@@ -144,6 +144,12 @@ class sales_Quotations extends deals_QuotationMaster
 
 
     /**
+     * Кои полета да са нередактируеми, ако има вече детайли
+     */
+    protected $readOnlyFieldsIfHaveDetail = 'chargeVat,currencyRate,currencyId,deliveryTermId,deliveryPlaceId,deliveryAdress,deliveryCalcTransport';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

@@ -2,9 +2,9 @@
 
 
 /**
- * Документ "Входяща оферта от доставчик"
+ * Документ "Оферти от доставчици"
  *
- * Мениджър на документи за Входящи оферти от доставчици
+ * Мениджър на документи за Оферти от доставчици
  *
  *
  * @category  bgerp
@@ -21,7 +21,7 @@ class purchase_Quotations extends deals_QuotationMaster
     /**
      * Заглавие
      */
-    public $title = 'Вдодящи оферти от доставчици';
+    public $title = 'Оферти от доставчици';
 
 
     /**
@@ -64,7 +64,7 @@ class purchase_Quotations extends deals_QuotationMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,debug';
+    public $canList = 'ceo,purchase';
 
 
     /**
@@ -96,13 +96,13 @@ class purchase_Quotations extends deals_QuotationMaster
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Входяща оферта от доставчик';
+    public $singleTitle = 'Оферта от доставчик';
 
 
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = '3.999|Търговия';
+    public $newBtnGroup = '4.1|Логистика';
 
 
     /**
@@ -150,11 +150,18 @@ class purchase_Quotations extends deals_QuotationMaster
 
 
     /**
+     * Кои полета да са нередактируеми, ако има вече детайли
+     */
+    protected $readOnlyFieldsIfHaveDetail = 'chargeVat,currencyRate,currencyId';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         parent::setQuotationFields($this);
+        $this->FLD('others', 'richtext(rows=4,bucket=purQuoteFiles)', 'caption=Допълнително->Условия');
     }
 
 
