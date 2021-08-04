@@ -99,16 +99,29 @@ class deals_QuotationDetails extends doc_Detail
 
 
     /**
-     * Подготвя формата за редактиране
+     * @TODO описание
+     *
+     * След потготовка на формата за добавяне / редактиране.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     *
+     * @return bool|null
      */
-    public function prepareEditForm_($data)
+    public static function on_AfterPrepareEditForm($mvc, $data)
     {
-        parent::prepareEditForm_($data);
+        $mvc->prepareDetailForm($data);
+    }
 
+
+    /**
+     * Допълнителна подготовка на едит формата
+     */
+    protected function prepareDetailForm(&$data)
+    {
         $form = &$data->form;
         $rec = &$form->rec;
         $masterRec = $data->masterRec;
-
         $form->setDefault('showMode', 'detailed');
 
         $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $this->metaProducts, 'hasnotProperties' => 'generic'));
@@ -180,8 +193,6 @@ class deals_QuotationDetails extends doc_Detail
                 }
             }
         }
-
-        return $data;
     }
 
 

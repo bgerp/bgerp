@@ -170,8 +170,9 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 }
             }
             
-            $data1 = (object) array('form' => $form, 'masterRec' => $masterRec, 'action' => $action);
+            $data1 = (object) array('form' => &$form, 'masterRec' => $masterRec, 'action' => $action);
             $mvc->invoke('AfterPrepareEditForm', array($data1, $data1));
+
 
             if ($mvc instanceof sales_QuotationsDetails) {
                 $form->setDefault('optional', 'no');
