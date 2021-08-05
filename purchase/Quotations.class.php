@@ -162,6 +162,9 @@ class purchase_Quotations extends deals_QuotationMaster
     {
         parent::setQuotationFields($this);
         $this->FLD('others', 'richtext(rows=4,bucket=purQuoteFiles)', 'caption=Допълнително->Условия');
+
+        $this->setDbIndex('date');
+        $this->setDbIndex('contragentClassId,contragentId');
     }
 
 

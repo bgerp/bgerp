@@ -549,14 +549,6 @@ abstract class deals_QuotationMaster extends core_Master
             if(!empty($row->deliveryPlaceId)){
                 $row->deliveryPlaceCaption = isset($rec->deliveryTermId) ? tr('Място на доставка') : tr('За адрес');
             }
-
-            if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
-                $deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
-                if ($deliveryTermTime) {
-                    $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
-                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
-                }
-            }
         }
 
         if ($fields['-list']) {
@@ -564,42 +556,6 @@ abstract class deals_QuotationMaster extends core_Master
         }
 
         return $row;
-    }
-
-
-    /**
-     * Най-големия срок на доставка
-     *
-     * @param int $id
-     *
-     * @return int|NULL
-     */
-    public function getMaxDeliveryTime($id)
-    {
-        $maxDeliveryTime = null;
-
-        $Detail = cls::get($this->mainDetail);
-        $query = $Detail->getQuery();
-        $query->where("#{$Detail->masterKey} = {$id} AND #optional = 'no'");
-        $query->show("productId,term,quantity,quotationId");
-
-        while ($dRec = $query->fetch()) {
-            $term = $dRec->term;
-            if (!isset($term)) {
-                $term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity);
-
-                $cRec = sales_TransportValues::get($this, $dRec->quotationId, $dRec->id);
-                if (isset($cRec->deliveryTime)) {
-                    $term = $cRec->deliveryTime + $term;
-                }
-            }
-
-            if (isset($term)) {
-                $maxDeliveryTime = max($maxDeliveryTime, $term);
-            }
-        }
-
-        return $maxDeliveryTime;
     }
 
 

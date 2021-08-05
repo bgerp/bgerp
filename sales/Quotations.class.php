@@ -369,6 +369,14 @@ class sales_Quotations extends deals_QuotationMaster
                    $row->deliveryError = tr('За транспортните разходи, моля свържете се с представител на фирмата');
                 }
             }
+
+            if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
+                $deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+                if ($deliveryTermTime) {
+                    $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
+                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
+                }
+            }
         }
         
         return $row;
@@ -713,5 +721,41 @@ class sales_Quotations extends deals_QuotationMaster
         }
         
         return $res;
+    }
+
+
+    /**
+     * Най-големия срок на доставка
+     *
+     * @param int $id
+     *
+     * @return int|NULL
+     */
+    protected function getMaxDeliveryTime($id)
+    {
+        $maxDeliveryTime = null;
+
+        $Detail = cls::get($this->mainDetail);
+        $query = $Detail->getQuery();
+        $query->where("#{$Detail->masterKey} = {$id} AND #optional = 'no'");
+        $query->show("productId,term,quantity,quotationId");
+
+        while ($dRec = $query->fetch()) {
+            $term = $dRec->term;
+            if (!isset($term)) {
+                $term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity);
+
+                $cRec = sales_TransportValues::get($this, $dRec->quotationId, $dRec->id);
+                if (isset($cRec->deliveryTime)) {
+                    $term = $cRec->deliveryTime + $term;
+                }
+            }
+
+            if (isset($term)) {
+                $maxDeliveryTime = max($maxDeliveryTime, $term);
+            }
+        }
+
+        return $maxDeliveryTime;
     }
 }
