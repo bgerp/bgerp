@@ -592,7 +592,7 @@ class bgerp_Setup extends core_ProtoSetup
                 //Известия - Задачи - Календар и Последно
 
                 $iArr['bgerp_drivers_Notifications']['column'] = 'left';
-                $pArrange['bgerp_drivers_Notifications']['order'] = '800';
+                $iArr['bgerp_drivers_Notifications']['order'] = '800';
 
                 $iArr['bgerp_drivers_Calendar']['column'] = 'right';
                 $iArr['bgerp_drivers_Calendar']['order'] = '600';
@@ -664,8 +664,10 @@ class bgerp_Setup extends core_ProtoSetup
             if (cls::load('doc_drivers_FolderPortal', true)) {
                 $pRecFolders = $Portal->fetch(array("#{$Portal->driverClassField} = '[#1#]' AND #userOrRole = '[#2#]'", doc_drivers_FolderPortal::getClassId(), $uId));
 
-                $pRecFolders->order = 400;
-                $Portal->save($pRecFolders, 'order');
+                if ($pRecFolders) {
+                    $pRecFolders->order = 400;
+                    $Portal->save($pRecFolders, 'order');
+                }
             }
         }
     }

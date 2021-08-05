@@ -2602,7 +2602,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
 
                 // Ако е без фактуриране и няма банково плащане, нищо няма да се прави
-                if($rec->makeInvoice = 'no') {
+                if($rec->makeInvoice == 'no') {
                     if(!$hasBankPayment) continue;
                 }
 

@@ -104,6 +104,10 @@ class deals_InvoicesToDocuments extends core_Manager
 
             if(!empty($fRec->invoices)){
                 $iData =  @json_decode($fRec->invoices, true);
+                foreach ($iData['amount'] as &$a){
+                    $a = core_Type::getByName('double')->fromVerbal($a);
+                }
+
                 if(countR($iData['containerId']) == 1 && empty($iData['amount'][0])){
                     $iRec = doc_Containers::getDocument($iData['containerId'][0])->fetch();
                     $iBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($iRec->date);
