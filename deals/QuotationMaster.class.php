@@ -152,8 +152,14 @@ abstract class deals_QuotationMaster extends core_Master
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = &$data->form->rec;
 
-        $contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
-        $contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
+        $folderId = $rec->folderId;
+        if(empty($rec->folderId) && isset($rec->originId)){
+            $originRec = doc_Containers::fetch($rec->originId);
+            $folderId = $originRec->folderId;
+        }
+
+        $contragentClassId = doc_Folders::fetchCoverClassId($folderId);
+        $contragentId = doc_Folders::fetchCoverId($folderId);
         $form->setDefault('contragentClassId', $contragentClassId);
         $form->setDefault('contragentId', $contragentId);
 
@@ -175,6 +181,18 @@ abstract class deals_QuotationMaster extends core_Master
             $form->setSuggestions('person', crm_Companies::getPersonOptions($rec->contragentId, false));
         }
 
+        return $data;
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+
         $form->input('deliveryTermId');
         if(isset($rec->deliveryTermId)){
             if(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
@@ -185,10 +203,8 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
-            cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $this);
+            cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
         }
-
-        return $data;
     }
 
 
