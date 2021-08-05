@@ -664,8 +664,10 @@ class bgerp_Setup extends core_ProtoSetup
             if (cls::load('doc_drivers_FolderPortal', true)) {
                 $pRecFolders = $Portal->fetch(array("#{$Portal->driverClassField} = '[#1#]' AND #userOrRole = '[#2#]'", doc_drivers_FolderPortal::getClassId(), $uId));
 
-                $pRecFolders->order = 400;
-                $Portal->save($pRecFolders, 'order');
+                if ($pRecFolders) {
+                    $pRecFolders->order = 400;
+                    $Portal->save($pRecFolders, 'order');
+                }
             }
         }
     }
