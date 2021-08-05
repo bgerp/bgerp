@@ -786,7 +786,7 @@ class acc_ValueCorrections extends core_Master
         // Намират се вальорите на всички експедиции от нишката
         $productValiors = $periods = array();
         $productIds = array_keys($rec->productsData);
-        $storeDocs = array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails', 'sales_Sales' => 'sales_SalesDetails', 'purchase_Purchases' => 'purchase_PurchasesDetails');
+        $storeDocs = array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails', 'sales_Sales' => 'sales_SalesDetails', 'purchase_Purchases' => 'purchase_PurchasesDetails', 'sales_Services' => 'sales_ServicesDetails', 'purchase_Services' => 'purchase_ServicesDetails');
         foreach ($productIds as $productId){
             foreach ($storeDocs as $docName => $detailName){
                 $Doc = cls::get($docName);
