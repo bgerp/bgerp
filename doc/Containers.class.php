@@ -1724,11 +1724,12 @@ class doc_Containers extends core_Manager
         
         // Извличане на потенциалните класове на нови документи
         $docArr = core_Classes::getOptionsByInterface('doc_DocumentIntf');
-        
+
         if (is_array($docArr) && countR($docArr)) {
             $docArrSort = array();
             $i = 0;
             foreach ($docArr as $id => $class) {
+                if(!cls::load($class, true)) continue;
                 $mvc = cls::get($class);
                 
                 if ($mvc->newBtnGroup === false) {
