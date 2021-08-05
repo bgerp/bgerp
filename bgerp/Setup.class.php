@@ -532,7 +532,73 @@ class bgerp_Setup extends core_ProtoSetup
 
         $res .= $this->callMigrate('oldPortalToNewPortalView2131', 'bgerp');
 
+        // За да може да мине миграцията при нова инсталация
+        $dbUpdate = core_ProtoSetup::$dbInit;
+        core_ProtoSetup::$dbInit = 'update';
+
+        $res .= $this->callMigrate('setNewPortal46194', 'bgerp');
+
+        core_ProtoSetup::$dbInit = $dbUpdate;
+
         return $res;
+    }
+
+
+    /**
+     * Миграция за изтриване на старите данни в портала и за добавяне на новите интерфейси
+     * Тази миграция се пуска и при нова инсталация. Не трябва да се трие.
+     * Трябва да се вика в loadSetupData
+     */
+    public function setNewPortal46194()
+    {
+        $Portal = cls::get('bgerp_Portal');
+
+        $data = core_Packs::getConfig('core')->_data;
+
+        $force = false;
+        if (!$data['migration_bgerp_setNewPortal46193']) {
+            $force = true;
+        }
+
+        if (!$force) {
+            if (!bgerp_Portal::fetch("#createdBy > 0")) {
+                $force = true;
+            }
+        }
+
+        if (!$force) {
+
+            return ;
+        }
+
+        $bQuery = $Portal->getQuery();
+        $bQuery->delete('1=1');
+
+        $iArr = array('bgerp_drivers_Notifications' => array('perPage' => 15, 'column' => 'left', 'order' => 500, 'color' => 'lightblue'),
+            'bgerp_drivers_Calendar' => array('column' => 'center', 'order' => 700, 'fTasksPerPage' => 5, 'fTasksDays' => 2629746, 'color' => 'yellow'),
+            'bgerp_drivers_Tasks' => array('perPage' => 15, 'column' => 'center', 'order' => 400, 'color' => 'pink'),
+            'bgerp_drivers_Recently' => array('perPage' => 10, 'column' => 'right', 'order' => 500, 'color' => 'darkgray'),
+        );
+
+        foreach ($iArr as $iName => $iData) {
+
+            // Ако драйверите не са добавени
+            core_Classes::add($iName);
+
+            $rec = new stdClass();
+            $rec->{$Portal->driverClassField} = $iName::getClassId();
+
+            foreach ($iData as $cName => $cVal) {
+                $rec->{$cName} = $cVal;
+            }
+
+            $rec->userOrRole = type_UserOrRole::getAllSysTeamId();
+
+            setIfNot($rec->color, 'lightgray');
+            $rec->state = 'yes';
+
+            $Portal->save($rec);
+        }
     }
 
 
