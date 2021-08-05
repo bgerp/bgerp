@@ -627,20 +627,6 @@ class deals_QuotationDetails extends doc_Detail
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $row->amount = $Double->toVerbal($rec->amount);
 
-        // Показване на теглото при определени условия
-        if ($rec->showMode == 'detailed' || ($rec->showMode == 'auto' && cat_Products::fetchField($rec->productId, 'isPublic') == 'no')) {
-
-            // Показва се теглото, само ако мярката не е производна на килограм
-            $kgMeasures = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
-            if (!array_key_exists($rec->packagingId, $kgMeasures)) {
-                $row->weight = deals_Helper::getWeightRow($rec->productId, $rec->packagingId, $rec->quantity, $rec->weight);
-            } else {
-                unset($row->weight);
-            }
-        } else {
-            unset($row->weight);
-        }
-
         return $row;
     }
 
