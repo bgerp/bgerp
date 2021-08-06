@@ -328,25 +328,21 @@ abstract class deals_QuotationMaster extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $mvc = cls::get(get_called_class());
-
         $rec = static::fetchRec($rec);
 
         $abbr = $mvc->abbr;
         $abbr[0] = strtoupper($abbr[0]);
 
         $date = dt::mysql2verbal($rec->date, 'd.m.year');
-
         $crm = cls::get($rec->contragentClassId);
-
         $cRec = $crm->getContragentData($rec->contragentId);
-
         $contragent = str::limitLen($cRec->company ? $cRec->company : $cRec->person, 32);
 
         if ($escaped) {
             $contragent = type_Varchar::escape($contragent);
         }
 
-        return "{$abbr}{$rec->id}/{$date} {$contragent}";
+        return "{$abbr}{$rec->id}/{$date}/{$contragent}";
     }
 
 
@@ -368,10 +364,7 @@ abstract class deals_QuotationMaster extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        if (Request::get('Rejected', 'int')) {
-
-            return;
-        }
+        if (Request::get('Rejected', 'int')) return;
 
         $data->listFilter->FNC('sState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Приключен)', 'caption=Състояние,autoFilter');
         $data->listFilter->showFields .= ',sState';
@@ -519,7 +512,7 @@ abstract class deals_QuotationMaster extends core_Master
             }
 
             // Показване на допълнителните условия от артикулите
-            //$additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
+            $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
             if (is_array($additionalConditions)) {
                 foreach ($additionalConditions as $cond) {
                     $row->others .= "<li>{$cond}</li>";

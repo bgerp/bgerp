@@ -196,5 +196,10 @@ class purchase_Quotations extends deals_QuotationMaster
         $groupId = crm_Groups::forceGroup($groupRec);
 
         cls::get($rec->contragentClassId)->forceGroup($rec->contragentId, $groupId, false);
+
+        if(empty($rec->date)){
+            $rec->date = dt::now();
+            $mvc->save_($rec, 'date');
+        }
     }
 }

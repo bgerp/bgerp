@@ -1194,7 +1194,7 @@ abstract class deals_Helper
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$masterId}");
         $dQuery->show('productId,quantity');
-        $type = ($Master instanceof purchase_Purchases) ? 'purchase' : (($Master instanceof sales_Quotations) ? 'quotation' : 'sale');
+        $type = ($Master instanceof purchase_Purchases) ? 'purchase' : (($Master instanceof deals_QuotationMaster) ? 'quotation' : 'sale');
         $allProducts = $productConditions = array();
         
         if (!empty($lg)) {
