@@ -281,9 +281,12 @@ class purchase_Setup extends core_ProtoSetup
                 }
 
                 $quoteRec = purchase_Quotations::fetch($quoteId);
-                $quoteRec->state = 'active';
-                $Quotations->save($quoteRec, 'state');
-                $Quotations->invoke('AfterActivation', array($quoteRec));
+
+                if($rec->state == 'active'){
+                    $quoteRec->state = 'active';
+                    $Quotations->save($quoteRec, 'state');
+                    $Quotations->invoke('AfterActivation', array($quoteRec));
+                }
 
                 doc_Threads::doUpdateThread($quoteRec->threadId);
             }

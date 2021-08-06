@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на оферти за покупки
+ * Мениджър на Оферти за покупки (стари)
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Оферти за покупки
+ * @title     Оферти за покупки (стари)
  * @deprecated
  */
 class purchase_Offers extends core_Master
@@ -33,7 +33,7 @@ class purchase_Offers extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    public $singleTitle = 'Оферта от доставчик';
+    public $singleTitle = 'Офертa за покупкa (стара)';
     
     
     /**
@@ -51,7 +51,7 @@ class purchase_Offers extends core_Master
     /**
      * Заглавие
      */
-    public $title = 'Оферти за покупки';
+    public $title = 'Оферти за покупки (стари)';
 
 
     /**
@@ -68,21 +68,15 @@ class purchase_Offers extends core_Master
     
     
     /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,purchase';
-    
-    
-    /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,purchase';
+    public $canEdit = 'debug';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'no_one';
+    public $canAdd = 'debug';
     
     
     /**
@@ -95,12 +89,6 @@ class purchase_Offers extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,purchase';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,purchase';
     
     
     /**
@@ -124,7 +112,7 @@ class purchase_Offers extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = '4.199|Логистика';
+    public $newBtnGroup = '4.1999|Логистика';
     
     
     public $filterDateField = 'date';
