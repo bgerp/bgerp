@@ -1069,13 +1069,14 @@ abstract class deals_QuotationMaster extends core_Master
         if ($rec->state == 'active') {
 
             if(isset($mvc->dealClass)){
+                $Detail = cls::get($mvc->mainDetail);
                 $DealClass = cls::get($mvc->dealClass);
                 $singleTitle = mb_strtolower($DealClass->singleTitle);
                 if ($mvc->haveRightFor('dealfromquotation', (object) array('folderId' => $rec->folderId, 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId))) {
                     $items = $mvc->getItems($rec->id);
 
                     // Ако има поне един опционален артикул или има варианти на задължителните, бутона сочи към екшън за определяне на количествата
-                    if (sales_QuotationsDetails::fetch("#quotationId = {$rec->id} AND #optional = 'yes'") || !$items) {
+                    if ($Detail->fetch("#quotationId = {$rec->id} AND #optional = 'yes'") || !$items) {
                         $data->toolbar->addBtn($DealClass->singleTitle, array($mvc, 'FilterProductsForDeal', $rec->id, 'ret_url' => true), false, "ef_icon=img/16/star_2.png,title=Създаване на {$singleTitle} по офертата");
 
                         // Иначе, към създаването на нова продажба
@@ -1114,7 +1115,7 @@ abstract class deals_QuotationMaster extends core_Master
         $form = cls::get('core_Form');
         $DealClass = cls::get($this->dealClass);
         $singleTitle = mb_strtolower($DealClass->singleTitle);
-        $form->title = "Създаване на {$singleTitle} от|* " . $DealClass->getFormTitleLink($id);
+        $form->title = "Създаване на {$singleTitle} от|* " . $this->getFormTitleLink($id);
         $form->info = tr('Моля уточнете, кои редове ще се прехвърлят в сделката');
         $filteredProducts = $this->filterProducts($id);
 
