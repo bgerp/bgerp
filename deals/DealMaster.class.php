@@ -2570,6 +2570,9 @@ abstract class deals_DealMaster extends deals_DealBase
             $contragentCountryId = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
             if(empty($contragentCountryId) || $contragentCountryId == $bgId){
 
+                // Ако има роля дебъг да не се бие нотификация
+                if(haveRole('debug', $rec->createdBy)) continue;
+
                 // Ако вече има нотификация за просрочие, пропуска се
                 $handle = $this->getHandle($rec->id);
                 $message = "Има направено плащане, но не е издадена фактура по|* #{$handle}";
