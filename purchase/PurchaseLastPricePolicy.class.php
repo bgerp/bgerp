@@ -73,13 +73,14 @@ class purchase_PurchaseLastPricePolicy extends core_Mvc
             $detailQuery->where("#state = 'active' OR #state = 'closed'");
             $detailQuery->orderBy('#valior,#id', 'DESC');
             $lastRec = $detailQuery->fetch();
-
             if (!$lastRec) return;
 
-            $vat = cat_Products::getVat($lastRec->productId);
-            $lastRec->price = deals_Helper::getDisplayPrice($lastRec->price, $vat, $rate, $chargeVat);
+            $rec = (object)array('price' => $lastRec->price, 'discount' => $lastRec->discount);
+        }
 
-            return (object) array('price' => $lastRec->price, 'discount' => $lastRec->discount);
+        if (!is_null($rec->price)) {
+            $vat = cat_Products::getVat($productId);
+            $rec->price = deals_Helper::getDisplayPrice($rec->price, $vat, $rate, $chargeVat);
         }
 
         return $rec;
