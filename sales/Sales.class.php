@@ -92,7 +92,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Клас на оферта
      */
-    protected $quotationClass = 'purchase_Quotations';
+    protected $quotationClass = 'sales_Quotations';
 
 
     /**
