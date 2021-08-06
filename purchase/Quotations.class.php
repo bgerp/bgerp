@@ -58,7 +58,7 @@ class purchase_Quotations extends deals_QuotationMaster
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/doc_table.png';
+    public $singleIcon = 'img/16/letter.png';
 
 
     /**

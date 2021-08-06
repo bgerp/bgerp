@@ -265,4 +265,11 @@ class purchase_Offers extends core_Master
         
         return $row;
     }
+
+
+    function act_Test()
+    {
+        requireRole('debug');
+        cls::get('purchase_Setup')->migrateOldQuotes();
+    }
 }

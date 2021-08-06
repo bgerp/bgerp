@@ -225,4 +225,68 @@ class purchase_Setup extends core_ProtoSetup
         $query = "UPDATE {$Invoices->dbTableName} SET {$Invoices->dbTableName}.{$journalDateFieldName} = {$Invoices->dbTableName}.{$dateFieldName} WHERE {$Invoices->dbTableName}.{$journalDateFieldName} IS NULL AND ({$Invoices->dbTableName}.{$stateColName} = 'active' OR {$Invoices->dbTableName}.{$stateColName} = 'stopped')";
         $Invoices->db->query($query);
     }
+
+
+    /**
+     * Миграция на старите оферти към новите
+     */
+    function migrateOldQuotes()
+    {
+        $OldQuote = cls::get('purchase_Offers');
+        $oldQuoteCount = $OldQuote->count();
+        if(!$oldQuoteCount) return;
+
+        $Quotations = cls::get('purchase_Quotations');
+        $query = $OldQuote->getQuery();
+        $query->where("#state != ''");
+
+        core_App::setTimeLimit($oldQuoteCount * 0.6, false, 300);
+        while($rec = $query->fetch()){
+            $Cover = doc_Folders::getCover($rec->folderId);
+            if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+
+                $others = "";
+                if(!empty($rec->product)){
+                    $others .= "Продукт: {$rec->product}" . "\n";
+                }
+
+                if(!empty($rec->sum)){
+                    $others .= "Цена: {$rec->sum}" . "\n";
+                }
+
+                if(!empty($rec->offer)){
+                    $others .= "Детайли: {$rec->offer}" . "\n";
+                }
+
+                if(!empty($rec->offer)){
+                    $others .= "Документ: [file=o4wpkG][/file]";
+                }
+
+                $fields = array();
+                $date = !empty($rec->date) ? $rec->date : null;
+                if(!empty($others)){
+                    $fields['others'] = $others;
+                }
+
+                $cancelLater = false;
+                if(!core_Users::isSystemUser()){
+                    core_Users::forceSystemUser();
+                    $cancelLater = true;
+                }
+
+                $quoteId = purchase_Quotations::createNewDraft($Cover->getClassId(), $Cover->that, $date, $fields);
+                purchase_Quotations::logWrite('Автоматично прехвърляне на стара оферта');
+                if($cancelLater){
+                    core_Users::cancelSystemUser();
+                }
+
+                $quoteRec = purchase_Quotations::fetch($quoteId);
+                $quoteRec->state = 'active';
+                $Quotations->save($quoteRec, 'state');
+                $Quotations->invoke('AfterActivation', array($quoteRec));
+
+                doc_Threads::doUpdateThread($quoteRec->threadId);
+            }
+        }
+    }
 }

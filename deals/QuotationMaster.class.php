@@ -719,6 +719,10 @@ abstract class deals_QuotationMaster extends core_Master
         expect(drdata_Countries::fetch($newRec->contragentCountryId), 'Невалидна държава');
         $newRec->template = static::getDefaultTemplate($newRec);
 
+        if(!empty($fields['others'])){
+            $newRec->others = $fields['others'];
+        }
+
         if(isset($newRec->deliveryTermId)){
             if(cond_DeliveryTerms::getTransportCalculator($newRec->deliveryTermId)){
                 $newRec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($newRec->deliveryTermId, 'calcCost');
