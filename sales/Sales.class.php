@@ -87,8 +87,14 @@ class sales_Sales extends deals_DealMaster
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
     public $filterRolesForTeam = 'ceo,salesMaster,manager';
-    
-    
+
+
+    /**
+     * Клас на оферта
+     */
+    protected $quotationClass = 'purchase_Quotations';
+
+
     /**
      * Кой може да принтира фискална бележка
      */

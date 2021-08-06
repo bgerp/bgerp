@@ -40,8 +40,14 @@ abstract class deals_DealMaster extends deals_DealBase
      * Как се казва полето в което е избран склада
      */
     public $storeFieldName = 'shipmentStoreId';
-    
-    
+
+
+    /**
+     * Клас на оферта
+     */
+    protected $quotationClass;
+
+
     /**
      * Поле за търсене по потребител
      */
@@ -2006,7 +2012,6 @@ abstract class deals_DealMaster extends deals_DealBase
         // Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
         $me = get_called_class();
         $form = cls::get('core_Form');
-        
         $form->FLD('dealId', "key(mvc={$me},select=id,allowEmpty)", "caption={$this->singleTitle},mandatory");
         $form->setOptions('dealId', $options);
         
@@ -2020,8 +2025,8 @@ abstract class deals_DealMaster extends deals_DealBase
 
         $singleTitle = mb_strtolower($this->singleTitle);
         $quotationId = Request::get('quotationId', 'int');
-        $rejectUrl = toUrl(array('sales_Quotations', 'single', $quotationId));
-        $form->title = '|Прехвърляне в|* ' . $singleTitle . ' ' . tr('на') . ' ' . cls::get('sales_Quotations')->getFormTitleLink($quotationId);
+        $rejectUrl = toUrl(array($this->quotationClass, 'single', $quotationId));
+        $form->title = '|Прехвърляне в|* ' . $singleTitle . ' ' . tr('на') . ' ' . cls::get($this->quotationClass)->getFormTitleLink($quotationId);
         
         $forceUrl = $retUrl;
         $forceUrl['force'] = true;
