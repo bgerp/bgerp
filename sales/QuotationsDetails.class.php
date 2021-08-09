@@ -282,42 +282,4 @@ class sales_QuotationsDetails extends deals_QuotationDetails
             }
         }
     }
-
-
-    /**
-     * Връща последната цена за посочения продукт направена от оферта към контрагента
-     *
-     * @return object $rec->price  - цена
-     *                $rec->discount - отстъпка
-     */
-    public static function getPriceInfo($customerClass, $customerId, $date, $productId, $packagingId = null, $quantity = 1)
-    {
-        $query = static::getValidQuoteQuery($customerClass, $customerId, $date);
-        $query->limit(1);
-
-        $cloneQuery = clone $query;
-        $query->where("#productId = {$productId} AND #quantity = {$quantity}");
-        $query->orderBy('date=DESC,quotationId=DESC,quantity=ASC');
-
-        $cloneQuery->where("#productId = {$productId} AND #quantity < {$quantity}");
-        $cloneQuery->orderBy('date,quotationId,quantity', 'DESC');
-
-        $rec1 = $query->fetch();
-        $rec = is_object($rec1) ? $rec1 : $cloneQuery->fetch();
-
-        $res = (object)array('price' => null);
-        if ($rec) {
-            $res->price = $rec->price;
-            $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
-            if ($fee && $fee->fee > 0) {
-                $res->price -= round($fee->fee / $rec->quantity, 4);
-            }
-        }
-
-        if ($rec->discount) {
-            $res->discount = $rec->discount;
-        }
-
-        return $res;
-    }
 }
