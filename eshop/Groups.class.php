@@ -447,7 +447,7 @@ class eshop_Groups extends core_Master
         if($data->groupId > 0){
             expect($rec = $data->rec = $this->fetch($data->groupId), $data);
         }
-        
+
         $row = $data->row = new stdClass();
 
         if($data->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
