@@ -984,9 +984,10 @@ class price_ListRules extends core_Detail
             if (isset($params['onlyPublic'])) {
                 $pQuery->where("#isPublic = 'yes'");
             }
-            
-            // Нестандартните артикули да се показват само в политика 'Себестойност'
-            $pQuery->where("#canSell = 'yes'");
+
+            if ($params['listId'] != price_ListRules::PRICE_LIST_COST) {
+                $pQuery->where("#canSell = 'yes'");
+            }
             
             if (isset($params['listId'])) {
                 if ($params['listId'] == price_ListRules::PRICE_LIST_COST) {
