@@ -172,6 +172,8 @@ class ztm_Devices extends core_Master
      */
     public static function getRecForToken($token, $onlyActive = true)
     {
+        $token = trim($token);
+
         $rec = self::fetch(array("#token = '[#1#]'", $token));
         
         if ($rec->state == 'draft') {
