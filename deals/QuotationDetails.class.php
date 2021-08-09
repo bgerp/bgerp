@@ -482,12 +482,14 @@ class deals_QuotationDetails extends doc_Detail
 
 
     /**
-     * Връща последната цена за посочения продукт направена от оферта към контрагента
+     * Помощна ф-я връщаща заявка за валидна оферта
      *
-     * @return object $rec->price  - цена
-     *                $rec->discount - отстъпка
+     * @param int $customerClass - ид на клас на контрагент
+     * @param $customerId        - ид на контрагент
+     * @param $date              - дата
+     * @return core_Query        - заявка
      */
-    public static function getPriceInfo($customerClass, $customerId, $date, $productId, $packagingId = null, $quantity = 1)
+    protected static function getValidQuoteQuery($customerClass, $customerId, $date)
     {
         $me = cls::get(get_called_class());
         $Master = $me->Master->className;
@@ -505,35 +507,8 @@ class deals_QuotationDetails extends doc_Detail
         $query->where("#contragentClassId = {$customerClass} AND #contragentId = {$customerId}");
         $query->where("#state = 'active'");
         $query->where("(#expireOn IS NULL AND #date >= '{$date}') OR (#expireOn IS NOT NULL AND #expireOn >= '{$date}')");
-        $query->limit(1);
 
-        $cloneQuery = clone $query;
-        $query->where("#productId = {$productId} AND #quantity = {$quantity}");
-        $query->orderBy('date=DESC,quotationId=DESC,quantity=ASC');
-
-        $cloneQuery->where("#productId = {$productId} AND #quantity < {$quantity}");
-        $cloneQuery->orderBy('date,quotationId,quantity', 'DESC');
-
-        $rec1 = $query->fetch();
-        $rec = is_object($rec1) ? $rec1 : $cloneQuery->fetch();
-
-        $res = (object)array('price' => null);
-        if ($rec) {
-            $res->price = $rec->price;
-            if($me instanceof sales_QuotationsDetails){
-                $fee = sales_TransportValues::get('sales_Quotations', $rec->quotationId, $rec->id);
-
-                if ($fee && $fee->fee > 0) {
-                    $res->price -= round($fee->fee / $rec->quantity, 4);
-                }
-            }
-
-            if ($rec->discount) {
-                $res->discount = $rec->discount;
-            }
-        }
-
-        return $res;
+        return $query;
     }
 
 

@@ -101,4 +101,29 @@ class purchase_QuotationDetails extends deals_QuotationDetails
     {
         parent::inputQuoteDetailsForm($mvc, $form);
     }
+
+    /**
+     * Връща последната цена за посочения продукт направена от оферта към контрагента
+     *
+     * @return object $rec->price  - цена
+     *                $rec->discount - отстъпка
+     */
+    public static function getPriceInfo($customerClass, $customerId, $date, $productId, $packagingId = null, $quantity = 1)
+    {
+        $query = static::getValidQuoteQuery($customerClass, $customerId, $date);
+        $query->where("#productId = {$productId} AND #quantity < {$quantity}");
+        $query->orderBy('date=DESC,quotationId=DESC,quantity=DESC');
+        $query->limit(1);
+        $rec = $query->fetch();
+
+        $res = (object)array('price' => null);
+        if (is_object($rec)) {
+            $res->price = $rec->price;
+            if ($rec->discount) {
+                $res->discount = $rec->discount;
+            }
+        }
+
+        return $res;
+    }
 }
