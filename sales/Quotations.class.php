@@ -516,7 +516,7 @@ class sales_Quotations extends deals_QuotationMaster
     {
         $rec = $this->fetchRec($id);
         $handle = $this->getHandle($id);
-        $tpl = new core_ET(tr("Моля запознайте се с нашата оферта|* : #[#handle#]."));
+        $tpl = new core_ET(tr("Моля запознайте се с нашата оферта|*: #[#handle#]."));
         $tpl->append($handle, 'handle');
         
         if($rec->chargeVat == 'separate'){
@@ -670,32 +670,18 @@ class sales_Quotations extends deals_QuotationMaster
     public function getDefaultEmailSubject($id, $isForwarding = false)
     {
         $res = '';
-        
-        if (!$id) {
-            
-            return $res;
-        }
-        $rec = $this->fetch($id);
-        
-        if (!$rec) {
-            
-            return $res;
-        }
-        
-        $res = '';
+        $rec = $this->fetchRec($id);
         
         if ($rec->reff) {
             $res = $rec->reff . ' ';
         }
-        
-        
+
         $dQuery = sales_QuotationsDetails::getQuery();
         $dQuery->where(array("#quotationId = '[#1#]'", $id));
         
         // Показваме кода на продукта с най високата сума
         $maxAmount = null;
-        $productId = 0;
-        $pCnt = 0;
+        $pCnt = $productId = 0;
         while ($dRec = $dQuery->fetch()) {
             $amount = $dRec->price * $dRec->quantity;
             
@@ -713,8 +699,7 @@ class sales_Quotations extends deals_QuotationMaster
         
         $pCnt--;
         if ($productId) {
-            $res .= cat_products::getTitleById($productId);
-            
+            $res .= cat_Products::getTitleById($productId);
             if ($pCnt > 0) {
                 $res .= ' ' . tr('и още') . '...';
             }

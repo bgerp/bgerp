@@ -202,4 +202,24 @@ class purchase_Quotations extends deals_QuotationMaster
             $mvc->save_($rec, 'date');
         }
     }
+
+
+    /**
+     * Връща тялото на имейла генериран от документа
+     *
+     * @see email_DocumentIntf
+     *
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     *
+     * @return string - тялото на имейла
+     */
+    public function getDefaultEmailBody($id, $forward = false)
+    {
+        $handle = $this->getHandle($id);
+        $tpl = new core_ET(tr("Моля запознайте се с оферта от доставчик|*: #[#handle#]."));
+        $tpl->append($handle, 'handle');
+
+        return $tpl->getContent();
+    }
 }
