@@ -232,6 +232,9 @@ class purchase_Setup extends core_ProtoSetup
      */
     function migrateOldQuotes()
     {
+        $db = new core_Db();
+        if (!$db->tableExists('purchase_offers')) return;
+
         $OldQuote = cls::get('purchase_Offers');
         $oldQuoteCount = $OldQuote->count();
         if(!$oldQuoteCount) return;
@@ -258,8 +261,8 @@ class purchase_Setup extends core_ProtoSetup
                     $others .= "Детайли: {$rec->offer}" . "\n";
                 }
 
-                if(!empty($rec->offer)){
-                    $others .= "Документ: [file=o4wpkG][/file]";
+                if(!empty($rec->documentId)){
+                    $others .= "Документ: [file={$rec->documentId}][/file]";
                 }
 
                 $fields = array();
@@ -281,6 +284,7 @@ class purchase_Setup extends core_ProtoSetup
                 }
 
                 $quoteRec = purchase_Quotations::fetch($quoteId);
+                doc_Linked::add($quoteRec->containerId, $rec->containerId, 'doc', 'doc', 'Прехвърляне на стара оферта');
 
                 if($rec->state == 'active'){
                     $quoteRec->state = 'active';
