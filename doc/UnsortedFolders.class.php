@@ -231,7 +231,7 @@ class doc_UnsortedFolders extends core_Master
     {
         $this->FLD('name', 'varchar(255)', 'caption=Наименование,mandatory');
         $this->FLD('description', 'richtext(rows=3, passage,bucket=Notes)', 'caption=Описание');
-        $this->FLD('contragentFolderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент');
+        $this->FLD('contragentFolderId', 'key2(mvc=doc_Folders,select=title,allowEmpty,coverInterface=crm_ContragentAccRegIntf)', 'caption=Контрагент,silent');
         $this->FLD('receiveEmail', 'enum(yes=Да, no=Не)', 'caption=Получаване на имейли->Избор');
         
         $this->setDbUnique('name');
@@ -872,8 +872,9 @@ class doc_UnsortedFolders extends core_Master
      */
     public function prepareContragentUnsortedFolders($data)
     {
-        if(empty($data->masterData->rec->folderId)) return;
-        
+        $folderId = $data->masterData->rec->folderId;
+        if(empty($folderId)) return;
+
         $data->recs = $data->rows = array();
         $query = self::getQuery();
         $query->where("#contragentFolderId = {$data->masterData->rec->folderId}");
@@ -881,6 +882,10 @@ class doc_UnsortedFolders extends core_Master
             $data->recs[$rec->id] = doc_Folders::fetch($rec->folderId);
             $data->rows[$rec->id] = doc_Folders::recToVerbal($data->recs[$rec->id]);
             $data->rows[$rec->id]->created = $data->rows[$rec->id]->createdOn . " " . tr('от') . " " . $data->rows[$rec->id]->createdBy;
+        }
+
+        if(doc_UnsortedFolders::haveRightFor('add')){
+            $data->addBtn = ht::createLink('', array('doc_UnsortedFolders', 'add', 'contragentFolderId' => $folderId), false, 'ef_icon=img/16/add.png,caption=Добавяне на нов проект към контрагента');
         }
     }
     
@@ -893,20 +898,27 @@ class doc_UnsortedFolders extends core_Master
      */
     public function renderContragentUnsortedFolders($data)
     {
-        if(!countr($data->recs)) return;
-        
         $tpl = new ET("<fieldset class='detail-info'>
-                            <legend class='groupTitle'>" . tr('Проекти') . "</legend>
+                            <legend class='groupTitle'>" . tr('Проекти') . " [#addBtn#]</legend>
                                 <div class='groupList clearfix21'>
                                  [#PROJECT_TABLE#]
                             </div>
                          </fieldset>");
-       
-        $table = cls::get('core_TableView', array('mvc' => cls::get('doc_Folders')));
-        $dTpl = $table->get($data->rows, 'title=Наименование,allThreadsCnt=Нишки,inCharge=Отговорник,created=Създаване');
-        $dTpl->append("style='width:100%'", 'TABLE_ATTR');
-        
-        $tpl->append($dTpl, 'PROJECT_TABLE');
+
+        $count = countR($data->recs);
+        if($count){
+            $tpl->append("(" . core_Type::getByName('int')->toVerbal($count) . ")", 'addBtn');
+            $table = cls::get('core_TableView', array('mvc' => cls::get('doc_Folders')));
+            $dTpl = $table->get($data->rows, 'title=Наименование,allThreadsCnt=Нишки,inCharge=Отговорник,created=Създаване');
+            $dTpl->append("style='width:100%'", 'TABLE_ATTR');
+            $tpl->append($dTpl, 'PROJECT_TABLE');
+        } else {
+            $tpl->append(tr('Няма записи'), 'PROJECT_TABLE');
+        }
+
+        if(isset($data->addBtn)){
+            $tpl->replace($data->addBtn, 'addBtn');
+        }
         
         return $tpl;
     }
