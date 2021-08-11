@@ -179,13 +179,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $to = dt::addDays(360, $to);
             }
         }
-        
+
         $pArr = array();
         $pArr['tPageVar'] = $this->getPageVar($dRec->originIdCalc);
         $pArr['search'] = Request::get($sInputField);
         $pArr['tPerPage'] = $dRec->fTasksPerPage ? $dRec->fTasksPerPage : 5;
         $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
-        $pArr['hideClosedTasks'] = $dRec->hideClosedTasks;
+        $pArr['hideClosedTasks'] = isset($dRec->hideClosedTasks) ? $dRec->hideClosedTasks : 86400;
         $pArr['taskPriority'] = $dRec->taskPriority;
         $pArr['remPriority'] = $dRec->remPriority;
 
