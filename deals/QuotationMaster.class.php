@@ -887,16 +887,16 @@ abstract class deals_QuotationMaster extends core_Master
         );
 
         $folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
-        $fields['dealerId'] = sales_Sales::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
+        $fields['dealerId'] = $DealClass::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
 
         // Създаваме нова продажба от офертата
-        $saleId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
-        if (isset($saleId) && isset($rec->bankAccountId)) {
-            $uRec = (object) array('id' => $saleId, 'bankAccountId' => bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId'));
+        $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
+        if (isset($dealId) && isset($rec->bankAccountId)) {
+            $uRec = (object) array('id' => $dealId, 'bankAccountId' => bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId'));
             $DealClass->save_($uRec);
         }
 
-        return $saleId;
+        return $dealId;
     }
 
 
@@ -931,23 +931,26 @@ abstract class deals_QuotationMaster extends core_Master
         }
 
         if ($action == 'dealfromquotation') {
+
             $sRec = isset($rec->folderId) ? (object)array('folderId' => $rec->folderId) : null;
-            $res = sales_Sales::getRequiredRoles('add', $sRec, $userId);
+            $res = cls::get($mvc->dealClass)->getRequiredRoles('add', $sRec, $userId);
 
             if(isset($rec)){
+                $Detail = cls::get($mvc->mainDetail);
                 if($res != 'no_one'){
-                    // Ако има разминаване между контрагента в офертата и данните от папката, забранява се създаване на сделката
-                    $folderCover = doc_Folders::getCover($rec->folderId);
-                    if($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId){
+                    if(!$Detail->count("#{$Detail->masterKey} = '{$rec->id}'")){
                         $res = 'no_one';
+                    } else {
+                        // Ако има разминаване между контрагента в офертата и данните от папката, забранява се създаване на сделката
+                        $folderCover = doc_Folders::getCover($rec->folderId);
+                        if($folderCover->that != $rec->contragentId || $folderCover->getClassId() != $rec->contragentClassId){
+                            $res = 'no_one';
+                        }
                     }
                 }
             }
         }
     }
-
-
-
 
 
     /**
@@ -1023,7 +1026,7 @@ abstract class deals_QuotationMaster extends core_Master
             plg_ProtoWrapper::changeWrapper($this, 'cms_ExternalWrapper');
         }
 
-        // Рендираме опаковката
+        // Рендиране на обвивката
         return $this->renderWrapping($form->renderHtml());
     }
 
@@ -1079,7 +1082,7 @@ abstract class deals_QuotationMaster extends core_Master
                     if ($Detail->fetch("#quotationId = {$rec->id} AND #optional = 'yes'") || !$items) {
                         $data->toolbar->addBtn($DealClass->singleTitle, array($mvc, 'FilterProductsForDeal', $rec->id, 'ret_url' => true), false, "ef_icon=img/16/star_2.png,title=Създаване на {$singleTitle} по офертата");
 
-                        // Иначе, към създаването на нова продажба
+                        // Иначе, към създаването на нова сделка
                     } else {
                         $warning = '';
                         $title = "Прехвърляне на артикулите в съществуваща|* |{$DealClass->singleTitle}|*";
@@ -1097,8 +1100,6 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
     }
-
-
 
 
     /**
@@ -1214,9 +1215,6 @@ abstract class deals_QuotationMaster extends core_Master
     }
 
 
-
-
-
     /**
      * Екшън генериращ продажба от оферта
      */
@@ -1241,11 +1239,11 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
 
-        // Ако няма създава се нова продажба
+        // Ако няма създава се нова сделка
         if (!$sId = Request::get('dealId', "key(mvc={$DealClass->className})")) {
             try{
                 $sId = $this->createDeal($rec);
-                sales_Sales::logWrite('Създаване от оферта', $sId);
+                $DealClass->logWrite('Създаване от оферта', $sId);
             } catch(core_exception_Expect $e){
                 reportException($e);
                 $this->logErr($e->dump[0], $rec->id);

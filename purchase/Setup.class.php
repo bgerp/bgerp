@@ -123,6 +123,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_Quotations',
         'purchase_QuotationDetails',
         'migrate::updateInvoiceJournalDate',
+        'migrate::migrateOldQuotes',
     );
     
     
@@ -278,7 +279,7 @@ class purchase_Setup extends core_ProtoSetup
                 }
 
                 $quoteId = purchase_Quotations::createNewDraft($Cover->getClassId(), $Cover->that, $date, $fields);
-                purchase_Quotations::logWrite('Автоматично прехвърляне на стара оферта');
+                purchase_Quotations::logWrite('Автоматично прехвърляне на стара оферта', $quoteId);
                 if($cancelLater){
                     core_Users::cancelSystemUser();
                 }
