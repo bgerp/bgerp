@@ -145,20 +145,24 @@ class deals_InvoicesToDocuments extends core_Manager
                 $newArr[] = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $obj->containerId, 'amount' => $obj->amount);
             }
 
+            $logMsg = false;
             $exRecs = static::getInvoiceArr($rec->containerId);
             $syncedArr = arr::syncArrays($newArr, $exRecs, 'containerId,amount', 'containerId,amount');
 
             if(countR($syncedArr['insert'])){
                 $this->saveArray($syncedArr['insert']);
+                $logMsg = true;
             }
 
             if(countR($syncedArr['update'])){
                 $this->saveArray($syncedArr['update'], 'id,containerId,amount');
+                $logMsg = true;
             }
 
             if(countR($syncedArr['delete'])){
                 $inStr = implode(',', $syncedArr['delete']);
                 $this->delete("#id IN ({$inStr})");
+                $logMsg = true;
             }
             plg_Search::forceUpdateKeywords($Document, $rec);
 
@@ -169,16 +173,23 @@ class deals_InvoicesToDocuments extends core_Manager
 
             $count = countR($invArr);
             if($count == 1){
-                $rec->fromContainerId = $invArr[0]->containerId;
-                $Document->save($rec, 'fromContainerId');
+                if($rec->fromContainerId != $invArr[0]->containerId){
+                    $rec->fromContainerId = $invArr[0]->containerId;
+                    $Document->save($rec, 'fromContainerId');
+                    $logMsg = true;
+                }
             } elseif(isset($rec->fromContainerId)) {
                 $rec->fromContainerId = null;
                 $Document->save($rec, 'fromContainerId');
+                $logMsg = true;
             } else {
                 $Document->touchRec($rec);
             }
 
-            $Document->logWrite("Отнасяне към документ", $rec->id);
+            if($logMsg){
+                $Document->logWrite("Отнасяне към документ", $rec->id);
+            }
+
             followRetUrl(null, 'Промяната е записана успешно');
         }
 

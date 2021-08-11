@@ -132,12 +132,17 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
 
         // Ако в документа е разрешено да се показват ф-те към обединените сделки
         if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
-            $closedDocuments = keylist::toArray($firstDocument->fetchField('closedDocuments'));
+            $firstDocumentRec = $firstDocument->fetch('closedDocuments,closeWith');
+
+            $closedDocuments = keylist::toArray($firstDocumentRec->closedDocuments);
             if(countR($closedDocuments)){
                 $docQuery = $firstDocument->getQuery();
                 $docQuery->in('id', $closedDocuments);
                 $docQuery->show('threadId');
                 $threadsArr += arr::extractValuesFromArray($docQuery->fetchAll(), 'threadId');
+            } elseif(isset($firstDocumentRec->closeWith)){
+                $closedWithThreadId = $firstDocument->getInstance()->fetchField($firstDocumentRec->closeWith, 'threadId');
+                $threadsArr += array($closedWithThreadId => $closedWithThreadId);
             }
         }
 

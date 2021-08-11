@@ -149,36 +149,6 @@ function prepareDashboard(data){
 
 }
 
-function sendData() {
-    var vent = $("#currentVentPercent").text();
-    var temperature = $("#currentTemp").text();
-    var lamp = $("#currentLux").text();
-    var slope = $("#currentSlope").text();
-
-    var dashboardInfo = {
-        "ventPower" : parseInt(vent)  / 10,
-        "setTemperature": parseFloat(temperature),
-        "lux": parseInt(lamp),
-        "blinds"    : parseInt(slope)
-    };
-
-    $.ajax({
-        type: "POST",
-        url: "http://11.0.0.64/jsonReceive.php",
-        crossDomain : true,
-        success: function (msg) {
-            if (msg) {
-                console.log("data send");
-            } else {
-                console.log("error");
-            }
-        },
-
-
-
-        data: JSON.stringify(dashboardInfo)
-    });
-}
 
 function setIcon(el, icon) {
     switch (icon) {
@@ -215,12 +185,146 @@ function setIcon(el, icon) {
     }
 }
 
-function changeVent(input)
-{
-	const vent = parseInt(input.value, 10);
+/**
+ * Scalar scaling function.
+ * @param {Target value for rescaling.} target
+ * @param {Input max and min limits.} in_limit
+ * @param {Output max and min limits.} out_limit
+ * @returns Rescaled input value.
+ */
+function l_scale(target, in_limit, out_limit) {
+    return (target - in_limit[0]) * (out_limit[1] - out_limit[0]) / (in_limit[1] - in_limit[0]) + out_limit[0]
+}
 
-	const speed = (270-2*vent)/100;
-	let root = document.documentElement;
-	root.style.setProperty('--rotation-speed', speed + "s");
-	console.log(speed);
+/**
+ * Get registers from Zontromat software.
+ * @param {Array of registers to be read from the Zontromat software.} registers
+ */
+function getRegisters(registers) {
+
+    // URL
+    // var url = "http://176.33.1.164:8890/api/v1/bgerp/registers/get";
+    var url = "http://127.0.0.1:8890/api/v1/bgerp/registers/get";
+
+    // Request body.
+    var requestBody = {
+        token: "5LtbUH2ZU615hdyQ",
+        registers: registers,
+
+    }
+
+    // Stringified request body.
+    var strRequestBody = JSON.stringify(requestBody);
+
+    // Request
+    var request = {
+        url: url,
+        type: "POST",
+        async: true,
+        crossDomain: true,
+        data: {params: strRequestBody},
+        success: function(data) {
+            console.log(data);
+        },
+        complete: function() {
+            console.log("Complete");
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            console.log(xhr);
+        },
+    }
+
+    $.ajax(request);
+}
+
+/**
+ * Set registers to Zontromat software.
+ * @param {Array of registers to be write to the Zontromat software.} registers
+ */
+function setRegisters(registers) {
+    // URL
+    // var url = "http://176.33.1.164:8890/api/v1/bgerp/registers/set";
+    var url = "http://127.0.0.1:8890/api/v1/bgerp/registers/set";
+
+    // Request body.
+    var requestBody = {
+        token: "5LtbUH2ZU615hdyQ",
+        registers: registers,
+    }
+
+    // Stringified request body.
+    var strRequestBody = JSON.stringify(requestBody);
+
+    // Request
+    var request = {
+        url: url,
+        type: "POST",
+        async: true,
+        crossDomain: true,
+        data: {params: strRequestBody},
+        success: function(data) {
+            console.log(data);
+        },
+        complete: function() {
+            console.log("Complete");
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            console.log(xhr);
+        },
+    }
+
+    $.ajax(request);
+}
+
+/**
+ * Temperature slider on change event callback.
+ * @param {Temperature slider from the frontend.} input
+ */
+function setTemperature(input) {
+    const slider_value = parseInt(input.value, 10);
+    // var scaled_value = l_scale(slider_value, [23.0, 28.0], [0.0, 10000.0]);
+
+    // TODO: Front-end animation.
+
+    setRegisters({"hvac.adjust_temp_1": slider_value});
+}
+
+/**
+ * Ventilation slider on change event callback.
+ * @param {Lights slider from the frontend.} input
+ */
+function setVentilation(input) {
+    const vent = parseInt(input.value, 10);
+
+    const speed = (270 - 2 * vent) / 100;
+    let root = document.documentElement;
+    root.style.setProperty('--rotation-speed', speed + "s");
+
+    // getRegisters(["sys.disc.used"]);
+    setRegisters({"vent.op_setpoint_1": vent});
+}
+
+/**
+ * Lights slider on change event callback.
+ * @param {Lights slider from the frontend.} input
+ */
+function setLights(input) {
+    const slider_value = parseInt(input.value, 10);
+    var scaled_value = l_scale(slider_value, [0.0, 100.0], [0.0, 10000.0]);
+
+    // TODO: Front-end animation.
+
+    setRegisters({"light.target_illum": scaled_value});
+}
+
+/**
+ * Blinds slider on change event callback.
+ * @param {Blinds slider from the frontend.} input
+ */
+function setBlinds(input) {
+    const slider_value = parseInt(input.value, 10);
+
+    // TODO: Front-end animation.
+
+    setRegisters({"blinds.position": slider_value});
 }
