@@ -190,6 +190,14 @@ abstract class deals_DealBase extends core_Master
             while($cRec = $cQuery->fetch()){
                 $where .= (empty($where) ? '' : ' OR ') . "(#docType = {$cRec->docClass} AND #docId = {$cRec->docId})";
             }
+
+            // Ако има активен приключващ документ, да не може да се затваря/отваря от бутона
+            if(isset($mvc->closeDealDoc)){
+                if(cls::get($mvc->closeDealDoc)->fetch("#threadId = {$rec->threadId} AND #state = 'active'")){
+                    $res = 'no_one';
+                }
+            }
+
             if(!empty($where) && acc_Journal::fetch($where, 'id')){
                 $res = 'no_one';
             }

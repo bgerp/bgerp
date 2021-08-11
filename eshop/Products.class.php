@@ -620,7 +620,7 @@ class eshop_Products extends core_Master
                 $pQuery->where("1=2");
             }
         } else {
-            $pQuery->where("#state = 'active' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
+            $pQuery->where("#state = 'active' AND #saleState != 'closed' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
             $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
             $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
         }
@@ -903,7 +903,7 @@ class eshop_Products extends core_Master
         if ($data->rec->state == 'closed') {
             $groupRec = eshop_Groups::fetch($data->rec->groupId);
             
-            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът в момента е спрян от продажба|*!', 'warning');
+            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът, който търсите вече не се предлага|*!', 'warning');
         }
         
         $data->groups = new stdClass();

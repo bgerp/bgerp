@@ -128,12 +128,40 @@ class ztm_Devices extends core_Master
         $this->FLD('token', 'password(16)', 'caption=Сесия, input=none');
         $this->FLD('lastSync', 'datetime(format=smartTime)', 'caption=Синхронизиране,input=none');
         $this->FLD('configTime', 'int', 'caption=Време,input=none');
-        
+
+        // @todo - remove
+        $this->FNC('showToken', 'varchar', 'caption=Сесия');
+
         $this->setDbUnique('token');
         $this->setDbUnique('name, state');
     }
-    
-    
+
+
+    /**
+     * @param $mvc
+     * @param $rec
+     *
+     * @todo - Да се изтрие showToken
+     */
+    function on_CalcShowToken($mvc, $rec)
+    {
+        $rec->showToken = $rec->token;
+    }
+
+
+    /**
+     * След подготовка на полетата
+     *
+     * @todo - Да се изтрие showToken
+     */
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        if (haveRole('admin')) {
+            $data->listFields['showToken'] = "Сесия";
+        }
+    }
+
+
     /**
      * Връща записа за този токен
      *
@@ -144,6 +172,8 @@ class ztm_Devices extends core_Master
      */
     public static function getRecForToken($token, $onlyActive = true)
     {
+        $token = trim($token);
+
         $rec = self::fetch(array("#token = '[#1#]'", $token));
         
         if ($rec->state == 'draft') {
