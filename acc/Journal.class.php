@@ -989,22 +989,25 @@ class acc_Journal extends core_Master
         $query->EXT('docId', 'acc_Journal', 'externalKey=journalId,externalName=docId');
         $query->where("#valior > '{$valior}'");
 
+        $number += 1;
         $whereArr = array();
         foreach ($journalFields as $field){
             $query->XPR("{$field}Length", 'double', 'LENGTH(SUBSTR(#' . $field . ', INSTR(#' . $field . ',".")))');
             $whereArr[] = "#{$field}Length >= {$number}";
         }
+
         $where = implode(' OR ', $whereArr);
         $query->where($where);
+
         $query->in('docType', $classes);
         $query->groupBy('docType,docId');
-        $query->show('docType, docId');
+        $query->show('docType, docId, journalId');
 
         $res = array();
         while($rec = $query->fetch()){
             $res[$rec->journalId] = cls::get($rec->docType)->fetchField($rec->docId, 'containerId');
         }
-
+        bp($res);
         return $res;
     }
 }
