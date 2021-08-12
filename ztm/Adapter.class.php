@@ -44,7 +44,8 @@ class ztm_Adapter extends core_Mvc
         }
         $data = json_encode($data);
         jquery_Jquery::run($tpl, "prepareDashboard({$data})");
-        jquery_Jquery::run($tpl, "setInterval(fixTimer, 1000)");
+        jquery_Jquery::run($tpl, "showClock()");
+        jquery_Jquery::run($tpl, "setInterval(showClock, 1000)");
 
         $tempImg = ht::createImg(array('path' => "ztm/img/temp-plus-4.png"));
         $lampImg = ht::createImg(array('path' => "ztm/img/lamp-on-50.png"));
