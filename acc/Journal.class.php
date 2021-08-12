@@ -1007,7 +1007,7 @@ class acc_Journal extends core_Master
         while($rec = $query->fetch()){
             $res[$rec->journalId] = cls::get($rec->docType)->fetchField($rec->docId, 'containerId');
         }
-        bp($res);
+
         return $res;
     }
 }
