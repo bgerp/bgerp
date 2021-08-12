@@ -86,7 +86,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,input=hidden,silent,single=none');
 
-        $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на артикула|Мярка / Наименование|Мин к-во|Макс к-во,widths=5em|20em|5em|5em)', 'caption=Артикули||Additional,autohide,advanced,after=date,single=none');
+        $fieldset->FLD('additional', 'table(columns=code|name|minQuantity|maxQuantity,captions=Код на артикула|Мярка / Наименование|Мин к-во|Макс к-во,widths=5em|20em|5em|5em,validate=store_reports_ProductAvailableQuantity::validateTable)', 'caption=Артикули||Additional,autohide,advanced,after=date,single=none');
 
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=additional');
         $fieldset->FLD('groupId', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,silent,single=none,removeAndRefreshForm');
@@ -570,15 +570,16 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $Int = cls::get('type_Int');
 
         $row = new stdClass();
+        $t = core_Type::getByName('double(smartRound,decimals=3)');
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
         if ($rec->seeByStores != 'yes') {
             if (isset($dRec->quantity)) {
-                $row->quantity = ($dRec->quantity);
+                $row->quantity = $t->fromVerbal($dRec->quantity);
                 $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
             }
         } else {
 
-            $row->quantity = '<b>' . 'Общо: ' . ($dRec->quantity) . '</b>' . "</br>";
+            $row->quantity = '<b>' . 'Общо: ' . $t->fromVerbal($dRec->quantity) . '</b>' . "</br>";
 
             foreach ($dRec->storesQuatity as $val) {
 
@@ -748,6 +749,60 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         $groupNamerr = $tempArr;
 
         return $arr;
+    }
+
+    /**
+     * Валидира таблицата
+     *
+     * @param mixed $tableData
+     * @param core_Type $Type
+     * @return void|string|array
+     */
+    public static function validateTable($tableData, $Type)
+    {
+        $Double = core_Type::getByName('double');
+        $tableData = (array) $tableData;
+        if (empty($tableData)) {
+
+            return;
+        }
+
+        $res = $error = $errorFields = array();
+
+        foreach ($tableData['minQuantity'] as $key => $minQuantity) {
+
+            if(!empty($minQuantity)){
+                $q2 = $Double->fromVerbal($minQuantity);
+                if (!$q2) {
+                    $error[] = 'Невалидна стойност';
+                    $errorFields['minQuantity'][$key] = 'Невалидна стойност';
+                }
+
+            }
+        }
+
+        foreach ($tableData['maxQuantity'] as $key => $maxQuantity) {
+
+            if(!empty($maxQuantity)){
+                $q2 = $Double->fromVerbal($maxQuantity);
+                if (!$q2) {
+                    $error[] = 'Невалидна стойност';
+                    $errorFields['maxQuantity'][$key] = 'Невалидна стойност';
+                }
+
+            }
+        }
+
+        if (countR($error)) {
+            $error = implode('|*<li>|', $error);
+            $res['error'] = $error;
+        }
+
+        if (countR($errorFields)) {
+            $res['errorFields'] = $errorFields;
+        }
+
+        return $res;
     }
 
 
