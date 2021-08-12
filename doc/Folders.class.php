@@ -454,7 +454,7 @@ class doc_Folders extends core_Master
     /**
      * След преобразуване към вербални данни на записа
      */
-    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
@@ -480,6 +480,16 @@ class doc_Folders extends core_Master
             } else {
                 $attr['style'] .= 'color:#777;';
                 $row->type = ht::createElement('span', $attr, $singleTitle);
+            }
+
+            if($fields['-list']){
+                if($rec->coverClass == doc_UnsortedFolders::getClassId()){
+                    $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
+                    if(!empty($unsortedFolderContragentId)){
+                        $subTitle = doc_Folders::recToVerbal($unsortedFolderContragentId)->title;
+                        $row->title .= "<br><small style='padding-left:10px'>» {$subTitle}</small>";
+                    }
+                }
             }
         } else {
             $row->type = "<span class='red'>" . tr('Проблем при показването') . '</span>';
