@@ -42,6 +42,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         $fieldset->FLD('fTasksPerPage', 'int(min=1, max=50)', 'caption=Показване на задачите в бъдеще->Редове, mandatory');
         $fieldset->FLD('fTasksDays', 'time(suggestions=1 месец|3 месеца|6 месеца)', 'caption=Показване на задачите в бъдеще->Дни, mandatory');
+        $fieldset->FLD('hideClosedTasks', 'time(suggestions=8 часа|16 часа|24 часа)', 'caption=Скриване на приключените задачи->След');
         $fieldset->FLD('taskPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Задачи');
         $fieldset->FLD('remPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Напомняния');
     }
@@ -178,12 +179,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $to = dt::addDays(360, $to);
             }
         }
-        
+
         $pArr = array();
         $pArr['tPageVar'] = $this->getPageVar($dRec->originIdCalc);
         $pArr['search'] = Request::get($sInputField);
         $pArr['tPerPage'] = $dRec->fTasksPerPage ? $dRec->fTasksPerPage : 5;
         $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
+        $pArr['hideClosedTasks'] = isset($dRec->hideClosedTasks) ? $dRec->hideClosedTasks : 86400;
         $pArr['taskPriority'] = $dRec->taskPriority;
         $pArr['remPriority'] = $dRec->remPriority;
 
@@ -453,7 +455,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $todayF = $pArr['_todayF'];
         $query->where(array("#expectationTimeStart >= '[#1#]'", $todayF));
         $query->orWhere(array("#expectationTimeEnd >= '[#1#]'", $todayF));
-        
+
         $query->XPR('expectationTimeOrder', 'datetime', "IF((#expectationTimeStart < '{$todayF}'), #expectationTimeEnd, #expectationTimeStart)");
         
         $query->orderBy('expectationTimeOrder', 'ASC');
@@ -462,10 +464,14 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $fQuery = clone $query;
         $fQuery->where(array("#expectationTimeOrder >= '[#1#]'", $pArr['_endWorkingDay']));
         $fQuery->where(array("#expectationTimeOrder <= '[#1#]'", $pArr['fTasksDays']));
+
+        if (isset($pArr['hideClosedTasks'])) {
+            $query->where(array("(#state != 'closed' AND #state != 'stopped') OR (#timeClosed >= '[#1#]')", dt::subtractSecs($pArr['hideClosedTasks'])));
+        }
         
         // Задачите за близко бъдеще
         $query->where(array("#expectationTimeOrder <= '[#1#]'", $pArr['_endWorkingDay']));
-        
+
         $resArr = array();
         $i = 0;
         while ($rec = $query->fetch()) {
