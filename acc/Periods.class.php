@@ -221,6 +221,15 @@ class acc_Periods extends core_Manager
     {
         // Форсираме перо за месеца и годината на периода
         static::forceYearItem($rec->end);
+
+        if($rec->state == 'active'){
+            $query = static::getQuery();
+            $query->where("#id != {$rec->id} AND #state = 'active' AND #end > '{$rec->end}'");
+            while($rec = $query->fetch()){
+                $rec->state = 'pending';
+                static::save($rec, 'state');
+            }
+        }
     }
     
     
@@ -535,7 +544,7 @@ class acc_Periods extends core_Manager
         // Могат ръчно да се добавят периоди, само, ако няма нито един приключил
         if ($action == 'add') {
             if (self::fetch("#state = 'closed'")) {
-                $requiredRoles = 'no_one';
+                //$requiredRoles = 'no_one';
             }
         }
     }
@@ -577,22 +586,6 @@ class acc_Periods extends core_Manager
         $this->logWrite('Затваряне на период', $id);
         
         return followRetUrl(null, $res);
-    }
-    
-    
-    /**
-     * Инициализира начални счетоводни периоди при инсталиране
-     * Ако няма дефинирани периоди дефинира период, чийто край е последния ден от предходния
-     * месец със state='closed' и период, който е за текущия месец и е със state='active'
-     */
-    public function loadSetupData2()
-    {
-        // Форсира създаването на периоди от текущия месец до ACC_FIRST_PERIOD_START
-        $this->forcePeriod(dt::verbal2mysql());
-        
-        $this->updateExistingPeriodsState();
-        
-        return $this->actLog;
     }
     
     
