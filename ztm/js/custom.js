@@ -328,3 +328,15 @@ function setBlinds(input) {
 
     setRegisters({"blinds.position": slider_value});
 }
+
+
+/**
+ *
+ */
+function fixTimer()
+{
+    var today = new Date();
+    var min = today.getMinutes() >= 10 ? today.getMinutes() : '0' + today.getMinutes();
+    var time = today.getHours() + "<span class='blink05'>:</span>" + min;
+    $('#currentTime').html(time);
+}
