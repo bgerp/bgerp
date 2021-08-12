@@ -307,11 +307,11 @@ class deals_Setup extends core_ProtoSetup
     /**
      * Помощна ф-я за реконтиране на платежните документи
      */
-    public static function recontoPaymentDocuments($documents)
+    public static function fixDocumentsWithMoreThanNDigits($documents, $digitCount = 2)
     {
         $start = acc_Periods::getFirstActive()->start;
         if(!empty($start)){
-            $res = acc_Journal::getDocsByDigitCounts($start, 0, $documents);
+            $res = acc_Journal::getDocsByDigitCounts($start, $digitCount, $documents);
             $count = countR($res);
 
             if(!$count) return;
@@ -321,7 +321,7 @@ class deals_Setup extends core_ProtoSetup
                 $document = doc_Containers::getDocument($containerId);
                 try{
                     acc_Journal::reconto($containerId);
-                    $document->getInstance()->logWrite('Ре-контиране на документа', $document->that);
+                    $document->getInstance()->logWrite('Ре-контиране на документ за оправяне на закръгляне', $document->that);
                 } catch(core_exception_Expect $e){
                     reportException($e);
                 }
