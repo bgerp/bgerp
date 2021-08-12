@@ -2,7 +2,7 @@
          <div class="cont last">
             <div class="x_panel tile">
 				<div class="x_content" style="display: block;">
-					<div class="roomNum">Стая - 123</div>
+					<div class="roomNum">Стая - 101</div>
 					<div class="state  eco">ECO</div>
 					<div class="clearfix"></div>
 					<h1 id="currentTime"></h1>
