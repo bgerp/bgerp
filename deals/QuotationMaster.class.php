@@ -882,9 +882,13 @@ abstract class deals_QuotationMaster extends core_Master
         $folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
         if($DealClass instanceof sales_Sales){
             $fields['dealerId'] = $DealClass::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
-            $fields['bankAccountId'] = bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId');
+            if(!empty($rec->bankAccountId)){
+                $fields['bankAccountId'] = bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId');
+            }
         } else {
-            $fields['bankAccountId'] = $rec->bankAccountId;
+            if(!empty($rec->bankAccountId)){
+                $fields['bankAccountId'] = $rec->bankAccountId;
+            }
         }
 
         // Създаваме нова продажба от офертата
