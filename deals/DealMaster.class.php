@@ -1683,6 +1683,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['deliveryTime']          - дата на доставка
      *      o $fields['deliveryData']          - други данни за доставка
      * 		o $fields['dealerId']              - ид на потребител търговец
+     *      o $fields['bankAccountId']         - банкова сметка
      * 		o $fields['initiatorId']           - ид на потребител инициатора (ако няма е отговорника на контрагента)
      * 		o $fields['caseId']                - ид на каса (@see cash_Cases)
      * 		o $fields['note'] 				   - бележки за сделката
@@ -1794,12 +1795,18 @@ abstract class deals_DealMaster extends deals_DealBase
         // Опиваме се да запишем мастъра на сделката
         $rec = (object)$fields;
         
-        if($me instanceof sales_Sales && isset($fields['deliveryTermId'])){
-            if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
-                $rec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+        if($me instanceof sales_Sales){
+            if(isset($fields['deliveryTermId'])){
+                if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
+                    $rec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+                }
             }
         }
-        
+
+        if(isset($fields['bankAccountId'])) {
+            $rec->bankAccountId = $fields['bankAccountId'];
+        }
+
         if ($fields['onlineSale'] === true) {
             $rec->_onlineSale = true;
         }

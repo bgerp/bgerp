@@ -180,6 +180,7 @@ class purchase_Quotations extends deals_QuotationMaster
     public function description()
     {
         parent::setQuotationFields($this);
+        $this->FLD('bankAccountId', 'iban_Type(64)', 'caption=Плащане->Към банк. сметка,after=paymentMethodId');
         $this->FLD('others', 'richtext(rows=4,bucket=purQuoteFiles)', 'caption=Допълнително->Условия');
 
         $this->setDbIndex('date');
@@ -207,7 +208,7 @@ class purchase_Quotations extends deals_QuotationMaster
      */
     protected static function on_AfterActivation($mvc, &$rec)
     {
-        $rec = $mvc->fetch($rec->id, 'contragentClassId,contragentId');
+        $rec = $mvc->fetch($rec->id, 'contragentClassId,contragentId,currencyId,bankAccountId');
 
         // Ако офертата е в папка на контрагент вкарва се в група Доставчици->Оферти
         $supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
@@ -219,6 +220,10 @@ class purchase_Quotations extends deals_QuotationMaster
         if(empty($rec->date)){
             $rec->date = dt::now();
             $mvc->save_($rec, 'date');
+        }
+
+        if(bank_Accounts::add($rec->bankAccountId, currency_Currencies::getIdByCode($rec->currencyId), $rec->contragentClassId, $rec->contragentId)){
+            core_Statuses::newStatus('Добавена е нова сметка на контрагента|*!');
         }
     }
 
@@ -240,5 +245,17 @@ class purchase_Quotations extends deals_QuotationMaster
         $tpl->append($handle, 'handle');
 
         return $tpl->getContent();
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $rec = &$form->rec;
+
+        $form->setSuggestions('bankAccountId', bank_Accounts::getContragentIbans($rec->contragentId, $rec->contragentClassId));
     }
 }

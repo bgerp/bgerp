@@ -116,7 +116,6 @@ abstract class deals_QuotationMaster extends core_Master
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод');
-        $mvc->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Плащане->Курс,input=hidden');
         $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Плащане->ДДС');
@@ -519,12 +518,6 @@ abstract class deals_QuotationMaster extends core_Master
                 }
             }
 
-            if (isset($rec->bankAccountId)) {
-                $ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
-                $url = (!Mode::isReadOnly()) ? bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId) : array();
-                $row->bankAccountId = ht::createLink($ownAccount->iban, $url);
-            }
-
             $deliveryAdress = '';
             if (!empty($rec->deliveryAdress)) {
                 $deliveryAdress .= $mvc->getFieldType('deliveryAdress')->toVerbal($rec->deliveryAdress);
@@ -889,14 +882,13 @@ abstract class deals_QuotationMaster extends core_Master
         $folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
         if($DealClass instanceof sales_Sales){
             $fields['dealerId'] = $DealClass::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
+            $fields['bankAccountId'] = bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId');
+        } else {
+            $fields['bankAccountId'] = $rec->bankAccountId;
         }
 
         // Създаваме нова продажба от офертата
         $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
-        if (isset($dealId) && isset($rec->bankAccountId)) {
-            $uRec = (object) array('id' => $dealId, 'bankAccountId' => bank_OwnAccounts::fetchField($rec->bankAccountId, 'bankAccountId'));
-            $DealClass->save_($uRec);
-        }
 
         return $dealId;
     }

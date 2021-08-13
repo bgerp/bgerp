@@ -156,7 +156,8 @@ class sales_Quotations extends deals_QuotationMaster
     {
         parent::setQuotationFields($this);
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
-        
+        $this->FLD('bankAccountId', 'key(mvc=bank_OwnAccounts,select=title,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=paymentMethodId');
+
         $this->FNC('row1', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
         $this->FNC('row2', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
         $this->FNC('row3', 'complexType(left=Количество,right=Цена)', 'caption=Детайли->Количество / Цена');
@@ -375,6 +376,14 @@ class sales_Quotations extends deals_QuotationMaster
                 if ($deliveryTermTime) {
                     $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
                     $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
+                }
+            }
+
+            if (isset($rec->bankAccountId)) {
+                $ownAccount = bank_OwnAccounts::getOwnAccountInfo($rec->bankAccountId);
+                $row->bankAccountId = $ownAccount->iban;
+                if(!Mode::isReadOnly()){
+                    $row->bankAccountId = ht::createLink($ownAccount->iban, bank_OwnAccounts::getSingleUrlArray($rec->bankAccountId));
                 }
             }
         }

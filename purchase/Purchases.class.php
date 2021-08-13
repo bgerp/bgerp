@@ -408,15 +408,9 @@ class purchase_Purchases extends deals_DealMaster
         if ($rec->state == 'draft') {
             
             // Ако има въведена банкова сметка, която я няма в системата я вкарваме
-            if ($rec->bankAccountId && strlen($rec->bankAccountId)) {
-                if (!bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->bankAccountId))) {
-                    $newAcc = new stdClass();
-                    $newAcc->currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-                    $newAcc->iban = $rec->bankAccountId;
-                    $newAcc->contragentCls = $rec->contragentClassId;
-                    $newAcc->contragentId = $rec->contragentId;
-                    bank_Accounts::save($newAcc);
-                    core_Statuses::newStatus('Успешно е добавена нова банкова сметка на контрагента');
+            if (!empty($rec->bankAccountId)) {
+                if(bank_Accounts::add($rec->bankAccountId, currency_Currencies::getIdByCode($rec->currencyId), $rec->contragentClassId, $rec->contragentId)){
+                    core_Statuses::newStatus('Добавена е нова сметка на контрагента|*!');
                 }
             }
         }
