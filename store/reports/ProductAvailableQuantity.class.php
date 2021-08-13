@@ -156,6 +156,17 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
             $form->setField('additional', 'input=none');
         }
 
+        $fldArr = array('minQuantity','maxQuantity');
+        foreach ($fldArr as $fld){
+            foreach ($details->$fld as $key => $val){
+                if ($val){
+                    $Double = core_Type::getByName('double');
+                    $details->$fld[$key] = $Double->fromVerbal($val);
+                }
+            }
+        }
+
+
         if ($form->isSubmitted()) {
 
             //При избрано количество РАЗПОЛАГАЕМО проверяваме датата да е поголяма от днес
@@ -760,7 +771,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
      */
     public static function validateTable($tableData, $Type)
     {
-        $Double = core_Type::getByName('double');
+
         $tableData = (array) $tableData;
         if (empty($tableData)) {
 
@@ -772,6 +783,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         foreach ($tableData['minQuantity'] as $key => $minQuantity) {
 
             if(!empty($minQuantity)){
+                $Double = core_Type::getByName('double');
                 $q2 = $Double->fromVerbal($minQuantity);
                 if (!$q2) {
                     $error[] = 'Невалидна стойност';
@@ -784,6 +796,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         foreach ($tableData['maxQuantity'] as $key => $maxQuantity) {
 
             if(!empty($maxQuantity)){
+                $Double = core_Type::getByName('double');
                 $q2 = $Double->fromVerbal($maxQuantity);
                 if (!$q2) {
                     $error[] = 'Невалидна стойност';
@@ -801,7 +814,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if (countR($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
-
+//bp($res);
         return $res;
     }
 

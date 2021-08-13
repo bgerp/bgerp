@@ -2,41 +2,13 @@ var icons = new Skycons({"color": "#489fc0"});
 
 function prepareDashboard(data){
 
-
     $('#navbarCollapse a').on('click', function (e) {
         e.preventDefault();
         $(this).tab('show');
     });
 
-    var today = new Date();
-    var month ;
-    switch (today.getMonth()) {
-        case 0: month = "януари"; break;
-        case 1: month = "февруари"; break;
-        case 2: month = "март"; break;
-        case 3: month = "април"; break;
-        case 4: month = "май"; break;
-        case 5: month = "юни"; break;
-        case 6: month = "юли"; break;
-        case 7: month = "август"; break;
-        case 8: month = "септември"; break;
-        case 9: month = "октомври"; break;
-        case 10: month = "ноември"; break;
-        case 11: month = "декември"; break;
-
-
-    }
-    var date = today.getDate() + " " + month;
-    $('.currentDate').html(date);
-
-    var min = today.getMinutes() >= 10 ? today.getMinutes() : '0' + today.getMinutes();
-    var time = today.getHours() + "<span class='blink05'>:</span>" + min;
-    $('#currentTime').append(time);
-
     var weatherStat = data.low ? "Температурите ще са в интервала от " + parseInt(data.low) + " до " + parseInt(data.high) + "°C." : "Няма информация за текущата прогноза.";
     $('.weatherStat').html(weatherStat);
-
-
 
     $('#navbarCollapse a:first').tab('show');
  
@@ -331,12 +303,33 @@ function setBlinds(input) {
 
 
 /**
- *
+ * Show clock
  */
-function fixTimer()
+function showClock()
 {
     var today = new Date();
     var min = today.getMinutes() >= 10 ? today.getMinutes() : '0' + today.getMinutes();
     var time = today.getHours() + "<span class='blink05'>:</span>" + min;
     $('#currentTime').html(time);
+
+    var month ;
+    switch (today.getMonth()) {
+        case 0: month = "януари"; break;
+        case 1: month = "февруари"; break;
+        case 2: month = "март"; break;
+        case 3: month = "април"; break;
+        case 4: month = "май"; break;
+        case 5: month = "юни"; break;
+        case 6: month = "юли"; break;
+        case 7: month = "август"; break;
+        case 8: month = "септември"; break;
+        case 9: month = "октомври"; break;
+        case 10: month = "ноември"; break;
+        case 11: month = "декември"; break;
+    }
+
+    var date = today.getDate() + " " + month;
+    $('.currentDate').html(date);
 }
+
+
