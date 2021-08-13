@@ -181,7 +181,8 @@ class cat_products_Params extends doc_Detail
             if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
                 $form->setField('paramValue', 'input');
                 $form->setFieldType('paramValue', $Type);
-                
+                $form->setDefault('paramValue', cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue));
+
                 if (!empty($pRec->suffix)) {
                     $suffix = cat_Params::getVerbal($pRec, 'suffix');
                     $form->setField('paramValue', "unit={$suffix}");
@@ -302,7 +303,7 @@ class cat_products_Params extends doc_Detail
             $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
             
             // Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт
-            $paramValue = ($paramValue) ? $paramValue : cat_Params::getDefault($paramId);
+            $paramValue = ($paramValue) ? $paramValue : cat_Params::fetchField($paramId, 'default');
             if ($verbal === true) {
                 $ParamType = cat_Params::getTypeInstance($paramId, $classId, $productId, $paramValue);
                 $paramValue = $ParamType->toVerbal(trim($paramValue));

@@ -111,6 +111,7 @@ class cond_ConditionsToCustomers extends core_Manager
             if ($Type = cond_Parameters::getTypeInstance($rec->conditionId, $rec->cClass, $rec->cId, $rec->value)) {
                 $form->setField('value', 'input');
                 $form->setFieldType('value', $Type);
+                $form->setDefault('value', cond_Parameters::getDefaultValue($rec->conditionId, $rec->cClass, $rec->cId, $rec->value));
             } else {
                 $form->setError('conditionId', 'Има проблем при зареждането на типа');
             }

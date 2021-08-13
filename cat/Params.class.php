@@ -138,27 +138,6 @@ class cat_Params extends bgerp_ProtoParam
     
     
     /**
-     * Връща дефолт стойността за параметъра
-     *
-     * @param $paramId - ид на параметър
-     *
-     * @return FALSE|string
-     */
-    public static function getDefault($paramId)
-    {
-        // Ако няма гледаме имали дефолт за параметъра
-        $default = self::fetchField($paramId, 'default');
-        
-        if (!empty($default)) {
-            
-            return $default;
-        }
-        
-        return false;
-    }
-    
-    
-    /**
      * Връща нормализирано име на параметъра
      *
      * @param mixed  $rec       - ид или запис на параметър

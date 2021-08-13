@@ -99,8 +99,24 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
         
         return $type;
     }
-    
-    
+
+
+    /**
+     * Връща дефолтната стойност на параметъра
+     *
+     * @param stdClass    $rec         - запис на параметъра
+     * @param mixed       $domainClass - клас на домейна
+     * @param mixed       $domainId    - ид на домейна
+     * @param NULL|string $value       - стойност
+     *
+     * @return mixed                   - дефолтната стойност (ако има)
+     */
+    public function getDefaultValue($rec, $domainClass = null, $domainId = null, $value = null)
+    {
+        return null;
+    }
+
+
     /**
      * Обръща подадени опции в подходящ текст за вътрешно съхранение
      *
