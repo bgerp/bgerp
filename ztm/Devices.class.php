@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  *
@@ -118,8 +118,8 @@ class ztm_Devices extends core_Master
         $this->FLD('model', 'varchar(32)', 'caption=Модел');
         $this->FLD('name', 'varchar(32)', 'caption=Име, mandatory');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title)', 'caption=Локация->Обект, mandatory');
-        $this->FLD('floor', 'int(min=-100,max=100)', 'caption=Локация->Етаж');
-        $this->FLD('sector', 'varchar(8)', 'caption=Локация->Сектор');
+        $this->FLD('zone', 'varchar(12)', 'caption=Локация->Зона');
+
         $this->FLD('state', 'enum(draft=Чакащо,active=Активно,rejected=Оттеглено )', 'caption=Състояние,input=none');
         $this->FLD('profileId', 'key(mvc=ztm_Profiles,select=name)', 'caption=Профил, mandatory');
         $this->FLD('accessGroupId', 'key(mvc=ztm_Groups,select=name, allowEmpty)', 'caption=Група->Достъп');
@@ -244,30 +244,6 @@ class ztm_Devices extends core_Master
         $token = self::fetch(array("#ident = '[#1#]' and #state != 'rejected'", $ident), 'token');
         
         return ($token === false) ? true : false;
-    }
-
-
-    /**
-     * Връща всичките етажи и сектори взети от устройствата
-     *
-     * @return array
-     */
-    public static function getFloorsArr()
-    {
-        $query = self::getQuery();
-        $query->where("#state = 'active'");
-        $query->orderBy('floor', 'ASC');
-        $query->orderBy('sector', 'ASC');
-
-        $query->show('floor, sector');
-
-        $resArr = array();
-        while ($rec = $query->fetch()) {
-            $fName = trim($rec->sector) . trim($rec->floor);
-            $resArr[$fName] = $fName;
-        }
-
-        return $resArr;
     }
 
 
@@ -444,7 +420,7 @@ class ztm_Devices extends core_Master
      *
      * @see acs_ZoneIntf
      */
-    public function getCheckpoints()
+    public function getCheckpoints_()
     {
         $query = $this->getQuery();
         $query->where("#state = 'active'");
@@ -452,9 +428,10 @@ class ztm_Devices extends core_Master
         $resArr = array();
         
         while ($rec = $query->fetch()) {
-             $gVal = array('name' => $this->prepareName($rec), 'locationId' => $rec->locationId);
+
+            $gVal = array('name' => $this->prepareName($rec), 'locationId' => $rec->locationId, 'zone' => $rec->zone, '_id' => $rec->id);
             
-             $resArr[$gVal['name']] = $gVal;
+            $resArr[$gVal['name']] = $gVal;
         }
         
         return $resArr;
