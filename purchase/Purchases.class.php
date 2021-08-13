@@ -113,8 +113,14 @@ class purchase_Purchases extends deals_DealMaster
      * Заглавие в единствено число
      */
     public $singleTitle = 'Покупка';
-    
-    
+
+
+    /**
+     * Клас на оферта
+     */
+    protected $quotationClass = 'purchase_Quotations';
+
+
     /**
      * Икона за единичния изглед
      */

@@ -62,6 +62,12 @@ defIfNot('PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '432000');
 
 
 /**
+ * Дефолтно действие при създаване на нова продажба в папка
+ */
+defIfNot('PURCHASE_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -104,7 +110,6 @@ class purchase_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
-        'purchase_Offers',
         'purchase_Purchases',
         'purchase_PurchasesDetails',
         'purchase_Services',
@@ -114,7 +119,10 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_InvoiceDetails',
         'purchase_Vops',
         'purchase_PurchasesData',
+        'purchase_Quotations',
+        'purchase_QuotationDetails',
         'migrate::updateInvoiceJournalDate',
+        'migrate::migrateOldQuotes',
     );
     
     
@@ -139,8 +147,12 @@ class purchase_Setup extends core_ProtoSetup
         'PURCHASE_ADD_BY_LIST_BTN' => array('keylist(mvc=core_Roles,select=role,groupBy=type)', 'caption=Необходими роли за добавяне на артикули в покупка от->Списък'),
         'PURCHASE_NEW_PURCHASE_AUTO_ACTION_BTN' => array(
             'enum(none=Договор в "Чернова",form=Създаване на договор,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни покупки)',
-            'mandatory,caption=Действие на бързия бутон "Покупка" в папките->Избор,customizeBy=ceo|sales|purchase',
+            'mandatory,caption=Действие на бързия бутон "Покупка" и "Оферта от доставчик" в папките->Покупка,customizeBy=ceo|sales|purchase',
          ),
+        'PURCHASE_NEW_QUOTATION_AUTO_ACTION_BTN' => array(
+            'enum(none=Оферта в "Чернова",form=Създаване на оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
+            'mandatory,caption=Действие на бързия бутон "Покупка" и "Оферта от доставчик" в папките->Оферта от доставчик,customizeBy=ceo|sales|purchase',
+        ),
         'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификацията за нефактурирани авансови сделки->Време'),
     );
     
@@ -158,8 +170,23 @@ class purchase_Setup extends core_ProtoSetup
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'purchase_PurchaseLastPricePolicy,purchase_reports_PurchasedItems';
-    
-    
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Close invalid quotations from suppliers',
+            'description' => 'Затваряне на остарелите оферти от доставчици',
+            'controller' => 'purchase_Quotations',
+            'action' => 'CloseQuotations',
+            'period' => 1440,
+            'timeLimit' => 360
+        ),
+    );
+
+
     /**
      * Инсталиране на пакета
      */
@@ -175,7 +202,10 @@ class purchase_Setup extends core_ProtoSetup
                 core_Packs::setConfig('purchase', array($const => $keylist));
             }
         }
-        
+
+        $Bucket = cls::get('fileman_Buckets');
+        $html .= $Bucket->createBucket('purQuoteFiles', 'Прикачени файлове в офертите от доставчици', null, '104857600', 'user', 'user');
+
         return $html;
     }
 
@@ -194,5 +224,76 @@ class purchase_Setup extends core_ProtoSetup
 
         $query = "UPDATE {$Invoices->dbTableName} SET {$Invoices->dbTableName}.{$journalDateFieldName} = {$Invoices->dbTableName}.{$dateFieldName} WHERE {$Invoices->dbTableName}.{$journalDateFieldName} IS NULL AND ({$Invoices->dbTableName}.{$stateColName} = 'active' OR {$Invoices->dbTableName}.{$stateColName} = 'stopped')";
         $Invoices->db->query($query);
+    }
+
+
+    /**
+     * Миграция на старите оферти към новите
+     */
+    function migrateOldQuotes()
+    {
+        $db = new core_Db();
+        if (!$db->tableExists('purchase_offers')) return;
+
+        $OldQuote = cls::get('purchase_Offers');
+        $oldQuoteCount = $OldQuote->count();
+        if(!$oldQuoteCount) return;
+
+        $Quotations = cls::get('purchase_Quotations');
+        $query = $OldQuote->getQuery();
+        $query->where("#state != ''");
+
+        core_App::setTimeLimit($oldQuoteCount * 0.6, false, 300);
+        while($rec = $query->fetch()){
+            $Cover = doc_Folders::getCover($rec->folderId);
+            if($Cover->haveInterface('crm_ContragentAccRegIntf')){
+
+                $others = "";
+                if(!empty($rec->product)){
+                    $others .= "Продукт: {$rec->product}" . "\n";
+                }
+
+                if(!empty($rec->sum)){
+                    $others .= "Цена: {$rec->sum}" . "\n";
+                }
+
+                if(!empty($rec->offer)){
+                    $others .= "Детайли: {$rec->offer}" . "\n";
+                }
+
+                if(!empty($rec->documentId)){
+                    $others .= "Документ: [file={$rec->documentId}][/file]";
+                }
+
+                $fields = array();
+                $date = !empty($rec->date) ? $rec->date : null;
+                if(!empty($others)){
+                    $fields['others'] = $others;
+                }
+
+                $cancelLater = false;
+                if(!core_Users::isSystemUser()){
+                    core_Users::forceSystemUser();
+                    $cancelLater = true;
+                }
+
+                $quoteId = purchase_Quotations::createNewDraft($Cover->getClassId(), $Cover->that, $date, $fields);
+                purchase_Quotations::logWrite('Автоматично прехвърляне на стара оферта', $quoteId);
+                if($cancelLater){
+                    core_Users::cancelSystemUser();
+                }
+
+                $quoteRec = purchase_Quotations::fetch($quoteId);
+                doc_Linked::add($quoteRec->containerId, $rec->containerId, 'doc', 'doc', 'Прехвърляне на стара оферта');
+
+                if($rec->state == 'active'){
+                    $quoteRec->state = 'active';
+                    $Quotations->save($quoteRec, 'state');
+                    $Quotations->invoke('AfterActivation', array($quoteRec));
+                }
+
+                doc_Threads::doUpdateThread($quoteRec->threadId);
+            }
+        }
     }
 }
