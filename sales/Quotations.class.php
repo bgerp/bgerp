@@ -323,14 +323,6 @@ class sales_Quotations extends deals_QuotationMaster
                 }
             }
 
-            // Показване на допълнителните условия от артикулите
-            $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
-            if (is_array($additionalConditions)) {
-                foreach ($additionalConditions as $cond) {
-                    $row->others .= "<li>{$cond}</li>";
-                }
-            }
-
             if ($cond = cond_Parameters::getParameter($rec->contragentClassId, $rec->contragentId, 'commonConditionSale')) {
                 $row->commonConditionQuote = cls::get('type_Url')->toVerbal($cond);
             }

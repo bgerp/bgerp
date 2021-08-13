@@ -1222,6 +1222,7 @@ abstract class deals_QuotationMaster extends core_Master
         $this->requireRightFor('dealfromquotation', $rec);
         $force = Request::get('force', 'int');
         $DealClass = cls::get($this->dealClass);
+        $dealSingleTitle = mb_strtolower($DealClass->singleTitle);
 
         // Ако не форсираме нова продажба
         if (!$force && !core_Users::isContractor()) {
@@ -1241,7 +1242,7 @@ abstract class deals_QuotationMaster extends core_Master
             } catch(core_exception_Expect $e){
                 reportException($e);
                 $this->logErr($e->dump[0], $rec->id);
-                followRetUrl(null, "Проблем при създаване на {$DealClass->singleTitle} от оферта", 'error');
+                followRetUrl(null, "Проблем при създаване на {$dealSingleTitle} от оферта", 'error');
             }
         }
 
@@ -1258,10 +1259,10 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
 
-        $this->logWrite("Създаване на {$DealClass->singleTitle} от оферта", $id);
+        $this->logWrite("Създаване на {$dealSingleTitle} от оферта", $id);
 
         // Редирект към новата сделка
-        return new Redirect(array($DealClass, 'single', $sId), "|Успешно е създадена {$DealClass->singleTitle} от офертата");
+        return new Redirect(array($DealClass, 'single', $sId), "|Успешно е създадена {$dealSingleTitle} от офертата");
     }
 
 
