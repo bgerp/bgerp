@@ -183,9 +183,13 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         
         // Местим дебитното салдо на '4531' в '4532'
         $amount4531 = ($amount4531) ? $amount4531 : 0;
-        
-        // Приспадане на ДДС по покупки
-        $entries[] = array('amount' => abs($amount4531), 'debit' => array('4532'), 'credit' => array('4531'), 'reason' => 'Приспадане на ДДС по покупки');
+
+        if($amount4531 >= 0){
+            $entries[] = array('amount' => $amount4531, 'debit' => array('4532'), 'credit' => array('4531'), 'reason' => 'Приспадане на ДДС по покупки');
+        } else {
+            $entries[] = array('amount' => abs($amount4531), 'credit' => array('4532'), 'debit' => array('4531'), 'reason' => 'Приспадане на ДДС по покупки');
+        }
+
         $total += abs($amount4531);
         
         $amount = $amount4532 - $diffAmount + abs($amount4531);
