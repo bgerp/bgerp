@@ -25,7 +25,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Кой може да листва?
      */
-    public $canList = 'no_one,admin';
+    public $canList = 'no_one';
     
     
     /**

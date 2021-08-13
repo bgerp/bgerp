@@ -206,8 +206,8 @@ class acs_Zones extends core_Master
             $cp = $inst->getCheckpoints();
             
             foreach ($cp as $cpNameArr) {
-                $mustSave = false;
-                
+                $mustSave = $mustSaveActive = false;
+
                 $cpName = $cpNameArr['name'];
                 $locationId = $cpNameArr['locationId'];
                 if (!$locationId) {
@@ -236,15 +236,25 @@ class acs_Zones extends core_Master
                         $mustSave = true;
                     } else {
                         $activeArr[$rec->id] = $rec->id;
+                        $mustSaveActive = true;
                     }
                 }
-                
+
+                foreach ($cpNameArr as $cpField => $cpVal) {
+                    if ($cpField[0] == '_') {
+                        continue;
+                    }
+                    $rec->{$cpField} = $cpVal;
+                }
+
                 // Ако трябва да се обнови записа
-                if ($mustSave) {
+                if ($mustSave || $mustSaveActive) {
                     $this->save($rec);
-                    
-                    $activeCnt++;
-                    
+
+                    if ($mustSave) {
+                        $activeCnt++;
+                    }
+
                     if ($rec->id) {
                         $activeArr[$rec->id] = $rec->id;
                     }

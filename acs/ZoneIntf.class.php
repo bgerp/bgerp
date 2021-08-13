@@ -22,9 +22,9 @@ class acs_ZoneIntf
      * 
      * @return array
      */
-    public function getCheckpoints()
+    public function getCheckpoints_()
     {
-        
+
         return $this->class->getCheckpoints();
     }
     
