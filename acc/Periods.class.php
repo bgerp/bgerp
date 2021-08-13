@@ -188,11 +188,9 @@ class acc_Periods extends core_Manager
         if ($rec->end == $curPerEnd) {
             $row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block; float: left; margin-right:5px', 'title' => 'Текущ период')) . $row->id;
         }
-        
-        if ($rec->state == 'closed') {
-            if ($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')) {
-                $row->close = acc_ClosePeriods::getLink($docId, 0);
-            }
+
+        if ($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')) {
+            $row->close .= acc_ClosePeriods::getLink($docId, 0);
         }
     }
     
