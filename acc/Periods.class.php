@@ -164,9 +164,12 @@ class acc_Periods extends core_Manager
                         // Ако има, периода може да се приключи
                         $row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => true), 'Наистина ли желаете да приключите периода?', null, 'ef_icon=img/16/lock.png,title=Приключване на периода');
                     } else {
-                        
-                        // Ако няма не може докато не бъде контиран такъв
-                        $row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
+                        if(acc_ClosePeriods::haveRightFor('add')){
+                            $row->close = ht::createBtn('Приключване', array('acc_ClosePeriods', 'add', 'periodId' => $rec->id), false,false,'ef_icon=img/16/add.png,title=Създаване на нов приключващ документ за периода');
+                        } else {
+                            // Ако няма не може докато не бъде контиран такъв
+                            $row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
+                        }
                     }
                 } else {
                     
