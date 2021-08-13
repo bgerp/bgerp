@@ -887,7 +887,9 @@ abstract class deals_QuotationMaster extends core_Master
         );
 
         $folderId = cls::get($rec->contragentClassId)->forceCoverAndFolder($rec->contragentId);
-        $fields['dealerId'] = $DealClass::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
+        if($DealClass instanceof sales_Sales){
+            $fields['dealerId'] = $DealClass::getDefaultDealerId($folderId, $fields['deliveryLocationId']);
+        }
 
         // Създаваме нова продажба от офертата
         $dealId = $DealClass::createNewDraft($rec->contragentClassId, $rec->contragentId, $fields);
