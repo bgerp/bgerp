@@ -938,7 +938,7 @@ abstract class deals_QuotationMaster extends core_Master
             if(isset($rec)){
                 $Detail = cls::get($mvc->mainDetail);
                 if($res != 'no_one'){
-                    if(!$Detail->count("#{$Detail->masterKey} = '{$rec->id}'")){
+                    if(!$Detail->count("#{$Detail->masterKey} = {$rec->id}")){
                         $res = 'no_one';
                     } else {
                         // Ако има разминаване между контрагента в офертата и данните от папката, забранява се създаване на сделката
@@ -1075,7 +1075,7 @@ abstract class deals_QuotationMaster extends core_Master
                 $Detail = cls::get($mvc->mainDetail);
                 $DealClass = cls::get($mvc->dealClass);
                 $singleTitle = mb_strtolower($DealClass->singleTitle);
-                if ($mvc->haveRightFor('dealfromquotation', (object) array('folderId' => $rec->folderId, 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId))) {
+                if ($mvc->haveRightFor('dealfromquotation', (object) array('id' => $rec->id, 'folderId' => $rec->folderId, 'contragentClassId' => $rec->contragentClassId, 'contragentId' => $rec->contragentId))) {
                     $items = $mvc->getItems($rec->id);
 
                     // Ако има поне един опционален артикул или има варианти на задължителните, бутона сочи към екшън за определяне на количествата

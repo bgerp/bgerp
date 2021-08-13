@@ -156,6 +156,25 @@ class purchase_Quotations extends deals_QuotationMaster
 
 
     /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+        'validFor' => 'lastDocUser|lastDoc',
+        'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
+        'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
+        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
+        'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
+        'deliveryPlaceId' => 'lastDocUser|lastDoc|',
+        'company' => 'clientData',
+        'pCode' => 'clientData',
+        'place' => 'clientData',
+        'address' => 'clientData',
+        'contragentCountryId' => 'clientData',
+        'template' => 'lastDocUser|lastDoc|defMethod',
+    );
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
