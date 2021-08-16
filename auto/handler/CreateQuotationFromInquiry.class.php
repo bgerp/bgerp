@@ -157,7 +157,7 @@ class auto_handler_CreateQuotationFromInquiry
                 sales_Quotations::logWrite('Активиране на автоматично създадена оферта към запитване', $quoteId);
             }
 
-            if(!empty($body) && !$isPartner){
+            if(!empty($body) && !$isPartner && !empty($settings->inboxId)){
 
                 // Изпращане на имейл за офертата
                 $body = core_Type::getByName('richtext')->fromVerbal($body);
@@ -238,7 +238,17 @@ class auto_handler_CreateQuotationFromInquiry
         return $productId;
     }
 
-    public function sendEmail($body, $quotationId, $marketingRec, $inboxId, $lang)
+
+    /**
+     * Изпраща имейл към офертата
+     *
+     * @param $body          - тяло
+     * @param $quotationId   - ид на оферта
+     * @param $marketingRec  - запис на запитване
+     * @param $inboxId       - ид на кутия
+     * @param $lang          - език
+     */
+    private function sendEmail($body, $quotationId, $marketingRec, $inboxId, $lang)
     {
         $quotationRec = sales_Quotations::fetch($quotationId);
 
