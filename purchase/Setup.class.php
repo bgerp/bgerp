@@ -286,6 +286,7 @@ class purchase_Setup extends core_ProtoSetup
                 $quoteRec = purchase_Quotations::fetch($quoteId);
 
                 if($rec->state == 'active'){
+                    $quoteRec->date = dt::verbal2mysql($containerRec->createdOn, false);
                     $quoteRec->state = 'active';
                     $Quotations->save($quoteRec, 'state');
                     $Quotations->invoke('AfterActivation', array($quoteRec));
