@@ -456,10 +456,10 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $query->where(array("#expectationTimeStart >= '[#1#]'", $todayF));
         $query->orWhere(array("#expectationTimeEnd >= '[#1#]'", $todayF));
 
-        $query->XPR('expectationTimeOrder', 'datetime', "IF((#expectationTimeStart < '{$todayF}'), #expectationTimeEnd, #expectationTimeStart)");
+        $query->XPR('expectationTimeOrder', 'datetime', "IF((#expectationTimeStart < '{$todayF}' OR #expectationTimeStart IS NULL), #expectationTimeEnd, #expectationTimeStart)");
         
         $query->orderBy('expectationTimeOrder', 'ASC');
-        
+
         // Задачите в бъдеще
         $fQuery = clone $query;
         $fQuery->where(array("#expectationTimeOrder >= '[#1#]'", $pArr['_endWorkingDay']));

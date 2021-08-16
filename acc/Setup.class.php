@@ -254,14 +254,13 @@ class acc_Setup extends core_ProtoSetup
             'double',
             'caption=Корекция на грешки от закръгляне->Сума под'
         ),
-        'ACC_ALTERNATE_WINDOW' => array(
-            'time(suggestions=3 месец|4 месеца|5 месеца|6 месеца|7 месеца|8 месеца|9 месеца|10 месеца|11 месеца|12 месеца)',
-            'caption=Преизчисляване на балансите при промяна на документи не по-стари от->Срок,placeholder=Винаги'
-        ),
-
         'ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY' => array(
             'enum(no=Не,yes=Да)',
             'caption=Захранване на стратегия WAC с отрицателни начални салда->Избор'
+        ),
+        'ACC_ALTERNATE_WINDOW' => array(
+            'time(suggestions=3 месеца|6 месеца|9 месеца|12 месеца|24 месеца)',
+            'caption=Балансите да НЕ се преизчисляват при промяна на документи по-стари от->Срок,placeholder=Винаги'
         ),
     );
     
