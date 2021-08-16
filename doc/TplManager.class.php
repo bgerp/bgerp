@@ -430,7 +430,7 @@ class doc_TplManager extends core_Master
         foreach ($tplArr as $object) {
             $object['docClassId'] = $mvc->getClassId();
             $object = (object) $object;
-            
+
             // Ако има старо име на шаблона
             if ($object->oldName) {
                 // Извличане на записа на стария шаблон
@@ -455,12 +455,12 @@ class doc_TplManager extends core_Master
             if ($object->narrowContent) {
                 expect($object->hashNarrow = md5_file(getFullPath($object->narrowContent)));
             }
-            
-            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && ($exRec->toggleFields == $object->toggleFields) && ($exRec->path == $object->content)) {
+
+            if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && (serialize($exRec->toggleFields) == serialize($object->toggleFields)) && ($exRec->path == $object->content)) {
                 $skipped++;
                 continue;
             }
-            
+
             $object->path = $object->content;
             $object->content = getFileContent($object->content);
             if ($object->narrowContent) {
@@ -480,11 +480,12 @@ class doc_TplManager extends core_Master
             if($object->id){
                 $clQuery = static::getQuery();
                 $clQuery->where("#originId = {$object->id}");
+                $firstAdminId = core_Users::getFirstAdmin();
 
                 // и той вече е клониран в други шаблони
                 while($clRec = $clQuery->fetch()){
                     $url = array('doc_TplManager', 'list', 'docClassId' => $clRec->docClassId);
-                    $notificationArr[$clRec->createdBy][$object->id] = (object)array('url' => $url, 'msg' => "Променен е шаблон|* '{$object->name}', |моля редактирайте шаблоните, които са клонирани от него|*!");
+                    $notificationArr[$firstAdminId][$object->id] = (object)array('url' => $url, 'msg' => "Променен е шаблон|* '{$object->name}', |моля редактирайте шаблоните, които са клонирани от него|*!");
                 }
             }
 
@@ -497,7 +498,7 @@ class doc_TplManager extends core_Master
         if(countR($notificationArr)){
             foreach ($notificationArr as $userId => $messages){
                 foreach ($messages as $msgArr){
-                    bgerp_Notifications::add($msgArr->msg, $msgArr->url, $userId, 'alert');
+                    bgerp_Notifications::add($msgArr->msg, $msgArr->url, $userId);
                 }
             }
         }
