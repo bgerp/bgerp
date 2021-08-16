@@ -722,8 +722,18 @@ abstract class deals_QuotationMaster extends core_Master
             }
         }
 
-        // Създаване на запис
-        static::route($newRec);
+        // Подмяна на същесъвуващ документ върху който да се запише
+        //@todo след рилийз да се махне
+        if(isset($fields['_replaceContainerId'])){
+            $cRec = doc_Containers::fetch($fields['_replaceContainerId']);
+            $newRec->containerId = $fields['_replaceContainerId'];
+            $newRec->folderId = $cRec->folderId;
+            $newRec->threadId = $cRec->threadId;
+            $newRec->createdOn = $cRec->createdOn;
+        } else {
+            // Създаване на запис
+            static::route($newRec);
+        }
 
         // Опиваме се да запишем мастъра на офертата
         if ($id = static::save($newRec)) {
