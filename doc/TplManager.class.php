@@ -480,12 +480,16 @@ class doc_TplManager extends core_Master
             if($object->id){
                 $clQuery = static::getQuery();
                 $clQuery->where("#originId = {$object->id}");
-                $firstAdminId = core_Users::getFirstAdmin();
+                $admins = core_Users::getByRole('admin');
 
                 // и той вече е клониран в други шаблони
                 while($clRec = $clQuery->fetch()){
                     $url = array('doc_TplManager', 'list', 'docClassId' => $clRec->docClassId);
-                    $notificationArr[$firstAdminId][$object->id] = (object)array('url' => $url, 'msg' => "Променен е шаблон|* '{$object->name}', |моля редактирайте шаблоните, които са клонирани от него|*!");
+
+                    // Ще се нотифицират всички админи, че е имало промяна
+                    foreach ($admins as $adminId){
+                        $notificationArr[$adminId][$object->id] = (object)array('url' => $url, 'msg' => "Променен е шаблон|* '{$object->name}', |моля редактирайте шаблоните, които са клонирани от него|*!");
+                    }
                 }
             }
 
