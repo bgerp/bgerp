@@ -222,8 +222,10 @@ class purchase_Quotations extends deals_QuotationMaster
             $mvc->save_($rec, 'date');
         }
 
-        if(bank_Accounts::add($rec->bankAccountId, currency_Currencies::getIdByCode($rec->currencyId), $rec->contragentClassId, $rec->contragentId)){
-            core_Statuses::newStatus('Добавена е нова сметка на контрагента|*!');
+        if(!empty($rec->bankAccountId)){
+            if(bank_Accounts::add($rec->bankAccountId, currency_Currencies::getIdByCode($rec->currencyId), $rec->contragentClassId, $rec->contragentId)){
+                core_Statuses::newStatus('Добавена е нова сметка на контрагента|*!');
+            }
         }
     }
 

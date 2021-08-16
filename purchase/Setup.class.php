@@ -122,7 +122,7 @@ class purchase_Setup extends core_ProtoSetup
         'purchase_Quotations',
         'purchase_QuotationDetails',
         'migrate::updateInvoiceJournalDate',
-        'migrate::migrateOldQuotes',
+        'migrate::migrateOldQuotes1',
     );
     
     
@@ -230,7 +230,7 @@ class purchase_Setup extends core_ProtoSetup
     /**
      * Миграция на старите оферти към новите
      */
-    function migrateOldQuotes()
+    function migrateOldQuotes1()
     {
         $db = new core_Db();
         if (!$db->tableExists('purchase_offers')) return;
@@ -271,27 +271,26 @@ class purchase_Setup extends core_ProtoSetup
                     $fields['others'] = $others;
                 }
 
-                $cancelLater = false;
-                if(!core_Users::isSystemUser()){
-                    core_Users::forceSystemUser();
-                    $cancelLater = true;
-                }
+                // Подмяна на старата оферта с новата в същия контейнер
+                $containerRec = doc_Containers::fetch($rec->containerId);
+                if($containerRec->docClass == purchase_Quotations::getClassId()) continue;
+                $fields['_replaceContainerId'] = $containerRec->id;
 
+                core_Users::sudo($rec->createdBy);
                 $quoteId = purchase_Quotations::createNewDraft($Cover->getClassId(), $Cover->that, $date, $fields);
                 purchase_Quotations::logWrite('Автоматично прехвърляне на стара оферта', $quoteId);
-                if($cancelLater){
-                    core_Users::cancelSystemUser();
-                }
+                $containerRec->docClass = purchase_Quotations::getClassId();
+                $containerRec->docId = $quoteId;
+                doc_Containers::save($containerRec);
 
                 $quoteRec = purchase_Quotations::fetch($quoteId);
-                doc_Linked::add($quoteRec->containerId, $rec->containerId, 'doc', 'doc', 'Прехвърляне на стара оферта');
 
                 if($rec->state == 'active'){
                     $quoteRec->state = 'active';
                     $Quotations->save($quoteRec, 'state');
                     $Quotations->invoke('AfterActivation', array($quoteRec));
                 }
-
+                core_Users::exitSudo($rec->createdBy);
                 doc_Threads::doUpdateThread($quoteRec->threadId);
             }
         }
