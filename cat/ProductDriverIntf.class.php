@@ -626,4 +626,18 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     {
         return $this->class->getSecondMeasureId($id);
     }
+
+
+    /**
+     * Какъв текст да излиза в имейла за изходяща оферта за артикула
+     *
+     * @param int $productId
+     * @param int $quotationId
+     * @param string|null $lang
+     * @return null|string
+     */
+    public function getQuotationEmailText($productId, $quotationId, $lang = null)
+    {
+        return $this->class->getQuotationEmailText($productId, $quotationId, $lang);
+    }
 }
