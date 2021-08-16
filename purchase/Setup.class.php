@@ -288,7 +288,9 @@ class purchase_Setup extends core_ProtoSetup
                 if($rec->state == 'active'){
                     $quoteRec->date = dt::verbal2mysql($containerRec->createdOn, false);
                     $quoteRec->state = 'active';
-                    $Quotations->save($quoteRec, 'state');
+                    $quoteRec->activatedOn = $containerRec->modifiedOn;
+                    $quoteRec->modifiedOn = $containerRec->modifiedOn;
+                    $Quotations->save($quoteRec, 'state,activatedOn,modifiedOn');
                     $Quotations->invoke('AfterActivation', array($quoteRec));
                 }
                 core_Users::exitSudo($rec->createdBy);

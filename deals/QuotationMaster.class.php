@@ -730,6 +730,7 @@ abstract class deals_QuotationMaster extends core_Master
             $newRec->folderId = $cRec->folderId;
             $newRec->threadId = $cRec->threadId;
             $newRec->createdOn = $cRec->createdOn;
+            $newRec->modifiedOn = $cRec->modifiedOn;
         } else {
             // Създаване на запис
             static::route($newRec);
