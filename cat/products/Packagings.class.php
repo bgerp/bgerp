@@ -123,6 +123,7 @@ class cat_products_Packagings extends core_Detail
         'planning_ProductionTaskProducts',
         'store_ConsignmentProtocolDetailsReceived',
         'store_TransfersDetails',
+        'store_InventoryNoteDetails',
         'store_ConsignmentProtocolDetailsSend');
 
 
