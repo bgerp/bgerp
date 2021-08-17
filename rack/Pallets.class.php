@@ -341,7 +341,7 @@ class rack_Pallets extends core_Manager
         }
         
         self::recalc($rec->productId, $rec->storeId);
-        $cacheType = 'UsedRacksPossitions' . $rec->storeId;
+        $cacheType = 'UsedRacksPositions' . $rec->storeId;
         core_Cache::removeByType($cacheType);
     }
 
@@ -668,7 +668,7 @@ class rack_Pallets extends core_Manager
             $productId = '*';
         }
         
-        $cacheType = 'UsedRacksPossitions' . $storeId;
+        $cacheType = 'UsedRacksPositions' . $storeId;
         $cacheKey = '@' . $productId;
 
         if (!($res = core_Cache::get($cacheType, $cacheKey))) {
