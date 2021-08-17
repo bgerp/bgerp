@@ -2280,4 +2280,30 @@ class doc_Folders extends core_Master
         
         return $rec->folderId;
     }
+
+
+    /**
+     * Клониране на настройките от една папка на друга
+     *
+     * @param int $fromFolderId - ид на папка от, която да се клонират
+     * @param int $toFolderId   - ид на папка, на която да се копират
+     * @return void
+     */
+    public static function cloneFolderSettings($fromFolderId, $toFolderId)
+    {
+        expect($fromFolderId);
+        expect($toFolderId);
+
+        $oldSettingFolderKey = doc_Folders::getSettingsKey($fromFolderId);
+        $newSettingFolderKey = doc_Folders::getSettingsKey($toFolderId);
+
+        $oldKey = core_Settings::prepareKey($oldSettingFolderKey);
+        $settingQuery = core_Settings::getQuery();
+        $settingQuery->where("#key = '{$oldKey}' AND #objectId = {$fromFolderId}");
+        $settingQuery->orderBy('id', 'asc');
+
+        while($oldSettingRec = $settingQuery->fetch()){
+            core_Settings::setValues($newSettingFolderKey, $oldSettingRec->data, $oldSettingRec->userOrRole);
+        }
+    }
 }
