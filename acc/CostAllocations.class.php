@@ -2,7 +2,7 @@
 
 
 /**
- * Регистър за разпределяне на разходи
+ * Регистър за отнесени разходи
  *
  *
  * @category  bgerp
@@ -25,7 +25,7 @@ class acc_CostAllocations extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Отнасяне на разходи';
+    public $title = 'Отнесени разходи';
     
     
     /**
@@ -407,7 +407,7 @@ class acc_CostAllocations extends core_Manager
         }
         
         if (isset($fields['-list'])) {
-            
+            $row->productId = cat_Products::getHyperlink($rec->productId);
             try {
                 $Document = doc_Containers::getDocument($rec->containerId);
                 $row->containerId = $Document->getLink(0);
@@ -930,5 +930,14 @@ class acc_CostAllocations extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
         $data->query->orderBy('id', 'DESC');
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->listTableMvc->setFieldType('productId', 'varchar');
     }
 }
