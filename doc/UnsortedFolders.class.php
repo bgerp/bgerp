@@ -320,7 +320,13 @@ class doc_UnsortedFolders extends core_Master
         if(isset($rec->contragentFolderId)){
             $row->contragentFolderId = doc_Folders::recToVerbal($rec->contragentFolderId)->title;
         }
-        
+
+        if($fields['-single']){
+            if(isset($rec->clonedFromId)){
+                $row->clonedFromId = doc_UnsortedFolders::getHyperlink($rec->clonedFromId, true);
+            }
+        }
+
         return $row;
     }
     
