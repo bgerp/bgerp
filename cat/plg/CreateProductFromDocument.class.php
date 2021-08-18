@@ -489,7 +489,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     // Разпределяне на разходи при нужда
                     if (isset($d->costItemId)) {
                         acc_CostAllocations::delete("#detailClassId = {$mvc->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$productId}");
-                        $saveRec = (object) array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $dRec->id, 'productId' => $productId, 'expenseItemId' => $d->costItemId, 'containerId' => $masterRec->containerId, 'quantity' => $dRec->quantity, 'allocationBy' => 'no');
+                        $saveRec = (object) array('detailClassId' => $mvc->getClassId(), 'detailRecId' => $dRec->id, 'productId' => $productId, 'expenseItemId' => $d->costItemId, 'containerId' => $masterRec->containerId, 'quantity' => $dRec->quantity, 'allocationBy' => 'auto');
                         
                         acc_CostAllocations::save($saveRec);
                         $CostAllocations = cls::get('acc_CostAllocations');
