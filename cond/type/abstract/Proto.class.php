@@ -35,8 +35,14 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
      * @var core_ObjectReference
      */
     protected $domainObjectReference;
-    
-    
+
+
+    /**
+     * Поле за дефолтна стойност
+     */
+    protected $defaultField;
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -113,6 +119,13 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
      */
     public function getDefaultValue($rec, $domainClass = null, $domainId = null, $value = null)
     {
+        if(isset($this->defaultField)){
+            if(isset($rec->{$this->defaultField})){
+
+                return $rec->{$this->defaultField};
+            }
+        }
+
         return null;
     }
 

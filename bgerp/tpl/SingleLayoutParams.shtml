@@ -128,7 +128,7 @@
 
             <!--ET_BEGIN default-->
             <tr>
-                <td class="title-style">|Глобален дефолт|*</td>
+                <td class="title-style">|Стойност по подразбиране|*</td>
                 <td>[#default#]</td>
             </tr>
             <!--ET_END default-->
