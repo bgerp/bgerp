@@ -58,7 +58,7 @@ class purchase_Offers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
-						purchase_Wrapper,plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg';
+						purchase_Wrapper,plg_Clone, doc_EmailCreatePlg, doc_ActivatePlg';
     
     
     /**
@@ -119,7 +119,10 @@ class purchase_Offers extends core_Master
      */
     public $fieldsNotToClone = 'sum,date';
     
-    
+    function act_Test()
+    {
+        cls::get('purchase_Setup')->migrateOldQuotes1();
+    }
     /**
      * Описание на модела (таблицата)
      */

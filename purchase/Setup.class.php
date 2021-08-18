@@ -241,6 +241,8 @@ class purchase_Setup extends core_ProtoSetup
 
         $Quotations = cls::get('purchase_Quotations');
         $query = $OldQuote->getQuery();
+        $query->FLD('containerId', 'int');
+        $query->FLD('folderId', 'int');
         $query->where("#state != ''");
 
         core_App::setTimeLimit($oldQuoteCount * 0.6, false, 300);
