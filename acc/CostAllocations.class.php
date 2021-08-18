@@ -368,7 +368,11 @@ class acc_CostAllocations extends core_Manager
                 $isPercent = true;
             }
         }
-        
+
+        if(!Mode::isReadOnly()){
+            $row->quantity = ht::createHint($row->quantity, "Разпределяне|*: {$row->allocationBy}");
+        }
+
         if ($isPercent === false) {
             $row->uomId = cat_UoM::getShortName($uomId);
         }
