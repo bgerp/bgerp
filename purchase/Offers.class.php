@@ -57,8 +57,7 @@ class purchase_Offers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
-						purchase_Wrapper,plg_Clone, doc_EmailCreatePlg, doc_ActivatePlg';
+    public $loadList = 'plg_RowTools2, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,purchase_Wrapper,plg_Clone';
     
     
     /**
@@ -156,30 +155,6 @@ class purchase_Offers extends core_Master
                 $data->query->where(array("#state = '[#1#]'", $filterRec->state));
             }
         }
-    }
-    
-    
-    /**
-     * Връща тялото на имейла генериран от документа
-     *
-     * @see email_DocumentIntf
-     *
-     * @param int  $id      - ид на документа
-     * @param bool $forward
-     *
-     * @return string - тялото на имейла
-     */
-    public function getDefaultEmailBody($id, $forward = false)
-    {
-        $handle = $this->getHandle($id);
-        
-        // Създаваме шаблона
-        $tpl = new ET(tr('Предлагаме на вашето внимание нашата оферта: ') . '#[#handle#]');
-        
-        // Заместваме датата в шаблона
-        $tpl->append($handle, 'handle');
-        
-        return $tpl->getContent();
     }
     
     
