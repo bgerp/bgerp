@@ -80,14 +80,8 @@ class acc_CostAllocations extends core_Manager
      * Кои полета да се показват в листовия изглед
      */
     public $listFields = 'id, containerId, productId, quantity, allocationBy, expenseItemId, productsData=Разпределено по';
-    
-    
-    /**
-     * Работен кеш
-     */
-    public $recontoQueue = array();
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -407,7 +401,7 @@ class acc_CostAllocations extends core_Manager
         }
         
         if (isset($fields['-list'])) {
-            $row->productId = cat_Products::getHyperlink($rec->productId);
+            $row->productId = cat_Products::getHyperlink($rec->productId, true);
             try {
                 $Document = doc_Containers::getDocument($rec->containerId);
                 $row->containerId = $Document->getLink(0);
@@ -929,6 +923,31 @@ class acc_CostAllocations extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        $data->listFilter->FLD('documentId', 'varchar', 'caption=Хендлър, silent');
+        $data->listFilter->showFields = 'documentId,expenseItemId,allocationBy';
+        $data->listFilter->setFieldType('allocationBy', 'enum(all=Разпределяне,auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input();
+
+        if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->expenseItemId)) {
+                $data->query->where("#expenseItemId = {$rec->expenseItemId}");
+            }
+
+            if (!empty($rec->allocationBy) && $rec->allocationBy != 'all') {
+                $data->query->where("#allocationBy = '{$rec->allocationBy}'");
+            }
+
+            if (!empty($rec->documentId)) {
+                if ($document = doc_Containers::getDocumentByHandle($rec->documentId)) {
+                    $data->query->where("#containerId = {$document->fetchField('containerId')}");
+                } elseif(type_Int::isInt($rec->documentId)){
+                    $data->query->where("#containerId = {$rec->documentId}");
+                }
+            }
+        }
+
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->query->orderBy('id', 'DESC');
     }
 
