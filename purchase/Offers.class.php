@@ -57,7 +57,7 @@ class purchase_Offers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,purchase_Wrapper,plg_Clone';
+    public $loadList = 'plg_RowTools2, plg_State2, plg_SaveAndNew, doc_DocumentPlg,doc_plg_BusinessDoc, acc_plg_DocumentSummary,purchase_Wrapper,plg_Clone';
     
     
     /**
@@ -224,11 +224,5 @@ class purchase_Offers extends core_Master
         $row->authorId = $rec->createdBy;
         
         return $row;
-    }
-
-
-    public function isVisibleForPartners($rec)
-    {
-        return false;
     }
 }
