@@ -386,6 +386,7 @@ abstract class deals_DealBase extends core_Master
                         // Създаване на приключващ документ-чернова
                         $dRec = $this->fetch($dealId);
                         $clId = $CloseDoc->create($this->className, $dRec, $id);
+                        $this->logWrite('Приключено с друга сделка', $dealId);
                         $CloseDoc->conto($clId);
                     }
                 }
