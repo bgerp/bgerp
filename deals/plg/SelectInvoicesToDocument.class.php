@@ -67,9 +67,15 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         if(isset($rec->fromContainerId)){
 
             // След създаване синхронизиране на модела
-            $amount = $mvc->getPaymentData($rec)->amount;
-            $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $amount);
-            deals_InvoicesToDocuments::save($dRec);
+            $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId);
+            $paymentCurrencyCode = currency_Currencies::getCodeById($mvc->getPaymentData($rec)->currencyId);
+
+            $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
+            $vAmount = round($vAmount, 2);
+            if($vAmount){
+                $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
+                deals_InvoicesToDocuments::save($dRec);
+            }
         }
     }
 
