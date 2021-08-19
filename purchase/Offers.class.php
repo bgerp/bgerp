@@ -225,4 +225,10 @@ class purchase_Offers extends core_Master
         
         return $row;
     }
+
+
+    public function isVisibleForPartners($rec)
+    {
+        return false;
+    }
 }
