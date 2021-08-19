@@ -146,7 +146,7 @@ class deals_InvoicesToDocuments extends core_Manager
                     $Invoice = doc_Containers::getDocument($iRec->containerId);
                     $number = $Invoice->getInstance()->getVerbal($Invoice->fetch(), 'number');
                     $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
-                    $amountWarnings[] = "Над очакваното плащане по|* {$number} ( {$expectedAmountVerbal} {$paymentCurrencyCode})";
+                    $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
                 }
             }
 
