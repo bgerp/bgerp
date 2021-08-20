@@ -1194,7 +1194,7 @@ abstract class deals_Helper
         $dQuery = $Detail->getQuery();
         $dQuery->where("#{$Detail->masterKey} = {$masterId}");
         $dQuery->show('productId,quantity');
-        $type = ($Master instanceof purchase_Purchases) ? 'purchase' : (($Master instanceof sales_Quotations) ? 'quotation' : 'sale');
+        $type = ($Master instanceof purchase_Purchases) ? 'purchase' : (($Master instanceof deals_QuotationMaster) ? 'quotation' : 'sale');
         $allProducts = $productConditions = array();
         
         if (!empty($lg)) {
@@ -1559,19 +1559,23 @@ abstract class deals_Helper
                 $newInvoiceArr[$key]->amount += $amount;
             }
         }
-        
+
         foreach (array('cash_Pko', 'cash_Rko', 'bank_IncomeDocuments', 'bank_SpendingDocuments', 'findeals_CreditDocuments', 'findeals_DebitDocuments') as $Pay) {
             $Pdoc = cls::get($Pay);
             $pQuery = $Pdoc->getQuery();
             $pQuery->in('threadId', $threads);
             $pQuery->where("#state = 'active'");
-            $pQuery->show('containerId,amountDeal,amount,fromContainerId,isReverse,activatedOn,valior');
+            $pQuery->show('containerId,amountDeal,amount,isReverse,activatedOn,valior');
             if (isset($valior)) {
                 $pQuery->where("#valior <= '{$valior}'");
             }
             
             while ($pRec = $pQuery->fetch()) {
+
                 $sign = ($pRec->isReverse == 'yes') ? -1 : 1;
+                $invArr = deals_InvoicesToDocuments::getInvoiceArr($pRec->containerId);
+                $pData = $Pdoc->getPaymentData($pRec->id);
+
                 if (in_array($Pay, array('findeals_CreditDocuments', 'findeals_DebitDocuments'))) {
                     $type = 'intercept';
                     $amount = round($pRec->amount, 2);
@@ -1579,14 +1583,29 @@ abstract class deals_Helper
                     $amount = round($pRec->amountDeal, 2);
                     $type = ($Pay == 'cash_Pko' || $Pay == 'cash_Rko') ? 'cash' : 'bank';
                 }
-                
-                $amount = $sign * $amount;
-                $payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
+                $rate = !empty($pRec->amountDeal) ? round($pRec->amount / $pRec->amountDeal, 4) : 0;
+
+                if(countR($invArr)){
+                    foreach ($invArr as $iRec){
+                        $pData->amount -= $iRec->amount;
+                        $iAmount = !empty($rate) ? $sign * round($iRec->amount / $rate, 2) : 0;
+                        $payArr["{$pRec->containerId}|{$iRec->containerId}"] = (object) array('containerId' => $pRec->containerId, 'amount' => $iAmount, 'available' => $iAmount, 'to' => $invMap[$iRec->containerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
+                    }
+
+                    $pData->amount = round($pData->amount, 2);
+                    if(!empty($pData->amount)){
+                        $rAmount = $sign * $pData->amount;
+                        $payArr["{$pRec->containerId}|"] = (object) array('containerId' => $pRec->containerId, 'amount' => $rAmount, 'available' => $rAmount, 'to' => null, 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
+                    }
+                } else {
+                    $amount = $sign * $amount;
+                    $payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
+                }
             }
         }
-        
+
         self::allocationOfPayments($newInvoiceArr, $payArr);
-        
+
         return $newInvoiceArr;
     }
     
@@ -1673,7 +1692,7 @@ abstract class deals_Helper
             if ($pay->to) {
                 $invArr[$pay->to]->payout += $pay->available;
                 $pay->available = 0;
-                $invArr[$pay->to]->used[$pay->containerId] = $pay;
+                $invArr[$pay->to]->used[$i] = $pay;
                 self::pushPaymentType($invArr[$pay->to]->payments, $pay);
             }
         }
@@ -1681,7 +1700,7 @@ abstract class deals_Helper
         $revInvArr = array_reverse($invArr, true);
         
         // Разпределяме всички остатъци от плащания
-        foreach ($payArr as $pay) {
+        foreach ($payArr as $k => $pay) {
             if ($pay->available > 0) {
                 // Обикаляме по фактурите от начало към край и попълваме само дупките
                 foreach ($invArr as $inv) {
@@ -1690,7 +1709,7 @@ abstract class deals_Helper
                         $inv->payout += $sum;
                         $pay->available -= $sum;
                         
-                        $inv->used[$pay->containerId] = $pay;
+                        $inv->used[$k] = $pay;
                         self::pushPaymentType($inv->payments, $pay);
                     }
                 }
@@ -1707,13 +1726,13 @@ abstract class deals_Helper
                         $inv->payout -= $sum;
                         $pay->available += $sum;
                         
-                        $inv->used[$pay->containerId] = $pay;
+                        $inv->used[$k] = $pay;
                         self::pushPaymentType($inv->payments, $pay);
                     }
                 }
             }
         }
-        
+
         // Събираме остатъците от всички платежни документи и ги нанасяме от зад напред
         $rest = 0;
         $used = $payments = array();
@@ -2122,10 +2141,12 @@ abstract class deals_Helper
      * @param bool $useQuotationPrice
      * @param $mvc
      * @param $threadId
+     * @param double $rate
+     * @param string $currencyId
      *
      * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId)
     {
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
@@ -2171,14 +2192,15 @@ abstract class deals_Helper
                 if ($price2Round) {
                     $percent = core_Math::diffInPercent($price1Round, $price2Round);
                     $diff = abs(core_Math::diffInPercent($price1Round, $price2Round));
-                    
+                    $price2Round /= $rate;
+
                     if ($diff > $toleranceDiff) {
                         $obj = array();
 
                         if($i == 0 && $percent >= 0){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
                             $obj['hint'] ='Цената е под минималната за клиента';
-                            $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
+                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*";
                             $obj['hintType'] = 'error';
                             
                             return $obj;
@@ -2187,7 +2209,7 @@ abstract class deals_Helper
                         if($i == 1){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
                             $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
-                            $obj['hint'] .= "|*: {$primeVerbal} |без ДДС|*";
+                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
                         
                             return $obj;
@@ -2239,7 +2261,7 @@ abstract class deals_Helper
 
             while ($dRec = $dQuery->fetch()) {
                 $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId)){
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId)){
                     if($checkedObject['hintType'] == 'error'){
                         $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }

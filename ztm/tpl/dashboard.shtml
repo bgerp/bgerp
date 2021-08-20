@@ -2,7 +2,7 @@
          <div class="cont last">
             <div class="x_panel tile">
 				<div class="x_content" style="display: block;">
-					<div class="roomNum">Стая - 123</div>
+					<div class="roomNum">Стая - 101</div>
 					<div class="state  eco">ECO</div>
 					<div class="clearfix"></div>
 					<h1 id="currentTime"></h1>
@@ -21,7 +21,7 @@
                 <div class="x_content" style="display: block;">
                     <span class="iconBlock">[#temp#]</span>
 
-                    <input type="range" min="23" max="28" data-min="24" data-max="27" data-rangeslider value="24.5" step="0.5">
+                    <input type="range" min="23" max="28" data-min="24" data-max="27" value="24.5" step="0.5" data-rangeslider onchange="setTemperature(this);">
                     <div class="output"><output id="temperature"></output><span>°C</span></div>
                 </div>
             </div>
@@ -35,7 +35,7 @@
                 </div>
                 <div class="x_content" style="display: block;">
                     <span class="iconBlock">[#vent#]</span>
-                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider onchange="changeVent(this);">
+                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider onchange="setVentilation(this);">
                     <div class="output"><output></output><span>%</span></div>
                 </div>
             </div>
@@ -51,7 +51,7 @@
                 </div>
                 <div class="x_content" style="display: block;">
                     <span class="iconBlock">[#lamp#]</span>
-                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider>
+                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider onchange="setLights(this);">
                     <div class="output"><output></output><span>%</span></div>
                 </div>
             </div>
@@ -65,7 +65,7 @@
                 </div>
                 <div class="x_content" style="display: block;">
                     <span class="iconBlock">[#blinds#]</span>
-                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider>
+                    <input type="range" min="0" max="100" data-interval="20" step="5" data-rangeslider onchange="setBlinds(this);">
                     <div class="output"><output></output><span>%</span></div>
                 </div>
             </div>

@@ -168,17 +168,33 @@ class acc_ReportDetails extends core_Manager
         
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
-        
+        $data->lastBalance = acc_Balances::getLastBalance();
+
         // Може ли потребителя да вижда хронологията на сметката
         $accounts = arr::make($accounts, true);
         if(is_array($accounts)){
             foreach ($accounts as $accSysId){
+                $dealPos = acc_Lists::getPosition($accSysId, 'deals_DealsAccRegIntf');
+
                 $accountId = acc_Accounts::fetchField("#systemId = '{$accSysId}'", 'id');
                 $recsWithAccount = array_filter($data->recs, function ($a) use ($accountId) {return $a->accountId == $accountId;});
-                
+
                 if(countR($recsWithAccount)){
                     foreach ($recsWithAccount as $dRec){
-                        
+
+                        // Ако в избраната сметка има сделка, и тя е затворена
+                        if(isset($dealPos)){
+                            if(isset($dRec->{"ent{$dealPos}Id"})){
+                                $iRec = acc_Items::fetch($dRec->{"ent{$dealPos}Id"});
+
+                                // И е затворена в различен от текущия период не се показва
+                                if($iRec->state == 'closed'){
+                                    $closedOnPeriodId = acc_Periods::fetchByDate($iRec->closedOn)->id;
+                                    if($closedOnPeriodId != $data->lastBalance->periodId)   continue;
+                                }
+                            }
+                        }
+
                         // Ако има вербализират се
                         if($row = $this->getVerbalBalanceRec($dRec, $groupBy, $data)){
                             $res[$accountId]['rows'][] = $row;
@@ -229,7 +245,7 @@ class acc_ReportDetails extends core_Manager
                 $res[$lRec->accountId]['limits'][$lRec->id] = $lRow;
             }
         }
-        
+
         $data->total = arr::sumValuesArray($data->recs, 'blAmount');
         $data->totalRow = core_Type::getByName('double(decimals=2)')->toVerbal($data->total);
         $data->totalRow = ($data->total < 0) ? "<span class='red'>{$data->totalRow}</span>" : $data->totalRow;

@@ -63,7 +63,9 @@ class bank_Setup extends core_ProtoSetup
         'bank_CashWithdrawOrders',
         'bank_DepositSlips',
         'bank_Register',
-        'migrate::recontoDocuments'
+        'migrate::recontoDocuments1',
+        'migrate::updateBankDocuments',
+
     );
     
     
@@ -87,8 +89,19 @@ class bank_Setup extends core_ProtoSetup
     /**
      * Миграция за реконтиране на документи
      */
-    public function recontoDocuments()
+    public function recontoDocuments1()
     {
-        deals_Setup::recontoPaymentDocuments(array('bank_IncomeDocuments', 'bank_SpendingDocuments'));
+        deals_Setup::fixDocumentsWithMoreThanNDigits(array('bank_IncomeDocuments', 'bank_SpendingDocuments'));
+    }
+
+
+    /**
+     * Миграция за обновяване на ЕН-та
+     */
+    public function updateBankDocuments()
+    {
+        foreach (array('bank_SpendingDocuments', 'bank_IncomeDocuments') as $mvc){
+            deals_InvoicesToDocuments::migrateContainerIds($mvc);
+        }
     }
 }

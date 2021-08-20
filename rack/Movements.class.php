@@ -317,7 +317,7 @@ class rack_Movements extends rack_MovementAbstract
             }
         }
        
-        $cacheType = 'UsedRacksPossitions' . $transaction->storeId;
+        $cacheType = 'UsedRacksPositions' . $transaction->storeId;
         core_Cache::removeByType($cacheType);
 
         return true;

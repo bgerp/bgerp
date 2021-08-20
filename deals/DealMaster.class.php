@@ -40,8 +40,14 @@ abstract class deals_DealMaster extends deals_DealBase
      * Как се казва полето в което е избран склада
      */
     public $storeFieldName = 'shipmentStoreId';
-    
-    
+
+
+    /**
+     * Клас на оферта
+     */
+    protected $quotationClass;
+
+
     /**
      * Поле за търсене по потребител
      */
@@ -1677,6 +1683,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * 		o $fields['deliveryTime']          - дата на доставка
      *      o $fields['deliveryData']          - други данни за доставка
      * 		o $fields['dealerId']              - ид на потребител търговец
+     *      o $fields['bankAccountId']         - банкова сметка
      * 		o $fields['initiatorId']           - ид на потребител инициатора (ако няма е отговорника на контрагента)
      * 		o $fields['caseId']                - ид на каса (@see cash_Cases)
      * 		o $fields['note'] 				   - бележки за сделката
@@ -1788,12 +1795,18 @@ abstract class deals_DealMaster extends deals_DealBase
         // Опиваме се да запишем мастъра на сделката
         $rec = (object)$fields;
         
-        if($me instanceof sales_Sales && isset($fields['deliveryTermId'])){
-            if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
-                $rec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+        if($me instanceof sales_Sales){
+            if(isset($fields['deliveryTermId'])){
+                if(cond_DeliveryTerms::getTransportCalculator($fields['deliveryTermId'])){
+                    $rec->deliveryCalcTransport = isset($fields['deliveryCalcTransport']) ? $fields['deliveryCalcTransport'] : cond_DeliveryTerms::fetchField($fields['deliveryTermId'], 'calcCost');
+                }
             }
         }
-        
+
+        if(isset($fields['bankAccountId'])) {
+            $rec->bankAccountId = $fields['bankAccountId'];
+        }
+
         if ($fields['onlineSale'] === true) {
             $rec->_onlineSale = true;
         }
@@ -2006,7 +2019,6 @@ abstract class deals_DealMaster extends deals_DealBase
         // Подготвяме и показваме формата за избор на чернова оферта, ако има чернови
         $me = get_called_class();
         $form = cls::get('core_Form');
-        
         $form->FLD('dealId', "key(mvc={$me},select=id,allowEmpty)", "caption={$this->singleTitle},mandatory");
         $form->setOptions('dealId', $options);
         
@@ -2017,16 +2029,17 @@ abstract class deals_DealMaster extends deals_DealBase
             // Подаваме намерената форма в урл-то за връщане
             return new Redirect($retUrl);
         }
-        
+
+        $singleTitle = mb_strtolower($this->singleTitle);
         $quotationId = Request::get('quotationId', 'int');
-        $rejectUrl = toUrl(array('sales_Quotations', 'single', $quotationId));
-        $form->title = '|Прехвърляне в|* ' . mb_strtolower($this->singleTitle) . ' ' . tr('на') . ' ' . cls::get('sales_Quotations')->getFormTitleLink($quotationId);
+        $rejectUrl = toUrl(array($this->quotationClass, 'single', $quotationId));
+        $form->title = '|Прехвърляне в|* ' . $singleTitle . ' ' . tr('на') . ' ' . cls::get($this->quotationClass)->getFormTitleLink($quotationId);
         
         $forceUrl = $retUrl;
         $forceUrl['force'] = true;
         
         $form->toolbar->addSbBtn('Избор', 'save', 'ef_icon = img/16/cart_go.png, title = Избор на документа');
-        $form->toolbar->addBtn('Нова продажба', $forceUrl, 'ef_icon = img/16/star_2.png, title = Създаване на нова продажба');
+        $form->toolbar->addBtn("Нова {$singleTitle}", $forceUrl, "ef_icon = img/16/star_2.png, title = Създаване на нова {$singleTitle}");
         $form->toolbar->addBtn('Отказ', $rejectUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         if (core_Users::haveRole('partner')) {
@@ -2545,9 +2558,13 @@ abstract class deals_DealMaster extends deals_DealBase
 
     /**
      * Изпращане на нотификации за сделки с направено плащане, но без фактура
+     *
+     * @param int $secs - секунди
+     * @return void
      */
-    protected function sendNotificationIfInvoiceIsTooLate()
+    protected function sendNotificationIfInvoiceIsTooLate($secs)
     {
+        $time = $secs - 8 * 3600;
         $bgId = drdata_Countries::getIdByName('Bulgaria');
 
         $now = dt::now();
@@ -2557,7 +2574,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $query = $this->getQuery();
         $query->XPR('paidRound', 'double', 'ROUND(COALESCE(#amountPaid, 0), 2)');
         $query->XPR('invRound', 'double', 'ROUND(COALESCE(#amountInvoiced, 0), 2)');
-        $query->XPR('deliveredRound', 'double', 'ROUND(COALESCE(#amountDelivered, 0), 2)');
         $query->where("#state = 'active' AND #invRound = 0 AND #paidRound != 0");
 
         while($rec = $query->fetch()){
@@ -2565,6 +2581,9 @@ abstract class deals_DealMaster extends deals_DealBase
             // Ако клиента им е от България
             $contragentCountryId = cls::get($rec->contragentClassId)->fetchField($rec->contragentId, 'country');
             if(empty($contragentCountryId) || $contragentCountryId == $bgId){
+
+                // Ако има роля дебъг да не се бие нотификация
+                if(haveRole('debug', $rec->createdBy)) continue;
 
                 // Ако вече има нотификация за просрочие, пропуска се
                 $handle = $this->getHandle($rec->id);
@@ -2580,32 +2599,35 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
 
                 // Намира се най-малкия вальор на активен платежен документ в нишката
-                $hasAdvancePayment = array();
+                $hasBankPayment = false;
                 $cQuery = doc_Containers::getQuery();
                 $cQuery->where("#threadId = {$rec->threadId} AND #state = 'active'");
                 $cQuery->in('docClass', $paymentClasses);
                 while($cRec = $cQuery->fetch()){
                     $Doc = cls::get($cRec->docClass);
                     $docRec = $Doc->fetch($cRec->docId, "{$Doc->valiorFld},isReverse,operationSysId");
-                    if(stripos($docRec->operationSysId, 'Advance') !== false){
-                        $hasAdvancePayment = true;
-                    }
 
                     if($docRec->isReverse == 'no'){
                         $paymentValiors[] = $docRec->{$Doc->valiorFld};
                     }
+
+                    if($Doc instanceof bank_SpendingDocuments || $Doc instanceof bank_IncomeDocuments){
+                        $hasBankPayment = true;
+                    }
                 }
 
-                // Да няма доставено гледаш само, ако имаме плащане не по аванс
-                if(!$hasAdvancePayment && !empty($rec->deliveredRound)) continue;
+                // Ако е без фактуриране и няма банково плащане, нищо няма да се прави
+                if($rec->makeInvoice == 'no') {
+                    if(!$hasBankPayment) continue;
+                }
 
-                // Сортиране във възходящ ред
+                // Сортиране във възходящ ред по вальор на платежните документи
                 sort($paymentValiors);
 
                 if(!empty($paymentValiors[0])){
 
                     // Ако е минало определено време след неговата дата, и още няма ф-ра
-                    $deadline = dt::addSecs((3600 * (24*5 - 8)), $paymentValiors[0]);
+                    $deadline = dt::addSecs($time, $paymentValiors[0]);
                     if($now > $deadline){
 
                         // Изпраща се нотификация на създателя на документа

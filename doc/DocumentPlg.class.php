@@ -1739,7 +1739,7 @@ class doc_DocumentPlg extends core_Plugin
             
             // Премахваме този документ от нотификациите
             $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-            bgerp_Notifications::setHidden($keyUrl, $rec->state == 'rejected' ? 'yes':'no');
+            bgerp_Notifications::setHidden($keyUrl, $rec->state == 'rejected' ? 'yes':'no', null, $rec->threadId);
             
             // Премахваме документа от "Последно"
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');

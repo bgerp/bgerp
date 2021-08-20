@@ -150,10 +150,10 @@ abstract class deals_ClosedDeals extends core_Master
     {
         $newEntries = array();
         $docs = array();
-        
+
         // Намираме записите в които участва перото
         $entries = acc_Journal::getEntries($dealItem);
-        
+
         // Намираме документите, които имат транзакции към перото
         if (countR($entries)) {
             foreach ($entries as $ent) {
@@ -197,7 +197,7 @@ abstract class deals_ClosedDeals extends core_Master
                         
                         $newEntries[] = $entry;
                     }
-                    
+
                     // Втори път обхождаме записите
                     foreach ($entries as &$entry2) {
                         if (isset($entry2['amount'])) {
@@ -207,10 +207,14 @@ abstract class deals_ClosedDeals extends core_Master
                         // Генерираме запис, който прави същите действия но с перо новата сделка
                         foreach (array('debit', 'credit') as $type) {
                             foreach ($entry2[$type] as $index => &$item) {
-                                
+
                                 // Намираме кое перо отговаря на перото на текущата сделка и го заменяме с това на новата сделка
                                 if ($index != 0) {
                                     if (is_array($item) && $item[0] == $dealItem->docClassName && $item[1] == $dealItem->objectId) {
+                                        $item = $closeDeal;
+                                    } elseif(is_numeric($item) && $item == $dealItem->id){
+
+                                        // Ако участва директно перото на сделката, също се променя
                                         $item = $closeDeal;
                                     }
                                 }
@@ -222,7 +226,7 @@ abstract class deals_ClosedDeals extends core_Master
                 }
             }
         }
-        
+
         // Връщаме генерираните записи
         return $newEntries;
     }

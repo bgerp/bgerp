@@ -847,12 +847,10 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setError('contragentVatNo', 'Лоши символи в номера');
                 }
             }
-            
+
             // Проверка дали националния номер е валиден за държавата
             if ($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)) {
-                if(!empty($rec->uicId)){
-                    drdata_type_Uic::check($form, $rec->uicNo, $rec->contragentCountryId, 'uicNo');
-                }
+                drdata_type_Uic::check($form, $rec->uicNo, $rec->contragentCountryId, 'uicNo');
             }
 
             // Ако е ДИ или КИ

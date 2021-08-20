@@ -84,7 +84,8 @@ class transsrv_Import extends core_BaseClass
                             $listId = acc_Lists::fetchBySystemId('costObjects')->id;
                             if (!acc_Items::isItemInList($firstDoc->getClassId(), $firstDoc->that, 'costObjects')) {
                                 $costItemId = acc_Items::force($firstDoc->getClassId(), $firstDoc->that, $listId);
-                                doc_ExpensesSummary::save((object) array('containerId' => $firstDoc->fetchField('containerId')));
+                                $expRec = (object)array('containerId' => $firstDoc->fetchField('containerId'));
+                                doc_ExpensesSummary::save($expRec);
                             } else {
                                 $costItemId = acc_Items::fetchItem($firstDoc->getClassId(), $firstDoc->that)->id;
                             }

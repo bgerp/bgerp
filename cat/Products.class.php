@@ -2057,16 +2057,7 @@ class cat_Products extends embed_Manager
         if (cat_Products::fetchField($productId, 'canStore') != 'yes') {
             return;
         }
-        
-        // Ако драйвера връща транспортно тегло, то е с приоритет
-        if ($Driver = static::getDriver($productId)) {
-            $rec = self::fetchRec($productId);
-            $volume = $Driver->getTransportVolume($rec, $quantity);
-            if (!empty($volume) && !is_nan($volume)) {
-                return $volume;
-            }
-        }
-        
+
         // Първо се гледа най-голямата опаковка за която има габаритни размери
         $packQuery = cat_products_Packagings::getQuery();
         $packQuery->where("#productId = '{$productId}'");
@@ -2075,17 +2066,26 @@ class cat_Products extends embed_Manager
         $packQuery->limit(1);
         $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
         $packRec = $packQuery->fetch();
-        
+
         if (is_object($packRec)) {
-            
+
             // Ако има такава количеството се преизчислява в нея
             $brutoVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
             $quantity /= $packRec->quantity;
-            
+
             // Връща се намереното тегло
             $volume = $brutoVolume * $quantity;
-            
+
             return round($volume, 3);
+        }
+
+        // След това се пита драйвера
+        if ($Driver = static::getDriver($productId)) {
+            $rec = self::fetchRec($productId);
+            $volume = $Driver->getTransportVolume($rec, $quantity);
+            if (!empty($volume) && !is_nan($volume)) {
+                return $volume;
+            }
         }
     }
     

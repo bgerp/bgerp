@@ -210,7 +210,7 @@ class findeals_Deals extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'amountDeal,currencyRate';
+    public $fieldsNotToClone = 'valior, amountDeal, currencyRate, baseAmount';
     
     
     /**

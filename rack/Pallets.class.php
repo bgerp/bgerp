@@ -155,14 +155,11 @@ class rack_Pallets extends core_Manager
                 while($mRec = $mQuery->fetch()){
                     $zones = type_Table::toArray($mRec->zones);
                     if(countR($zones)){
-                        array_filter($zones, function($a) use (&$sum){$sum += $a->quantity;});
+                        array_filter($zones, function($a) use (&$sum, $mRec){$sum += $a->quantity * $mRec->quantityInPack;});
                     }
                 }
                 
-                
-                if(isset($sum) && $sum >= $rec->quantity){
-                    continue;
-                }
+                if(isset($sum) && $sum >= $rec->quantity) continue;
                 
                 $rest = $rec->quantity - $sum;
             }
@@ -344,7 +341,7 @@ class rack_Pallets extends core_Manager
         }
         
         self::recalc($rec->productId, $rec->storeId);
-        $cacheType = 'UsedRacksPossitions' . $rec->storeId;
+        $cacheType = 'UsedRacksPositions' . $rec->storeId;
         core_Cache::removeByType($cacheType);
     }
 
@@ -671,7 +668,7 @@ class rack_Pallets extends core_Manager
             $productId = '*';
         }
         
-        $cacheType = 'UsedRacksPossitions' . $storeId;
+        $cacheType = 'UsedRacksPositions' . $storeId;
         $cacheKey = '@' . $productId;
 
         if (!($res = core_Cache::get($cacheType, $cacheKey))) {

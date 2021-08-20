@@ -2,7 +2,7 @@
 
 
 /**
- * Регистър за разпределяне на разходи
+ * Регистър за отнесени разходи
  *
  *
  * @category  bgerp
@@ -25,7 +25,7 @@ class acc_CostAllocations extends core_Manager
     /**
      * Заглавие
      */
-    public $title = 'Отнасяне на разходи';
+    public $title = 'Отнесени разходи';
     
     
     /**
@@ -80,14 +80,8 @@ class acc_CostAllocations extends core_Manager
      * Кои полета да се показват в листовия изглед
      */
     public $listFields = 'id, containerId, productId, quantity, allocationBy, expenseItemId, productsData=Разпределено по';
-    
-    
-    /**
-     * Работен кеш
-     */
-    public $recontoQueue = array();
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -256,7 +250,9 @@ class acc_CostAllocations extends core_Manager
         
         // Ако има избрано разходно перо, и то е на покупка/продажба, показва се и полето за разпределяне
         if (isset($rec->expenseItemId)) {
-            $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
+
+            $itemClassId = acc_Items::fetchField($rec->expenseItemId, "classId");
+
             if (cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)) {
                 $form->setField('allocationBy', 'input');
                 
@@ -268,8 +264,34 @@ class acc_CostAllocations extends core_Manager
             }
         }
     }
-    
-    
+
+
+    /**
+     * Проверява има ли проблем с избраното перо на разходния обект
+     *
+     * @param int $expenseItemId
+     * @param null|string $error
+     * @return bool
+     */
+    public static function checkSelectedExpenseItem($expenseItemId, &$error)
+    {
+        $itemRec = acc_Items::fetch($expenseItemId);
+        $Source = cls::get($itemRec->classId);
+        if($Source instanceof deals_DealMaster){
+            if($closedWithId = $Source->fetchField($itemRec->objectId, 'closeWith')){
+                if($closedWithItemId = acc_Items::fetchItem($Source, $closedWithId)){
+                    $newItemId = acc_Items::getVerbal($closedWithItemId, 'titleLink');
+                    $error = "Сделката е затворена и е обединена с:|* {$newItemId}";
+
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -291,9 +313,14 @@ class acc_CostAllocations extends core_Manager
                     acc_ValueCorrections::addProductsFromOriginToForm($form, $origin, $Detail->Master);
                 }
             }
+
         }
         
         if ($form->isSubmitted()) {
+            $expenseItemError = null;
+            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $expenseItemError)){
+                $form->setError('expenseItemId', $expenseItemError);
+            }
 
             // Колко ще бъде разпределено след записа
             $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);
@@ -374,7 +401,11 @@ class acc_CostAllocations extends core_Manager
                 $isPercent = true;
             }
         }
-        
+
+        if(!Mode::isReadOnly()){
+            $row->quantity = ht::createHint($row->quantity, "Разпределяне|*: {$row->allocationBy}");
+        }
+
         if ($isPercent === false) {
             $row->uomId = cat_UoM::getShortName($uomId);
         }
@@ -407,7 +438,7 @@ class acc_CostAllocations extends core_Manager
         }
         
         if (isset($fields['-list'])) {
-            
+            $row->productId = cat_Products::getHyperlink($rec->productId, true);
             try {
                 $Document = doc_Containers::getDocument($rec->containerId);
                 $row->containerId = $Document->getLink(0);
@@ -929,6 +960,40 @@ class acc_CostAllocations extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
     {
+        $data->listFilter->FLD('documentId', 'varchar', 'caption=Хендлър, silent');
+        $data->listFilter->showFields = 'documentId,expenseItemId,allocationBy';
+        $data->listFilter->setFieldType('allocationBy', 'enum(all=Разпределяне,auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)');
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->input();
+
+        if ($rec = $data->listFilter->rec) {
+            if (!empty($rec->expenseItemId)) {
+                $data->query->where("#expenseItemId = {$rec->expenseItemId}");
+            }
+
+            if (!empty($rec->allocationBy) && $rec->allocationBy != 'all') {
+                $data->query->where("#allocationBy = '{$rec->allocationBy}'");
+            }
+
+            if (!empty($rec->documentId)) {
+                if ($document = doc_Containers::getDocumentByHandle($rec->documentId)) {
+                    $data->query->where("#containerId = {$document->fetchField('containerId')}");
+                } elseif(type_Int::isInt($rec->documentId)){
+                    $data->query->where("#containerId = {$rec->documentId}");
+                }
+            }
+        }
+
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->query->orderBy('id', 'DESC');
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $data->listTableMvc->setFieldType('productId', 'varchar');
     }
 }

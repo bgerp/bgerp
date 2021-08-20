@@ -454,7 +454,7 @@ class doc_Folders extends core_Master
     /**
      * След преобразуване към вербални данни на записа
      */
-    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
@@ -480,6 +480,16 @@ class doc_Folders extends core_Master
             } else {
                 $attr['style'] .= 'color:#777;';
                 $row->type = ht::createElement('span', $attr, $singleTitle);
+            }
+
+            if($fields['-list']){
+                if($rec->coverClass == doc_UnsortedFolders::getClassId()){
+                    $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
+                    if(!empty($unsortedFolderContragentId)){
+                        $subTitle = doc_Folders::recToVerbal($unsortedFolderContragentId)->title;
+                        $row->title .= "<br><small style='padding-left:10px'>» {$subTitle}</small>";
+                    }
+                }
             }
         } else {
             $row->type = "<span class='red'>" . tr('Проблем при показването') . '</span>';
@@ -2269,5 +2279,31 @@ class doc_Folders extends core_Master
         expect($rec = $mvc->fetch($coverId));
         
         return $rec->folderId;
+    }
+
+
+    /**
+     * Клониране на настройките от една папка на друга
+     *
+     * @param int $fromFolderId - ид на папка от, която да се клонират
+     * @param int $toFolderId   - ид на папка, на която да се копират
+     * @return void
+     */
+    public static function cloneFolderSettings($fromFolderId, $toFolderId)
+    {
+        expect($fromFolderId);
+        expect($toFolderId);
+
+        $oldSettingFolderKey = doc_Folders::getSettingsKey($fromFolderId);
+        $newSettingFolderKey = doc_Folders::getSettingsKey($toFolderId);
+
+        $oldKey = core_Settings::prepareKey($oldSettingFolderKey);
+        $settingQuery = core_Settings::getQuery();
+        $settingQuery->where("#key = '{$oldKey}' AND #objectId = {$fromFolderId}");
+        $settingQuery->orderBy('id', 'asc');
+
+        while($oldSettingRec = $settingQuery->fetch()){
+            core_Settings::setValues($newSettingFolderKey, $oldSettingRec->data, $oldSettingRec->userOrRole);
+        }
     }
 }

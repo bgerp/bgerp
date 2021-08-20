@@ -239,7 +239,7 @@ class sales_Invoices extends deals_InvoiceMaster
         parent::setInvoiceFields($this);
         
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
-        $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
+        $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Допълнително->Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
@@ -850,11 +850,18 @@ class sales_Invoices extends deals_InvoiceMaster
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('store_ShipmentOrders')) {
                 
-                // Ако източника на ф-та е ЕН, записва се че е към нея
-                $sRec = $Source->fetch('fromContainerId,containerId');
-                if (empty($sRec->fromContainerId)) {
+                // Ако източника на ф-та е ЕН, по което няма разпределени фактури значи е то
+                $sRec = $Source->fetch();
+                $invArr = deals_InvoicesToDocuments::getInvoiceArr($sRec->containerId);
+                if (empty($sRec->fromContainerId) && !countR($invArr)) {
                     $sRec->fromContainerId = $rec->containerId;
                     $Source->getInstance()->save_($sRec, 'fromContainerId');
+
+                    // След създаване синхронизиране на модела
+                    $amount = $Source->getPaymentData($sRec)->amount;
+                    $dRec = (object)array('documentContainerId' => $sRec->containerId, 'containerId' => $sRec->fromContainerId, 'amount' => $amount);
+                    deals_InvoicesToDocuments::save($dRec);
+
                     doc_DocumentCache::cacheInvalidation($sRec->containerId);
                 }
             }

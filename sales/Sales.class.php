@@ -87,8 +87,14 @@ class sales_Sales extends deals_DealMaster
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
     public $filterRolesForTeam = 'ceo,salesMaster,manager';
-    
-    
+
+
+    /**
+     * Клас на оферта
+     */
+    protected $quotationClass = 'sales_Quotations';
+
+
     /**
      * Кой може да принтира фискална бележка
      */
@@ -325,7 +331,7 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Допълнително->Цени,notChangeableByContractor');
-        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
+        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
@@ -866,13 +872,12 @@ class sales_Sales extends deals_DealMaster
     public function cron_CheckSalesPayments()
     {
         core_App::setTimeLimit(300);
-        $conf = core_Packs::getConfig('sales');
-        $overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
-        
-        $this->checkPayments($overdueDelay);
+        $overdueDelay =sales_Setup::get('OVERDUE_CHECK_DELAY');
+        //$this->checkPayments($overdueDelay);
 
         // Изпращане на нотификации, за нефактурирани продажби
-        $this->sendNotificationIfInvoiceIsTooLate();
+        $lateTime = sales_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');
+        $this->sendNotificationIfInvoiceIsTooLate($lateTime);
     }
     
     

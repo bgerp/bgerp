@@ -106,6 +106,12 @@ defIfNot('ACC_ALTERNATE_WINDOW', '');
 
 
 /**
+ * Захранване на стратегия с отрицателни крайни салда
+ */
+defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'no');
+
+
+/**
  * class acc_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -157,8 +163,8 @@ class acc_Setup extends core_ProtoSetup
      * Дефолтни сметки за добавяне към документа за корекция от грешки
      */
     protected static $accAccount = '321,323,401,411,61101,6911,6912,699,701,703,706,7911,7912';
-    
-    
+
+
     /**
      * Списък с мениджърите, които съдържа пакета
      */
@@ -184,6 +190,7 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
+        'migrate::roundClosedBalanceAccounts'
     );
     
     
@@ -247,9 +254,13 @@ class acc_Setup extends core_ProtoSetup
             'double',
             'caption=Корекция на грешки от закръгляне->Сума под'
         ),
+        'ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY' => array(
+            'enum(no=Не,yes=Да)',
+            'caption=Захранване на стратегия WAC с отрицателни начални салда->Избор'
+        ),
         'ACC_ALTERNATE_WINDOW' => array(
-            'time(suggestions=3 месец|4 месеца|5 месеца|6 месеца|7 месеца|8 месеца|9 месеца|10 месеца|11 месеца|12 месеца)',
-            'caption=Преизчисляване на балансите при промяна на документи не по-стари от->Срок,placeholder=Винаги'
+            'time(suggestions=3 месеца|6 месеца|9 месеца|12 месеца|24 месеца)',
+            'caption=Балансите да НЕ се преизчисляват при промяна на документи по-стари от->Срок,placeholder=Винаги'
         ),
     );
     
@@ -527,5 +538,72 @@ class acc_Setup extends core_ProtoSetup
         $options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         
         return $options;
+    }
+
+
+    /**
+     * Закръгля приключените периоди ако има
+     */
+    public function roundClosedBalanceAccounts()
+    {
+        $bDetails = cls::get('acc_BalanceDetails');
+        $lastClosed = acc_Periods::getLastClosed();
+        if(!$lastClosed) return;
+
+        $diffAmount = 0;
+        $res = array();
+        $activePeriod = acc_Periods::getFirstActive();
+        if(!is_object($activePeriod)) return;
+
+        $lastClosedBalanceId = acc_Balances::fetchField("#periodId = {$lastClosed->id}");
+
+        $bQuery = acc_BalanceDetails::getQuery();
+        $bQuery->where("#balanceId = {$lastClosedBalanceId}");
+        $bQuery->where("#accountNum IN ('501', '502', '503')");
+        $bQuery->XPR("blQuantityLength", 'double', '(LENGTH(SUBSTR(#blQuantity, INSTR(#blQuantity,".")))-1)');
+        $bQuery->XPR("blAmountLength", 'double', '(LENGTH(SUBSTR(#blAmount, INSTR(#blAmount,".")))-1)');
+        $bQuery->where("#blQuantityLength > 2 OR #blAmountLength > 2");
+        $bQuery->XPR("blQuantityDiff", 'double', '(#blQuantity - ROUND(#blQuantity, 2))');
+        $bQuery->XPR("blAmountDiff", 'double', '(#blAmount - ROUND(#blAmount, 2))');
+        $bQuery->where("#ent1Id IS NOT NULL OR #ent2Id IS NOT NULL OR #ent3Id IS NOT NULL");
+
+        $count = $bQuery->count();
+        if(!$count) return;
+
+        core_App::setTimeLimit($count * 0.6, false, 300);
+
+        while($bRec = $bQuery->fetch()){
+            $bRec->blQuantity = round($bRec->blQuantity, 2);
+            $bRec->blAmount = round($bRec->blAmount, 2);
+            $diffAmount += $bRec->blAmountDiff;
+            $res[] = $bRec;
+        }
+
+        $bDetails->saveArray($res, 'id,blQuantity,blAmount');
+        acc_Balances::alternate($activePeriod->start, null, null);
+
+        if($diffAmount < -0.1 || $diffAmount >= 0.1){
+            core_Users::forceSystemUser();
+            $accRec = (object)array('valior' => $activePeriod->start, 'reason' => 'Автоматично закръгляне', 'folderId' => acc_Articles::getDefaultFolder(), 'state' => 'draft');
+            acc_Articles::save($accRec);
+
+            acc_Articles::logWrite('Автоматично създаване на коригиращ документ');
+            core_Users::cancelSystemUser();
+            doc_Threads::doUpdateThread($accRec->threadId);
+
+            $acc1Id = acc_Accounts::getRecBySystemId('488')->id;
+            $acc2Id = acc_Accounts::getRecBySystemId('900')->id;
+            if($diffAmount >= 0){
+                $dRec = (object)array('debitAccId' => $acc2Id, 'creditAccId' => $acc1Id, 'amount' => abs($diffAmount));
+            } else {
+                $dRec = (object)array('debitAccId' => $acc1Id, 'creditAccId' => $acc2Id, 'amount' => abs($diffAmount));
+            }
+
+            $dRec->articleId = $accRec->id;
+            acc_ArticleDetails::save($dRec);
+
+            acc_Articles::conto($accRec);
+            acc_Articles::logWrite('Контиране на коригиращ документ');
+        }
     }
 }

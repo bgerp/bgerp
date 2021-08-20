@@ -485,8 +485,10 @@ class trans_plg_LinesPlugin extends core_Plugin
     {
         // За нескладовите документи
         if(!isset($rec->id) && !cls::haveInterface('store_iface_DocumentIntf', $mvc)){
+
             $containerId = isset($rec->fromContainerId) ? $rec->fromContainerId : $rec->originId;
             if(isset($containerId)){
+
                 try{
                     // Дали е към някакъв друг документ
                     $Document = doc_Containers::getDocument($containerId);
