@@ -250,7 +250,9 @@ class acc_CostAllocations extends core_Manager
         
         // Ако има избрано разходно перо, и то е на покупка/продажба, показва се и полето за разпределяне
         if (isset($rec->expenseItemId)) {
-            $itemClassId = acc_Items::fetchField($rec->expenseItemId, 'classId');
+
+            $itemClassId = acc_Items::fetchField($rec->expenseItemId, "classId");
+
             if (cls::haveInterface('acc_AllowArticlesCostCorrectionDocsIntf', $itemClassId)) {
                 $form->setField('allocationBy', 'input');
                 
@@ -262,8 +264,34 @@ class acc_CostAllocations extends core_Manager
             }
         }
     }
-    
-    
+
+
+    /**
+     * Проверява има ли проблем с избраното перо на разходния обект
+     *
+     * @param int $expenseItemId
+     * @param null|string $error
+     * @return bool
+     */
+    public static function checkSelectedExpenseItem($expenseItemId, &$error)
+    {
+        $itemRec = acc_Items::fetch($expenseItemId);
+        $Source = cls::get($itemRec->classId);
+        if($Source instanceof deals_DealMaster){
+            if($closedWithId = $Source->fetchField($itemRec->objectId, 'closeWith')){
+                if($closedWithItemId = acc_Items::fetchItem($Source, $closedWithId)){
+                    $newItemId = acc_Items::getVerbal($closedWithItemId, 'titleLink');
+                    $error = "Сделката е затворена и е обединена с:|* {$newItemId}";
+
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      *
@@ -285,9 +313,14 @@ class acc_CostAllocations extends core_Manager
                     acc_ValueCorrections::addProductsFromOriginToForm($form, $origin, $Detail->Master);
                 }
             }
+
         }
         
         if ($form->isSubmitted()) {
+            $expenseItemError = null;
+            if(!static::checkSelectedExpenseItem($rec->expenseItemId, $expenseItemError)){
+                $form->setError('expenseItemId', $expenseItemError);
+            }
 
             // Колко ще бъде разпределено след записа
             $allocatedQuantity = self::getAllocatedInDocument($rec->detailClassId, $rec->detailRecId, $rec->id);

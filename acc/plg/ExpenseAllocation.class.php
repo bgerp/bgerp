@@ -143,6 +143,11 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                     $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
                 }
 
+                $expenseItemError = null;
+                if(!static::checkSelectedExpenseItem($rec->expenseItemId, $expenseItemError)){
+                    $form->setError('expenseItemId', $expenseItemError);
+                }
+
                 if(!$form->gotErrors()){
                     if($rec->allocationBy != 'no'){
                         if ($error = acc_ValueCorrections::allocateAmount($rec->productsData, $rec->packQuantity, $rec->allocationBy)) {
