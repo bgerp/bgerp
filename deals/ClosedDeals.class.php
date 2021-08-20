@@ -421,16 +421,6 @@ abstract class deals_ClosedDeals extends core_Master
             }
         }
         
-        if (isset($oldRec->valiorStrategy)) {
-            if ($oldRec->valiorStrategy == 'createdOn') {
-                $rec->valior = dt::verbal2mysql($oldRec->createdOn, false);
-            } elseif ($oldRec->valiorStrategy == 'auto') {
-                $rec->valior = null;
-            }
-            
-            $mvc->save_($rec, 'valior');
-        }
-        
         doc_DocumentCache::threadCacheInvalidation($rec->threadId);
     }
     
@@ -716,49 +706,28 @@ abstract class deals_ClosedDeals extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Намиране на най-големия вальор в треда на приключващия документ
      *
-     * @param int $threadId
-     *
+     * @param stdClass $rec
      * @return date $dates
      */
-    protected function getBiggestValiorInThread($rec)
+    protected function getBiggestValiorInDeal($rec)
     {
-        $dates = array();
-        $rec = $this->fetchRec($rec);
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        if ($firstDoc->haveInterface('acc_TransactionSourceIntf')) {
-            $dates[] = $firstDoc->fetchField($firstDoc->getInstance()->valiorFld);
+        $firstDoc =  doc_Threads::getFirstDocument($rec->threadId);
+
+        // Намира се най-големия вальор от документите свързани към сделката
+        $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+        $valiors = arr::extractValuesFromArray($jRecs, 'valior');
+        if($firstDocValior = $firstDoc->fetchField($firstDoc->valiorFld)){
+            $valiors[$firstDocValior] = $firstDocValior;
         }
-        
-        // Обхождаме всички документи в нишката и им извличаме вальорите
-        $desc = $firstDoc->getDescendants();
-        
-        if (countR($desc)) {
-            foreach ($desc as $doc) {
-                if ($doc->haveInterface('acc_TransactionSourceIntf') && ($doc->fetchField('state') == 'active' || $doc->fetchField('state') == 'closed')) {
-                    if ($doc->that != $rec->id && $doc->getClassId() != $rec->classId) {
-                        $dates[] = $doc->fetchField($doc->getInstance()->valiorFld);
-                    }
-                }
-            }
-        }
-        
-        // Сортираме вальорите по възходящ ред
-        usort($dates, function ($a, $b) {
-            
-            return ($a < $b) ? 1 : -1;
-        });
-        
-        // Намираме най-голямата дата от намерените
-        $date = $dates[0];
-        
-        return $date;
+
+        return max($valiors);
     }
-    
+
     
     /**
      * Какъв да е вальора на контировката. Взима за дата на вальора, датата на вальора на последния
@@ -767,7 +736,7 @@ abstract class deals_ClosedDeals extends core_Master
     public function getValiorDate($rec)
     {
         // Намираме най-голямата дата от намерените
-        $date = $this->getBiggestValiorInThread($rec);
+        $date = $this->getBiggestValiorInDeal($rec);
 
         // Ако датата не е свободна, взима се първата свободна
         $date =  acc_Periods::getNextAvailableDateIfNeeded($date);

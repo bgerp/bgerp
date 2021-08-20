@@ -98,8 +98,39 @@ class acc_CostAllocations extends core_Manager
         
         $this->setDbIndex('detailClassId,detailRecId');
     }
-    
-    
+
+
+    /**
+     * Нотифициране на разходния обект че е отнесено нещо по него
+     *
+     * @param int $expenseItemId
+     * @param boolean $removed
+     */
+    public static function notifyExpenseItemId($expenseItemId, $removed = false)
+    {
+        $expenseItem = acc_Items::fetch($expenseItemId);
+        $Source = cls::get($expenseItem->classId);
+        if($expenseItem->state == 'closed'){
+            if($Source instanceof deals_DealBase){
+
+                if(isset($Source->closeDealDoc)){
+                    $CloseDoc = cls::get($Source->closeDealDoc);
+                    $closedDocRec = $CloseDoc->fetch("#docClassId = {$expenseItem->classId} AND #docId = {$expenseItem->objectId} AND #state = 'active'");
+                    $closedDocRec->valior = $CloseDoc->getValiorDate($closedDocRec);
+                    $success = acc_Journal::reconto($closedDocRec->containerId, true);
+
+                    if($success){
+                        $msg = ($removed) ? 'Ре-контиране след премахване на отнесен разход върху затворена сделка' : 'Ре-контиране след отнасяне на разход върху затворена сделка';
+                        $CloseDoc->logWrite($msg, $closedDocRec->id);
+                        $expenseItem->closedOn = $closedDocRec->valior;
+                        acc_Items::save($expenseItem, 'closedOn');
+                    }
+                }
+            }
+        }
+    }
+
+
     /**
      * Извиква се след успешен запис в модела
      */
@@ -107,10 +138,14 @@ class acc_CostAllocations extends core_Manager
     {
         try {
             $origin = doc_Containers::getDocument($rec->containerId);
+
             $state = $origin->fetchField('state');
             if (in_array($state, array('closed', 'active'))) {
-                acc_Journal::reconto($rec->containerId);
-                $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
+                $success = acc_Journal::reconto($rec->containerId);
+                if($success){
+                    $origin->getInstance()->logWrite('Ре-контиране на документа', $origin->that);
+                    static::notifyExpenseItemId($rec->expenseItemId);
+                }
             }
             
             // Ако изтритият разходен обект има кеш записи в таблицата за доставка да му се обновят
@@ -121,7 +156,11 @@ class acc_CostAllocations extends core_Manager
             reportException($e);
         }
     }
-    
+
+
+    /**
+     * Обновяване на старото перо
+     */
     private static function forceUpdateOnShutdown($expenseItemId)
     {
         // Ако изтритият разходен обект има кеш записи в таблицата за доставка да му се обновят
@@ -131,6 +170,8 @@ class acc_CostAllocations extends core_Manager
             $Register = cls::get($itemRec->classId);
             purchase_plg_ExtractPurchasesData::setUpdateOnShutdown($Register, $expenseReg->fetch());
         }
+
+        static::notifyExpenseItemId($expenseItemId, true);
     }
     
     

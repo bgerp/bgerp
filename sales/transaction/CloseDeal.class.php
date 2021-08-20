@@ -52,11 +52,12 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
         if (Mode::get('saveTransaction')) {
             acc_journal_RejectRedirect::expect(!acc_plg_Contable::havePendingDocuments($rec->threadId), tr("Към продажбата има документ в състояние|* '|Заявка|*'"));
         }
-        
+        $rec->valior = $this->class->getValiorDate($rec);
+
         // Създаване на обекта за транзакция
         $result = (object) array(
             'reason' => $rec->notes,
-            'valior' => ($rec->valior) ? $rec->valior : $this->class->getValiorDate($rec),
+            'valior' => $rec->valior,
             'totalAmount' => 0,
             'entries' => array()
         );
@@ -64,9 +65,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
         if ($rec->closeWith) {
             if ($dealItem) {
                 $closeDeal = array('sales_Sales', $rec->closeWith);
-                
                 $closeEntries = $this->class->getTransferEntries($dealItem, $result->totalAmount, $closeDeal, $rec);
-                
                 $result->entries = array_merge($result->entries, $closeEntries);
             }
         } else {
