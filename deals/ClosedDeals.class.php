@@ -9,46 +9,16 @@
  *
  *
  * @category  bgerp
- * @package   acc
+ * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 abstract class deals_ClosedDeals extends core_Master
 {
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'acc_ClosedDeals';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    protected $canRead = 'no_one';
-    
-    
-    /**
-     * Кой има право да променя?
-     */
-    protected $canWrite = 'no_one';
-    
-    
-    /**
-     * Кой има право да добавя?
-     */
-    protected $canAdd = 'no_one';
-    
-    
-    /**
-     * Кой може да го разглежда?
-     */
-    protected $canList = 'no_one';
-    
-    
     /**
      * Икона за фактура
      */
@@ -493,8 +463,9 @@ abstract class deals_ClosedDeals extends core_Master
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
         
         if (!isset($rec->valior)) {
-            $rec->valior = cls::get(get_called_class())->getValiorDate($rec);
-            $row->valior = cls::get(get_called_class())->getFieldType('valior')->toVerbal($rec->valior);
+            $rec->valior = $me->getValiorDate($rec);
+            $row->valior = $me->getFieldType('valior')->toVerbal($rec->valior);
+            $row->valior = "<span style='blue'>{$row->valior}</span>";
             $row->valior = ht::createHint($row->valior, 'Най-големият вальор в нишката на сделката');
         }
         

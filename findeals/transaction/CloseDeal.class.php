@@ -54,12 +54,16 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
         $info = $this->class->getDealInfo($rec->threadId);
         $docRec = $firstDoc->fetch();
         $amount = $info->get('blAmount');
-        $rec->valior = $this->class->getValiorDate($rec);
+
+        $valior = $this->class->getValiorDate($rec);
+        if (Mode::get('saveTransaction')) {
+            $rec->valior = $valior;
+        }
 
         // Създаване на обекта за транзакция
         $result = (object) array(
             'reason' => $rec->notes,
-            'valior' => $rec->valior,
+            'valior' => $valior,
             'totalAmount' => 0,
             'entries' => array(),
         );
