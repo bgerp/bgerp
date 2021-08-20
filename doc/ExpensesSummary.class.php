@@ -66,18 +66,14 @@ class doc_ExpensesSummary extends core_Manager
     public static function getSummary($containerId)
     {
         $html = '';
-        
         $expenseCount = self::fetchField("#containerId = {$containerId}", 'count');
-
-        $query = static::getQuery();
-        $query->where("#containerId = {$containerId}");
 
         if (isset($expenseCount)) {
             $count = cls::get('type_Int')->toVerbal($expenseCount);
             $actionVerbal = tr('разходи');
             $actionTitle = 'Показване на разходите към документа';
             $document = doc_Containers::getDocument($containerId);
-            
+            $linkArr = array();
             if (haveRole('ceo, acc, purchase, sales') && $document->haveRightFor('single')) {
                 $linkArr = array($document->getInstance(), 'single', $document->that, 'Sid' => $containerId);
             }
