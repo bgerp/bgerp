@@ -3835,6 +3835,7 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
+                $recs[$dRec->id]->productId = cat_Products::getVerbal($dRec->productId, 'name');
 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
