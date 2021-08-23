@@ -585,9 +585,11 @@ class cms_Content extends core_Manager
      *
      * @param mixed $class
      * @param null|int $domainId
+     * @param null|int $exceptDomainId
+     *
      * @return array $res
      */
-    public static function getMenuOpt($class, $domainId = null)
+    public static function getMenuOpt($class, $domainId = null, $exceptDomainId = null)
     {
         $classId = core_Classes::getId($class);
 
@@ -597,6 +599,11 @@ class cms_Content extends core_Manager
         if(isset($domainId)){
             $query->where("#domainId = {$domainId}");
         }
+
+        if(isset($exceptDomainId)){
+            $query->where("#domainId != {$exceptDomainId}");
+        }
+
         $query->orderBy('#order');
 
         while ($rec = $query->fetch()) {
