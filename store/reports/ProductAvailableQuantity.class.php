@@ -172,10 +172,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if ($form->isSubmitted()) {
 
             //При избрано количество РАЗПОЛАГАЕМО проверяваме датата да е поголяма от днес
-            if ($form->rec->date && $form->rec->date < dt::today()) {
+            if ($form->rec->date && $form->rec->typeOfQuantity == 'free' && $form->rec->date < dt::today()) {
                 $form->setError('date', 'Датата не може да бъде минала');
             }
-
 
             if ($form->rec->limmits == 'no') {
                 $form->rec->additional = array();
