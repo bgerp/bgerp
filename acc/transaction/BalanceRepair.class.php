@@ -103,7 +103,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         
         $Items = cls::get('acc_Items');
         $itemsArr = $Items->getCachedItems();
-bp($bQuery->fetchAll());
+
         // За всеки запис
         while ($bRec = $bQuery->fetch()) {
             $continue = true;
@@ -129,7 +129,12 @@ bp($bQuery->fetchAll());
                     }
                 }
             }
-            
+
+            if($bRec->ent2Id == 38916){
+                bp($diff, $continue, $bRec, $dRec);
+            }
+
+
             // Ако не са продължаваме
             if ($continue) {
                 continue;
