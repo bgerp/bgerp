@@ -207,8 +207,13 @@ class tags_Logs extends core_Manager
         if ($action == 'tag') {
             if ($rec && ($requiredRoles != 'no_one')) {
                 if ($rec->containerId) {
-                    $document = doc_Containers::getDocument($rec->containerId);
-                    if (!$document->haveRightFor('single')) {
+                    try{
+                        $document = doc_Containers::getDocument($rec->containerId);
+                        if (!$document->haveRightFor('single')) {
+                            $requiredRoles = 'no_one';
+                        }
+                    } catch(core_exception_Expect $e){
+                        wp($e, $rec);
                         $requiredRoles = 'no_one';
                     }
                 }
