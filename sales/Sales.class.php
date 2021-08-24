@@ -867,7 +867,7 @@ class sales_Sales extends deals_DealMaster
     {
         core_App::setTimeLimit(300);
         $overdueDelay =sales_Setup::get('OVERDUE_CHECK_DELAY');
-        //$this->checkPayments($overdueDelay);
+        $this->checkPayments($overdueDelay);
 
         // Изпращане на нотификации, за нефактурирани продажби
         $lateTime = sales_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');
