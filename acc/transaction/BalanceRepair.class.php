@@ -130,9 +130,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                 }
             }
 
-            if($bRec->ent2Id == 38916){
-                bp($diff, $continue, $bRec, $dRec, $continue);
-            }
+
 
 
             // Ако не са продължаваме
@@ -158,6 +156,11 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                         }
                     }
                 }
+
+                if($bRec->ent2Id == 38916){
+                    bp($diff, $continue, $bRec, $dRec, $continue);
+                }
+
 
                 // Ако всички пера са отворени продължаваме без да правим нищо
                 if ($continue) {
