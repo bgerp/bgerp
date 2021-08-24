@@ -243,8 +243,13 @@ class deals_InvoicesToDocuments extends core_Manager
             if($state != 'active') continue;
 
             $pData = $Document->getPaymentData();
-            $rate = $pData->amount / $pData->amountDeal;
-            $amountPaid  = $rec->amount / $rate;
+            if(!empty($pData->amountDeal)){
+                $rate = $pData->amount / $pData->amountDeal;
+                $amountPaid  = $rec->amount / $rate;
+            } else {
+                $amountPaid = $rec->amount;
+            }
+
             $paidByNow += $amountPaid;
         }
 
