@@ -178,7 +178,9 @@ class eshop_Groups extends core_Master
                 $pQuery = eshop_Products::getQuery();
                 $pQuery->where("#groupId = {$rec->id}");
                 while($pRec = $pQuery->fetch()){
-                    $productSuggestions[$pRec->id] = eshop_Products::getRecTitle($pRec, false);
+                    $pTitle = eshop_Products::getRecTitle($pRec, false);
+                    $pTitle = str_replace(',', ' ', $pTitle);
+                    $productSuggestions[$pRec->id] = $pTitle;
                 }
                 $form->setReadOnly('menuId', key($currentMenuOpt));
                 if(countR($productSuggestions)){
