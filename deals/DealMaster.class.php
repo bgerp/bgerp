@@ -1051,7 +1051,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
             
             if ($rec->originId) {
-                $row->originId = doc_Containers::getDocument($rec->originId)->getHyperLink();
+                $row->originId = doc_Containers::getDocument($rec->originId)->getHyperLink(true);
             }
             
             if ($rec->deliveryLocationId) {
