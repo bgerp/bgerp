@@ -103,7 +103,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         
         $Items = cls::get('acc_Items');
         $itemsArr = $Items->getCachedItems();
-
+bp($bQuery->fetchAll());
         // За всеки запис
         while ($bRec = $bQuery->fetch()) {
             $continue = true;
