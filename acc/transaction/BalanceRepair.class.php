@@ -122,7 +122,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
                     }
                 } elseif(!empty($dRec->{"blRound{$fld}"})){
                     $var = &${"bl{$fld}"};
-                    $diff = round(round($bRec->{"bl{$fld}"}, $dRec->{"blRound{$fld}"}) - $bRec->{"bl{$fld}"}, 5);
+                    $diff = round(round($bRec->{"bl{$fld}"}, $dRec->{"blRound{$fld}"}) - $bRec->{"bl{$fld}"}, 8);
                     if($diff){
                         $var = $diff;
                         $continue = false;
