@@ -1097,16 +1097,28 @@ class eshop_Groups extends core_Master
 
         // Кои артикули са вързани към групата, и са избрани за клониране
         $Products = cls::get('eshop_Products');
+        $PDetails = cls::get('eshop_ProductDetails');
+
         $pQuery = $Products->getQuery();
         $pQuery->where("#groupId = {$rec->id}");
         $pQuery->in('id', $cloneProducts);
 
         // Прехвърлят се към новата група
         while($pRec = $pQuery->fetch()){
-            unset($pRec->id, $pRec->modifiedOn, $pRec->modifiedBy, $pRec->createdOn, $pRec->createdBy, $pRec->nearProducts);
-            $pRec->groupId = $nRec->id;
-            $pRec->domainId = cms_Content::fetchField($nRec->menuId, 'domainId');
-            $Products->save($pRec);
+            $newRec = clone $pRec;
+            unset($newRec->id, $newRec->modifiedOn, $newRec->modifiedBy, $newRec->createdOn, $newRec->createdBy, $newRec->nearProducts);
+            $newRec->groupId = $nRec->id;
+            $newRec->domainId = cms_Content::fetchField($nRec->menuId, 'domainId');
+
+            // Прехвърлят се и детайлите към нея
+            $pId = $Products->save($newRec);
+            $dQuery = $PDetails->getQuery();
+            $dQuery->where("#eshopProductId = {$pRec->id}");
+            while($dRec = $dQuery->fetch()){
+                unset($dRec->id, $dRec->modifiedOn, $dRec->modifiedBy, $dRec->createdOn, $dRec->createdBy);
+                $dRec->eshopProductId = $pId;
+                $PDetails->save($dRec);
+            }
         }
     }
 }
