@@ -131,7 +131,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
             }
 
             if($bRec->ent2Id == 38916){
-                bp($diff, $continue, $bRec, $dRec);
+                bp($diff, $continue, $bRec, $dRec, $continue);
             }
 
 
