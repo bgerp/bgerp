@@ -331,7 +331,6 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->name = tr($rec->name);
         if(Mode::is('wrapper', 'cms_page_External')){
             $row->name = tr(static::getDisplayTitle($rec));
         }
