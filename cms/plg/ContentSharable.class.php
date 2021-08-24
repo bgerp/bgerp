@@ -44,10 +44,21 @@ class cms_plg_ContentSharable extends core_Plugin
     protected function on_AfterPrepareEditForm($mvc, $res, $data)
     {
         $form = &$data->form;
+        $rec = &$form->rec;
 
         $domainId = cms_Domains::getCurrent();
         $currentMenuOpt = cms_Content::getMenuOpt($mvc->sharableToContentSourceClass, $domainId);
-        $sharedMenuOpt = cms_Content::getMenuOpt($mvc->sharableToContentSourceClass, null, $domainId);
+        $sharedMenuOpt = cms_Content::getMenuOpt($mvc->sharableToContentSourceClass);
+
+        if (isset($rec->{$mvc->contentMenuFld})){
+            unset($sharedMenuOpt[$rec->{$mvc->contentMenuFld}]);
+
+            if(isset($rec->id)){
+                if(!array_key_exists($rec->{$mvc->contentMenuFld}, $currentMenuOpt)){
+                    $currentMenuOpt[$rec->{$mvc->contentMenuFld}] = cms_Content::getVerbal($rec->{$mvc->contentMenuFld}, 'menu');
+                }
+            }
+        }
 
         $form->setSuggestions($mvc->contentMenuSharedFld, $sharedMenuOpt);
         if (countR($currentMenuOpt) == 1) {
