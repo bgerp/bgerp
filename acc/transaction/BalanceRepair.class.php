@@ -107,7 +107,7 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
         // За всеки запис
         while ($bRec = $bQuery->fetch()) {
             $continue = true;
-            
+
             $blAmount = $blQuantity = null;
             
             // Ако крайното салдо и к-во са в допустимите граници
@@ -149,7 +149,14 @@ class acc_transaction_BalanceRepair extends acc_DocumentTransactionSource
 
                         // Ако има поне едно затворено, и то е затворено преди края на периода
                         if ($itemsArr['items'][$bRec->{$ent}]->state == 'closed') {
-                            if($itemsArr['items'][$bRec->{$ent}]->closedOn <= $periodRec->end){
+                            $jQuery = acc_JournalDetails::getQuery();
+                            acc_JournalDetails::filterQuery($jQuery, null, dt::now(), $bRec->accountNum, $bRec->{$ent});
+                            $jQuery->XPR('maxValior', 'date', 'MAX(#valior)');
+                            $jQuery->limit(1);
+                            $jQuery->show('maxValior');
+                            $maxValior = $jQuery->fetch()->maxValior;
+
+                            if($maxValior <= $periodRec->end){
                                 $continue = false;
                                 break;
                             }
