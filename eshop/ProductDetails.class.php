@@ -678,7 +678,7 @@ class eshop_ProductDetails extends core_Detail
         $titleParamId = eshop_Products::fetchField($eProductId, 'titleParamId');
         $title = !empty($optionRec->title) ? $optionRec->title : (!empty($titleParamId) ? cat_Products::getParams($productId, $titleParamId) : null);
         if(!isset($title) || $title === false){
-            $title = cat_Products::fetchField($productId, 'name');
+            $title = cat_Products::getVerbal($productId, 'name');
         }
         
         if($showFullName){
