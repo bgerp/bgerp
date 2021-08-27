@@ -112,7 +112,6 @@ class cat_products_Packagings extends core_Detail
         'planning_ConsumptionNoteDetails',
         'planning_ReturnNoteDetails',
         'cat_BomDetails',
-        'planning_Jobs',
         'planning_DirectProductionNote',
         'sales_ProformaDetails',
         'sales_ServicesDetails',
