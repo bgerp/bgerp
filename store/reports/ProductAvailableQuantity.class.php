@@ -158,10 +158,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $fldArr = array('minQuantity','maxQuantity');
         foreach ($fldArr as $fld){
-            foreach ($details->$fld as $key => $val){
-                if ($val){
-                    $Double = core_Type::getByName('double');
-                    $details->$fld[$key] = $Double->fromVerbal($val);
+            if(is_array($details->$fld)) {
+                foreach ($details->$fld as $key => $val) {
+                    if ($val) {
+                        $Double = core_Type::getByName('double');
+                        $details->$fld[$key] = $Double->fromVerbal($val);
+                    }
                 }
             }
         }
