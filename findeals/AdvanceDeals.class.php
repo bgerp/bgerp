@@ -104,7 +104,7 @@ class findeals_AdvanceDeals extends findeals_Deals
      *
      * @return array $options
      */
-    protected function getDefaultAccountOptions($folderId)
+    public function getDefaultAccountOptions($folderId)
     {
         $accountRec = acc_Accounts::getRecBySystemId(static::BASE_ACCOUNT_SYS_ID);
         $options = array($accountRec->id => acc_Accounts::getRecTitle($accountRec, false));
