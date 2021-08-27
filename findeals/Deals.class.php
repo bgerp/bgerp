@@ -217,12 +217,11 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('amountDeal', 'double(decimals=2)', 'input=none,notNull,oldFieldName=blAmount');
         $this->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory,silent');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
-        
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,silent,removeAndRefreshForm=currencyRate');
-        $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
-        
         $this->FNC('contragentItemId', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Втори контрагент,input');
-        
+
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,silent,removeAndRefreshForm=currencyRate');
+        $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
+
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
@@ -233,7 +232,7 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
         $this->FLD('secondContragentId', 'int', 'input=none');
         
-        $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=currencyRate');
+        $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=currencyId');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно,template=Шаблон)', 'caption=Състояние, input=none');
         $this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
         
@@ -383,19 +382,14 @@ class findeals_Deals extends deals_DealBase
         $rec = &$form->rec;
         
         $options = $mvc->getDefaultAccountOptions($rec->folderId);
-        $accountCount = countR($options);
-        if($accountCount > 2){
+        if(countR($options) > 1){
             $form->setOptions('accountId', array('' => '') + $options);
         } else {
             $form->setOptions('accountId', $options);
         }
 
-        if ($accountCount == 2 || $accountCount == 1) {
-            foreach ($options as $key => $opt) {
-                if (!is_object($opt)) {
-                    $form->setDefault('accountId', $key);
-                }
-            }
+        if(countR($options) == 1){
+            $form->setDefault('accountId', key($options));
         }
         
         // Само контрагенти могат да се избират
