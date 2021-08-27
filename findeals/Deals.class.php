@@ -348,7 +348,7 @@ class findeals_Deals extends deals_DealBase
      *
      * @return array $options
      */
-    protected function getDefaultAccountOptions($folderId)
+    public function getDefaultAccountOptions($folderId)
     {
         $options = acc_Accounts::getOptionsByListInterfaces('crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf');
 
