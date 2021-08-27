@@ -11,7 +11,7 @@
  * @package   findeals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,7 +45,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Кои сметки не могат да се избират
      */
-    public static $exceptAccSysIds = '401,411,402,412';
+    protected  $exceptAccSysIds = '401,411,402,412,422';
     
     
     /**
@@ -64,8 +64,14 @@ class findeals_Deals extends deals_DealBase
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,findeals';
-    
-    
+
+
+    /**
+     * Дали да се позволи избора на всички сметки с разбивка по контрагент
+     */
+    protected $allowAllContragentAccounts = true;
+
+
     /**
      * Кой може да го контира?
      */
@@ -188,12 +194,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Сметки с какви интерфейси да се показват за избор
-     */
-    protected $accountListInterfaces = 'crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
-    
-    
-    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array('currencyId' => 'lastDocUser|lastDoc|CoverMethod');
@@ -208,7 +208,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Полета, които при клониране да не са попълнени
      *
-     * @see plg_Clone
+     * @see plg_Clonecrm_CompanyAccRegIntf
      */
     public $fieldsNotToClone = 'valior, amountDeal, currencyRate, baseAmount';
     
@@ -278,9 +278,10 @@ class findeals_Deals extends deals_DealBase
         if ($me instanceof findeals_AdvanceDeals) {
             expect($contragentClass instanceof crm_Persons, 'Служебен аванс може да е само в папка на лице');
         }
-        
-        $options = acc_Accounts::getOptionsByListInterfaces($me->accountListInterfaces);
-        expect(array_key_exists($accRec->id, $options), "{$accountSysId} разбивките нямат нужните интерфейси {$me->accountListInterfaces}");
+
+        $folderId = $contragentClass->forceCoverAndFolder($cRec->id);
+        $options = acc_Accounts::getOptionsByListInterfaces($folderId);
+        expect(array_key_exists($accRec->id, $options), "{$accountSysId} не е достъпна за избор в папката");
         
         $Double = cls::get('type_Double');
         
@@ -354,12 +355,22 @@ class findeals_Deals extends deals_DealBase
      *
      * @return array $options
      */
-    public function getDefaultAccountOptions()
+    protected function getDefaultAccountOptions($folderId)
     {
-        $options = acc_Accounts::getOptionsByListInterfaces($this->accountListInterfaces);
-       
+        $options = array();
+        if($this->allowAllContragentAccounts){
+            $options = acc_Accounts::getOptionsByListInterfaces('crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf');
+        }
+
+        $Cover = doc_Folders::getCover($folderId);
+        if($Cover->isInstanceOf('crm_Companies')){
+            $options += acc_Accounts::getOptionsByListInterfaces('crm_CompanyAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf');
+        } elseif($Cover->isInstanceOf('crm_Persons')) {
+            $options += acc_Accounts::getOptionsByListInterfaces('crm_PersonAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf');
+        }
+
         // Премахваме от избора упоменатите сметки, които трябва да се изключат
-        $except = arr::make($this::$exceptAccSysIds);
+        $except = arr::make($this->exceptAccSysIds);
         foreach ($except as $sysId) {
             $accId = acc_Accounts::getRecBySystemId($sysId)->id;
             unset($options[$accId]);
@@ -380,7 +391,7 @@ class findeals_Deals extends deals_DealBase
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $options = $mvc->getDefaultAccountOptions();
+        $options = $mvc->getDefaultAccountOptions($rec->folderId);
         $form->setOptions('accountId', $options);
         
         if (countR($options) == 2) {

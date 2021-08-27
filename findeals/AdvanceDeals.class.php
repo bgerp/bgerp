@@ -46,14 +46,8 @@ class findeals_AdvanceDeals extends findeals_Deals
      * Групиране на документите
      */
     public $newBtnGroup = '4.2|Финанси';
-    
-    
-    /**
-     * Сметки с какви интерфейси да се показват за избор
-     */
-    protected $accountListInterfaces = 'crm_PersonAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
-    
-    
+
+
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
@@ -64,8 +58,20 @@ class findeals_AdvanceDeals extends findeals_Deals
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = true;
-    
-    
+
+
+    /**
+     * Дали да се позволи избора на всички сметки с разбивка по контрагент
+     */
+    protected $allowAllContragentAccounts = false;
+
+
+    /**
+     * Кои сметки не могат да се избират
+     */
+    protected  $exceptAccSysIds = '401,411,402,412';
+
+
     /**
      * Може ли документа да се добави в посочената папка?
      *
