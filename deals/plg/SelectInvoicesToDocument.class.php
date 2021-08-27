@@ -50,10 +50,12 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
             $oData = $mvc->getPaymentData($rec->id);
             $nData = $mvc->getPaymentData($rec);
 
-            if($oData->amount != $nData->amount || $oData->currencyId != $nData->currencyId){
-                if(deals_InvoicesToDocuments::count("#documentContainerId = {$rec->containerId}")){
-                    $rec->_resetInvoices = true;
-                }
+            // Прир едакция се проверява дали е сменяна валутата или сумата на документа
+            if($oData->amount != $nData->amount){
+                $rec->_amountChange = ($oData->amount > $nData->amount) ? 'decrease' : 'increase';
+            }
+            if($oData->amount != $nData->amount){
+                $rec->_currencyChange = true;
             }
         }
     }
@@ -67,9 +69,15 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         if(isset($rec->fromContainerId)){
 
             // След създаване синхронизиране на модела
-            $amount = $mvc->getPaymentData($rec)->amount;
-            $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $amount);
-            deals_InvoicesToDocuments::save($dRec);
+            $expectedAmountToPayData = deals_InvoicesToDocuments::getExpectedAmountToPay($rec->fromContainerId, $rec->containerId);
+            $paymentCurrencyCode = currency_Currencies::getCodeById($mvc->getPaymentData($rec)->currencyId);
+
+            $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
+            $vAmount = round($vAmount, 2);
+            if($vAmount){
+                $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
+                deals_InvoicesToDocuments::save($dRec);
+            }
         }
     }
 
@@ -79,12 +87,34 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
-        if($rec->_resetInvoices){
-            deals_InvoicesToDocuments::delete("#documentContainerId = {$rec->containerId}");
-            core_Statuses::newStatus('Информацията за отнасянията по фактури е изтрита, поради промяна на сумата и/или валутата на документа. Моля разпределете ги отново');
-            if(isset($rec->fromContainerId)){
-                $rec->fromContainerId = null;
-                $mvc->save_($rec, 'fromContainerId');
+        if($rec->_amountChange || $rec->_currencyChange){
+
+            // Какви са разпределените ф-ри
+            $iQuery = deals_InvoicesToDocuments::getQuery();
+            $iQuery->where("#documentContainerId = {$rec->containerId}");
+            $iRecs = $iQuery->fetchAll();
+            $count = countR($iRecs);
+
+            // Ако няма нищо не се прави
+            if(!$count) return;
+
+            // Ако са повече от 1 се ресетват
+            if($count > 1){
+                $ids = arr::extractValuesFromArray($iRecs, 'id');
+                $ids = implode(',', $ids);
+                deals_InvoicesToDocuments::delete("#documentContainerId = {$rec->containerId} AND #id IN ({$ids})");
+                core_Statuses::newStatus('Информацията за отнасянията по фактури е изтрита, поради промяна на сумата и/или валутата на документа. Моля разпределете ги отново');
+                if(isset($rec->fromContainerId)){
+                    $rec->fromContainerId = null;
+                    $mvc->save_($rec, 'fromContainerId');
+                }
+            } elseif($rec->_amountChange == 'decrease') {
+
+                // Ако е само една и сумата е намалена то остава по-малкото от новата сума и старата разпределена
+                $nData = $mvc->getPaymentData($rec);
+                $onlyInvoiceRec = $iRecs[key($iRecs)];
+                $onlyInvoiceRec->amount = min($nData->amount, $onlyInvoiceRec->amount);
+                cls::get('deals_InvoicesToDocuments')->save($onlyInvoiceRec, 'amount');
             }
         }
     }

@@ -527,7 +527,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                             return ($a->containerId < $b->containerId) ? -1 : 1;
                         }
                         
-                        return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
+                        return ($a->dueDateMin < $b->dueDateMin) ? -1 : 1;
                     }
                     
                     return ($a->readiness < $b->readiness) ? 1 : -1;
@@ -552,7 +552,7 @@ class sales_reports_ShipmentReadiness extends frame2_driver_TableData
                             return ($a->containerId < $b->containerId) ? -1 : 1;
                         }
                         
-                        return ($a->deliveryTime < $b->deliveryTime) ? -1 : 1;
+                        return ($a->dueDateMin < $b->dueDateMin) ? -1 : 1;
                     }
                     
                     return (strnatcasecmp($a->contragentName, $b->contragentName) < 0) ? -1 : 1;

@@ -123,38 +123,16 @@ class cat_Params extends bgerp_ProtoParam
             2 => 'suffix',
             3 => 'sysId',
             4 => 'csv_options',
-            5 => 'default',
-            6 => 'showInPublicDocuments',
-            7 => 'state',
-            8 => 'csv_params',
-            9 => 'showInTasks',
+            5 => 'showInPublicDocuments',
+            6 => 'state',
+            7 => 'csv_params',
+            8 => 'showInTasks',
         );
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
         $res = $cntObj->html;
         
         return $res;
-    }
-    
-    
-    /**
-     * Връща дефолт стойността за параметъра
-     *
-     * @param $paramId - ид на параметър
-     *
-     * @return FALSE|string
-     */
-    public static function getDefault($paramId)
-    {
-        // Ако няма гледаме имали дефолт за параметъра
-        $default = self::fetchField($paramId, 'default');
-        
-        if (!empty($default)) {
-            
-            return $default;
-        }
-        
-        return false;
     }
     
     

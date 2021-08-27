@@ -21,8 +21,14 @@ class cond_type_Double extends cond_type_abstract_Proto
      * Кой базов тип наследява
      */
     protected $baseType = 'type_Double';
-    
-    
+
+
+    /**
+     * Поле за дефолтна стойност
+     */
+    protected $defaultField = 'default';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -30,9 +36,10 @@ class cond_type_Double extends cond_type_abstract_Proto
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('round', 'int', 'caption=Конкретизиране->Закръгляне,before=default');
+        $fieldset->FLD('round', 'int', 'caption=Конкретизиране->Закръгляне,before=order');
         $fieldset->FLD('min', 'double', 'caption=Конкретизиране->Минимум,after=round');
         $fieldset->FLD('max', 'double', 'caption=Конкретизиране->Максимум,after=min');
+        $fieldset->FLD('default', 'double', 'caption=Конкретизиране->Стойност по подразбиране,after=max');
     }
     
     

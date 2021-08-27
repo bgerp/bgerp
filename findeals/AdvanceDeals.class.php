@@ -46,14 +46,8 @@ class findeals_AdvanceDeals extends findeals_Deals
      * Групиране на документите
      */
     public $newBtnGroup = '4.2|Финанси';
-    
-    
-    /**
-     * Сметки с какви интерфейси да се показват за избор
-     */
-    protected $accountListInterfaces = 'crm_PersonAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
-    
-    
+
+
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
@@ -64,8 +58,14 @@ class findeals_AdvanceDeals extends findeals_Deals
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = true;
-    
-    
+
+
+    /**
+     * Базово системно ид на сметка
+     */
+    const BASE_ACCOUNT_SYS_ID = 422;
+
+
     /**
      * Може ли документа да се добави в посочената папка?
      *
@@ -96,5 +96,19 @@ class findeals_AdvanceDeals extends findeals_Deals
         if ($fields['-single']) {
             $row->contragentCaption = tr('Подотчетно лице');
         }
+    }
+
+
+    /**
+     * Връщане на сметките, по които може да се създава ФД
+     *
+     * @return array $options
+     */
+    protected function getDefaultAccountOptions($folderId)
+    {
+        $accountRec = acc_Accounts::getRecBySystemId(static::BASE_ACCOUNT_SYS_ID);
+        $options = array($accountRec->id => acc_Accounts::getRecTitle($accountRec, false));
+
+        return $options;
     }
 }

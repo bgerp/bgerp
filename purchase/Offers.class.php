@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на оферти за покупки
+ * Мениджър на Оферти за покупки (стари)
  *
  *
  * @category  bgerp
@@ -13,7 +13,8 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Оферти за покупки
+ * @title     Оферти за покупки (стари)
+ * @deprecated
  */
 class purchase_Offers extends core_Master
 {
@@ -32,7 +33,7 @@ class purchase_Offers extends core_Master
     /**
      * Заглавие на единичен документ
      */
-    public $singleTitle = 'Оферта от доставчик';
+    public $singleTitle = 'Офертa за покупкa (стара)';
     
     
     /**
@@ -42,15 +43,9 @@ class purchase_Offers extends core_Master
     
     
     /**
-     * Икона за единичния изглед
-     */
-    public $singleIcon = 'img/16/doc_table.png';
-    
-    
-    /**
      * Заглавие
      */
-    public $title = 'Оферти за покупки';
+    public $title = 'Оферти за покупки (стари)';
 
 
     /**
@@ -62,44 +57,31 @@ class purchase_Offers extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_State2, plg_SaveAndNew, doc_plg_BusinessDoc, acc_plg_DocumentSummary,
-						purchase_Wrapper,plg_Clone, doc_DocumentPlg, doc_EmailCreatePlg, doc_ActivatePlg';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    public $canRead = 'ceo,purchase';
+    public $loadList = 'plg_RowTools2, plg_State2, plg_SaveAndNew, doc_DocumentPlg,doc_plg_BusinessDoc, acc_plg_DocumentSummary,purchase_Wrapper,plg_Clone';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,purchase';
+    public $canEdit = 'debug';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,purchase';
+    public $canAdd = 'debug';
     
     
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,purchase';
+    public $canList = 'debug';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,purchase';
-    
-    
-    /**
-     * Кой може да го види?
-     */
-    public $canView = 'ceo,purchase';
     
     
     /**
@@ -123,7 +105,7 @@ class purchase_Offers extends core_Master
     /**
      * Групиране на документите
      */
-    public $newBtnGroup = '4.1|Логистика';
+    public $newBtnGroup = '4.1999|Логистика';
     
     
     public $filterDateField = 'date';
@@ -136,7 +118,10 @@ class purchase_Offers extends core_Master
      */
     public $fieldsNotToClone = 'sum,date';
     
-    
+    function act_Test()
+    {
+        cls::get('purchase_Setup')->migrateOldQuotes1();
+    }
     /**
      * Описание на модела (таблицата)
      */
@@ -170,30 +155,6 @@ class purchase_Offers extends core_Master
                 $data->query->where(array("#state = '[#1#]'", $filterRec->state));
             }
         }
-    }
-    
-    
-    /**
-     * Връща тялото на имейла генериран от документа
-     *
-     * @see email_DocumentIntf
-     *
-     * @param int  $id      - ид на документа
-     * @param bool $forward
-     *
-     * @return string - тялото на имейла
-     */
-    public function getDefaultEmailBody($id, $forward = false)
-    {
-        $handle = $this->getHandle($id);
-        
-        // Създаваме шаблона
-        $tpl = new ET(tr('Предлагаме на вашето внимание нашата оферта: ') . '#[#handle#]');
-        
-        // Заместваме датата в шаблона
-        $tpl->append($handle, 'handle');
-        
-        return $tpl->getContent();
     }
     
     

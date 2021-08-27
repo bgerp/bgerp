@@ -933,10 +933,11 @@ class acc_Journal extends core_Master
      * Реконтиране на документ по контейнер
      *
      * @param int $containerId - ид на контейнер
+     * @param boolean $notify - да се нотифицра ли документа, че е реконтиран
      *
      * @return bool $success - резултат
      */
-    public static function reconto($containerId)
+    public static function reconto($containerId, $notify = false)
     {
         // Оригиналния документ трябва да не е в затворен период
         $origin = doc_Containers::getDocument($containerId);
@@ -950,7 +951,7 @@ class acc_Journal extends core_Master
         
         // Записване на новата транзакция на документа
         Mode::push('recontoTransaction', true);
-        $success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, false);
+        $success = acc_Journal::saveTransaction($origin->getClassId(), $origin->that, $notify);
         Mode::pop('recontoTransaction');
         
         expect($success, $success);

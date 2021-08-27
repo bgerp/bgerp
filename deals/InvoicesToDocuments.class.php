@@ -110,14 +110,10 @@ class deals_InvoicesToDocuments extends core_Manager
 
                 if(countR($iData['containerId']) == 1 && empty($iData['amount'][0])){
                     $iRec = doc_Containers::getDocument($iData['containerId'][0])->fetch();
-                    $iBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($iRec->date);
 
-                    $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2);
-                    if($paymentCurrencyCode == $iBaseCurrencyCode){
-                        $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount), 2);
-                    } else {
-                        $vAmount = currency_CurrencyRates::convertAmount($vAmount, null, $iRec->currencyId, $paymentCurrencyCode);
-                    }
+                    $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+                    $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
+                    $vAmount = round($vAmount, 2);
 
                     $defAmount = min($paymentData->amount, $vAmount);
                     $iData['amount'][0] = $defAmount;
@@ -127,70 +123,90 @@ class deals_InvoicesToDocuments extends core_Manager
                 $invArr = type_Table::toArray($form->rec->invoices);
             } elseif(!empty($fRec->fromContainerId)){
                 $iRec = doc_Containers::getDocument($fRec->fromContainerId)->fetch();
-                $iBaseCurrencyCode = acc_Periods::getBaseCurrencyCode($iRec->date);
 
-                $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2);
-                if($paymentCurrencyCode == $iBaseCurrencyCode){
-                    $vAmount = round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount), 2);
+                $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+                $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
+                $vAmount = round($vAmount, 2);
+                $defAmount = min($paymentData->amount, $vAmount);
+                if($defAmount){
+                    $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $defAmount));
                 } else {
-                    $vAmount = currency_CurrencyRates::convertAmount($vAmount, null, $iRec->currencyId, $paymentCurrencyCode);
+                    $form->setWarning('fromContainerId', 'По фактурата не се очаква плащане');
+                    $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $paymentData->amount));
+                }
+            }
+
+            $amountWarnings = array();
+
+            foreach ($invArr as $iRec){
+                $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+                $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
+
+                if($iRec->amount > $eAmount){
+                    $Invoice = doc_Containers::getDocument($iRec->containerId);
+                    $number = $Invoice->getInstance()->getVerbal($Invoice->fetch(), 'number');
+                    $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
+                    $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
+                }
+            }
+
+            if(countR($amountWarnings)){
+                $form->setWarning('invoices,fromContainerId', implode("<li>", $amountWarnings));
+            }
+
+            if(!$form->gotErrors()){
+                $newArr = array();
+                foreach ($invArr as $obj){
+                    $newArr[] = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $obj->containerId, 'amount' => $obj->amount);
                 }
 
-                $defAmount = min($paymentData->amount, $vAmount);
-                $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $defAmount));
-            }
+                $logMsg = false;
+                $exRecs = static::getInvoiceArr($rec->containerId);
+                $syncedArr = arr::syncArrays($newArr, $exRecs, 'containerId,amount', 'containerId,amount');
 
-            $newArr = array();
-            foreach ($invArr as $obj){
-                $newArr[] = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $obj->containerId, 'amount' => $obj->amount);
-            }
-
-            $logMsg = false;
-            $exRecs = static::getInvoiceArr($rec->containerId);
-            $syncedArr = arr::syncArrays($newArr, $exRecs, 'containerId,amount', 'containerId,amount');
-
-            if(countR($syncedArr['insert'])){
-                $this->saveArray($syncedArr['insert']);
-                $logMsg = true;
-            }
-
-            if(countR($syncedArr['update'])){
-                $this->saveArray($syncedArr['update'], 'id,containerId,amount');
-                $logMsg = true;
-            }
-
-            if(countR($syncedArr['delete'])){
-                $inStr = implode(',', $syncedArr['delete']);
-                $this->delete("#id IN ({$inStr})");
-                $logMsg = true;
-            }
-            plg_Search::forceUpdateKeywords($Document, $rec);
-
-            if ($Document instanceof deals_PaymentDocument) {
-                deals_Helper::updateAutoPaymentTypeInThread($rec->threadId);
-                doc_DocumentCache::cacheInvalidation($rec->containerId);
-            }
-
-            $count = countR($invArr);
-            if($count == 1){
-                if($rec->fromContainerId != $invArr[0]->containerId){
-                    $rec->fromContainerId = $invArr[0]->containerId;
-                    $Document->save($rec, 'fromContainerId');
+                if(countR($syncedArr['insert'])){
+                    $this->saveArray($syncedArr['insert']);
                     $logMsg = true;
                 }
-            } elseif(isset($rec->fromContainerId)) {
-                $rec->fromContainerId = null;
-                $Document->save($rec, 'fromContainerId');
-                $logMsg = true;
-            } else {
-                $Document->touchRec($rec);
-            }
 
-            if($logMsg){
-                $Document->logWrite("Отнасяне към документ", $rec->id);
-            }
+                if(countR($syncedArr['update'])){
+                    $this->saveArray($syncedArr['update'], 'id,containerId,amount');
+                    $logMsg = true;
+                }
 
-            followRetUrl(null, 'Промяната е записана успешно');
+                if(countR($syncedArr['delete'])){
+                    $inStr = implode(',', $syncedArr['delete']);
+                    $this->delete("#id IN ({$inStr})");
+                    $logMsg = true;
+                }
+                plg_Search::forceUpdateKeywords($Document, $rec);
+
+                if ($Document instanceof deals_PaymentDocument) {
+                    deals_Helper::updateAutoPaymentTypeInThread($rec->threadId);
+                    doc_DocumentCache::cacheInvalidation($rec->containerId);
+                }
+
+                $count = countR($invArr);
+                if($count == 1){
+                    if($rec->fromContainerId != $invArr[0]->containerId){
+                        $rec->fromContainerId = $invArr[0]->containerId;
+                        $Document->save($rec, 'fromContainerId');
+                        $logMsg = true;
+                    }
+                } elseif(isset($rec->fromContainerId)) {
+                    $rec->fromContainerId = null;
+                    $Document->save($rec, 'fromContainerId');
+                    $logMsg = true;
+                } else {
+                    $Document->touchRec($rec);
+                }
+
+                if($logMsg){
+                    $Document->logWrite("Отнасяне към документ", $rec->id);
+                }
+
+                followRetUrl(null, 'Промяната е записана успешно');
+            }
         }
 
         // Добавяне на тулбар
@@ -202,6 +218,49 @@ class deals_InvoicesToDocuments extends core_Manager
         core_Form::preventDoubleSubmission($tpl, $form);
 
         return $tpl;
+    }
+
+
+    /**
+     * Колко е платено досега по ф-та
+     *
+     * @param $invoiceContainerId
+     * @param $ignoreDocumentContainerId
+     * @return float|int
+     */
+    public static function getExpectedAmountToPay($invoiceContainerId, $ignoreDocumentContainerId)
+    {
+        $iRec = doc_Containers::getDocument($invoiceContainerId)->fetch();
+        $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate);
+
+        $query = static::getQuery();
+        $query->where("#containerId = {$invoiceContainerId} AND #documentContainerId != {$ignoreDocumentContainerId}" );
+
+        $paidByNow = 0;
+        while($rec = $query->fetch()){
+            $Document = doc_Containers::getDocument($rec->documentContainerId);
+            $state = $Document->fetchField('state');
+            if($state != 'active') continue;
+
+            $pData = $Document->getPaymentData();
+            if(!empty($pData->amountDeal)){
+                $rate = $pData->amount / $pData->amountDeal;
+                $amountPaid  = $rec->amount / $rate;
+            } else {
+                $amountPaid = $rec->amount;
+            }
+
+            $paidByNow += $amountPaid;
+        }
+
+        $toPay = $vAmount - $paidByNow;
+        if($toPay < 0){
+            $toPay = 0;
+        }
+
+        $arr = (object)array('amount' => $toPay, 'currencyCode' => $iRec->currencyId, 'rate' => $iRec->displayRate);
+
+        return $arr;
     }
 
 

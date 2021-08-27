@@ -27,8 +27,8 @@ class conversejs_Adapter extends core_Mvc
         
         $tpl = new page_Html();
 
-        $tpl->push('https://cdn.conversejs.org/6.0.0/dist/converse.min.css', 'CSS');
-        $tpl->push('https://cdn.conversejs.org/6.0.0/dist/converse.min.js', 'JS');
+        $tpl->push('https://cdn.conversejs.org/dist/converse.min.css', 'CSS');
+        $tpl->push('https://cdn.conversejs.org/dist/converse.min.js', 'JS');
         
         $cu = core_Users::getCurrent();
         $aQuery = remote_Authorizations::getQuery();
@@ -45,6 +45,7 @@ class conversejs_Adapter extends core_Mvc
                 converse.initialize({
                     bosh_service_url: '{$url}',
                     show_controlbox_by_default: true,
+                    view_mode: 'fullscreen',
                     keepalive: true,
                     message_carbons: true,
                     play_sounds: true,
@@ -62,7 +63,7 @@ class conversejs_Adapter extends core_Mvc
                     bosh_service_url: '{$url}',
                     show_controlbox_by_default: true,
                 });
-                alert('Към профилът ви няма свързана XMPP чат услуга, но ако все-пак имате акаунт - може да се логнете с него.');";
+                alert('Към вашият провил няма свързана XMPP чат услуга, но ако все-пак имате акаунт - може да се логнете с него.');";
             $title = core_Users::getCurrent('nick') . ' / ConverseJS Chat';
         }
         

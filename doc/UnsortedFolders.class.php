@@ -158,8 +158,16 @@ class doc_UnsortedFolders extends core_Master
      * Кой има право да оттегля системните данни?
      */
     public $canRejectsysdata = 'admin';
-    
-    
+
+
+    /**
+     * При клониране да се прехвърлят ли настройките на оригиналната папка?
+     *
+     * @see doc_FolderPlg
+     */
+    public $cloneFolderSettings = true;
+
+
     /**
      * масив с цветове
      */
@@ -251,9 +259,9 @@ class doc_UnsortedFolders extends core_Master
         if($data->action == 'clone'){
             $form->FNC('newStartDate', 'datetime', 'mandatory,caption=Клониране на задачи->Ново начало,input,before=taskCloneState');
             $form->FNC('taskCloneState', 'enum(draft=Чернова,active=Активно)', 'mandatory,caption=Клониране на задачи->Състояние,input,before=receiveEmail,unit=след клониране');
-        
+            $form->FNC('cloneFolderSettings', 'enum(yes=Да,no=Не)', 'mandatory,caption=Клониране на настройките на папката->Избор,input,after=taskCloneState');
+            $form->setDefault('cloneFolderSettings', (($mvc->cloneFolderSettings) ? 'yes' : 'no'));
             $form->setDefault('newStartDate', dt::now());
-            
         }
     }
     
@@ -269,8 +277,8 @@ class doc_UnsortedFolders extends core_Master
     {
         cal_Tasks::cloneFromFolder($rec->folderId, $nRec->folderId, $nRec->newStartDate, $nRec->taskCloneState);
     }
-    
-    
+
+
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      *
@@ -320,7 +328,13 @@ class doc_UnsortedFolders extends core_Master
         if(isset($rec->contragentFolderId)){
             $row->contragentFolderId = doc_Folders::recToVerbal($rec->contragentFolderId)->title;
         }
-        
+
+        if($fields['-single']){
+            if(isset($rec->clonedFromId)){
+                $row->clonedFromId = doc_UnsortedFolders::getHyperlink($rec->clonedFromId, true);
+            }
+        }
+
         return $row;
     }
     
@@ -1007,5 +1021,17 @@ class doc_UnsortedFolders extends core_Master
     {
         
         return null;
+    }
+
+
+    /**
+     * Дали да се клонират настройките на папката след клониране на проект
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function canCloneFolderSettings_($rec)
+    {
+        return $rec->cloneFolderSettings == 'yes';
     }
 }
