@@ -67,12 +67,6 @@ class findeals_Deals extends deals_DealBase
 
 
     /**
-     * Дали да се позволи избора на всички сметки с разбивка по контрагент
-     */
-    protected $allowAllContragentAccounts = true;
-
-
-    /**
      * Кой може да го контира?
      */
     public $canConto = 'ceo,acc,findeals';
@@ -357,10 +351,7 @@ class findeals_Deals extends deals_DealBase
      */
     protected function getDefaultAccountOptions($folderId)
     {
-        $options = array();
-        if($this->allowAllContragentAccounts){
-            $options = acc_Accounts::getOptionsByListInterfaces('crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf');
-        }
+        $options = acc_Accounts::getOptionsByListInterfaces('crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf');
 
         $Cover = doc_Folders::getCover($folderId);
         if($Cover->isInstanceOf('crm_Companies')){
@@ -392,10 +383,14 @@ class findeals_Deals extends deals_DealBase
         $rec = &$form->rec;
         
         $options = $mvc->getDefaultAccountOptions($rec->folderId);
-        $form->setOptions('accountId', $options);
-        
-        if (countR($options) == 2) {
-            $form->setField('accountId', 'input=hidden');
+        $accountCount = countR($options);
+        if($accountCount > 2){
+            $form->setOptions('accountId', array('' => '') + $options);
+        } else {
+            $form->setOptions('accountId', $options);
+        }
+
+        if ($accountCount == 2 || $accountCount == 1) {
             foreach ($options as $key => $opt) {
                 if (!is_object($opt)) {
                     $form->setDefault('accountId', $key);

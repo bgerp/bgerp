@@ -61,15 +61,9 @@ class findeals_AdvanceDeals extends findeals_Deals
 
 
     /**
-     * Дали да се позволи избора на всички сметки с разбивка по контрагент
+     * Базово системно ид на сметка
      */
-    protected $allowAllContragentAccounts = false;
-
-
-    /**
-     * Кои сметки не могат да се избират
-     */
-    protected  $exceptAccSysIds = '401,411,402,412';
+    const BASE_ACCOUNT_SYS_ID = 422;
 
 
     /**
@@ -102,5 +96,19 @@ class findeals_AdvanceDeals extends findeals_Deals
         if ($fields['-single']) {
             $row->contragentCaption = tr('Подотчетно лице');
         }
+    }
+
+
+    /**
+     * Връщане на сметките, по които може да се създава ФД
+     *
+     * @return array $options
+     */
+    protected function getDefaultAccountOptions($folderId)
+    {
+        $accountRec = acc_Accounts::getRecBySystemId(static::BASE_ACCOUNT_SYS_ID);
+        $options = array($accountRec->id => acc_Accounts::getRecTitle($accountRec, false));
+
+        return $options;
     }
 }
