@@ -21,8 +21,14 @@ class cond_type_Int extends cond_type_abstract_Proto
      * Кой базов тип наследява
      */
     protected $baseType = 'type_Int';
-    
-    
+
+
+    /**
+     * Поле за дефолтна стойност
+     */
+    protected $defaultField = 'default';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -30,8 +36,9 @@ class cond_type_Int extends cond_type_abstract_Proto
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('min', 'double', 'caption=Конкретизиране->Минимум,after=default');
-        $fieldset->FLD('max', 'double', 'caption=Конкретизиране->Максимум,after=min');
+        $fieldset->FLD('min', 'int', 'caption=Конкретизиране->Минимум,after=order');
+        $fieldset->FLD('max', 'int', 'caption=Конкретизиране->Максимум,after=min');
+        $fieldset->FLD('default', 'int', 'caption=Конкретизиране->Стойност по подразбиране,after=max');
     }
     
     

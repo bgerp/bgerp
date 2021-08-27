@@ -97,7 +97,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 
                 $form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,before=meta");
                 $form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id, $Embedder, $rec->id));
-                
+
                 // Ако параметъра има суфикс, добавяме го след полето
                 if (!empty($paramRec->suffix)) {
                     $suffix = cat_Params::getVerbal($paramRec, 'suffix');
@@ -108,6 +108,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 if (isset($value)) {
                     $form->setDefault("paramcat{$id}", $value);
                 }
+                $form->setDefault("paramcat{$id}", cat_Params::getDefaultValue($id, $Embedder, $rec->id));
             }
             
             $refreshFields = implode('|', $refreshFields);

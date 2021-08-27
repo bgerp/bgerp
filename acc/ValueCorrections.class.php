@@ -544,21 +544,27 @@ class acc_ValueCorrections extends core_Master
             $next = $values[$i + 1];
             
             if (is_object($next)) {
-                switch ($allocateBy) {
-                    case 'value':
-                        $coefficient = $p->amount / $denominator;
-                        break;
-                    case 'quantity':
-                        $coefficient = $p->quantity / $denominator;
-                        break;
-                    case 'weight':
-                        $coefficient = ($p->transportWeight * $p->quantity) / $denominator;
-                        break;
-                    case 'volume':
-                        $coefficient = ($p->transportVolume * $p->quantity) / $denominator;
-                        break;
+                $coefficient = 0;
+
+                if(!empty($denominator)){
+                    switch ($allocateBy) {
+                        case 'value':
+                            $coefficient = $p->amount / $denominator;
+                            break;
+                        case 'quantity':
+                            $coefficient = $p->quantity / $denominator;
+                            break;
+                        case 'weight':
+                            $coefficient = ($p->transportWeight * $p->quantity) / $denominator;
+                            break;
+                        case 'volume':
+                            $coefficient = ($p->transportVolume * $p->quantity) / $denominator;
+                            break;
+                    }
+                } else {
+                    wp($products, $amount, $allocateBy);
                 }
-                
+
                 // Изчисляване на сумата за разпределяне (коефициент * сума за разпределение)
                 $p->allocated = core_Math::roundNumber($coefficient * $amount);
                 $restAmount -= $p->allocated;

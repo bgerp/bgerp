@@ -105,13 +105,13 @@ class cat_products_Packagings extends core_Detail
         'store_ShipmentOrderDetails',
         'store_ReceiptDetails',
         'sales_QuotationsDetails',
+        'purchase_QuotationDetails',
         'sales_InvoiceDetails',
         'purchase_InvoiceDetails',
         'planning_DirectProductNoteDetails',
         'planning_ConsumptionNoteDetails',
         'planning_ReturnNoteDetails',
         'cat_BomDetails',
-        'planning_Jobs',
         'planning_DirectProductionNote',
         'sales_ProformaDetails',
         'sales_ServicesDetails',
@@ -122,6 +122,7 @@ class cat_products_Packagings extends core_Detail
         'planning_ProductionTaskProducts',
         'store_ConsignmentProtocolDetailsReceived',
         'store_TransfersDetails',
+        'store_InventoryNoteDetails',
         'store_ConsignmentProtocolDetailsSend');
 
 

@@ -9,46 +9,16 @@
  *
  *
  * @category  bgerp
- * @package   acc
+ * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
 abstract class deals_ClosedDeals extends core_Master
 {
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'acc_ClosedDeals';
-    
-    
-    /**
-     * Кой има право да чете?
-     */
-    protected $canRead = 'no_one';
-    
-    
-    /**
-     * Кой има право да променя?
-     */
-    protected $canWrite = 'no_one';
-    
-    
-    /**
-     * Кой има право да добавя?
-     */
-    protected $canAdd = 'no_one';
-    
-    
-    /**
-     * Кой може да го разглежда?
-     */
-    protected $canList = 'no_one';
-    
-    
     /**
      * Икона за фактура
      */
@@ -150,10 +120,10 @@ abstract class deals_ClosedDeals extends core_Master
     {
         $newEntries = array();
         $docs = array();
-        
+
         // Намираме записите в които участва перото
         $entries = acc_Journal::getEntries($dealItem);
-        
+
         // Намираме документите, които имат транзакции към перото
         if (countR($entries)) {
             foreach ($entries as $ent) {
@@ -197,7 +167,7 @@ abstract class deals_ClosedDeals extends core_Master
                         
                         $newEntries[] = $entry;
                     }
-                    
+
                     // Втори път обхождаме записите
                     foreach ($entries as &$entry2) {
                         if (isset($entry2['amount'])) {
@@ -207,10 +177,14 @@ abstract class deals_ClosedDeals extends core_Master
                         // Генерираме запис, който прави същите действия но с перо новата сделка
                         foreach (array('debit', 'credit') as $type) {
                             foreach ($entry2[$type] as $index => &$item) {
-                                
+
                                 // Намираме кое перо отговаря на перото на текущата сделка и го заменяме с това на новата сделка
                                 if ($index != 0) {
                                     if (is_array($item) && $item[0] == $dealItem->docClassName && $item[1] == $dealItem->objectId) {
+                                        $item = $closeDeal;
+                                    } elseif(is_numeric($item) && $item == $dealItem->id){
+
+                                        // Ако участва директно перото на сделката, също се променя
                                         $item = $closeDeal;
                                     }
                                 }
@@ -222,7 +196,7 @@ abstract class deals_ClosedDeals extends core_Master
                 }
             }
         }
-        
+
         // Връщаме генерираните записи
         return $newEntries;
     }
@@ -417,16 +391,6 @@ abstract class deals_ClosedDeals extends core_Master
             }
         }
         
-        if (isset($oldRec->valiorStrategy)) {
-            if ($oldRec->valiorStrategy == 'createdOn') {
-                $rec->valior = dt::verbal2mysql($oldRec->createdOn, false);
-            } elseif ($oldRec->valiorStrategy == 'auto') {
-                $rec->valior = null;
-            }
-            
-            $mvc->save_($rec, 'valior');
-        }
-        
         doc_DocumentCache::threadCacheInvalidation($rec->threadId);
     }
     
@@ -499,8 +463,9 @@ abstract class deals_ClosedDeals extends core_Master
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
         
         if (!isset($rec->valior)) {
-            $rec->valior = cls::get(get_called_class())->getValiorDate($rec);
-            $row->valior = cls::get(get_called_class())->getFieldType('valior')->toVerbal($rec->valior);
+            $rec->valior = $me->getValiorDate($rec);
+            $row->valior = $me->getFieldType('valior')->toVerbal($rec->valior);
+            $row->valior = "<span style='blue'>{$row->valior}</span>";
             $row->valior = ht::createHint($row->valior, 'Най-големият вальор в нишката на сделката');
         }
         
@@ -712,49 +677,28 @@ abstract class deals_ClosedDeals extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Намиране на най-големия вальор в треда на приключващия документ
      *
-     * @param int $threadId
-     *
+     * @param stdClass $rec
      * @return date $dates
      */
-    protected function getBiggestValiorInThread($rec)
+    protected function getBiggestValiorInDeal($rec)
     {
-        $dates = array();
-        $rec = $this->fetchRec($rec);
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-        if ($firstDoc->haveInterface('acc_TransactionSourceIntf')) {
-            $dates[] = $firstDoc->fetchField($firstDoc->getInstance()->valiorFld);
+        $firstDoc =  doc_Threads::getFirstDocument($rec->threadId);
+
+        // Намира се най-големия вальор от документите свързани към сделката
+        $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
+        $valiors = arr::extractValuesFromArray($jRecs, 'valior');
+        if($firstDocValior = $firstDoc->fetchField($firstDoc->valiorFld)){
+            $valiors[$firstDocValior] = $firstDocValior;
         }
-        
-        // Обхождаме всички документи в нишката и им извличаме вальорите
-        $desc = $firstDoc->getDescendants();
-        
-        if (countR($desc)) {
-            foreach ($desc as $doc) {
-                if ($doc->haveInterface('acc_TransactionSourceIntf') && ($doc->fetchField('state') == 'active' || $doc->fetchField('state') == 'closed')) {
-                    if ($doc->that != $rec->id && $doc->getClassId() != $rec->classId) {
-                        $dates[] = $doc->fetchField($doc->getInstance()->valiorFld);
-                    }
-                }
-            }
-        }
-        
-        // Сортираме вальорите по възходящ ред
-        usort($dates, function ($a, $b) {
-            
-            return ($a < $b) ? 1 : -1;
-        });
-        
-        // Намираме най-голямата дата от намерените
-        $date = $dates[0];
-        
-        return $date;
+
+        return max($valiors);
     }
-    
+
     
     /**
      * Какъв да е вальора на контировката. Взима за дата на вальора, датата на вальора на последния
@@ -763,7 +707,7 @@ abstract class deals_ClosedDeals extends core_Master
     public function getValiorDate($rec)
     {
         // Намираме най-голямата дата от намерените
-        $date = $this->getBiggestValiorInThread($rec);
+        $date = $this->getBiggestValiorInDeal($rec);
 
         // Ако датата не е свободна, взима се първата свободна
         $date =  acc_Periods::getNextAvailableDateIfNeeded($date);

@@ -187,25 +187,4 @@ class findeals_ClosedDeals extends deals_ClosedDeals
         
         return true;
     }
-
-
-    /**
-     * Намиране на най-големия вальор в треда на приключващия документ
-     *
-     * @param stdClass $rec
-     * @return date $dates
-     */
-    protected function getBiggestValiorInThread($rec)
-    {
-        $firstDoc =  doc_Threads::getFirstDocument($rec->threadId);
-
-        // Намира се най-големия вальор от документите свързани към сделката
-        $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
-        $valiors = arr::extractValuesFromArray($jRecs, 'valior');
-        if($firstDocValior = $firstDoc->fetchField($firstDoc->valiorFld)){
-            $valiors[$firstDocValior] = $firstDocValior;
-        }
-
-        return max($valiors);
-    }
 }

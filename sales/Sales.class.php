@@ -87,8 +87,14 @@ class sales_Sales extends deals_DealMaster
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
     public $filterRolesForTeam = 'ceo,salesMaster,manager';
-    
-    
+
+
+    /**
+     * Клас на оферта
+     */
+    protected $quotationClass = 'sales_Quotations';
+
+
     /**
      * Кой може да принтира фискална бележка
      */
@@ -867,7 +873,7 @@ class sales_Sales extends deals_DealMaster
     {
         core_App::setTimeLimit(300);
         $overdueDelay =sales_Setup::get('OVERDUE_CHECK_DELAY');
-        //$this->checkPayments($overdueDelay);
+        $this->checkPayments($overdueDelay);
 
         // Изпращане на нотификации, за нефактурирани продажби
         $lateTime = sales_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');

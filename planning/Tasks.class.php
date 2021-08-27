@@ -856,9 +856,10 @@ class planning_Tasks extends core_Master
                     $paramRec = cat_Params::fetch($pId);
                     $name = cat_Params::getVerbal($paramRec, 'name');
                     $form->FLD("paramcat{$pId}", 'double', "caption=Параметри на задачата->{$name},mandatory,before=description");
-                    $ParamType = cat_Params::getTypeInstance($pId, $mvc, $rec->id);
+                    $ParamType = cat_Params::getTypeInstance($pId, $mvc, $rec->id, $rec->paramValue);
                     $form->setFieldType("paramcat{$pId}", $ParamType);
-                    
+                    $form->setDefault("paramcat{$pId}", cat_Params::getDefaultValue($pId, $mvc, $rec->id, $rec->paramValue));
+
                     // Дефолта е параметъра от дефолтната задача за този артикул, ако има такава
                     if (isset($rec->systemId, $tasks[$rec->systemId])) {
                         $form->setDefault("paramcat{$pId}", $tasks[$rec->systemId]->params[$pId]);
