@@ -152,9 +152,12 @@ abstract class deals_QuotationMaster extends core_Master
         $rec = &$data->form->rec;
 
         $folderId = $rec->folderId;
-        if(empty($rec->folderId) && isset($rec->originId)){
-            $originRec = doc_Containers::fetch($rec->originId);
-            $folderId = $originRec->folderId;
+        if(empty($rec->folderId)){
+            if(isset($rec->originId)){
+                $folderId = doc_Containers::fetchField($rec->originId, 'folderId');
+            } elseif($rec->threadId){
+                $folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
+            }
         }
 
         $contragentClassId = doc_Folders::fetchCoverClassId($folderId);
