@@ -735,7 +735,7 @@ abstract class deals_DealBase extends core_Master
         $end = $data->historyPager->rangeEnd - 1;
         
         // Ако има записи където участва перото подготвяме ги за показване
-        if (countR($entries)) {arr::sortObjects();
+        if (countR($entries)) {
 
             // Подредба по вальор
             usort($entries, function ($a, $b) {
