@@ -743,7 +743,7 @@ abstract class deals_DealBase extends core_Master
             // Подредба по вальор
             usort($entries, function ($a, $b) {
                 if ($a->valior == $b->valior) {
-                    return ($a->documentCreatedOn < $b->documentCreatedOn) ? 1 : -1;
+                    return ($a->documentCreatedOn < $b->documentCreatedOn) ? -1 : 1;
                 }
                 return ($a->valior < $b->valior) ? -1 : 1;
             });
