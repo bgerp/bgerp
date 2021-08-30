@@ -139,9 +139,8 @@ class auto_handler_CreateQuotationFromInquiry
             $isPartner = haveRole('partner', $marketingRec->createdBy);
             $activate = $isPartner;
 
-            $settings = cms_Domains::getSettings($marketingRec->_domainId);
-            $lang = cms_Domains::fetchField($marketingRec->_domainId, 'lang');
-
+            // Дали може да се генерира текст за клиентска оферта?
+            $lang = ($marketingRec->_domainId) ? cms_Domains::fetchField($marketingRec->_domainId, 'lang') : null;
             $Driver = cat_Products::getDriver($productId);
             $body = $Driver->getQuotationEmailText($productId, $quoteId, $lang);
             if(!empty($body)){
@@ -157,11 +156,15 @@ class auto_handler_CreateQuotationFromInquiry
                 sales_Quotations::logWrite('Активиране на автоматично създадена оферта към запитване', $quoteId);
             }
 
-            if(!empty($body) && !$isPartner && !empty($settings->inboxId)){
+            // Ако има данни за изпращане на клиентската оферта
+            if(!empty($body) && !$isPartner && !empty($marketingRec->_domainId)){
+                $settings = cms_Domains::getSettings($marketingRec->_domainId);
+                if(!empty($settings->inboxId)){
 
-                // Изпращане на имейл за офертата
-                $body = core_Type::getByName('richtext')->fromVerbal($body);
-                $this->sendEmail($body, $quoteId, $marketingRec, $settings->inboxId, $lang);
+                    // Изпращане на имейл за офертата
+                    $body = core_Type::getByName('richtext')->fromVerbal($body);
+                    $this->sendEmail($body, $quoteId, $marketingRec, $settings->inboxId, $lang);
+                }
             }
             
             core_Users::cancelSystemUser();

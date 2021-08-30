@@ -273,7 +273,7 @@ class findeals_Deals extends deals_DealBase
         }
 
         $folderId = $contragentClass->forceCoverAndFolder($cRec->id);
-        $options = acc_Accounts::getOptionsByListInterfaces($folderId);
+        $options = $me->getDefaultAccountOptions($folderId);
         expect(array_key_exists($accRec->id, $options), "{$accountSysId} не е достъпна за избор в папката");
         
         $Double = cls::get('type_Double');
