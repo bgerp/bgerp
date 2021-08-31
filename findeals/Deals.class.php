@@ -945,14 +945,17 @@ class findeals_Deals extends deals_DealBase
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $date = !empty($rec->valior) ? $rec->valior : $rec->createdOn;
-        $date = dt::mysql2verbal($date, 'Y-m-d');
-        $detailedName = self::getHandle($rec->id) . '/' . str::limitLen($rec->contragentName, 16) . "/{$date}";
-        if(!empty($rec->dealName)){
-            $detailedName .= "/{$rec->dealName}";
+        $titleArr = array();
+        $titleArr[] = self::getHandle($rec->id);
+        $titleArr[] = str::limitLen($rec->contragentName, 16);
+        if(!empty($rec->valior)){
+            $titleArr[] = dt::mysql2verbal($rec->valior, 'd.m.Y');
         }
-        
-        return $detailedName;
+        if(!empty($rec->dealName)){
+            $titleArr[] = $rec->dealName;
+        }
+
+        return implode('/', $titleArr);
     }
     
     
