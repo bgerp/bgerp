@@ -161,8 +161,14 @@ class eshop_Groups extends core_Master
             $form->FLD('domainId', 'key(mvc=cms_Domains,select=domain)', 'silent,removeAndRefreshForm=menuId|sharedMenus|cloneProducts,input,mandatory,caption=Меню->Домейн,before=menuId');
             $domainOptions = cms_Domains::getDomainOptions();
             unset($domainOptions[cms_Domains::getCurrent()]);
-            $form->setOptions('domainId', array('' => '') + $domainOptions);
+
             $form->input('domainId', 'silent');
+            if(countR($domainOptions) == 1){
+                $form->setOptions('domainId', $domainOptions);
+                $form->setDefault('domainId', key($domainOptions));
+            } else {
+                $form->setOptions('domainId', array('' => '') + $domainOptions);
+            }
 
             if(isset($rec->domainId)){
                 $currentMenuOpt = cms_Content::getMenuOpt($mvc, $rec->domainId);
