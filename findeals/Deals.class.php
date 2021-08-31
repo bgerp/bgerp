@@ -141,7 +141,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * По кое поле да се филтрира по дата
      */
-    public $filterDateField = 'createdOn';
+    public $filterDateField = 'valior,createdOn';
     
     
     /**
@@ -201,8 +201,6 @@ class findeals_Deals extends deals_DealBase
     
     /**
      * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clonecrm_CompanyAccRegIntf
      */
     public $fieldsNotToClone = 'valior, amountDeal, currencyRate, baseAmount';
     
@@ -947,13 +945,17 @@ class findeals_Deals extends deals_DealBase
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
-        $detailedName = self::getHandle($rec->id) . '/' . str::limitLen($rec->contragentName, 16) . "/{$createdOn}";
-        if(!empty($rec->dealName)){
-            $detailedName .= "/{$rec->dealName}";
+        $titleArr = array();
+        $titleArr[] = self::getHandle($rec->id);
+        $titleArr[] = str::limitLen($rec->contragentName, 16);
+        if(!empty($rec->valior)){
+            $titleArr[] = dt::mysql2verbal($rec->valior, 'd.m.Y');
         }
-        
-        return $detailedName;
+        if(!empty($rec->dealName)){
+            $titleArr[] = $rec->dealName;
+        }
+
+        return implode('/', $titleArr);
     }
     
     
