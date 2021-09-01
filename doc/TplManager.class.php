@@ -461,6 +461,7 @@ class doc_TplManager extends core_Master
                 continue;
             }
 
+            // Ако е имало полета за модифициране, а вече няма да се занулят
             if(isset($exRec->toggleFields) && empty($object->toggleFields)){
                 $object->toggleFields = null;
             }
