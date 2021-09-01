@@ -2054,39 +2054,38 @@ class cat_Products extends embed_Manager
     public static function getTransportVolume($productId, $quantity)
     {
         // За нескладируемите не се изчислява транспортно тегло
-        if (cat_Products::fetchField($productId, 'canStore') != 'yes') {
-            return;
-        }
+        if (cat_Products::fetchField($productId, 'canStore') != 'yes') return;
 
-        // Първо се гледа най-голямата опаковка за която има габаритни размери
-        $packQuery = cat_products_Packagings::getQuery();
-        $packQuery->where("#productId = '{$productId}'");
-        $packQuery->where('#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL');
-        $packQuery->orderBy('quantity', 'DESC');
-        $packQuery->limit(1);
-        $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
-        $packRec = $packQuery->fetch();
-
-        if (is_object($packRec)) {
-
-            // Ако има такава количеството се преизчислява в нея
-            $brutoVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
-            $quantity /= $packRec->quantity;
-
-            // Връща се намереното тегло
-            $volume = $brutoVolume * $quantity;
-
-            return round($volume, 3);
-        }
-
-        // След това се пита драйвера
+        // Колко е транспортния обем от драйвера
+        $driverVolume = null;
         if ($Driver = static::getDriver($productId)) {
             $rec = self::fetchRec($productId);
             $volume = $Driver->getTransportVolume($rec, $quantity);
             if (!empty($volume) && !is_nan($volume)) {
-                return $volume;
+                $driverVolume = $volume;
             }
         }
+
+        // Ако е посочено с приоритет да е теглото от драйвера
+        $strategy = cat_Setup::get('TRANSPORT_WEIGHT_STRATEGY');
+        if ($strategy == 'paramFirst') {
+
+            // Тогава ако има тегло от драйвера се връща той
+            if (!empty($driverVolume)) return $driverVolume;
+
+            // Ако няма се връща от най-голямата опаковка, ако има
+            $packVolume = cat_products_Packagings::getVolumeOfBiggestPack($productId, $quantity);
+
+            return $packVolume;
+        }
+
+        // Ако не е избрано с приоритет да е от драйвера:
+        // Ако има обем от най-голямата опаковка, той е с предимство
+        $packVolume = cat_products_Packagings::getVolumeOfBiggestPack($productId, $quantity);
+        if (!empty($packVolume)) return $packVolume;
+
+        // Ако няма е този от драйвера (ако има)
+        return $driverVolume;
     }
     
     
