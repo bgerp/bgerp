@@ -461,7 +461,9 @@ class doc_TplManager extends core_Master
                 continue;
             }
 
-            bp($exRec, $object, serialize($exRec->toggleFields),serialize($object->toggleFields));
+            if(isset($exRec->toggleFields) && empty($object->toggleFields)){
+                $object->toggleFields = null;
+            }
 
             $object->path = $object->content;
             $object->content = getFileContent($object->content);
