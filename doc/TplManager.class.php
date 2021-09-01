@@ -461,9 +461,7 @@ class doc_TplManager extends core_Master
                 continue;
             }
 
-            if(haveRole('debug')){
-                bp($exRec, $object);
-            }
+            bp($exRec, $object);
 
             $object->path = $object->content;
             $object->content = getFileContent($object->content);
