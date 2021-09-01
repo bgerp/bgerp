@@ -439,7 +439,9 @@ class findeals_Deals extends deals_DealBase
             $form->setField('baseAmountType', 'input');
             
             // Ако е записано в сесията сметка за начално салдо, попълва се
-            $form->setDefault('baseAccountId', Mode::get('findealCorrespondingAccId'));
+            if(!isset($rec->id)){
+                $form->setDefault('baseAccountId', Mode::get('findealCorrespondingAccId'));
+            }
         }
         
         return $data;
@@ -948,8 +950,11 @@ class findeals_Deals extends deals_DealBase
         $titleArr = array();
         $titleArr[] = self::getHandle($rec->id);
         $titleArr[] = str::limitLen($rec->contragentName, 16);
-        if(!empty($rec->valior)){
-            $titleArr[] = dt::mysql2verbal($rec->valior, 'd.m.Y');
+
+        $me = cls::get(get_called_class());
+        $itemRec = acc_Items::fetchItem($me, $rec->id);
+        if(is_object($itemRec) && !empty($itemRec->earliestUsedOn)){
+            $titleArr[] = dt::mysql2verbal($itemRec->earliestUsedOn, 'd.m.Y');
         }
         if(!empty($rec->dealName)){
             $titleArr[] = $rec->dealName;
