@@ -461,7 +461,7 @@ class doc_TplManager extends core_Master
                 continue;
             }
 
-            bp($exRec, $exRec->name == $object->name, $exRec->hashNarrow == $object->hashNarrow, $exRec->hash == $object->hash, $exRec->lang == $object->lang,serialize($exRec->toggleFields) == serialize($object->toggleFields), $exRec->path == $object->content);
+            bp($exRec, $object, serialize($exRec->toggleFields),serialize($object->toggleFields));
 
             $object->path = $object->content;
             $object->content = getFileContent($object->content);
