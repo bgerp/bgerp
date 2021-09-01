@@ -236,7 +236,7 @@ class cat_Setup extends core_ProtoSetup
         'CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS' => array('keylist(mvc=doc_Folders,select=title)', 'caption=Затваряне на неизползвани стандартни артикули->Само в папките'),
 
         'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Пълни,no=Непълни)', 'caption=Дали рецептите по подразбиране са завършени->Избор'),
-        'CAT_TRANSPORT_WEIGHT_STRATEGY' => array('enum(paramFirst=Първо параметър после опаковка,packFirst=Първо опаковка после параметър)', 'caption=Стратегия за изчисляване на транспортния обем->Избор'),
+        'CAT_TRANSPORT_WEIGHT_STRATEGY' => array('enum(paramFirst=Първо параметър после опаковка,packFirst=Първо опаковка после параметър)', 'caption=Стратегия за изчисляване на транспортния обем->Избор,customizeBy=debug'),
     );
     
     
