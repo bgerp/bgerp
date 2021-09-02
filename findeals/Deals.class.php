@@ -952,10 +952,18 @@ class findeals_Deals extends deals_DealBase
         $titleArr[] = str::limitLen($rec->contragentName, 16);
 
         $me = cls::get(get_called_class());
-        $itemRec = acc_Items::fetchItem($me, $rec->id);
-        if(is_object($itemRec) && !empty($itemRec->earliestUsedOn)){
-            $titleArr[] = dt::mysql2verbal($itemRec->earliestUsedOn, 'd.m.Y');
+        $valior =  $rec->valior;
+        if(!empty($valior)){
+            $itemRec = acc_Items::fetchItem($me, $rec->id);
+            if(is_object($itemRec) && !empty($itemRec->earliestUsedOn)){
+                $valior = $itemRec->earliestUsedOn;
+            }
         }
+
+        if(!empty($valior)){
+            $titleArr[] = dt::mysql2verbal($valior, 'd.m.Y');
+        }
+
         if(!empty($rec->dealName)){
             $titleArr[] = $rec->dealName;
         }
