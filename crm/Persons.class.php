@@ -312,9 +312,9 @@ class crm_Persons extends core_Master
         $this->FLD(
             'buzCompanyId',
             'key2(mvc=crm_Companies,where=#state !\\= \\\'rejected\\\', allowEmpty)',
-            'caption=Служебни комуникации->Фирма,class=contactData,silent,export=Csv,remember,removeAndRefreshForm=buzLocationId|buzPosition|buzEmail|buzTel|buzFax|buzAddress'
+            'caption=Служебни комуникации->Фирма,class=contactData,silent,export=Csv,remember,removeAndRefreshForm=buzLocationId'
         );
-        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv');
+        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv,input=hidden');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('buzTel', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=Служебни комуникации->Телефони,class=contactData,export=Csv');
@@ -1845,22 +1845,19 @@ class crm_Persons extends core_Master
             $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));
         }
         
-        if (empty($form->rec->buzCompanyId)) {
-            $form->setField('buzLocationId', 'input=none');
-        }
-        
         if (!$form->rec->id && $form->rec->buzCompanyId && isset($_GET['buzCompanyId'])) {
             $form->setReadOnly('buzCompanyId');
         }
-        
-        if ($form->rec->buzCompanyId) {
+
+        if (!empty($form->rec->buzCompanyId)) {
             $locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
             $form->setOptions('buzLocationId', $locations);
-            if (!countR($locations)) {
-                $form->setField('buzLocationId', 'input=none');
+            if (countR($locations)) {
+                $form->setOptions('buzLocationId', $locations);
+                $form->setField('buzLocationId', 'input');
             }
         }
-        
+
         crm_Companies::autoChangeFields($form);
     }
     
