@@ -155,6 +155,10 @@ class doc_TplManager extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        if($docClassId = Request::get('docClassId', 'int')) {
+            bgerp_Notifications::clear(array('doc_TplManager', 'list', 'docClassId' => $docClassId), '*');
+        }
+
         $data->listFilter->setOptions('docClassId', static::getClassesWithTemplates());
         $data->listFilter->setField('docClassId', "placeholder=Всички документи,silent");
         $data->listFilter->showFields = 'docClassId';
