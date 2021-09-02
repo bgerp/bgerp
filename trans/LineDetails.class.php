@@ -9,7 +9,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status,notes=@,address=@,documentHtml=@,classId=Клас,contragentName=@';
+    public $listFields = 'containerId=Документ,documentLu=Логистична информация->Опаковки,readyLu=Логистична информация->Подготвени,volume=Логистична информация->Обем,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status=Статус,notes=@,address=@,documentHtml=@,classId=Клас,contragentName=@';
     
     
     /**
@@ -213,8 +213,8 @@ class trans_LineDetails extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $Document = doc_Containers::getDocument($rec->containerId);
-        
         $transportInfo = $Document->getTransportLineInfo($rec->lineId);
+
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
             $row->containerId = "<span id= 'ld{$rec->id}' class='state-{$transportInfo['state']} document-handler'>{$row->containerId}</span>";
@@ -230,35 +230,38 @@ class trans_LineDetails extends doc_Detail
         if (!empty($transportInfo['notes'])) {
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
         }
-        
+
+        if (!empty($transportInfo['address'])) {
+            $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
+        }
+
         if (!empty($transportInfo['stores'])) {
             if (countR($transportInfo['stores']) == 1) {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true);
             } else {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true) . ' » ' . store_Stores::getHyperlink($transportInfo['stores'][1], true);
             }
-            $row->containerId .= "<br>{$row->storeId}";
+            $row->address = "{$row->storeId}, {$row->address}";
         }
-        
-        if (!empty($transportInfo['address'])) {
-            $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
-            $row->address = "<span class='line-detail-address'>{$row->address}</span>";
+
+        if(!empty($row->address)){
+            $row->address = "<div style='margin:2px;font-size:0.9em'>{$row->address}</div>";
         }
-        
+
         if($Document->haveInterface('store_iface_DocumentIntf')){
             if (!empty($transportInfo['weight'])) {
                 $weight = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
             } else {
                 $weight = "<span class='quiet'>N/A</span>";
             }
-            
+
+            $row->containerId .= " / " . $weight;
+
             if (!empty($transportInfo['volume'])) {
-                $volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
+                $row->volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
             } else {
-                $volume = "<span class='quiet'>N/A</span>";
+                $row->volume = "<span class='quiet'>N/A</span>";
             }
-            
-            $row->measures = "{$weight} / {$volume}";
             
             if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
                 $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
@@ -269,7 +272,7 @@ class trans_LineDetails extends doc_Detail
             }
         } else {
             if(!empty($transportInfo['contragentName'])){
-                $row->contragentName = "<span class='small'>" . $transportInfo['contragentName'] . "</span>";
+                $row->contragentName = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
             }
         }
         

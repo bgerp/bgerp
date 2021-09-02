@@ -765,6 +765,8 @@ abstract class store_DocumentMaster extends core_Master
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
+     *               ['address']        double|NULL - общ обем на стоките в документа
+     *               ['address']        double|NULL - общ обем на стоките в документа
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -776,17 +778,24 @@ abstract class store_DocumentMaster extends core_Master
         $contragentRec = $contragentClass->fetch($rec->contragentId);
         $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
         $res['contragentName'] = $contragentTitle;
-        $oldRow = $this->recToVerbal($rec, 'contragentAddress,-list');
-        
-        $contragentClass = cls::get($rec->contragentClassId);
-        $contragentRec = $contragentClass->fetch($rec->contragentId);
-        $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
-        
-        $address = ($rec->locationId) ? crm_Locations::getAddress($rec->locationId) : $oldRow->contragentAddress;
-        $address = str_replace('<br>', ',', $address);
-        $address = "{$contragentTitle}, {$address}";
-        $res['address'] = $address;
-        
+
+        $address = '';
+        $part = ($this instanceof store_ShipmentOrders) ? 'to' : 'from';
+        $logisticData = $this->getLogisticData($rec);
+        if($logisticData['fromCountry'] != $logisticData['toCountry']){
+            $this->pushTemplateLg($rec->template);
+            $countryId = drdata_Countries::getIdByName($logisticData["{$part}Country"]);
+            $address .= drdata_Countries::getTitleById($countryId) . " ";
+            core_Lg::pop();
+        }
+        $res['address'] = "{$address}{$logisticData["{$part}PCode"]} {$logisticData["{$part}Place"]}, {$logisticData["{$part}Address"]}";
+        if(!empty($logisticData["{$part}Person"])){
+            $res['address'] .= ", {$logisticData["{$part}Person"]}";
+        }
+        if(!empty($logisticData["{$part}PersonPhones"])){
+            $res['address'] .= " {$logisticData["{$part}PersonPhones"]}";
+        }
+
         $amount = null;
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if ($firstDoc->getInstance()->getField('#paymentMethodId', false)) {
@@ -803,7 +812,7 @@ abstract class store_DocumentMaster extends core_Master
             
             $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
             $amount = $sign * $res['amount'];
-            $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($res['amount']);
+            $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($amount);
             $amountVerbal = ht::styleNumber($amountVerbal, $res['amount']);
             $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
         }
