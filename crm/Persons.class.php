@@ -312,7 +312,7 @@ class crm_Persons extends core_Master
         $this->FLD(
             'buzCompanyId',
             'key2(mvc=crm_Companies,where=#state !\\= \\\'rejected\\\', allowEmpty)',
-            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv,remember'
+            'caption=Служебни комуникации->Фирма,class=contactData,silent,export=Csv,remember,removeAndRefreshForm=buzLocationId|buzPosition|buzEmail|buzTel|buzFax|buzAddress'
         );
         $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
@@ -1851,8 +1851,6 @@ class crm_Persons extends core_Master
         
         if (!$form->rec->id && $form->rec->buzCompanyId && isset($_GET['buzCompanyId'])) {
             $form->setReadOnly('buzCompanyId');
-        } else {
-            $form->addAttr('buzCompanyId', array('onchange' => "addCmdRefresh(this.form); if(document.forms['{$form->formAttr['id']}'].elements['buzLocationId'] != undefined) document.forms['{$form->formAttr['id']}'].elements['buzLocationId'].value ='';this.form.submit();"));
         }
         
         if ($form->rec->buzCompanyId) {
