@@ -43,7 +43,7 @@ class rack_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'batch=0.1';
+    public $depends = 'batch=0.1,store=0.1';
     
     
     /**

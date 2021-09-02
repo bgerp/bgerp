@@ -31,7 +31,7 @@ class acc_ValueCorrections extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting, acc_plg_Contable,doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search,doc_plg_HidePrices';
+    public $loadList = 'plg_RowTools2, acc_Wrapper, plg_Sorting,acc_plg_Contable,doc_DocumentPlg, plg_Printing,acc_plg_DocumentSummary,plg_Search,doc_plg_HidePrices';
     
     
     /**
@@ -117,8 +117,8 @@ class acc_ValueCorrections extends core_Master
      */
     public function description()
     {
-        $this->FLD('valior', 'date', 'caption=Вальор,mandatory');
-        $this->FLD('amount', 'double(decimals=2,Min=0)', 'caption=Сума,mandatory');
+        $this->FLD('valior', 'date', 'caption=Вальор,input=none');
+        $this->FLD('amount', 'double(decimals=2,Min=0,maxAllowedDecimals=2)', 'caption=Сума,mandatory');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,removeAndRefreshForm=rate,silent');
         $this->FLD('rate', 'double(decimals=5)', 'caption=Курс');
         
@@ -144,6 +144,16 @@ class acc_ValueCorrections extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        if(empty($rec->valior)){
+            $valior = $mvc->getDefaultValior($rec);
+            if(empty($valior)){
+                $row->valior = ht::createHint('', 'Не може да се определи, защото има артикули с експедиции в различни сч. периоди', 'error');
+            } else {
+                $row->valior = $mvc->getFieldType('valior')->toVerbal($valior);
+                $row->valior = ht::createHint("<span style='color:blue'>{$row->valior}</span>", 'Вальорът е изчислен на база най-голямата дата на експедиция от общия сч. период на избраните артикули. След активиране ще бъде записан');
+            }
+        }
+
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         if ($firstDoc->fetchField('containerId') != $rec->correspondingDealOriginId) {
             try{
@@ -334,7 +344,6 @@ class acc_ValueCorrections extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        $form->setDefault('valior', dt::today());
         
         // Намираме ориджина и подготвяме опциите за избор на папки на контрагенти
         expect($firstDoc = doc_Threads::getFirstDocument($rec->threadId));
@@ -535,21 +544,27 @@ class acc_ValueCorrections extends core_Master
             $next = $values[$i + 1];
             
             if (is_object($next)) {
-                switch ($allocateBy) {
-                    case 'value':
-                        $coefficient = $p->amount / $denominator;
-                        break;
-                    case 'quantity':
-                        $coefficient = $p->quantity / $denominator;
-                        break;
-                    case 'weight':
-                        $coefficient = ($p->transportWeight * $p->quantity) / $denominator;
-                        break;
-                    case 'volume':
-                        $coefficient = ($p->transportVolume * $p->quantity) / $denominator;
-                        break;
+                $coefficient = 0;
+
+                if(!empty($denominator)){
+                    switch ($allocateBy) {
+                        case 'value':
+                            $coefficient = $p->amount / $denominator;
+                            break;
+                        case 'quantity':
+                            $coefficient = $p->quantity / $denominator;
+                            break;
+                        case 'weight':
+                            $coefficient = ($p->transportWeight * $p->quantity) / $denominator;
+                            break;
+                        case 'volume':
+                            $coefficient = ($p->transportVolume * $p->quantity) / $denominator;
+                            break;
+                    }
+                } else {
+                    wp($products, $amount, $allocateBy);
                 }
-                
+
                 // Изчисляване на сумата за разпределяне (коефициент * сума за разпределение)
                 $p->allocated = core_Math::roundNumber($coefficient * $amount);
                 $restAmount -= $p->allocated;
@@ -760,5 +775,84 @@ class acc_ValueCorrections extends core_Master
         }
         
         return $result;
+    }
+
+
+    /**
+     * Кой е дефолтния вальор на документа.
+     * Ако всички артикули имат експедиции в един и същ сч. период
+     * То се взима най-големия вальор от тези експедиции.
+     * Ако артикулите са експедирани в различни периоди няма да се върне нищо
+     *
+     * @param $rec
+     * @return date|null $valior
+     */
+    public function getDefaultValior($rec)
+    {
+        // Намират се вальорите на всички експедиции от нишката
+        $productValiors = $periods = array();
+        $productIds = array_keys($rec->productsData);
+        $storeDocs = array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails', 'sales_Sales' => 'sales_SalesDetails', 'purchase_Purchases' => 'purchase_PurchasesDetails', 'sales_Services' => 'sales_ServicesDetails', 'purchase_Services' => 'purchase_ServicesDetails');
+        foreach ($productIds as $productId){
+            foreach ($storeDocs as $docName => $detailName){
+                $Doc = cls::get($docName);
+                $Detail = cls::get($detailName);
+                $shQuery = $Detail->getQuery();
+                $shQuery->EXT('valior', $docName, "externalKey={$Detail->masterKey}");
+                $shQuery->EXT('state', $docName, "externalKey={$Detail->masterKey}");
+                $shQuery->EXT('threadId', $docName, "externalKey={$Detail->masterKey}");
+                $shQuery->where("#threadId = {$rec->threadId} AND #state = 'active' AND #productId = {$productId}");
+                $shQuery->show('valior');
+                $shQuery->groupBy('valior');
+                if($Doc->getField('contoActions', false)){
+                    $shQuery->EXT('contoActions', $docName, "externalKey={$Detail->masterKey}");
+                    $shQuery->where(array("#contoActions LIKE '%ship%'"));
+                }
+
+                while($sRec = $shQuery->fetch()){
+                    $periodId = acc_Periods::fetchByDate($sRec->valior)->id;
+                    $productValiors[$productId][$sRec->valior] = $periodId;
+                    $periods[] = $periodId;
+                }
+            }
+        }
+
+        $productCount = countR($productIds);
+        $valiorsInfo = array();
+
+        // За всеки период, проверява се кои от артикулите имат експедиция в него и коя е най-голямата дата
+        foreach ($periods as $periodId){
+            $count = 0;
+            array_walk($productValiors, function($a) use ($periodId, &$count) {if(in_array($periodId, $a)) {$count++;}});
+            foreach ($productValiors as $valiorArr){
+                if(in_array($periodId, $valiorArr)){
+                    if(!array_key_exists($periodId, $valiorsInfo)){
+                        $valiorsInfo[$periodId] = (object)array('count' => $count, 'max' => null);
+                    }
+
+                    $max = &$valiorsInfo[$periodId]->max;
+                    array_walk($valiorArr, function($v, $k) use ($periodId, &$max) { if($v == $periodId) {$max = max($max, $k);} });
+                }
+            }
+        }
+
+        // В кои периоди всички артикули имат експедиция
+        $periodsWhereAllProductsAre = array_filter($valiorsInfo, function($i) use ($productCount) { if($i->count == $productCount) return $i;});
+
+        // Ако има такъв период, се взима най-голямата дата от периода с най-голяма такава
+        if(countR($periodsWhereAllProductsAre)){
+            arr::sortObjects($periodsWhereAllProductsAre, 'max', 'DESC');
+            $periodsWhereAllProductsAre = array_values($periodsWhereAllProductsAre);
+            $valior = $periodsWhereAllProductsAre[0]->max;
+
+            if(acc_Periods::isClosed($valior)){
+                $firstActivePeriod = acc_Periods::getFirstActive();
+                $valior = $firstActivePeriod->start;
+            }
+
+            return $valior;
+        }
+
+        return null;
     }
 }

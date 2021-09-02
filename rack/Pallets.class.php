@@ -155,14 +155,11 @@ class rack_Pallets extends core_Manager
                 while($mRec = $mQuery->fetch()){
                     $zones = type_Table::toArray($mRec->zones);
                     if(countR($zones)){
-                        array_filter($zones, function($a) use (&$sum){$sum += $a->quantity;});
+                        array_filter($zones, function($a) use (&$sum, $mRec){$sum += $a->quantity * $mRec->quantityInPack;});
                     }
                 }
                 
-                
-                if(isset($sum) && $sum >= $rec->quantity){
-                    continue;
-                }
+                if(isset($sum) && $sum >= $rec->quantity) continue;
                 
                 $rest = $rec->quantity - $sum;
             }
@@ -344,7 +341,7 @@ class rack_Pallets extends core_Manager
         }
         
         self::recalc($rec->productId, $rec->storeId);
-        $cacheType = 'UsedRacksPossitions' . $rec->storeId;
+        $cacheType = 'UsedRacksPositions' . $rec->storeId;
         core_Cache::removeByType($cacheType);
     }
 
@@ -391,8 +388,28 @@ class rack_Pallets extends core_Manager
             $data->query->orderBy('#createdOn', 'DESC');
         }
     }
-    
-    
+
+
+    /**
+     * Може ли в склада да има повече от един палет на една позиция
+     *
+     * @param $storeId
+     * @return bool
+     */
+    public static function canHaveMultipleOnOnePosition($storeId)
+    {
+        $sRec = store_Stores::fetch($storeId);
+        if($sRec) {
+            $samePosPallets = $sRec->samePosPallets;
+        }
+        if(!isset($samePosPallets)) {
+            $samePosPallets = rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
+        }
+
+        return $samePosPallets == 'yes';
+    }
+
+
     /**
      * Увеличава/намалява к-то в палета, ако няма палет създава нов
      *
@@ -409,13 +426,7 @@ class rack_Pallets extends core_Manager
         // Ако няма палет се създава нов
         $rec = self::fetch(array("#productId = {$productId} AND #position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
         if(!$rec) {
-            $sRec = store_Stores::fetch($storeId);
-            if($sRec) {
-                $samePosPallets = $sRec->samePosPallets;
-            }
-            if(!isset($samePosPallets)) {
-                $samePosPallets = rack_Setup::get('DIFF_PALLETS_IN_SAME_POS');
-            }
+            $samePosPallets = static::canHaveMultipleOnOnePosition($storeId);
 
             if(!$samePosPallets) {
                 $rec = self::fetch(array("#position = '[#1#]' AND #storeId = {$storeId} AND #state != 'closed'", $position));
@@ -657,7 +668,7 @@ class rack_Pallets extends core_Manager
             $productId = '*';
         }
         
-        $cacheType = 'UsedRacksPossitions' . $storeId;
+        $cacheType = 'UsedRacksPositions' . $storeId;
         $cacheKey = '@' . $productId;
 
         if (!($res = core_Cache::get($cacheType, $cacheKey))) {

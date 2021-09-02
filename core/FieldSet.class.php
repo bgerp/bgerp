@@ -345,7 +345,7 @@ class core_FieldSet extends core_BaseClass
     {
         foreach ($this->fields as $name => $field) {
             if (isset($field->before)) {
-                $before = arr::make($before);
+                $before = arr::make($field->before);
                 foreach ($before as $fName) {
                     if (isset($this->fields[$fName])) {
                         $this->fields[$fName]->_insertBefore[] = $name;
@@ -354,7 +354,7 @@ class core_FieldSet extends core_BaseClass
             }
             
             if (isset($field->after)) {
-                $after = arr::make($after);
+                $after = arr::make($field->after);
                 foreach ($after as $fName) {
                     if (isset($this->fields[$fName])) {
                         $this->fields[$fName]->_insertAfter[] = $name;

@@ -153,8 +153,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 $rec->to . ' 23:59:59'
             ));
         }
+
         $invoices = array();
-        
+
         while ($sRec = $sQuery->fetch()) {
 
             //Масив с фактури от продажбите
@@ -191,6 +192,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
                 if (!array_key_exists($id, $recs)) {
                     $recs[$id] = (object)array(
+
                         'type' => $rec->docType,
                         'dealType' => $rec->dealType,
                         'number' => $sRec->number,
@@ -213,7 +215,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     );
                 }
             }
-            
+
             // Запис в масива
             if (!array_key_exists($id, $invoices)) {
                 $invoices[$id] = (object)array(
@@ -239,6 +241,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 );
             }
         }
+
         $invArr = array_keys($invoices);
         if (empty($invArr)){
             return $recs;
@@ -302,7 +305,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     continue;
                 }
             }
-            
+
             $pRec = cat_Products::fetch($dRec->productId);
 
             //Ако има регистрирана "ОСНОВНА ГРУПА", определяме група на артикула спрямо нея

@@ -190,6 +190,14 @@ abstract class deals_DealBase extends core_Master
             while($cRec = $cQuery->fetch()){
                 $where .= (empty($where) ? '' : ' OR ') . "(#docType = {$cRec->docClass} AND #docId = {$cRec->docId})";
             }
+
+            // Ако има активен приключващ документ, да не може да се затваря/отваря от бутона
+            if(isset($mvc->closeDealDoc)){
+                if(cls::get($mvc->closeDealDoc)->fetch("#threadId = {$rec->threadId} AND #state = 'active'")){
+                    $res = 'no_one';
+                }
+            }
+
             if(!empty($where) && acc_Journal::fetch($where, 'id')){
                 $res = 'no_one';
             }
@@ -378,6 +386,7 @@ abstract class deals_DealBase extends core_Master
                         // Създаване на приключващ документ-чернова
                         $dRec = $this->fetch($dealId);
                         $clId = $CloseDoc->create($this->className, $dRec, $id);
+                        $this->logWrite('Приключено с друга сделка', $dealId);
                         $CloseDoc->conto($clId);
                     }
                 }
@@ -724,11 +733,22 @@ abstract class deals_DealBase extends core_Master
         
         $start = $data->historyPager->rangeStart;
         $end = $data->historyPager->rangeEnd - 1;
-        
+
         // Ако има записи където участва перото подготвяме ги за показване
         if (countR($entries)) {
+            foreach ($entries as $e){
+                $e->documentCreatedOn = cls::get($e->docType)->fetchField($e->docId, 'createdOn');
+            }
+
+            // Подредба по вальор
+            usort($entries, function ($a, $b) {
+                if ($a->valior == $b->valior) {
+                    return ($a->documentCreatedOn < $b->documentCreatedOn) ? -1 : 1;
+                }
+                return ($a->valior < $b->valior) ? -1 : 1;
+            });
+
             $count = 0;
-            
             foreach ($entries as $ent) {
                 if ($count >= $start && $count <= $end) {
                     $obj = new stdClass();
@@ -767,7 +787,7 @@ abstract class deals_DealBase extends core_Master
                 $count++;
             }
         }
-        
+
         $data->DealHistory = $history;
     }
     
@@ -805,7 +825,7 @@ abstract class deals_DealBase extends core_Master
             
             // Рекалкулиране на определени документи в нишката и
             $dealDocuments = $this->getDescendants($rec->id);
-            $arr = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId());
+            $arr = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId(), acc_ValueCorrections::getClassId());
             foreach ($dealDocuments as $d) {
                 if (!in_array($d->getClassId(), $arr)) {
                     continue;
@@ -816,8 +836,8 @@ abstract class deals_DealBase extends core_Master
             followRetUrl(null, 'Документите са преизчислени успешно');
         }
         
-        $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс');
-        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png');
+        $form->toolbar->addSbBtn('Преизчисли', 'save', 'ef_icon = img/16/tick-circle-frame.png,warning=Ще преизчислите всички документи в нишката по новия курс,order=9');
+        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png,order=911');
         
         // Рендиране на формата
         return $this->renderWrapping($form->renderHtml());

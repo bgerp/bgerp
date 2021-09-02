@@ -29,15 +29,18 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
     {
         $mvc->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Артикул,notNull,mandatory', 'tdClass=productCell leftCol wrap,silent,removeAndRefreshForm=packPrice|discount|packagingId|batch|baseQuantity');
         $mvc->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка,smartCenter,tdClass=small-field nowrap,after=productId,mandatory,silent,removeAndRefreshForm=packPrice|discount|baseQuantity,input=hidden');
-        $mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
-        $mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
+        $mvc->FLD('quantity', 'double', 'caption=К-во в осн.мярка,input=none');
+        $mvc->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none,caption=К-во в опаковката');
         $mvc->FLD('price', 'double(decimals=2)', 'caption=Цена,input=none');
         $mvc->FNC('amount', 'double(minDecimals=2,maxDecimals=2)', 'caption=Сума,input=none');
         $mvc->FNC('packQuantity', 'double', 'caption=Количество,smartCenter,input=input');
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes,passage)', 'caption=Допълнително->Забележки');
+
+        $mvc->setDbIndex('productId,packagingId');
     }
+
     
     
     /**

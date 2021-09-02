@@ -1280,7 +1280,13 @@ class doc_Linked extends core_Manager
                 $dQuery->groupBy('folderId');
                 
                 $dQuery->show('folderId');
-                
+
+                $dQuery->limit(10000);
+
+                if ($docTypeInst->fileds['modifiedOn']) {
+                    $dQuery->where(array("#modifiedOn > '[#1#]'", dt::addMonths(-1)));
+                }
+
                 $fArr = array();
                 while ($dRec = $dQuery->fetch()) {
                     $fArr[$dRec->folderId] = $dRec->folderId;
@@ -1588,6 +1594,7 @@ class doc_Linked extends core_Manager
                     $attr['class'] = 'state-rejected';
                     $attr['style'] = 'text-decoration: line-through; color: #666;';
                 }
+                $comment = $doc->getDefaultLinkedComment($comment);
             } catch(core_exception_Expect $e){
                 $title = "<span class='red'>" . tr('Проблем при показването') . " </span>";
             }
@@ -1600,8 +1607,6 @@ class doc_Linked extends core_Manager
                 $fRec->title = str::limitLen($fRec->title, 52);
                 $link .= ' « <span class="small">' . doc_Folders::recToVerbal($fRec, 'title')->title . "</span>";
             }
-            
-            $comment = $doc->getDefaultLinkedComment($comment);
         } elseif ($type == 'file') {
             $clsInst = cls::get('fileman_Files');
             $valId = fileman::idToFh($valId);

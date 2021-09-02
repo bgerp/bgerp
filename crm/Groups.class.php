@@ -472,7 +472,14 @@ class crm_Groups extends core_Master
         }
     }
     
-    
+
+    function act_Test()
+    {
+        $supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+        $groupRec = (object)array('name' => 'Оферта', 'sysId' => 'quotationsSuppliers44447', 'parentId' => $supplierGroupId);
+        $groupId = crm_Groups::forceGroup($groupRec);
+bp($groupId);
+    }
     /**
      * Създава, ако не е групата с посочениете данни и връща id-то и
      * $rec->name
@@ -493,7 +500,11 @@ class crm_Groups extends core_Master
                 self::save($rec, 'name');
             }
         } else {
-            $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}')");
+            if(isset($gRec->parentId)){
+                $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}') AND #parentId = {$gRec->parentId}");
+            } else {
+                $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}') AND #parentId IS NULL");
+            }
         }
         
         if (!$rec) {

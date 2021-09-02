@@ -50,6 +50,12 @@ defIfNot('DEALS_ISSUER_USER', '');
 
 
 /**
+ * Включено тестово закръгляне
+ */
+defIfNot('DEALS_TEST_VAT_CALC', 'no');
+
+
+/**
  * class deals_Setup
  *
  *
@@ -93,6 +99,7 @@ class deals_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'deals_OpenDeals',
+        'deals_InvoicesToDocuments',
     );
     
     
@@ -108,6 +115,7 @@ class deals_Setup extends core_ProtoSetup
         'DEALS_OVERDUE_PENDING_DAYS_3' => array('int(Min=0)', 'caption=Напомняне за неконтиран документ със стар вальор->Трето след,unit=дни'),
         'DEALS_ACTIVE_DEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни продажби и покупки без нови документи->Хоризонт'),
         'DEALS_ACTIVE_FINDEALS_WITHOUT_DOCUMENTS' => array('time', 'caption=Напомняне за активни финансови сделки без нови документи->Хоризонт'),
+        'DEALS_TEST_VAT_CALC' => array('enum(no=Не,yes=Да)', 'caption=Дебъг->Тестово закръгляне,autohide=any'),
     );
     
     
@@ -293,5 +301,31 @@ class deals_Setup extends core_ProtoSetup
         
         $query = "UPDATE {$mvc->dbTableName},{$ClosedDocumentMvc->dbTableName} SET {$mvc->dbTableName}.{$closeWithColName} = {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} WHERE {$ClosedDocumentMvc->dbTableName}.{$docIdColName} = {$mvc->dbTableName}.id AND {$ClosedDocumentMvc->dbTableName}.{$classIdColName} = {$mvc->getClassId()} AND {$ClosedDocumentMvc->dbTableName}.{$closeWithColName} IS NOT NULL AND {$ClosedDocumentMvc->dbTableName}.{$stateColName} = 'active'";
         $mvc->db->query($query);
+    }
+
+
+    /**
+     * Помощна ф-я за реконтиране на платежните документи
+     */
+    public static function fixDocumentsWithMoreThanNDigits($documents, $digitCount = 2)
+    {
+        $start = acc_Periods::getFirstActive()->start;
+        if(!empty($start)){
+            $res = acc_Journal::getDocsByDigitCounts($start, $digitCount, $documents);
+            $count = countR($res);
+
+            if(!$count) return;
+            core_App::setTimeLimit($count * 0.4, false, 200);
+
+            foreach ($res as $containerId){
+                $document = doc_Containers::getDocument($containerId);
+                try{
+                    acc_Journal::reconto($containerId);
+                    $document->getInstance()->logWrite('Ре-контиране на документ за оправяне на закръгляне', $document->that);
+                } catch(core_exception_Expect $e){
+                    reportException($e);
+                }
+            }
+        }
     }
 }

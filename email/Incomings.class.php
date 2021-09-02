@@ -1933,9 +1933,12 @@ class email_Incomings extends core_Master
             // Добавяме начина на рутиране
             $rec->routeBy = 'preroute';
 
-            return;
+            if ($rec->_prerouteRecArr['folderId']) {
+
+                return ;
+            }
         }
-        
+
         if ($rec->accId) {
             // Извличаме записа на сметката, от която е изтеглено това писмо
             $accRec = email_Accounts::fetch($rec->accId);
@@ -2840,6 +2843,13 @@ class email_Incomings extends core_Master
                 }
             }
         }
+
+        if (email_ServiceRules::haveRightFor('add')) {
+
+            $url = array('email_ServiceRules', 'add', 'email' => $rec->fromEml, 'subject' => $rec->subject, 'ret_url' => true);
+
+            $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=2, order=19');
+        }
     }
     
     
@@ -2993,18 +3003,24 @@ class email_Incomings extends core_Master
             // Вземаме записите за файла
             $rec = $this->fetch($rec);
         }
-        
+
+        if (!property_exists($rec, 'files') && $rec->id) {
+            $cRec = $this->fetch($rec->id);
+        } else {
+            $cRec = clone $rec;
+        }
+
         // Превръщаме в масив
-        $filesArr = keylist::toArray($rec->files);
+        $filesArr = keylist::toArray($cRec->files);
         
         // Ако има HTML файл, добавяме го към файловете
-        if ($rec->htmlFile) {
-            $filesArr[$rec->htmlFile] = $rec->htmlFile;
+        if ($cRec->htmlFile) {
+            $filesArr[$cRec->htmlFile] = $cRec->htmlFile;
         }
         
         // Ако има, добавяме EML файла, към файловете
-        if ($rec->emlFile) {
-            $filesArr[$rec->emlFile] = $rec->emlFile;
+        if ($cRec->emlFile) {
+            $filesArr[$cRec->emlFile] = $cRec->emlFile;
         }
         
         $fhArr = array();
@@ -3018,7 +3034,7 @@ class email_Incomings extends core_Master
             // Създаваме масив с прикачените файлове
             $fhArr[$fRec->fileHnd] = $fRec->name;
         }
-        
+
         return $fhArr;
     }
     

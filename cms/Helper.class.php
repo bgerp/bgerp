@@ -58,7 +58,8 @@ class cms_Helper extends core_BaseClass
         
         // Ако потребителя не е логнат да се показва статус, подканващ към логване
         $info = new ET("<div id='editStatus'><div class='warningMsg'>[#1#] [#link#]</div></div>", tr('Ако имате регистрация, моля логнете се от|* '));
-        $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'popup' => 1)) . '","Login","width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0"); if(w) w.focus();';
+        $retUrl = array('bgerp_Portal', 'show');
+        $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => $retUrl, 'popup' => 1)) . '","Login","width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0"); if(w) w.focus();';
         $loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}' style='text-decoration:underline'>" . tr('тук||here') . '</a>';
         $info->append($loginHtml, 'link');
         
@@ -127,5 +128,29 @@ class cms_Helper extends core_BaseClass
             $link = ht::createLink(tr('логнете'),array('core_Users','login'));
             return "Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се|* $link|*.";
         }
+    }
+
+
+    /**
+     * Дали името на фирмата е разрешено
+     *
+     * @param string $name
+     * @return string|null
+     */
+    public static function getErrorIfCompanyNameIsInvalid($name)
+    {
+        $normalizedName = str::removeWhiteSpace(mb_strtolower($name), ' ');
+        $notAllowedCompanyNamesCsvData = csv_Lib::getCsvRows(getFileContent('eshop/data/NotAllowedCompanyNames.csv'), ',', '"');
+        $notAllowedCompanyNamesArr = array();
+        array_walk_recursive($notAllowedCompanyNamesCsvData, function ($a) use (&$notAllowedCompanyNamesArr) {
+            $notAllowedCompanyNamesArr[] = $a;
+        });
+
+        if(in_array($normalizedName, $notAllowedCompanyNamesArr) || mb_strlen($normalizedName) == 1){
+
+            return "Отговаряме само на запитвания получени от представители на реални, регистрирани в България или чужбина фирми и други юридически организации|*!";
+        }
+
+        return null;
     }
 }

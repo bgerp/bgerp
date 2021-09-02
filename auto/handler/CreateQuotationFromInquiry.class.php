@@ -121,30 +121,49 @@ class auto_handler_CreateQuotationFromInquiry
             }
             
             $quoteId = sales_Quotations::createNewDraft($Cover->getInstance()->getClassId(), $Cover->that, null, $fields);
-            sales_Quotations::logWrite('Създаване от запитване', $quoteId);
+            sales_Quotations::logWrite('Създаване на автоматична оферта запитване', $quoteId);
             
             if (empty($quoteId)) {
-                cat_Products::logDebug('Проблем при опит за създаване на автоматичен оферта към артикул', $productId);
+                cat_Products::logDebug('Проблем при опит за създаване на автоматична оферта към артикул', $productId);
                 
                 return;
             }
-            sales_Quotations::logInfo('Успешно създаване на оферта към артикул от запитване', $quoteId);
-            
-            
-            // Добавяне на редоввете на офертата
-            if (!empty($quoteId)) {
-                foreach ($quantities as $q) {
-                    sales_Quotations::addRow($quoteId, $productId, $q);
-                    sales_Quotations::logInfo('Добавяне на ред към автоматично създадена оферта към запитване', $quoteId);
-                }
-                
-                // Активиране на офертата
-                if (haveRole('partner', $marketingRec->createdBy)) {
-                    $qRec = (object) array('id' => $quoteId, 'state' => 'active');
-                    cls::get('sales_Quotations')->invoke('BeforeActivation', array($qRec));
-                    $qRec->_isActivated = true;
-                    sales_Quotations::save($qRec, 'state,modifiedOn,modifiedBy,activatedOn,date');
-                    sales_Quotations::logWrite('Активиране на автоматично създадена оферта към запитване', $quoteId);
+            sales_Quotations::logInfo('Успешно създаване на автоматична оферта към артикул от запитване', $quoteId);
+
+            // Добавяне на редовете на офертата
+            foreach ($quantities as $q) {
+                sales_Quotations::addRow($quoteId, $productId, $q);
+                sales_Quotations::logInfo('Добавяне на ред към автоматично създадена оферта от запитване', $quoteId);
+            }
+
+            $isPartner = haveRole('partner', $marketingRec->createdBy);
+            $activate = $isPartner;
+
+            // Дали може да се генерира текст за клиентска оферта?
+            $lang = ($marketingRec->_domainId) ? cms_Domains::fetchField($marketingRec->_domainId, 'lang') : null;
+            $Driver = cat_Products::getDriver($productId);
+            $body = $Driver->getQuotationEmailText($productId, $quoteId, $lang);
+            if(!empty($body)){
+                $activate = true;
+            }
+
+            // Активиране на офертата
+            if ($activate) {
+                $qRec = (object) array('id' => $quoteId, 'state' => 'active');
+                cls::get('sales_Quotations')->invoke('BeforeActivation', array($qRec));
+                $qRec->_isActivated = true;
+                sales_Quotations::save($qRec, 'state,modifiedOn,modifiedBy,activatedOn,date');
+                sales_Quotations::logWrite('Активиране на автоматично създадена оферта към запитване', $quoteId);
+            }
+
+            // Ако има данни за изпращане на клиентската оферта
+            if(!empty($body) && !$isPartner && !empty($marketingRec->_domainId)){
+                $settings = cms_Domains::getSettings($marketingRec->_domainId);
+                if(!empty($settings->inboxId)){
+
+                    // Изпращане на имейл за офертата
+                    $body = core_Type::getByName('richtext')->fromVerbal($body);
+                    $this->sendEmail($body, $quoteId, $marketingRec, $settings->inboxId, $lang);
                 }
             }
             
@@ -220,5 +239,54 @@ class auto_handler_CreateQuotationFromInquiry
         $Products->on_ShutDown($Products);
         
         return $productId;
+    }
+
+
+    /**
+     * Изпраща имейл към офертата
+     *
+     * @param $body          - тяло
+     * @param $quotationId   - ид на оферта
+     * @param $marketingRec  - запис на запитване
+     * @param $inboxId       - ид на кутия
+     * @param $lang          - език
+     */
+    private function sendEmail($body, $quotationId, $marketingRec, $inboxId, $lang)
+    {
+        $quotationRec = sales_Quotations::fetch($quotationId);
+
+        // Подготовка на имейла
+        $emailRec = (object) array('subject' => tr('Оферта за поръчка') . " #Q{$quotationRec->id}",
+                                   'body' => $body,
+                                   'folderId' => $quotationRec->folderId,
+                                   'originId' => $quotationRec->containerId,
+                                   'threadId' => $quotationRec->threadId,
+                                   'state' => 'active',
+                                   'email' => $marketingRec->email, 'recipient' => $marketingRec->personNames);
+
+        // Активиране на изходящия имейл
+        $cu = core_Users::getCurrent('id', false);
+        Mode::set('isSystemCanSingle', true);
+        email_Outgoings::save($emailRec);
+
+        email_Outgoings::logWrite('Създаване от автоматична оферта', $emailRec->id, 360, $cu);
+        cls::get('email_Outgoings')->invoke('AfterActivation', array(&$emailRec));
+        email_Outgoings::logWrite('Активиране', $emailRec->id, 360, $cu);
+
+        // Изпращане на имейла
+        $options = (object) array('encoding' => 'utf-8', 'boxFrom' => $inboxId, 'emailsTo' => $emailRec->email);
+
+        $attachedDocs = array();
+        $documents = doc_RichTextPlg::getAttachedDocs("#" . sales_Quotations::getHandle($quotationId));
+        $documents = array_keys($documents);
+        foreach ($documents as $name) {
+            $attachedDocs[$name] = "{$name}.pdf";
+        }
+        $options->documentsSet = implode(',', $attachedDocs);
+
+        $cu = core_Users::getCurrent();
+        email_Outgoings::send($emailRec, $options, $lang);
+        email_Outgoings::logWrite('Изпращане на автоматичен имейл за оферта', $emailRec->id, 360, $cu);
+        Mode::set('isSystemCanSingle', false);
     }
 }

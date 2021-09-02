@@ -29,17 +29,27 @@ class sales_SalesLastPricePolicy extends core_Mvc
      * Интерфейс за ценова политика
      */
     public $interfaces = 'price_PolicyIntf';
-    
-    
+
+
     /**
-     * Връща последната цена за посочения продукт направена в
-     * продажба към контрагента
+     * Връща цената на продукта на посочения клиент
      *
-     * @return object $rec->price  - цена
+     * @param int                          $customerClass       - ид на класа на контрагента
+     * @param int                          $customerId          - ид на клиента
+     * @param int                          $productId           - ид на продукта
+     * @param int                          $packagingId         - ид на опаковка
+     * @param float                        $quantity            - количество
+     * @param datetime                     $date                - към коя дата искаме цената
+     * @param float                        $rate                - валутен курс
+     * @param string $chargeVat           - да се начислявали ДДС или не върху цената
+     * @param int|NULL                     $listId              - ценова политика
+     * @param bool                         $quotationPriceFirst - Дали първо да търси цена от последна оферта
+     *
+     * @return object
+     *                $rec->price  - цена
      *                $rec->discount - отстъпка
-     *                $rec->priority - приоритет на цената
      */
-    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $date = null, $rate = 1, $chargeVat = 'no')
+    public function getPriceInfo($customerClass, $customerId, $productId, $packagingId = null, $quantity = null, $date = null, $rate = 1, $chargeVat = 'no', $listId = null, $quotationPriceFirst = true)
     {
         $lastPrices = sales_Sales::getLastProductPrices($customerClass, $customerId);
         

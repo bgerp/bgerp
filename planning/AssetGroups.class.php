@@ -184,7 +184,7 @@ class planning_AssetGroups extends core_Master
     {
         $result = array();
         if (!$groupId = planning_AssetResources::getGroupId($assets)) {
-            
+
             return $result;
         }
         $result = planning_AssetResourcesNorms::fetchNormRec('planning_AssetGroups', $groupId, $productId);

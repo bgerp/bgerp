@@ -266,9 +266,9 @@ class core_String
      *
      * @return string Допълнения стринг
      */
-    public static function addHash($str, $length = 4, $moreSalt = '')
+    public static function addHash($str, $length = 4, $moreSalt = '', $delim = '_')
     {
-        return $str . '_' . substr(md5(EF_SALT . $moreSalt . $str), 0, $length);
+        return $str . $delim . substr(md5(EF_SALT . $moreSalt . $str), 0, $length);
     }
     
     
@@ -282,11 +282,11 @@ class core_String
      *
      * @return string Оригиналния стринг или FALSE в случай на несъответствие
      */
-    public static function checkHash($str, $length = 4, $moreSalt = '')
+    public static function checkHash($str, $length = 4, $moreSalt = '', $delim = '_')
     {
         $oStr = substr($str, 0, strlen($str) - $length - 1);
-        
-        if ($str == str::addHash($oStr, $length, $moreSalt) && substr($str, -1 - $length, 1) == '_') {
+
+        if ($str == str::addHash($oStr, $length, $moreSalt, $delim) && substr($str, -1 - $length, 1) == $delim) {
             
             return $oStr;
         }

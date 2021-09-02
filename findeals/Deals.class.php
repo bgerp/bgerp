@@ -11,7 +11,7 @@
  * @package   findeals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -45,7 +45,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Кои сметки не могат да се избират
      */
-    public static $exceptAccSysIds = '401,411,402,412';
+    protected  $exceptAccSysIds = '401,411,402,412,422';
     
     
     /**
@@ -64,8 +64,8 @@ class findeals_Deals extends deals_DealBase
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,findeals';
-    
-    
+
+
     /**
      * Кой може да го контира?
      */
@@ -141,7 +141,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * По кое поле да се филтрира по дата
      */
-    public $filterDateField = 'createdOn';
+    public $filterDateField = 'valior,createdOn';
     
     
     /**
@@ -188,12 +188,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Сметки с какви интерфейси да се показват за избор
-     */
-    protected $accountListInterfaces = 'crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf';
-    
-    
-    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array('currencyId' => 'lastDocUser|lastDoc|CoverMethod');
@@ -207,10 +201,8 @@ class findeals_Deals extends deals_DealBase
     
     /**
      * Полета, които при клониране да не са попълнени
-     *
-     * @see plg_Clone
      */
-    public $fieldsNotToClone = 'amountDeal,currencyRate';
+    public $fieldsNotToClone = 'valior, amountDeal, currencyRate, baseAmount';
     
     
     /**
@@ -223,12 +215,11 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('amountDeal', 'double(decimals=2)', 'input=none,notNull,oldFieldName=blAmount');
         $this->FLD('accountId', 'acc_type_Account', 'caption=Сметка,mandatory,silent');
         $this->FLD('contragentName', 'varchar(255)', 'caption=Контрагент');
-        
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута->Код,silent,removeAndRefreshForm=currencyRate');
-        $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
-        
         $this->FNC('contragentItemId', 'acc_type_Item(select=titleNum,allowEmpty)', 'caption=Втори контрагент,input');
-        
+
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,silent,removeAndRefreshForm=currencyRate');
+        $this->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=none');
+
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden');
         $this->FLD('contragentId', 'int', 'input=hidden');
         
@@ -239,7 +230,7 @@ class findeals_Deals extends deals_DealBase
         $this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
         $this->FLD('secondContragentId', 'int', 'input=none');
         
-        $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=currencyRate');
+        $this->FLD('description', 'richtext(rows=4,bucket=Notes)', 'caption=Допълнително->Описание,after=currencyId');
         $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Приключен,stopped=Спряно,template=Шаблон)', 'caption=Състояние, input=none');
         $this->FLD('dealManId', 'class(interface=deals_DealsAccRegIntf)', 'input=none');
         
@@ -278,9 +269,10 @@ class findeals_Deals extends deals_DealBase
         if ($me instanceof findeals_AdvanceDeals) {
             expect($contragentClass instanceof crm_Persons, 'Служебен аванс може да е само в папка на лице');
         }
-        
-        $options = acc_Accounts::getOptionsByListInterfaces($me->accountListInterfaces);
-        expect(array_key_exists($accRec->id, $options), "{$accountSysId} разбивките нямат нужните интерфейси {$me->accountListInterfaces}");
+
+        $folderId = $contragentClass->forceCoverAndFolder($cRec->id);
+        $options = $me->getDefaultAccountOptions($folderId);
+        expect(array_key_exists($accRec->id, $options), "{$accountSysId} не е достъпна за избор в папката");
         
         $Double = cls::get('type_Double');
         
@@ -354,12 +346,19 @@ class findeals_Deals extends deals_DealBase
      *
      * @return array $options
      */
-    public function getDefaultAccountOptions()
+    public function getDefaultAccountOptions($folderId)
     {
-        $options = acc_Accounts::getOptionsByListInterfaces($this->accountListInterfaces);
-       
+        $options = acc_Accounts::getOptionsByListInterfaces('crm_ContragentAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf');
+
+        $Cover = doc_Folders::getCover($folderId);
+        if($Cover->isInstanceOf('crm_Companies')){
+            $options += acc_Accounts::getOptionsByListInterfaces('crm_CompanyAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf');
+        } elseif($Cover->isInstanceOf('crm_Persons')) {
+            $options += acc_Accounts::getOptionsByListInterfaces('crm_PersonAccRegIntf,deals_DealsAccRegIntf,currency_CurrenciesAccRegIntf');
+        }
+
         // Премахваме от избора упоменатите сметки, които трябва да се изключат
-        $except = arr::make($this::$exceptAccSysIds);
+        $except = arr::make($this->exceptAccSysIds);
         foreach ($except as $sysId) {
             $accId = acc_Accounts::getRecBySystemId($sysId)->id;
             unset($options[$accId]);
@@ -380,16 +379,15 @@ class findeals_Deals extends deals_DealBase
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $options = $mvc->getDefaultAccountOptions();
-        $form->setOptions('accountId', $options);
-        
-        if (countR($options) == 2) {
-            $form->setField('accountId', 'input=hidden');
-            foreach ($options as $key => $opt) {
-                if (!is_object($opt)) {
-                    $form->setDefault('accountId', $key);
-                }
-            }
+        $options = $mvc->getDefaultAccountOptions($rec->folderId);
+        if(countR($options) > 1){
+            $form->setOptions('accountId', array('' => '') + $options);
+        } else {
+            $form->setOptions('accountId', $options);
+        }
+
+        if(countR($options) == 1){
+            $form->setDefault('accountId', key($options));
         }
         
         // Само контрагенти могат да се избират
@@ -441,7 +439,9 @@ class findeals_Deals extends deals_DealBase
             $form->setField('baseAmountType', 'input');
             
             // Ако е записано в сесията сметка за начално салдо, попълва се
-            $form->setDefault('baseAccountId', Mode::get('findealCorrespondingAccId'));
+            if(!isset($rec->id)){
+                $form->setDefault('baseAccountId', Mode::get('findealCorrespondingAccId'));
+            }
         }
         
         return $data;
@@ -947,13 +947,20 @@ class findeals_Deals extends deals_DealBase
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $createdOn = dt::mysql2verbal($rec->createdOn, 'Y-m-d');
-        $detailedName = self::getHandle($rec->id) . '/' . str::limitLen($rec->contragentName, 16) . "/{$createdOn}";
-        if(!empty($rec->dealName)){
-            $detailedName .= "/{$rec->dealName}";
+        $titleArr = array();
+        $titleArr[] = self::getHandle($rec->id);
+        $titleArr[] = str::limitLen($rec->contragentName, 16);
+
+        $me = cls::get(get_called_class());
+        $itemRec = acc_Items::fetchItem($me, $rec->id);
+        if(is_object($itemRec) && !empty($itemRec->earliestUsedOn)){
+            $titleArr[] = dt::mysql2verbal($itemRec->earliestUsedOn, 'd.m.Y');
         }
-        
-        return $detailedName;
+        if(!empty($rec->dealName)){
+            $titleArr[] = $rec->dealName;
+        }
+
+        return implode('/', $titleArr);
     }
     
     

@@ -49,8 +49,8 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, doc_DocumentPlg, bgerp_plg_Export,
-					doc_EmailCreatePlg, recently_Plugin, cond_plg_DefaultValues,deals_plg_DpInvoice,doc_plg_Sequencer2,
+    public $loadList = 'plg_RowTools2, sales_Wrapper, plg_Sorting, acc_plg_Contable, plg_Clone, plg_Printing, cond_plg_DefaultValues, doc_DocumentPlg, bgerp_plg_Export,
+					doc_EmailCreatePlg, recently_Plugin,deals_plg_DpInvoice,doc_plg_Sequencer2,
                     doc_plg_HidePrices, doc_plg_TplManager, drdata_plg_Canonize, bgerp_plg_Blank, acc_plg_DocumentSummary, change_Plugin,cat_plg_AddSearchKeywords, plg_Search,plg_LastUsedKeys';
     
     
@@ -239,7 +239,7 @@ class sales_Invoices extends deals_InvoiceMaster
         parent::setInvoiceFields($this);
         
         $this->FLD('accountId', 'key(mvc=bank_OwnAccounts,select=title, allowEmpty)', 'caption=Плащане->Банкова с-ка, changable');
-        $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Диапазон, after=template,input=hidden,notNull,default=1');
+        $this->FLD('numlimit', "key(mvc=cond_Ranges,select=id)", 'caption=Допълнително->Диапазон, after=template,input=hidden,notNull,default=1');
         $this->FLD('number', 'bigint(21)', 'caption=Номер, after=place,input=none');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно)', 'caption=Статус, input=none');
         $this->FLD('type', 'enum(invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие,dc_note=Известие)', 'caption=Вид, input=hidden');
@@ -274,9 +274,6 @@ class sales_Invoices extends deals_InvoiceMaster
         
         // Добавяне на първия диапазон за фактурите
         cond_Ranges::add('sales_Invoices', 1, 1999999, null, 'acc', 1, false);
-        
-        // Еднократно се изпълнява миграция, която ще създаде и втори диапазон ако има създадени ф-ри вече в него
-        $res .= cls::get('sales_Setup')->callMigrate('updateSecondInvoiceRange', 'sales');
         
         return $res;
     }
@@ -853,11 +850,18 @@ class sales_Invoices extends deals_InvoiceMaster
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('store_ShipmentOrders')) {
                 
-                // Ако източника на ф-та е ЕН, записва се че е към нея
-                $sRec = $Source->fetch('fromContainerId,containerId');
-                if (empty($sRec->fromContainerId)) {
+                // Ако източника на ф-та е ЕН, по което няма разпределени фактури значи е то
+                $sRec = $Source->fetch();
+                $invArr = deals_InvoicesToDocuments::getInvoiceArr($sRec->containerId);
+                if (empty($sRec->fromContainerId) && !countR($invArr)) {
                     $sRec->fromContainerId = $rec->containerId;
                     $Source->getInstance()->save_($sRec, 'fromContainerId');
+
+                    // След създаване синхронизиране на модела
+                    $amount = $Source->getPaymentData($sRec)->amount;
+                    $dRec = (object)array('documentContainerId' => $sRec->containerId, 'containerId' => $sRec->fromContainerId, 'amount' => $amount);
+                    deals_InvoicesToDocuments::save($dRec);
+
                     doc_DocumentCache::cacheInvalidation($sRec->containerId);
                 }
             }

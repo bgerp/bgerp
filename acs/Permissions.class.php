@@ -18,13 +18,19 @@ class acs_Permissions extends core_Master
     /**
      * Заглавие на мениджъра
      */
-    public $title = '';
+    public $title = 'Права за достъп';
     
     
     /**
      * Титлата на обекта в единичен изглед
      */
-    public $singleTitle = '';
+    public $singleTitle = 'Права за достъп';
+
+
+    /**
+     * @var string
+     */
+    public $recTitleTpl = ' ';
     
     
     /**
@@ -88,7 +94,60 @@ class acs_Permissions extends core_Master
         $this->setDbIndex('state');
         $this->setDbIndex('cardId');
     }
-    
+
+
+    /**
+     * Подготвя името спрямо фирмата, името и картата
+     *
+     * @param $rec
+     *
+     * @return array
+     */
+    public static function prepareUserName($rec)
+    {
+        $rec = self::fetchRec($rec);
+
+        $name = '';
+
+        if ($rec->personId) {
+            $name = crm_Persons::getVerbal($rec->personId, 'name');
+        } elseif ($rec->companyId) {
+            $name = crm_Companies::getVerbal($rec->companyId, 'name');
+        }
+
+        $name = trim($name);
+
+        if (!$name) {
+            $name = '@anonym ' . crc32($rec->cardId);
+        }
+
+
+        // Масив с имената
+        $namesArr = explode(' ', $name);
+
+        // Име с първа главна буква
+        $firstName = array_shift($namesArr);
+        $firstName = str::mbUcfirst($firstName);
+
+        // Фамилия с първа главна буква
+        $lastName = array_pop($namesArr);
+        $lastName = str::mbUcfirst($lastName);
+
+
+        foreach ($namesArr as &$name) {
+            $name = str::mbUcfirst($name);
+        }
+
+        $firstName = $firstName . ' ' . implode(' ', $namesArr);
+
+        if (!$lastName) {
+            $lastName = $firstName;
+            unset($firstName);
+        }
+
+        return array('firstName' => $firstName, 'lastName' => $lastName);
+    }
+
     
     /**
      * Проверява дали за подадено време, съответната карта има достъп до зоната
@@ -620,7 +679,7 @@ class acs_Permissions extends core_Master
         $res = array();
         
         // @todo $rec->scheduleId
-        
+
         if ($rec->expiredOn) {
             $timestamp = dt::mysql2timestamp($rec->expiredOn);
         }
@@ -630,7 +689,12 @@ class acs_Permissions extends core_Master
         }
         
         $res['activeUntil'] = $timestamp;
-        $res['activeFrom'] = $timestamp;
+        if ($rec->activatedOn) {
+            $res['activeFrom'] = dt::mysql2timestamp($rec->activatedOn);
+        } else {
+            $res['activeFrom'] = $timestamp;
+        }
+
         
         return $res;
     }

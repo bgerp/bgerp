@@ -597,7 +597,7 @@ class type_Richtext extends type_Blob
             return $matchedLinesArr[$hash];
         }
         
-        $pattern = "/(?'begin'(\<nbsp\>)*[\s\t]*)(\<nbsp\>)*(?'list'\[li\]|\*\s|%\.)(?'text'.+)/i";
+        $pattern = "/^(?'begin'(\<nbsp\>)*[\s\t]*)(\<nbsp\>)*(?'list'\[li\]|\*\s|%\.)(?'text'.+)/i";
 
         preg_match($pattern, $line, $matches);
 

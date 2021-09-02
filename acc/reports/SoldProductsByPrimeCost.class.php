@@ -201,17 +201,17 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         if ($export === false) {
-            $fld->FLD('code', 'varchar', 'caption=Код');
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measureId', 'varchar', 'smartCenter,caption=Мярка');
-            $fld->FLD('quantity', 'varchar', 'smartCenter,caption=Продажби->Количество');
-            $fld->FLD('amount', 'varchar', 'smartCenter,caption=Продажби->Стойност');
+            $fld->FLD('code', 'varchar', 'smartCenter,caption=Код');
+            $fld->FLD('productId',  'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('measureId', 'key(mvc=cat_Uom,select=shortName)', 'smartCenter,caption=Мярка');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Продажби->Количество');
+            $fld->FLD('amount', 'double(decimals=2)', 'caption=Продажби->Стойност');
         }else{
-            $fld->FLD('code', 'varchar', 'caption=Код');
-            $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('code', 'varchar', 'smartCenter,caption=Код');
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measureId', 'varchar', 'smartCenter,caption=Мярка');
-            $fld->FLD('quantity', 'varchar', 'smartCenter,caption=Продажби->Количество');
-            $fld->FLD('amount', 'varchar', 'smartCenter,caption=Продажби->Стойност');
+            $fld->FLD('quantity', 'double(decimals=2)', 'caption=Продажби->Количество');
+            $fld->FLD('amount', 'double(decimals=2)', 'caption=Продажби->Стойност');
         }
 
         return $fld;
@@ -331,11 +331,7 @@ class acc_reports_SoldProductsByPrimeCost extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
 
-        $res->quantity = $Double->toVerbal($dRec->quantity);
-        $res->amount = $Double->toVerbal($dRec->amount);
         $res->measureId = cat_UoM::fetchField($dRec->measureId, 'shortName');
     }
 

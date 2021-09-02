@@ -54,6 +54,7 @@ class doc_FolderPlg extends core_Plugin
         $mvc->details['History'] = $mvc->className;
         $mvc->details['Resources'] = 'doc_FolderResources';
         setIfNot($mvc->autoCreateFolder, 'instant');
+        setIfNot($mvc->cloneFolderSettings, false);
     }
     
     
@@ -1054,6 +1055,34 @@ class doc_FolderPlg extends core_Plugin
         // Ако няма резултат
         if (!isset($res)) {
             $res = array();
+        }
+    }
+
+
+    /**
+     * След клониране на записа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec  - клонирания запис
+     * @param stdClass $nRec - новия запис
+     */
+    protected static function on_AfterSaveCloneRec($mvc, $rec, $nRec)
+    {
+        if($mvc->canCloneFolderSettings($nRec)){
+            if(isset($rec->folderId) && isset($nRec->folderId)){
+                doc_Folders::cloneFolderSettings($rec->folderId, $nRec->folderId);
+            }
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране дали да се клонират настройките на папката след клониране на проект
+     */
+    public static function on_AfterCanCloneFolderSettings($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $res = ($mvc->cloneFolderSettings === true);
         }
     }
 }

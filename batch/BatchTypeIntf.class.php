@@ -240,5 +240,17 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
         return $this->class->filterBatches($quantities, $mvc, $id);
     }
+
+
+    /**
+     * Какво да се изпълни след запис на нов вид партида
+     *
+     * @string stdClass $templateRec
+     * @return void
+     */
+    public function afterSavedTemplate($templateRec)
+    {
+        return $this->class->afterSavedTemplate($templateRec);
+    }
 }
 

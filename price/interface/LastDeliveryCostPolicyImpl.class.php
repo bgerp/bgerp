@@ -148,9 +148,14 @@ class price_interface_LastDeliveryCostPolicyImpl extends price_interface_BaseCos
      */
     public function getAffectedProducts($datetime)
     {
+        // Добавяне на аванс към датата да се обхванат по отрано записите
+        $cronRec = core_Cron::getRecForSystemId("Update primecosts");
+        $cronPeriod = $cronRec->period * 60;
+        $datetime = dt::addSecs(-1 * $cronPeriod, $datetime);
+
         // Афектираните артикули са тези с дебит в склада
         $affected = parent::getAffectedProductWithStoreMovement($datetime, 'debit');
-        
+
         // И тези с активирани/оттеглени покупки
         $affected1 = cls::get('price_interface_LastActiveDeliveryCostPolicyImpl')->getAffectedProducts($datetime);
         $affected += $affected1;

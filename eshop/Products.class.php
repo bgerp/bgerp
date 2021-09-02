@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,code,name=Е-артикул,groupId=Група,saleState,dCount=Опции,state';
+    public $listFields = 'id,code,name=Е-артикул,groupId=Група,saleState,dCount=Опции,state,createdOn,createdBy';
     
     
     /**
@@ -301,14 +301,40 @@ class eshop_Products extends core_Master
         
         return $moq;
     }
-    
-    
+
+
+    /**
+     * Връща заглавието на е-артикула
+     *
+     * @param stdClass $rec
+     * @return string $name
+     */
+    public static function getDisplayTitle($rec)
+    {
+        $name = static::getVerbal($rec, 'name');
+
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->where("#eshopProductId = {$rec->id}");
+        if($dQuery->count() == 1){
+            $dRec = $dQuery->fetch();
+            if(!empty($dRec->title)){
+                $name = eshop_ProductDetails::getVerbal($dRec, 'title');
+            }
+        }
+
+        return $name;
+    }
+
+
     /**
      * След обработка на вербалните стойностти
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->name = tr($row->name);
+        if(Mode::is('wrapper', 'cms_page_External')){
+            $row->name = tr(static::getDisplayTitle($rec));
+        }
+        
         $uomId = self::getUomId($rec);
         $rec->coMoq = $mvc->getMoq($rec);
         
@@ -593,7 +619,7 @@ class eshop_Products extends core_Master
                 $pQuery->where("1=2");
             }
         } else {
-            $pQuery->where("#state = 'active' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
+            $pQuery->where("#state = 'active' AND #saleState != 'closed' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
             $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
             $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
         }
@@ -876,7 +902,7 @@ class eshop_Products extends core_Master
         if ($data->rec->state == 'closed') {
             $groupRec = eshop_Groups::fetch($data->rec->groupId);
             
-            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът в момента е спрян от продажба|*!', 'warning');
+            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът, който търсите вече не се предлага|*!', 'warning');
         }
         
         $data->groups = new stdClass();
@@ -1001,11 +1027,6 @@ class eshop_Products extends core_Master
         } elseif (countR($uniqueProductsArr) == 1) {
             if (!empty($data->detailData->rows[0]->saleInfo)) {
                 $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
-            }
-            
-            $defaultName = eshop_ProductDetails::getPublicProductTitle($data->rec->id, $data->detailData->recs[0]->productId);
-            if ($data->row->name != $defaultName) {
-                $data->row->ONLY_PRODUCT_NAME = $defaultName;
             }
         }
     }

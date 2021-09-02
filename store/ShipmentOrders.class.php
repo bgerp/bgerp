@@ -43,7 +43,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, store_plg_StoreFilter,deals_plg_SaveValiorOnActivation,store_Wrapper,purchase_plg_ExtractPurchasesData, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
-                    plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,deals_plg_SelectInvoice,
+                    plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,deals_plg_SelectInvoicesToDocument,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
 
 
@@ -764,6 +764,78 @@ class store_ShipmentOrders extends store_DocumentMaster
             core_Statuses::newStatus($errorMsg, 'error');
 
             return false;
+        }
+    }
+
+
+    /**
+     * Връща информация за сумите по платежния документ
+     *
+     * @param mixed $id
+     * @return object
+     */
+    public function getPaymentData($id)
+    {
+        if(is_object($id)){
+            $rec = $id;
+        } else {
+            $rec = $this->fetchRec($id, '*', false);
+        }
+
+        $amount = round($rec->amountDelivered / $rec->currencyRate, 2);
+
+        return (object)array('amount' => $amount, 'currencyId' => currency_Currencies::getIdByCode($rec->currencyId));
+    }
+
+
+    /**
+     * Дефолтна реализация на метода за връщане данните за търга
+     */
+    protected static function on_AfterGetAuctionData($mvc, &$res, $rec)
+    {
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        if(!$firstDoc->isInstanceOf('sales_Sales')) return;
+
+        // Какви са детайлите на ЕН-то
+        $tRecs = $details = array();
+        $dQuery = store_ShipmentOrderDetails::getQuery();
+        $dQuery->where("#shipmentId = {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+            if(!array_key_exists($dRec->productId, $details)){
+                $details[$dRec->productId] = (object)array('productId' => $dRec->productId);
+            }
+            $details[$dRec->productId]->quantity += $dRec->quantity;
+        }
+
+        // Какъв е скрития транспорт в продажбата
+        $tQuery = sales_TransportValues::getQuery();
+        $tQuery->where("#docClassId = {$firstDoc->getClassId()} AND #docId = {$firstDoc->that}");
+        $tQuery->EXT('productId', 'sales_SalesDetails', 'externalKey=recId');
+        $tQuery->EXT('quantity', 'sales_SalesDetails', 'externalKey=recId');
+
+        while($tRec = $tQuery->fetch()){
+            if(!array_key_exists($tRec->productId, $tRecs)){
+                $tRecs[$tRec->productId] = (object)array('productId' => $tRec->productId);
+            }
+            $tRecs[$tRec->productId]->fee += $tRec->fee;
+            $tRecs[$tRec->productId]->quantity += $tRec->quantity;
+        }
+
+        // Смята се колко е скрития транспорт за количествата от ЕН-то
+        $hiddenTransport = 0;
+        foreach($details as $dRec1){
+            if(array_key_exists($dRec1->productId, $tRecs)){
+                $tRec = $tRecs[$dRec1->productId];
+                if($tRec->fee > 0){
+                    $singleFee = $tRec->fee / $tRec->quantity;
+                    $hiddenTransport += $dRec1->quantity * $singleFee;
+                }
+            }
+        }
+
+        $hiddenTransport = round($hiddenTransport, 2);
+        if(!empty($hiddenTransport)){
+            $res['hiddenTransport'] = $hiddenTransport;
         }
     }
 }

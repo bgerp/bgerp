@@ -2796,7 +2796,7 @@ class crm_Persons extends core_Master
         // Ако е в група на достачик, показваме бутона за покупка
         if (in_array($supplierGroupId, $groupList)) {
             $res[] = (object)array('class' => 'purchase_Purchases', 'url' => array('purchase_Purchases', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
-            $res[] = (object)array('class' => 'purchase_Offers', 'caption' => 'Вх. оферта');
+            $res[] = (object)array('class' => 'purchase_Quotations', 'url' => array('purchase_Quotations', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Оферта от доставчик');
         }
         
         return $res;

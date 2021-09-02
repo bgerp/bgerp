@@ -113,8 +113,14 @@ class purchase_Purchases extends deals_DealMaster
      * Заглавие в единствено число
      */
     public $singleTitle = 'Покупка';
-    
-    
+
+
+    /**
+     * Клас на оферта
+     */
+    protected $quotationClass = 'purchase_Quotations';
+
+
     /**
      * Икона за единичния изглед
      */
@@ -402,15 +408,9 @@ class purchase_Purchases extends deals_DealMaster
         if ($rec->state == 'draft') {
             
             // Ако има въведена банкова сметка, която я няма в системата я вкарваме
-            if ($rec->bankAccountId && strlen($rec->bankAccountId)) {
-                if (!bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->bankAccountId))) {
-                    $newAcc = new stdClass();
-                    $newAcc->currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-                    $newAcc->iban = $rec->bankAccountId;
-                    $newAcc->contragentCls = $rec->contragentClassId;
-                    $newAcc->contragentId = $rec->contragentId;
-                    bank_Accounts::save($newAcc);
-                    core_Statuses::newStatus('Успешно е добавена нова банкова сметка на контрагента');
+            if (!empty($rec->bankAccountId)) {
+                if(bank_Accounts::add($rec->bankAccountId, currency_Currencies::getIdByCode($rec->currencyId), $rec->contragentClassId, $rec->contragentId)){
+                    core_Statuses::newStatus('Добавена е нова сметка на контрагента|*!');
                 }
             }
         }
@@ -430,13 +430,15 @@ class purchase_Purchases extends deals_DealMaster
             
             // Ако има метод за плащане и той няма авансова част, махаме авансовите операции
             if (!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)) {
-                unset($allowedPaymentOperations['case2supplierAdvance'],
-                    $allowedPaymentOperations['bank2supplierAdvance'],
-                    $allowedPaymentOperations['supplierAdvance2case'],
-                    $allowedPaymentOperations['supplierAdvance2bank'],
-                    $allowedPaymentOperations['supplierAdvance2caseRet'],
-                    $allowedPaymentOperations['supplierAdvance2bankRet']
-                );
+                if(!haveRole('accMaster,ceo')){
+                    unset($allowedPaymentOperations['case2supplierAdvance'],
+                        $allowedPaymentOperations['bank2supplierAdvance'],
+                        $allowedPaymentOperations['supplierAdvance2case'],
+                        $allowedPaymentOperations['supplierAdvance2bank'],
+                        $allowedPaymentOperations['supplierAdvance2caseRet'],
+                        $allowedPaymentOperations['supplierAdvance2bankRet']
+                    );
+                }
             }
         }
         
@@ -643,14 +645,14 @@ class purchase_Purchases extends deals_DealMaster
         // Проверка по крон дали покупката е просрочена
         $rec2 = new stdClass();
         $rec2->systemId = 'IsPurchaseOverdue';
-        $rec2->description = 'Проверява дали покупката е просрочена';
+        $rec2->description = 'Проверяване на плащанията по покупките';
         $rec2->controller = 'purchase_Purchases';
         $rec2->action = 'CheckPurchasePayments';
         $rec2->period = 60;
         $rec2->offset = mt_rand(0, 30);
         $rec2->isRandOffset = true;
         $rec2->delay = 0;
-        $rec2->timeLimit = 100;
+        $rec2->timeLimit = 300;
         $res .= core_Cron::addOnce($rec2);
     }
     
@@ -661,10 +663,12 @@ class purchase_Purchases extends deals_DealMaster
     public function cron_CheckPurchasePayments()
     {
         core_App::setTimeLimit(300);
-        $conf = core_Packs::getConfig('purchase');
-        $overdueDelay = $conf->PURCHASE_OVERDUE_CHECK_DELAY;
-        
+        $overdueDelay = purchase_Setup::get('OVERDUE_CHECK_DELAY');
         $this->checkPayments($overdueDelay);
+
+        // Изпращане на нотификации, за нефактурирани покупки
+        $lateTime = purchase_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');
+        $this->sendNotificationIfInvoiceIsTooLate($lateTime);
     }
     
     

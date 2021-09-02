@@ -25,7 +25,7 @@ class bank_Accounts extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search';
+    public $loadList = 'plg_RowTools2, bank_Wrapper, plg_Rejected, plg_Search, plg_Sorting';
     
     
     /**
@@ -197,7 +197,8 @@ class bank_Accounts extends core_Master
             if (!$form->rec->bank) {
                 $form->rec->bank = $bank;
             } else {
-                if ($bank && $form->rec->bank != $bank) {
+
+                if (trim($bank) && (trim(mb_strtolower($form->rec->bank)) != trim(mb_strtolower($bank)))) {
                     $form->setWarning('bank', "|*<b>|Банка|*:</b> |въвели сте |*\"<b>|{$form->rec->bank}|*</b>\", |а IBAN-ът е на банка |*\"<b>|{$bank}|*</b>\". |Сигурни ли сте, че искате да продължите?");
                 }
             }
@@ -455,29 +456,32 @@ class bank_Accounts extends core_Master
     
     
     /**
-     * Добавя нова банкова сметка
+     * Добавя нова банкова сметка на контрагента
      *
      * @param iban_Type $iban            - iban
-     * @param int       $currency        - валута
+     * @param int       $currencyId      - ид на валута
      * @param int       $contragentClsId - класа на контрагента
      * @param int       $contragentId    - ид на контрагента
+     *
+     * @throws core_exception_Expect
+     * @return int|null
      */
-    public static function add($iban, $currency, $contragentClsId, $contragentId)
+    public static function add($iban, $currencyId, $contragentClsId, $contragentId)
     {
         expect(cls::get($contragentClsId)->fetch($contragentId));
         $IbanType = cls::get('iban_Type');
         expect($IbanType->fromVerbal($iban));
-        
-        if (!static::fetch(array("#iban = '[#1#]'", $iban))) {
-            $rec = (object) array('iban'          => $iban,
-                                  'contragentCls' => $contragentClsId,
-                                  'contragentId'  => $contragentId,
-                                  'currencyId'    => $currency,
-                                  'bank'          => bglocal_Banks::getBankName($iban),
-                                  'bic'           => bglocal_Banks::getBankBic($iban));
 
-            bank_Accounts::save($rec);
-        }
+        if (static::fetch(array("#iban = '[#1#]'", $iban)))  return null;
+
+        $rec = (object) array('iban'          => $iban,
+                              'contragentCls' => $contragentClsId,
+                              'contragentId'  => $contragentId,
+                              'currencyId'    => $currencyId,
+                              'bank'          => bglocal_Banks::getBankName($iban),
+                              'bic'           => bglocal_Banks::getBankBic($iban));
+
+        return bank_Accounts::save($rec);
     }
     
     
@@ -488,8 +492,16 @@ class bank_Accounts extends core_Master
     {
         $data->listFilter->setField('contragentCls', 'input=none');
         $data->listFilter->setField('contragentId', 'input=none');
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->setFieldTypeParams('currencyId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->showFields = 'search,currencyId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input('currencyId');
+
+        if ($data->listFilter->isSubmitted()) {
+            if(!empty($data->listFilter->rec->currencyId)){
+                $data->query->where("#currencyId = {$data->listFilter->rec->currencyId}");
+            }
+        }
     }
 }

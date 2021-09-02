@@ -1457,7 +1457,7 @@ class cat_Products extends embed_Manager
         
         return $res;
     }
-    
+
     
     /**
      * Връща достъпните продаваеми артикули
@@ -1484,9 +1484,9 @@ class cat_Products extends embed_Manager
             } else {
                 $query->where("#state = 'active'");
             }
-            
+
             $reverseOrder = false;
-            
+
             // Ако е зададен контрагент, оставяме само публичните + частните за него
             if (isset($params['customerClass'], $params['customerId'])) {
                 $reverseOrder = true;
@@ -1538,6 +1538,16 @@ class cat_Products extends embed_Manager
 
             if (isset($params['notIn'])) {
                 $query->notIn('id', $params['notIn']);
+            }
+
+            // Ако има посочени артикули, които винаги да се показват да се показват
+            if (isset($params['alwaysShow'])) {
+                $inArr = arr::make($params['alwaysShow'], true);
+                $inArr = implode(',', $inArr);
+                $wAndH = $query->getWhereAndHaving();
+                $newWhere = str_replace('WHERE', '', $wAndH->w);
+                $newWhere = "#id IN ({$inArr}) OR ({$newWhere})";
+                $query->where = array(0 => $newWhere);
             }
         }
 
@@ -2044,39 +2054,38 @@ class cat_Products extends embed_Manager
     public static function getTransportVolume($productId, $quantity)
     {
         // За нескладируемите не се изчислява транспортно тегло
-        if (cat_Products::fetchField($productId, 'canStore') != 'yes') {
-            return;
-        }
-        
-        // Ако драйвера връща транспортно тегло, то е с приоритет
+        if (cat_Products::fetchField($productId, 'canStore') != 'yes') return;
+
+        // Колко е транспортния обем от драйвера
+        $driverVolume = null;
         if ($Driver = static::getDriver($productId)) {
             $rec = self::fetchRec($productId);
             $volume = $Driver->getTransportVolume($rec, $quantity);
             if (!empty($volume) && !is_nan($volume)) {
-                return $volume;
+                $driverVolume = $volume;
             }
         }
-        
-        // Първо се гледа най-голямата опаковка за която има габаритни размери
-        $packQuery = cat_products_Packagings::getQuery();
-        $packQuery->where("#productId = '{$productId}'");
-        $packQuery->where('#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL');
-        $packQuery->orderBy('quantity', 'DESC');
-        $packQuery->limit(1);
-        $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
-        $packRec = $packQuery->fetch();
-        
-        if (is_object($packRec)) {
-            
-            // Ако има такава количеството се преизчислява в нея
-            $brutoVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
-            $quantity /= $packRec->quantity;
-            
-            // Връща се намереното тегло
-            $volume = $brutoVolume * $quantity;
-            
-            return round($volume, 3);
+
+        // Ако е посочено с приоритет да е теглото от драйвера
+        $strategy = cat_Setup::get('TRANSPORT_WEIGHT_STRATEGY');
+        if ($strategy == 'paramFirst') {
+
+            // Тогава ако има тегло от драйвера се връща той
+            if (!empty($driverVolume)) return $driverVolume;
+
+            // Ако няма се връща от най-голямата опаковка, ако има
+            $packVolume = cat_products_Packagings::getVolumeOfBiggestPack($productId, $quantity);
+
+            return $packVolume;
         }
+
+        // Ако не е избрано с приоритет да е от драйвера:
+        // Ако има обем от най-голямата опаковка, той е с предимство
+        $packVolume = cat_products_Packagings::getVolumeOfBiggestPack($productId, $quantity);
+        if (!empty($packVolume)) return $packVolume;
+
+        // Ако няма е този от драйвера (ако има)
+        return $driverVolume;
     }
     
     
@@ -2136,7 +2145,7 @@ class cat_Products extends embed_Manager
             }
 
             if (isset($rec->proto)) {
-                $row->proto = $mvc->getHyperlink($rec->proto);
+                $row->proto = core_Users::isContractor() ? $mvc->getTitleById($rec->proto) : $mvc->getHyperlink($rec->proto);
             }
             
             if ($mvc->haveRightFor('edit', $rec)) {
@@ -2574,7 +2583,7 @@ class cat_Products extends embed_Manager
         }
         
         if (sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))) {
-            $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба');
+            $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
         }
     }
     
@@ -3825,6 +3834,7 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
+                $recs[$dRec->id]->productId = cat_Products::getVerbal($dRec->productId, 'name');
 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {

@@ -572,9 +572,7 @@ class core_ProtoSetup
             }
         }
         
-        $cacheKey = 'menuObj_' . core_Lg::getCurrent();
-        
-        core_Cache::remove('Menu', $cacheKey);
+        bgerp_Menu::clearCache();
         
         return $res;
     }

@@ -64,6 +64,8 @@ abstract class deals_ManifactureDetail extends doc_Detail
         $mvc->FLD('quantity', 'double(Min=0)', 'caption=Количество,input=none,smartCenter');
         $mvc->FLD('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
+
+        $mvc->setDbIndex('productId,packagingId');
     }
     
     
@@ -130,6 +132,12 @@ abstract class deals_ManifactureDetail extends doc_Detail
             
             if($form->_replaceProduct !== true){
                 $packs = cat_Products::getPacks($rec->productId);
+
+                // Ако е само една разрешената мярка да се зареди тя
+                if(isset($rec->_onlyAllowedPackId)){
+                    $packs = array_intersect_key($packs, array($rec->_onlyAllowedPackId => $rec->_onlyAllowedPackId));
+                }
+
                 $form->setOptions('packagingId', $packs);
                 $form->setDefault('packagingId', key($packs));
             } else {

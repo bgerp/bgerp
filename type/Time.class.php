@@ -264,9 +264,9 @@ class type_Time extends type_Varchar
         }
         
         if (isset($this->params['noSmart'])) {
-            $uom = ($this->params['uom']) ? $this->params['uom'] : 'minutes';
+            $uom = ($this->params['uom']) ? $this->params['uom'] : 'sec';
             $decimals = ($this->params['decimals']) ? $this->params['decimals'] : 0;
-            
+
             switch ($uom) {
                 case 'years':
                     $v = $v / (12 * core_DateTime::SECONDS_IN_MONTH);
@@ -289,9 +289,12 @@ class type_Time extends type_Varchar
                     $suffix = ($v == 1) ? tr('час') : tr('часа');
                     break;
                 case 'minutes':
-                default:
                     $v = $v / 60;
                     $suffix = tr('мин.');
+                    break;
+                default:
+
+                    $suffix = tr('сек.');
                     break;
             }
             

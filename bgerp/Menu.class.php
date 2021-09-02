@@ -63,9 +63,9 @@ class bgerp_Menu extends core_Manager
      */
     public static function getMenuObject()
     {
-        $cacheKey = 'menuObj_' . core_Lg::getCurrent();
-        
-        $menuObj = core_Cache::get('Menu' . core_Users::getCurrent(), $cacheKey);
+        $cachePrefix = 'menuObj';
+        $cacheKey    = core_Lg::getCurrent() . core_Users::getCurrent();
+        $menuObj = core_Cache::get($cachePrefix, $cacheKey);
         
         if (!is_array($menuObj)) {
             $query = self::getQuery();
@@ -97,7 +97,7 @@ class bgerp_Menu extends core_Manager
                 $menuObj[$rec->menu . ':' . $rec->subMenu] = $newRec;
             }
             
-            core_Cache::set('Menu' . core_Users::getCurrent(), $cacheKey, $menuObj, 1400);
+            core_Cache::set($cachePrefix , $cacheKey, $menuObj, 90);
         }
         
         // Ако няма нито един запис в Менюто, но имаме права за администратор,
@@ -113,9 +113,19 @@ class bgerp_Menu extends core_Manager
     /**
      * Изчиства кеша за дадения потребител
      */
-    public static function clearCache($userId)
+    public static function clearCache($userId = null)
     {
-        core_Cache::removeByType('Menu' . $userId);
+        $langs = core_Lg::getLangs();
+        $cacheType = 'menuObj';
+        
+        if($userId) {
+            foreach($langs as $lg) {
+                $cacheKey    = core_Lg::getCurrent() . $userId;
+                core_Cache::remove($cacheType, $cacheKey);
+            }
+        } else {
+            core_Cache::removeByType($cacheType);
+        }
     }
     
     
@@ -127,16 +137,8 @@ class bgerp_Menu extends core_Manager
         $mvc->savedItems[$rec->id] = true;
     }
     
-    
-    /**
-     * Изтриване на кеша
-     */
-    public function on_AfterDelete($mvc, $id, $rec)
-    {
-        core_Cache::remove('Menu', 'menuObj');
-    }
-    
-    
+ 
+     
     /**
      * Намира активния запис
      */
@@ -507,15 +509,7 @@ class bgerp_Menu extends core_Manager
     {
         // Ако имаме добавения по менюто
         if (countR($mvc->savedItems)) {
-            
-            // Премахваме кеша на менюто за всички езици
-            $lgArr = core_Lg::getLangs();
-            
-            foreach ($lgArr as $lg => $title) {
-                $cacheKey = 'menuObj_' . $lg;
-                core_Cache::remove('Menu', $cacheKey);
-            }
-            
+
             // Ако е зададено да се изтриват
             if ($mvc->deleteNotInstalledMenu) {
                 $query = self::getQuery();
@@ -526,6 +520,8 @@ class bgerp_Menu extends core_Manager
                     }
                 }
             }
+            
+            bgerp_Menu::clearCache();
         }
     }
     
@@ -582,7 +578,7 @@ class bgerp_Menu extends core_Manager
         } elseif ($delCnt > 1) {
             $msg = "<li class='debug-notice'>Бяха изтрити {$delCnt} входни точки от менюто.</li>";
         }
-        
+         
         return $msg;
     }
     

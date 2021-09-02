@@ -77,6 +77,9 @@ class cat_products_Usage extends core_Manager
             
             $data->quoteData = clone $data;
             $this->prepareDocuments('sales_Quotations', 'sales_QuotationsDetails', $data->quoteData);
+
+            $data->purQuoteData = clone $data;
+            $this->prepareDocuments('purchase_Quotations', 'purchase_QuotationDetails', $data->purQuoteData);
         }
     }
     
@@ -94,6 +97,7 @@ class cat_products_Usage extends core_Manager
             $tpl->append($this->renderDocuments($data->saleData, $renderEvenIfEmpty));
             $tpl->append($this->renderDocuments($data->purData));
             $tpl->append($this->renderDocuments($data->quoteData));
+            $tpl->append($this->renderDocuments($data->purQuoteData));
         }
         
         return $tpl;
@@ -113,7 +117,6 @@ class cat_products_Usage extends core_Manager
         $data->Document->FNC('title', 'varchar', 'tdClass=leftCol');
         
         $Detail = cls::get($DocumentDetail);
-        
         $data->recs = $data->rows = array();
         
         // Извличане на документите в чиито детайл се среща

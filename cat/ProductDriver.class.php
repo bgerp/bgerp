@@ -967,4 +967,18 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return null;
     }
+
+
+    /**
+     * Какъв текст да излиза в имейла за изходяща оферта за артикула
+     *
+     * @param int $productId
+     * @param int $quotationId
+     * @param string|null $lang
+     * @return null|string
+     */
+    public function getQuotationEmailText($productId, $quotationId, $lang = null)
+    {
+        return null;
+    }
 }

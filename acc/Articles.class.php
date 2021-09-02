@@ -515,9 +515,10 @@ class acc_Articles extends core_Master
     {
         $baseCode = acc_Periods::getBaseCurrencyCode();
         $data->listFields['totalAmount'] .= "|* ({$baseCode})";
+        $data->query->orderBy('id', 'desc');
     }
-    
-    
+
+
     /**
      * Метод за създаване на чернова МО
      *

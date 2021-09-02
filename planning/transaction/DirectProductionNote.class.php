@@ -48,6 +48,8 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
 
             $productArr = arr::extractValuesFromArray($rec->_details, 'productId');
             $notAllocatedInputProductArr = arr::extractValuesFromArray($notAllocatedInputProductArr, 'productId');
+            unset($notAllocatedInputProductArr[$rec->productId]);
+
             if($redirectError = deals_Helper::getContoRedirectError($notAllocatedInputProductArr, 'canConvert', null, 'трябва да са вложими')){
                 acc_journal_RejectRedirect::expect(false, $redirectError);
             }
@@ -369,7 +371,7 @@ class planning_transaction_DirectProductionNote extends acc_DocumentTransactionS
                                 'amount' => $diff,
                                 'debit' => $array,
                                 'credit' => array('61102'),
-                                'reason' => 'Изравняване на себестойността, спрямо очакваната'
+                                'reason' => 'Допълване на себестойността до очакваната'
                             );
 
                             $entries[] = $array1;
