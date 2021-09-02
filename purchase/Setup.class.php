@@ -153,7 +153,7 @@ class purchase_Setup extends core_ProtoSetup
             'enum(none=Оферта в "Чернова",form=Създаване на оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
             'mandatory,caption=Действие на бързия бутон "Покупка" и "Оферта от доставчик" в папките->Оферта от доставчик,customizeBy=ceo|sales|purchase',
         ),
-        'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификацията за нефактурирани авансови сделки->Време'),
+        'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане->Време'),
     );
     
     
