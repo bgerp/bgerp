@@ -1352,8 +1352,7 @@ class cat_Products extends embed_Manager
             if(haveRole('debug')){
                 core_Statuses::newStatus("RECALC: " . implode('-', $mvc->updateGroupsCount));
             }
-
-            static::updateGroupsCnt($mvc->updateGroupsCount);
+            cat_Groups::updateGroupsCnt($mvc->updateGroupsCount);
         }
         
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
@@ -1377,48 +1376,6 @@ class cat_Products extends embed_Manager
                     cat_products_SharedInFolders::cloneFolders($rec->proto, $rec->id);
                 }
             }
-        }
-    }
-    
-    
-    /**
-     * Обновява броячите на групите по cron
-     */
-    public function cron_UpdateGroupsCnt()
-    {
-        self::updateGroupsCnt();
-    }
-
-
-    /**
-     * Обновяване броя артикули в група
-     *
-     * @param mixed $groupIds - ид-та на конкретни групи, null за всички
-     * @return void
-     */
-    private static function updateGroupsCnt($groupIds = null)
-    {
-        // Ако има групи обръщат се в масив
-        $groupArr = arr::make($groupIds, true);
-        $groupArr = countR($groupArr) ? $groupArr : null;
-
-        // Преброяване колко артикули са във всяка група
-        $query = self::getQuery();
-        $gCntArr = $query->countKeylist('groups', $groupArr);
-
-        // Ще се обновява броя артикули в група, само ако има промяна
-        $updateGroups = array();
-        $queryGroups = cat_Groups::getQuery();
-        while ($rec = $queryGroups->fetch()) {
-            if ($gCntArr[$rec->id] != $rec->productCnt) {
-                $rec->productCnt = $gCntArr[$rec->id];
-                $updateGroups[$rec->id] = $rec;
-            }
-        }
-
-        // Обновяване на групите с промяна
-        if(countR($updateGroups)){
-            cls::get('cat_Groups')->saveArray($updateGroups, 'id,productCnt');
         }
     }
     
