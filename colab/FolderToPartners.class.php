@@ -340,11 +340,6 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function preparePartners($data)
     {
-        if (!$data->isCurrent) {
-            
-            return;
-        }
-        
         $data->rows = array();
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {
@@ -352,7 +347,7 @@ class colab_FolderToPartners extends core_Manager
             $query->EXT('lastLogin', 'core_Users', 'externalName=lastLoginTime,externalKey=contractorId');
             $query->where("#folderId = {$folderId}");
             $query->orderBy('lastLogin', 'DESC');
-            
+
             $rejectedArr = array();
             $count = 1;
             while ($rec = $query->fetch()) {
