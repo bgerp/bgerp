@@ -178,7 +178,7 @@ defIfNot('SALES_MIN_PRICE_POLICY', '');
 /**
  * Нотификацията за нефактурирани авансови сделки
  */
-defIfNot('SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '432000');
+defIfNot('SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '');
 
 
 /**
