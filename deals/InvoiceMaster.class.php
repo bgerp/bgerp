@@ -948,28 +948,43 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function getDefaultPlace($rec)
     {
+        $place = $countryId = null;
         $inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
         $inChargeRec = crm_Profiles::getProfile($inCharge);
-        
-        $place = null;
-        if (!empty($inChargeRec->buzLocationId)) {
-            $locationRec = crm_Locations::fetch($inChargeRec->buzLocationId, 'place,countryId');
+
+        // 1. От локацията на "Моята Фирма", избрана в Служебните данни на визитката на Отговорника на папката
+        // 2. От избраното за екипа на отговорника на папката в "Персонализиране" на профила
+        $locationId = !empty($inChargeRec->buzLocationId) ? $inChargeRec->buzLocationId : sales_Setup::get('DEFAULT_LOCATION_FOR_INVOICE');
+        if (!empty($locationId)) {
+            $locationRec = crm_Locations::fetch($locationId, 'place,countryId');
             $place = $locationRec->place;
             $countryId = $locationRec->countryId;
         }
-        
-        if (empty($place)) {
+
+        $contragentCountryId = doc_Folders::getContragentData($rec->folderId)->countryId;
+        if(!empty($place)){
+            if ($contragentCountryId != $countryId) {
+                $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
+                $place .= ", {$cCountry}";
+            }
+        }
+
+        // 3. От последно издадената фактура в папката
+        if(empty($place)){
+            $me = cls::get(get_called_class());
+            $place = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'place', 'lastDocUser|lastDoc');
+        }
+
+        // 4. От адреса на "Моята фирма"
+        if(empty($place)){
             $myCompany = crm_Companies::fetchOwnCompany();
             $place = $myCompany->place;
-            $countryId = $myCompany->countryId;
+            if ($contragentCountryId != $myCompany->countryId) {
+                $cCountry = drdata_Countries::fetchField($myCompany->countryId, 'commonNameBg');
+                $place .= ", {$cCountry}";
+            }
         }
-        
-        $contragentCountryId = doc_Folders::getContragentData($rec->folderId)->countryId;
-        if (!empty($place) && $contragentCountryId != $countryId) {
-            $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
-            $place .= ", {$cCountry}";
-        }
-        
+
         return $place;
     }
     

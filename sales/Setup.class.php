@@ -182,6 +182,13 @@ defIfNot('SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '432000');
 
 
 /**
+ * Място за фактура
+ */
+defIfNot('SALES_DEFAULT_LOCATION_FOR_INVOICE', '');
+
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -340,6 +347,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
 
         'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане->Време'),
+        'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicer,optionsFunc=crm_Locations::getOwnLocations'),
     );
     
     
@@ -483,7 +491,7 @@ class sales_Setup extends core_ProtoSetup
                 'SALE_SALE_DEF_TPL_BG' => $key
             ));
         }
-        
+
         // Поставяме първия намерен шаблон на английски за дефолтен на продажбата
         if (strlen($config->SALE_SALE_DEF_TPL_EN) === 0) {
             $key = key(sales_Sales::getTemplateEnOptions());
