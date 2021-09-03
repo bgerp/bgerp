@@ -4379,7 +4379,9 @@ table .eshop-btn {
 	}
 	&:disabled {
 		background-color: #bbb !important;
-		color: #666 !important;
+		color: #737373 !important;
+	    padding: 10px 20px !important;
+	    font-size: 1.2em !important;
 	}
 }
 
