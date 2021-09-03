@@ -545,10 +545,15 @@ class trans_Lines extends core_Master
         
         $docContainerId = trans_LineDetails::fetchField($detId, 'containerId');
         $Document = doc_Containers::getDocument($docContainerId);
-        
+        $documentRec = $Document->fetch('sharedUsers,createdBy,modifiedBy');
         $res['body'] = 'За: #' . $Document->getHandle();
-        $res['sharedUsers'] = $Document->fetchField('sharedUsers');
-        
+
+        $users = '';
+        $users = keylist::addKey($users, $documentRec->createdBy);
+        $users = keylist::addKey($users, $documentRec->modifiedBy);
+        $users = keylist::merge($users, $documentRec->sharedUsers);
+        $res['sharedUsers'] = $users;
+
         return $res;
     }
     

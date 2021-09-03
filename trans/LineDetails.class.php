@@ -238,6 +238,8 @@ class trans_LineDetails extends doc_Detail
         if (!empty($transportInfo['stores'])) {
             if (countR($transportInfo['stores']) == 1) {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true);
+
+               // if($Document->isInstanceOf(''))
             } else {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true) . ' » ' . store_Stores::getHyperlink($transportInfo['stores'][1], true);
             }
@@ -291,13 +293,7 @@ class trans_LineDetails extends doc_Detail
         $luObject = self::colorTransUnits($rec->documentLu, $rec->readyLu);
         $row->documentLu = $luObject->documentLu;
         $row->readyLu = $luObject->readyLu;
-        
-        if ($mvc->haveRightFor('togglestatus', $rec) && !Mode::isReadOnly()) {
-            $btnImg = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
-            $linkTitle = ($rec->status == 'waiting') ? 'Маркиране на документа като готов' : 'Отмаркиране на документа като готов';
-            $row->status .= ht::createLink('', array($mvc, 'togglestatus', $rec->id, 'ret_url' => true), false, "ef_icon={$btnImg},title={$linkTitle}");
-        }
-        
+
         core_RowToolbar::createIfNotExists($row->_rowTools);
         
         // Бутон за подготовка
@@ -305,12 +301,18 @@ class trans_LineDetails extends doc_Detail
             $url = array($mvc, 'prepare', 'id' => $rec->id, 'ret_url' => true);
             $row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Ръчна подготовка на документа'));
         }
-        
+
+        if ($mvc->haveRightFor('togglestatus', $rec)) {
+            $btnIcon = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
+            $linkTitle = ($rec->status == 'waiting') ? 'Готово' : 'Чакащо';
+            $row->_rowTools->addLink($linkTitle, array($mvc, 'togglestatus', $rec->id, 'ret_url' => true), array('ef_icon' => $btnIcon, 'title' => 'Ръчна подготовка на документа'));
+        }
+
         // Бутон за създаване на коментар
         $masterRec = trans_Lines::fetch($rec->lineId);
         if ($mvc->haveRightFor('doc_Comments', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
             $commentUrl = array('doc_Comments', 'add', 'originId' => $masterRec->containerId, 'detId' => $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => 'img/16/comment_add.png', 'title' => 'Известяване на отговорниците на документа'));
+            $row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => 'img/16/comment_add.png', 'alwaysShow' => true, 'title' => 'Известяване на отговорниците на документа'));
         }
         
         // Бутон за изключване
