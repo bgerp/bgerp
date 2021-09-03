@@ -969,13 +969,7 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
 
-        // 3. От последно издадената фактура в папката
-        if(empty($place)){
-            $me = cls::get(get_called_class());
-            $place = cond_plg_DefaultValues::getDefValueByStrategy($me, $rec, 'place', 'lastDocUser|lastDoc');
-        }
-
-        // 4. От адреса на "Моята фирма"
+        // 3. От адреса на "Моята фирма"
         if(empty($place)){
             $myCompany = crm_Companies::fetchOwnCompany();
             $place = $myCompany->place;
