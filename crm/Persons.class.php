@@ -581,6 +581,25 @@ class crm_Persons extends core_Master
             if ($rec->place) {
                 $rec->place = bglocal_Address::canonizePlace($rec->place);
             }
+
+            if(isset($rec->id)){
+
+                // Ако е сменена фирмата, но има останали стари контактни данни
+                $exRec = $mvc->fetch($rec->id, '*', false);
+
+                if(!empty($exRec->buzCompanyId) && $exRec->buzCompanyId != $rec->buzCompanyId){
+                    $warningFields = array();
+                    foreach (array('buzLocationId', 'buzPosition', 'buzEmail', 'buzTel', 'buzFax', 'buzAddress') as $buzFld){
+                        if($rec->{$buzFld} = $exRec->{$buzFld}){
+                            $warningFields[] = $buzFld;
+                        }
+                    }
+
+                    if(countR($warningFields)){
+                        $form->setWarning($warningFields, 'При промяна на фирмата, моля проверете контактните данни');
+                    }
+                }
+            }
         }
     }
     
