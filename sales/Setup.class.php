@@ -339,7 +339,7 @@ class sales_Setup extends core_ProtoSetup
     
         'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
 
-        'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане->Време'),
+        'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане (0="без нотификация")->Време'),
     );
     
     
