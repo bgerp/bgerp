@@ -3725,10 +3725,7 @@ table .eshop-btn {
     background-color: #eeeeee !important; }
   .eshop-btn:disabled {
     background-color: #bbbbbb !important;
-    color: #737373 !important;
-    padding: 10px 20px !important;
-    font-size: 1.2em !important;
-    border-radius: 3px; }
+    color: #666666 !important; }
 
 .productBtn {
   padding: 4px 8px 5px 25px !important;

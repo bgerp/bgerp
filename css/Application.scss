@@ -4367,7 +4367,6 @@ fieldset.sharing-history {
 table .eshop-btn {
 	margin-right: 0 !important;
 }
-
 .eshop-btn {
 	background-position-x: 5px;
 	padding: 6px 10px 6px 26px!important;
@@ -4380,10 +4379,7 @@ table .eshop-btn {
 	}
 	&:disabled {
 		background-color: #bbb !important;
-		color: #737373 !important;
-		padding: 10px 20px !important;
-		font-size: 1.2em !important;
-		border-radius: 3px;
+		color: #666 !important;
 	}
 }
 

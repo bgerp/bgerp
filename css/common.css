@@ -1668,11 +1668,8 @@ span.inputLackOfChoiceMandatory {
 .narrow .vertical .formFields {
   margin-bottom: 0; }
 
-.formMiddleCaption {
-  padding: 5px;
-  margin: 10px 0 10px;
-  border-radius: 3px; }
-
+.mandatoryMiddleCaption {
+  font-weight: bold; }
 
 .staticFormView .formFieldValue {
   border: solid 1px #9999ff;
@@ -3591,4 +3588,3 @@ td.leftColImportant {
     background-image: url('../img/16/toggle1.png') !important; }
   .treelist .minus-icon {
     background-image: url('../img/16/toggle2.png') !important; }
-
