@@ -115,6 +115,7 @@ defIfNot('SALE_INVOICES_SHOW_DEAL', 'yes');
 defIfNot('SALES_ADD_BY_PRODUCT_BTN', '');
 
 
+
 /**
  * Роли за добавяне на артикул в продажба от бутона 'Създаване'
  */
