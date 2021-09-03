@@ -545,6 +545,7 @@ class store_ConsignmentProtocols extends core_Master
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
+     *               ['storeMovement']  string|NULL - посока на движението на склада
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -554,7 +555,9 @@ class store_ConsignmentProtocols extends core_Master
         $res['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
         $res['stores'] = array($rec->storeId);
         $res['address'] = str_replace('<br>', '', $row->contragentAddress);
-        
+        //$res['storeMovement']
+
+
         return $res;
     }
     

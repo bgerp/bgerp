@@ -238,8 +238,14 @@ class trans_LineDetails extends doc_Detail
         if (!empty($transportInfo['stores'])) {
             if (countR($transportInfo['stores']) == 1) {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true);
-
-               // if($Document->isInstanceOf(''))
+                if($transportInfo['storeMovement'] == 'both'){
+                    $iconLeft = ht::createElement('img', array('src' => sbf('img/16/arrow_left.png', '')));
+                    $iconRight = ht::createElement('img', array('src' => sbf('img/16/arrow_right.png', '')));
+                    $row->storeId .= " {$iconLeft}{$iconRight}";
+                } else {
+                    $icon = ($transportInfo['storeMovement'] == 'in') ? 'img/16/arrow_left.png' : 'img/16/arrow_right.png';
+                    $row->storeId .= " " . ht::createElement('img', array('src' => sbf($icon, '')));
+                }
             } else {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true) . ' » ' . store_Stores::getHyperlink($transportInfo['stores'][1], true);
             }

@@ -766,14 +766,15 @@ abstract class store_DocumentMaster extends core_Master
      *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
      *               ['address']        double|NULL - общ обем на стоките в документа
-     *               ['address']        double|NULL - общ обем на стоките в документа
+     *               ['storeMovement']  string|NULL - посока на движението на склада
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = static::fetchRec($rec);
         $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
         $res['stores'] = array($rec->storeId);
-        
+        $res['storeMovement'] = ($this instanceof store_Receipts) ? (($rec->isReverse == 'yes') ? 'out' : 'in') : (($rec->isReverse == 'yes') ? 'in' : 'out');
+
         $contragentClass = cls::get($rec->contragentClassId);
         $contragentRec = $contragentClass->fetch($rec->contragentId);
         $contragentTitle = $contragentClass->getVerbal($contragentRec, 'name');
@@ -810,7 +811,7 @@ abstract class store_DocumentMaster extends core_Master
             $res['amount'] = $amount;
             $res['currencyId'] = $rec->currencyId;
             
-            $sign = ($rec->classId != store_Receipts::getClassId()) ? 1 : -1;
+            $sign = (!($this instanceof store_Receipts)) ? 1 : -1;
             $amount = $sign * $res['amount'];
             $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($amount);
             $amountVerbal = ht::styleNumber($amountVerbal, $res['amount']);
