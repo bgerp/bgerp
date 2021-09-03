@@ -1664,8 +1664,19 @@ class eshop_Carts extends core_Master
         }
         
         $checkoutUrl = (eshop_Carts::haveRightFor('checkout', $rec)) ? array('eshop_Carts', 'order', $rec->id, 'ret_url' => true) : array();
-        if (empty($rec->personNames) && countR($checkoutUrl)) {
-            $btn = ht::createBtn(tr('Направете поръчка') . ' »', $checkoutUrl, null, null, 'title=Поръчване на артикулите,class=order-btn eshop-btn,rel=nofollow');
+
+        // Показване на сумата на минималната поръчка ако има
+        if(!empty($settings->minOrderAmount)){
+            $minOrderAmount = currency_Currencies::decorate($settings->minOrderAmount, $settings->currencyId);
+            $tpl->append(tr("Приемат се поръчки за минимално|* <b>{$minOrderAmount}</b>"), 'CART_TOOLBAR_RIGHT_FOOTER');
+        }
+
+        if (empty($rec->personNames)) {
+            if(countR($checkoutUrl)){
+                $btn = ht::createBtn(tr('Направете поръчка') . ' »', $checkoutUrl, null, null, 'title=Поръчване на артикулите,class=order-btn eshop-btn,rel=nofollow');
+            } else {
+                $btn = ht::createBtn(tr('Направете поръчка') . ' »', array(), null, null, 'title=Поръчване на артикулите,class=order-btn eshop-btn,rel=nofollow,disabled');
+            }
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
         
@@ -1703,6 +1714,8 @@ class eshop_Carts extends core_Master
             $finBtn = ht::createBtn('Завършване', array('eshop_Carts', 'finalize', $rec->id), false, null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow');
         } elseif(eshop_CartDetails::fetchField("#finalPrice IS NULL")){
             $finBtn = ht::createErrBtn('Завършване', 'Има проблем с някои от артикулите|*!', 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
+        } else {
+            $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow,disabled');
         }
         
         if(!empty($finBtn) && !empty($rec->personNames) && !empty($rec->productCount)){
@@ -1880,7 +1893,17 @@ class eshop_Carts extends core_Master
                 }
             }
         }
-        
+
+        if(in_array($action, array('finalize', 'checkout')) && isset($rec) && $requiredRoles != 'no_one'){
+            $settings = cms_Domains::getSettings();
+            if(!empty($settings->minOrderAmount)){
+                $minOrderInBaseCurrency = currency_CurrencyRates::convertAmount($settings->minOrderAmount, null, $settings->currencyId);
+                if($rec->total < $minOrderInBaseCurrency){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+
         if ($action == 'delete' && isset($rec)) {
             if ($rec->state != 'draft') {
                 $requiredRoles = 'no_one';
