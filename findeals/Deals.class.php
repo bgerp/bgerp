@@ -1,4 +1,4 @@
-<?php
+		<?php
 
 
 /**
@@ -45,7 +45,7 @@ class findeals_Deals extends deals_DealBase
     /**
      * Кои сметки не могат да се избират
      */
-    protected  $exceptAccSysIds = '401,411,402,412,422';
+    protected  $exceptAccSysIds = '401,411,422';
     
     
     /**
