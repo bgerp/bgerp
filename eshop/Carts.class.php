@@ -1675,7 +1675,7 @@ class eshop_Carts extends core_Master
             if(countR($checkoutUrl)){
                 $btn = ht::createBtn(tr('Направете поръчка') . ' »', $checkoutUrl, null, null, 'title=Поръчване на артикулите,class=order-btn eshop-btn,rel=nofollow');
             } else {
-                $btn = ht::createBtn(tr('Направете поръчка') . ' »', array(), null, null, 'title=Поръчване на артикулите,class=order-btn eshop-btn,rel=nofollow,disabled');
+                $btn = ht::createBtn(tr('Направете поръчка') . ' »', array(), null, null, 'title=Поръчване на артикулите,class=eshop-btn,rel=nofollow,disabled');
             }
             $tpl->append($btn, 'CART_TOOLBAR_RIGHT');
         }
@@ -1715,7 +1715,7 @@ class eshop_Carts extends core_Master
         } elseif(eshop_CartDetails::fetchField("#finalPrice IS NULL")){
             $finBtn = ht::createErrBtn('Завършване', 'Има проблем с някои от артикулите|*!', 'title=Завършване на поръчката,class=order-btn eshop-btn eshop-errorBtn,rel=nofollow,ef_icon=none');
         } else {
-            $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=order-btn eshop-btn,rel=nofollow,disabled');
+            $finBtn = ht::createBtn('Завършване', array(), false, null, 'title=Завършване на поръчката,class=eshop-btn,rel=nofollow,disabled');
         }
         
         if(!empty($finBtn) && !empty($rec->personNames) && !empty($rec->productCount)){
