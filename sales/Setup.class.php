@@ -347,7 +347,7 @@ class sales_Setup extends core_ProtoSetup
     
         'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
 
-        'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане (0="без нотификация")->Време'),
+        'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане ("0" за изключване)->Време'),
         'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicer,optionsFunc=crm_Locations::getOwnLocations'),
     );
     
