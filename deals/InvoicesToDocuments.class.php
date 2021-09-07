@@ -231,7 +231,8 @@ class deals_InvoicesToDocuments extends core_Manager
     public static function getExpectedAmountToPay($invoiceContainerId, $ignoreDocumentContainerId)
     {
         $iRec = doc_Containers::getDocument($invoiceContainerId)->fetch();
-        $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate);
+        $dRate = $iRec->displayRate ? $iRec->displayRate : $iRec->rate;
+        $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $dRate);
 
         $query = static::getQuery();
         $query->where("#containerId = {$invoiceContainerId} AND #documentContainerId != {$ignoreDocumentContainerId}" );
