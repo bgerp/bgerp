@@ -491,12 +491,10 @@ class email_AddressesInfo extends core_Manager
 
         while ($rec = $query->fetch()) {
             $rec->lastChecked = dt::now();
-            if (self::validateEmail($rec->email)) {
-                $rec->state = 'ok';
-            } else {
+            if (!self::validateEmail($rec->email)) {
                 $rec->state = 'error';
+                self::save($rec, 'lastChecked, state, checkPoint');
             }
-            self::save($rec, 'lastChecked, state, checkPoint');
         }
     }
     
