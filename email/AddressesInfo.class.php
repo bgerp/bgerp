@@ -418,7 +418,11 @@ class email_AddressesInfo extends core_Manager
                     $rec->checkPoint = 0;
                 }
             } elseif ($rec->state == 'ok') {
-                $rec->checkPoint++;
+                if (!$rec->checkPoint) {
+                    $rec->checkPoint = 5;
+                } else {
+                    $rec->checkPoint++;
+                }
 
                 if ($rec->checkPoint > 5) {
                     $rec->checkPoint = 5;
