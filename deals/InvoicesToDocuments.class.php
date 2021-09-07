@@ -232,6 +232,7 @@ class deals_InvoicesToDocuments extends core_Manager
     {
         $iRec = doc_Containers::getDocument($invoiceContainerId)->fetch();
         $dRate = $iRec->displayRate ? $iRec->displayRate : $iRec->rate;
+        $dRate = $dRate ? $dRate : 1;
         $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $dRate);
 
         $query = static::getQuery();
