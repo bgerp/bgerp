@@ -144,7 +144,13 @@ class deals_InvoicesToDocuments extends core_Manager
 
                 if($iRec->amount > $eAmount){
                     $Invoice = doc_Containers::getDocument($iRec->containerId);
-                    $number = $Invoice->getInstance()->getVerbal($Invoice->fetch(), 'number');
+                    $iInst = $Invoice->getInstance();
+                    if ($iInst->fields['number']) {
+                        $number = $iInst->getVerbal($Invoice->fetch(), 'number');
+                    } else {
+                        $number = '??????';
+                    }
+
                     $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
                     $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
                 }
