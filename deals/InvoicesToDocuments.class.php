@@ -148,7 +148,7 @@ class deals_InvoicesToDocuments extends core_Manager
                     if ($iInst->fields['number']) {
                         $number = $iInst->getVerbal($Invoice->fetch(), 'number');
                     } else {
-                        $number = '??????';
+                        $number = "#" . $Invoice->getHandle();
                     }
 
                     $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
@@ -236,10 +236,15 @@ class deals_InvoicesToDocuments extends core_Manager
      */
     public static function getExpectedAmountToPay($invoiceContainerId, $ignoreDocumentContainerId)
     {
+        $Document = doc_Containers::getDocument($invoiceContainerId);
         $iRec = doc_Containers::getDocument($invoiceContainerId)->fetch();
-        $dRate = $iRec->displayRate ? $iRec->displayRate : $iRec->rate;
-        $dRate = $dRate ? $dRate : 1;
-        $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $dRate);
+
+        if($Document->isInstanceOf('deals_InvoiceMaster')){
+            $dRate = $iRec->displayRate ? $iRec->displayRate : $iRec->rate;
+            $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $dRate);
+        } else {
+            $vAmount = abs($iRec->amountDelivered / $iRec->currencyRate);
+        }
 
         $query = static::getQuery();
         $query->where("#containerId = {$invoiceContainerId} AND #documentContainerId != {$ignoreDocumentContainerId}" );
