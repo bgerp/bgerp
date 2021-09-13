@@ -232,7 +232,7 @@ class eshop_Settings extends core_Master
         $this->FLD('payments', 'keylist(mvc=cond_PaymentMethods,select=title)', 'caption=Условия на плащане->Методи,placeholder=Автоматично');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Условия на плащане->Валута,mandatory,removeAndRefreshForm=freeDelivery|freeDeliveryByBus,silent');
         $this->FLD('minOrderAmount', 'double(min=0)', 'caption=Условия на плащане->Мин. поръчка');
-        $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС)', 'caption=Условия на плащане->ДДС режим');
+        $this->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделно ДДС, no=Без ДДС)', 'caption=Условия на плащане->ДДС режим');
 
         $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика->Политика,placeholder=Автоматично');
         $this->FLD('discountType', 'set(percent=Процент,amount=Намалена сума)', 'caption=Показване на отстъпки спрямо "Каталог"->Като,mandatory');

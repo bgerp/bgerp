@@ -566,7 +566,13 @@ class eshop_Carts extends core_Master
                     
                     $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
                     $rec->totalNoVat += $deliveryNoVat;
-                    $rec->total += $deliveryNoVat * (1 + cat_Products::getVat($transportId));
+
+                    $transportVat = 0;
+                    if(in_array($settings->chargeVat, array('yes', 'separate'))){
+                        $transportVat = cat_Products::getVat($transportId);
+                    }
+
+                    $rec->total += $deliveryNoVat * (1 + $transportVat);
                 } else {
                     $rec->deliveryNoVat = -1;
                 }
@@ -1604,8 +1610,6 @@ class eshop_Carts extends core_Master
                 }
                 
                 $deliveryAmount = currency_CurrencyRates::convertAmount($deliveryAmount, null, null, $settings->currencyId);
-                $totalNoVat -= $deliveryAmount;
-                
                 $deliveryAmountV = core_Type::getByName('double(decimals=2)')->toVerbal($deliveryAmount);
                 $deliveryAmountV = currency_Currencies::decorate($deliveryAmountV, $settings->currencyId);
                 $row->deliveryAmount = $deliveryAmountV;
@@ -1618,7 +1622,7 @@ class eshop_Carts extends core_Master
             $row->amountCurrencyId = $row->currencyId;
         }
         
-        if ($settings->chargeVat != 'yes') {
+        if (in_array($settings->chargeVat, array('yes', 'separate'))) {
             $row->totalVat = $Double->toVerbal($vatAmount);
             $row->totalVat = currency_Currencies::decorate($row->totalVat, $settings->currencyId);
         }
