@@ -1625,7 +1625,7 @@ class eshop_Carts extends core_Master
             $row->amountCurrencyId = $row->currencyId;
         }
         
-        if (in_array($settings->chargeVat, array('yes', 'separate'))) {
+        if (!in_array($settings->chargeVat, array('yes', 'separate'))) {
             $row->totalVat = $Double->toVerbal($vatAmount);
             $row->totalVat = currency_Currencies::decorate($row->totalVat, $settings->currencyId);
         }
