@@ -74,6 +74,10 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
 
             $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
             $vAmount = round($vAmount, 2);
+
+            $paymentData = $mvc->getPaymentData($rec);
+            $vAmount = min($paymentData->amount, $vAmount);
+
             if($vAmount){
                 $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
                 deals_InvoicesToDocuments::save($dRec);
