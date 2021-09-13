@@ -80,14 +80,13 @@ class doc_Files extends core_Manager
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни');
         $this->FLD('show', 'enum(yes,no)', 'caption=Показване');
         $this->FNC('date', 'datetime', 'caption=Дата,input=none');
-        
+
         $this->setDbUnique('containerId, fileHnd');
-        
+
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
-        $this->setDbIndex('dataId, folderId');
-        $this->setDbIndex('show');
-        $this->setDbIndex('show, fileHnd');
+        $this->setDbIndex('dataId');
+        $this->setDbIndex('fileHnd');
     }
     
     
