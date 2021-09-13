@@ -218,9 +218,7 @@ class eshop_CartDetails extends core_Detail
                 $unit = $settings->currencyId . ' ' . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
                 $form->setField('displayPrice', "unit={$unit}");
                 $form->rec->haveVat = $settings->chargeVat;
-                if(in_array($settings->chargeVat, array('yes', 'separate'))){
-                    $form->rec->vat = cat_Products::getVat($rec->productId);
-                }
+                $form->rec->vat = cat_Products::getVat($rec->productId);
             }
         }
         
@@ -305,6 +303,7 @@ class eshop_CartDetails extends core_Detail
             'eshopProductId' => $eshopProductId,
             'productId' => $productId,
             'packagingId' => $packagingId,
+            'vat' => cat_Products::getVat($productId),
             'quantityInPack' => $quantityInPack,
             'quantity' => $quantity,
             'currencyId' => $currencyId,
@@ -316,10 +315,6 @@ class eshop_CartDetails extends core_Detail
             $dRec->_updatePrice = false;
         } else {
             $dRec->haveVat = ($settings->chargeVat) ? $settings->chargeVat : 'yes';
-        }
-
-        if(in_array($dRec->haveVat, array('yes', 'separate'))){
-            $dRec->vat = cat_Products::getVat($productId);
         }
 
         if ($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")) {

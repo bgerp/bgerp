@@ -525,7 +525,10 @@ class eshop_Carts extends core_Master
                 $finalPrice -= $finalPrice * $dRec->discount;
             }
             $sum = $finalPrice * ($dRec->quantity / $dRec->quantityInPack);
-            
+            if(!in_array($dRec->haveVat, array('yes', 'separate'))){
+                $dRec->vat = 0;
+            }
+
             if ($dRec->haveVat == 'yes') {
                 $rec->totalNoVat += round($sum / (1 + $dRec->vat), 4);
                 $rec->total += round($sum, 4);
@@ -561,7 +564,7 @@ class eshop_Carts extends core_Master
                     // Ако има сума за безплатна доставка и доставката е над нея, тя не се начислява
                     $deliveryNoVat = $rec->deliveryNoVat;
                     if ($rec->freeDelivery == 'yes') {
-                        $delivery = $deliveryNoVat = 0;
+                        $deliveryNoVat = 0;
                     }
                     
                     $transportId = cat_Products::fetchField("#code = 'transport'", 'id');
@@ -2301,7 +2304,6 @@ class eshop_Carts extends core_Master
     private static function prepareOrderForm(&$form)
     {
         $cu = core_Users::getCurrent('id', false);
-        $defaultTermId = $defaultPaymentId = null;
         $settings = cms_Domains::getSettings();
         
         $deliveryTerms = eshop_Settings::getDeliveryTermOptions('cms_Domains', cms_Domains::getPublicDomain()->id);
