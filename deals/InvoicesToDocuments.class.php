@@ -533,10 +533,13 @@ class deals_InvoicesToDocuments extends core_Manager
 
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->documentId)) {
-
-                // Търсене и на последващите документи
-                if ($document = doc_Containers::getDocumentByHandle($rec->documentId)) {
+                if(type_Int::isInt($rec->documentId)){
+                    $containerId = $rec->documentId;
+                } elseif($document = doc_Containers::getDocumentByHandle($rec->documentId)){
                     $containerId = $document->fetchField('containerId');
+                }
+
+                if (isset($containerId)) {
                     $data->query->where("#documentContainerId = {$containerId} OR #containerId = {$containerId}");
                 }
             }
