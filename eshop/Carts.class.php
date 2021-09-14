@@ -3023,18 +3023,26 @@ class eshop_Carts extends core_Master
         if(!empty($rec->invoiceCountry)) {
             $bgId = drdata_Countries::getIdByName('Bulgaria');
             if($rec->invoiceCountry == $bgId) {
-                $msg = 'Държавата е от България и ще бъде начислен ДДС';
+                $msg = 'Контрагентът е от България, начислено е ДДС|*!';
 
                 return 'separate';
             }
 
-            if(!empty($rec->invoiceVatNo) && drdata_Countries::isEu($rec->invoiceCountry)) {
-                $VatType = cls::get('drdata_Vats');
-                list($status,) = $VatType->check($rec->invoiceVatNo, true);
-                if($status != drdata_Vats::statusValid) {
-                    $msg = 'Държавата е от ЕС, но с невалиден номер и ще бъде начислен ДДС';
+            if(drdata_Countries::isEu($rec->invoiceCountry)){
+                if($rec->makeInvoice == 'person') {
+                    $msg = 'Фактурането е за лице от ЕС, начислено е ДДС|*!';
 
                     return 'separate';
+                }
+
+                if(!empty($rec->invoiceVatNo)) {
+                    $VatType = cls::get('drdata_Vats');
+                    list($status,) = $VatType->check($rec->invoiceVatNo, true);
+                    if($status != drdata_Vats::statusValid) {
+                        $msg = 'Контрагентът е от ЕС, но с невалиден ДДС №, начислено е ДДС|*!';
+
+                        return 'separate';
+                    }
                 }
             }
         }
