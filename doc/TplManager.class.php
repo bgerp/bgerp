@@ -155,6 +155,10 @@ class doc_TplManager extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
+        if($docClassId = Request::get('docClassId', 'int')) {
+            bgerp_Notifications::clear(array('doc_TplManager', 'list', 'docClassId' => $docClassId), '*');
+        }
+
         $data->listFilter->setOptions('docClassId', static::getClassesWithTemplates());
         $data->listFilter->setField('docClassId', "placeholder=Всички документи,silent");
         $data->listFilter->showFields = 'docClassId';
@@ -459,6 +463,11 @@ class doc_TplManager extends core_Master
             if ($exRec && ($exRec->name == $object->name) && ($exRec->hashNarrow == $object->hashNarrow) && ($exRec->hash == $object->hash) && ($exRec->lang == $object->lang) && (serialize($exRec->toggleFields) == serialize($object->toggleFields)) && ($exRec->path == $object->content)) {
                 $skipped++;
                 continue;
+            }
+
+            // Ако е имало полета за модифициране, а вече няма да се занулят
+            if(isset($exRec->toggleFields) && empty($object->toggleFields)){
+                $object->toggleFields = null;
             }
 
             $object->path = $object->content;

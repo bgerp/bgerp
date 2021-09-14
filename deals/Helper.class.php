@@ -1335,7 +1335,8 @@ abstract class deals_Helper
         }
         
         $masterMvc->save($rec);
-        
+        $masterMvc->logWrite('Ръчна промяна на курса', $rec->id);
+
         if ($updateMaster) {
             $masterMvc->updateMaster_($rec->id);
         }
@@ -1343,6 +1344,7 @@ abstract class deals_Helper
         if ($rec->state == 'active') {
             acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id);
             acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
+            $masterMvc->logWrite('Рекондиране след промяна на курса', $rec->id);
         }
     }
     

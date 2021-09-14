@@ -9,7 +9,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,documentLu=Логистични единици->От документа,readyLu=Логистични единици->Подготвени,measures=Тегло|* / |Обем|*,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status,notes=@,address=@,documentHtml=@,classId=Клас,contragentName=@';
+    public $listFields = 'containerId=Документ,documentLu=Логистична информация->Опаковки,readyLu=Логистична информация->Подготвени,volume=Логистична информация->Обем,amountSo=Суми->ЕН,amountSr=Суми->СР,amountPko=Суми->ПКО,amountRko=Суми->РКО,status=Статус,notes=@,address=@,documentHtml=@,classId=Клас,contragentName=@';
     
     
     /**
@@ -213,8 +213,8 @@ class trans_LineDetails extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $Document = doc_Containers::getDocument($rec->containerId);
-        
         $transportInfo = $Document->getTransportLineInfo($rec->lineId);
+
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
             $row->containerId = "<span id= 'ld{$rec->id}' class='state-{$transportInfo['state']} document-handler'>{$row->containerId}</span>";
@@ -230,35 +230,46 @@ class trans_LineDetails extends doc_Detail
         if (!empty($transportInfo['notes'])) {
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
         }
-        
+
+        if (!empty($transportInfo['address'])) {
+            $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
+        }
+
         if (!empty($transportInfo['stores'])) {
             if (countR($transportInfo['stores']) == 1) {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true);
+                if($transportInfo['storeMovement'] == 'both'){
+                    $iconLeft = ht::createElement('img', array('src' => sbf('img/16/arrow_left.png', '')));
+                    $iconRight = ht::createElement('img', array('src' => sbf('img/16/arrow_right.png', '')));
+                    $row->storeId .= " {$iconLeft}{$iconRight}";
+                } else {
+                    $icon = ($transportInfo['storeMovement'] == 'in') ? 'img/16/arrow_left.png' : 'img/16/arrow_right.png';
+                    $row->storeId .= " " . ht::createElement('img', array('src' => sbf($icon, '')));
+                }
             } else {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true) . ' » ' . store_Stores::getHyperlink($transportInfo['stores'][1], true);
             }
-            $row->containerId .= "<br>{$row->storeId}";
+            $row->address = "{$row->storeId}, {$row->address}";
         }
-        
-        if (!empty($transportInfo['address'])) {
-            $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
-            $row->address = "<span class='line-detail-address'>{$row->address}</span>";
+
+        if(!empty($row->address)){
+            $row->address = "<div style='margin:2px;font-size:0.9em'>{$row->address}</div>";
         }
-        
+
         if($Document->haveInterface('store_iface_DocumentIntf')){
             if (!empty($transportInfo['weight'])) {
                 $weight = core_Type::getByName('cat_type_Weight')->toVerbal($transportInfo['weight']);
             } else {
                 $weight = "<span class='quiet'>N/A</span>";
             }
-            
+
+            $row->containerId .= " / " . $weight;
+
             if (!empty($transportInfo['volume'])) {
-                $volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
+                $row->volume = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);
             } else {
-                $volume = "<span class='quiet'>N/A</span>";
+                $row->volume = "<span class='quiet'>N/A</span>";
             }
-            
-            $row->measures = "{$weight} / {$volume}";
             
             if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
                 $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
@@ -269,7 +280,7 @@ class trans_LineDetails extends doc_Detail
             }
         } else {
             if(!empty($transportInfo['contragentName'])){
-                $row->contragentName = "<span class='small'>" . $transportInfo['contragentName'] . "</span>";
+                $row->contragentName = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
             }
         }
         
@@ -288,13 +299,7 @@ class trans_LineDetails extends doc_Detail
         $luObject = self::colorTransUnits($rec->documentLu, $rec->readyLu);
         $row->documentLu = $luObject->documentLu;
         $row->readyLu = $luObject->readyLu;
-        
-        if ($mvc->haveRightFor('togglestatus', $rec) && !Mode::isReadOnly()) {
-            $btnImg = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
-            $linkTitle = ($rec->status == 'waiting') ? 'Маркиране на документа като готов' : 'Отмаркиране на документа като готов';
-            $row->status .= ht::createLink('', array($mvc, 'togglestatus', $rec->id, 'ret_url' => true), false, "ef_icon={$btnImg},title={$linkTitle}");
-        }
-        
+
         core_RowToolbar::createIfNotExists($row->_rowTools);
         
         // Бутон за подготовка
@@ -302,12 +307,18 @@ class trans_LineDetails extends doc_Detail
             $url = array($mvc, 'prepare', 'id' => $rec->id, 'ret_url' => true);
             $row->_rowTools->addLink('Подготвяне', $url, array('ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Ръчна подготовка на документа'));
         }
-        
+
+        if ($mvc->haveRightFor('togglestatus', $rec)) {
+            $btnIcon = ($rec->status != 'waiting') ? 'img/16/checked.png' : 'img/16/checkbox_no.png';
+            $linkTitle = ($rec->status == 'waiting') ? 'Готово' : 'Чакащо';
+            $row->_rowTools->addLink($linkTitle, array($mvc, 'togglestatus', $rec->id, 'ret_url' => true), array('ef_icon' => $btnIcon, 'title' => 'Ръчна подготовка на документа'));
+        }
+
         // Бутон за създаване на коментар
         $masterRec = trans_Lines::fetch($rec->lineId);
         if ($mvc->haveRightFor('doc_Comments', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
             $commentUrl = array('doc_Comments', 'add', 'originId' => $masterRec->containerId, 'detId' => $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => 'img/16/comment_add.png', 'title' => 'Известяване на отговорниците на документа'));
+            $row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => 'img/16/comment_add.png', 'alwaysShow' => true, 'title' => 'Известяване на отговорниците на документа'));
         }
         
         // Бутон за изключване

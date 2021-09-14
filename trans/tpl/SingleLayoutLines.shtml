@@ -27,12 +27,13 @@
 					<!--ET_BEGIN myCompany-->
 					<div style='margin-bottom: 5px;'><b>[#myCompany#]</b></div>
 					<!--ET_END myCompany-->
+					<!--ET_BEGIN logistic-->
+					<div style='margin-bottom: 5px;'>[#logistic#]</div>
+					<!--ET_END logistic-->
 					<!--ET_BEGIN caseId-->
 					<div style='margin-bottom: 5px;'>|Инкасиране в|*: [#caseId#]</div>
 					<!--ET_END caseId-->
-					<!--ET_BEGIN logistic-->
-					<div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div>
-					<!--ET_END logistic-->
+
 				</div>
 				<table class='signature-table'>
 					<tr>
@@ -55,13 +56,10 @@
 					<div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div>
 					<!--ET_END forwarderId-->
 					<!--ET_BEGIN vehicle-->
-					<div style='margin-bottom: 5px;'>|Превозно средство|*: [#vehicle#]</div>
+					<div style='margin-bottom: 5px;'>[#vehicle#]<!--ET_BEGIN regNumber-->, [#regNumber#]<!--ET_END regNumber--></div>
 					<!--ET_END vehicle-->
-					<!--ET_BEGIN regNumber-->
-					<div style='margin-bottom: 5px;'>|Рег. номер|*: <b>[#regNumber#]</b></div>
-					<!--ET_END regNumber-->
 					<!--ET_BEGIN forwarderPersonId-->
-					<div style='margin-bottom: 5px;'>|МОЛ|*: [#forwarderPersonId#]</div>
+					<div style='margin-bottom: 5px;'>[#forwarderPersonId#]</div>
 					<!--ET_END forwarderPersonId-->
 				</div>
 				<table class='signature-table'>

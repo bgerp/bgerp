@@ -877,7 +877,9 @@ class sales_Sales extends deals_DealMaster
 
         // Изпращане на нотификации, за нефактурирани продажби
         $lateTime = sales_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');
-        $this->sendNotificationIfInvoiceIsTooLate($lateTime);
+        if(!empty($lateTime)){
+            $this->sendNotificationIfInvoiceIsTooLate($lateTime);
+        }
     }
     
     

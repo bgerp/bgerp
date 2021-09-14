@@ -1912,6 +1912,10 @@ class email_Outgoings extends core_Master
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
             }
 
+            if (!$contragentData) {
+                $contragentData = new stdClass();
+            }
+
             if ($rec->originId) {
                 $oDoc = doc_Containers::getDocument($rec->originId);
                 $oContragentData = $oDoc->getContragentData();
@@ -1953,7 +1957,7 @@ class email_Outgoings extends core_Master
             }
         }
 
-        if (!$contragentData) {
+        if (!(array) $contragentData) {
             $contragentData = doc_Folders::getContragentData($rec->folderId);
         } else {
             // Ако е в папка на котрагент, може да се използват името на фирмата, лицето и държавата от там

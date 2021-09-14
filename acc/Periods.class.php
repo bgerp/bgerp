@@ -824,7 +824,7 @@ class acc_Periods extends core_Manager
 
 
     /**
-     * Връща първата свободна дата, ако периода на датата е затворен
+     * Връща датата, ако е в незатворен период, или ако е връща датата на първия незатворен период след нея
      *
      * @param $date
      * @return date
@@ -837,12 +837,11 @@ class acc_Periods extends core_Manager
             // Кой е първия свободен период
             $pQuery = acc_Periods::getQuery();
             $pQuery->where("#state = 'active' OR #state = 'pending'");
-            $pQuery->where("#id > {$pRec->id}");
-            $pQuery->orderBy('start', 'DESC');
-            if ($pRec2 = $pQuery->fetch()) {
+            $pQuery->where("#end > {$date}");
+            $pQuery->orderBy('end', 'ASC');
+            $pQuery->limit(1);
 
-                return $pRec2->start;
-            }
+            if ($pRec2 = $pQuery->fetch()) return $pRec2->start;
         }
 
         return $date;

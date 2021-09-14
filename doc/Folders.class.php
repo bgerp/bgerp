@@ -1041,7 +1041,9 @@ class doc_Folders extends core_Master
             //Контрагентните данни, взети от класа
             $contragentData = $className::getContragentData($folder->coverId);
         }
-        
+
+        setIfNot($contragentData, new stdClass());
+
         return $contragentData;
     }
     

@@ -380,4 +380,53 @@ class cat_Groups extends core_Manager
         
         return false;
     }
+
+
+    /**
+     * Обновяване броя артикули в група
+     *
+     * @param mixed $ids - ид-та на конкретни групи, null за всички
+     * @return void
+     */
+    public static function updateGroupsCnt($ids = null)
+    {
+        // Ако има групи обръщат се в масив
+        $groupArr = arr::make($ids, true);
+        $groupArr = countR($groupArr) ? $groupArr : null;
+
+        // Преброяване колко артикули са във всяка група
+        $pQuery = cat_Products::getQuery();
+        $gCntArr = $pQuery->countKeylist('groups', $groupArr);
+
+        // Ще се обновява броя артикули в група, само ако има промяна
+        $updateGroups = array();
+        $query = cat_Groups::getQuery();
+        if(countR($groupArr)){
+            $query->in('id', $groupArr);
+        }
+
+        while ($rec = $query->fetch()) {
+            if ($gCntArr[$rec->id] != $rec->productCnt) {
+                $rec->productCnt = $gCntArr[$rec->id];
+                if(empty($rec->productCnt)){
+                    $rec->productCnt = 0;
+                }
+                $updateGroups[$rec->id] = $rec;
+            }
+        }
+
+        // Обновяване на групите с промяна
+        if(countR($updateGroups)){
+            cls::get('cat_Groups')->saveArray($updateGroups, 'id,productCnt');
+        }
+    }
+
+
+    /**
+     * Обновява броячите на групите по cron
+     */
+    public function cron_UpdateGroupsCnt()
+    {
+        self::updateGroupsCnt();
+    }
 }

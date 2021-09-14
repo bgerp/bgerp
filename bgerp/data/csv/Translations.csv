@@ -2729,7 +2729,7 @@ en,Към магазина,To the eshop
 en,Връщане в онлайн магазина,Return to the eshop
 en,"Сигурни ли сте, че искате да изчистите артикулите?","Are you sure, that you want to clear all items?"
 en,Изчисти,Clear
-en,"Имате предишна активна поръчка, моля проверете си имейла","You have active order, please check your email"
+en,"Имате предишна активна поръчка, моля проверете си имейла","You already have an active order, please check your email"
 en,Прекратяване на действията,Cancel all actions
 en,Запис на данните за поръчката,Save order details
 en,Редактиране на данните на поръчката,Edit order details
@@ -2936,3 +2936,5 @@ en,В обработка,In processing
 en,логнете,login
 en,За адрес,To address
 en,"Отговаряме само на запитвания получени от представители на реални, регистрирани в България или чужбина фирми и други юридически организации","We accept only enquiries from real companies or organisations, registered in Bulgaria or abroad"
+en,"За контрагенти от България, трябва да премахнете двубуквения префикс. Или въведете номера в полето за ДДС №", "For contragents from Bulgaria, you must remove the two-letter prefix, or you can also place it in the field for Vat №"
+en,"Приемат се поръчки за минимално","Minimum order amount of"

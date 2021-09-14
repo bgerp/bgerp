@@ -680,11 +680,11 @@ class eshop_ProductDetails extends core_Detail
         if(!isset($title) || $title === false){
             $title = cat_Products::getVerbal($productId, 'name');
         }
-        
+
         if($showFullName){
             $eProductName = eshop_Products::getVerbal($eProductId, 'name');
-            
-            if($eProductName != $title){
+
+            if(stripos($title, $eProductName) === false){
                 $title = "{$eProductName}: {$title}";
             }
         }

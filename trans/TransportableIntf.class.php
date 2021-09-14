@@ -38,8 +38,9 @@ class trans_TransportableIntf
      *               ['stores']         array       - склад(ове) в документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
-     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
+     *               ['storeMovement']  string|NULL - посока на движението на склада
      */
     public function getTransportLineInfo($id, $lineId)
     {

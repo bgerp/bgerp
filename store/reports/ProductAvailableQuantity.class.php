@@ -512,7 +512,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             $prodRec->conditionQuantity = '3|ок';
             $prodRec->conditionColor = 'green';
-            if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0) {
+            if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0 && $prodRec->minQuantity != '0') {
                 continue;
             }
             if ($prodRec->quantity > $prodRec->maxQuantity && ($prodRec->maxQuantity != 0)) {
@@ -815,7 +815,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if (countR($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
-//bp($res);
+
         return $res;
     }
 

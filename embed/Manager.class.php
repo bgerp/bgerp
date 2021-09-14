@@ -337,9 +337,14 @@ abstract class embed_Manager extends core_Master
                 case 'afterread':
                 case 'beforechangestate':
                 case 'afteractivation':
+
                     $driverClass = $args[0]->{$this->driverClassField};
                     break;
-                
+                case 'beforeaction':
+                    if($id = Request::get('id', 'int')){
+                        $driverClass = $this->fetchField($id, $this->driverClassField);
+                    }
+                    break;
                 case 'aftergetrequiredroles':
                     if (is_object($args[2])) {
                         $driverClass = $args[2]->{$this->driverClassField};

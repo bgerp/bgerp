@@ -31,6 +31,7 @@ class planning_type_ProductionRate extends type_Varchar
                                          'minPer10' => '|минути за|* 10 |[#measureId#]|*',
                                          'minPer100' => '|минути за|* 100 |[#measureId#]|*',
                                          'per1Hour' => '|[#measureId#]|* |за|* 1 |час|*',
+                                         'per1Min' => '|[#measureId#]|* |за|* 1 |минута|*',
                                          'per8Hour' => '|[#measureId#]|* |за|* 8 |часа|*',);
 
 
@@ -216,6 +217,10 @@ class planning_type_ProductionRate extends type_Varchar
                 break;
             case 'per1Hour':
                 $perSec = 3600 / $parseValue['left'];
+                $secs = round($perSec * $quantity);
+                break;
+            case 'per1Min':
+                $perSec = 60 / $parseValue['left'];
                 $secs = round($perSec * $quantity);
                 break;
             case 'per8Hour':
