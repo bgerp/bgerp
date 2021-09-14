@@ -195,8 +195,8 @@ class trans_Lines extends core_Master
         $this->FLD('start', 'datetime', 'caption=Начало, mandatory');
         $this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици)', 'caption=Повторение');
         $this->FLD('state', 'enum(draft=Чернова,,pending=Заявка,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
-        $this->FLD('vehicle', 'varchar', 'caption=Превозвач->Превозно средство,oldFieldName=vehicleId');
         $this->FLD('forwarderId', 'key2(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Превозвач->Транспортна фирма');
+        $this->FLD('vehicle', 'varchar', 'caption=Превозвач->Превозно средство,oldFieldName=vehicleId');
         $this->FLD('forwarderPersonId', 'key2(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Превозвач->МОЛ');
         $this->FLD('caseId', 'key(mvc=cash_Cases,select=name)', 'caption=Превозвач->Инкасиране в');
         $this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
@@ -315,8 +315,11 @@ class trans_Lines extends core_Master
             
             $ownCompanyData = crm_Companies::fetchOwnCompany();
             $row->myCompany = ht::createLink($ownCompanyData->company, crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
-            $row->logistic = (core_Mode::isReadOnly()) ? core_Users::getVerbal($rec->createdBy, 'names') : crm_Profiles::createLink($rec->createdBy);
-            
+
+            $createdByUserLink = crm_Profiles::createLink($rec->createdBy);
+            $row->logistic = core_Users::getVerbal($rec->createdBy, 'names');
+            $row->logistic .= " ({$createdByUserLink})";
+
             if (isset($rec->forwarderPersonId) && !Mode::isReadOnly()) {
                 $row->forwarderPersonId = ht::createLink($row->forwarderPersonId, crm_Persons::getSingleUrlArray($rec->forwarderPersonId));
             }
@@ -542,10 +545,15 @@ class trans_Lines extends core_Master
         
         $docContainerId = trans_LineDetails::fetchField($detId, 'containerId');
         $Document = doc_Containers::getDocument($docContainerId);
-        
-        $res['body'] = '#' . $Document->getHandle();
-        $res['sharedUsers'] = $Document->fetchField('sharedUsers');
-        
+        $documentRec = $Document->fetch('sharedUsers,createdBy,modifiedBy');
+        $res['body'] = 'За: #' . $Document->getHandle();
+
+        $users = '';
+        $users = keylist::addKey($users, $documentRec->createdBy);
+        $users = keylist::addKey($users, $documentRec->modifiedBy);
+        $users = keylist::merge($users, $documentRec->sharedUsers);
+        $res['sharedUsers'] = $users;
+
         return $res;
     }
     

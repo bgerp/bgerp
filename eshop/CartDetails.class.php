@@ -99,7 +99,7 @@ class eshop_CartDetails extends core_Detail
         $this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input=none');
         $this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'input=none');
-        $this->FLD('haveVat', 'enum(yes=Да, separate=Не)', 'input=none');
+        $this->FLD('haveVat', 'enum(yes=Да, separate=Отделно, no=Без)', 'input=none');
         
         $this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,input=none');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
@@ -213,11 +213,12 @@ class eshop_CartDetails extends core_Detail
             
             $settings = cms_Domains::getSettings();
             if ($price = eshop_ProductDetails::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)) {
+                $chargeVat = eshop_Carts::calcChargeVat($rec->cartId);
                 $price->price = round($price->price, 2);
                 $form->setReadOnly('displayPrice', $price->price);
-                $unit = $settings->currencyId . ' ' . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
+                $unit = $settings->currencyId . ' ' . (($chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
                 $form->setField('displayPrice', "unit={$unit}");
-                $form->rec->haveVat = $settings->chargeVat;
+                $form->rec->haveVat = $chargeVat;
                 $form->rec->vat = cat_Products::getVat($rec->productId);
             }
         }
@@ -295,28 +296,29 @@ class eshop_CartDetails extends core_Detail
         }
         
         $settings = eshop_Settings::getSettings('cms_Domains', $cartRec->domainId);
-        $vat = cat_Products::getVat($productId);
+
         $quantity = $packQuantity * $quantityInPack;
         $currencyId = isset($currencyId) ? $currencyId : (isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode());
-        
+
         $dRec = (object) array('cartId' => $cartId,
             'eshopProductId' => $eshopProductId,
             'productId' => $productId,
             'packagingId' => $packagingId,
+            'vat' => cat_Products::getVat($productId),
             'quantityInPack' => $quantityInPack,
-            'vat' => $vat,
             'quantity' => $quantity,
             'currencyId' => $currencyId,
         );
-        
+
         if (!empty($packPrice)) {
             $dRec->finalPrice = $packPrice;
-            $dRec->haveVat = ($hasVat) ? (($hasVat === true) ? 'yes' : 'no') : (($settings->chargeVat) ? $settings->chargeVat : 'yes');
+            $calcChargeVat = eshop_Carts::calcChargeVat($cartRec);
+            $dRec->haveVat = ($hasVat) ? (($hasVat === true) ? 'yes' : 'no') : (($calcChargeVat) ? $calcChargeVat : 'yes');
             $dRec->_updatePrice = false;
         } else {
-            $dRec->haveVat = ($settings->chargeVat) ? $settings->chargeVat : 'yes';
+            $dRec->haveVat = eshop_Carts::calcChargeVat($cartRec);
         }
-        
+
         if ($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")) {
             $exRec->quantity += $dRec->quantity;
             self::save($exRec, 'quantity,finalPrice,oldPrice,discount');

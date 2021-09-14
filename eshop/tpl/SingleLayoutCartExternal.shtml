@@ -230,6 +230,7 @@
          <!--ET_BEGIN CART_TOOLBAR_RIGHT-->
          <div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT#]</div>
          <!--ET_END CART_TOOLBAR_RIGHT-->
+         <div class = 'cart-view-buttons-right'>[#CART_TOOLBAR_RIGHT_FOOTER#]</div>
       </div>
       <!--ET_END INFO_BLOCK-->
    </div>

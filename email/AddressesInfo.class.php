@@ -246,6 +246,7 @@ class email_AddressesInfo extends core_Manager
             $saveFields = array();
             $saveFields['email'] = 'email';
             $saveFields['lastSent'] = 'lastSent';
+            $saveFields['checkPoint'] = 'checkPoint';
         }
         
         $rec->email = $email;
@@ -399,7 +400,7 @@ class email_AddressesInfo extends core_Manager
      * @param NULL|int            $rec
      * @param stdClass            $rec
      */
-    public static function on_BeforeSave($mvc, $res, $rec)
+    public static function on_BeforeSave($mvc, $res, $rec, &$fields = null)
     {
         if (!$rec->state) {
             $rec->state = 'ok';
@@ -412,15 +413,25 @@ class email_AddressesInfo extends core_Manager
             
             if ($rec->state == 'error') {
                 $rec->checkPoint--;
-                
+
                 if ($rec->checkPoint < 0 || !(isset($rec->checkPoint))) {
                     $rec->checkPoint = 0;
                 }
             } elseif ($rec->state == 'ok') {
-                $rec->checkPoint++;
-                
+                if (!$rec->checkPoint) {
+                    $rec->checkPoint = 5;
+                } else {
+                    $rec->checkPoint++;
+                }
+
                 if ($rec->checkPoint > 5) {
                     $rec->checkPoint = 5;
+                }
+            }
+
+            if (is_array($fields) && !$fields['checkPoint'] && $fields['state']) {
+                if (isset($rec->checkPoint)) {
+                    $fields['checkPoint'] = 'checkPoint';
                 }
             }
         }
@@ -481,15 +492,13 @@ class email_AddressesInfo extends core_Manager
         $query->limit((int) email_Setup::get('RECHECK_EMAILS_LIMIT'));
         
         $query->orderBy('lastChecked', 'ASC');
-        
+
         while ($rec = $query->fetch()) {
             $rec->lastChecked = dt::now();
-            if (self::validateEmail($rec->email)) {
-                $rec->state = 'ok';
-            } else {
+            if (!self::validateEmail($rec->email)) {
                 $rec->state = 'error';
+                self::save($rec, 'lastChecked, state, checkPoint');
             }
-            self::save($rec, 'lastChecked, state, checkPoint');
         }
     }
     

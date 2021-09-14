@@ -1774,8 +1774,15 @@ span.inputLackOfChoiceMandatory {
     margin-bottom: 0;
 }
 
-.mandatoryMiddleCaption {
-	font-weight: bold;
+.formMiddleCaption{
+    padding: 5px;
+	margin: 10px 0 10px;
+	border-radius: 3px;
+	
+}
+
+.mandatoryMiddleCaption{
+
 }
 
 .staticFormView .formFieldValue {
