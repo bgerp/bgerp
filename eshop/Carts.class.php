@@ -2246,7 +2246,7 @@ class eshop_Carts extends core_Master
             }
             
             if (!empty($rec->invoiceUicNo) && $rec->makeInvoice == 'company') {
-                drdata_type_Uic::check($form, $rec->invoiceUicNo, $rec->invoiceCountry, 'uicNo');
+                drdata_type_Uic::check($form, $rec->invoiceUicNo, $rec->invoiceCountry, 'invoiceUicNo');
             }
             
             if (!empty($rec->invoiceNames) && $rec->makeInvoice != 'none') {
