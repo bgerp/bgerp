@@ -2165,34 +2165,10 @@ class eshop_Carts extends core_Master
                 $form->setField('invoiceUicNo', 'caption=Данни за фактуриране->ЕГН');
                 $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
                 $form->setDefault('invoiceNames', $form->rec->personNames);
-
-                if($settings->mandatoryEGN == 'mandatory'){
-                    $form->setField('invoiceUicNo', 'mandatory');
-                } elseif($settings->mandatoryEGN == 'no'){
-                    $form->setField('invoiceUicNo', 'input=none');
-                } elseif($settings->mandatoryEGN == 'optional' && $settings->mandatoryVatId == 'no'){
-                    $form->setField('invoiceUicNo', 'mandatory');
-                }
             } else {
                 $form->setFieldType('invoiceUicNo', 'drdata_type_Uic');
                 $form->setField('invoiceNames', 'caption=Данни за фактуриране->Фирма');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактуриране->ДДС №||VAT ID');
-
-                if($settings->mandatoryUicId == 'mandatory'){
-                    $form->setField('invoiceUicNo', 'mandatory');
-                } elseif($settings->mandatoryUicId == 'no'){
-                    $form->setField('invoiceUicNo', 'input=none');
-                } elseif($settings->mandatoryUicId == 'optional' && $settings->mandatoryVatId == 'no'){
-                    $form->setField('invoiceUicNo', 'mandatory');
-                }
-            }
-
-            if($settings->mandatoryVatId == 'mandatory'){
-                $form->setField('invoiceVatNo', 'mandatory');
-            } elseif($settings->mandatoryVatId == 'no'){
-                $form->setField('invoiceVatNo', 'input=none');
-            } elseif($settings->mandatoryVatId == 'optional' && $settings->mandatoryUicId == 'no'){
-                $form->setField('invoiceVatNo', 'mandatory');
             }
 
             $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
@@ -2240,8 +2216,8 @@ class eshop_Carts extends core_Master
             }
 
             if ($rec->makeInvoice != 'none') {
-                if($settings->mandatoryUicId == 'optional' && empty($rec->invoiceUicNo) && $settings->mandatoryVatId == 'optional' && empty($rec->invoiceVatNo)){
-                    $form->setError('mandatoryUicId,invoiceVatNo', 'Поне едно от полетата трябва да бъде въведено');
+                if(empty($rec->invoiceUicNo) && empty($rec->invoiceVatNo)){
+                    $form->setError('invoiceUicNo,invoiceVatNo', 'Поне едно от полетата трябва да бъде въведено');
                 }
             }
             
