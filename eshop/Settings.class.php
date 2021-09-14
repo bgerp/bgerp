@@ -279,8 +279,8 @@ class eshop_Settings extends core_Master
         $this->FLD('defaultTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Дефолти за анонимни потребители->Доставка');
         $this->FLD('dealerId', 'user(roles=sales|ceo,allowEmpty,rolesForAll=eshop|ceo|admin,rolesForTeam=eshop|ceo|admin)', 'caption=Продажби създадени от онлайн магазина->Търговец');
 
-        $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Онлайн поръчки->Допустимост,notNull,value=auto');
-        $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допустимост,notNull,value=auto');
+        $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми,both=Фирми и лица)', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
+        $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за,notNull,value=auto');
         $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕГН');
         $this->FLD('mandatoryUicId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕИК');
         $this->FLD('mandatoryVatId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ДДС №');

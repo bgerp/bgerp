@@ -1625,7 +1625,7 @@ class eshop_Carts extends core_Master
             $row->amountCurrencyId = $row->currencyId;
         }
         
-        if (!in_array($settings->chargeVat, array('yes', 'separate'))) {
+        if ($settings->chargeVat == 'separate') {
             $row->totalVat = $Double->toVerbal($vatAmount);
             $row->totalVat = currency_Currencies::decorate($row->totalVat, $settings->currencyId);
         }
@@ -2074,17 +2074,16 @@ class eshop_Carts extends core_Master
         $data->action = 'order';
         $this->prepareEditForm($data);
         $data->form->setAction($this, 'order');
-        
+
         $form = &$data->form;
         $form->title = 'Данни за поръчка';
         $form->countries = $countries;
         cms_Domains::addMandatoryText2Form($form);
-        
         self::prepareOrderForm($form);
-        
+
         // Добавяне на линк за логване, ако от преди се е логвам потребителя
         cms_Helper::setLoginInfoIfNeeded($form);
-        
+
         $form->input(null, 'silent');
         
         $cu = core_Users::getCurrent('id', false);
@@ -2151,12 +2150,30 @@ class eshop_Carts extends core_Master
                 $form->setField('invoiceUicNo', 'caption=Данни за фактуриране->ЕГН');
                 $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
                 $form->setDefault('invoiceNames', $form->rec->personNames);
+
+                if($settings->mandatoryEGN == 'mandatory'){
+                    $form->setField('invoiceUicNo', 'mandatory');
+                } elseif($settings->mandatoryEGN == 'no'){
+                    $form->setField('invoiceUicNo', 'input=none');
+                }
             } else {
                 $form->setFieldType('invoiceUicNo', 'drdata_type_Uic');
                 $form->setField('invoiceNames', 'caption=Данни за фактуриране->Фирма');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактуриране->ДДС №||VAT ID');
+
+                if($settings->mandatoryUicId == 'mandatory'){
+                    $form->setField('invoiceUicNo', 'mandatory');
+                } elseif($settings->mandatoryUicId == 'no'){
+                    $form->setField('invoiceUicNo', 'input=none');
+                }
             }
-            
+
+            if($settings->mandatoryVatId == 'mandatory'){
+                $form->setField('invoiceVatNo', 'mandatory');
+            } elseif($settings->mandatoryVatId == 'no'){
+                $form->setField('invoiceVatNo', 'input=none');
+            }
+
             $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
             $form->setFieldAttr('deliveryPCode', 'data-updateonchange=invoicePCode,class=updateonchange');
             $form->setFieldAttr('deliveryPlace', 'data-updateonchange=invoicePlace,class=updateonchange');
@@ -2200,9 +2217,21 @@ class eshop_Carts extends core_Master
                     $form->setError('invoiceNames', 'Невалидно име и фамилия');
                 }
             }
-            
-            if ($rec->makeInvoice != 'none' && empty($rec->invoiceVatNo) && empty($rec->invoiceUicNo)) {
-                $form->setError('invoiceVatNo,invoiceUicNo', 'Поне едно от полетата трябва да бъде въведено');
+
+            if ($rec->makeInvoice != 'none') {
+                $vatNoInputType = $form->getFieldParam('invoiceVatNo', 'input');
+                $uicNoInputType = $form->getFieldParam('invoiceUicNo', 'input');
+
+                $errorFields = array();
+                if($vatNoInputType == 'input' && empty($rec->invoiceVatNo) ){
+                    $errorFields[] = 'invoiceVatNo';
+                }
+                if($uicNoInputType == 'input' && empty($rec->invoiceVatNo)){
+                    $errorFields[] = 'invoiceUicNo';
+                }
+
+                $msg = countR($errorFields) > 1 ? 'Поне едно от полетата трябва да бъде въведено' : 'Полето трябва да е попълнено';
+                $form->setError($errorFields, $msg);
             }
             
             if (!empty($rec->invoiceUicNo) && $rec->makeInvoice == 'company') {
@@ -2322,7 +2351,7 @@ class eshop_Carts extends core_Master
             $emails = type_Emails::toArray($email);
             $form->setDefault('email', $emails[0]);
             $form->setDefault('tel', $profileRec->tel);
-            
+
             // Задаване като опции
             if (countR($options)) {
                 $form->setDefault('makeInvoice', 'company');
@@ -2378,9 +2407,7 @@ class eshop_Carts extends core_Master
             $paymentMethods = array('' => '') + $paymentMethods;
         }
         $form->setOptions('paymentId', $paymentMethods);
-        
-        $makeInvoice = eshop_Setup::get('MANDATORY_CONTACT_FIELDS');
-        if (in_array($makeInvoice, array('company', 'both'))) {
+        if ($settings->mandatoryEcartContactFields == 'company') {
             $form->setDefault('makeInvoice', 'company');
             $form->setField('makeInvoice', 'input=hidden');
         }
