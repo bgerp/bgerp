@@ -50,10 +50,12 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
             $oData = $mvc->getPaymentData($rec->id);
             $nData = $mvc->getPaymentData($rec);
 
-            if($oData->amount != $nData->amount || $oData->currencyId != $nData->currencyId){
-                if(deals_InvoicesToDocuments::count("#documentContainerId = {$rec->containerId}")){
-                    $rec->_resetInvoices = true;
-                }
+            // Прир едакция се проверява дали е сменяна валутата или сумата на документа
+            if($oData->amount != $nData->amount){
+                $rec->_amountChange = ($oData->amount > $nData->amount) ? 'decrease' : 'increase';
+            }
+            if($oData->amount != $nData->amount){
+                $rec->_currencyChange = true;
             }
         }
     }
@@ -72,6 +74,10 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
 
             $vAmount = currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode);
             $vAmount = round($vAmount, 2);
+
+            $paymentData = $mvc->getPaymentData($rec);
+            $vAmount = min($paymentData->amount, $vAmount);
+
             if($vAmount){
                 $dRec = (object)array('documentContainerId' => $rec->containerId, 'containerId' => $rec->fromContainerId, 'amount' => $vAmount);
                 deals_InvoicesToDocuments::save($dRec);
@@ -85,12 +91,34 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     protected static function on_AfterSave($mvc, &$id, $rec)
     {
-        if($rec->_resetInvoices){
-            deals_InvoicesToDocuments::delete("#documentContainerId = {$rec->containerId}");
-            core_Statuses::newStatus('Информацията за отнасянията по фактури е изтрита, поради промяна на сумата и/или валутата на документа. Моля разпределете ги отново');
-            if(isset($rec->fromContainerId)){
-                $rec->fromContainerId = null;
-                $mvc->save_($rec, 'fromContainerId');
+        if($rec->_amountChange || $rec->_currencyChange){
+
+            // Какви са разпределените ф-ри
+            $iQuery = deals_InvoicesToDocuments::getQuery();
+            $iQuery->where("#documentContainerId = {$rec->containerId}");
+            $iRecs = $iQuery->fetchAll();
+            $count = countR($iRecs);
+
+            // Ако няма нищо не се прави
+            if(!$count) return;
+
+            // Ако са повече от 1 се ресетват
+            if($count > 1){
+                $ids = arr::extractValuesFromArray($iRecs, 'id');
+                $ids = implode(',', $ids);
+                deals_InvoicesToDocuments::delete("#documentContainerId = {$rec->containerId} AND #id IN ({$ids})");
+                core_Statuses::newStatus('Информацията за отнасянията по фактури е изтрита, поради промяна на сумата и/или валутата на документа. Моля разпределете ги отново');
+                if(isset($rec->fromContainerId)){
+                    $rec->fromContainerId = null;
+                    $mvc->save_($rec, 'fromContainerId');
+                }
+            } elseif($rec->_amountChange == 'decrease') {
+
+                // Ако е само една и сумата е намалена то остава по-малкото от новата сума и старата разпределена
+                $nData = $mvc->getPaymentData($rec);
+                $onlyInvoiceRec = $iRecs[key($iRecs)];
+                $onlyInvoiceRec->amount = min($nData->amount, $onlyInvoiceRec->amount);
+                cls::get('deals_InvoicesToDocuments')->save($onlyInvoiceRec, 'amount');
             }
         }
     }
@@ -156,7 +184,11 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
         $iArr = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, false);
         foreach ($iArr as $k => $number){
             $iRec = doc_Containers::getDocument($k)->fetch();
-            $vAmount = abs(round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate, 2));
+            $rate = !empty($iRec->displayRate) ? $iRec->displayRate : $iRec->rate;
+            $vAmount = 0;
+            if($rate){
+                $vAmount = abs(round(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $rate, 2));
+            }
             $res[$k] = "{$number} ({$vAmount} {$iRec->currencyId})";
         }
 

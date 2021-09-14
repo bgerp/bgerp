@@ -26,6 +26,9 @@
 					<td>
 						<!--ET_BEGIN myCompany--><div style='margin-bottom: 5px;'><b>[#myCompany#]</b></div><!--ET_END myCompany-->
 						<!--ET_BEGIN logistic--><div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div><!--ET_END logistic-->
+						<!--ET_BEGIN caseId-->
+						<div style='margin-bottom: 5px;'>|Инкасиране в|*: [#caseId#]</div>
+						<!--ET_END caseId-->
 					</td>
 				</tr>
 				<tr>
@@ -56,28 +59,30 @@
 			<div class="scrolling-holder">
 				<table class="listTable">
 			<thead>
-			<tr>
-				<th rowspan=2>|Общо тегло|*</th>
-				<th rowspan=2>|Общ обем|*</th>
-				<th colspan=2>|Общо логистични единици|*</th>
-				<th colspan=2>|Общо логистични единици|*</th>
-				<th colspan=2>|Общо|*</th>
-			</tr>
-			<tr>
-				<th>|Всички|*</th>
-				<th>|Подготвени|*</th>
-				<th>|За инкасиране|*</th>
-				<th>|За плащане|*</th>
-			</tr>
-			</thead>
-			<tr>
-				<td class="centered">[#weight#]</td>
-				<td class="centered">[#volume#]</td>
-				<td class="centered">[#logisticUnitsDocument#]</td>
-				<td class="centered">[#logisticUnits#]</td>
-				<td class="centered">[#totalAmount#]</td>
-				<td class="centered">[#totalAmountReturn#]</td>
-			</tr>
+			<table class="listTable">
+				<thead>
+				<tr>
+					<th rowspan=2>|Общо тегло|*</th>
+					<th rowspan=2>|Общ обем|*</th>
+					<th colspan=2>|Общо логистични единици|*</th>
+					<th colspan=2>|Общо|*</th>
+				</tr>
+				<tr>
+					<th>|Всички|*</th>
+					<th>|Подготвени|*</th>
+					<th>|Инкасирано|*</th>
+					<th>|Изплатено|*</th>
+				</tr>
+				</thead>
+				<tr>
+					<td class="centered">[#weight#]</td>
+					<td class="centered">[#volume#]</td>
+					<td class="centered">[#logisticUnitsDocument#]</td>
+					<td class="centered">[#logisticUnits#]</td>
+					<td class="centered">[#totalAmount#]</td>
+					<td class="centered">[#totalAmountReturn#]</td>
+				</tr>
+			</table>
 		</table>
 			</div>
 		</div>

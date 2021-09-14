@@ -144,7 +144,13 @@ class deals_InvoicesToDocuments extends core_Manager
 
                 if($iRec->amount > $eAmount){
                     $Invoice = doc_Containers::getDocument($iRec->containerId);
-                    $number = $Invoice->getInstance()->getVerbal($Invoice->fetch(), 'number');
+                    $iInst = $Invoice->getInstance();
+                    if ($iInst->fields['number']) {
+                        $number = $iInst->getVerbal($Invoice->fetch(), 'number');
+                    } else {
+                        $number = "#" . $Invoice->getHandle();
+                    }
+
                     $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
                     $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
                 }
@@ -230,8 +236,15 @@ class deals_InvoicesToDocuments extends core_Manager
      */
     public static function getExpectedAmountToPay($invoiceContainerId, $ignoreDocumentContainerId)
     {
+        $Document = doc_Containers::getDocument($invoiceContainerId);
         $iRec = doc_Containers::getDocument($invoiceContainerId)->fetch();
-        $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $iRec->displayRate);
+
+        if($Document->isInstanceOf('deals_InvoiceMaster')){
+            $dRate = $iRec->displayRate ? $iRec->displayRate : $iRec->rate;
+            $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $dRate);
+        } else {
+            $vAmount = abs($iRec->amountDelivered / $iRec->currencyRate);
+        }
 
         $query = static::getQuery();
         $query->where("#containerId = {$invoiceContainerId} AND #documentContainerId != {$ignoreDocumentContainerId}" );
@@ -243,8 +256,13 @@ class deals_InvoicesToDocuments extends core_Manager
             if($state != 'active') continue;
 
             $pData = $Document->getPaymentData();
-            $rate = $pData->amount / $pData->amountDeal;
-            $amountPaid  = $rec->amount / $rate;
+            if(!empty($pData->amountDeal)){
+                $rate = $pData->amount / $pData->amountDeal;
+                $amountPaid  = $rec->amount / $rate;
+            } else {
+                $amountPaid = $rec->amount;
+            }
+
             $paidByNow += $amountPaid;
         }
 
@@ -520,10 +538,13 @@ class deals_InvoicesToDocuments extends core_Manager
 
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->documentId)) {
-
-                // Търсене и на последващите документи
-                if ($document = doc_Containers::getDocumentByHandle($rec->documentId)) {
+                if(type_Int::isInt($rec->documentId)){
+                    $containerId = $rec->documentId;
+                } elseif($document = doc_Containers::getDocumentByHandle($rec->documentId)){
                     $containerId = $document->fetchField('containerId');
+                }
+
+                if (isset($containerId)) {
                     $data->query->where("#documentContainerId = {$containerId} OR #containerId = {$containerId}");
                 }
             }

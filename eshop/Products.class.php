@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,code,name=Е-артикул,groupId=Група,saleState,dCount=Опции,state';
+    public $listFields = 'id,code,name=Е-артикул,groupId=Група,saleState,dCount=Опции,state,createdOn,createdBy';
     
     
     /**
@@ -331,7 +331,6 @@ class eshop_Products extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->name = tr($rec->name);
         if(Mode::is('wrapper', 'cms_page_External')){
             $row->name = tr(static::getDisplayTitle($rec));
         }

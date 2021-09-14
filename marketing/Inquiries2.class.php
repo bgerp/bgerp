@@ -291,11 +291,10 @@ class marketing_Inquiries2 extends embed_Manager
         if (!core_Users::isContractor($cu)) {
             $form->setField('deliveryAdress', 'input=none');
         }
-        
-        $Driver = $this->getDriver($form->rec);
-        
+
         // Ако има избран прототип, зареждаме му данните в река
-        if (isset($form->rec->proto)) {
+        $Driver = $this->getDriver($form->rec);
+        if (isset($form->rec->proto) && $data->action != 'clone') {
             if ($pRec = cat_Products::fetch($form->rec->proto)) {
                 
                 if (is_array($pRec->driverRec)) {

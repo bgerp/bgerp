@@ -505,7 +505,7 @@ class eshop_ProductDetails extends core_Detail
         
         // Подготовка на бутона за купуване
         if($showCartBtn && !$stopSale){
-            $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => 'Добавяне в|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn productBtn addToCard', 'rel' => 'nofollow'));
+            $row->btn = ht::createFnBtn($settings->addToCartBtn, null, false, array('title' => '|Добавяне в||Add to|* ' . mb_strtolower(eshop_Carts::getCartDisplayName()), 'ef_icon' => 'img/16/cart_go.png', 'data-url' => $addUrl, 'data-productid' => $rec->productId, 'data-packagingid' => $rec->packagingId, 'data-eshopproductpd' => $rec->eshopProductId, 'class' => 'eshop-btn productBtn addToCard', 'rel' => 'nofollow'));
         }
         
         if(in_array($rec->action, array('inquiry', 'both')) && !$stopSale){
@@ -678,13 +678,13 @@ class eshop_ProductDetails extends core_Detail
         $titleParamId = eshop_Products::fetchField($eProductId, 'titleParamId');
         $title = !empty($optionRec->title) ? $optionRec->title : (!empty($titleParamId) ? cat_Products::getParams($productId, $titleParamId) : null);
         if(!isset($title) || $title === false){
-            $title = cat_Products::fetchField($productId, 'name');
+            $title = cat_Products::getVerbal($productId, 'name');
         }
-        
+
         if($showFullName){
             $eProductName = eshop_Products::getVerbal($eProductId, 'name');
-            
-            if($eProductName != $title){
+
+            if(stripos($title, $eProductName) === false){
                 $title = "{$eProductName}: {$title}";
             }
         }

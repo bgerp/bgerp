@@ -60,15 +60,17 @@ class purchase_transaction_CloseDeal extends deals_ClosedDealTransaction
         $docRec = cls::get($rec->docClassId)->fetch($rec->docId);
         
         $dealItem = acc_Items::fetch("#classId = {$firstDoc->getInstance()->getClassId()} AND #objectId = '{$firstDoc->that}' ");
-        
+
+        $valior = $this->class->getValiorDate($rec);
         if (Mode::get('saveTransaction')) {
             acc_journal_RejectRedirect::expect(!acc_plg_Contable::havePendingDocuments($rec->threadId), tr("Към покупката има документ в състояние \"Заявка\"|*"));
+            $rec->valior = $valior;
         }
-        
+
         // Създаване на обекта за транзакция
         $result = (object) array(
             'reason' => $rec->notes,
-            'valior' => ($rec->valior) ? $rec->valior : $this->class->getValiorDate($rec),
+            'valior' => $valior,
             'totalAmount' => 0,
             'entries' => array()
         );

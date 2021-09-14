@@ -23,18 +23,14 @@ class transsrv_plg_CreateAuction extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        
-        $d = $mvc->getLogisticData($rec);
+
        
         if ($systemId = remote_Authorizations::getSystemId(transsrv_Setup::get('BID_DOMAIN'))) {
             if ($mvc->haveRightFor('createauction', $rec)) {
-                $d = $mvc->getLogisticData($rec);
-                $d['maxWeight'] = $d['totalWeight'];
-                $d['maxVolume'] = $d['totalVolume'];
 
+                $d = $mvc->getAuctionData($rec);
                 $selfUrl = core_App::getSelfURL();
                 $selfUrl = str_replace($_SERVER['REQUEST_URI'], '', $selfUrl);
-
                 $d['ourReffDomainUrl'] = $selfUrl;
                 $d = base64_encode(gzcompress(json_encode($d)));
 
@@ -43,8 +39,23 @@ class transsrv_plg_CreateAuction extends core_Plugin
             }
         }
     }
-    
-    
+
+
+    /**
+     * Дефолтна реализация на метода за връщане данните за търга
+     */
+    public static function on_AfterGetAuctionData($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            $d = $mvc->getLogisticData($rec);
+            $d['maxWeight'] = $d['totalWeight'];
+            $d['maxVolume'] = $d['totalVolume'];
+
+            $res = $d;
+        }
+    }
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */

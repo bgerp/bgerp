@@ -70,7 +70,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId,orderBy';
+    protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId,orderBy,limmits,date,seeByStores';
 
 
     /**
@@ -158,10 +158,12 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
         $fldArr = array('minQuantity','maxQuantity');
         foreach ($fldArr as $fld){
-            foreach ($details->$fld as $key => $val){
-                if ($val){
-                    $Double = core_Type::getByName('double');
-                    $details->$fld[$key] = $Double->fromVerbal($val);
+            if(is_array($details->$fld)) {
+                foreach ($details->$fld as $key => $val) {
+                    if ($val) {
+                        $Double = core_Type::getByName('double');
+                        $details->$fld[$key] = $Double->fromVerbal($val);
+                    }
                 }
             }
         }
@@ -170,10 +172,9 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if ($form->isSubmitted()) {
 
             //При избрано количество РАЗПОЛАГАЕМО проверяваме датата да е поголяма от днес
-            if ($form->rec->date && $form->rec->date < dt::today()) {
+            if ($form->rec->date && $form->rec->typeOfQuantity == 'free' && $form->rec->date < dt::today()) {
                 $form->setError('date', 'Датата не може да бъде минала');
             }
-
 
             if ($form->rec->limmits == 'no') {
                 $form->rec->additional = array();
@@ -511,7 +512,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
 
             $prodRec->conditionQuantity = '3|ок';
             $prodRec->conditionColor = 'green';
-            if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0) {
+            if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0 && $prodRec->minQuantity != '0') {
                 continue;
             }
             if ($prodRec->quantity > $prodRec->maxQuantity && ($prodRec->maxQuantity != 0)) {
@@ -814,7 +815,7 @@ class store_reports_ProductAvailableQuantity extends frame2_driver_TableData
         if (countR($errorFields)) {
             $res['errorFields'] = $errorFields;
         }
-//bp($res);
+
         return $res;
     }
 

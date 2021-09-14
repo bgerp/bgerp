@@ -112,7 +112,6 @@ class cat_products_Packagings extends core_Detail
         'planning_ConsumptionNoteDetails',
         'planning_ReturnNoteDetails',
         'cat_BomDetails',
-        'planning_Jobs',
         'planning_DirectProductionNote',
         'sales_ProformaDetails',
         'sales_ServicesDetails',
@@ -1478,5 +1477,37 @@ class cat_products_Packagings extends core_Detail
         }
         
         return $resArr;
+    }
+
+
+    /**
+     * Връща транспортния обем на най-голямата опаковка за посоченото количество
+     *
+     * @param $productId
+     * @param $quantity
+     * @return double|null
+     */
+    public static function getVolumeOfBiggestPack($productId, $quantity)
+    {
+        // Първо се гледа най-голямата опаковка за която има габаритни размери
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->where("#productId = '{$productId}'");
+        $packQuery->where('#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL');
+        $packQuery->orderBy('quantity', 'DESC');
+        $packQuery->limit(1);
+        $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
+        $packRec = $packQuery->fetch();
+
+        // Ако няма опаковка с въведени габарити, няма да се изчислява нищо
+        if (!is_object($packRec)) return;
+
+        // Ако има такава количеството се преизчислява в нея
+        $brutoVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
+        $quantity /= $packRec->quantity;
+
+        // Връща се намереното тегло
+        $volume = $brutoVolume * $quantity;
+
+        return round($volume, 3);
     }
 }

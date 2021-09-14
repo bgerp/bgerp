@@ -351,7 +351,7 @@ class bank_InternalMoneyTransfer extends core_Master
             $debitInfo = bank_OwnAccounts::getOwnAccountInfo($rec->debitBank);
             
             if ($creditInfo->currencyId != $debitInfo->currencyId) {
-                $form->setError('debitBank, creditBank', 'Банковите сметки не са в една валута !!!');
+                $form->setError('debitBank, creditBank', 'Банковите сметки не са в една валута! Документът за обмяна е "Банкова обмяна на валута".');
                 
                 return;
             }

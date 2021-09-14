@@ -733,11 +733,22 @@ abstract class deals_DealBase extends core_Master
         
         $start = $data->historyPager->rangeStart;
         $end = $data->historyPager->rangeEnd - 1;
-        
+
         // Ако има записи където участва перото подготвяме ги за показване
         if (countR($entries)) {
+            foreach ($entries as $e){
+                $e->documentCreatedOn = cls::get($e->docType)->fetchField($e->docId, 'createdOn');
+            }
+
+            // Подредба по вальор
+            usort($entries, function ($a, $b) {
+                if ($a->valior == $b->valior) {
+                    return ($a->documentCreatedOn < $b->documentCreatedOn) ? -1 : 1;
+                }
+                return ($a->valior < $b->valior) ? -1 : 1;
+            });
+
             $count = 0;
-            
             foreach ($entries as $ent) {
                 if ($count >= $start && $count <= $end) {
                     $obj = new stdClass();
@@ -776,7 +787,7 @@ abstract class deals_DealBase extends core_Master
                 $count++;
             }
         }
-        
+
         $data->DealHistory = $history;
     }
     

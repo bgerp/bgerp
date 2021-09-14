@@ -53,14 +53,17 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $info = $this->class->getDealInfo($rec->threadId);
         $docRec = $firstDoc->fetch();
-        $accRec = acc_Accounts::fetch($docRec->accountId);
-        
         $amount = $info->get('blAmount');
-        
+
+        $valior = $this->class->getValiorDate($rec);
+        if (Mode::get('saveTransaction')) {
+            $rec->valior = $valior;
+        }
+
         // Създаване на обекта за транзакция
         $result = (object) array(
             'reason' => $rec->notes,
-            'valior' => ($rec->valior) ? $rec->valior : $this->class->getValiorDate($rec),
+            'valior' => $valior,
             'totalAmount' => 0,
             'entries' => array(),
         );
@@ -111,8 +114,6 @@ class findeals_transaction_CloseDeal extends deals_ClosedDealTransaction
      */
     private function getCloseEntry($amount, $quantity, $index, &$totalAmount, $docRec, $firstDoc)
     {
-        $entry = array();
-        
         $dealArr = array(acc_Accounts::fetchField($docRec->accountId, 'systemId'),
             array($docRec->contragentClassId, $docRec->contragentId),
             array($firstDoc->className, $docRec->id),
