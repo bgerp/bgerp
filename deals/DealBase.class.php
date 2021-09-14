@@ -825,7 +825,7 @@ abstract class deals_DealBase extends core_Master
             
             // Рекалкулиране на определени документи в нишката и
             $dealDocuments = $this->getDescendants($rec->id);
-            $arr = array(cash_Rko::getClassId(), cash_Pko::getClassId(), bank_SpendingDocuments::getClassId(), bank_IncomeDocuments::getClassId(), findeals_DebitDocuments::getClassId(), findeals_CreditDocuments::getClassId(), store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId(), acc_ValueCorrections::getClassId());
+            $arr = array(cash_Pko::getClassId(), bank_IncomeDocuments::getClassId(), findeals_DebitDocuments::getClassId(), findeals_CreditDocuments::getClassId(), store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId(), acc_ValueCorrections::getClassId());
             foreach ($dealDocuments as $d) {
                 if (!in_array($d->getClassId(), $arr)) {
                     continue;
