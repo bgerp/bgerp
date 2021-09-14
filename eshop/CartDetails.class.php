@@ -213,11 +213,12 @@ class eshop_CartDetails extends core_Detail
             
             $settings = cms_Domains::getSettings();
             if ($price = eshop_ProductDetails::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)) {
+                $chargeVat = eshop_Carts::calcChargeVat($rec->cartId);
                 $price->price = round($price->price, 2);
                 $form->setReadOnly('displayPrice', $price->price);
-                $unit = $settings->currencyId . ' ' . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
+                $unit = $settings->currencyId . ' ' . (($chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
                 $form->setField('displayPrice', "unit={$unit}");
-                $form->rec->haveVat = $settings->chargeVat;
+                $form->rec->haveVat = $chargeVat;
                 $form->rec->vat = cat_Products::getVat($rec->productId);
             }
         }
@@ -311,10 +312,11 @@ class eshop_CartDetails extends core_Detail
 
         if (!empty($packPrice)) {
             $dRec->finalPrice = $packPrice;
-            $dRec->haveVat = ($hasVat) ? (($hasVat === true) ? 'yes' : 'no') : (($settings->chargeVat) ? $settings->chargeVat : 'yes');
+            $calcChargeVat = eshop_Carts::calcChargeVat($cartRec);
+            $dRec->haveVat = ($hasVat) ? (($hasVat === true) ? 'yes' : 'no') : (($calcChargeVat) ? $calcChargeVat : 'yes');
             $dRec->_updatePrice = false;
         } else {
-            $dRec->haveVat = ($settings->chargeVat) ? $settings->chargeVat : 'yes';
+            $dRec->haveVat = eshop_Carts::calcChargeVat($cartRec);
         }
 
         if ($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")) {
