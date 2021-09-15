@@ -246,8 +246,11 @@ class deals_InvoicesToDocuments extends core_Manager
             $vAmount = abs($iRec->amountDelivered / $iRec->currencyRate);
         }
 
+        $exceptClassIds = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Proformas::getClassId());
         $query = static::getQuery();
+        $query->EXT('docClass', 'doc_Containers', 'externalKey=documentContainerId');
         $query->where("#containerId = {$invoiceContainerId} AND #documentContainerId != {$ignoreDocumentContainerId}" );
+        $query->notIn('docClass', $exceptClassIds);
 
         $paidByNow = 0;
         while($rec = $query->fetch()){
