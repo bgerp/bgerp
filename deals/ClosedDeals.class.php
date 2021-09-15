@@ -293,8 +293,16 @@ abstract class deals_ClosedDeals extends core_Master
         }
 
         if($form->isSubmitted()){
-            if($rec->valiorStrategy == 'manual' && empty($rec->valior)){
-                $form->setError('valior', 'Трябва да е посочена конкретна дата');
+            if($rec->valiorStrategy == 'manual'){
+                if(empty($rec->valior)){
+                    $form->setError('valior', 'Трябва да е посочена конкретна дата');
+                } else {
+                    $biggestValior = $mvc->getBiggestValiorInDeal($rec);
+                    if(!empty($biggestValior) && $rec->valior < $biggestValior){
+                        $biggestValiorVerbal = core_Type::getByName('date')->toVerbal($biggestValior);
+                        $form->setError('valior', "Датата e преди най-големия вальор към сделката:|* <b>{$biggestValiorVerbal}</b>");
+                    }
+                }
             }
         }
     }
@@ -323,7 +331,7 @@ abstract class deals_ClosedDeals extends core_Master
             return false;
         }
         
-        // Може да се добавя само към ниша с първи документ имащ 'bgerp_DealAggregatorIntf'
+        // Може да се добавя само към ниша с първи документ имащ "bgerp_DealAggregatorIntf'
         if (!$firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
             
             return false;
