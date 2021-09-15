@@ -90,18 +90,15 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public function description()
     {
+        $this->FLD('valiorStrategy', 'enum(auto=Най-голям вальор към сделката,createdOn=Дата на създаване,manual=Конкретен вальор)', 'caption=Вальор,mandatory,silent,removeAndRefreshForm=valior,notNull,value=auto');
+        $this->FLD('valior', 'date', 'input=none,caption=Вальор,after=valiorStrategy');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележка');
-        $this->FLD('valior', 'date', 'input=hidden');
-        
-        // Класа на документа, който се затваря
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf)', 'input=none');
-        
-        // Ид-то на документа, който се затваря
         $this->FLD('docId', 'class(interface=doc_DocumentIntf)', 'input=none');
         $this->FLD('amount', 'double(decimals=2)', 'input=none,caption=Сума');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,input=none');
         $this->FLD('rate', 'double(decimals=5)', 'caption=Плащане->Курс,input=none');
-        
+
         // От кой клас наследник на deals_ClosedDeals идва записа
         $this->FLD('classId', 'key(mvc=core_Classes)', 'input=none');
         
@@ -242,13 +239,16 @@ abstract class deals_ClosedDeals extends core_Master
     public static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $form = &$data->form;
-        $form->FNC('valiorStrategy', 'enum(,auto=Най-голям вальор към сделката,createdOn=Дата на създаване)', 'caption=Вальор,mandatory,input,before=notes');
-
         $rec = &$form->rec;
-        if(!empty($rec->valior)){
-            $form->setDefault('valiorStrategy', 'createdOn');
+        $strategyOptions = arr::make('auto=Най-голям вальор към сделката,createdOn=Дата на създаване,manual=Конкретен вальор', true);
+        if(!haveRole('accMaster,ceo') && empty($rec->valior)){
+            unset($strategyOptions['manual']);
         }
-        $form->setDefault('valiorStrategy', 'auto');
+
+        $form->setFieldType('valiorStrategy', "enum(" . arr::fromArray($strategyOptions). ")");
+        if($rec->valiorStrategy == 'manual' || isset($rec->valior)){
+            $form->setField('valior', 'input,mandatory,caption=Дата');
+        }
     }
 
 
@@ -417,7 +417,7 @@ abstract class deals_ClosedDeals extends core_Master
             }
         }
         
-        $mvc->notificateDealUsedForClosure($id);
+        $mvc->notifyDealUsedForClosure($id);
     }
     
 
@@ -461,13 +461,14 @@ abstract class deals_ClosedDeals extends core_Master
         $row->currencyId = acc_Periods::getBaseCurrencyCode($rec->createdOn);
         $row->title = static::getLink($rec->id, 0);
         $row->docId = cls::get($rec->docClassId)->getLink($rec->docId, 0);
-        
+
         if (!isset($rec->valior)) {
             $rec->valior = $me->getValiorDate($rec);
             $row->valior = $me->getFieldType('valior')->toVerbal($rec->valior);
-            $row->valior = "<span style='blue'>{$row->valior}</span>";
-            $row->valior = ht::createHint($row->valior, 'Най-големият вальор в нишката на сделката');
+            $row->valior = "<span style='color:blue'>{$row->valior}</span>";
         }
+
+        $row->valior = ht::createHint($row->valior, $me->getVerbal($rec, 'valiorStrategy'));
         
         return $row;
     }
@@ -643,7 +644,7 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public static function on_AfterRestore($mvc, &$res, $id)
     {
-        $mvc->notificateDealUsedForClosure($id);
+        $mvc->notifyDealUsedForClosure($id);
     }
     
     
@@ -652,14 +653,14 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public static function on_AfterConto($mvc, &$res, $id)
     {
-        $mvc->notificateDealUsedForClosure($id);
+        $mvc->notifyDealUsedForClosure($id);
     }
     
     
     /**
      * Нотифицира продажбата която е използвана да се приключи продажбата на документа
      */
-    private function notificateDealUsedForClosure($id)
+    private function notifyDealUsedForClosure($id)
     {
         $rec = $this->fetchRec($id);
         
@@ -706,6 +707,9 @@ abstract class deals_ClosedDeals extends core_Master
      */
     public function getValiorDate($rec)
     {
+        // При ръчен вальор е с приоритет
+        if($rec->valiorStrategy == 'manual' && !empty($rec->valior)) return  $rec->valior;
+
         // Намираме най-голямата дата от намерените
         $date = $this->getBiggestValiorInDeal($rec);
 
