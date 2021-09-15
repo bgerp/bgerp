@@ -2938,3 +2938,6 @@ en,За адрес,To address
 en,"Отговаряме само на запитвания получени от представители на реални, регистрирани в България или чужбина фирми и други юридически организации","We accept only enquiries from real companies or organisations, registered in Bulgaria or abroad"
 en,"За контрагенти от България, трябва да премахнете двубуквения префикс. Или въведете номера в полето за ДДС №", "For contragents from Bulgaria, you must remove the two-letter prefix, or you can also place it in the field for Vat №"
 en,"Приемат се поръчки за минимално","Minimum order amount of"
+en,"Контрагентът е от България, начислено е ДДС","The contragent is from Bulgaria, VAT is included"
+en,"Фактурането е за лице от ЕС, начислено е ДДС","Billing is for person from EU, VAT is included"
+en,"Контрагентът е от ЕС, но с невалиден ДДС №, начислено е ДДС","The contragent is from EU, but with invalid VAT ID, VAT is included"
