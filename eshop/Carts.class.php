@@ -315,8 +315,13 @@ class eshop_Carts extends core_Master
             $msg = '|Проблем при добавянето на артикула|*!';
         }
 
-        $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack, $eshopProductId);
-        if (isset($maxQuantity)) {
+        $availableQuantity = eshop_CartDetails::getAvailableQuantity($productId, $eshopProductId);
+        if (isset($availableQuantity)) {
+            $q = $packQuantity * $quantityInPack;
+            if($availableQuantity < $packQuantity * $quantityInPack){
+                $msg = '|Избраното количество не е налично|*';
+                $skip = true;
+            }
 
             // Проверка колко общо има от избрания артикул в количката без значение от опаковката
             $checkQuantity = $packQuantity;
@@ -329,15 +334,7 @@ class eshop_Carts extends core_Master
                 $checkQuantity += $quantityByNow / $quantityInPack;
             }
 
-            if($maxQuantity < $checkQuantity){
-                if($quantityByNow){
-                    $msg = '|Количеството не може да се поръча, защото общото количество в поръчката ще стане над наличното|*';
-                } else {
-                    $msg = '|Избраното количество не е налично|*';
-                }
 
-                $skip = true;
-            }
         }
        
         $actions = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'action');
