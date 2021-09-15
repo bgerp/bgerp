@@ -698,16 +698,17 @@ abstract class deals_ClosedDeals extends core_Master
      */
     protected function getBiggestValiorInDeal($rec)
     {
-        $firstDoc =  doc_Threads::getFirstDocument($rec->threadId);
-
         // Намира се най-големия вальор от документите свързани към сделката
+        $firstDoc =  doc_Threads::getFirstDocument($rec->threadId);
         $jRecs = acc_Journal::getEntries(array($firstDoc->className, $firstDoc->that));
         $valiors = arr::extractValuesFromArray($jRecs, 'valior');
         if($firstDocValior = $firstDoc->fetchField($firstDoc->valiorFld)){
             $valiors[$firstDocValior] = $firstDocValior;
         }
 
-        return max($valiors);
+        if(countR($valiors)) return max($valiors);
+
+        return null;
     }
 
     
@@ -734,12 +735,13 @@ abstract class deals_ClosedDeals extends core_Master
             $date = $this->getBiggestValiorInDeal($rec);
         }
 
-        // Ако датата не е свободна, взима се първата свободна
-        $date =  acc_Periods::getNextAvailableDateIfNeeded($date);
         if(empty($date)){
             $date = $rec->createdOn;
         }
-        
+
+        // Ако датата не е свободна, взима се първата свободна
+        $date =  acc_Periods::getNextAvailableDateIfNeeded($date);
+
         // и връщаме намерената дата
         return $date;
     }
