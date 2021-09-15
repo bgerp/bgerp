@@ -335,7 +335,6 @@ class eshop_Carts extends core_Master
                     $msg = '|Избраното количество не е налично|*';
                 }
 
-                $success = false;
                 $skip = true;
             }
         }
@@ -343,7 +342,6 @@ class eshop_Carts extends core_Master
         $actions = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'action');
         if(in_array($actions, array('price', 'inquiry'))){
             $msg = '|Артикулът не може да бъде добавен в количка|*';
-            $success = false;
             $skip = true;
         }
 
