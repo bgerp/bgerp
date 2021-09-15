@@ -136,28 +136,29 @@ class deals_InvoicesToDocuments extends core_Manager
                 }
             }
 
-            $amountWarnings = array();
+            if($Document instanceof deals_PaymentDocument){
+                $amountWarnings = array();
+                foreach ($invArr as $iRec){
+                    $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+                    $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
 
-            foreach ($invArr as $iRec){
-                $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
-                $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
+                    if($iRec->amount > $eAmount){
+                        $Invoice = doc_Containers::getDocument($iRec->containerId);
+                        $iInst = $Invoice->getInstance();
+                        if ($iInst->fields['number']) {
+                            $number = $iInst->getVerbal($Invoice->fetch(), 'number');
+                        } else {
+                            $number = "#" . $Invoice->getHandle();
+                        }
 
-                if($iRec->amount > $eAmount){
-                    $Invoice = doc_Containers::getDocument($iRec->containerId);
-                    $iInst = $Invoice->getInstance();
-                    if ($iInst->fields['number']) {
-                        $number = $iInst->getVerbal($Invoice->fetch(), 'number');
-                    } else {
-                        $number = "#" . $Invoice->getHandle();
+                        $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
+                        $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
                     }
-
-                    $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
-                    $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
                 }
-            }
 
-            if(countR($amountWarnings)){
-                $form->setWarning('invoices,fromContainerId', implode("<li>", $amountWarnings));
+                if(countR($amountWarnings)){
+                    $form->setWarning('invoices,fromContainerId', implode("<li>", $amountWarnings));
+                }
             }
 
             if(!$form->gotErrors()){
