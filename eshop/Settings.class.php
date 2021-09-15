@@ -285,8 +285,8 @@ class eshop_Settings extends core_Master
         $this->FLD('mandatoryUicId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕИК');
         $this->FLD('mandatoryVatId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ДДС №');
 
-        $this->FLD('favouriteProductBtnCaption', 'varchar(16)', 'caption=Бутон за Любими артикули->Надпис');
-        $this->FLD('lastOrderedProductBtnCaption', 'varchar(16)', 'caption=Бутон за Последно продадени артикули->Надпис');
+        $this->FLD('favouriteProductBtnCaption', 'varchar(16)', 'caption=Бутон за любими артикули->Надпис');
+        $this->FLD('lastOrderedProductBtnCaption', 'varchar(16)', 'caption=Бутон за последно продадени артикули->Надпис');
 
         $this->setDbIndex('classId, objectId');
     }
