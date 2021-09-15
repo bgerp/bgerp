@@ -1290,14 +1290,18 @@ abstract class deals_Helper
             $rateFld = 'rate';
         }
 
+        $updateMaster = false;
         if ($masterMvc instanceof acc_ValueCorrections) {
-            $updateMaster = false;
             $rec->amount = round(($rec->amount / $rec->rate) * $newRate, 6);
             foreach ($rec->productsData as &$pData){
                 $pData->allocated = round(($pData->allocated / $rec->rate) * $newRate, 6);
             }
             $rec->rate = $newRate;
-        } else {
+        } elseif($masterMvc instanceof deals_PaymentDocument) {
+            if(round($rec->amountDeal,2) == round($rec->amount, 2)) {
+                $rec->rate = $newRate;
+            }
+        } elseif(isset($masterMvc->mainDetail)) {
             $Detail = cls::get($masterMvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");

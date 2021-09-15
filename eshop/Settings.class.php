@@ -224,7 +224,7 @@ class eshop_Settings extends core_Master
      */
     public function description()
     {
-        $this->FLD('classId', 'class', 'caption=Клас,removeAndrefreshForm=objectId,silent,mandatory');
+        $this->FLD('classId', 'class', 'caption=Клас,removeAndRefreshForm=objectId,silent,mandatory');
         $this->FLD('objectId', 'int', 'caption=Обект,mandatory,silent,tdClass=leftCol');
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила->До,remember');
@@ -281,9 +281,9 @@ class eshop_Settings extends core_Master
 
         $this->FLD('mandatoryEcartContactFields', 'enum(auto=Автоматично,company=Фирми,both=Фирми и лица)', 'caption=Онлайн поръчки->Допускат се за,notNull,value=auto');
         $this->FLD('mandatoryInquiryContactFields', 'enum(auto=Автоматично,company=Фирми,person=Частни лица)', 'caption=Запитвания от външната част->Допускат се за,notNull,value=auto');
-        $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕГН');
-        $this->FLD('mandatoryUicId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ЕИК');
-        $this->FLD('mandatoryVatId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Запитвания и онлайн поръчки->ДДС №');
+        $this->FLD('mandatoryEGN', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕГН');
+        $this->FLD('mandatoryUicId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ЕИК');
+        $this->FLD('mandatoryVatId', 'enum(no=Не се изисква,optional=Опционално,mandatory=Задължително)', 'caption=Необходими полета в запитването->ДДС №');
 
         $this->FLD('favouriteProductBtnCaption', 'varchar(16)', 'caption=Бутон за Любими артикули->Надпис');
         $this->FLD('lastOrderedProductBtnCaption', 'varchar(16)', 'caption=Бутон за Последно продадени артикули->Надпис');

@@ -315,7 +315,7 @@ class bank_Register extends core_Manager
             
             // Намираме папката по името на контрагента
             if (empty($rec->matches['folderId']) && ($contragent = $rec->contragentName)) {
-                $contragent = trim(strtolower(preg_replace('/[^a-z0-9]+/i', ' ', self::transliterate($contragent))));
+                $contragent = trim(strtolower(self::transliterate(str_replace('.', '', $contragent))));
                 
                 if ($folderId = $folders[$contragent]) {
                     $rec->matches['folderId'] = $folderId;
@@ -373,9 +373,9 @@ class bank_Register extends core_Manager
                 }
                 
                 // Папка на документа
-                if (!isset($rec->matches['folderId']) && $p >= 0.4 && $rec->contragentName) {
+                if (!isset($rec->matches['folderId']) && $p >= 0.4 && $contragent) {
                     list($folderName) = array_keys($folders, $d->folderId);
-                    if (self::phraseDistance($folderName, self::transliterate($rec->contragentName)) > 0.85) {
+                    if (self::phraseDistance($folderName, $contragent) > 0.85) {
                         $p += 0.1;
                     } else {
                         $p -= 0.2;
@@ -442,7 +442,7 @@ class bank_Register extends core_Manager
         
         return $cnt;
     }
-    
+
     
     /**
      * Транслитерация по правила UniCredit
@@ -486,7 +486,7 @@ class bank_Register extends core_Manager
         
         $string = mb_strtolower($string);
         
-        $res = str::utf2ascii(preg_replace('/[^a-z0-9]+/i', ' ', str_replace($keys, $code, $string)));
+        $res = preg_replace('/[^a-z0-9]+/i', ' ', str_replace($keys, $code, $string));
         
         $res = str_replace(array(' ood ood', 'ad ad', ' eood eood', 'ead ead'), array(' ood', ' ad', ' eood', ' ead'), $res);
         
@@ -527,7 +527,7 @@ class bank_Register extends core_Manager
         $res = array();
         
         while ($rec = $query->fetch()) {
-            $title = self::transliterate($rec->name);
+            $title = self::transliterate(str_replace('.', '', $rec->name));
             if (!$res[$title] && !$cachedFolders[$title]) {
                 $res[$title] = $rec->folderId;
             }
