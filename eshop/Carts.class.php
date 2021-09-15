@@ -319,16 +319,17 @@ class eshop_Carts extends core_Master
         if (isset($maxQuantity)) {
 
             // Проверка колко общо има от избрания артикул в количката без значение от опаковката
+            $checkQuantity = $packQuantity;
             $quantityByNow = 0;
             if($exCartId = self::force(null, null, false)){
                 $dQuery = eshop_CartDetails::getQuery();
-                $dQuery->where("#cartId = {$exCartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
+                $dQuery->where("#cartId = {$exCartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId}");
                 $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
                 $quantityByNow = $dQuery->fetch()->sum;
-                $packQuantity += $quantityByNow / $quantityInPack;
+                $checkQuantity += $quantityByNow / $quantityInPack;
             }
 
-            if($maxQuantity < $packQuantity){
+            if($maxQuantity < $checkQuantity){
                 if($quantityByNow){
                     $msg = '|Количеството не може да се поръча, защото общото количество в поръчката ще стане над наличното|*';
                 } else {
