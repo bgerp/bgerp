@@ -43,13 +43,13 @@ class sales_ClosedDeals extends deals_ClosedDeals
     /**
      * Кой има право да чете?
      */
-    public $canRead = 'ceo,sales';
+    public $canRestore = 'ceo,sales';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,salesMaster';
+    public $canEdit = 'ceo,sales';
     
     
     /**
@@ -119,6 +119,7 @@ class sales_ClosedDeals extends deals_ClosedDeals
      * Кои са сметките за изнвънредни приходи и разходи
      */
     protected $incomeAndCostAccounts = array('debit' => '6911', 'credit' => '7911');
+
 
     /**
      * След дефиниране на полетата на модела

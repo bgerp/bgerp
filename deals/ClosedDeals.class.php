@@ -91,7 +91,7 @@ abstract class deals_ClosedDeals extends core_Master
     public function description()
     {
         $this->FLD('valiorStrategy', 'enum(auto=Най-голям вальор към сделката,createdOn=Дата на създаване,manual=Конкретен вальор)', 'caption=Вальор,mandatory,silent,removeAndRefreshForm=valior,notNull,value=auto');
-        $this->FLD('valior', 'date', 'input=none,caption=Вальор,after=valiorStrategy');
+        $this->FLD('valior', 'date', 'input=hidden,caption=Вальор,after=valiorStrategy');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележка');
         $this->FLD('docClassId', 'class(interface=doc_DocumentIntf)', 'input=none');
         $this->FLD('docId', 'class(interface=doc_DocumentIntf)', 'input=none');
@@ -240,14 +240,15 @@ abstract class deals_ClosedDeals extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
         $strategyOptions = arr::make('auto=Най-голям вальор към сделката,createdOn=Дата на създаване,manual=Конкретен вальор', true);
         if(!haveRole('accMaster,ceo') && empty($rec->valior)){
             unset($strategyOptions['manual']);
         }
-
         $form->setFieldType('valiorStrategy', "enum(" . arr::fromArray($strategyOptions). ")");
-        if($rec->valiorStrategy == 'manual' || isset($rec->valior)){
-            $form->setField('valior', 'input,mandatory,caption=Дата');
+
+        if($rec->valiorStrategy == 'manual'){
+            $form->setField('valior', 'input');
         }
     }
 
@@ -269,6 +270,11 @@ abstract class deals_ClosedDeals extends core_Master
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
+
+        if($rec->valiorStrategy == 'manual'){
+            $form->setField('valior', 'input,caption=Дата');
+        }
+
         $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
         $rec->docId = $firstDoc->that;
         $rec->docClassId = $firstDoc->getInstance()->getClassId();
@@ -284,6 +290,12 @@ abstract class deals_ClosedDeals extends core_Master
         } elseif (round($liveAmount, 2) < 0) {
             $costAmount = abs($liveAmount);
             $form->info = tr('Извънреден разход|*: <b style="color:blue">') . $Double->toVerbal($costAmount) . "</b> " . acc_Periods::getBaseCurrencyCode();
+        }
+
+        if($form->isSubmitted()){
+            if($rec->valiorStrategy == 'manual' && empty($rec->valior)){
+                $form->setError('valior', 'Трябва да е посочена конкретна дата');
+            }
         }
     }
     
@@ -467,8 +479,6 @@ abstract class deals_ClosedDeals extends core_Master
             $row->valior = $me->getFieldType('valior')->toVerbal($rec->valior);
             $row->valior = "<span style='color:blue'>{$row->valior}</span>";
         }
-
-        $row->valior = ht::createHint($row->valior, $me->getVerbal($rec, 'valiorStrategy'));
         
         return $row;
     }
