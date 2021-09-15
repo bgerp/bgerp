@@ -297,6 +297,7 @@ class eshop_Carts extends core_Master
         core_Lg::push($lang);
         
         // Данните от опаковката
+        $quantityInPack = null;
         if (isset($productId)) {
             $packRec = cat_products_Packagings::getPack($productId, $packagingId);
             $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
@@ -313,12 +314,30 @@ class eshop_Carts extends core_Master
         if(!empty($msg)){
             $msg = '|Проблем при добавянето на артикула|*!';
         }
-        
+
         $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack, $eshopProductId);
-        if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
-            $msg = '|Избраното количество не е налично|*';
-            $success = false;
-            $skip = true;
+        if (isset($maxQuantity)) {
+
+            // Проверка колко общо има от избрания артикул в количката без значение от опаковката
+            $quantityByNow = 0;
+            if($exCartId = self::force(null, null, false)){
+                $dQuery = eshop_CartDetails::getQuery();
+                $dQuery->where("#cartId = {$exCartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}");
+                $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
+                $quantityByNow = $dQuery->fetch()->sum;
+                $packQuantity += $quantityByNow / $quantityInPack;
+            }
+
+            if($maxQuantity < $packQuantity){
+                if($quantityByNow){
+                    $msg = '|Количеството не може да се поръча, защото общото количество в поръчката ще стане над налично|*';
+                } else {
+                    $msg = '|Избраното количество не е налично|*';
+                }
+
+                $success = false;
+                $skip = true;
+            }
         }
        
         $actions = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'action');
