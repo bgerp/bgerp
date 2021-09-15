@@ -131,7 +131,9 @@ class deals_InvoicesToDocuments extends core_Manager
                 if($defAmount){
                     $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $defAmount));
                 } else {
-                    $form->setWarning('fromContainerId', 'По фактурата не се очаква плащане');
+                    if($Document instanceof deals_PaymentDocument){
+                        $form->setWarning('fromContainerId', 'По фактурата не се очаква плащане');
+                    }
                     $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $paymentData->amount));
                 }
             }
