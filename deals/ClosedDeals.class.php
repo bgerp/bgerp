@@ -712,16 +712,27 @@ abstract class deals_ClosedDeals extends core_Master
 
     
     /**
-     * Какъв да е вальора на контировката. Взима за дата на вальора, датата на вальора на последния
-     * контиран документ в нишката (без текущия), ако е в затворен период взима първата дата на първия отворен период след него
+     * Какъв да е вальора на контировката.
+     *    Ако е избрано "конкретен вальор" и има такъв - взима се той
+     *    Ако е избрано "дата на създаване" - взима се тя
+     *    Ако не е избрано някое от горните - взима се най-големия вальор в сделката
+     *
+     * Ако няма такъв - датата на създаване
+     * Ако намерената дата е в затворен период подменя се с датата на първия незатворен период след нея
+     *
+     * @param stdClass $rec
+     * @return date $date
      */
     public function getValiorDate($rec)
     {
         // При ръчен вальор е с приоритет
-        if($rec->valiorStrategy == 'manual' && !empty($rec->valior)) return  $rec->valior;
-
-        // Намираме най-голямата дата от намерените
-        $date = $this->getBiggestValiorInDeal($rec);
+        if($rec->valiorStrategy == 'manual' && !empty($rec->valior)) {
+            $date = $rec->valior;
+        } elseif($rec->valiorStrategy == 'createdOn'){
+            $date = $rec->createdOn;
+        } else {
+            $date = $this->getBiggestValiorInDeal($rec);
+        }
 
         // Ако датата не е свободна, взима се първата свободна
         $date =  acc_Periods::getNextAvailableDateIfNeeded($date);
