@@ -117,7 +117,7 @@ class rack_Zones extends core_Master
     /**
      * На колко време да се рефрешва лист изгледа
      */
-    public $refreshRowsTime = 5000;
+    public $refreshRowsTime = 7000;
     
 
     /**
