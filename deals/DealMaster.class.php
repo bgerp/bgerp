@@ -1713,6 +1713,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $allowedFields['onlineSale'] = true;
         $allowedFields['deliveryData'] = true;
         $allowedFields['deliveryCalcTransport'] = true;
+        $allowedFields['deliveryAdress'] = true;
         
         // Проверяваме подадените полета дали са позволени
         if (countR($fields)) {
@@ -1770,7 +1771,11 @@ abstract class deals_DealMaster extends deals_DealBase
             $fields['currencyRate'] = currency_CurrencyRates::getRate($fields['currencyRate'], $fields['currencyId'], null);
             expect($fields['currencyRate']);
         }
-       
+
+        if (!empty($fields['deliveryAdress'])) {
+            expect(drdata_Address::parsePlace($fields['deliveryAdress']), 'Адресът трябва да съдържа държава и пощенски код');
+        }
+
         // Ако няма платежен план, това е плащане в брой
         $paymentSysId = ($me instanceof sales_Sales) ? 'paymentMethodSale' : 'paymentMethodPurchase';
         $fields['paymentMethodId'] = (empty($fields['paymentMethodId'])) ? cond_Parameters::getParameter($contragentClass, $contragentId, $paymentSysId) : $fields['paymentMethodId'];
