@@ -233,10 +233,9 @@ class eshop_CartDetails extends core_Detail
             
             // Проверка достигнато ли е максималното количество
             $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultQuantity;
-            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack, $rec->eshopProductId);
-            
-            
-            if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
+            $maxQuantity = self::getAvailableQuantity($rec->productId, $rec->eshopProductId, $rec->cartId, $rec->id);
+
+            if (isset($maxQuantity) && $maxQuantity < ($packQuantity * $rec->quantityInPack)) {
                 $form->setError('packQuantity', 'Избраното количество не е налично');
             }
             
@@ -350,12 +349,12 @@ class eshop_CartDetails extends core_Detail
      * Колко е максималното допустимо количество. Ако не е избран склад
      * или артикула не е складируем то няма максимално количество
      *
-     * @param int   $productId      - ид на артикул
-     * @param float $quantityInPack - кво в опаковка
-     *
+     * @param int   $productId         - ид на артикул
+     * @param int $eshopProductId      - кво в опаковка
+     * @param int|null $cartId - ид на количка
      * @return NULL|float $maxQuantity - максималното к-во, NULL за без ограничение
      */
-    public static function getMaxQuantity($productId, $quantityInPack, $eshopProductId)
+    public static function getAvailableQuantity($productId, $eshopProductId, $cartId = null, $ignoreId = null)
     {
         $maxQuantity = null;
         
@@ -365,11 +364,25 @@ class eshop_CartDetails extends core_Detail
             $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
             $quantityInStore = store_Products::getQuantities($productId, $settings->storeId)->free;
             
-            if(isset($deliveryTime) && $quantityInStore <= 0) return $maxQuantity;
-            
-            $maxQuantity = round($quantityInStore / $quantityInPack, 2);
+            if(isset($deliveryTime) && $quantityInStore <= 0) return null;
+            $maxQuantity = $quantityInStore;
         }
-        
+
+        if(!empty($maxQuantity)){
+
+            // Проверка колко общо има от избрания артикул в количката без значение от опаковката
+            $cartId = isset($cartId) ? $cartId : eshop_Carts::force(null, null, false);
+            if($cartId){
+                $dQuery = eshop_CartDetails::getQuery();
+                $dQuery->where("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId}");
+                $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
+                if(isset($ignoreId)){
+                    $dQuery->where("#id != {$ignoreId}");
+                }
+                $maxQuantity -= $dQuery->fetch()->sum;
+            }
+        }
+
         return $maxQuantity;
     }
     
@@ -400,12 +413,14 @@ class eshop_CartDetails extends core_Detail
             $dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
             
             // Колко е максималното допустимо количество
-            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack, $rec->eshopProductId);
+            $maxQuantity = self::getAvailableQuantity($rec->productId, $rec->eshopProductId, $rec->cartId, $rec->id);
             $maxReachedTex = '';
             if(isset($maxQuantity)){
                 $maxReachedTex = tr("Избраното количество не е налично");
+                $maxQuantity /= $rec->quantityInPack;
+                $maxQuantity = round($maxQuantity);
             }
-            
+
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
             $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input autoUpdate,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity},data-maxquantity-reached-text={$maxReachedTex}") . $plus . '</span>';
@@ -594,8 +609,20 @@ class eshop_CartDetails extends core_Detail
         $rec = self::fetch($id);
         if(is_object($rec)){
             $rec->quantity = $quantity * $rec->quantityInPack;
-            self::save($rec, 'quantity');
-            vislog_History::add("Обновяване на количество в количка");
+            $maxQuantity = self::getAvailableQuantity($rec->productId, $rec->eshopProductId, $rec->cartId, $rec->id);
+
+            $skip = false;
+            if(isset($maxQuantity)){
+                if($maxQuantity < $rec->quantity){
+                    core_Statuses::newStatus("Избраното количество не е налично", 'error');
+                    $skip = true;
+                }
+            }
+
+            if($skip === false){
+                self::save($rec, 'quantity');
+                vislog_History::add("Обновяване на количество в количка");
+            }
 
             Mode::set('currentExternalTab', 'eshop_Carts');
 

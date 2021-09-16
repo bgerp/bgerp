@@ -1,5 +1,6 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
     <h3 class='centered'>|ПРИКЛЮЧВАНЕ НА|* [#DOC_NAME#]</h3>
+    <p class='centered small'><span class="quiet">|Определяне на вальора|*:</span> [#valiorStrategy#]</p>
     <p class='centered'>№ [#id#] / [#valior#]</p>
     <!--ET_BEGIN closeWith-->
     <p class='centered'>|с|* [#closeWith#]</p>
