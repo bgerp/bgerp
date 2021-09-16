@@ -876,7 +876,7 @@ class eshop_Carts extends core_Master
     public static function forceSale($id, $force = false, $sendEmailIfNecessary = true)
     {
         $rec = static::fetchRec($id);
-        
+
         if ($force === false) {
             if (isset($rec->saleId)) {
                 
@@ -912,10 +912,11 @@ class eshop_Carts extends core_Master
                 $place = $rec->deliveryPlace;
                 $address = $rec->deliveryAddress;
             }
+
             $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $pCode, $place, $address, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo, $routerExplanation, $rec->domainId);
             $Cover = doc_Folders::getCover($folderId);
         }
-        
+
         $settings = cms_Domains::getSettings($rec->domainId);
         $templateId = ($settings->lg == 'bg') ? eshop_Setup::get('SALE_DEFAULT_TPL_BG') : eshop_Setup::get('SALE_DEFAULT_TPL_EN');
         $templateLang = doc_TplManager::fetchField($templateId, 'lang');
@@ -946,7 +947,14 @@ class eshop_Carts extends core_Master
             'deliveryCalcTransport' => 'no',
             'note' => tr("Поръчка") . " #{$rec->id}",
         );
-        
+
+        if(!empty($rec->deliveryCountry)){
+            $fields['deliveryAdress'] = drdata_Countries::getTitleById($rec->deliveryCountry);
+            if(!empty($rec->deliveryPCode)) {
+                $fields['deliveryAdress'] .= ", {$rec->deliveryPCode}";
+            }
+        }
+
         // Коя е ценовата политика
         $priceListId = $settings->listId;
         if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
@@ -965,7 +973,6 @@ class eshop_Carts extends core_Master
         // Създаване на продажба по количката
         try{
             $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
-           
          } catch(core_exception_Expect $e){
             reportException($e);
             eshop_Carts::logErr("Грешка при създаване на онлайн продажба: '{$e->getMessage()}'", $rec->id);
@@ -1124,7 +1131,11 @@ class eshop_Carts extends core_Master
         $body = getTplFromFile($file);
         $body->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
         $body->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
-        
+
+        if ($rec->deliveryNoVat < 0) {
+            $body->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'PROBLEM_WITH_DELIVERY');
+        }
+
         $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
         $makeInvoice = tr(self::getVerbal($rec, 'makeInvoice'));
         $body->replace($makeInvoice, 'MAKE_INVOICE');
@@ -1564,7 +1575,7 @@ class eshop_Carts extends core_Master
         }
         
         if ($rec->deliveryNoVat < 0) {
-            $tpl->replace(tr('Има проблем при изчислението на доставката. Моля, обърнете се към нас|*!'), 'deliveryError');
+            $tpl->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'deliveryError');
         }
         
         if (!empty($rec->instruction)) {
@@ -1919,8 +1930,6 @@ class eshop_Carts extends core_Master
             } elseif($rec->state != 'draft'){
                 $requiredRoles = 'no_one';
             } elseif (empty($rec->personNames) || empty($rec->productCount)) {
-                $requiredRoles = 'no_one';
-            } elseif ($rec->deliveryNoVat < 0) {
                 $requiredRoles = 'no_one';
             } elseif ($rec->paidOnline != 'yes') {
                 if ($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)) {
