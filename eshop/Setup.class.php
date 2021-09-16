@@ -198,7 +198,6 @@ class eshop_Setup extends core_ProtoSetup
         'eshop_Carts',
         'eshop_CartDetails',
         'eshop_Favourites',
-        'migrate::updateSettingInvoiceType',
     );
     
     
@@ -350,19 +349,5 @@ class eshop_Setup extends core_ProtoSetup
         eshop_Products::saveNearProducts();
         
         return tr('Преизчисляване на свързаните е-артикули');
-    }
-
-
-    /**
-     * Миграция на дефолтния тип фактуриране
-     */
-    public function updateSettingInvoiceType()
-    {
-        $sQuery = eshop_Settings::getQuery();
-        $sQuery->where("#invoiceType IS NULL OR #invoiceType = ''");
-        while($sRec = $sQuery->fetch()){
-            $sRec->invoiceType = 'none,person,company';
-            eshop_Settings::save($sRec);
-        }
     }
 }
