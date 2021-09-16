@@ -284,7 +284,9 @@ class cond_PaymentMethods extends embed_Manager
      */
     public static function getPaymentPlan($pmId, $amount, $invoiceDate)
     {
-        expect($rec = self::fetch($pmId));
+        $rec = self::fetch($pmId);
+        if(empty($rec)) return array();
+
         $res = array('eventBalancePayment' => $rec->eventBalancePayment);
         
         if ($rec->downpayment) {
