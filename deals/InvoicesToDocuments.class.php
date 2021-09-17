@@ -428,6 +428,10 @@ class deals_InvoicesToDocuments extends core_Manager
     public function renderInvoicesToDocuments($data)
     {
         $tpl = new core_ET("");
+        if(Mode::isReadOnly()){
+            if($data->masterMvc instanceof store_DocumentMaster) return $tpl;
+        }
+
         $block = getTplFromFile('deals/tpl/InvoicesToDocuments.shtml');
 
         if (countR($data->rows)) {
