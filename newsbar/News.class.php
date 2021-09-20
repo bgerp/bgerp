@@ -74,7 +74,7 @@ class newsbar_News extends core_Master
         $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Показване на новината->Начало, mandatory');
         $this->FLD('endTime', 'datetime(defaultTime=23:59:59,format=smartTime)', 'caption=Показване на новината->Край,mandatory');
         
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter, removeAndRefreshForm=menu|eshopProducts, silent');
         $this->FLD('position', 'enum(topPage=В началото,bottomHeader=Над менюто,topContent=Преди съдържанието, bottomContent=След съдържанието, topNav=Над навигацията, bottomNav=Под навигацията, beforeFooter=Преди футър, afterFooter=След футър)', 'caption=Показване в->Позиция, notNull, mandatory');
         $this->FLD('menu', 'keylist(mvc=cms_Content,select=menu)', 'caption=Филтриране при показване->Меню');
         $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Филтриране при показване->Статии');
@@ -272,22 +272,73 @@ class newsbar_News extends core_Master
         if (!$rec->transparency) {
             $form->setDefault('transparency', 0.5);
         }
-        
+
+        $cArr = array();
+        if ($data->form->rec->domainId) {
+
+            // Спрямо избрания домейн, показваме менютата
+            $cQuery = cms_Content::getQuery();
+            $cQuery->where("#state = 'active'");
+            $cQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
+            $cQuery->likeKeylist('sharedDomains', $data->form->rec->domainId, true);
+            $cQuery->show('id, menu');
+
+            while ($cRec = $cQuery->fetch()) {
+                $cArr[$cRec->id] = $cRec->menu;
+            }
+            $data->form->setSuggestions('menu', $cArr);
+
+            // Спрямо избрания домейн, показваме продуктите
+            $pQuery = eshop_Products::getQuery();
+            $pQuery->where("#state = 'active'");
+            $pQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
+            $pQuery->show('id, name');
+            $pArr = array();
+            while ($pRec = $pQuery->fetch()) {
+                $pArr[$pRec->id] = $pRec->name;
+            }
+            $data->form->setSuggestions('eshopProducts', $pArr);
+        }
+
         // Показваме статиите до преди 2 год и текущата, която се редактира
         $aQuery = cms_Articles::getQuery();
+        $aQuery->where("#state = 'active'");
+        if ($data->form->rec->articles) {
+            $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
+        }
+
         $before = dt::addDays(-2 * 365);
         $aQuery->where(array("#modifiedOn >= '[#1#]'", $before));
         if ($data->form->rec->articles) {
             $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
         }
+
+        if ($cArr) {
+            $aQuery->in('menuId', array_keys($cArr));
+        }
+        if ($data->form->rec->articles) {
+            $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
+        }
         $aQuery->orderBy('modifiedOn', 'DESC');
-        
         $aArr = array();
         while ($aRec = $aQuery->fetch()) {
             $aArr[$aRec->id] = $aRec->title;
         }
-        
         $data->form->setSuggestions('articles', $aArr);
+
+        if (!empty($cArr)) {
+            // Спрямо менютата от избрания домейн, показваме продуктовите групи
+            $gQuery = eshop_Groups::getQuery();
+            $gQuery->where("#state = 'active'");
+            $aQuery->in('menuId', array_keys($cArr));
+            $cQuery->show('id, name');
+
+            $gArr = array();
+            while ($cRec = $cQuery->fetch()) {
+                $gArr[$cRec->id] = $cRec->name;
+            }
+            $data->form->setSuggestions('eshopGroups', $gArr);
+        }
     }
     
     
