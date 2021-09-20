@@ -274,31 +274,33 @@ class newsbar_News extends core_Master
         }
 
         $cArr = array();
-        if ($data->form->rec->domainId) {
 
-            // Спрямо избрания домейн, показваме менютата
-            $cQuery = cms_Content::getQuery();
-            $cQuery->where("#state = 'active'");
+        // Спрямо избрания домейн, показваме менютата
+        $cQuery = cms_Content::getQuery();
+        $cQuery->where("#state = 'active'");
+        if ($data->form->rec->domainId) {
             $cQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
             $cQuery->likeKeylist('sharedDomains', $data->form->rec->domainId, true);
-            $cQuery->show('id, menu');
-
-            while ($cRec = $cQuery->fetch()) {
-                $cArr[$cRec->id] = $cRec->menu;
-            }
-            $data->form->setSuggestions('menu', $cArr);
-
-            // Спрямо избрания домейн, показваме продуктите
-            $pQuery = eshop_Products::getQuery();
-            $pQuery->where("#state = 'active'");
-            $pQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
-            $pQuery->show('id, name');
-            $pArr = array();
-            while ($pRec = $pQuery->fetch()) {
-                $pArr[$pRec->id] = $pRec->name;
-            }
-            $data->form->setSuggestions('eshopProducts', $pArr);
         }
+        $cQuery->show('id, menu');
+
+        while ($cRec = $cQuery->fetch()) {
+            $cArr[$cRec->id] = $cRec->menu;
+        }
+        $data->form->setSuggestions('menu', $cArr);
+
+        // Спрямо избрания домейн, показваме продуктите
+        $pQuery = eshop_Products::getQuery();
+        $pQuery->where("#state = 'active'");
+        if ($data->form->rec->domainId) {
+            $pQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
+        }
+        $pQuery->show('id, name');
+        $pArr = array();
+        while ($pRec = $pQuery->fetch()) {
+            $pArr[$pRec->id] = $pRec->name;
+        }
+        $data->form->setSuggestions('eshopProducts', $pArr);
 
         // Показваме статиите до преди 2 год и текущата, която се редактира
         $aQuery = cms_Articles::getQuery();
