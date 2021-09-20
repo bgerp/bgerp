@@ -948,12 +948,13 @@ class eshop_Carts extends core_Master
             'note' => tr("Поръчка") . " #{$rec->id}",
         );
 
-        if(!empty($rec->deliveryCountry)){
+        /*
+         * if(!empty($rec->deliveryCountry)){
             $fields['deliveryAdress'] = drdata_Countries::getTitleById($rec->deliveryCountry);
             if(!empty($rec->deliveryPCode)) {
                 $fields['deliveryAdress'] .= ", {$rec->deliveryPCode}";
             }
-        }
+         */
 
         // Коя е ценовата политика
         $priceListId = $settings->listId;

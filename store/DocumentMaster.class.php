@@ -810,8 +810,8 @@ abstract class store_DocumentMaster extends core_Master
             $res['baseAmount'] = currency_Currencies::round($rec->amountDelivered, $rec->currencyId);
             $res['amount'] = $amount;
             $res['currencyId'] = $rec->currencyId;
-            
-            $sign = (!($this instanceof store_Receipts)) ? 1 : -1;
+
+            $sign = ($rec->isReverse != 'yes') ? 1 : -1;
             $amount = $sign * $res['amount'];
             $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($amount);
             $amountVerbal = ht::styleNumber($amountVerbal, $res['amount']);
