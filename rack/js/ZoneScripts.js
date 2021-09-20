@@ -8,9 +8,12 @@ function zoneActions() {
 		if(!url){
 			return;
 		}
-		
+
+		getEO().isReloading = true;
+		getEO().isWaitingResponse = true;
+		getEfae().waitPeriodicAjaxCall = 5;
+
 		var data = {divId:divId};
-		
 		resObj = new Object();
 		resObj['url'] = url;
 		
