@@ -376,15 +376,27 @@ class deals_InvoicesToDocuments extends core_Manager
                 $count++;
                 $unallocated -= $rec->amount;
                 $data->rows[$key] = $this->recToVerbal($rec);
-                $data->rows[$key]->currencyId = $currencyCode;
-                $data->rows[$key]->documentName = tr("Kъм") . " {$data->rows[$key]->documentName}";
+
+                if(isset($data->masterData->rec->tplLang)){
+                    core_Lg::push($data->masterData->rec->tplLang);
+                }
+                $data->rows[$key]->documentName = tr("Kъм {$data->rows[$key]->documentName}");
+                if(isset($data->masterData->rec->tplLang)){
+                    core_Lg::pop();
+                }
+
+                if(!Mode::isReadOnly()){
+                    $data->rows[$key]->currencyId = $currencyCode;
+                } else {
+                    unset($data->rows[$key]->amount);
+                }
 
                 if($count == 1 && isset($data->btn)){
                     $data->rows[$key]->invoiceBtn = $data->btn;
                 }
             }
 
-            if(round($unallocated, 2) > 0){
+            if(round($unallocated, 2) > 0 && !Mode::isReadOnly()){
                 $data->rows['u'] = (object)array('documentName' => tr('Неразпределени'), 'currencyId' => $currencyCode, 'amount' => core_Type::getByName('double(decimals=2)')->toVerbal($unallocated));
             }
         }
@@ -428,10 +440,6 @@ class deals_InvoicesToDocuments extends core_Manager
     public function renderInvoicesToDocuments($data)
     {
         $tpl = new core_ET("");
-        if(Mode::isReadOnly()){
-            if($data->masterMvc instanceof store_DocumentMaster) return $tpl;
-        }
-
         $block = getTplFromFile('deals/tpl/InvoicesToDocuments.shtml');
 
         if (countR($data->rows)) {
@@ -441,7 +449,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 $tpl->append($clone);
             }
         } elseif(isset($data->btn)) {
-            $block->replace('Към фактура', 'documentName');
+            $block->replace(tr('Към фактура'), 'documentName');
             $block->append("<div class='border-field'></div>", 'amount');
             $block->append($data->btn, 'amount');
             $tpl->append($block);
