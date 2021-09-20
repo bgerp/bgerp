@@ -48,6 +48,15 @@ class newsbar_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'newsbar_News',
+        'migrate::loadNewTimes',
+    );
+    
+    
+    /**
+     * Описание на конфигурационните константи
+     */
+    public $configDescription = array(
+        'NEWSBAR_EASTER' => array('enum(Orthodox=православен Великден,Easter=западен Великден)', 'caption=Великден,value=Orthodox'),
     );
     
     
@@ -88,5 +97,27 @@ class newsbar_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Лента с Новини в продукти', 'newsbar_Plugin', 'eshop_Products', 'private');
         
         return $html;
+    }
+    
+    
+    /**
+     * Миграция за повторение на новините
+     */
+    public static function loadNewTimes()
+    {
+        $News = cls::get('newsbar_News');
+        
+        $query = $News->getQuery();
+        $query->where("#newStartTime IS NULL");
+        
+        while ($rec = $query->fetch()) {
+            $cRec = clone $rec;
+            
+            $rec->repeat = "no";
+            $rec->newStartTime = $rec->startTime;
+            $rec->newEndTime = $rec->endTime;
+ 
+            $News->save_($rec, 'repeat,newStartTime,newEndTime');
+        }
     }
 }
