@@ -371,19 +371,17 @@ class deals_InvoicesToDocuments extends core_Manager
 
         $data->rows = array();
         $count = 0;
+
         if(countR($data->recs)){
+            if(isset($data->masterData->rec->tplLang)){
+                core_Lg::push($data->masterData->rec->tplLang);
+            }
+
             foreach ($data->recs as $key => $rec) {
                 $count++;
                 $unallocated -= $rec->amount;
                 $data->rows[$key] = $this->recToVerbal($rec);
-
-                if(isset($data->masterData->rec->tplLang)){
-                    core_Lg::push($data->masterData->rec->tplLang);
-                }
                 $data->rows[$key]->documentName = tr("Kъм {$data->rows[$key]->documentName}");
-                if(isset($data->masterData->rec->tplLang)){
-                    core_Lg::pop();
-                }
 
                 if(!Mode::isReadOnly()){
                     $data->rows[$key]->currencyId = $currencyCode;
@@ -398,6 +396,10 @@ class deals_InvoicesToDocuments extends core_Manager
 
             if(round($unallocated, 2) > 0 && !Mode::isReadOnly()){
                 $data->rows['u'] = (object)array('documentName' => tr('Неразпределени'), 'currencyId' => $currencyCode, 'amount' => core_Type::getByName('double(decimals=2)')->toVerbal($unallocated));
+            }
+
+            if(isset($data->masterData->rec->tplLang)){
+                core_Lg::pop();
             }
         }
 

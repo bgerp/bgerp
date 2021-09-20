@@ -946,6 +946,7 @@ class planning_Tasks extends core_Master
         
         foreach (array('fixedAssets' => 'planning_AssetResources', 'employees' => 'planning_Hr') as $field => $Det) {
             $arr = $Det::getByFolderId($rec->folderId);
+
             if (!empty($rec->{$field})) {
                 $alreadyIn = keylist::toArray($rec->{$field});
                 foreach ($alreadyIn as $fId) {
@@ -1432,5 +1433,35 @@ class planning_Tasks extends core_Master
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
 
         return $form->renderHtml();
+    }
+
+
+    /**
+     * Връща масив от използваните нестандартни артикули в документа
+     *
+     * @param int $id - ид на документа
+     *
+     * @return array $res - масив с използваните документи
+     *               ['class'] - инстанция на документа
+     *               ['id'] - ид на документа
+     */
+    public function getUsedDocs_($id)
+    {
+        $rec = $this->fetchRec($id);
+
+        $res = array();
+        $cid = cat_Products::fetchField($rec->productId, 'containerId');
+        $res[$cid] = $cid;
+
+        $dQuery = planning_ProductionTaskProducts::getQuery();
+        $dQuery->where("#taskId = '{$rec->id}'");
+        $dQuery->groupBy('productId');
+        $dQuery->show('productId');
+        while ($dRec = $dQuery->fetch()) {
+            $cid = cat_Products::fetchField($dRec->productId, 'containerId');
+            $res[$cid] = $cid;
+        }
+
+        return $res;
     }
 }

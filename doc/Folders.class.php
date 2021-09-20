@@ -521,9 +521,10 @@ class doc_Folders extends core_Master
             $title = str::limitLen($title, $maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
-        
-        if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')) {
-            $haveRight = colab_Folders::haveRightFor('single', $rec);
+
+        $isPartner = core_Packs::isInstalled('colab') && core_Users::haveRole('partner');
+        if ($isPartner) {
+            $haveRight = colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->id));
             $link = array('colab_Threads', 'list', 'folderId' => $rec->id);
         } else {
             $haveRight = $mvc->haveRightFor('single', $rec);
@@ -555,7 +556,7 @@ class doc_Folders extends core_Master
             }
 
             $title = ht::createLink($title, $link, null, $attr);
-        } else {
+        } elseif(!$isPartner) {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
             $title = ht::createElement('span', $attr, $title);
         }
