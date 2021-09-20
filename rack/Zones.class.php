@@ -362,7 +362,7 @@ class rack_Zones extends core_Master
         
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
-        $data->listFilter->FLD('onlyWithMovements', 'enum(yes=Само с движения,no=Всички)', 'autoFilter,silent');
+        $data->listFilter->FLD('onlyWithMovements', 'enum(all=Всички,yes=Само с движения,onlyMine=Само моите)', 'autoFilter,silent');
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
         
@@ -416,11 +416,15 @@ class rack_Zones extends core_Master
                 }
             }
 
-            if($filter->onlyWithMovements == 'yes'){
+            if($filter->onlyWithMovements != 'all'){
 
                 // Ако е избран филтър само за зони с движения да се показват те
                 $mQuery = rack_Movements::getQuery();
                 $mQuery->where("#storeId = {$storeId} AND #state != 'closed' AND #zoneList != ''");
+                if($filter->onlyWithMovements == 'onlyMine'){
+                    $mQuery->where("#workerId = " . core_Users::getCurrent());
+                }
+
                 $mQuery->show('zoneList');
                 $zonesWithMovements = array();
                 $zoneKeylistsArr = arr::extractValuesFromArray($mQuery->fetchAll(), 'zoneList');

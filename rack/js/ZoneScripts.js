@@ -11,7 +11,7 @@ function zoneActions() {
 
 		getEO().isReloading = true;
 		getEO().isWaitingResponse = true;
-		getEfae().waitPeriodicAjaxCall = 5;
+		getEfae().waitPeriodicAjaxCall = 7;
 
 		var data = {divId:divId};
 		resObj = new Object();
