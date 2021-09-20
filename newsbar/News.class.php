@@ -74,7 +74,7 @@ class newsbar_News extends core_Master
         $this->FLD('startTime', 'datetime(format=smartTime)', 'caption=Показване на новината->Начало, mandatory');
         $this->FLD('endTime', 'datetime(defaultTime=23:59:59,format=smartTime)', 'caption=Показване на новината->Край,mandatory');
         
-        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter');
+        $this->FLD('domainId', 'key(mvc=cms_Domains, select=titleExt)', 'caption=Показване в->Домейн,notNull,defValue=bg,mandatory,autoFilter, removeAndRefreshForm=menu|eshopProducts, silent');
         $this->FLD('position', 'enum(topPage=В началото,bottomHeader=Над менюто,topContent=Преди съдържанието, bottomContent=След съдържанието, topNav=Над навигацията, bottomNav=Под навигацията, beforeFooter=Преди футър, afterFooter=След футър)', 'caption=Показване в->Позиция, notNull, mandatory');
         $this->FLD('menu', 'keylist(mvc=cms_Content,select=menu)', 'caption=Филтриране при показване->Меню');
         $this->FLD('articles', 'keylist(mvc=cms_Articles,select=title)', 'caption=Филтриране при показване->Статии');
@@ -288,6 +288,32 @@ class newsbar_News extends core_Master
         }
         
         $data->form->setSuggestions('articles', $aArr);
+
+        if ($data->form->rec->domainId) {
+
+            // Спрямо избрания домейн, показваме менютата
+            $cQuery = cms_Content::getQuery();
+            $cQuery->where("#state = 'active'");
+            $cQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
+            $cQuery->likeKeylist('sharedDomains', $data->form->rec->domainId, true);
+            $cQuery->show('id, menu');
+            $cArr = array();
+            while ($cRec = $cQuery->fetch()) {
+                $cArr[$cRec->id] = $cRec->menu;
+            }
+            $data->form->setSuggestions('menu', $cArr);
+
+            // Спрямо избрания домейн, показваме продуктите
+            $pQuery = eshop_Products::getQuery();
+            $pQuery->where("#state = 'active'");
+            $pQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
+            $pQuery->show('id, name');
+            $pArr = array();
+            while ($pRec = $pQuery->fetch()) {
+                $pArr[$pRec->id] = $pRec->name;
+            }
+            $data->form->setSuggestions('eshopProducts', $pArr);
+        }
     }
     
     
