@@ -362,6 +362,7 @@ class rack_Zones extends core_Master
         
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
+        $data->listFilter->FLD('onlyWithMovements', 'enum(yes=Само с движения,no=Всички)', 'silent');
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
         
@@ -376,14 +377,16 @@ class rack_Zones extends core_Master
         }
         
         $data->listFilter->setOptions('grouping', $groupingOptions);
+        $data->listFilter->setDefault('onlyWithMovements', 'yes');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'productId,grouping';
+        $data->listFilter->showFields = 'productId,grouping,onlyWithMovements';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input('productId,grouping');
         
         // Ако се филтрира по артикул
         if($filter = $data->listFilter->rec){
+
             if(isset($filter->productId)){
                 
                 // Оставят се само тези зони където се среща артикула
@@ -410,6 +413,22 @@ class rack_Zones extends core_Master
                         $id = trim($filter->grouping, 's');
                         $data->query->where("#id = {$id}");
                         break;
+                }
+            }
+
+            if($filter->onlyWithMovements == 'yes'){
+
+                // Ако е избран филтър само за зони с движения да се показват те
+                $mQuery = rack_Movements::getQuery();
+                $mQuery->where("#storeId = {$storeId} AND #state != 'closed' AND #zoneList != ''");
+                $mQuery->show('zoneList');
+                $zonesWithMovements = array();
+                $zoneKeylistsArr = arr::extractValuesFromArray($mQuery->fetchAll(), 'zoneList');
+                foreach ($zoneKeylistsArr as $zKeylist){
+                    $zonesWithMovements += keylist::toArray($zKeylist);
+                }
+                if(countR($zonesWithMovements)){
+                    $data->query->in("id", $zonesWithMovements);
                 }
             }
         }
