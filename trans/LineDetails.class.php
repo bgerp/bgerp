@@ -249,7 +249,7 @@ class trans_LineDetails extends doc_Detail
             } else {
                 $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true) . ' » ' . store_Stores::getHyperlink($transportInfo['stores'][1], true);
             }
-            $row->address = "{$row->storeId}, {$row->address}";
+            $row->address = "{$row->storeId} {$transportInfo['contragentName']}, {$row->address}";
         }
 
         if(!empty($row->address)){
@@ -283,7 +283,7 @@ class trans_LineDetails extends doc_Detail
                 $row->contragentName = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
             }
         }
-        
+
         if (!empty($transportInfo['amountVerbal'])) {
             if($Document->isInstanceOf('store_ShipmentOrders')){
                 $row->amountSo = $transportInfo['amountVerbal'];
