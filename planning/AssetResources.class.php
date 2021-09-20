@@ -559,7 +559,7 @@ class planning_AssetResources extends core_Master
         
         while ($fRec = $fQuery->fetch()) {
             if ($rec = self::fetch($fRec->objectId)) {
-                if ($rec->state == 'rejected') {
+                if ($rec->state == 'rejected' || $rec->state == 'closed') {
                     continue;
                 }
                 $options[$rec->id] = self::getRecTitle($rec, false);

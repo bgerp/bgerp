@@ -946,6 +946,7 @@ class planning_Tasks extends core_Master
         
         foreach (array('fixedAssets' => 'planning_AssetResources', 'employees' => 'planning_Hr') as $field => $Det) {
             $arr = $Det::getByFolderId($rec->folderId);
+
             if (!empty($rec->{$field})) {
                 $alreadyIn = keylist::toArray($rec->{$field});
                 foreach ($alreadyIn as $fId) {
