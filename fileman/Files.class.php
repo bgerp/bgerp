@@ -1535,12 +1535,15 @@ class fileman_Files extends core_Master
                     
                     if (self::isDanger($fRec)) {
                         $attr['class'] .= ' dangerFile';
+                        $vName = $attr['title'] ? $attr['title'] : $nameFix;
+                        $attr['title'] = '|Файл с вирус|*: ' . $vName;
+                        if (is_array($url)) {
+                            $url['currentTab'] = 'info';
+                        }
                     }
                 }
                 
                 $attr['rel'] = 'nofollow';
-                
-                $link = new core_ET($link);
                 
                 if (!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')) {
                     if (static::haveRightFor('single', $fRec)) {
@@ -1555,7 +1558,7 @@ class fileman_Files extends core_Master
                         $attr['data-url'] = $dataUrl;
                     }
                 }
-                
+
                 $link = ht::createLink($nameFix, $url, null, $attr);
                 $link->prepend("<span class='fileHolder'>");
                 $link->append('</span>');
@@ -2248,7 +2251,11 @@ class fileman_Files extends core_Master
             $row->fileName = $form->renderHtml();
         } else {
             // Вербалното име на файла
-            $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">' . $mvc->getVerbal($rec, 'name') . '</span>';
+            $row->fileName = "<span class='linkWithIcon{$dangerFileClass}' style=\"margin-left:-7px; " . ht::getIconStyle($icon) . '">';
+            if ($dangerFileClass) {
+                $row->fileName .= tr('Файл с вирус|*: ');
+            }
+            $row->fileName .= $mvc->getVerbal($rec, 'name') . '</span>';
         }
         
         if ($prevUrl = $fileNavArr[$rec->fileHnd]['prev']) {
