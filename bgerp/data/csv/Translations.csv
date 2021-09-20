@@ -2311,10 +2311,11 @@ en,кубичен метър,cubic meter
 en,курс,rate
 en,къде,where
 en,към Фактура,to Invoice
-en,Kъм фактура,to Invoice
-en,Kъм дебитно известие,to Debit note
-en,Kъм кредитно известие,to Credit note
+en,Kъм фактура,To Invoice
+en,Kъм дебитно известие,To Debit note
+en,Kъм кредитно известие,To Credit note
 en,към,to
+en,Към,To
 en,л,l
 en,лабораторен тест,laboratory test
 en,линк,link
