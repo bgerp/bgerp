@@ -1543,8 +1543,14 @@ class doc_DocumentPlg extends core_Plugin
             $fileNavArr[$fh]['allFilesArr'] = $allFileArr;
             $fileNavArr[$fh]['current'] = $cUrlStr;
             Mode::setPermanent('fileNavArr', $fileNavArr);
-            
-            $res = new Redirect(array('fileman_Files', 'single', $fh));
+
+            $rUrl = array('fileman_Files', 'single', $fh);
+
+            if ($currentTab = Request::get('currentTab')) {
+                $rUrl['currentTab'] = $currentTab;
+            }
+
+            $res = new Redirect($rUrl);
             
             return false;
         }
