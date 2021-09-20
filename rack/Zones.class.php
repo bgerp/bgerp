@@ -362,7 +362,7 @@ class rack_Zones extends core_Master
         
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
-        $data->listFilter->FLD('onlyWithMovements', 'enum(yes=Само с движения,no=Всички)', 'silent');
+        $data->listFilter->FLD('onlyWithMovements', 'enum(yes=Само с движения,no=Всички)', 'autoFilter,silent');
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
         
