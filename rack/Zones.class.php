@@ -433,6 +433,8 @@ class rack_Zones extends core_Master
                 }
                 if(countR($zonesWithMovements)){
                     $data->query->in("id", $zonesWithMovements);
+                } else {
+                    $data->query->where("1=2");
                 }
             }
         }
