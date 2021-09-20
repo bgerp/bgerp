@@ -272,23 +272,8 @@ class newsbar_News extends core_Master
         if (!$rec->transparency) {
             $form->setDefault('transparency', 0.5);
         }
-        
-        // Показваме статиите до преди 2 год и текущата, която се редактира
-        $aQuery = cms_Articles::getQuery();
-        $before = dt::addDays(-2 * 365);
-        $aQuery->where(array("#modifiedOn >= '[#1#]'", $before));
-        if ($data->form->rec->articles) {
-            $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
-        }
-        $aQuery->orderBy('modifiedOn', 'DESC');
-        
-        $aArr = array();
-        while ($aRec = $aQuery->fetch()) {
-            $aArr[$aRec->id] = $aRec->title;
-        }
-        
-        $data->form->setSuggestions('articles', $aArr);
 
+        $cArr = array();
         if ($data->form->rec->domainId) {
 
             // Спрямо избрания домейн, показваме менютата
@@ -297,7 +282,7 @@ class newsbar_News extends core_Master
             $cQuery->where(array("#domainId = '[#1#]'", $data->form->rec->domainId));
             $cQuery->likeKeylist('sharedDomains', $data->form->rec->domainId, true);
             $cQuery->show('id, menu');
-            $cArr = array();
+
             while ($cRec = $cQuery->fetch()) {
                 $cArr[$cRec->id] = $cRec->menu;
             }
@@ -313,6 +298,46 @@ class newsbar_News extends core_Master
                 $pArr[$pRec->id] = $pRec->name;
             }
             $data->form->setSuggestions('eshopProducts', $pArr);
+        }
+
+        // Показваме статиите до преди 2 год и текущата, която се редактира
+        $aQuery = cms_Articles::getQuery();
+        $aQuery->where("#state = 'active'");
+        if ($data->form->rec->articles) {
+            $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
+        }
+
+        $before = dt::addDays(-2 * 365);
+        $aQuery->where(array("#modifiedOn >= '[#1#]'", $before));
+        if ($data->form->rec->articles) {
+            $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
+        }
+
+        if ($cArr) {
+            $aQuery->in('menuId', array_keys($cArr));
+        }
+        if ($data->form->rec->articles) {
+            $aQuery->orWhere(array("#id = '[#1#]'", $data->form->rec->articles));
+        }
+        $aQuery->orderBy('modifiedOn', 'DESC');
+        $aArr = array();
+        while ($aRec = $aQuery->fetch()) {
+            $aArr[$aRec->id] = $aRec->title;
+        }
+        $data->form->setSuggestions('articles', $aArr);
+
+        if (!empty($cArr)) {
+            // Спрямо менютата от избрания домейн, показваме продуктовите групи
+            $gQuery = eshop_Groups::getQuery();
+            $gQuery->where("#state = 'active'");
+            $aQuery->in('menuId', array_keys($cArr));
+            $cQuery->show('id, name');
+
+            $gArr = array();
+            while ($cRec = $cQuery->fetch()) {
+                $gArr[$cRec->id] = $cRec->name;
+            }
+            $data->form->setSuggestions('eshopGroups', $gArr);
         }
     }
     
