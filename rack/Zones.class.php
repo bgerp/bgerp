@@ -73,7 +73,7 @@ class rack_Zones extends core_Master
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'num=Зона,containerId,readiness,folderId=Папка,lineId=Линия,pendingHtml=@';
+    public $listFields = 'num=Зона,containerId,folderId=Папка,lineId=Линия,pendingHtml=@';
     
     
     /**
