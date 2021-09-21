@@ -169,7 +169,7 @@ class rack_ZoneDetails extends core_Detail
         setIfNot($data->inlineDetail, false);
         setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
         $requestedProductId = Request::get('productId', 'int');
-        
+
         // Допълнително обикаляне на записите
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
@@ -177,7 +177,7 @@ class rack_ZoneDetails extends core_Detail
             $row->_code = !empty($productCode) ? $productCode : "Art{$rec->id}";
             
             $row->ROW_ATTR['class'] = 'row-added';
-            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec);
+            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->userId);
             if(!empty($movementsHtml)){
                 $row->movementsHtml = $movementsHtml;
             }
@@ -323,19 +323,15 @@ class rack_ZoneDetails extends core_Detail
      * 
      * @param stdClass $masterRec
      * @param core_Mvc $masterMvc
+     * @param int $userId
      * @return core_ET
      */
-    public static function renderInlineDetail($masterRec, $masterMvc)
+    public static function renderInlineDetail($masterRec, $masterMvc, $userId = null)
     {
         $tpl = new core_ET();
 
-        if(empty($masterRec)){
-            bp();
-        }
-
         $me = cls::get(get_called_class());
-        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true);
-        //bp($masterRec);
+        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true, 'userId' => $userId);
 
         $dData = $me->prepareDetail($dData);
         if(!countR($dData->recs)) return $tpl;
@@ -355,7 +351,7 @@ class rack_ZoneDetails extends core_Detail
      * @param stdClass $rec
      * @return core_ET $tpl
      */
-    private static function getInlineMovements(&$rec, $masterRec)
+    private static function getInlineMovements(&$rec, $masterRec, $userId)
     {
         $Movements = clone cls::get('rack_Movements');
         $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
@@ -369,7 +365,7 @@ class rack_ZoneDetails extends core_Detail
         
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $skipClosed = ($masterRec->_isSingle === true) ? false : true;
-        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
+        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed, $userId);
         $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
         $allocated = is_array($allocated) ? $allocated : array();
         

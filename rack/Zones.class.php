@@ -155,8 +155,10 @@ class rack_Zones extends core_Master
         }
         
         if(isset($fields['-list'])){
+            $onlyWithMovements = Request::get('onlyWithMovements', 'varchar');
+            $userId = ($onlyWithMovements == 'onlyMine') ? core_Users::getCurrent() : null;
             $rec->_isSingle = false;
-            $pendingHtml = rack_ZoneDetails::renderInlineDetail($rec, $mvc);
+            $pendingHtml = rack_ZoneDetails::renderInlineDetail($rec, $mvc, $userId);
             if (!empty($pendingHtml)) {
                 $row->pendingHtml = $pendingHtml;
             }
@@ -708,15 +710,20 @@ class rack_Zones extends core_Master
      *
      * @param int $zoneId
      * @param boolean $skipClosed
-     *
+     * @param int $userId
      * @return array $res
      */
-    public static function getCurrentMovementRecs($zoneId, $skipClosed = true)
+    public static function getCurrentMovementRecs($zoneId, $skipClosed = true, $userId = null)
     {
         if(!isset(self::$movementCache[$zoneId])){
             self::$movementCache[$zoneId] = array();
             $mQuery = rack_Movements::getQuery();
             $mQuery->where("LOCATE('|{$zoneId}|', #zoneList)");
+
+            if(isset($userId)){
+                $mQuery->where("#workerId = {$userId}");
+            }
+
             if($skipClosed === true){
                 $mQuery->where("#state != 'closed'");
             }
