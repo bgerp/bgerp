@@ -128,7 +128,7 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->productId = cat_Products::getShortHyperlink($rec->productId);
+        $row->productId = Mode::get('inlineDetail') ? cat_Products::getTitleById($rec->productId) : cat_Products::getShortHyperlink($rec->productId, true);
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity);
         $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity);
@@ -330,6 +330,7 @@ class rack_ZoneDetails extends core_Detail
     {
         $tpl = new core_ET();
 
+        Mode::push('inlineDetail', true);
         $me = cls::get(get_called_class());
         $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true, 'userId' => $userId);
 
@@ -340,7 +341,8 @@ class rack_ZoneDetails extends core_Detail
         $tpl = $me->renderDetail($dData);
         $tpl->removePlaces();
         $tpl->removeBlocks();
-        
+        Mode::pop('inlineDetail');
+
         return $tpl;
     }
     
