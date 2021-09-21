@@ -2009,6 +2009,7 @@ abstract class deals_Helper
             $transInfo = cls::get($mvc->mainDetail)->getTransportInfo($rec);
             
             // Колко е общото тегло
+            $transInfo->weight = round($transInfo->weight);
             $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
             $string = "<span id='weight{$rec->containerId}' class='enTag weightTag' title='Общо тегло на документа'></span>";
             $style = "#weight{$rec->containerId}:after{content: '${weightVerbal}'} ";

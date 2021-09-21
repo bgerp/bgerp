@@ -137,7 +137,11 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
-        $row->movement = $mvc->getMovementDescription($rec);
+        $row->movement = $mvc->getMovementDescription($rec, false, false);
+
+        if($fields['-inline']){
+            $row->workerId = core_Users::getVerbal($rec->workerId, 'nick');
+        }
 
         if(!empty($rec->documents)){
             $documents = array();
@@ -166,10 +170,12 @@ abstract class rack_MovementAbstract extends core_Manager
      * Подробно описание на движението
      *
      * @param stdClass $rec
+     * @param stdClass $skipZones
+     * @param stdClass $makeLinks
      *
      * @return string $res
      */
-    protected function getMovementDescription($rec, $skipZones = false)
+    protected function getMovementDescription($rec, $skipZones = false, $makeLinks = true)
     {
         $packQuantity = isset($rec->_originalPackQuantity) ? $rec->_originalPackQuantity : $rec->packQuantity;
         $position = $this->getFieldType('position')->toVerbal($rec->position);
@@ -195,7 +201,6 @@ abstract class rack_MovementAbstract extends core_Manager
         }
         if (!empty($packQuantity)) {
             $packQuantityRow = ht::styleIfNegative($packQuantityRow, $packQuantity);
-
             $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         }
 
@@ -210,7 +215,9 @@ abstract class rack_MovementAbstract extends core_Manager
 
                 if(rack_Zones::fetchField($zoneRec->zone)){
                     $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
-                    $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
+                    if($makeLinks){
+                        $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
+                    }
                 } else {
                     $zoneTitle = ht::createHint($zoneRec->zone, 'Зоната вече не съществува', 'warning');
                 }
@@ -218,8 +225,6 @@ abstract class rack_MovementAbstract extends core_Manager
                 $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
                 $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
                 $movementArr[] = "<span {$class}>{$zoneTitle} ({$zoneQuantity})</span>";
-
-
             }
             Mode::pop('shortZoneName');
         }
