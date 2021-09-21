@@ -711,7 +711,7 @@ class eshop_CartDetails extends core_Detail
             $Cover = doc_Folders::getCover($lastActiveFolder);
             $listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
         }
-        
+
         // Ако има взема се цената от нея
         if (isset($listId)) {
             $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId);
@@ -721,7 +721,7 @@ class eshop_CartDetails extends core_Detail
                 
                 // И старата цена е по-евтина, то се взима тя
                 $priceOld = price_ListRules::getPrice($oldListId, $rec->productId, $rec->packagingId);
-                if(!empty($priceOld) && trim(round($priceOld, 5)) < trim(round($price))){
+                if(!empty($priceOld) && trim(round($priceOld, 5)) < trim(round($price, 5))){
                     $price = $priceOld;
                     $listId = $oldListId;
                 }
