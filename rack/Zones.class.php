@@ -134,8 +134,8 @@ class rack_Zones extends core_Master
         $this->FLD('num', 'int(max=100)', 'caption=Номер,mandatory');
         $this->FLD('description', 'text(rows=2)', 'caption=Описание');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
-        $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,smartCenter,input=none');
-        $this->FLD('readiness', 'percent', 'caption=Готовност,smartCenter,input=none');
+        $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,input=none');
+        $this->FLD('readiness', 'percent', 'caption=Готовност,input=none');
         $this->FLD('groupId', 'key(mvc=rack_ZoneGroups,selec=name,allowEmpty)', 'caption=Група,placeholder=Без групиране');
         
         $this->setDbUnique('num,storeId');
@@ -164,16 +164,15 @@ class rack_Zones extends core_Master
             }
         }
         $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] . " rack-zone-head";
-        
         $row->num = $mvc->getHyperlink($rec->id);
         
         if(isset($rec->containerId)){
             $document = doc_Containers::getDocument($rec->containerId);
             $documentRec = $document->fetch();
-            $row->folderId = doc_Folders::getFolderTitle($documentRec->folderId);
+            $row->folderId = doc_Folders::getTitleById($documentRec->folderId);
             
             if(isset($documentRec->{$document->lineFieldName})){
-                $row->lineId = trans_Lines::getHyperlink($documentRec->{$document->lineFieldName}, 0);
+                $row->lineId = trans_Lines::getLink($documentRec->{$document->lineFieldName}, 0, array('ef_icon' => false));
             }
         }
         
@@ -422,7 +421,7 @@ class rack_Zones extends core_Master
 
                 // Ако е избран филтър само за зони с движения да се показват те
                 $mQuery = rack_Movements::getQuery();
-                $mQuery->where("#storeId = {$storeId} AND #state != 'closed' AND #zoneList != ''");
+                $mQuery->where("#storeId = {$storeId} AND #zoneList != ''");
                 if($filter->onlyWithMovements == 'onlyMine'){
                     $mQuery->where("#workerId = " . core_Users::getCurrent());
                 }

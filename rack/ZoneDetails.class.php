@@ -96,7 +96,7 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell nowrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice,tdClass=nowrap rack-quantity');
-        $this->FLD('batch', 'varchar', 'caption=Партида,smartCenter,tdClass=rack-zone-batch,notNull');
+        $this->FLD('batch', 'varchar', 'caption=Партида,tdClass=rack-zone-batch,notNull');
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
         $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
@@ -364,8 +364,7 @@ class rack_ZoneDetails extends core_Detail
         }
         
         $Movements->setField('workerId', "tdClass=inline-workerId");
-        $skipClosed = ($masterRec->_isSingle === true) ? false : true;
-        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed, $userId);
+        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, false, $userId);
         $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
         $allocated = is_array($allocated) ? $allocated : array();
         
