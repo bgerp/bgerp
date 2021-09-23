@@ -30,6 +30,10 @@
                             <td >[#description#]</td>
                         </tr>
                     <!--ET_END description-->
+                        <tr>
+                            <td style='text-align:left' class='quiet'>|Цвят|*:</td>
+                            <td>[#color#]</td>
+                        </tr>
                     </table>
                 </div>
             </fieldset>

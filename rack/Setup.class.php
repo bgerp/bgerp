@@ -17,6 +17,13 @@ defIfNot('RACK_DELETE_ARCHIVED_MOVEMENTS', dt::SECONDS_IN_MONTH * 12);
  */
 defIfNot('RACK_DIFF_PALLETS_IN_SAME_POS', 'no');
 
+
+/**
+ * Дефолтен цвят за зоните
+ */
+defIfNot('RACK_DEFAULT_ZONE_COLORS', '#00ffff');
+
+
 /**
  * class rack_Setup
  *
@@ -166,6 +173,7 @@ class rack_Setup extends core_ProtoSetup
         'RACK_DELETE_OLD_MOVEMENTS' => array('time','caption=Изтриване на стари движения->Период'),
         'RACK_DELETE_ARCHIVED_MOVEMENTS' => array('time','caption=Изтриване на архивирани движения->Период'),
         'RACK_DIFF_PALLETS_IN_SAME_POS' => array('enum(no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване'),
+        'RACK_DEFAULT_ZONE_COLORS' => array('color_Type','caption=Козметични настройки на зоните->Цвят'),
     );
 
 
