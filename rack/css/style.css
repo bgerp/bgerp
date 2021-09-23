@@ -104,13 +104,6 @@
     max-width: none !important;
 }
 
-.zoneMovement {
-    border-radius: 3px;
-    border: solid 1px #bbb;
-    padding: 2px;
-    display: inline-block;
-}
-
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow  .anchor-arrow img {
     filter: invert(100%);
 }
