@@ -73,7 +73,7 @@ class rack_Zones extends core_Master
     /**
      * Полета в листовия изглед
      */
-    public $listFields = 'num=Зона,containerId,folderId=Папка,lineId=Линия,pendingHtml=@';
+    public $listFields = 'num=Зона,containerId,readiness,folderId=Папка,lineId=Линия,pendingHtml=@';
 
 
     /**
@@ -152,7 +152,9 @@ class rack_Zones extends core_Master
     {
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         if (isset($rec->containerId)) {
-            $row->containerId = doc_Containers::getDocument($rec->containerId)->getLink(0);
+            $Document = doc_Containers::getDocument($rec->containerId);
+            $singleUrl = $Document->getSingleUrlArray();
+            $row->containerId = ht::createLink("#{$Document->abbr}{$Document->that}", $singleUrl);
         }
 
         $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] . " rack-zone-head";
