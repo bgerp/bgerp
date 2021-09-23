@@ -187,7 +187,7 @@ class rack_ZoneDetails extends core_Detail
                 unset($data->rows[$id]);
             }
         }
-        
+
         arr::sortObjects($data->rows, '_code', 'asc', 'str');
     }
     
@@ -353,7 +353,7 @@ class rack_ZoneDetails extends core_Detail
      * @param stdClass $rec
      * @return core_ET $tpl
      */
-    private static function getInlineMovements(&$rec, $masterRec, $userId)
+    private static function getInlineMovements(&$rec, &$masterRec, $userId)
     {
         $Movements = clone cls::get('rack_Movements');
         $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
@@ -364,7 +364,7 @@ class rack_ZoneDetails extends core_Detail
             $data->listFields['modifiedOn'] = 'Модифициране||Modified->На||On';
             $data->listFields['modifiedBy'] = 'Модифициране||Modified->От||By';
         }
-        
+
         $Movements->setField('workerId', "tdClass=inline-workerId");
         $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, false, $userId);
         $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
@@ -374,14 +374,18 @@ class rack_ZoneDetails extends core_Detail
         $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch, $allocated){
             return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch && !array_key_exists($o->id, $allocated);
         });
-        
+
+        if(countR($data->recs)){
+            $masterRec->_noMovements = true;
+        }
+
         $rec->_movements = $data->recs;
         if(countR($rec->_movements)){
             $allocated += $rec->_movements;
         }
         
         $requestedProductId = Request::get('productId', 'int');
-        
+
         foreach ($data->recs as $mRec) {
             if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
             

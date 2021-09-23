@@ -2620,7 +2620,7 @@ function prepareContextHtmlFromAjax() {
  * Подготовка за контекстно меню по ajax
  */
 function getContextMenuFromAjax() {
-    if($('body').hasClass('narrow')) {
+    if (isTouchDevice()) {
         document.body.addEventListener('touchstart', function () { });
     }
     prepareContextHtmlFromAjax();
