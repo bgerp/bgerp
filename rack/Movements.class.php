@@ -684,7 +684,7 @@ class rack_Movements extends rack_MovementAbstract
      */
     private static function forwardRefreshUrl()
     {
-        $refreshUrl = array('Ctr' => 'rack_Zones', 'Act' => 'default');
+        $refreshUrl = cls::get('rack_Zones')->prepareRefreshRowsUrl(getCurrentUrl());
         $refreshUrlLocal = toUrl($refreshUrl, 'local');
         $divId = Request::get('divId');
         

@@ -7298,3 +7298,9 @@ only screen and (max-width: 320px) {
     to {
     opacity: 0; }
  }
+.zoneMovement {
+  border-radius: 3px;
+  border: solid 1px #bbbbbb;
+  padding: 2px;
+  display: inline-block; }
+
