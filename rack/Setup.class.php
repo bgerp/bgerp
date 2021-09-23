@@ -21,7 +21,7 @@ defIfNot('RACK_DIFF_PALLETS_IN_SAME_POS', 'no');
 /**
  * Дефолтен цвят за зоните
  */
-defIfNot('RACK_DEFAULT_ZONE_COLORS', '#00ffff');
+defIfNot('RACK_DEFAULT_ZONE_COLORS', '#eeeeee');
 
 
 /**
