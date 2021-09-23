@@ -383,7 +383,7 @@ class rack_Zones extends core_Master
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'productId,grouping,onlyWithMovements';
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->input('productId,grouping');
+        $data->listFilter->input('productId,grouping,onlyWithMovements');
         
         // Ако се филтрира по артикул
         if($filter = $data->listFilter->rec){
@@ -421,7 +421,7 @@ class rack_Zones extends core_Master
 
                 // Ако е избран филтър само за зони с движения да се показват те
                 $mQuery = rack_Movements::getQuery();
-                $mQuery->where("#storeId = {$storeId} AND #zoneList != ''");
+                $mQuery->where("#storeId = {$storeId} AND #zoneList != '' AND #state != 'closed'");
                 if($filter->onlyWithMovements == 'onlyMine'){
                     $mQuery->where("#workerId = " . core_Users::getCurrent());
                 }
@@ -715,6 +715,8 @@ class rack_Zones extends core_Master
     public static function getCurrentMovementRecs($zoneId, $skipClosed = true, $userId = null)
     {
         if(!isset(self::$movementCache[$zoneId])){
+            $zoneRec = rack_Zones::fetch($zoneId);
+
             self::$movementCache[$zoneId] = array();
             $mQuery = rack_Movements::getQuery();
             $mQuery->where("LOCATE('|{$zoneId}|', #zoneList)");
@@ -725,6 +727,9 @@ class rack_Zones extends core_Master
 
             if($skipClosed === true){
                 $mQuery->where("#state != 'closed'");
+            } else {
+                $where = (!$zoneRec->containerId) ? "(#documents IS NULL OR #documents = '')" : "LOCATE('|{$zoneRec->containerId}|', #documents)";
+                $mQuery->where("#state != 'closed' OR (#state = 'closed' && {$where})");
             }
             $mQuery->orderBy('id', 'DESC');
             
@@ -743,12 +748,16 @@ class rack_Zones extends core_Master
                     $clone->_originalPackQuantity = $mRec->packQuantity;
                     $clone->quantity = $quantity;
                     $clone->packQuantity = $clone->quantity;
-                    
                     self::$movementCache[$zoneId][$mRec->id] = $clone;
                 }
             }
         }
-        
+
+        $nonClosedRecs = array_filter(self::$movementCache[$zoneId], function ($a) {return $a->state != 'closed';});
+        if(!countR($nonClosedRecs)){
+            self::$movementCache[$zoneId] = array();
+        }
+
         return self::$movementCache[$zoneId];
     }
     
