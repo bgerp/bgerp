@@ -109,6 +109,7 @@ abstract class rack_MovementAbstract extends core_Manager
             }
         }
 
+        $makeLinks = !($fields['-inline'] && !isset($fields['-inline-single']));
         if ($mvc->haveRightFor('done', $rec)) {
             $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
             $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
@@ -137,9 +138,9 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
-        $row->movement = $mvc->getMovementDescription($rec, false, false);
+        $row->movement = $mvc->getMovementDescription($rec, false, $makeLinks);
 
-        if($fields['-inline']){
+        if($fields['-inline'] && isset($rec->workerId)){
             $row->workerId = core_Users::getVerbal($rec->workerId, 'nick');
         }
 
@@ -215,6 +216,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
                 if(rack_Zones::fetchField($zoneRec->zone)){
                     $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
+                    $zoneTitle = rack_Zones::styleZone($zoneRec->zone, $zoneTitle, 'zoneMovement');
                     if($makeLinks){
                         $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
                     }
