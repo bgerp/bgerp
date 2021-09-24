@@ -580,7 +580,7 @@ class doc_Setup extends core_ProtoSetup
 
         $lastId++;
 
-        core_Permanent::set('docFilesLastId', $lastId);
+        core_Permanent::set('docFilesLastId', $lastId, 1000);
     }
 
 
