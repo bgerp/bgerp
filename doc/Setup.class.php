@@ -554,7 +554,6 @@ class doc_Setup extends core_ProtoSetup
         $cnt = $query->count();
 
         $query->limit(1000);
-        $query->groupBy("dataId");
 
         if ($cnt) {
             $callOn = dt::addSecs(120);
