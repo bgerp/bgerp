@@ -567,7 +567,14 @@ class doc_Setup extends core_ProtoSetup
         doc_Files::logDebug("Файлове за миграция в документите - " . $cnt);
 
         while ($rec = $query->fetch()) {
-            doc_Files::recalcFiles($rec->containerId);
+            try {
+                doc_Files::recalcFiles($rec->containerId);
+            } catch (Exception $e) {
+                doc_Files::logDebug("Грешна на запис с cId = '{$rec->containerId}'", $rec->id);
+            } catch (Throwable $t) {
+                doc_Files::logDebug("Грешна на запис с cId = '{$rec->containerId}'", $rec->id);
+            }
+
             $lastId = $rec->id;
         }
 
