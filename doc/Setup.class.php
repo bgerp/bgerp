@@ -554,7 +554,6 @@ class doc_Setup extends core_ProtoSetup
         $cnt = $query->count();
 
         $query->limit(1000);
-        $query->groupBy("dataId");
 
         if ($cnt) {
             $callOn = dt::addSecs(120);
@@ -568,7 +567,14 @@ class doc_Setup extends core_ProtoSetup
         doc_Files::logDebug("Файлове за миграция в документите - " . $cnt);
 
         while ($rec = $query->fetch()) {
-            doc_Files::recalcFiles($rec->containerId);
+            try {
+                doc_Files::recalcFiles($rec->containerId);
+            } catch (Exception $e) {
+                doc_Files::logDebug("Грешна на запис с cId = '{$rec->containerId}'", $rec->id);
+            } catch (Throwable $t) {
+                doc_Files::logDebug("Грешна на запис с cId = '{$rec->containerId}'", $rec->id);
+            }
+
             $lastId = $rec->id;
         }
 
