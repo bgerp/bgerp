@@ -97,6 +97,12 @@ class rack_Zones extends core_Master
 
 
     /**
+     * Кой може да променя състоянието
+     */
+    public $canChangestate = 'ceo,rackMaster';
+
+
+    /**
      * Кой може да премахва докумнета от зоната
      */
     public $canRemovedocument = 'ceo,rack';
