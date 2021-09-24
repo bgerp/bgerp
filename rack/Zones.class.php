@@ -622,10 +622,18 @@ class rack_Zones extends core_Master
             }
         }
 
-        if (($action == 'delete' || $action == 'changestate') && isset($rec)) {
 
-            // Ако в зоната има редове или е използвана в движение, не може да се изтрива
-            if (rack_ZoneDetails::fetchField("#zoneId = {$rec->id}") || rack_Movements::fetchField("LOCATE('|{$rec->id}|', #zoneList)")) {
+        // Ако в зоната има редове или е използвана в движение, не може да се изтрива
+        if ($action == 'delete' && isset($rec)) {
+            if (rack_ZoneDetails::fetch("#zoneId = {$rec->id}")) {
+                $requiredRoles = 'no_one';
+            } elseif(rack_Movements::fetchField("LOCATE('|{$rec->id}|', #zoneList)") || rack_OldMovements::fetchField("LOCATE('|{$rec->id}|', #zoneList)")){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if ($action == 'changestate' && isset($rec)) {
+            if(isset($rec->containerId) || rack_ZoneDetails::fetch("#zoneId = {$rec->id} AND (#documentQuantity IS NOT NULL OR #movementQuantity IS NOT NULL)")){
                 $requiredRoles = 'no_one';
             }
         }
