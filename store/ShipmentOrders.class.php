@@ -722,6 +722,8 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
     {
+        if(Mode::is('text', 'xhtml')) return;
+
         $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
         if (isset($indicator)) {
             if ($docName instanceof core_ET) {
