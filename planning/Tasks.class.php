@@ -1464,4 +1464,32 @@ class planning_Tasks extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * @see crm_ContragentAccRegIntf::getItemRec
+     *
+     * @param int $objectId
+     */
+    public static function getItemRec($objectId)
+    {
+        $self = cls::get(get_called_class());
+        $result = null;
+
+        if ($rec = $self->fetch($objectId)) {
+            $title = $self->getVerbal($rec, 'productId');
+            $origin = doc_Containers::getDocument($rec->originId);
+            if($origin->isInstanceOf('planning_Jobs')){
+                $title = $origin->getVerbal('productId') . " - {$title}";
+            }
+
+            $result = (object) array(
+                'num' => '#' . $self->getHandle($rec->id),
+                'title' => $title,
+                'features' => array('Папка' => doc_Folders::getTitleById($rec->folderId))
+            );
+        }
+
+        return $result;
+    }
 }
