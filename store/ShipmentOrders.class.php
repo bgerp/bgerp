@@ -258,6 +258,8 @@ class store_ShipmentOrders extends store_DocumentMaster
 
             $cQuery->orderBy('modifiedOn', 'DESC');
 
+            $cQuery->limit(100);
+
             while ($cRec = $cQuery->fetch()) {
                 if (!$mvc->haveRightFor('asClient', $cRec->docId)) {
 
@@ -269,7 +271,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                     continue;
                 }
 
-                $dRec = $mvc->fetch($cRec->docId);
+                $dRec = $mvc->fetch($cRec->docId, 'id, company, place');
                 $name = '#' . $mvc->getHandle($cRec->docId);
                 if ($dRec->company) {
                     $name .= ' - ' . $dRec->company;
