@@ -828,7 +828,7 @@ abstract class deals_Helper
         } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
             if($showNegativeWarning) {
                 $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                $hint = "Недостатъчна |*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
             }
         } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
             if($showNegativeWarning) {
