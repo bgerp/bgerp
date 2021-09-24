@@ -211,7 +211,7 @@ class deals_Setup extends core_ProtoSetup
                     $className = ($intersectCount == 1) ? mb_strtolower($Class->singleTitle) : mb_strtolower($Class->title);
                     $msg = "Имате|* {$intersectCount} |активни {$className} без движения в последните|* {$horizonVerbal}";
 
-                    $url = array('doc_Search', 'list', 'docClass' => $Class->getClassId(), 'author' => $userId, 'state' => 'active', 'toDate' => dt::verbal2mysql($date, false));
+                    $url = array('doc_Search', 'list', 'docClass' => $Class->getClassId(), 'author' => $userId, 'state' => 'active', 'toDateHorizon' => $horizon);
                     bgerp_Notifications::add($msg, $url, $userId);
                 }
             }

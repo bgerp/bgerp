@@ -116,7 +116,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
                 
                 // Показване на полетата без партиди
                 $form->FLD("quantity||{$dRec->id}|", 'double(Min=0)', "input,caption={$caption}->{$subCaption}");
-                
+                $quantity = round($quantity, 5);
                 if ($quantity > 0) {
                     $form->setDefault("quantity||{$dRec->id}|", $quantity);
                 }
