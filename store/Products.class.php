@@ -755,13 +755,23 @@ class store_Products extends core_Detail
         $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date <= '{$end}'");
         $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
         $query->where("#{$quantityField} IS NOT NULL");
-        $query->show('sourceClassId,sourceId,date');
+        $query->EXT('measureId', 'cat_Products', 'externalKey=productId');
+        $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId');
 
         $links = '';
         while($dRec = $query->fetch()){
             $Source = cls::get($dRec->sourceClassId);
             $row = (object)array('date' => dt::mysql2verbal($dRec->date));
 
+            $uom = cat_UoM::getShortName($dRec->measureId);
+            $quantityVerbal = '';
+            foreach (array('quantityOut', 'quantityIn') as $quantityField){
+                if(!empty($dRec->{$quantityField})){
+                    $sign = ($quantityField == 'quantityOut') ? '-' : '+';
+                    $quantityVerbal .= " {$sign}" . core_Type::getByName('double(smartRound)')->toVerbal($dRec->{$quantityField});
+                }
+            }
+            $quantityVerbal .= "";
 
             // Ако източника е документ - показват се данните му
             if($Source->hasPlugin('doc_DocumentPlg')){
@@ -769,15 +779,16 @@ class store_Products extends core_Detail
                 $docRec = $Source->fetch($dRec->sourceId, 'createdBy,folderId,state');
                 $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
                 $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
-                $row->createdBy = " {$folderId} | {$row->createdBy}";
-                $state = $docRec->state;
+                $row->createdBy = " {$quantityVerbal} {$uom} | {$folderId} | {$row->createdBy}";
             } else {
                 // Ако източника не е документ
                 $row->link = $Source->getHyperlink($dRec->sourceId, true);
                 $docRec = $Source->fetch($dRec->sourceId, 'createdBy,state');
                 $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
-                $state = $docRec->state;
+                $row->createdBy .= " | {$quantityVerbal} {$uom}";
             }
+
+            $state = $docRec->state;
 
             $row->link = "<span class='state-{$state} document-handler'>{$row->link}</span>";
             if($dRec->date < $today) {
