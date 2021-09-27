@@ -118,6 +118,10 @@ abstract class rack_MovementAbstract extends core_Manager
             }
             $row->documents = implode(',', $documents);
         }
+
+        if($rec->load == 'on' && $rec->state == 'active'){
+            $row->ROW_ATTR['class'] = 'state-wakeup';
+        }
     }
 
 
