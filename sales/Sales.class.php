@@ -1431,10 +1431,11 @@ class sales_Sales extends deals_DealMaster
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id     - ид или запис
-     * @param mixed $forMvc - за кой мениджър
+     * @param mixed $id          - ид или запис
+     * @param mixed $forMvc      - за кой мениджър
+     * @param string  $option    - опции
      *
-     * @return array $products        - масив с информация за артикули
+     * @return array $products         - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
      *               o quantity        - к-во
@@ -1443,7 +1444,7 @@ class sales_Sales extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id, $forMvc)
+    public function getCorrectableProducts($id, $forMvc, $option = null)
     {
         $rec = $this->fetchRec($id);
         
@@ -1451,9 +1452,14 @@ class sales_Sales extends deals_DealMaster
         $products = array();
         $entries = sales_transaction_Sale::getEntries($rec->id);
         $shipped = sales_transaction_Sale::getShippedProducts($entries);
-        
+
         if (countR($shipped)) {
             foreach ($shipped as $ship) {
+                if($option == 'storable'){
+                    $canStore = cat_Products::fetchField($ship->productId, 'canStore');
+                    if($canStore != 'yes') continue;
+                }
+
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
                 

@@ -451,10 +451,11 @@ class store_Transfers extends core_Master
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id - ид или запис
-     * @param mixed $forMvc - за кой мениджър
+     * @param mixed $id          - ид или запис
+     * @param mixed $forMvc      - за кой мениджър
+     * @param string  $option    - опции
      *
-     * @return array $products        - масив с информация за артикули
+     * @return array $products         - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
      *               o quantity        - к-во
@@ -463,13 +464,18 @@ class store_Transfers extends core_Master
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id, $forMvc)
+    public function getCorrectableProducts($id, $forMvc, $option = null)
     {
         $products = array();
         $rec = $this->fetchRec($id);
         $query = store_TransfersDetails::getQuery();
         $query->where("#transferId = {$rec->id}");
         while ($dRec = $query->fetch()) {
+            if($option == 'storable'){
+                $canStore = cat_Products::fetchField($dRec->newProductId, 'canStore');
+                if($canStore != 'yes') continue;
+            }
+
             if (!array_key_exists($dRec->newProductId, $products)) {
                 $products[$dRec->newProductId] = (object)array('productId' => $dRec->newProductId,
                     'quantity' => 0,

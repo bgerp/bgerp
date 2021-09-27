@@ -92,7 +92,8 @@ class acc_CostAllocations extends core_Manager
         $this->FLD('productId', 'int', 'caption=Артикул,mandatory,silent,input=hidden,remember');
         $this->FLD('quantity', 'double(Min=0,smartRound)', 'caption=Количество,mandatory,smartCenter');
         $this->FLD('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,showAll)', 'after=quantity,silent,mandatory,caption=Разход за,removeAndRefreshForm=allocationBy|productsData|chosenProducts');
-        $this->FLD('allocationBy', 'enum(auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts');
+        $this->FLD('allocationBy', 'enum(auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'caption=Разпределяне,input=none,silent,removeAndRefreshForm=productsData|chosenProducts|allocationFilter');
+        $this->FLD('allocationFilter', 'enum(all=Всички артикули,storable=Само складируеми)', 'input=none,caption=Артикули,silent,removeAndRefreshForm=chosenProducts|productsData');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'mandatory,caption=Ориджин,silent,input=hidden');
         $this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
         
@@ -302,6 +303,11 @@ class acc_CostAllocations extends core_Manager
                 } else {
                     $form->setDefault('allocationBy', 'no');
                 }
+
+                if($rec->allocationBy == 'auto'){
+                    $form->setField('allocationFilter', 'input');
+                    $form->setDefault('allocationFilter', 'all');
+                }
             }
         }
     }
@@ -409,7 +415,7 @@ class acc_CostAllocations extends core_Manager
                             $errorField = 'allocateBy,chosenProducts';
                             $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                             $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                            $rec->productsData = $origin->getCorrectableProducts($Detail->Master);
+                            $rec->productsData = $origin->getCorrectableProducts($Detail->Master, $rec->allocationFilter);
                         } else {
                             $errorField = 'allocateBy';
                             $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
