@@ -752,13 +752,7 @@ class purchase_Purchases extends deals_DealMaster
     public function getCorrectableProducts($id, $forMvc, $option = null)
     {
         $rec = $this->fetchRec($id);
-        $ForMvc = cls::get($forMvc);
-
-        $accounts = '321,60201';
-        if($option == 'storable'){
-            $accounts = '321';
-        }
-        $accounts = ($ForMvc instanceof acc_ValueCorrections) ? '321,60201' : $accounts;
+        $accounts = ($option == 'storable') ? '321' : '321,60201';
 
         $products = array();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
