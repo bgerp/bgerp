@@ -392,7 +392,7 @@ class rack_Zones extends core_Master
         }
 
         $data->listFilter->setOptions('grouping', $groupingOptions);
-        $data->listFilter->setDefault('onlyWithMovements', 'yes');
+        $data->listFilter->setDefault('onlyWithMovements', 'freed');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'productId,grouping,onlyWithMovements';
