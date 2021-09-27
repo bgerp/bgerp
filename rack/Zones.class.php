@@ -21,7 +21,6 @@ class rack_Zones extends core_Master
      */
     public $title = 'Зони';
 
-
     /**
      * Плъгини за зареждане
      */
@@ -622,7 +621,6 @@ class rack_Zones extends core_Master
             }
         }
 
-
         // Ако в зоната има редове или е използвана в движение, не може да се изтрива
         if ($action == 'delete' && isset($rec)) {
             if (rack_ZoneDetails::fetch("#zoneId = {$rec->id}")) {
@@ -1066,7 +1064,9 @@ class rack_Zones extends core_Master
         $mQuery->where("#storeId = {$storeId}");
         $mQuery->orderBy('modifiedOn', 'DESC');
         $mQuery->show('modifiedOn');
+        $mQuery->limit(1);
         $res = md5(trim($mQuery->fetch()->modifiedOn));
+
     }
 
 

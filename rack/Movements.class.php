@@ -31,7 +31,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_SelectPeriod,plg_Search,plg_AlignDecimals2,plg_Modified';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_SelectPeriod,plg_Search,plg_AlignDecimals2,plg_Modified,plg_RefreshRows';
     
     
     /**
@@ -45,7 +45,8 @@ class rack_Movements extends rack_MovementAbstract
      */
     public $canAdd = 'ceo,rack';
     
-    
+
+    public $manualRefreshCnt = 1000;
     /**
      * Кой може да го разглежда?
      */
@@ -68,12 +69,12 @@ class rack_Movements extends rack_MovementAbstract
      * Кой може да заяви движение
      */
     public $canToggle = 'ceo,rack';
-    
-    
+
+
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,startBtn=Започни,stopBtn=Приключи,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy,documents';
+    public $listFields = 'productId,movement=Движение,startBtn=Започни,loadBtn=Вземи,stopBtn=Приключи,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy,documents';
 
 
     /**
@@ -587,9 +588,9 @@ class rack_Movements extends rack_MovementAbstract
     public function act_Toggle()
     {
         $ajaxMode = Request::get('ajax_mode');
-        $type = Request::get('type', 'varchar');
-        $action = ($type == 'start') ? 'start' : 'reject';
-        
+        $action = Request::get('type', 'varchar');
+        $value = Request::get('value', 'enum(on,off)');
+
         if($ajaxMode){
             if(!$this->haveRightFor($action)){
                 core_Statuses::newStatus('|Нямате права|*!', 'error');
@@ -617,7 +618,7 @@ class rack_Movements extends rack_MovementAbstract
                 core_Locks::release("movement{$rec->id}");
                 
                 return status_Messages::returnStatusesArray();
-            } elseif(!in_array($action, array('start', 'reject'))){
+            } elseif(!in_array($action, array('start', 'reject', 'load', 'unload'))){
                 core_Locks::release("movement{$rec->id}");
                 core_Statuses::newStatus('|Невалидна операция|*!', 'error');
                 
@@ -633,39 +634,54 @@ class rack_Movements extends rack_MovementAbstract
             core_Locks::release("movement{$rec->id}");
             $this->requireRightFor($action, $rec);
         }
-        
+
+        $reverse = false;
         if($action == 'start'){
             $rec->state = 'active';
-            $reverse = false;
+            if($value == 'on'){
+                $rec->load = 'on';
+                $rec->workerId = core_Users::getCurrent();
+            }
+        } elseif($action == 'load'){
+            $rec->load = 'on';
+            $rec->workerId = core_Users::getCurrent();
+        } elseif($action == 'unload'){
+            $rec->load = 'off';
         } else {
             $rec->state = 'pending';
             $rec->workerId = null;
             $rec->_canceled = true;
+            $rec->load = 'off';
             $reverse = true;
         }
-        
-        // Проверка може ли транзакцията да мине
-        $transaction = $this->getTransaction($rec, $reverse);
-        $transaction = $this->validateTransaction($transaction);
-        
-        if (!empty($transaction->errors)) {
-            core_Locks::release("movement{$rec->id}");
-            if($ajaxMode){
-                core_Statuses::newStatus($transaction->errors, 'error');
-                return status_Messages::returnStatusesArray();
-            } else {
-                followretUrl(null, $transaction->errors, 'error');
+
+        $msg = null;
+        if(in_array($action, array('load', 'unload'))){
+            $this->save($rec, 'load,workerId,modifiedOn');
+        } else {
+            // Проверка може ли транзакцията да мине
+            $transaction = $this->getTransaction($rec, $reverse);
+            $transaction = $this->validateTransaction($transaction);
+
+            if (!empty($transaction->errors)) {
+                core_Locks::release("movement{$rec->id}");
+                if($ajaxMode){
+                    core_Statuses::newStatus($transaction->errors, 'error');
+                    return status_Messages::returnStatusesArray();
+                } else {
+                    followretUrl(null, $transaction->errors, 'error');
+                }
             }
+
+            // Записва се служителя и се обновява движението
+            $rec->workerId = core_Users::getCurrent();
+            $this->save($rec, 'state,load,workerId,modifiedOn,modifiedBy,documents');
+
+            $msg = (countR($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
+            $type = (countR($transaction->warnings)) ? 'warning' : 'notice';
         }
-        
-        // Записва се служителя и се обновява движението
-        $rec->workerId = core_Users::getCurrent();
-        $this->save($rec, 'state,workerId,modifiedOn,modifiedBy,documents');
-        
+
         core_Locks::release("movement{$rec->id}");
-        
-        $msg = (countR($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
-        $type = (countR($transaction->warnings)) ? 'warning' : 'notice';
         
         // Ако се обновява по Ajax
         if($ajaxMode){
@@ -685,19 +701,20 @@ class rack_Movements extends rack_MovementAbstract
     private static function forwardRefreshUrl()
     {
         $refreshUrl = cls::get('rack_Zones')->prepareRefreshRowsUrl(getCurrentUrl());
+
         $refreshUrlLocal = toUrl($refreshUrl, 'local');
         $divId = Request::get('divId');
         
         // Зануляване на ид-то за да не се обърква Forward-а
         Request::push(array('id' => false));
-        
+
         // Форсира се обновяването на записите
         $res = Request::forward(array('Ctr' => 'rack_Zones', 'Act' => 'ajaxrefreshrows', 'divId' => $divId, 'refreshUrl' => $refreshUrlLocal));
-    
+
         return $res;
     }
-    
-    
+
+
     /**
      * Екшън за приключване на движението
      */
@@ -1135,5 +1152,70 @@ class rack_Movements extends rack_MovementAbstract
         // Изтриване на затворените палети
         $palletsOlderThan = rack_Pallets::DELETE_CLOSED_PALLETS_OLDER_THAN;
         $this->deleteClosedPallets($palletsOlderThan);
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        core_RowToolbar::createIfNotExists($row->_rowTools);
+
+        if ($mvc->haveRightFor('load', $rec)) {
+            $type = ($rec->state == 'pending') ? 'start' : 'load';
+            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => $type, 'value' => 'on', 'ret_url' => true);
+
+            if($fields['-inline'] && !isset($fields['-inline-single'])){
+                $loadUrl = toUrl($loadUrl, 'local');
+                $row->loadBtn = ht::createFnBtn('Запазване', '', null, array('class' => 'toggle-movement', 'data-url' => $loadUrl, 'title' => 'Запазване на движението', 'ef_icon' => 'img/16/checkbox_no.png'));
+            } else {
+                $img = ht::createImg(array('src' => sbf('img/16/checkbox_no.png', '')));
+                $row->loadBtn = ht::createLink($img, $loadUrl, false, 'title=Запазване на движението');
+            }
+        }
+
+        if ($mvc->haveRightFor('unload', $rec)) {
+            $unloadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'unload', 'value' => 'off', 'ret_url' => true);
+            $row->_rowTools->addLink('Отказване', $unloadUrl, 'ef_icon=img/16/checked.png,title=Отказване на движението');
+        }
+
+        if ($mvc->haveRightFor('start', $rec)) {
+            $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
+            $row->_rowTools->addLink('Започване', $startUrl, "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
+
+            if ($rec->createdBy != core_Users::getCurrent()) {
+                $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
+            }
+
+            if($fields['-inline'] && !isset($fields['-inline-single'])){
+                $startUrl = toUrl($startUrl, 'local');
+                $row->startBtn = ht::createFnBtn('Започване', '', null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
+            } else {
+                $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
+                $row->startBtn = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
+            }
+        }
+
+        if ($mvc->haveRightFor('done', $rec)) {
+            $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
+            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
+
+            if($fields['-inline'] && !isset($fields['-inline-single'])){
+                $stopUrl = toUrl($stopUrl, 'local');
+                $row->stopBtn = ht::createFnBtn('Приключване', '', null, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+            } else {
+                $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
+                $row->stopBtn = ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
+            }
+        }
+
+        if ($mvc->haveRightFor('reject', $rec)) {
+            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), 'warning=Наистина ли искате да върнете движението|*?,ef_icon=img/16/reject.png,title=Връщане на движението');
+        }
     }
 }

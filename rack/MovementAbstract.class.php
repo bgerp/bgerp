@@ -53,6 +53,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $mvc->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $mvc->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Движение->Състояние,silent');
+        $mvc->FLD('load', 'enum(off=Започнато,on=Взето)', 'caption=Движение->Флаг,column=none,notNull,value=off');
         $mvc->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
         $mvc->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
         $mvc->FNC('containerId', 'int', 'input=hidden,caption=Документи,silent');
@@ -90,43 +91,8 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        core_RowToolbar::createIfNotExists($row->_rowTools);
-
-        if ($mvc->haveRightFor('start', $rec)) {
-            $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
-            $row->_rowTools->addLink('Започване', $startUrl, "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
-
-            if ($rec->createdBy != core_Users::getCurrent()) {
-                $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
-            }
-
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
-                $startUrl = toUrl($startUrl, 'local');
-                $row->startBtn = ht::createFnBtn('Започване', '', null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
-            } else {
-                $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
-                $row->startBtn = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
-            }
-        }
 
         $makeLinks = !($fields['-inline'] && !isset($fields['-inline-single']));
-        if ($mvc->haveRightFor('done', $rec)) {
-            $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
-
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
-                $stopUrl = toUrl($stopUrl, 'local');
-                $row->stopBtn = ht::createFnBtn('Приключване', '', null, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
-            } else {
-                $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
-                $row->stopBtn = ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
-            }
-        }
-
-        if ($mvc->haveRightFor('reject', $rec)) {
-            $row->_rowTools->addLink('Отказване', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), 'warning=Наистина ли искате да откажете движението|*?,ef_icon=img/16/reject.png,title=Отказване на движението');
-        }
-
         if (!empty($rec->note)) {
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
         }
@@ -334,7 +300,7 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (in_array($action, array('start', 'reject'))) {
+        if (in_array($action, array('start', 'reject', 'load', 'unload'))) {
             $requiredRoles = $mvc->getRequiredRoles('toggle', $rec, $userId);
         }
 
@@ -344,10 +310,22 @@ abstract class rack_MovementAbstract extends core_Manager
             }
         }
 
+        if($action == 'load' && isset($rec->state)){
+            if($rec->state == 'closed' || $rec->load == 'on'){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'unload' && isset($rec->state)){
+            if($rec->load == 'off' || $rec->state != 'active'){
+                $requiredRoles = 'no_one';
+            }
+        }
+
         if($action == 'reject' && isset($rec->state)){
             if($rec->state != 'active'){
                 $requiredRoles = 'no_one';
-            } elseif($rec->state == 'active' && isset($rec->workerId) && $rec->workerId != $userId){
+            } elseif(isset($rec->workerId) && $rec->workerId != $userId){
                 $requiredRoles = 'ceo,rackMaster';
             }
         }
@@ -380,6 +358,7 @@ abstract class rack_MovementAbstract extends core_Manager
     {
         $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
         $data->listTableMvc->FLD('startBtn', 'varchar', 'tdClass=centered');
+        $data->listTableMvc->FLD('loadBtn', 'varchar', 'tdClass=centered');
         $data->listTableMvc->FLD('stopBtn', 'varchar', 'tdClass=centered');
         if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
             $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
