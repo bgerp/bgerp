@@ -638,10 +638,6 @@ class rack_Movements extends rack_MovementAbstract
         $reverse = false;
         if($action == 'start'){
             $rec->state = 'active';
-            if($value == 'on'){
-                $rec->load = 'on';
-                $rec->workerId = core_Users::getCurrent();
-            }
         } elseif($action == 'load'){
             $rec->load = 'on';
             $rec->workerId = core_Users::getCurrent();
@@ -1167,8 +1163,7 @@ class rack_Movements extends rack_MovementAbstract
         core_RowToolbar::createIfNotExists($row->_rowTools);
 
         if ($mvc->haveRightFor('load', $rec)) {
-            $type = ($rec->state == 'pending') ? 'start' : 'load';
-            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => $type, 'value' => 'on', 'ret_url' => true);
+            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'value' => 'on', 'ret_url' => true);
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $loadUrl = toUrl($loadUrl, 'local');

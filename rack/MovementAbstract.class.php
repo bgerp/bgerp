@@ -119,7 +119,7 @@ abstract class rack_MovementAbstract extends core_Manager
             $row->documents = implode(',', $documents);
         }
 
-        if($rec->load == 'on' && $rec->state == 'active'){
+        if($rec->load == 'on' && $rec->state != 'closed'){
             $row->ROW_ATTR['class'] = 'state-wakeup';
         }
     }
@@ -321,7 +321,7 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         if($action == 'unload' && isset($rec->state)){
-            if($rec->load == 'off' || $rec->state != 'active'){
+            if($rec->load == 'off' || $rec->state == 'closed'){
                 $requiredRoles = 'no_one';
             }
         }
