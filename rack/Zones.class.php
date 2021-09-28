@@ -1107,9 +1107,9 @@ class rack_Zones extends core_Master
         $color = rack_Zones::fetchField($id, 'color');
         $backgroundColor = !empty($color) ? $color : rack_Setup::get('DEFAULT_ZONE_COLORS');
         if(phpcolor_Adapter::checkColor($backgroundColor, 'dark')){
-            $textColor = "#" . phpcolor_Adapter::changeColor($backgroundColor, 'lighten', 35);
+            $textColor = "#fff";
         } else {
-            $textColor = "#" . phpcolor_Adapter::changeColor($backgroundColor, 'darken', 50);
+            $textColor = "#000";
         }
 
         $res = new core_ET("<span class='{$class}' style='background-color:{$backgroundColor};color:{$textColor} !important'>[#element#]</span>");
