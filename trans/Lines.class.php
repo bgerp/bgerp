@@ -228,7 +228,8 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('lineState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=	Активен,closed=Затворен)', 'caption=Състояние');
+        $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => trans_Lines::getClassId()));
+        $data->listFilter->FLD('lineState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Затворен)', 'caption=Състояние');
         $data->listFilter->showFields .= ',lineState,search';
         $data->listFilter->input();
         
