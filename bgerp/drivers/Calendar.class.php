@@ -450,7 +450,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $query->likeKeylist('assign', $pArr['_userId']);
         
         $query->where('#timeStart IS NOT NULL');
-        $query->orWhere('#timeEnd IS NOT NULL');
+        $query->orWhere('#timeEnd IS NOT NULL AND (#timeStart IS NOT NULL OR #timeDuration IS NOT NULL)');
         
         $todayF = $pArr['_todayF'];
         $query->where(array("#expectationTimeStart >= '[#1#]'", $todayF));
