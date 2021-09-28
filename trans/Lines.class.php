@@ -240,6 +240,10 @@ class trans_Lines extends core_Master
             if(isset($filterRec->lineState) && $filterRec->lineState != 'all'){
                 $data->query->where("#state = '{$filterRec->lineState}'");
             }
+
+            if(isset($filterRec->folder)){
+                unset($data->listFields['folderId']);
+            }
         }
     }
     
