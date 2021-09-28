@@ -52,8 +52,8 @@ abstract class rack_MovementAbstract extends core_Manager
         $mvc->FLD('workerId', 'user(roles=ceo|rack)', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
 
         $mvc->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
-        $mvc->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо, waiting=Запазено)', 'caption=Движение->Състояние,silent');
-        $mvc->FLD('brState', 'enum(closed=Приключено, active=Активно, pending=Чакащо, waiting=Запазено)', 'caption=Движение->Състояние,silent,input=none');
+        $mvc->FLD('state', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent');
+        $mvc->FLD('brState', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent,input=none');
         $mvc->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
         $mvc->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
         $mvc->FNC('containerId', 'int', 'input=hidden,caption=Документи,silent');
