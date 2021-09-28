@@ -231,8 +231,10 @@ class trans_Lines extends core_Master
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => trans_Lines::getClassId()));
         $data->listFilter->FLD('lineState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Затворен)', 'caption=Състояние');
         $data->listFilter->showFields .= ',lineState,search';
+        $showFields = arr::make($data->listFilter->showFields, true);
+        unset($showFields['filterDateField']);
+        $data->listFilter->showFields = implode(',', $showFields);
         $data->listFilter->input();
-        
         $data->query->orderBy('#state');
         $data->query->orderBy('#start', 'DESC');
         
