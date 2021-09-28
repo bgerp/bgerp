@@ -52,8 +52,8 @@ abstract class rack_MovementAbstract extends core_Manager
         $mvc->FLD('workerId', 'user(roles=ceo|rack)', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
 
         $mvc->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
-        $mvc->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Движение->Състояние,silent');
-        $mvc->FLD('load', 'enum(off=Започнато,on=Взето)', 'caption=Движение->Флаг,column=none,notNull,value=off');
+        $mvc->FLD('state', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent');
+        $mvc->FLD('brState', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent,input=none');
         $mvc->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
         $mvc->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
         $mvc->FNC('containerId', 'int', 'input=hidden,caption=Документи,silent');
@@ -117,10 +117,6 @@ abstract class rack_MovementAbstract extends core_Manager
                 $documents[$containerId] = doc_Containers::getDocument($containerId)->getLink(0);
             }
             $row->documents = implode(',', $documents);
-        }
-
-        if($rec->load == 'on' && $rec->state != 'closed'){
-            $row->ROW_ATTR['class'] = 'state-wakeup';
         }
     }
 
@@ -309,19 +305,19 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         if($action == 'start' && isset($rec->state)){
-            if($rec->state != 'pending'){
+            if(!in_array($rec->state, array('pending', 'waiting'))){
                 $requiredRoles = 'no_one';
             }
         }
 
         if($action == 'load' && isset($rec->state)){
-            if($rec->state == 'closed' || $rec->load == 'on'){
+            if($rec->state != 'pending'){
                 $requiredRoles = 'no_one';
             }
         }
 
         if($action == 'unload' && isset($rec->state)){
-            if($rec->load == 'off' || $rec->state == 'closed'){
+            if($rec->state != 'waiting'){
                 $requiredRoles = 'no_one';
             }
         }

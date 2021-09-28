@@ -764,14 +764,8 @@ class store_Products extends core_Detail
             $row = (object)array('date' => dt::mysql2verbal($dRec->date));
 
             $uom = cat_UoM::getShortName($dRec->measureId);
-            $quantityVerbal = '';
-            foreach (array('quantityOut', 'quantityIn') as $quantityField){
-                if(!empty($dRec->{$quantityField})){
-                    $sign = ($quantityField == 'quantityOut') ? '-' : '+';
-                    $quantityVerbal .= " {$sign}" . core_Type::getByName('double(smartRound)')->toVerbal($dRec->{$quantityField});
-                }
-            }
-            $quantityVerbal .= "";
+            $quantity = setIfNot($dRec->quantityOut, $dRec->quantityIn);
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
 
             // Ако източника е документ - показват се данните му
             if($Source->hasPlugin('doc_DocumentPlg')){

@@ -200,10 +200,6 @@ class rack_Movements extends rack_MovementAbstract
         $rec->zoneList = (countR($zonesArr)) ? keylist::fromArray($zonesArr) : null;
         
         if ($rec->state == 'active' || $rec->_canceled === true || $rec->_isCreatedClosed === true) {
-            if (empty($rec->workerId)) {
-                $rec->workerId = core_Users::getCurrent('id', false);
-            }
-            
             // Изпълнение на транзакцията
             $reverse = ($rec->_canceled === true) ? true : false;
             $transaction = $mvc->getTransaction($rec, $reverse);
@@ -589,7 +585,6 @@ class rack_Movements extends rack_MovementAbstract
     {
         $ajaxMode = Request::get('ajax_mode');
         $action = Request::get('type', 'varchar');
-        $value = Request::get('value', 'enum(on,off)');
 
         if($ajaxMode){
             if(!$this->haveRightFor($action)){
@@ -602,7 +597,7 @@ class rack_Movements extends rack_MovementAbstract
        
         $id = Request::get('id', 'int');
         $rec = $this->fetch($id);
-        
+
         // Заключване на екшъна
         if (!core_Locks::get("movement{$rec->id}", 120, 0)) {
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
@@ -635,25 +630,34 @@ class rack_Movements extends rack_MovementAbstract
             $this->requireRightFor($action, $rec);
         }
 
+
         $reverse = false;
         if($action == 'start'){
+            $rec->brState = $rec->state;
             $rec->state = 'active';
+            $rec->workerId = core_Users::getCurrent();
         } elseif($action == 'load'){
-            $rec->load = 'on';
+            $rec->state = 'waiting';
+            $rec->brState = 'pending';
             $rec->workerId = core_Users::getCurrent();
         } elseif($action == 'unload'){
-            $rec->load = 'off';
-        } else {
-            $rec->state = 'pending';
+            $oldState = $rec->state;
+            $rec->state = $rec->brState;
+            $rec->brState = $oldState;
             $rec->workerId = null;
+        } else {
+            $rec->state = ($rec->brState) ? $rec->brState : 'pending';
+            $rec->brState = 'active';
+            if($rec->state == 'pending'){
+                $rec->workerId = null;
+            }
             $rec->_canceled = true;
-            $rec->load = 'off';
             $reverse = true;
         }
 
         $msg = null;
         if(in_array($action, array('load', 'unload'))){
-            $this->save($rec, 'load,workerId,modifiedOn');
+            $this->save($rec);
         } else {
             // Проверка може ли транзакцията да мине
             $transaction = $this->getTransaction($rec, $reverse);
@@ -670,8 +674,7 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             // Записва се служителя и се обновява движението
-            $rec->workerId = core_Users::getCurrent();
-            $this->save($rec, 'state,load,workerId,modifiedOn,modifiedBy,documents');
+            $this->save($rec, 'state,brState,workerId,modifiedOn,modifiedBy,documents');
 
             $msg = (countR($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
             $type = (countR($transaction->warnings)) ? 'warning' : 'notice';
@@ -751,7 +754,8 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         $rec->state = 'closed';
-        $this->save($rec, 'state,modifiedOn,modifiedBy');
+        $rec->brState = 'active';
+        $this->save($rec, 'state,brState,modifiedOn,modifiedBy');
         
         core_Locks::release("movement{$rec->id}");
         
@@ -1163,7 +1167,7 @@ class rack_Movements extends rack_MovementAbstract
         core_RowToolbar::createIfNotExists($row->_rowTools);
 
         if ($mvc->haveRightFor('load', $rec)) {
-            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'value' => 'on', 'ret_url' => true);
+            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'ret_url' => true);
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $loadUrl = toUrl($loadUrl, 'local');
@@ -1175,7 +1179,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('unload', $rec)) {
-            $unloadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'unload', 'value' => 'off', 'ret_url' => true);
+            $unloadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'unload', 'ret_url' => true);
             $row->_rowTools->addLink('Отказване', $unloadUrl, 'ef_icon=img/16/checked.png,title=Отказване на движението');
         }
 

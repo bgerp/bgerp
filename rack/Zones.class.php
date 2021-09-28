@@ -377,7 +377,7 @@ class rack_Zones extends core_Master
 
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
-        $data->listFilter->FLD('onlyWithMovements', 'enum(onlyMine=Моите,freed=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
+        $data->listFilter->FLD('onlyWithMovements', 'enum(onlyMine=Моите,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
 
@@ -392,7 +392,7 @@ class rack_Zones extends core_Master
         }
 
         $data->listFilter->setOptions('grouping', $groupingOptions);
-        $data->listFilter->setDefault('onlyWithMovements', 'freed');
+        $data->listFilter->setDefault('onlyWithMovements', 'pending');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->showFields = 'productId,grouping,onlyWithMovements';
@@ -436,8 +436,8 @@ class rack_Zones extends core_Master
                 // Ако е избран филтър само за зони с движения да се показват те
                 $mQuery = rack_Movements::getQuery();
                 $mQuery->where("#storeId = {$storeId} AND #zoneList != '' AND #state != 'closed'");
-                if ($filter->onlyWithMovements == 'freed') {
-                    $mQuery->where("#workerId IS NULL OR #load != 'on'");
+                if ($filter->onlyWithMovements == 'pending') {
+                    $mQuery->where("#workerId IS NULL OR #state = 'pending'");
                 }
 
                 if ($filter->onlyWithMovements == 'onlyMine') {
@@ -1107,9 +1107,9 @@ class rack_Zones extends core_Master
         $color = rack_Zones::fetchField($id, 'color');
         $backgroundColor = !empty($color) ? $color : rack_Setup::get('DEFAULT_ZONE_COLORS');
         if(phpcolor_Adapter::checkColor($backgroundColor, 'dark')){
-            $textColor = "#" . phpcolor_Adapter::changeColor($backgroundColor, 'lighten', 35);
+            $textColor = "#fff";
         } else {
-            $textColor = "#" . phpcolor_Adapter::changeColor($backgroundColor, 'darken', 50);
+            $textColor = "#000";
         }
 
         $res = new core_ET("<span class='{$class}' style='background-color:{$backgroundColor};color:{$textColor} !important'>[#element#]</span>");
