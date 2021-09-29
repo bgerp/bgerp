@@ -176,10 +176,9 @@ class rack_Zones extends core_Master
         }
 
         if (isset($fields['-list'])) {
-            $onlyWithMovements = Request::get('onlyWithMovements', 'varchar');
-            $userId = ($onlyWithMovements == 'onlyMine') ? core_Users::getCurrent() : null;
             $rec->_isSingle = false;
-            $pendingHtml = rack_ZoneDetails::renderInlineDetail($rec, $mvc, $userId);
+            $additional = Request::get('additional', 'varchar');
+            $pendingHtml = rack_ZoneDetails::renderInlineDetail($rec, $mvc, $additional);
             if (!empty($pendingHtml)) {
                 $row->pendingHtml = $pendingHtml;
             }
@@ -377,7 +376,7 @@ class rack_Zones extends core_Master
 
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
-        $data->listFilter->FLD('onlyWithMovements', 'enum(onlyMine=Моите,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
+        $data->listFilter->FLD('additional', 'enum(onlyMine=Моите,pendingAndMine=Свободни+Мои,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
 
@@ -392,12 +391,12 @@ class rack_Zones extends core_Master
         }
 
         $data->listFilter->setOptions('grouping', $groupingOptions);
-        $data->listFilter->setDefault('onlyWithMovements', 'pending');
+        $data->listFilter->setDefault('additional', 'pendingAndMine');
         $data->listFilter->input(null, 'silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'productId,grouping,onlyWithMovements';
+        $data->listFilter->showFields = 'productId,grouping,additional';
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->input('productId,grouping,onlyWithMovements');
+        $data->listFilter->input('productId,grouping,additional');
 
         // Ако се филтрира по артикул
         if ($filter = $data->listFilter->rec) {
@@ -431,20 +430,19 @@ class rack_Zones extends core_Master
                 }
             }
 
-            if ($filter->onlyWithMovements != 'all') {
+            if ($filter->additional != 'all') {
 
                 // Ако е избран филтър само за зони с движения да се показват те
                 $mQuery = rack_Movements::getQuery();
                 $mQuery->where("#storeId = {$storeId} AND #zoneList != '' AND #state != 'closed'");
-                if ($filter->onlyWithMovements == 'pending') {
+                if ($filter->additional == 'pendingAndMine') {
+                    $mQuery->where("#workerId IS NULL OR #state = 'pending' OR #workerId=" . core_Users::getCurrent());
+                }elseif ($filter->additional == 'pending') {
                     $mQuery->where("#workerId IS NULL OR #state = 'pending'");
-                }
-
-                if ($filter->onlyWithMovements == 'onlyMine') {
+                }elseif ($filter->additional == 'onlyMine') {
                     $mQuery->where("#workerId = " . core_Users::getCurrent());
                 }
 
-                $mQuery->show('zoneList');
                 $zonesWithMovements = array();
                 $zoneKeylistsArr = arr::extractValuesFromArray($mQuery->fetchAll(), 'zoneList');
                 foreach ($zoneKeylistsArr as $zKeylist) {
@@ -733,11 +731,10 @@ class rack_Zones extends core_Master
      * Кои са текущите движения в зоната
      *
      * @param int $zoneId
-     * @param boolean $skipClosed
-     * @param int $userId
+     * @param string $filter
      * @return array $res
      */
-    public static function getCurrentMovementRecs($zoneId, $skipClosed = true, $userId = null)
+    public static function getCurrentMovementRecs($zoneId, $filter)
     {
         if (!isset(self::$movementCache[$zoneId])) {
             $zoneRec = rack_Zones::fetch($zoneId);
@@ -746,15 +743,12 @@ class rack_Zones extends core_Master
             $mQuery = rack_Movements::getQuery();
             $mQuery->where("LOCATE('|{$zoneId}|', #zoneList)");
 
-            if (isset($userId)) {
-                $mQuery->where("#workerId = {$userId}");
-            }
-
-            if ($skipClosed === true) {
-                $mQuery->where("#state != 'closed'");
-            } else {
-                $where = (!$zoneRec->containerId) ? "(#documents IS NULL OR #documents = '')" : "LOCATE('|{$zoneRec->containerId}|', #documents)";
-                $mQuery->where("#state != 'closed' OR (#state = 'closed' && {$where})");
+            if($filter == 'pendingAndMine'){
+                $mQuery->where("#state = 'pending' OR #workerId =" . core_Users::getCurrent());
+            } elseif($filter == 'onlyMine'){
+                $mQuery->where("#workerId =" . core_Users::getCurrent());
+            } elseif($filter == 'pending'){
+                $mQuery->where("#state = 'pending'");
             }
             $mQuery->orderBy('id', 'DESC');
 
@@ -781,6 +775,7 @@ class rack_Zones extends core_Master
         $nonClosedRecs = array_filter(self::$movementCache[$zoneId], function ($a) {
             return $a->state != 'closed';
         });
+
         if (!countR($nonClosedRecs)) {
             self::$movementCache[$zoneId] = array();
         }
