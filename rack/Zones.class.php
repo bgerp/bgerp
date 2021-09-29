@@ -752,6 +752,9 @@ class rack_Zones extends core_Master
             }
             $mQuery->orderBy('id', 'DESC');
 
+            $where = (!$zoneRec->containerId) ? "(#documents IS NULL OR #documents = '')" : "LOCATE('|{$zoneRec->containerId}|', #documents)";
+            $mQuery->where("#state != 'closed' OR (#state = 'closed' && {$where})");
+
             while ($mRec = $mQuery->fetch()) {
                 if (!empty($mRec->zones)) {
                     $zones = type_Table::toArray($mRec->zones);
