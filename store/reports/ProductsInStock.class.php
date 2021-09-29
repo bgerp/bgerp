@@ -252,29 +252,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             //Стойност в края на периода
             $blAmount = $item->blAmount;
 
-            //Ако е избран разширен вариант на справката
-//            if ($rec->type == 'long') {
-//                $reservedQuantity = $expectedQuantity = $freeQuantity = 0;
-//
-//                if ($rec->storeId) {
-//                    foreach (keylist::toArray($rec->storeId) as $storeId) {
-//                        $qRec = store_Products::getQuantities($productId, $storeId);
-//
-//                     //   $reservedQuantity += $qRec->reserved;
-//                      //  $expectedQuantity += $qRec->expected;
-//                      //  $freeQuantity += $qRec->free;
-//                    }
-//                } else {
-//                    $qRec = store_Products::getQuantities($productId);
-//                //    $reservedQuantity += $qRec->reserved;
-//                //    $expectedQuantity += $qRec->expected;
-//                 //   $freeQuantity += $qRec->free;
-//
-//                }
-//
-//
-//            }
-
             // добавя в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -325,6 +302,19 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             //Извличанве на всички артикули със запазени количества
             $prodQuery = store_Products::getQuery();
+            $prodQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+
+            //Филтър по групи артикули
+            if (isset($rec->group)) {
+                $prodQuery->likeKeylist('groups', $rec->group);
+            }
+
+            //Филтър по склад
+            if (isset($rec->storeId)) {
+                $storeArr = keylist::toArray($rec->storeId);
+                $prodQuery->in('storeId', $storeArr);
+            }
+
             $prodQuery->where("#reservedQuantity IS NOT NULL OR #expectedQuantity IS NOT NULL");
             while ($prodRERec = $prodQuery->fetch()) {
 
@@ -344,7 +334,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                     $recs[$key]->freeQuantity = $val->freeQuantity;
                 } else {
 
-                    $prodToFillRec = $prodClass::fetch($key);
+                    $prodToFillRec = cat_Products::fetch($key);
 
                     $recs[$key] = (object)array(
 
