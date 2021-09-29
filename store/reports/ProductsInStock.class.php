@@ -252,6 +252,29 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             //Стойност в края на периода
             $blAmount = $item->blAmount;
 
+            //Ако е избран разширен вариант на справката
+            if ($rec->type == 'long') {
+                $reservedQuantity = $expectedQuantity = $freeQuantity = 0;
+
+                if ($rec->storeId) {
+                    foreach (keylist::toArray($rec->storeId) as $storeId) {
+                        $qRec = store_Products::getQuantities($productId, $storeId);
+
+                     //   $reservedQuantity += $qRec->reserved;
+                      //  $expectedQuantity += $qRec->expected;
+                      //  $freeQuantity += $qRec->free;
+                    }
+                } else {
+                    $qRec = store_Products::getQuantities($productId);
+                //    $reservedQuantity += $qRec->reserved;
+                //    $expectedQuantity += $qRec->expected;
+                 //   $freeQuantity += $qRec->free;
+
+                }
+
+
+            }
+
             // добавя в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object)array(
@@ -275,9 +298,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                     'blQuantity' => $blQuantity,
                     'blAmount' => $blAmount,
 
-                    'reservedQuantity' => '',
-                    'expectedQuantity' => '',
-                    'freeQuantity' => '',
+                    'reservedQuantity' => $reservedQuantity,
+                    'expectedQuantity' => $expectedQuantity,
+                    'freeQuantity' => $freeQuantity,
 
                 );
             } else {
@@ -311,16 +334,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
                     );
 
-
                 }
-
+           //     bp(countR($recs),$recs);
                 //Добавяне на резервираните количества
                 foreach ($reQuantitiesArr as $key => $val) {
                     if ($recs[$key]) {
                         $recs[$key]->reservedQuantity = $val->reservedQuantity;
                         $recs[$key]->expectedQuantity = $val->expectedQuantity;
                         $recs[$key]->freeQuantity = $val->freeQuantity;
-                    } else {
+                    }
+                     else {
 
                         $prodToFillRec = $prodClass::fetch($key);
 
@@ -351,9 +374,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
 
                         );
-
                     }
-
                 }
             }
 
