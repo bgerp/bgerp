@@ -234,8 +234,7 @@ class rack_Movements extends rack_MovementAbstract
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         // Ако се създава запис в чернова със зони, в зоните се създава празен запис
-        if(in_array($rec->state, array('pending', 'waiting')) && $rec->_canceled !== true){
-
+        if($rec->state == 'pending' && $rec->_canceled !== true){
             $batch = $rec->batch;
             if(empty($batch) && isset($rec->palletId)){
                 $palletBatch = rack_Pallets::fetchField($rec->palletId, 'batch');
@@ -243,22 +242,11 @@ class rack_Movements extends rack_MovementAbstract
                     $batch = $palletBatch;
                 }
             }
-
-            $updateField = ($rec->state == 'pending') ? 'movementQuantity' : 'waitingQuantity';
+            
             $batch = empty($batch) ? '' : $batch;
             $zonesQuantityArr = static::getZoneArr($rec);
             foreach ($zonesQuantityArr as $zoneRec){
-                $quantity = $zoneRec->quantity;
-                if($rec->state == 'pending'){
-                    if($rec->brState == 'waiting'){
-                        $updateField = 'waitingQuantity';
-                        $quantity = -1 * $quantity;
-                    } else {
-                        $quantity = 0;
-                    }
-                }
-
-                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, $quantity, $batch, $updateField);
+                rack_ZoneDetails::recordMovement($zoneRec->zone, $rec->productId, $rec->packagingId, 0, $batch);
             }
         }
 
@@ -322,14 +310,7 @@ class rack_Movements extends rack_MovementAbstract
         if (is_array($transaction->zonesQuantityArr)) {
             foreach ($transaction->zonesQuantityArr as $obj) {
                 $batch = empty($transaction->batch) ? '' : $transaction->batch;
-                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $batch, 'movementQuantity');
-
-
-                if($transaction->brState == 'waiting'){
-                    rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, -1 * $obj->quantity, $batch, 'waitingQuantity');
-                } elseif($transaction->brState == 'active' && $transaction->state == 'pending'){
-                    rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $batch, 'waitingQuantity');
-                }
+                rack_ZoneDetails::recordMovement($obj->zone, $transaction->productId, $transaction->packagingId, $obj->quantity, $batch);
             }
         }
        
@@ -1050,8 +1031,7 @@ class rack_Movements extends rack_MovementAbstract
         $transaction->id = $rec->id;
         $transaction->storeId = $rec->storeId;
         $transaction->productId = $rec->productId;
-        $transaction->state = $rec->state;
-        $transaction->brState = $rec->brState;
+        
         $BatchClass = batch_Defs::getBatchDef($rec->productId);
         if(is_object($BatchClass)){
             $transaction->batch = !empty($rec->batch) ? $rec->batch : '';

@@ -99,7 +99,6 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('batch', 'varchar', 'caption=Партида,tdClass=rack-zone-batch,notNull');
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
-        $this->FLD('waitingQuantity', 'double(smartRound)', 'caption=Чакащо,mandatory');
         $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
         
         $this->setDbIndex('zoneId,productId,packagingId,batch');
@@ -116,7 +115,6 @@ class rack_ZoneDetails extends core_Detail
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->movementQuantity = $rec->movementQuantity / $rec->quantityInPack;
             $rec->documentQuantity = $rec->documentQuantity / $rec->quantityInPack;
-            $rec->waitingQuantity = $rec->waitingQuantity / $rec->quantityInPack;
         }
     }
     
@@ -134,11 +132,9 @@ class rack_ZoneDetails extends core_Detail
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity);
         $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity);
-        $waitingQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->waitingQuantity);
-
         $moveStatusColor = (round($rec->movementQuantity, 4) < round($rec->documentQuantity, 4)) ? '#ff7a7a' : (($rec->movementQuantity == $rec->documentQuantity) ? '#ccc' : '#8484ff');
         
-        $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> ({$waitingQuantityVerbal}) / <b>{$documentQuantityVerbal}</b>";
+        $row->status = "<span style='color:{$moveStatusColor} !important'>{$movementQuantityVerbal}</span> / <b>{$documentQuantityVerbal}</b>";
    
         // Ако има повече нагласено от очакането добавя се бутон за връщане на количеството
         $overQuantity = round($rec->movementQuantity - $rec->documentQuantity, 7);
@@ -207,14 +203,14 @@ class rack_ZoneDetails extends core_Detail
      *
      * @return void
      */
-    public static function recordMovement($zoneId, $productId, $packagingId, $quantity, $batch, $updateField)
+    public static function recordMovement($zoneId, $productId, $packagingId, $quantity, $batch)
     {
         $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$productId} AND #packagingId = {$packagingId} AND #batch = '{$batch}'");
         if (empty($newRec)) {
-            $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'waitingQuantity' => 0, 'documentQuantity' => null, 'batch' => $batch);
+            $newRec = (object) array('zoneId' => $zoneId, 'productId' => $productId, 'packagingId' => $packagingId, 'movementQuantity' => 0, 'documentQuantity' => null, 'batch' => $batch);
         }
-        $newRec->{$updateField} += $quantity;
-        $newRec->{$updateField} = round($newRec->{$updateField}, 4);
+        $newRec->movementQuantity += $quantity;
+        $newRec->movementQuantity = round($newRec->movementQuantity, 4);
        
         self::save($newRec);
     }
@@ -237,7 +233,7 @@ class rack_ZoneDetails extends core_Detail
                 foreach ($products as $obj) {
                     $newRec = self::fetch("#zoneId = {$zoneId} AND #productId = {$obj->productId} AND #packagingId = {$obj->packagingId} AND #batch = '{$obj->batch}'");
                     if (empty($newRec)) {
-                        $newRec = (object) array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'batch' => $obj->batch, 'movementQuantity' => null, 'waitingQuantity' => null, 'documentQuantity' => 0);
+                        $newRec = (object) array('zoneId' => $zoneId, 'productId' => $obj->productId, 'packagingId' => $obj->packagingId, 'batch' => $obj->batch, 'movementQuantity' => null, 'documentQuantity' => 0);
                     }
                     $newRec->documentQuantity = $obj->quantity;
                     if(!empty($newRec->documentQuantity)){
