@@ -393,8 +393,18 @@ class rack_MovementGenerator extends core_Manager
         
         return $res;
     }
-    
-    
+
+
+    /**
+     * Генериране на движение
+     *
+     * @param array $allocatedArr
+     * @param int $productId
+     * @param int $packagingId
+     * @param string $batch
+     * @param int $storeId
+     * @return array $res
+     */
     public static function getMovements($allocatedArr, $productId, $packagingId, $batch, $storeId)
     {
         $res = array();
@@ -402,7 +412,7 @@ class rack_MovementGenerator extends core_Manager
             
             return $res;
         }
-        $cu = core_Users::getCurrent();
+
         $packRec = cat_products_Packagings::getPack($productId, $packagingId);
         $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
         
@@ -413,7 +423,7 @@ class rack_MovementGenerator extends core_Manager
                 'quantityInPack' => $quantityInPack,
                 'state' => 'pending',
                 'batch' => $batch,
-                'workerId' => $cu,
+                'workerId' => null,
                 'quantity' => $obj->quantity,
                 'position' => $obj->pallet,
             );

@@ -31,4 +31,24 @@ class cat_type_Weight extends cat_type_Uom
         
         parent::init($this->params);
     }
+
+    /**
+     * Форматира числото в удобна за четене форма
+     */
+    public function toVerbal_($value)
+    {
+        if(!empty($value)){
+            if($value > 10){
+                $value = round($value);
+            } elseif($value >= 1){
+                $value = round($value, 1);
+            } else {
+                $value = round($value, 3);
+            }
+        }
+
+        $value = parent::toVerbal_($value);
+
+        return $value;
+    }
 }

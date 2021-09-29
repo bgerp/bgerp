@@ -24,7 +24,7 @@ class store_reports_DeficitInStores extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planing,purchase';
+    public $canSelectDriver = 'ceo,manager,store,planning,purchase';
     
     
     /**

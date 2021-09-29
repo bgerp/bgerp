@@ -2150,12 +2150,29 @@ class doc_Folders extends core_Master
             
             $query->in('coverClass', $skipCoverClasses);
         }
+
+        // Ако има филтър по документи в папката
+        if (isset($params['containingDocumentIds'])) {
+            $documentIds = arr::make($params['containingDocumentIds'], true);
+            if(countR($documentIds)){
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->in('docClass', $documentIds);
+                $cQuery->show('folderId');
+                $cQuery->groupBy('folderId');
+                $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
+                if(countR($documentIds)) {
+                    $query->in('id', $folderIds);
+                } else {
+                    $query->where("1=2");
+                }
+            }
+        }
         
         $viewAccess = true;
         if ($params['restrictViewAccess'] == 'yes') {
             $viewAccess = false;
         }
-        
+
         $me = cls::get(get_called_class());
         
         $me->restrictAccess($query, null, $viewAccess);

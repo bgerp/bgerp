@@ -128,7 +128,7 @@ class acc_ValueCorrections extends core_Master
         
         // Кеш поле за цялата информация на възможните артикули
         $this->FLD('productsData', 'blob(serialize, compress)', 'input=none');
-        $this->FLD('notes', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
+        $this->FLD('notes', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки,after=chosenProducts');
         
         // Поставяне на уникален индекс
         $this->setDbIndex('correspondingDealOriginId');
