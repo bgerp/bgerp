@@ -175,9 +175,9 @@ class rack_ZoneDetails extends core_Detail
             $rec = $data->recs[$id];
             $productCode = cat_Products::fetchField($rec->productId, 'code');
             $row->_code = !empty($productCode) ? $productCode : "Art{$rec->id}";
-            
+
             $row->ROW_ATTR['class'] = 'row-added';
-            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->userId);
+            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter);
             if(!empty($movementsHtml)){
                 $row->movementsHtml = $movementsHtml;
             }
@@ -323,16 +323,18 @@ class rack_ZoneDetails extends core_Detail
      * 
      * @param stdClass $masterRec
      * @param core_Mvc $masterMvc
-     * @param int $userId
+     * @param string $additional
      * @return core_ET
      */
-    public static function renderInlineDetail($masterRec, $masterMvc, $userId = null)
+    public static function renderInlineDetail($masterRec, $masterMvc, $additional = null)
     {
         $tpl = new core_ET();
 
         Mode::push('inlineDetail', true);
         $me = cls::get(get_called_class());
-        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true, 'userId' => $userId);
+        $additional = !empty($additional) ? $additional : 'pendingAndMine';
+        setIfNot($additional, 'pendingAndMine');
+        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true, 'filter' => $additional);
 
         $dData = $me->prepareDetail($dData);
         if(!countR($dData->recs)) return $tpl;
@@ -351,9 +353,9 @@ class rack_ZoneDetails extends core_Detail
      * Рендира таблицата със движения към детайла на зоната
      *
      * @param stdClass $rec
-     * @return core_ET $tpl
+     * @return string filter
      */
-    private static function getInlineMovements(&$rec, &$masterRec, $userId)
+    private static function getInlineMovements(&$rec, &$masterRec, $filter)
     {
         $Movements = clone cls::get('rack_Movements');
         $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
@@ -366,7 +368,7 @@ class rack_ZoneDetails extends core_Detail
         }
 
         $Movements->setField('workerId', "tdClass=inline-workerId");
-        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, false, $userId);
+        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $filter);
         $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
         $allocated = is_array($allocated) ? $allocated : array();
         

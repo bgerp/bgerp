@@ -74,7 +74,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,startBtn=Започни,loadBtn=Вземи,stopBtn=Приключи,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy,documents';
+    public $listFields = 'productId,movement=Движение,loadBtn=Вземи,startBtn=Започни,stopBtn=Приключи,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy,documents';
 
 
     /**
@@ -641,9 +641,8 @@ class rack_Movements extends rack_MovementAbstract
             $rec->brState = 'pending';
             $rec->workerId = core_Users::getCurrent();
         } elseif($action == 'unload'){
-            $oldState = $rec->state;
-            $rec->state = $rec->brState;
-            $rec->brState = $oldState;
+            $rec->state = 'pending';
+            $rec->brState = 'waiting';
             $rec->workerId = null;
         } else {
             $rec->state = ($rec->brState) ? $rec->brState : 'pending';
