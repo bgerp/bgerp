@@ -87,9 +87,12 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         } else {
             $fieldset->FLD('crmGroup', 'treelist(mvc=crm_Groups,select=name, parentId=parentId)', 'caption=Контрагенти->Група контрагенти,after=seeCrmGroup,single=none');
         }
-        
+
+        //Склад
+        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Избор на склад->Склад,placeholder=Всички,after=crmGroup,single=none');
+
         //Групиране на резултата
-        $fieldset->FLD('seeGroup', 'set(yes = )', 'caption=Артикули->Група артикули,after=crmGroup,removeAndRefreshForm,silent,single=none');
+        $fieldset->FLD('seeGroup', 'set(yes = )', 'caption=Артикули->Група артикули,after=storeId,removeAndRefreshForm,silent,single=none');
         
         if (BGERP_GIT_BRANCH == 'dev') {
             $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,after=seeGroup,single=none');
@@ -249,6 +252,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $receiptsDetQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
         $receiptsDetQuery->EXT('valior', 'store_Receipts', 'externalName=valior,externalKey=receiptId');
+
+        $receiptsDetQuery->EXT('storeId', 'store_Receipts', 'externalName=storeId,externalKey=receiptId');
         
         //Експедиционни нареждания за връщане на стока
         $shipmentOrdersDetQuery = store_ShipmentOrderDetails::getQuery();
@@ -266,6 +271,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $shipmentOrdersDetQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
         $shipmentOrdersDetQuery->EXT('valior', 'store_ShipmentOrders', 'externalName=valior,externalKey=shipmentId');
+
+        $shipmentOrdersDetQuery->EXT('storeId', 'store_ShipmentOrders', 'externalName=storeId,externalKey=shipmentId');
         
         //Бързи продажби
         $fastPurchasesDetQuery = purchase_PurchasesDetails::getQuery();
@@ -283,6 +290,8 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
         $fastPurchasesDetQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
         
         $fastPurchasesDetQuery->EXT('valior', 'purchase_Purchases', 'externalName=valior,externalKey=requestId');
+
+        $fastPurchasesDetQuery->EXT('storeId', 'purchase_Purchases', 'externalName=shipmentStoreId,externalKey=requestId');
         
         
         //Продължителност на периода за показване
@@ -463,15 +472,22 @@ class purchase_reports_PurchasedItems extends frame2_driver_TableData
                 $shipmentOrdersDetQuery->in('folderId', $foldersInGroups);
             }
         }
-        
+
+        //Филтър по склад
+        if($rec->storeId) {
+            $storesArr = keylist::toArray($rec->storeId);
+            $receiptsDetQuery->in('storeId', $storesArr);
+            $fastPurchasesDetQuery->in('storeId', $storesArr);
+            $shipmentOrdersDetQuery->in('storeId', $storesArr);
+        }
+
         //Филтър по групи артикули
         if (isset($rec->group)) {
             $receiptsDetQuery->likeKeylist('groups', $rec->group);
             $fastPurchasesDetQuery->likeKeylist('groups', $rec->group);
             $shipmentOrdersDetQuery->likeKeylist('groups', $rec->group);
         }
-        
-        
+
         //Филтър по тип артикул СТАНДАРТНИ / НЕСТАНДАРТНИ
         if ($rec->articleType != 'all') {
             $receiptsDetQuery->where("#isPublic = '{$rec->articleType}'");

@@ -130,10 +130,6 @@ class acc_BalanceHistory extends core_Manager
     public function prepareRows(&$data)
     {
         // Преизчисляваме пейджъра с новия брой на записите
-        $conf = core_Packs::getConfig('acc');
-
-
-
         if (!Mode::is('printing')) {
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
             $Pager->itemsCount = countR($data->recs);
@@ -544,7 +540,7 @@ class acc_BalanceHistory extends core_Manager
                 $arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
             }
         }
-        
+
         try {
             $Class = cls::get($rec['docType']);
             $arr['docId'] = (!Mode::isReadOnly()) ? $Class->getShortHyperLink($rec['docId']) : '#' . $Class->getHandle($rec['docId']);
@@ -560,7 +556,11 @@ class acc_BalanceHistory extends core_Manager
         if ($rec['ROW_ATTR']) {
             $arr['ROW_ATTR'] = $rec['ROW_ATTR'];
         }
-        
+
+        if(acc_Periods::isClosed($rec['valior'])){
+            $arr['ROW_ATTR'] = array('style' => 'background-color:#eee;');
+        }
+
         return (object) $arr;
     }
     

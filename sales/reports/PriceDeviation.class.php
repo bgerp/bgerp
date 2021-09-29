@@ -19,7 +19,7 @@ class sales_reports_PriceDeviation extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planing,purchase,sales';
+    public $canSelectDriver = 'ceo,manager,store,planning,purchase,sales';
     
     
     /**

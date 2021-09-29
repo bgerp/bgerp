@@ -228,16 +228,23 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('lineState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=	Активен,closed=Затворен)', 'caption=Състояние');
+        $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => trans_Lines::getClassId()));
+        $data->listFilter->FLD('lineState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Затворен)', 'caption=Състояние');
         $data->listFilter->showFields .= ',lineState,search';
+        $showFields = arr::make($data->listFilter->showFields, true);
+        unset($showFields['filterDateField']);
+        $data->listFilter->showFields = implode(',', $showFields);
         $data->listFilter->input();
-        
         $data->query->orderBy('#state');
         $data->query->orderBy('#start', 'DESC');
         
         if($filterRec = $data->listFilter->rec){
             if(isset($filterRec->lineState) && $filterRec->lineState != 'all'){
                 $data->query->where("#state = '{$filterRec->lineState}'");
+            }
+
+            if(isset($filterRec->folder)){
+                unset($data->listFields['folderId']);
             }
         }
     }
