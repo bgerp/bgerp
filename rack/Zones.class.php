@@ -974,7 +974,7 @@ class rack_Zones extends core_Master
         while ($dRec = $dQuery->fetch()) {
 
             // Участват само тези по които се очакват още движения
-            $needed = $dRec->documentQuantity - $dRec->movementQuantity;
+            $needed = $dRec->documentQuantity - $dRec->movementQuantity - $dRec->waitingQuantity;
             if (empty($needed) || $needed < 0) {
                 continue;
             }
