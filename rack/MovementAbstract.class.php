@@ -320,6 +320,12 @@ abstract class rack_MovementAbstract extends core_Manager
             if($rec->state != 'waiting'){
                 $requiredRoles = 'no_one';
             }
+
+            if($rec->workerId != $userId){
+                if(!haveRole('rackMaster')){
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
 
         if($action == 'reject' && isset($rec->state)){
