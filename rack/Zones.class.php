@@ -861,17 +861,6 @@ class rack_Zones extends core_Master
     {
         // Какви са очакваните количества
         $expected = self::getExpectedProducts($storeId, $zoneIds);
-        $systemUserId = core_Users::SYSTEM_USER;
-
-        // Изчистване на заявките към зоните
-        $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId} AND #modifiedBy = {$systemUserId}");
-        $mQuery->likeKeylist('zoneList', $expected->zones);
-        $mQuery->show('id');
-
-        while ($mRec = $mQuery->fetch()) {
-            rack_Movements::delete($mRec->id);
-        }
 
         $floor = rack_PositionType::FLOOR;
         foreach ($expected->products as $pRec) {
@@ -958,7 +947,7 @@ class rack_Zones extends core_Master
      *
      * @return stdClass $res
      */
-    private static function getExpectedProducts($storeId, $zoneIds = null)
+    private static function getExpectedProducts($storeId, $zoneIds)
     {
         $res = (object)array('products' => array());
         $res->zones = (is_numeric($zoneIds)) ? array($zoneIds => $zoneIds) : ((is_array($zoneIds)) ? $zoneIds : array());
@@ -966,15 +955,32 @@ class rack_Zones extends core_Master
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
         $dQuery->where("#documentQuantity IS NOT NULL AND #storeId = {$storeId}");
+
+        $zoneMovements = array();
         if (isset($zoneIds)) {
             $zoneIds = arr::make($zoneIds, true);
             $dQuery->in('zoneId', $zoneIds);
+
+            $mQuery = rack_Movements::getQuery();
+            $mQuery->where("#state = 'pending' || #state = 'waiting'");
+            $zoneIds = arr::make($zoneIds, true);
+            $mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
+            $zoneMovements = $mQuery->fetchAll();
         }
 
         while ($dRec = $dQuery->fetch()) {
+            $notActiveQuantity = 0;
+            array_walk($zoneMovements, function($a) use ($dRec, &$notActiveQuantity){
+                $zones = rack_Movements::getZoneArr($a);
+                $quantityInZoneArr = array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;});
+                if(is_object($quantityInZoneArr[0])){
+                    $notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
+                }
+            });
 
             // Участват само тези по които се очакват още движения
-            $needed = $dRec->documentQuantity - $dRec->movementQuantity;
+            $needed = $dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity;
+
             if (empty($needed) || $needed < 0) {
                 continue;
             }
@@ -985,7 +991,7 @@ class rack_Zones extends core_Master
                 $res->zones[$dRec->zoneId] = $dRec->zoneId;
             }
 
-            $res->products[$key]->zones[$dRec->zoneId] += ($dRec->documentQuantity - $dRec->movementQuantity);
+            $res->products[$key]->zones[$dRec->zoneId] += ($dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity);
         }
 
         return $res;
@@ -1114,5 +1120,11 @@ class rack_Zones extends core_Master
         $res->replace($element, 'element');
 
         return $res;
+    }
+
+
+    function act_Test()
+    {
+        static::pickupOrder(26, 32);
     }
 }

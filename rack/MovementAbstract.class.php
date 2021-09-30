@@ -220,7 +220,7 @@ abstract class rack_MovementAbstract extends core_Manager
      *
      * @return array $zoneArr
      */
-    protected static function getZoneArr($rec, &$quantityInZones = null)
+    public static function getZoneArr($rec, &$quantityInZones = null)
     {
         $quantityInZones = 0;
         $zoneArr = array();
