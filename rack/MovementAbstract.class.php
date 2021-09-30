@@ -220,7 +220,7 @@ abstract class rack_MovementAbstract extends core_Manager
      *
      * @return array $zoneArr
      */
-    protected static function getZoneArr($rec, &$quantityInZones = null)
+    public static function getZoneArr($rec, &$quantityInZones = null)
     {
         $quantityInZones = 0;
         $zoneArr = array();
@@ -319,6 +319,12 @@ abstract class rack_MovementAbstract extends core_Manager
         if($action == 'unload' && isset($rec->state)){
             if($rec->state != 'waiting'){
                 $requiredRoles = 'no_one';
+            }
+
+            if($rec->workerId != $userId){
+                if(!haveRole('rackMaster')){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
 
