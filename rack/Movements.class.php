@@ -1186,13 +1186,15 @@ class rack_Movements extends rack_MovementAbstract
             $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
             $row->_rowTools->addLink('Започване', $startUrl, "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
 
-            if ($rec->createdBy != core_Users::getCurrent()) {
-                $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
+            $startWarning = null;
+            if (isset($rec->workerId) && $rec->workerId != core_Users::getCurrent()) {
+                $startWarning = 'Сигурни ли сте, че искате да започнете движение от друг потребител';
+                $row->_rowTools->setWarning("start{$rec->id}", $startWarning);
             }
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl($startUrl, 'local');
-                $row->startBtn = ht::createFnBtn('Започване', '', null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
+                $row->startBtn = ht::createFnBtn('Започване', '', $startWarning, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
                 $row->startBtn = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
