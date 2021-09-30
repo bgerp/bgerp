@@ -966,24 +966,24 @@ class rack_Zones extends core_Master
             $zoneIds = arr::make($zoneIds, true);
             $mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
             $zoneMovements = $mQuery->fetchAll();
+
         }
 
         while ($dRec = $dQuery->fetch()) {
             $notActiveQuantity = 0;
             array_walk($zoneMovements, function($a) use ($dRec, &$notActiveQuantity){
-                $zones = rack_Movements::getZoneArr($a);
-                $quantityInZoneArr = array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;});
-                if(is_object($quantityInZoneArr[0])){
-                    $notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
+                if($dRec->productId == $a->productId && $dRec->packagingId == $a->packagingId && $dRec->batch == $a->batch){
+                    $zones = rack_Movements::getZoneArr($a);
+                    $quantityInZoneArr = array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;});
+                    if(is_object($quantityInZoneArr[0])){
+                        $notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
+                    }
                 }
             });
 
             // Участват само тези по които се очакват още движения
             $needed = $dRec->documentQuantity - $dRec->movementQuantity - $notActiveQuantity;
-
-            if (empty($needed) || $needed < 0) {
-                continue;
-            }
+            if (empty($needed) || $needed < 0) continue;
 
             $key = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->batch}";
             if (!array_key_exists($key, $res->products)) {
