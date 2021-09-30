@@ -324,7 +324,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
                 $reQuantitiesArr[$prodRERec->productId] = (object)array('reservedQuantity' => $prodRERec->reservedQuantity,
                     'expectedQuantity' => $prodRERec->expectedQuantity,
-                    'freeQuantity' => $prodRERec->quantity - $prodRERec->freeQuantity + $prodRERec->expectedQuantity,
+                    'freeQuantity' => $prodRERec->quantity - $prodRERec->reservedQuantity + $prodRERec->expectedQuantity,
 
                 );
 
