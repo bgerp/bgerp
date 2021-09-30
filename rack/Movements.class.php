@@ -1182,13 +1182,13 @@ class rack_Movements extends rack_MovementAbstract
             $row->_rowTools->addLink('Отказване', $unloadUrl, 'ef_icon=img/16/checked.png,title=Отказване на движението');
         }
 
+        $startWarning = (isset($rec->workerId) && $rec->workerId != core_Users::getCurrent())  ? 'Сигурни ли сте, че искате да започнете движение от друг потребител|*?' : null;
+        $returnWarning = (isset($rec->workerId) && $rec->workerId != core_Users::getCurrent())  ? 'Сигурни ли сте, че искате да върнете движение от друг потребител|*?' : 'Наистина ли искате да върнете движението|*?';
+
         if ($mvc->haveRightFor('start', $rec)) {
             $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
             $row->_rowTools->addLink('Започване', $startUrl, "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
-
-            $startWarning = null;
-            if (isset($rec->workerId) && $rec->workerId != core_Users::getCurrent()) {
-                $startWarning = 'Сигурни ли сте, че искате да започнете движение от друг потребител';
+            if (isset($startWarning)) {
                 $row->_rowTools->setWarning("start{$rec->id}", $startWarning);
             }
 
@@ -1215,7 +1215,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('reject', $rec)) {
-            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), 'warning=Наистина ли искате да върнете движението|*?,ef_icon=img/16/reject.png,title=Връщане на движението');
+            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), "warning={$returnWarning},ef_icon=img/16/reject.png,title=Връщане на движението");
         }
     }
 }
