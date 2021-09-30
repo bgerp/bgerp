@@ -1121,10 +1121,4 @@ class rack_Zones extends core_Master
 
         return $res;
     }
-
-
-    function act_Test()
-    {
-        static::pickupOrder(26, 32);
-    }
 }
