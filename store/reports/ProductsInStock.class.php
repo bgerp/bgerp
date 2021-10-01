@@ -212,7 +212,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
 
             //Код на продукта
-            $productCode = ($prodRec->code) ?  : "Art".$prodRec->id;
+            $productCode = cat_Products::getVerbal($prodRec->id,'code');
 
             //Продукт ID
             $productId = $iRec->objectId;
@@ -340,7 +340,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
                     $prodToFillRec = cat_Products::fetch($key);
 
-                    $productRECode = ($prodToFillRec->code) ?  : "Art".$prodToFillRec->id;
+
+                    $productRECode = cat_Products::getVerbal($prodToFillRec->id,'code');
 
                     if (!array_key_exists($key, $recs)) {
                         $recs[$key] = (object)array(
