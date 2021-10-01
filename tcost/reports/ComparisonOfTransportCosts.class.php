@@ -71,6 +71,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('currency', 'varchar', 'caption=Валута,input=none,mandatory');
         $fieldset->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,placeholder = Всички,after=to,single=none');
+        $fieldset->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие на доставка,placeholder = Всички,after=country,single=none');
     }
     
     
@@ -268,6 +269,14 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         }
 
         foreach ($recs as $key => $val) {
+
+            //Филтър по условие на доставка
+            if ($rec->deliveryTermId) {
+                if (($rec->deliveryTermId != $val->deliveryTermId) || is_null($val->deliveryTermId)) {
+                    unset($recs[$key]);
+                    continue;
+                }
+            }
             
             //филтър по държава
             if ($rec->country) {
