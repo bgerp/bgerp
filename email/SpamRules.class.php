@@ -232,4 +232,33 @@ class email_SpamRules extends core_Manager
         $data->query->orderBy('createdOn', 'DESC');
         $data->query->orderBy('id', 'DESC');
     }
+
+
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     *
+     * Зареждане на потребителски правила за
+     * рутиране на имейли според събджект или тяло
+     */
+    public function loadSetupData()
+    {
+        // Подготвяме пътя до файла с данните
+        $file = 'email/data/SpamRules.csv';
+
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => 'email',
+            1 => 'subject',
+            2 => 'body',
+            3 => 'points',
+            4 => 'note',
+        );
+
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
+
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        return $cntObj->html;
+    }
 }

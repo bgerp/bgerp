@@ -731,15 +731,16 @@ class purchase_Purchases extends deals_DealMaster
             $row->title .= "  «  " . $row->folderId;
         }
     }
-    
-    
+
+
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id     - ид или запис
-     * @param mixed $forMvc - за кой мениджър
-     * 
-     * @return array $products        - масив с информация за артикули
+     * @param mixed $id          - ид или запис
+     * @param mixed $forMvc      - за кой мениджър
+     * @param string  $option    - опции
+     *
+     * @return array $products         - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
      *               o quantity        - к-во
@@ -748,12 +749,11 @@ class purchase_Purchases extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id, $forMvc)
+    public function getCorrectableProducts($id, $forMvc, $option = null)
     {
         $rec = $this->fetchRec($id);
-        $ForMvc = cls::get($forMvc);
-        $accounts = ($ForMvc instanceof acc_ValueCorrections) ? '321,60201' : '321';
-        
+        $accounts = ($option == 'storable') ? '321' : '321,60201';
+
         $products = array();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, $accounts, true, true, true);

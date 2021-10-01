@@ -530,12 +530,12 @@ class store_Products extends core_Detail
      */
     protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
     {
-        $data->listFields['reservedQuantity'] = "|Днес|*-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>";
-        $data->listFields['expectedQuantity'] = "|Днес|*-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>";
-        $data->listFields['freeQuantity'] = "|Днес|*-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>";
-        $data->listFields['reservedQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Запазено|*'> |Запаз.|*</span>";
-        $data->listFields['expectedQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Очаквано|*'> |Очакв.|*</span>";
-        $data->listFields['freeQuantityMin'] = "|Минимално|*-><span class='small notBolded' title='|Разполагаемо|*'> |Разпол.|*</span>";
+        $data->listFields['reservedQuantity'] = "Днес->Запаз.";
+        $data->listFields['expectedQuantity'] = "Днес->Очакв.";
+        $data->listFields['freeQuantity'] = "Днес->Разпол.";
+        $data->listFields['reservedQuantityMin'] = "Минимално->Запаз.";
+        $data->listFields['expectedQuantityMin'] = "Минимално->Очакв.";
+        $data->listFields['freeQuantityMin'] = "Минимално->Разпол.";
         $historyBefore = 'code';
         
         if (isset($data->masterMvc)) {
@@ -755,13 +755,17 @@ class store_Products extends core_Detail
         $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date <= '{$end}'");
         $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
         $query->where("#{$quantityField} IS NOT NULL");
-        $query->show('sourceClassId,sourceId,date');
+        $query->EXT('measureId', 'cat_Products', 'externalKey=productId');
+        $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId');
 
         $links = '';
         while($dRec = $query->fetch()){
             $Source = cls::get($dRec->sourceClassId);
             $row = (object)array('date' => dt::mysql2verbal($dRec->date));
 
+            $uom = cat_UoM::getShortName($dRec->measureId);
+            $quantity = setIfNot($dRec->quantityOut, $dRec->quantityIn);
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
 
             // Ако източника е документ - показват се данните му
             if($Source->hasPlugin('doc_DocumentPlg')){
@@ -769,15 +773,16 @@ class store_Products extends core_Detail
                 $docRec = $Source->fetch($dRec->sourceId, 'createdBy,folderId,state');
                 $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
                 $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
-                $row->createdBy = " {$folderId} | {$row->createdBy}";
-                $state = $docRec->state;
+                $row->createdBy = " {$quantityVerbal} {$uom} | {$folderId} | {$row->createdBy}";
             } else {
                 // Ако източника не е документ
                 $row->link = $Source->getHyperlink($dRec->sourceId, true);
                 $docRec = $Source->fetch($dRec->sourceId, 'createdBy,state');
                 $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
-                $state = $docRec->state;
+                $row->createdBy .= " | {$quantityVerbal} {$uom}";
             }
+
+            $state = $docRec->state;
 
             $row->link = "<span class='state-{$state} document-handler'>{$row->link}</span>";
             if($dRec->date < $today) {

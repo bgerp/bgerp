@@ -40,7 +40,11 @@ class cat_products_Usage extends core_Manager
         $data->jobData = clone $data;
         $data->jobData->Jobs = cls::get('planning_Jobs');
         $this->prepareJobs($data->jobData);
-        
+
+        $data->taskData = clone $data;
+        $data->taskData->_useMasterField = 'productId';
+        $this->prepareDocuments('planning_Tasks', 'planning_ProductionTaskProducts', $data->taskData);
+
         // Промяна на таба взависимост дали артикула е стандартен или не
         if ($data->isPublic === true) {
             if ((($masterRec->state == 'template') || ($data->jobData->notManifacturable === true)) && !countR($data->jobData->rows)) {
@@ -52,7 +56,7 @@ class cat_products_Usage extends core_Manager
                 return;
             }
             $data->Tab = 'top';
-            $data->TabCaption = 'Задания';
+            $data->TabCaption =  countR($data->taskData->rows) ? 'Документи' : 'Задания';
             if (!$prepareTab || $prepareTab != 'Usage') {
                 
                 return;
@@ -93,13 +97,14 @@ class cat_products_Usage extends core_Manager
         $tpl->append($this->renderJobs($data->jobData));
         
         if ($data->isPublic === false) {
-            $renderEvenIfEmpty = ($data->jobData->notManifacturable === true) ? true : false;
+            $renderEvenIfEmpty = ($data->jobData->notManifacturable === true);
             $tpl->append($this->renderDocuments($data->saleData, $renderEvenIfEmpty));
             $tpl->append($this->renderDocuments($data->purData));
             $tpl->append($this->renderDocuments($data->quoteData));
             $tpl->append($this->renderDocuments($data->purQuoteData));
         }
-        
+        $tpl->append($this->renderDocuments($data->taskData));
+
         return $tpl;
     }
     
@@ -114,8 +119,8 @@ class cat_products_Usage extends core_Manager
     private function prepareDocuments($Document, $DocumentDetail, &$data)
     {
         $data->Document = clone cls::get($Document);
-        $data->Document->FNC('title', 'varchar', 'tdClass=leftCol');
-        
+        $data->Document->FNC('title', 'varchar', 'tdClass=leftCol,forceField');
+
         $Detail = cls::get($DocumentDetail);
         $data->recs = $data->rows = array();
         
@@ -127,7 +132,13 @@ class cat_products_Usage extends core_Manager
         $dQuery->show($Detail->masterKey);
         
         $ids = arr::extractValuesFromArray($dQuery->fetchAll(), $Detail->masterKey);
-        
+
+        if($data->_useMasterField){
+            $query2 = $data->Document->getQuery();
+            $query2->where("#{$data->_useMasterField} = {$data->masterId} AND #state != 'rejected'");
+            $ids += arr::extractValuesFromArray($query2->fetchAll(), 'id');
+        }
+
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listOtherDocumentsPerPage));
         $data->Pager->setPageVar('cat_Products', $data->masterId, $Document);
         

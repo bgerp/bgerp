@@ -3725,7 +3725,9 @@ table .eshop-btn {
     background-color: #eeeeee !important; }
   .eshop-btn:disabled {
     background-color: #bbbbbb !important;
-    color: #666666 !important; }
+    color: #737373 !important;
+    padding: 10px 20px !important;
+    font-size: 1.2em !important; }
 
 .productBtn {
   padding: 4px 8px 5px 25px !important;
@@ -7296,3 +7298,9 @@ only screen and (max-width: 320px) {
     to {
     opacity: 0; }
  }
+.zoneMovement {
+  border-radius: 3px;
+  border: solid 1px #bbbbbb;
+  padding: 2px;
+  display: inline-block; }
+

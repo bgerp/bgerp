@@ -52,7 +52,8 @@ abstract class rack_MovementAbstract extends core_Manager
         $mvc->FLD('workerId', 'user(roles=ceo|rack)', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
 
         $mvc->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
-        $mvc->FLD('state', 'enum(closed=Приключено, active=Активно, pending=Чакащо)', 'caption=Движение->Състояние,silent');
+        $mvc->FLD('state', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent');
+        $mvc->FLD('brState', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent,input=none');
         $mvc->FLD('zoneList', 'keylist(mvc=rack_Zones, select=num)', 'caption=Зони,input=none');
         $mvc->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
         $mvc->FNC('containerId', 'int', 'input=hidden,caption=Документи,silent');
@@ -90,42 +91,8 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        core_RowToolbar::createIfNotExists($row->_rowTools);
 
-        if ($mvc->haveRightFor('start', $rec)) {
-            $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
-            $row->_rowTools->addLink('Започване', $startUrl, "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
-
-            if ($rec->createdBy != core_Users::getCurrent()) {
-                $row->_rowTools->setWarning("start{$rec->id}", 'Сигурни ли сте, че искате да започнете движение от друг потребител');
-            }
-
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
-                $startUrl = toUrl($startUrl, 'local');
-                $row->startBtn = ht::createFnBtn('Започване', '', null, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
-            } else {
-                $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
-                $row->startBtn = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
-            }
-        }
-
-        if ($mvc->haveRightFor('done', $rec)) {
-            $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
-
-            if($fields['-inline'] && !isset($fields['-inline-single'])){
-                $stopUrl = toUrl($stopUrl, 'local');
-                $row->stopBtn = ht::createFnBtn('Приключване', '', null, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
-            } else {
-                $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
-                $row->stopBtn = ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
-            }
-        }
-
-        if ($mvc->haveRightFor('reject', $rec)) {
-            $row->_rowTools->addLink('Отказване', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), 'warning=Наистина ли искате да откажете движението|*?,ef_icon=img/16/reject.png,title=Отказване на движението');
-        }
-
+        $makeLinks = !($fields['-inline'] && !isset($fields['-inline-single']));
         if (!empty($rec->note)) {
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
         }
@@ -137,7 +104,11 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         $row->_rowTools->addLink('Палети', array('rack_Pallets', 'productId' => $rec->productId), "id=search{$rec->id},ef_icon=img/16/google-search-icon.png,title=Показване на палетите с този продукт");
-        $row->movement = $mvc->getMovementDescription($rec);
+        $row->movement = $mvc->getMovementDescription($rec, false, $makeLinks);
+
+        if($fields['-inline'] && isset($rec->workerId)){
+            $row->workerId = core_Users::getVerbal($rec->workerId, 'nick');
+        }
 
         if(!empty($rec->documents)){
             $documents = array();
@@ -166,10 +137,12 @@ abstract class rack_MovementAbstract extends core_Manager
      * Подробно описание на движението
      *
      * @param stdClass $rec
+     * @param stdClass $skipZones
+     * @param stdClass $makeLinks
      *
      * @return string $res
      */
-    protected function getMovementDescription($rec, $skipZones = false)
+    protected function getMovementDescription($rec, $skipZones = false, $makeLinks = true)
     {
         $packQuantity = isset($rec->_originalPackQuantity) ? $rec->_originalPackQuantity : $rec->packQuantity;
         $position = $this->getFieldType('position')->toVerbal($rec->position);
@@ -195,7 +168,6 @@ abstract class rack_MovementAbstract extends core_Manager
         }
         if (!empty($packQuantity)) {
             $packQuantityRow = ht::styleIfNegative($packQuantityRow, $packQuantity);
-
             $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
         }
 
@@ -210,7 +182,10 @@ abstract class rack_MovementAbstract extends core_Manager
 
                 if(rack_Zones::fetchField($zoneRec->zone)){
                     $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
-                    $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
+                    $zoneTitle = rack_Zones::styleZone($zoneRec->zone, $zoneTitle, 'zoneMovement');
+                    if($makeLinks){
+                        $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
+                    }
                 } else {
                     $zoneTitle = ht::createHint($zoneRec->zone, 'Зоната вече не съществува', 'warning');
                 }
@@ -218,8 +193,6 @@ abstract class rack_MovementAbstract extends core_Manager
                 $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
                 $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
                 $movementArr[] = "<span {$class}>{$zoneTitle} ({$zoneQuantity})</span>";
-
-
             }
             Mode::pop('shortZoneName');
         }
@@ -247,7 +220,7 @@ abstract class rack_MovementAbstract extends core_Manager
      *
      * @return array $zoneArr
      */
-    protected static function getZoneArr($rec, &$quantityInZones = null)
+    public static function getZoneArr($rec, &$quantityInZones = null)
     {
         $quantityInZones = 0;
         $zoneArr = array();
@@ -327,20 +300,38 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (in_array($action, array('start', 'reject'))) {
+        if (in_array($action, array('start', 'reject', 'load', 'unload'))) {
             $requiredRoles = $mvc->getRequiredRoles('toggle', $rec, $userId);
         }
 
         if($action == 'start' && isset($rec->state)){
+            if(!in_array($rec->state, array('pending', 'waiting'))){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'load' && isset($rec->state)){
             if($rec->state != 'pending'){
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'unload' && isset($rec->state)){
+            if($rec->state != 'waiting'){
+                $requiredRoles = 'no_one';
+            }
+
+            if($rec->workerId != $userId){
+                if(!haveRole('rackMaster')){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
 
         if($action == 'reject' && isset($rec->state)){
             if($rec->state != 'active'){
                 $requiredRoles = 'no_one';
-            } elseif($rec->state == 'active' && isset($rec->workerId) && $rec->workerId != $userId){
+            } elseif(isset($rec->workerId) && $rec->workerId != $userId){
                 $requiredRoles = 'ceo,rackMaster';
             }
         }
@@ -373,6 +364,7 @@ abstract class rack_MovementAbstract extends core_Manager
     {
         $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
         $data->listTableMvc->FLD('startBtn', 'varchar', 'tdClass=centered');
+        $data->listTableMvc->FLD('loadBtn', 'varchar', 'tdClass=centered');
         $data->listTableMvc->FLD('stopBtn', 'varchar', 'tdClass=centered');
         if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
             $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";

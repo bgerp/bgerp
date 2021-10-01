@@ -88,7 +88,7 @@ class price_ListToCustomers extends core_Manager
      */
     public function description()
     {
-        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Политика');
+        $this->FLD('listId', 'key(mvc=price_Lists,select=title)', 'caption=Политика,silent');
         $this->FLD('cClass', 'class(select=title,interface=crm_ContragentAccRegIntf)', 'caption=Клиент->Клас,input=hidden,silent');
         $this->FLD('cId', 'int', 'caption=Клиент->Обект,input=hidden,silent');
         $this->FLD('validFrom', 'datetime(format=smartTime)', 'caption=В сила от');
@@ -537,9 +537,16 @@ class price_ListToCustomers extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $listId = Request::get('listId', 'key(mvc=price_Lists)');
-        if (isset($listId)) {
-            $data->query->where("#listId = {$listId}");
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->setFieldTypeParams('listId', array('allowEmpty' => 'allowEmpty'));
+        $data->listFilter->showFields = 'listId';
+        $data->listFilter->input(null, 'silent');
+
+        if ($filter = $data->listFilter->rec) {
+            if (isset($filter->listId)) {
+                $data->query->where("#listId = {$filter->listId}");
+            }
         }
     }
     

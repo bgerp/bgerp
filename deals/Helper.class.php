@@ -828,7 +828,7 @@ abstract class deals_Helper
         } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
             if($showNegativeWarning) {
                 $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                $hint = "Недостатъчна |*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
             }
         } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
             if($showNegativeWarning) {
@@ -1290,14 +1290,18 @@ abstract class deals_Helper
             $rateFld = 'rate';
         }
 
+        $updateMaster = false;
         if ($masterMvc instanceof acc_ValueCorrections) {
-            $updateMaster = false;
             $rec->amount = round(($rec->amount / $rec->rate) * $newRate, 6);
             foreach ($rec->productsData as &$pData){
                 $pData->allocated = round(($pData->allocated / $rec->rate) * $newRate, 6);
             }
             $rec->rate = $newRate;
-        } else {
+        } elseif($masterMvc instanceof deals_PaymentDocument) {
+            if(round($rec->amountDeal,2) == round($rec->amount, 2)) {
+                $rec->rate = $newRate;
+            }
+        } elseif(isset($masterMvc->mainDetail)) {
             $Detail = cls::get($masterMvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
@@ -1335,7 +1339,8 @@ abstract class deals_Helper
         }
         
         $masterMvc->save($rec);
-        
+        $masterMvc->logWrite('Ръчна промяна на курса', $rec->id);
+
         if ($updateMaster) {
             $masterMvc->updateMaster_($rec->id);
         }
@@ -1343,6 +1348,7 @@ abstract class deals_Helper
         if ($rec->state == 'active') {
             acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id);
             acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
+            $masterMvc->logWrite('Рекондиране след промяна на курса', $rec->id);
         }
     }
     
@@ -2003,6 +2009,7 @@ abstract class deals_Helper
             $transInfo = cls::get($mvc->mainDetail)->getTransportInfo($rec);
             
             // Колко е общото тегло
+            $transInfo->weight = round($transInfo->weight);
             $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
             $string = "<span id='weight{$rec->containerId}' class='enTag weightTag' title='Общо тегло на документа'></span>";
             $style = "#weight{$rec->containerId}:after{content: '${weightVerbal}'} ";

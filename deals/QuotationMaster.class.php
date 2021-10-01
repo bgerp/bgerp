@@ -173,6 +173,9 @@ abstract class deals_QuotationMaster extends core_Master
         if (isset($form->rec->id)) {
             if (cls::get($this->mainDetail)->fetch("#quotationId = {$form->rec->id}")) {
                 $readOnlyFields = arr::make($this->readOnlyFieldsIfHaveDetail, true);
+                if(empty($form->rec->deliveryCalcTransport)){
+                    unset($readOnlyFields['deliveryCalcTransport']);
+                }
                 foreach ($readOnlyFields as $fld) {
                     $form->setReadOnly($fld);
                 }

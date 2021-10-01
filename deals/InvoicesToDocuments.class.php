@@ -131,33 +131,36 @@ class deals_InvoicesToDocuments extends core_Manager
                 if($defAmount){
                     $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $defAmount));
                 } else {
-                    $form->setWarning('fromContainerId', 'По фактурата не се очаква плащане');
+                    if($Document instanceof deals_PaymentDocument){
+                        $form->setWarning('fromContainerId', 'По фактурата не се очаква плащане');
+                    }
                     $invArr = array('0' => (object)array('containerId' => $fRec->fromContainerId, 'amount' => $paymentData->amount));
                 }
             }
 
-            $amountWarnings = array();
+            if($Document instanceof deals_PaymentDocument){
+                $amountWarnings = array();
+                foreach ($invArr as $iRec){
+                    $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
+                    $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
 
-            foreach ($invArr as $iRec){
-                $expectedAmountToPayData = static::getExpectedAmountToPay($iRec->containerId, $rec->containerId);
-                $eAmount = round(currency_CurrencyRates::convertAmount($expectedAmountToPayData->amount, null, $expectedAmountToPayData->currencyCode, $paymentCurrencyCode), 2);
+                    if($iRec->amount > $eAmount){
+                        $Invoice = doc_Containers::getDocument($iRec->containerId);
+                        $iInst = $Invoice->getInstance();
+                        if ($iInst->fields['number']) {
+                            $number = $iInst->getVerbal($Invoice->fetch(), 'number');
+                        } else {
+                            $number = "#" . $Invoice->getHandle();
+                        }
 
-                if($iRec->amount > $eAmount){
-                    $Invoice = doc_Containers::getDocument($iRec->containerId);
-                    $iInst = $Invoice->getInstance();
-                    if ($iInst->fields['number']) {
-                        $number = $iInst->getVerbal($Invoice->fetch(), 'number');
-                    } else {
-                        $number = '??????';
+                        $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
+                        $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
                     }
-
-                    $expectedAmountVerbal = core_Type::getByName('double(smartRound)')->toVerbal($eAmount);
-                    $amountWarnings[] = "Над очакваното плащане по|* {$number} - {$expectedAmountVerbal} {$paymentCurrencyCode}";
                 }
-            }
 
-            if(countR($amountWarnings)){
-                $form->setWarning('invoices,fromContainerId', implode("<li>", $amountWarnings));
+                if(countR($amountWarnings)){
+                    $form->setWarning('invoices,fromContainerId', implode("<li>", $amountWarnings));
+                }
             }
 
             if(!$form->gotErrors()){
@@ -236,13 +239,21 @@ class deals_InvoicesToDocuments extends core_Manager
      */
     public static function getExpectedAmountToPay($invoiceContainerId, $ignoreDocumentContainerId)
     {
+        $Document = doc_Containers::getDocument($invoiceContainerId);
         $iRec = doc_Containers::getDocument($invoiceContainerId)->fetch();
-        $dRate = $iRec->displayRate ? $iRec->displayRate : $iRec->rate;
-        $dRate = $dRate ? $dRate : 1;
-        $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $dRate);
 
+        if($Document->isInstanceOf('deals_InvoiceMaster')){
+            $dRate = $iRec->displayRate ? $iRec->displayRate : $iRec->rate;
+            $vAmount = abs(($iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount) / $dRate);
+        } else {
+            $vAmount = abs($iRec->amountDelivered / $iRec->currencyRate);
+        }
+
+        $exceptClassIds = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Proformas::getClassId());
         $query = static::getQuery();
+        $query->EXT('docClass', 'doc_Containers', 'externalKey=documentContainerId');
         $query->where("#containerId = {$invoiceContainerId} AND #documentContainerId != {$ignoreDocumentContainerId}" );
+        $query->notIn('docClass', $exceptClassIds);
 
         $paidByNow = 0;
         while($rec = $query->fetch()){
@@ -360,21 +371,35 @@ class deals_InvoicesToDocuments extends core_Manager
 
         $data->rows = array();
         $count = 0;
+
         if(countR($data->recs)){
+            if(isset($data->masterData->rec->tplLang)){
+                core_Lg::push($data->masterData->rec->tplLang);
+            }
+
             foreach ($data->recs as $key => $rec) {
                 $count++;
                 $unallocated -= $rec->amount;
                 $data->rows[$key] = $this->recToVerbal($rec);
-                $data->rows[$key]->currencyId = $currencyCode;
-                $data->rows[$key]->documentName = tr("Kъм") . " {$data->rows[$key]->documentName}";
+                $data->rows[$key]->documentName = tr("Kъм {$data->rows[$key]->documentName}");
+
+                if(!Mode::isReadOnly()){
+                    $data->rows[$key]->currencyId = $currencyCode;
+                } else {
+                    unset($data->rows[$key]->amount);
+                }
 
                 if($count == 1 && isset($data->btn)){
                     $data->rows[$key]->invoiceBtn = $data->btn;
                 }
             }
 
-            if(round($unallocated, 2) > 0){
+            if(round($unallocated, 2) > 0 && !Mode::isReadOnly()){
                 $data->rows['u'] = (object)array('documentName' => tr('Неразпределени'), 'currencyId' => $currencyCode, 'amount' => core_Type::getByName('double(decimals=2)')->toVerbal($unallocated));
+            }
+
+            if(isset($data->masterData->rec->tplLang)){
+                core_Lg::pop();
             }
         }
 
@@ -426,7 +451,7 @@ class deals_InvoicesToDocuments extends core_Manager
                 $tpl->append($clone);
             }
         } elseif(isset($data->btn)) {
-            $block->replace('Към фактура', 'documentName');
+            $block->replace(tr('Към фактура'), 'documentName');
             $block->append("<div class='border-field'></div>", 'amount');
             $block->append($data->btn, 'amount');
             $tpl->append($block);
@@ -533,10 +558,13 @@ class deals_InvoicesToDocuments extends core_Manager
 
         if ($rec = $data->listFilter->rec) {
             if (!empty($rec->documentId)) {
-
-                // Търсене и на последващите документи
-                if ($document = doc_Containers::getDocumentByHandle($rec->documentId)) {
+                if(type_Int::isInt($rec->documentId)){
+                    $containerId = $rec->documentId;
+                } elseif($document = doc_Containers::getDocumentByHandle($rec->documentId)){
                     $containerId = $document->fetchField('containerId');
+                }
+
+                if (isset($containerId)) {
                     $data->query->where("#documentContainerId = {$containerId} OR #containerId = {$containerId}");
                 }
             }

@@ -102,6 +102,7 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
+        $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
         $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички');
 
@@ -115,7 +116,11 @@ class doc_Search extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(null, 'silent');
-        
+
+        if($toDateHorizon = Request::get('toDateHorizon', 'time')){
+            $data->listFilter->setDefault('toDate', dt::addSecs(-1 * $toDateHorizon, dt::now(), false));
+        }
+
         $filterRec = $data->listFilter->rec;
 
         $tagsArr = tags_Tags::getTagsOptions();
@@ -390,7 +395,7 @@ class doc_Search extends core_Manager
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
 
-                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDate' => $filterRec->toDate);
+                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDateHorizon' => Request::get('toDateHorizon', 'time'));
                 bgerp_Notifications::clear($url3);
             }
         } else {

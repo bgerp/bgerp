@@ -4379,7 +4379,9 @@ table .eshop-btn {
 	}
 	&:disabled {
 		background-color: #bbb !important;
-		color: #666 !important;
+		color: #737373 !important;
+	    padding: 10px 20px !important;
+	    font-size: 1.2em !important;
 	}
 }
 
@@ -8293,4 +8295,11 @@ body.narrow {
 @-webkit-keyframes blink {
   from { opacity: 1.0; }
   to { opacity: 0.0; }
+}
+
+.zoneMovement {
+	border-radius: 3px;
+	border: solid 1px #bbb;
+	padding: 2px;
+	display: inline-block;
 }

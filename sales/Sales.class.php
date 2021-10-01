@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,deals_plg_SaveValiorOnActivation, bgerp_plg_Export';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
     /**
@@ -877,7 +877,9 @@ class sales_Sales extends deals_DealMaster
 
         // Изпращане на нотификации, за нефактурирани продажби
         $lateTime = sales_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');
-        $this->sendNotificationIfInvoiceIsTooLate($lateTime);
+        if(!empty($lateTime)){
+            $this->sendNotificationIfInvoiceIsTooLate($lateTime);
+        }
     }
     
     
@@ -1429,10 +1431,11 @@ class sales_Sales extends deals_DealMaster
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id     - ид или запис
-     * @param mixed $forMvc - за кой мениджър
+     * @param mixed $id          - ид или запис
+     * @param mixed $forMvc      - за кой мениджър
+     * @param string  $option    - опции
      *
-     * @return array $products        - масив с информация за артикули
+     * @return array $products         - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
      *               o quantity        - к-во
@@ -1441,7 +1444,7 @@ class sales_Sales extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id, $forMvc)
+    public function getCorrectableProducts($id, $forMvc, $option = null)
     {
         $rec = $this->fetchRec($id);
         
@@ -1449,9 +1452,14 @@ class sales_Sales extends deals_DealMaster
         $products = array();
         $entries = sales_transaction_Sale::getEntries($rec->id);
         $shipped = sales_transaction_Sale::getShippedProducts($entries);
-        
+
         if (countR($shipped)) {
             foreach ($shipped as $ship) {
+                if($option == 'storable'){
+                    $canStore = cat_Products::fetchField($ship->productId, 'canStore');
+                    if($canStore != 'yes') continue;
+                }
+
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
                 

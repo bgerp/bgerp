@@ -267,7 +267,7 @@ class cat_Setup extends core_ProtoSetup
         array(
             'systemId' => 'Update Groups Cnt',
             'description' => 'Обновяване броячите на групите',
-            'controller' => 'cat_Products',
+            'controller' => 'cat_Groups',
             'action' => 'UpdateGroupsCnt',
             'period' => 1440,
             'offset' => 1327,

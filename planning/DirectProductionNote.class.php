@@ -1059,10 +1059,11 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id     - ид или запис
-     * @param mixed $forMvc - за кой мениджър
+     * @param mixed $id          - ид или запис
+     * @param mixed $forMvc      - за кой мениджър
+     * @param string  $option    - опции
      *
-     * @return array $products        - масив с информация за артикули
+     * @return array $products         - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
      *               o quantity        - к-во
@@ -1071,10 +1072,15 @@ class planning_DirectProductionNote extends planning_ProductionDocument
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id, $forMvc)
+    public function getCorrectableProducts($id, $forMvc, $option = null)
     {
         $products = array();
         $rec = $this->fetchRec($id);
+
+        if($option == 'storable'){
+            $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+            if($canStore != 'yes') return $products;
+        }
 
         $products[$rec->productId] = (object) array('productId' => $rec->productId,
             'quantity' => $rec->quantity,

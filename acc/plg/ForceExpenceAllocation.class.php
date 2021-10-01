@@ -65,16 +65,16 @@ class acc_plg_ForceExpenceAllocation extends core_Plugin
         
         // Върху кои артикули може да се разпределят разходите
         $expenseItemId = acc_Items::fetchItem($firstDocument->getInstance(), $firstDocument->that)->id;
-        $correctableProducts = $firstDocument->getCorrectableProducts($mvc);
 
         // Кои разходи са отнесени към сделката, със зададено автоматично разпределяне
         $costQuery = acc_CostAllocations::getQuery();
         $costQuery->where("#expenseItemId = {$expenseItemId} AND #allocationBy != 'no'");
-        $costQuery->show('id,quantity,allocationBy,containerId,productsData,allocationBy');
+        $costQuery->show('id,quantity,allocationBy,containerId,productsData,allocationBy,allocationFilter');
         
         // За всеки запис
         while ($costRec = $costQuery->fetch()){
-            $selected = ($costRec->allocationBy == 'auto') ? $correctableProducts : $costRec->productsData;
+            $correctableProducts = $firstDocument->getCorrectableProducts($mvc, $costRec->allocationFilter);
+            $selected = ($costRec->allocationBy == 'auto') ?  $correctableProducts : $costRec->productsData;
             $copyArr = $correctableProducts;
             try{
                 
