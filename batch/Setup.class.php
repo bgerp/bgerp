@@ -20,6 +20,12 @@ defIfNot('BATCH_COUNT_IN_EDIT_WINDOW', 10);
 
 
 /**
+ * Дали партидите да се показват във фактурите
+ */
+defIfNot('BATCH_SHOW_IN_INVOICES', 'yes');
+
+
+/**
  * class batch_Setup
  *
  * Инсталиране/Деинсталиране на
@@ -105,6 +111,7 @@ class batch_Setup extends core_ProtoSetup
         'BATCH_EXPIRYDATE_PERCENT' => array('percent', 'caption=Оцветяване на изтичащите партиди->Преди края'),
         'BATCH_CLOSE_OLD_BATCHES' => array('time', 'caption=Затваряне на изчерпани партиди->След'),
         'BATCH_COUNT_IN_EDIT_WINDOW' => array('int', 'caption=Колко партиди да се показват в прозореца за промяна->Брой'),
+        'BATCH_SHOW_IN_INVOICES' => array('enum(yes=Да,no=Не)', 'caption=Показване на партиди във фактурите->Избор'),
     );
     
     

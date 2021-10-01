@@ -678,14 +678,16 @@ class batch_Items extends core_Master
             if ($q >= $left) {
                 $allocatedArr[$b] = $left;
                 $left -= $left;
-            } elseif ($q < $left && $q > 0) {
+                $left = round($left, 4);
+            } elseif ($q > 0) {
                 $allocatedArr[$b] = $q;
                 $left -= $allocatedArr[$b];
+                $left = round($left, 4);
             } else {
                 continue;
             }
         }
-        
+
         return $allocatedArr;
     }
 }

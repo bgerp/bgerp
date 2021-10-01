@@ -126,7 +126,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             // Ако е към покупка
         } elseif ($firstDoc->isInstanceOf('purchase_Purchases')) {
             $creditArr = array('401', array($contragentClassId, $contragentId),
-                array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
+                array($correspondingDoc->getInstance()->className, $correspondingDoc->that),
                 array('currency_Currencies', $currencyId),
                 'quantity' => 0);
             $vatAmount = 0;
