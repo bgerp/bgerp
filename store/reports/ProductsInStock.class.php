@@ -187,6 +187,9 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $Balance = new acc_ActiveShortBalance(array('from' => $date, 'to' => $date, 'accs' => '321', 'item1' => $storeItemIdArr, 'item2' => $productItemId, 'cacheBalance' => false, 'keepUnique' => true));
         $bRecs = $Balance->getBalance('321');
 
+        bp($bRecs);
+
+
         foreach ($bRecs as $item) {
 
 

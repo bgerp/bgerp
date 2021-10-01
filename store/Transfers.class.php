@@ -577,9 +577,12 @@ class store_Transfers extends core_Master
      *               ['currencyId']     string|NULL - валутата на документа
      *               ['notes']          string|NULL - забележки за транспортната линия
      *               ['stores']         array       - склад(ове) в документа
+     *               ['cases']          array       - каси в документа
+     *               ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *               ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
-     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
      *               ['address']        double|NULL - общ обем на стоките в документа
      *               ['storeMovement']  string|NULL - посока на движението на склада
@@ -593,6 +596,7 @@ class store_Transfers extends core_Master
         $res['stores'] = array($rec->fromStore, $rec->toStore);
         $res['address'] = $row->toAdress;
         $res['storeMovement'] = 'out';
+        $res['cases'] = array();
 
         return $res;
     }

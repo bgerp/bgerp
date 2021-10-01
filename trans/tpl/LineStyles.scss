@@ -35,10 +35,33 @@
     padding: 5px 0;
 }
 
-.lu {
-	font-size: 0.9em;
+table .lineSummary th {
+	font-size:1em;
+	padding: 7px !important;
 }
-.lu-light {
-	color: #777;
+
+table .lineSummary td {
+	font-size:1em;
+	padding: 7px !important;
+}
+
+table .paymentInStoreDocument {
+	width:100%;
+}
+
+.line-detail .document-handler {
+	padding:5px;
+}
+
+table .paymentInStoreDocument td {
+	border:0px !important;
+}
+
+.payment-line-amount .state-rejected {
 	text-decoration: line-through;
+}
+
+.payment-line-amount {
+	padding:1px;
+	text-align: right !important
 }

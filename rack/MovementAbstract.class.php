@@ -323,7 +323,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
             if($rec->workerId != $userId){
                 if(!haveRole('rackMaster')){
-                    $requiredRoles = 'no_one';
+
                 }
             }
         }

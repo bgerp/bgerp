@@ -309,19 +309,6 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Трябва ли ръчно да се подготвя документа в Транспортната линия
-     *
-     * @param mixed $id - ид или запис на документа
-     *
-     * @return bool - TRUE или FALSE
-     */
-    public function requireManualCheckInTransportLine($id)
-    {
-        return false;
-    }
-    
-    
-    /**
      * Извиква се преди подготовката на колоните
      */
     public static function on_BeforePrepareListFields($mvc, &$res, $data)

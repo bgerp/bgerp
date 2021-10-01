@@ -15,7 +15,7 @@
 	                    <!--ET_BEGIN repeat-->
 	                    <div style='margin-top: 5px;'>[#repeat#]</div>
 	                    <!--ET_END repeat-->
-	                    <div style='margin-top: 5px;font-weight:bold'>( [#countReady#] / [#countTotal#] )</div>
+	                    <div style='margin-top: 5px;font-weight:bold'>( [#countStoreDocuments#] <span class="quiet">/</span> [#countActiveDocuments#] <span class="quiet">/</span> [#countReadyDocuments#] )</div>
 	                </td>
 	            </tr>
 	            <tr>
@@ -26,9 +26,6 @@
 					<td>
 						<!--ET_BEGIN myCompany--><div style='margin-bottom: 5px;'><b>[#myCompany#]</b></div><!--ET_END myCompany-->
 						<!--ET_BEGIN logistic--><div style='margin-bottom: 5px;'>|Логистик|*: [#logistic#]</div><!--ET_END logistic-->
-						<!--ET_BEGIN caseId-->
-						<div style='margin-bottom: 5px;'>|Инкасиране в|*: [#caseId#]</div>
-						<!--ET_END caseId-->
 					</td>
 				</tr>
 				<tr>
@@ -37,29 +34,28 @@
 	            </tr>
 	            <tr>
 	                <td>
-						<!--ET_BEGIN forwarderId--><div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div><!--ET_END forwarderId-->
-						<!--ET_BEGIN vehicle--><div style='margin-bottom: 5px;'>|Превозно средство|*: [#vehicle#]</div><!--ET_END vehicle-->
-						<!--ET_BEGIN forwarderPersonId--><div style='margin-bottom: 5px;'>|Превозвач|*: [#forwarderPersonId#]</div><!--ET_END forwarderPersonId-->
+						<!--ET_BEGIN forwarderId-->
+						<div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div>
+						<!--ET_END forwarderId-->
+						<!--ET_BEGIN vehicle-->
+						<div style='margin-bottom: 5px;'>[#vehicle#]<!--ET_BEGIN regNumber-->, [#regNumber#]<!--ET_END regNumber--></div>
+						<!--ET_END vehicle-->
+						<!--ET_BEGIN forwarderPersonId-->
+						<div style='margin-bottom: 5px;'>[#forwarderPersonId#]</div>
+						<!--ET_END forwarderPersonId-->
 	                </td>
 	            </tr>
 	        </tbody>
 	    </table>
     </div>
 	<div class="lines"></div>
-	<div class='mergedDetailsholder'>
-		<div class='line-detail'>
-			<div class="scrolling-holder">
-				[#trans_LineDetails#]
-			</div>
-		</div>
-		</div>
-		<!--ET_BEGIN TOTAL-->
-		<div class='line-detail'>
-			[#TOTAL#]
-			<div class="scrolling-holder">
-				<table class="listTable">
+<!--ET_BEGIN TOTAL-->
+<div class='line-detail'>
+	[#TOTAL#]
+	<div class="scrolling-holder">
+		<table class="listTable">
 			<thead>
-			<table class="listTable">
+			<table class="listTable lineSummary">
 				<thead>
 				<tr>
 					<th rowspan=2>|Общо тегло|*</th>
@@ -75,19 +71,24 @@
 				</tr>
 				</thead>
 				<tr>
+					<td class="centered">[#transUnitsTotal#]</td>
 					<td class="centered">[#weight#]</td>
 					<td class="centered">[#volume#]</td>
-					<td class="centered">[#logisticUnitsDocument#]</td>
-					<td class="centered">[#logisticUnits#]</td>
 					<td class="centered">[#totalAmount#]</td>
 					<td class="centered">[#totalAmountReturn#]</td>
 				</tr>
 			</table>
 		</table>
+	</div>
+</div>
+<!--ET_END TOTAL-->
+	<div class='mergedDetailsholder'>
+		<div class='line-detail'>
+			<div class="scrolling-holder">
+				[#trans_LineDetails#]
 			</div>
 		</div>
-		<!--ET_END TOTAL-->
-		
+		</div>
 		<div class='footerDocBlock'>
 			[#/doc/tpl/Copyright.shtml#]
 		</div>

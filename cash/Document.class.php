@@ -556,6 +556,9 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['currencyId']     string|NULL - валутата на документа
      *               ['notes']          string|NULL - забележки за транспортната линия
      *               ['stores']         array       - склад(ове) в документа
+     *               ['cases']          array       - каси в документа
+     *               ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *               ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
@@ -574,7 +577,8 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
-        
+        $info['cases'] = array($rec->peroCase);
+        $info['stores'] = array();
         if($this->haveRightFor('conto', $rec)){
             $contoUrl = $this->getContoUrl($rec->id);
             $warning = $this->getContoWarning($rec->id, $rec->isContable);
