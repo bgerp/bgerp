@@ -635,40 +635,6 @@ class store_Transfers extends core_Master
 
 
     /**
-     * След извличане на името на документа за показване в RichText-а
-     */
-    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
-    {
-        if(Mode::is('text', 'xhtml')) return;
-
-        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if (isset($indicator)) {
-            if ($docName instanceof core_ET) {
-                $docName->append($indicator);
-            } else {
-                $docName .= $indicator;
-            }
-        }
-    }
-
-
-    /**
-     * Връща линк към документа
-     */
-    protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
-    {
-        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if (isset($indicator)) {
-            if ($link instanceof core_ET) {
-                $link->append($indicator);
-            } else {
-                $link .= $indicator;
-            }
-        }
-    }
-
-
-    /**
      * Връща дефолтен коментар при връзка на документи
      *
      * @param int $id
