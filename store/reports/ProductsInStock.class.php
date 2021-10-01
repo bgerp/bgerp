@@ -320,22 +320,31 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
 
             $prodQuery->where("#reservedQuantity IS NOT NULL OR #expectedQuantity IS NOT NULL");
+            $reQuantitiesArr = array();
             while ($prodRERec = $prodQuery->fetch()) {
 
-                $reQuantitiesArr[$prodRERec->productId] = (object)array('reservedQuantity' => $prodRERec->reservedQuantity,
-                    'expectedQuantity' => $prodRERec->expectedQuantity,
-                    'freeQuantity' => $prodRERec->quantity - $prodRERec->reservedQuantity + $prodRERec->expectedQuantity,
+                if (!array_key_exists($prodRERec->productId, $reQuantitiesArr)) {
+                    $reQuantitiesArr[$prodRERec->productId] = (object)array('reservedQuantity' => $prodRERec->reservedQuantity,
+                        'expectedQuantity' => $prodRERec->expectedQuantity,
+                        'freeQuantity' => $prodRERec->quantity - $prodRERec->reservedQuantity + $prodRERec->expectedQuantity,
 
-                );
+                    );
+                }else{
+                    $obj = &$reQuantitiesArr[$prodRERec->productId];
 
+                    $obj->reservedQuantity += $prodRERec->reservedQuantity;
+                    $obj->expectedQuantity += $prodRERec->expectedQuantity;
+                    $obj->freeQuantity += $prodRERec->quantity - $prodRERec->reservedQuantity + $prodRERec->expectedQuantity;
+
+                }
             }
 
             //Добавяне на резервираните количества
             foreach ($reQuantitiesArr as $key => $val) {
                 if ($recs[$key]) {
-                    $recs[$key]->reservedQuantity += $val->reservedQuantity;
-                    $recs[$key]->expectedQuantity += $val->expectedQuantity;
-                    $recs[$key]->freeQuantity += $val->freeQuantity;
+                    $recs[$key]->reservedQuantity = $val->reservedQuantity;
+                    $recs[$key]->expectedQuantity = $val->expectedQuantity;
+                    $recs[$key]->freeQuantity = $val->freeQuantity;
                 } else {
 
                     $prodToFillRec = cat_Products::fetch($key);
