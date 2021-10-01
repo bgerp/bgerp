@@ -71,6 +71,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('currency', 'varchar', 'caption=Валута,input=none,mandatory');
         $fieldset->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Държава,placeholder = Всички,after=to,single=none');
+        $fieldset->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Условие на доставка,placeholder = Всички,after=country,single=none');
     }
     
     
@@ -146,19 +147,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         $iQuery->where('(#saleActivatedOn IS NOT NULL)');
         
         $iQuery->where(array("#saleActivatedOn >= '[#1#]' AND #saleActivatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
-        
-//        $ppsQuery = sales_ServicesDetails::getQuery();
-//
-//        $ppsQuery->where(array("#createdOn >= '[#1#]'", $rec->from . ' 00:00:00'));
-//
-//        $ppsQuery->EXT('saleServThreadId', 'sales_Services', 'externalName=threadId,externalKey=shipmentId');
-//
-//        $ppsArr = array();
-//
-//        while ($ppsRec = $ppsQuery->fetch()) {
-//            $ppsArr[$ppsRec->saleServThreadId] += $ppsRec->price;
-//        }
-        
+
         while ($iRec = $iQuery->fetch()) {
             
             //договори за продажба които са разходни обекти за избрания период
@@ -180,7 +169,10 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         foreach ($salesItems as $key => $val) {
             $id = $key;
             list($saleIdItem, $threadIdItem, $salecontoActions) = explode('|', $val);
-            
+
+            //условие на доставка
+            $deliveryTermId = sales_Sales::fetch($saleIdItem)->deliveryTermId;
+
             $hiddenTransportCost = sales_TransportValues::calcInDocument('sales_Sales', $saleIdItem);
             
            // if (strpos($salecontoActions, 'ship') != false) {
@@ -197,6 +189,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
                 $recs[$id] = (object) array(
                     
                     'saleId' => $saleIdItem,
+                    'deliveryTermId' => $deliveryTermId,
                     'contragentClassId' => sales_Sales::fetchField($saleIdItem, 'contragentClassId'),
                     'contragentId' => sales_Sales::fetchField($saleIdItem, 'contragentId'),
                     'itemId' => $key,
@@ -276,6 +269,14 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         }
 
         foreach ($recs as $key => $val) {
+
+            //Филтър по условие на доставка
+            if ($rec->deliveryTermId) {
+                if (($rec->deliveryTermId != $val->deliveryTermId) || is_null($val->deliveryTermId)) {
+                    unset($recs[$key]);
+                    continue;
+                }
+            }
             
             //филтър по държава
             if ($rec->country) {
@@ -326,6 +327,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
         
         if ($export === false) {
             $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
+            $fld->FLD('deliveryTermId', 'varchar', 'caption=Условие на доставка,tdClass=centered');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
             $fld->FLD('expectedTransportCost', 'varchar', 'caption=Очакванo,tdClass=centered');
             $fld->FLD('amountPart', 'varchar', 'caption=Платено,tdClass=centered');
@@ -336,6 +338,7 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             }
         } else {
             $fld->FLD('saleId', 'varchar', 'caption=Продажба,tdClass=centered');
+            $fld->FLD('deliveryTermId', 'varchar', 'caption=Условие на доставка,tdClass=centered');
             $fld->FLD('contragent', 'varchar', 'caption=Контрагент,tdClass=centered');
             $fld->FLD('expectedTransportCost', 'double(decimals=2)', 'caption=Очакванo,tdClass=centered');
             $fld->FLD('amountPart', 'double(decimals=2)', 'caption=Платено,tdClass=centered');
@@ -391,6 +394,11 @@ class tcost_reports_ComparisonOfTransportCosts extends frame2_driver_TableData
             false,
             "ef_icon={$Sale->singleIcon}"
             ). '</span>';
+
+        if($dRec->deliveryTermId){
+            $row->deliveryTermId = cond_DeliveryTerms::fetch($dRec->deliveryTermId)->codeName;
+        }
+
         
         $contragentClass = core_Classes::getName($dRec->contragentClassId);
         $row->contragent = $contragentClass::fetchField($dRec->contragentId, 'name');
