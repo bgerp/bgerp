@@ -793,6 +793,20 @@ class acc_ValueCorrections extends core_Master
         $productValiors = $periods = array();
         $productIds = array_keys($rec->productsData);
         $storeDocs = array('store_ShipmentOrders' => 'store_ShipmentOrderDetails', 'store_Receipts' => 'store_ReceiptDetails', 'sales_Sales' => 'sales_SalesDetails', 'purchase_Purchases' => 'purchase_PurchasesDetails', 'sales_Services' => 'sales_ServicesDetails', 'purchase_Services' => 'purchase_ServicesDetails');
+
+        // В кои нишки, ако договора е обединяващ гледа се и в нишките на обединените договори
+        $threads = array($rec->threadId);
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+        if($firstDoc->isInstanceOf('deals_DealMaster')){
+            $closedDocuments = $firstDoc->fetchField('closedDocuments');
+            if(!empty($closedDocuments)){
+                $closedDocuments = keylist::toArray($closedDocuments);
+                foreach ($closedDocuments as $closedId){
+                    $threads[] = $firstDoc->getInstance()->fetchField($closedId, 'threadId');
+                }
+            }
+        }
+
         foreach ($productIds as $productId){
             foreach ($storeDocs as $docName => $detailName){
                 $Doc = cls::get($docName);
@@ -801,7 +815,9 @@ class acc_ValueCorrections extends core_Master
                 $shQuery->EXT('valior', $docName, "externalKey={$Detail->masterKey}");
                 $shQuery->EXT('state', $docName, "externalKey={$Detail->masterKey}");
                 $shQuery->EXT('threadId', $docName, "externalKey={$Detail->masterKey}");
-                $shQuery->where("#threadId = {$rec->threadId} AND #state = 'active' AND #productId = {$productId}");
+                $shQuery->where("#state = 'active' AND #productId = {$productId}");
+                $shQuery->in('threadId', $threads);
+
                 $shQuery->show('valior');
                 $shQuery->groupBy('valior');
                 if($Doc->getField('contoActions', false)){
@@ -839,12 +855,13 @@ class acc_ValueCorrections extends core_Master
         // В кои периоди всички артикули имат експедиция
         $periodsWhereAllProductsAre = array_filter($valiorsInfo, function($i) use ($productCount) { if($i->count == $productCount) return $i;});
 
-        // Ако има такъв период, се взима най-голямата дата от периода с най-голяма такава
+        // Ако има такъв период, се взима най-голямата дата от периода
         if(countR($periodsWhereAllProductsAre)){
             arr::sortObjects($periodsWhereAllProductsAre, 'max', 'DESC');
             $periodsWhereAllProductsAre = array_values($periodsWhereAllProductsAre);
             $valior = $periodsWhereAllProductsAre[0]->max;
 
+            // Ако датата е в затворен период, взима се първата възможна дата след него
             if(acc_Periods::isClosed($valior)){
                 $firstActivePeriod = acc_Periods::getFirstActive();
                 $valior = $firstActivePeriod->start;
