@@ -215,7 +215,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
 
             //Код на продукта
-            $productCode = $prodRec->code;
+            $productCode = cat_Products::getVerbal($prodRec->id,'code');
 
             //Продукт ID
             $productId = $iRec->objectId;
@@ -305,6 +305,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
             //Извличанве на всички артикули със запазени количества
             $prodQuery = store_Products::getQuery();
+            if ($rec->products) {
+                $prodQuery->where("#productId = $rec->products");
+            }
+
             $prodQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
 
             //Филтър по групи артикули
@@ -319,14 +323,23 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
 
             $prodQuery->where("#reservedQuantity IS NOT NULL OR #expectedQuantity IS NOT NULL");
+            $reQuantitiesArr = array();
             while ($prodRERec = $prodQuery->fetch()) {
 
-                $reQuantitiesArr[$prodRERec->productId] = (object)array('reservedQuantity' => $prodRERec->reservedQuantity,
-                    'expectedQuantity' => $prodRERec->expectedQuantity,
-                    'freeQuantity' => $prodRERec->quantity - $prodRERec->freeQuantity + $prodRERec->expectedQuantity,
+                if (!array_key_exists($prodRERec->productId, $reQuantitiesArr)) {
+                    $reQuantitiesArr[$prodRERec->productId] = (object)array('reservedQuantity' => $prodRERec->reservedQuantity,
+                        'expectedQuantity' => $prodRERec->expectedQuantity,
+                        'freeQuantity' => $prodRERec->quantity - $prodRERec->reservedQuantity + $prodRERec->expectedQuantity,
 
-                );
+                    );
+                }else{
+                    $obj = &$reQuantitiesArr[$prodRERec->productId];
 
+                    $obj->reservedQuantity += $prodRERec->reservedQuantity;
+                    $obj->expectedQuantity += $prodRERec->expectedQuantity;
+                    $obj->freeQuantity += $prodRERec->quantity - $prodRERec->reservedQuantity + $prodRERec->expectedQuantity;
+
+                }
             }
 
             //Добавяне на резервираните количества
@@ -339,33 +352,30 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
                     $prodToFillRec = cat_Products::fetch($key);
 
-                    $recs[$key] = (object)array(
 
-                        'productId' => $key,
-                        'code' => $prodToFillRec->code,
-                        'productName' => $prodToFillRec->name,
+                    $productRECode = cat_Products::getVerbal($prodToFillRec->id,'code');
 
-                        'selfPrice' => '',
-                        'amount' => '',
+                    if (!array_key_exists($key, $recs)) {
+                        $recs[$key] = (object)array(
 
-                        'baseQuantity' => 0,
-                        'baseAmount' => 0,
-
-                        'debitQuantity' => 0,
-                        'debitAmount' => 0,
-
-                        'creditQuantity' => 0,
-                        'creditAmount' => 0,
-
-                        'blQuantity' => 0,
-                        'blAmount' => 0,
-
-                        'reservedQuantity' => $val->reservedQuantity,
-                        'expectedQuantity' => $val->expectedQuantity,
-                        'freeQuantity' => $val->freeQuantity,
+                            'productId' => $key,
+                            'code' => $productRECode,
+                            'productName' => $prodToFillRec->name,
 
 
-                    );
+                            'reservedQuantity' => $val->reservedQuantity,
+                            'expectedQuantity' => $val->expectedQuantity,
+                            'freeQuantity' => $val->freeQuantity,
+
+
+                        );
+                    }else{
+                        $obj = &$recs[$key];
+
+                        $obj->reservedQuantity += $val->reservedQuantity;
+                        $obj->expectedQuantity += $val->expectedQuantity;
+                        $obj->freeQuantity += $val->freeQuantity;
+                    }
                 }
             }
         }

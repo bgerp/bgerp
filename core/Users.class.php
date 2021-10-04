@@ -2200,7 +2200,8 @@ class core_Users extends core_Manager
      */
     public static function getRealIpAddr()
     {
-        return $_SERVER['REMOTE_ADDR'];
+
+        return type_Ip::getRealIp();
     }
     
     

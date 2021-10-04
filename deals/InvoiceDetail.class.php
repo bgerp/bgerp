@@ -182,7 +182,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $this->delete("#{$this->masterKey} = {$id}");
         $firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
         $dealInfo = $firstDoc->getAggregateDealInfo();
-        
+        $importBatches = batch_Setup::get('SHOW_IN_INVOICES');
+
         // За всеки артикул от договора, копира се 1:1
         if (is_array($dealInfo->dealProducts)) {
             
@@ -194,7 +195,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     $det->_batches = array_keys($det->batches);
                 }
                 unset($det->batches);
-                
+                $det->_importBatches = $importBatches;
                 $this->save($det);
             }
         }

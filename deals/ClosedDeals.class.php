@@ -131,18 +131,18 @@ abstract class deals_ClosedDeals extends core_Master
         }
         
         $dealItem->docClassName = cls::get($dealItem->classId)->className;
-        
+        $dealClassId = cls::get($dealItem->classId)->getClassId();
+
         if (countR($docs)) {
-            
+
             // За всеки транзакционен клас
             foreach ($docs as $doc) {
-                
+
                 // Взимаме му редовете на транзакцията
                 $transactionSource = cls::getInterface('acc_TransactionSourceIntf', $doc->docType);
                 $entries = $transactionSource->getTransaction($doc->docId)->entries;
-                
                 $copyEntries = $entries;
-                
+
                 // За всеки ред, генерираме запис с обратни стойностти (сумите и к-та са с обратен знак)
                 // Така зануляване салдата по следката
                 if (countR($entries)) {
@@ -170,14 +170,14 @@ abstract class deals_ClosedDeals extends core_Master
                         if (isset($entry2['amount'])) {
                             $total += $entry2['amount'];
                         }
-                        
+
                         // Генерираме запис, който прави същите действия но с перо новата сделка
                         foreach (array('debit', 'credit') as $type) {
                             foreach ($entry2[$type] as $index => &$item) {
 
                                 // Намираме кое перо отговаря на перото на текущата сделка и го заменяме с това на новата сделка
                                 if ($index != 0) {
-                                    if (is_array($item) && $item[0] == $dealItem->docClassName && $item[1] == $dealItem->objectId) {
+                                    if (is_array($item) && (is_numeric($item[0]) && $item[0] == $dealClassId || $item[0] == $dealItem->docClassName)  && $item[1] == $dealItem->objectId) {
                                         $item = $closeDeal;
                                     } elseif(is_numeric($item) && $item == $dealItem->id){
 
