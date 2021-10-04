@@ -382,9 +382,11 @@ class doc_ExpensesSummary extends core_Manager
         }
 
         $rec->count = 0;
-        foreach ($allocated as $allocRec){
-            $rec->count += ($allocRec->quantity < 0) ? -1 : 1;
-        }
+        array_walk($recs, function($r) use (&$rec) {
+            if($r->type == 'allocated'){
+                $rec->count += ($r->quantity < 0) ? -1 : 1;
+            }
+        });
 
         if ($saveCount === true) {
             
