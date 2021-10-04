@@ -1270,7 +1270,7 @@ en,От начална дата,From start date
 en,От някого,By someone
 en,От обект,Object from
 en,От системата,By system
-en,От склад,From store
+en,От склад,Warehouse
 en,От,From
 en,Отваряне на нишката,Open thread
 en,Отваряне,Open
@@ -2948,3 +2948,5 @@ en,"Контрагентът е от ЕС, но с невалиден ДДС №
 en,Невалиден ЕИК,Invalid TAX ID
 en,"Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите","The delivery cost will be offered later, for you to confirm or reject it"
 en,Неразпределени,Unallocated
+en,Спедитор,Forwarder
+en,МПС,Motor vehicle
