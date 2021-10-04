@@ -2463,7 +2463,8 @@ abstract class deals_DealMaster extends deals_DealBase
             $plannedProducts = arr::extractValuesFromArray($res, 'productId');
 
             // Ако има експедиция поне по един от артикулите в продажбата тя няма да запазва !
-            if(array_intersect_key($plannedProducts, $shippedProducts)){
+            // Или ако е с еднократна доставка и вече има доставки
+            if(array_intersect_key($plannedProducts, $shippedProducts) || ($rec->oneTimeDelivery == 'yes' && countR($pendingRecs))){
 
                 $res = array();
                 return;
