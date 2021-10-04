@@ -36,6 +36,7 @@
                   <!--ET_BEGIN paymentState-->
                   <span style='font-weight:normal'>|Чакащо плащане|*</span>: [#paymentState#]<br>
                   <!--ET_END paymentState-->
+                  <span style='font-weight:normal'>|Еднократна доставка|*</span>: [#oneTimeDelivery#]<br>
                   <!--ET_BEGIN initiatorId-->
                   <span style='font-weight:normal'>|Инициатор|*</span>: [#initiatorId#]<br>
                   <!--ET_END initiatorId-->
