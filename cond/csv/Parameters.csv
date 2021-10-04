@@ -21,3 +21,5 @@
 Минимална надценка,cond_type_Percent,minSurplusCharge,Продажба,,,
 Режим на ДДС,cond_type_Enum,saleChargeVat,Продажба,,,"yes=Включено ДДС в цените,separate=Отделен ред за ДДС,exempt=Освободено от ДДС,no=Без начисляване на ДДС"
 Режим на ДДС,cond_type_Enum,quotationChargeVat,Оферта,,,"yes=Включено ДДС в цените,separate=Отделен ред за ДДС,exempt=Освободено от ДДС,no=Без начисляване на ДДС"
+Еднократна доставка,cond_type_YesOrNo,salesOneTimeDelivery,Продажба,,,
+Еднократна доставка,cond_type_YesOrNo,purchaseOneTimeDelivery,Покупка,,,

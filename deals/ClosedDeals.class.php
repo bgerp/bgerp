@@ -177,7 +177,7 @@ abstract class deals_ClosedDeals extends core_Master
 
                                 // Намираме кое перо отговаря на перото на текущата сделка и го заменяме с това на новата сделка
                                 if ($index != 0) {
-                                    if (is_array($item) && (is_numeric($item[0]) && $item[0] == $dealClassId || $item[0] == $dealItem->docClassName )  && $item[1] == $dealItem->objectId) {
+                                    if (is_array($item) && (is_numeric($item[0]) && $item[0] == $dealClassId || $item[0] == $dealItem->docClassName)  && $item[1] == $dealItem->objectId) {
                                         $item = $closeDeal;
                                     } elseif(is_numeric($item) && $item == $dealItem->id){
 
