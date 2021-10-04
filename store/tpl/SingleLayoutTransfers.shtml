@@ -64,7 +64,19 @@
                   <td class='quiet nowrap aright' style='width:1%;'>|Транспорт|*: </td>
                   <td>[#lineId#]</td>
                </tr>
-               <!--ET_END lineId--> 
+               <!--ET_END lineId-->
+               <!--ET_BEGIN lineForwarderId-->
+               <tr>
+                  <td class='nowrap quiet aright'>Forwarder: </td>
+                  <td>[#lineForwarderId#]</td>
+               </tr>
+               <!--ET_END lineForwarderId-->
+               <!--ET_BEGIN lineVehicleId-->
+               <tr>
+                  <td class='nowrap quiet aright'>Motor vehicle: </td>
+                  <td>[#lineVehicleId#]</td>
+               </tr>
+               <!--ET_END lineVehicleId-->
                <!--ET_BEGIN lineNotes-->
                <tr>
                   <td class='nowrap' colspan=2><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>

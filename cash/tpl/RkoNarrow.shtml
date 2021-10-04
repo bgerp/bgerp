@@ -95,10 +95,19 @@
 		                                	
 		                                	<!--ET_BEGIN lineId-->
 		                               		<td colspan='2'>
-		                                		<div class='richtext-holder'><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]</div>
+		                                		<div class='richtext-holder no-print'><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]</div>
 		                                	</td>
 		                                	<!--ET_END lineId-->
-		                                	
+                                            <!--ET_BEGIN lineForwarderId-->
+                                            <td colspan='2'>
+                                                <div class='richtext-holder'><span class='quiet'>|Спедитор|*:</span> &nbsp;&nbsp;&nbsp;[#lineForwarderId#]</div>
+                                            </td>
+                                            <!--ET_END lineForwarderId-->
+                                            <!--ET_BEGIN lineVehicleId-->
+                                            <td colspan='2'>
+                                                <div class='richtext-holder'><span class='quiet'>|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#]</div>
+                                            </td>
+                                            <!--ET_END lineVehicleId-->
 		                                	<!--ET_BEGIN lineNotes-->
 		                               		<td colspan='2'>
 		                                		<div class='richtext-holder'><span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>

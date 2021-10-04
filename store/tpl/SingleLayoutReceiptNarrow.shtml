@@ -70,11 +70,23 @@
                   </tr>
                   <!--ET_END deliveryTime-->
                   <!--ET_BEGIN lineId-->
-                  <tr>
+                  <tr class="no-print">
                      <td class='quiet'  style='width:1%'>|Транспорт|*: </td>
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
+                  <!--ET_BEGIN lineForwarderId-->
+                  <tr>
+                     <td class='nowrap quiet aright'>|Спедитор|*: </td>
+                     <td>[#lineForwarderId#]</td>
+                  </tr>
+                  <!--ET_END lineForwarderId-->
+                  <!--ET_BEGIN lineVehicleId-->
+                  <tr>
+                     <td class='nowrap quiet aright'>|МПС|*: </td>
+                     <td>[#lineVehicleId#]</td>
+                  </tr>
+                  <!--ET_END lineVehicleId-->
                   <!--ET_BEGIN lineNotes-->
                   <tr>
                      <td class='nowrap' colspan=2><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>

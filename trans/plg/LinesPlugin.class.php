@@ -230,11 +230,23 @@ class trans_plg_LinesPlugin extends core_Plugin
         core_Lg::push($rec->tplLang);
         
         if (isset($rec->lineId)) {
-            $row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
-            
-            if (!Mode::isReadOnly()) {
-                $lineState = trans_Lines::fetchField($rec->lineId, 'state');
-                $row->lineId = "<span class='state-{$lineState} document-handler' style='line-height:110%'>{$row->lineId}</span>";
+            if(!Mode::is('printing')){
+                $lineRec = trans_Lines::fetch($rec->lineId, 'forwarderId,vehicle,state');
+                $row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
+                $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
+            }
+
+            if(!empty($lineRec->forwarderId)){
+                $row->lineForwarderId = crm_Companies::getHyperlink($lineRec->forwarderId);
+            }
+
+            if(!empty($lineRec->vehicle)){
+                $row->lineVehicleId = core_Type::getByName('varchar')->toVerbal($lineRec->vehicle);
+                if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))) {
+                    if(!empty($vehicleRec->number)){
+                        $row->lineVehicleId = trans_Vehicles::getVerbal($vehicleRec, 'number');
+                    }
+                }
             }
         }
         
