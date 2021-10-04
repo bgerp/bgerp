@@ -1349,9 +1349,6 @@ class cat_Products extends embed_Manager
     {
         // Обновяваме дефиринциално групите
         if (countR($mvc->updateGroupsCount)) {
-            if(haveRole('debug')){
-                core_Statuses::newStatus("RECALC: " . implode('-', $mvc->updateGroupsCount));
-            }
             cat_Groups::updateGroupsCnt($mvc->updateGroupsCount);
         }
         
