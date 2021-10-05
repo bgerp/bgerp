@@ -1099,7 +1099,8 @@ class rack_Zones extends core_Master
     {
         $zoneRec = self::fetchRec($zoneId);
         Mode::push('shortZoneName', true);
-        $url = array('rack_Zones', 'list', '#' => rack_Zones::getRecTitle($zoneRec), 'ret_url' => true);
+        $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
+        $url = array('rack_Zones', 'terminal', 'grouping' => $grouping, 'ret_url' => true);
         Mode::pop('shortZoneName');
 
         if (isset($zoneRec->groupId)) {
@@ -1183,9 +1184,8 @@ class rack_Zones extends core_Master
     function act_Terminal()
     {
         // Прокси към лист изгледа
-        Mode::push('zoneTerminal', 'true');
+        Mode::push('zoneTerminal', true);
         $res = Request::forward(array('Ctr' => 'rack_Zones', 'Act' => 'list'));
-        Mode::pop('zoneTerminal');
 
         return $res;
     }
