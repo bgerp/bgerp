@@ -232,7 +232,9 @@ class trans_LineDetails extends doc_Detail
 
             // Бутон към зоната
             if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
+                Mode::push('shortZoneName', true);
                 $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
+                Mode::pop();
                 if (countR($zoneBtn->url)) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);

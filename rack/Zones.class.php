@@ -1025,7 +1025,9 @@ class rack_Zones extends core_Master
 
         } else {
             if (rack_Zones::haveRightFor('list')) {
-                $res->url = self::getUrlArr($zoneRec);
+                if(deals_Helper::canSelectObjectInDocument('select',$zoneRec, 'store_Stores', 'storeId')){
+                    $res->url = self::getUrlArr($zoneRec);
+                }
                 $res->attr = "ef_icon=img/16/package.png,title=Към зоната";
             }
         }
@@ -1045,7 +1047,8 @@ class rack_Zones extends core_Master
     {
         $zoneRec = self::fetchRec($zoneId);
         Mode::push('shortZoneName', true);
-        $url = array('rack_Zones', 'list', '#' => rack_Zones::getRecTitle($zoneRec), 'ret_url' => true);
+        $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
+        $url = array('store_Stores', 'setcurrent', $zoneRec->storeId, 'ret_url' => array('rack_Zones', 'list', 'grouping' => $grouping));
         Mode::pop('shortZoneName');
 
         if (isset($zoneRec->groupId)) {
