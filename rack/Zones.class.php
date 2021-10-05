@@ -902,7 +902,7 @@ class rack_Zones extends core_Master
     {
         $systemUserId = core_Users::SYSTEM_USER;
         $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#state = 'pending' AND (#brState != 'waiting' OR #brState IS NULL) AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId}");
+        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId}");
         if (isset($zoneIds)) {
             $zoneIds = arr::make($zoneIds, true);
             $mQuery->likeKeylist('zoneList', $zoneIds);
