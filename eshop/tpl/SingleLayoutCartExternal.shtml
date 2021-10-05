@@ -103,7 +103,7 @@
                <!--ET_END deliveryTime-->
                <!--ET_BEGIN deliveryError-->
                <tr>
-                  <td colspan="2"><span class='stamp no-transform' style='font-size:1em;'>[#deliveryError#]</span></td>
+                  <td colspan="2"><span class='info-transport no-transform' style='font-size:1em;'>[#deliveryError#]</span></td>
                </tr>
                <!--ET_END deliveryError-->
                <!--ET_BEGIN DELIVERY_DATA_VALUE-->

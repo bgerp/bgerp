@@ -237,6 +237,17 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
+       $form = &$data->form;
+       $rec = &$form->rec;
+
+       $firstDocument = doc_Threads::getFirstDocument($rec->threadId);
+       if($firstDocument->isInstanceOf('purchase_Purchases')){
+           $form->setDefault('isFinalDelivery', 'input=none');
+       } else{
+           $isFinal = $firstDocument->fetchField('oneTimeDelivery');
+           $form->setDefault('isFinalDelivery', $isFinal);
+       }
+
         if (!isset($data->form->rec->id)) {
             expect($origin = static::getOrigin($data->form->rec), $data->form->rec);
             if ($origin->isInstanceOf('sales_Sales')) {
@@ -616,6 +627,17 @@ class store_ShipmentOrders extends store_DocumentMaster
         if (($action == 'asclient') && $rec) {
             if (!trim($rec->company) && !trim($rec->person) && !$rec->country) {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if(in_array($action, array('add', 'pending', 'conto')) && isset($rec) && $requiredRoles != 'no_one'){
+
+            // Ако има финална доставка и ЕН не е коригираща - не може да се пускат нови
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDoc->isInstanceOf('sales_Sales')){
+                if(deals_Helper::haveFinalDelivery($rec->threadId, $rec->containerId)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
