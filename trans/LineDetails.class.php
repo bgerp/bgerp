@@ -516,7 +516,10 @@ class trans_LineDetails extends doc_Detail
                 return ($paymentRec->threadId == $rec1->containerThreadId);
             });
 
-            $rec1->paymentsArr = array();
+            if(!is_array($rec1->paymentsArr)){
+                $rec1->paymentsArr = array();
+            }
+
             foreach ($shipmentPayments as $i => $shipPayment) {
                 $rec1->paymentsArr[$i] = $shipPayment;
                 unset($paymentDocuments[$i]);

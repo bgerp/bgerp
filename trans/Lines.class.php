@@ -232,7 +232,7 @@ class trans_Lines extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => trans_Lines::getClassId()));
-        $data->listFilter->FLD('lineState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Затворен)', 'caption=Състояние');
+        $data->listFilter->FLD('lineState', 'enum(pendingAndActive=Заявка+Активни,all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Затворен)', 'caption=Състояние');
         $data->listFilter->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $data->listFilter->showFields .= ',lineState,storeId,search';
         $showFields = arr::make($data->listFilter->showFields, true);
@@ -242,13 +242,18 @@ class trans_Lines extends core_Master
             $data->listFilter->setDefault('storeId', $selectedStore);
         }
 
+        $data->listFilter->setDefault('lineState', 'pendingAndActive');
         $data->listFilter->input();
         $data->query->orderBy('#state');
         $data->query->orderBy('#start', 'DESC');
 
         if($filterRec = $data->listFilter->rec){
             if(isset($filterRec->lineState) && $filterRec->lineState != 'all'){
-                $data->query->where("#state = '{$filterRec->lineState}'");
+                if($filterRec->lineState == 'pendingAndActive'){
+                    $data->query->where("#state = 'pending' OR #state = 'active'");
+                } else {
+                    $data->query->where("#state = '{$filterRec->lineState}'");
+                }
             }
 
             if(isset($filterRec->folder)){
