@@ -851,6 +851,10 @@ class rack_Zones extends core_Master
     }
 
 
+    function act_Test()
+    {
+        static::pickupOrder(26, 34);
+    }
     /**
      * Генерира очакваните движения за зоните в склада
      *
@@ -859,6 +863,19 @@ class rack_Zones extends core_Master
      */
     private static function pickupOrder($storeId, $zoneIds = null)
     {
+        $systemUserId = core_Users::SYSTEM_USER;
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#state = 'pending' AND (#brState != 'waiting' OR #brState IS NULL) AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId}");
+        if (isset($zoneIds)) {
+            $zoneIds = arr::make($zoneIds, true);
+            $mQuery->likeKeylist('zoneList', $zoneIds);
+        }
+        $mQuery->show('id');
+
+        while ($mRec = $mQuery->fetch()) {
+            rack_Movements::delete($mRec->id);
+        }
+
         // Какви са очакваните количества
         $expected = self::getExpectedProducts($storeId, $zoneIds);
 
