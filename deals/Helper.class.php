@@ -2308,4 +2308,46 @@ abstract class deals_Helper
 
         return strtoupper($canonize);
     }
+
+
+    /**
+     * Има ли документ за финална доставка в нишката
+     *
+     * @param $threadId                - ид на нишка
+     * @param null $ignoreContainerId  - игнориране на документ
+     * @return bool                    - има ли финална експедиция или не
+     */
+    public static function haveFinalDelivery($threadId, $ignoreContainerId = null)
+    {
+        // Всички документи касаещи експедиции в нишката
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->in("docClass", array(sales_Sales::getClassId(), purchase_Purchases::getClassId(), store_Receipts::getClassId(), store_ShipmentOrders::getClassId()));
+        $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
+        if(isset($ignoreContainerId)){
+            $cQuery->where("#id != {$ignoreContainerId}");
+        }
+
+        while($cRec = $cQuery->fetch()){
+            $Document = doc_Containers::getDocument($cRec->id);
+
+            // Ако е сделка
+            if($Document->getInstance()->getField('contoActions', false)){
+
+                // и с нея са експедирани, складируеми артикули и е отбелязана като финална експедиция
+                $docRec = $Document->fetch('oneTimeDelivery,contoActions');
+                $contoActions = type_Set::toArray($docRec->contoActions);
+                if(isset($contoActions['ship']) && $docRec->oneTimeDelivery == 'yes') {
+                    if($Document->hasStorableProducts()) return true;
+                }
+            } else {
+
+                // Дали има документ за финална доставка
+                $isFinalDelivery = $Document->fetchField('isFinalDelivery');
+                if($isFinalDelivery == 'yes') return true;
+            }
+        }
+
+        // Ако се стигне до тук, значи няма финални документи за заявка
+        return false;
+    }
 }

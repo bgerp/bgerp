@@ -2443,7 +2443,8 @@ abstract class deals_DealMaster extends deals_DealBase
         if(is_array($res)){
             $rec = $mvc->fetchRec($rec);
 
-            if($rec->state != 'pending' && $rec->state != 'active') {
+            // Ако документа не е заявка/активен или има финална експедиция - няма да запазва нищо
+            if(($rec->state != 'pending' && $rec->state != 'active') || deals_Helper::haveFinalDelivery($rec->threadId, $rec->containerId)) {
                 $res = array();
                 return;
             }
@@ -2464,7 +2465,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Ако има експедиция поне по един от артикулите в продажбата тя няма да запазва !
             // Или ако е с еднократна доставка и вече има доставки
-            if(array_intersect_key($plannedProducts, $shippedProducts) || ($rec->oneTimeDelivery == 'yes' && countR($pendingRecs))){
+            if(array_intersect_key($plannedProducts, $shippedProducts)){
 
                 $res = array();
                 return;
