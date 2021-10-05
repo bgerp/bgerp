@@ -1079,9 +1079,7 @@ class rack_Zones extends core_Master
 
         } else {
             if (rack_Zones::haveRightFor('list')) {
-                if(deals_Helper::canSelectObjectInDocument('select',$zoneRec, 'store_Stores', 'storeId')){
-                    $res->url = self::getUrlArr($zoneRec);
-                }
+                $res->url = self::getUrlArr($zoneRec);
                 $res->attr = "ef_icon=img/16/package.png,title=Към зоната";
             }
         }
@@ -1102,7 +1100,7 @@ class rack_Zones extends core_Master
         $zoneRec = self::fetchRec($zoneId);
         Mode::push('shortZoneName', true);
         $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
-        $url = array('store_Stores', 'setcurrent', $zoneRec->storeId, 'ret_url' => array('rack_Zones', 'list', 'grouping' => $grouping));
+        $url = array('rack_Zones', 'terminal', 'grouping' => $grouping, 'ret_url' => true);
         Mode::pop('shortZoneName');
 
         if (isset($zoneRec->groupId)) {
@@ -1186,9 +1184,8 @@ class rack_Zones extends core_Master
     function act_Terminal()
     {
         // Прокси към лист изгледа
-        Mode::push('zoneTerminal', 'true');
+        Mode::push('zoneTerminal', true);
         $res = Request::forward(array('Ctr' => 'rack_Zones', 'Act' => 'list'));
-        Mode::pop('zoneTerminal');
 
         return $res;
     }

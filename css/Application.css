@@ -2008,7 +2008,7 @@ a.tUnsighted {
   transform: rotate(16deg);
   margin-top: 15px;
   margin-bottom: 15px;
-  padding: 2px 2px 0px 3px !important;
+  padding: 8px 8px 8px 8px !important;
   border-radius: 3px; }
 
 .stamp {
