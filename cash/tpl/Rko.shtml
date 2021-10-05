@@ -99,7 +99,7 @@
 
                                 <!--ET_BEGIN lineNotes-->
                                 <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                	<span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]
+                                	<span class='quiet'>|Забележки за транспорта|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]
                                 </td>
                                 <!--ET_END lineNotes-->
                                 
