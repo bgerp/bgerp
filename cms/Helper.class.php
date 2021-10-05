@@ -60,7 +60,7 @@ class cms_Helper extends core_BaseClass
         $info = new ET("<div id='editStatus'><div class='warningMsg'>[#1#] [#link#]</div></div>", tr('Ако имате регистрация, моля логнете се от|* '));
         $retUrl = array('bgerp_Portal', 'show');
         $js = 'w=window.open("' . toUrl(array('core_Users', 'login', 'ret_url' => $retUrl, 'popup' => 1)) . '","Login","width=484,height=303,resizable=no,scrollbars=no,location=0,status=no,menubar=0,resizable=0,status=0"); if(w) w.focus();';
-        $loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}' style='text-decoration:underline'>" . tr('тук||here') . '</a>';
+        $loginHtml = "<a href='javascript:void(0)' oncontextmenu='{$js}' onclick='{$js}' style='text-decoration:underline;font-weight:bold'>" . tr('тук||here') . '</a>';
         $info->append($loginHtml, 'link');
         
         $form->info = new core_ET('[#1#][#2#]', $form->info, $info);
@@ -126,7 +126,7 @@ class cms_Helper extends core_BaseClass
         if (core_Users::getUserByEmail($email)) {
 
             $link = ht::createLink(tr('логнете'),array('core_Users','login'));
-            return "Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се|* $link|*.";
+            return "Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се|* <b>{$link}</b>.";
         }
     }
 
