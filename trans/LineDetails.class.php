@@ -122,7 +122,7 @@ class trans_LineDetails extends doc_Detail
         $this->FLD('lineId', 'key(mvc=trans_Lines)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'column=none,notNull,silent,hidden,mandatory');
         $this->FLD('classId', 'class', 'input=none');
-        $this->FLD('status', 'enum(ready=Готово,removed=Изключено)', 'input=none,notNull,value=waiting,caption=Статус,smartCenter,tdClass=status-cell');
+        $this->FLD('status', 'enum(ready=Готово,removed=Изключено)', 'input=none,notNull,value=ready,caption=Статус,smartCenter,tdClass=status-cell');
         $this->EXT('containerState', 'doc_Containers', 'externalName=state,externalKey=containerId');
         $this->EXT('containerThreadId', 'doc_Containers', 'externalName=threadId,externalKey=containerId');
 
@@ -186,14 +186,13 @@ class trans_LineDetails extends doc_Detail
         $row->containerId = '#' . $Document->getHandle();
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
-            $row->containerId = "<span id= 'ld{$rec->id}' class='state-{$transportInfo['state']} document-handler'>{$row->containerId}</span>";
         }
         
         if (Mode::is('renderHtmlInLine') && isset($Document->layoutFileInLine)) {
             $row->documentHtml = $Document->getInlineDocumentBody();
         }
         
-        $row->ROW_ATTR['class'] = ($rec->status == 'waiting') ? 'state-pending' : (($rec->status == 'removed') ? 'state-removed' : 'state-active');
+        $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$transportInfo['state']}";
         if (!empty($transportInfo['notes'])) {
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
         }
@@ -460,7 +459,7 @@ class trans_LineDetails extends doc_Detail
         $rkoClassId = cash_Rko::getClassId();
         
         $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 WHEN {$pkoClassId} THEN 5 WHEN {$rkoClassId} THEN 6 ELSE 7 END)");
-        $data->query->orderBy('#orderByClassId=ASC,#containerId');
+        $data->query->orderBy('#orderByClassId=ASC,#containerId=ASC');
 
         if(Mode::is('printing')){
             $data->query->where("#status != 'removed'");
@@ -505,17 +504,18 @@ class trans_LineDetails extends doc_Detail
             if(!in_array($rec1->classId, $documentsWithPayments)) continue;
 
             // При второто обикаляне, гледа се от останалите платежни, които не са към конкретен документ
-            // има ли такива към някоя от нишките
-            $shipmentPayments = array_filter($paymentDocuments, function($a) use (&$rec){
+            // има ли такива към някоя от нишките, ако има се добавя към първия документ от нея
+            $shipmentPayments = array_filter($paymentDocuments, function($a) use (&$rec1){
                 $PaymentDoc = doc_Containers::getDocument($a->containerId);
                 $paymentRec = $PaymentDoc->fetch('originId,threadId');
 
-                return ($paymentRec->threadId == $rec->containerThreadId);
+                return ($paymentRec->threadId == $rec1->containerThreadId);
             });
 
-            $rec->paymentsArr = array();
+            $rec1->paymentsArr = array();
             foreach ($shipmentPayments as $i => $shipPayment) {
-                $rec->paymentsArr[$i] = $shipPayment;
+                $rec1->paymentsArr[$i] = $shipPayment;
+                unset($paymentDocuments[$i]);
                 unset($data->recs[$i]);
             }
         }
