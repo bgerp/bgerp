@@ -58,10 +58,11 @@
 			<table class="listTable lineSummary">
 				<thead>
 				<tr>
-					<th rowspan=2>|Общо тегло|*</th>
-					<th rowspan=2>|Общ обем|*</th>
-					<th colspan=2>|Общо логистични единици|*</th>
-					<th colspan=2>|Общо|*</th>
+					<th>|Общо тегло|*</th>
+					<th>|Общ обем|*</th>
+					<th>|Инкасирано|*, [#baseCurrencyCode#]</th>
+					<th>|Изплатено|*, [#baseCurrencyCode#]</th>
+					<th>|Логистични единици|*</th>
 				</tr>
 				<tr>
 					<th>|Всички|*</th>
@@ -71,11 +72,11 @@
 				</tr>
 				</thead>
 				<tr>
-					<td class="centered">[#transUnitsTotal#]</td>
 					<td class="centered">[#weight#]</td>
 					<td class="centered">[#volume#]</td>
 					<td class="centered">[#totalAmount#]</td>
 					<td class="centered">[#totalAmountReturn#]</td>
+					<td class="centered">[#transUnitsTotal#]</td>
 				</tr>
 			</table>
 		</table>

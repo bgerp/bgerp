@@ -259,7 +259,11 @@ class trans_LineDetails extends doc_Detail
             if(!empty($transportInfo['contragentName'])){
                 $row->address = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
             }
-            $row->amount = $transportInfo['amountVerbal'];
+            $amountTpl = new core_ET("");
+            $amountTpl->append('<div class="payment-line-amount">');
+            $amountTpl->append($transportInfo['amountVerbal']);
+            $amountTpl->append('</div>');
+            $row->amount = $amountTpl;
         }
 
         if(!empty($row->address)){
