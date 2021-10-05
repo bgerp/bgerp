@@ -187,6 +187,7 @@ class purchase_Purchases extends deals_DealMaster
         'chargeVat' => 'lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
+        'oneTimeDelivery' => 'clientCondition'
     );
     
     
@@ -282,7 +283,7 @@ class purchase_Purchases extends deals_DealMaster
         $this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
-
+        $this->setField('oneTimeDelivery', 'salecondSysId=purchaseOneTimeDelivery');
     }
     
     

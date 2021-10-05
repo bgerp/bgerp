@@ -232,6 +232,7 @@ class sales_Sales extends deals_DealMaster
         'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
+        'oneTimeDelivery' => 'clientCondition'
     );
     
     
@@ -337,6 +338,7 @@ class sales_Sales extends deals_DealMaster
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,silent,removeAndRefreshForm=caseId|paymentType');
         $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
+        $this->setField('oneTimeDelivery', 'salecondSysId=salesOneTimeDelivery');
     }
     
     
