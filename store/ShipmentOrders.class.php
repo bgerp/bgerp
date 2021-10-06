@@ -217,7 +217,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         parent::setDocFields($this);
 
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryTime');
-        $this->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->От предишна доставка, removeAndRefreshForm=company|person|tel|country|pCode|place|address');
+        $this->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор, removeAndRefreshForm=company|person|tel|country|pCode|place|address,placeholder=От предишна доставка');
         $this->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма');
         $this->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, changable, class=contactData');
         $this->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., changable, class=contactData');
@@ -240,8 +240,8 @@ class store_ShipmentOrders extends store_DocumentMaster
        $form = &$data->form;
        $rec = &$form->rec;
 
-        if (!isset($data->form->rec->id)) {
-            expect($origin = static::getOrigin($data->form->rec), $data->form->rec);
+        if (!isset($rec->id)) {
+            expect($origin = static::getOrigin($rec->rec), $rec->rec);
             if ($origin->isInstanceOf('sales_Sales')) {
                 $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички)', 'caption=Вкарване от продажбата->Артикули, input,before=sharedUsers');
             }
@@ -249,46 +249,28 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         // Вземаме другите ЕН, от същата папак
         $prevShipmentArr = array('' => '');
-        if ($data->form->rec->folderId) {
-            $cQuery = doc_Containers::getQuery();
-            $cQuery->where(array("#folderId = '[#1#]'", $data->form->rec->folderId));
-            $cQuery->where(array("#docClass = '[#1#]'", store_ShipmentOrders::getClassId()));
-            if ($data->form->rec->id) {
-                $cQuery->where(array("#docId != '[#1#]'", $data->form->rec->id));
-            }
-            $cQuery->where("#state != 'rejected'");
-            $cQuery->where("#state != 'draft'");
+        if (isset($rec->folderId)) {
+            $sQuery = store_ShipmentOrders::getQuery();
+            $sQuery->where("#id != '{$rec->id}' AND #folderId = {$rec->folderId} AND #state != 'rejected' AND #state != 'draft'");
+            $sQuery->orderBy('modifiedOn', 'DESC');
+            $sQuery->limit(100);
 
-            $cQuery->orderBy('modifiedOn', 'DESC');
+            while ($sRec = $sQuery->fetch()) {
+                if (!$mvc->haveRightFor('asClient', $sRec)) continue;
+                if (!$mvc->haveRightFor('single', $sRec)) continue;
 
-            $cQuery->limit(100);
-
-            while ($cRec = $cQuery->fetch()) {
-                if (!$mvc->haveRightFor('asClient', $cRec->docId)) {
-
-                    continue;
+                $name = '#' . $mvc->getHandle($sRec->id);
+                if ($sRec->company) {
+                    $name .= ' - ' . $sRec->company;
                 }
-
-                if (!$mvc->haveRightFor('single', $cRec->docId)) {
-
-                    continue;
+                if ($sRec->place) {
+                    $name .= ' (' . $sRec->place . ')';
                 }
-
-                $dRec = $mvc->fetch($cRec->docId, 'id, company, place');
-                $name = '#' . $mvc->getHandle($cRec->docId);
-                if ($dRec->company) {
-                    $name .= ' - ' . $dRec->company;
-                }
-
-                if ($dRec->place) {
-                    $name .= ' (' . $dRec->place . ')';
-                }
-
-                $prevShipmentArr[$dRec->id] = $name;
+                $prevShipmentArr[$sRec->id] = $name;
             }
         }
 
-        if ($prevShipmentArr) {
+        if (countR($prevShipmentArr)) {
             $data->form->setOptions('prevShipment', $prevShipmentArr);
         } else {
             $data->form->setField('prevShipment', 'input=none');
