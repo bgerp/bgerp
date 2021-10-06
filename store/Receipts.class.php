@@ -338,12 +338,13 @@ class store_Receipts extends store_DocumentMaster
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if(in_array($action, array('add', 'pending', 'conto')) && isset($rec) && $requiredRoles != 'no_one'){
+        if(in_array($action, array('add', 'pending', 'conto', 'clonerec')) && isset($rec) && $requiredRoles != 'no_one'){
 
             // Ако има финална доставка и СР не е коригираща - не може да се пускат нови
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if($firstDoc->isInstanceOf('purchase_Purchases')){
-                if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $rec->containerId)){
+                $ignoreContainerId =  ($action != 'clonerec') ? $rec->containerId : null;
+                if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)){
                     $requiredRoles = 'no_one';
                 }
             }
