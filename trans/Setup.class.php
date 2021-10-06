@@ -86,6 +86,7 @@ class trans_Setup extends core_ProtoSetup
         'trans_TransportUnits',
         'trans_LineDetails',
         'migrate::updateLines',
+        'migrate::updateLinesPlugin',
     );
     
     
@@ -359,5 +360,14 @@ class trans_Setup extends core_ProtoSetup
         while($tRec = $tQuery->fetch()){
             $Lines->updateMaster($tRec);
         }
+    }
+
+
+    /**
+     * Изтриване на плъгин
+     */
+    function updateLinesPlugin()
+    {
+        core_Plugins::delete("#plugin = 'uiext_plg_DetailLabels' AND #class = 'trans_LineDetails'");
     }
 }
