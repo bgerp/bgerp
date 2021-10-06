@@ -221,18 +221,15 @@ class trans_LineDetails extends doc_Detail
 
             // Ако документа в момента е в зона
             if(isset($transportInfo['zoneId'])){
-                Mode::push('shortZoneName', true);
-                $zoneTitle = rack_Zones::getRecTitle($transportInfo['zoneId']);
-                Mode::pop('shortZoneName');
-                $zoneTitle .= " " . core_Type::getByName('percent')->toVerbal($transportInfo['readiness']);
-                $row->zoneId = rack_Zones::styleZone($transportInfo['zoneId'], $zoneTitle, 'zoneMovement');
+                $zoneTitle = rack_Zones::getVerbal($transportInfo['zoneId'], 'num');
+                $row->zoneId = core_Type::getByName('percent')->toVerbal($transportInfo['readiness']);
+                $row->zoneId = "<div class='zoneMovement' style='background-color:rgba(173, 62, 42, 0.9);color:white'>{$row->zoneId}</div>";
+                $row->zoneId .= " " . rack_Zones::styleZone($transportInfo['zoneId'], $zoneTitle, 'zoneMovement');
             }
 
             // Бутон към зоната
             if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
-                Mode::push('shortZoneName', true);
                 $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
-                Mode::pop();
                 if (countR($zoneBtn->url)) {
                     core_RowToolbar::createIfNotExists($row->_rowTools);
                     $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);

@@ -417,8 +417,6 @@ class trans_Lines extends core_Master
                 }
             }
 
-
-
             // Сумиране на теглото от редовете
             if ($sumWeight === true) {
                 if ($transInfo['weight']) {

@@ -469,7 +469,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             if(core_Packs::isInstalled('rack')){
                 if($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}", 'id,readiness')){
                     $res['zoneId'] = $zoneRec->id;
-                    $res['readiness'] = $zoneRec->readiness;
+                    $res['readiness'] = ($zoneRec->readiness) ? $zoneRec->readiness : 0;
                 }
             }
 

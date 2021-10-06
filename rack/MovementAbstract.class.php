@@ -176,12 +176,11 @@ abstract class rack_MovementAbstract extends core_Manager
             $zones = self::getZoneArr($rec, $quantityInZones);
             $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
 
-            Mode::push('shortZoneName', true);
             foreach ($zones as $zoneRec) {
                 $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
 
                 if(rack_Zones::fetchField($zoneRec->zone)){
-                    $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
+                    $zoneTitle = rack_Zones::getVerbal($zoneRec->zone, 'num');
                     $zoneTitle = rack_Zones::styleZone($zoneRec->zone, $zoneTitle, 'zoneMovement');
                     if($makeLinks){
                         $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
@@ -194,7 +193,6 @@ abstract class rack_MovementAbstract extends core_Manager
                 $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
                 $movementArr[] = "<span {$class}>{$zoneTitle} ({$zoneQuantity})</span>";
             }
-            Mode::pop('shortZoneName');
         }
 
         if (!empty($positionTo) && $restQuantity) {

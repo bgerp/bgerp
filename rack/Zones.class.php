@@ -151,6 +151,17 @@ class rack_Zones extends core_Master
 
 
     /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+        if ($part == 'num') {
+            $num = "Z-{$num}";
+        }
+    }
+
+
+    /**
      * След преобразуване на записа в четим за хора вид
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -206,10 +217,7 @@ class rack_Zones extends core_Master
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
             }
-
-            Mode::push('shortZoneName', true);
             $id = self::getRecTitle($rec);
-            Mode::pop('shortZoneName');
             $row->num = ht::createElement("div", array('id' => $id), $row->num, true);
             $row->num = rack_Zones::styleZone($rec->id, $row->num, 'zoneMovement');
         }
@@ -290,17 +298,9 @@ class rack_Zones extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $rec = self::fetchRec($rec);
-
         $num = self::getVerbal($rec, 'num');
-        $groupName = null;
-        if (!Mode::is('shortZoneName')) {
-            $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
-        }
-
-        $title = "Z-{$num}";
-        if (!empty($groupName)) {
-            $title .= " ({$groupName})";
-        }
+        $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
+        $title = "{$num} ({$groupName})";
 
         if ($escaped) {
             $title = type_Varchar::escape($title);
@@ -1062,11 +1062,8 @@ class rack_Zones extends core_Master
     {
         $res = (object)array('caption' => 'Зона', 'url' => array(), 'attr' => '');
         $document = doc_Containers::getDocument($containerId);
-
         if ($zoneRec = rack_Zones::fetch("#containerId = {$containerId}")) {
-            Mode::push('shortZoneName', true);
-            $res->caption .= "|* " . rack_Zones::getTitleById($zoneRec);
-            Mode::pop('shortZoneName');
+            $res->caption .= "|* " . rack_Zones::getVerbal($zoneRec, 'num');
         }
 
         if (empty($zoneRec)) {
@@ -1100,10 +1097,8 @@ class rack_Zones extends core_Master
     public static function getUrlArr($zoneId)
     {
         $zoneRec = self::fetchRec($zoneId);
-        Mode::push('shortZoneName', true);
         $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
         $url = array('rack_Zones', 'terminal', 'grouping' => $grouping, 'ret_url' => true);
-        Mode::pop('shortZoneName');
 
         if (isset($zoneRec->groupId)) {
             $url['grouping'] = $zoneRec->groupId;
