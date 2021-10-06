@@ -372,6 +372,8 @@ class trans_Lines extends core_Master
         $row->handler = $mvc->getHyperlink($rec->id, true);
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         if (isset($fields['-list'])) {
+            $row->start = str_replace(' ', '<br>', $row->start);
+
             if(!empty($rec->stores)){
                 $row->stores = $mvc->getVerbal($rec, 'stores');
                 $row->handler .= "<div class='small'>" . tr('Складове') . ": {$row->stores}</div>";
