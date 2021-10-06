@@ -28,7 +28,7 @@ class rack_Wrapper extends plg_ProtoWrapper
 
         $this->TAB('rack_Products', 'Продукти', 'ceo,rack');
         $this->TAB('rack_Pallets', 'Палети', 'ceo,rack');
-        $this->TAB(array('rack_Zones', 'terminal'), 'Зони->Терминал', 'ceo,rack');
+        $this->TAB(array('rack_Zones', 'list', 'terminal' => true), 'Зони->Терминал', 'ceo,rack');
         $this->TAB(array('rack_Zones'), 'Зони->Списък', 'ceo,rack');
         $this->TAB('rack_ZoneGroups', 'Зони->Групи', 'ceo,rack');
         $this->TAB('rack_Racks', 'Стелажи', 'ceo,rack');

@@ -245,7 +245,7 @@ abstract class rack_MovementAbstract extends core_Manager
     {
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'waiting' THEN 2 WHEN 'active' THEN 3 ELSE 4 END)");
         if ($palletId = Request::get('palletId', 'int')) {
             $data->query->where("#palletId = {$palletId}");
         }
@@ -370,20 +370,5 @@ abstract class rack_MovementAbstract extends core_Manager
             $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
             $data->listFields['productId'] = '@Артикул';
         }
-    }
-
-
-    /**
-     * Какво ще е ретУрл-то
-     * @return array
-     */
-    protected static function getZoneRetUrl()
-    {
-        $currentUrl = getCurrentUrl();
-        if(Mode::is('zoneTerminal')){
-            $currentUrl['Act'] = 'terminal';
-        }
-
-        return $currentUrl;
     }
 }
