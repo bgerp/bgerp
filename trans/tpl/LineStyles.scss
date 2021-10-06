@@ -1,9 +1,13 @@
 .document .group-by-field-row{
-	padding: 5px !important;
+	padding: 10px !important;
 	color: #fff !important;
 	background-color: #777 !important;
 	border: 1px solid #777 !important;
 	font-weight:bold;
+}
+
+.document .group-by-field-row td {
+	line-height: 22px !important;
 }
 
 .document .details .shipment-th {

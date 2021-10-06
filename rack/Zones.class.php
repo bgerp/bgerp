@@ -1064,7 +1064,9 @@ class rack_Zones extends core_Master
         $document = doc_Containers::getDocument($containerId);
 
         if ($zoneRec = rack_Zones::fetch("#containerId = {$containerId}")) {
+            Mode::push('shortZoneName', true);
             $res->caption .= "|* " . rack_Zones::getTitleById($zoneRec);
+            Mode::pop('shortZoneName');
         }
 
         if (empty($zoneRec)) {

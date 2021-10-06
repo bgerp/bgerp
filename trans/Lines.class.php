@@ -652,7 +652,7 @@ class trans_Lines extends core_Master
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'activate' && isset($rec)) {
-            if (empty($rec->countTotal)) {
+            if (!trans_LineDetails::fetchField("#lineId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
             } elseif (self::countDocumentsByState($rec->id, 'pending,draft,rejected')) {
                 $requiredRoles = 'no_one';

@@ -344,6 +344,10 @@ class trans_Setup extends core_ProtoSetup
         $Lines = cls::get('trans_Lines');
         if(!$Lines->count()) return;
 
+        $LineDetails = cls::get('trans_LineDetails');
+        $Lines->setupMvc();
+        $LineDetails->setupMvc();
+
         $tQuery = trans_Lines::getQuery();
         $tQuery->where("#state = 'pending' OR #state = 'active'");
         while($tRec = $tQuery->fetch()){

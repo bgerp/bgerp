@@ -153,7 +153,6 @@ class trans_LineDetails extends doc_Detail
         $exQuery->where("#lineId != {$lineId} AND #containerId = {$containerId} AND #status != 'removed'");
         while ($exRec = $exQuery->fetch()) {
             $exRec->status = 'removed';
-            $exRec->_forceStatus = true;
             self::save($exRec, 'status');
         }
         
@@ -279,7 +278,7 @@ class trans_LineDetails extends doc_Detail
         
         // Бутон за изключване
         if ($mvc->haveRightFor('remove', $rec)) {
-            $row->_rowTools->addLink('Изключване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/delete.png', 'title' => 'Изключване от транспортната линия'));
+            $row->_rowTools->addLink('Премахване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Премахване на документа от транспортната линия'));
         }
 
         // Ако има платежни документи към складовия
@@ -316,14 +315,13 @@ class trans_LineDetails extends doc_Detail
         $this->requireRightFor('remove', $rec);
         
         $rec->status = 'removed';
-        $rec->_forceStatus = true;
         $this->save($rec, 'status');
-        
+
         $Document = doc_Containers::getDocument($rec->containerId);
         $docRec = $Document->fetch();
         $docRec->lineId = null;
-        $Document->getInstance()->save($docRec);
-        
+        $Document->getInstance()->save($docRec, 'lineId');
+
         return followRetUrl();
     }
     
@@ -569,7 +567,7 @@ class trans_LineDetails extends doc_Detail
             // Изтриване от документа че е към тази линия
             $rec = $Document->fetch();
             $rec->lineId = null;
-            $Document->getInstance()->save_($rec);
+            $Document->getInstance()->save_($rec, 'lineId,modifiedOn,modifiedBy');
             doc_DocumentCache::invalidateByOriginId($rec->containerId);
         }
     }
