@@ -406,6 +406,7 @@ class rack_Zones extends core_Master
 
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
+        $data->listFilter->FNC('terminal', "int", 'caption=Артикул,silent,input=hidden');
         if($data->isTerminal) {
             $data->listFilter->FLD('additional', 'enum(onlyMine=Моите,pendingAndMine=Свободни+Мои,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
         }
@@ -432,10 +433,10 @@ class rack_Zones extends core_Master
 
         if($data->isTerminal) {
             $data->listFilter->showFields = 'productId,grouping,additional';
-            $data->listFilter->input('productId,grouping,additional');
+            $data->listFilter->input('productId,grouping,terminal,additional');
         } else {
             $data->listFilter->showFields = 'productId,grouping';
-            $data->listFilter->input('productId,grouping');
+            $data->listFilter->input('productId,grouping,terminal');
         }
         $data->listFilter->view = 'horizontal';
 
