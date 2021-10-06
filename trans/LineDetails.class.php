@@ -203,7 +203,7 @@ class trans_LineDetails extends doc_Detail
         // Визуализиране на движението на складовете
         if (!empty($transportInfo['stores'])) {
             if (countR($transportInfo['stores']) == 1) {
-                $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true);
+                $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0]);
                 if($transportInfo['storeMovement'] == 'both'){
                     $row->storeId .= " &#8660; ";
                 } else {
@@ -211,7 +211,7 @@ class trans_LineDetails extends doc_Detail
                     $row->storeId .= " {$symbol}";
                 }
             } else {
-                $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0], true) . ' &#8658; ' . store_Stores::getHyperlink($transportInfo['stores'][1], true);
+                $row->storeId = store_Stores::getHyperlink($transportInfo['stores'][0]) . ' &#8658; ' . store_Stores::getHyperlink($transportInfo['stores'][1]);
             }
 
             $row->address = "{$row->storeId} {$transportInfo['contragentName']}" . (!empty($row->address) ? ", {$row->address}" : '');

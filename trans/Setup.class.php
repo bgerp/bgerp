@@ -85,6 +85,7 @@ class trans_Setup extends core_ProtoSetup
         'trans_TransportModes',
         'trans_TransportUnits',
         'trans_LineDetails',
+        //'migrate::updateLines',
     );
     
     
@@ -332,5 +333,21 @@ class trans_Setup extends core_ProtoSetup
         asort($res);
         
         return $res;
+    }
+
+
+    /**
+     * Преизчисляване на текущите транспортни линии
+     */
+    function updateLines()
+    {
+        $Lines = cls::get('trans_Lines');
+        if(!$Lines->count()) return;
+
+        $tQuery = trans_Lines::getQuery();
+        $tQuery->where("#state = 'pending' OR #state = 'active'");
+        while($tRec = $tQuery->fetch()){
+            $Lines->updateMaster($tRec);
+        }
     }
 }
