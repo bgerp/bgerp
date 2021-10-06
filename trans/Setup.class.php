@@ -85,7 +85,7 @@ class trans_Setup extends core_ProtoSetup
         'trans_TransportModes',
         'trans_TransportUnits',
         'trans_LineDetails',
-        //'migrate::updateLines',
+        'migrate::updateLines',
     );
     
     
@@ -342,12 +342,18 @@ class trans_Setup extends core_ProtoSetup
     function updateLines()
     {
         $Lines = cls::get('trans_Lines');
-        if(!$Lines->count()) return;
+        $Lines->setupMvc();
+        $lineCount = $Lines->count();
+        if(!$lineCount) return;
 
         $LineDetails = cls::get('trans_LineDetails');
-        $Lines->setupMvc();
         $LineDetails->setupMvc();
 
+        $statusColName = str::phpToMysqlName('status');
+        $query = "UPDATE {$LineDetails->dbTableName} SET {$statusColName} = 'ready' WHERE ({$statusColName} = '' OR {$statusColName} IS NULL OR {$statusColName} = 'pending')";
+        $LineDetails->db->query($query);
+
+        core_App::setTimeLimit(0.7 * $lineCount, false, 180);
         $tQuery = trans_Lines::getQuery();
         $tQuery->where("#state = 'pending' OR #state = 'active'");
         while($tRec = $tQuery->fetch()){
