@@ -762,9 +762,12 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $storeId = store_Stores::getCurrent();
-        if ($mvc->haveRightFor('orderpickup', (object)array('storeId' => $storeId))) {
-            $data->toolbar->addBtn('Генериране на движения', array($mvc, 'orderpickup', 'storeId' => $storeId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
+        if(Request::get('terminal')){
+            unset($data->toolbar->buttons['btnAdd']);
+            $storeId = store_Stores::getCurrent();
+            if ($mvc->haveRightFor('orderpickup', (object)array('storeId' => $storeId))) {
+                $data->toolbar->addBtn('Генериране на движения', array($mvc, 'orderpickup', 'storeId' => $storeId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
+            }
         }
     }
 
@@ -856,6 +859,7 @@ class rack_Zones extends core_Master
     {
         if($data->isTerminal){
             $data->listTableMvc->commonRowClass = 'zonesCommonRow zoneLighter';
+            unset($data->listFields['_rowTools']);
         }
         $data->listTableMvc->setFieldType('num', 'varchar');
     }
