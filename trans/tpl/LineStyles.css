@@ -8,6 +8,13 @@
 .document .group-by-field-row td {
   line-height: 22px !important; }
 
+.lineSummary .sum-th {
+  font-weight: normal;
+  font-size: 14px;
+  color: #555555;
+  background-color: #e0e0e0;
+  text-align: center; }
+
 .document .details .shipment-th {
   background-color: #eeeeee;
   padding: 4px;
