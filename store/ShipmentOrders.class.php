@@ -604,12 +604,13 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
         }
 
-        if(in_array($action, array('add', 'pending', 'conto')) && isset($rec) && $requiredRoles != 'no_one'){
+        if(in_array($action, array('add', 'pending', 'conto', 'clonerec')) && isset($rec) && $requiredRoles != 'no_one'){
 
             // Ако има финална доставка и ЕН не е коригираща - не може да се пускат нови
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if($firstDoc->isInstanceOf('sales_Sales')){
-                if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $rec->containerId)){
+                $ignoreContainerId =  ($action != 'clonerec') ? $rec->containerId : null;
+                if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)){
                     $requiredRoles = 'no_one';
                 }
             }
