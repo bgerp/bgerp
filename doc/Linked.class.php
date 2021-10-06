@@ -1256,7 +1256,7 @@ class doc_Linked extends core_Manager
                 }
             }
         }
-        
+
         // Ако е зададено да се показват папките в които има такива документи
         if ($params['showWithDocs'] && $docTypeInst) {
             $pKey = 'linkedDocFolders_' . substr(md5($docTypeInst->className . '|' . core_Users::getCurrent()), 0, 8) . '|' . $params['unsetId'];
@@ -1265,7 +1265,7 @@ class doc_Linked extends core_Manager
             
             $minCreatedOn = dt::subtractSecs($cacheTime * 60);
             $fArr = core_Permanent::get($pKey, $minCreatedOn);
-            
+
             if (!isset($fArr) || !is_array($fArr)) {
                 $dQuery = $docTypeInst->getQuery();
                 
@@ -1283,7 +1283,7 @@ class doc_Linked extends core_Manager
 
                 $dQuery->limit(10000);
 
-                if ($docTypeInst->fileds['modifiedOn']) {
+                if ($docTypeInst->fields['modifiedOn']) {
                     $dQuery->where(array("#modifiedOn > '[#1#]'", dt::addMonths(-1)));
                 }
 
