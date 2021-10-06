@@ -72,7 +72,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'store=0.1';
+    public $depends = 'store=0.1,sales=0.1,purchase=0.1,cash=0.1,deals=0.1';
     
     
     /**
