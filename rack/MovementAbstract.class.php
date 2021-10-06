@@ -377,7 +377,7 @@ abstract class rack_MovementAbstract extends core_Manager
      * Какво ще е ретУрл-то
      * @return array
      */
-    public static function getZoneRetUrl()
+    protected static function getZoneRetUrl()
     {
         $currentUrl = getCurrentUrl();
         if(Mode::is('zoneTerminal')){
