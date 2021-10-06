@@ -63,8 +63,6 @@ class uiext_Setup extends core_ProtoSetup
     {
         $html = parent::install();
         $Plugins = cls::get('core_Plugins');
-        $html .= $Plugins->installPlugin('Добавяне на тагове към редовете на транспортните линии', 'uiext_plg_DetailLabels', 'trans_LineDetails', 'private');
-        
         if(core_Packs::isInstalled('rack')){
             $html .= $Plugins->installPlugin('Добавяне на тагове към детайлите на зоните в палетния склад', 'uiext_plg_DetailLabels', 'rack_ZoneDetails', 'private');
         }
