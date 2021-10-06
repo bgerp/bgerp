@@ -1166,7 +1166,7 @@ class rack_Movements extends rack_MovementAbstract
         core_RowToolbar::createIfNotExists($row->_rowTools);
 
         if ($mvc->haveRightFor('load', $rec)) {
-            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'ret_url' => true);
+            $loadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'load', 'ret_url' => rack_Zones::getZoneRetUrl());
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $loadUrl = toUrl($loadUrl, 'local');
@@ -1178,7 +1178,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('unload', $rec)) {
-            $unloadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'unload', 'ret_url' => true);
+            $unloadUrl = array($mvc, 'toggle', $rec->id, 'type' => 'unload', 'ret_url' => rack_Zones::getZoneRetUrl());
             $row->_rowTools->addLink('Отказване', $unloadUrl, 'ef_icon=img/16/checked.png,title=Отказване на движението');
         }
 
@@ -1186,7 +1186,7 @@ class rack_Movements extends rack_MovementAbstract
         $returnWarning = (isset($rec->workerId) && $rec->workerId != core_Users::getCurrent())  ? 'Сигурни ли сте, че искате да върнете движение от друг потребител|*?' : 'Наистина ли искате да върнете движението|*?';
 
         if ($mvc->haveRightFor('start', $rec)) {
-            $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
+            $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => rack_Zones::getZoneRetUrl());
             $row->_rowTools->addLink('Започване', $startUrl, "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
             if (isset($startWarning)) {
                 $row->_rowTools->setWarning("start{$rec->id}", $startWarning);
@@ -1203,7 +1203,7 @@ class rack_Movements extends rack_MovementAbstract
 
         if ($mvc->haveRightFor('done', $rec)) {
             $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
+            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => rack_Zones::getZoneRetUrl()), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $stopUrl = toUrl($stopUrl, 'local');
@@ -1215,7 +1215,7 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('reject', $rec)) {
-            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), "warning={$returnWarning},ef_icon=img/16/reject.png,title=Връщане на движението");
+            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => rack_Zones::getZoneRetUrl()), "warning={$returnWarning},ef_icon=img/16/reject.png,title=Връщане на движението");
         }
     }
 }
