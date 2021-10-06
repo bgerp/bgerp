@@ -1181,9 +1181,22 @@ class rack_Zones extends core_Master
     function act_Terminal()
     {
         // Прокси към лист изгледа
-        Mode::push('zoneTerminal', true);
+        Mode::setPermanent('zoneTerminal', true);
         $res = Request::forward(array('Ctr' => 'rack_Zones', 'Act' => 'list'));
 
         return $res;
+    }
+
+
+    /**
+     * Извиква се след изпълняването на екшън
+     */
+    protected function on_AfterAction(&$invoker, &$tpl, $act)
+    {
+        if (strtolower($act) == 'list') {
+            if(!Mode::is('zoneTerminal')){
+                Mode::setPermanent('zoneTerminal', null);
+            }
+        }
     }
 }

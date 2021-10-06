@@ -369,4 +369,19 @@ abstract class rack_MovementAbstract extends core_Manager
             $data->listFields['productId'] = '@Артикул';
         }
     }
+
+
+    /**
+     * Какво ще е ретУрл-то
+     * @return array
+     */
+    public static function getZoneRetUrl()
+    {
+        $currentUrl = getCurrentUrl();
+        if(Mode::is('zoneTerminal')){
+            $currentUrl['Act'] = 'terminal';
+        }
+
+        return $currentUrl;
+    }
 }
