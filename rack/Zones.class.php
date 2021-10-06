@@ -1101,7 +1101,7 @@ class rack_Zones extends core_Master
     {
         $zoneRec = self::fetchRec($zoneId);
         $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
-        $url = array('rack_Zones', 'terminal', 'grouping' => $grouping, 'ret_url' => true);
+        $url = array('rack_Zones', 'list', 'terminal' => 1, 'grouping' => $grouping, 'ret_url' => true);
 
         if (isset($zoneRec->groupId)) {
             $url['grouping'] = $zoneRec->groupId;
