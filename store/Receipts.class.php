@@ -216,14 +216,6 @@ class store_Receipts extends store_DocumentMaster
     {
         $form = &$data->form;
         $form->setField('locationId', 'caption=Обект от');
-
-        $firstDocument = doc_Threads::getFirstDocument($form->rec->threadId);
-        if($firstDocument->isInstanceOf('sales_Sales')){
-            $form->setDefault('isFinalDelivery', 'input=none');
-        } else{
-            $isFinal = $firstDocument->fetchField('oneTimeDelivery');
-            $form->setDefault('isFinalDelivery', $isFinal);
-        }
     }
     
     
@@ -338,7 +330,7 @@ class store_Receipts extends store_DocumentMaster
             // Ако има финална доставка и СР не е коригираща - не може да се пускат нови
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
             if($firstDoc->isInstanceOf('purchase_Purchases')){
-                if(deals_Helper::haveFinalDelivery($rec->threadId, $rec->containerId)){
+                if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $rec->containerId)){
                     $requiredRoles = 'no_one';
                 }
             }
