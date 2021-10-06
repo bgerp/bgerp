@@ -166,7 +166,7 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        $isTerminal = Mode::is('zoneTerminal');
+        $isTerminal = Request::get('terminal', 'int');
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         if (isset($rec->containerId)) {
             $Document = doc_Containers::getDocument($rec->containerId);
@@ -352,7 +352,7 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        if(Mode::is('zoneTerminal')) {
+        if($data->isTerminal) {
             $tpl->push('rack/css/style.css', 'CSS');
             $tpl->push('rack/js/ZoneScripts.js', 'JS');
             jquery_Jquery::run($tpl, 'zoneActions();');
@@ -365,7 +365,7 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        if(Mode::is('zoneTerminal')) {
+        if($data->isTerminal) {
             $tpl->push('rack/css/style.css', 'CSS');
         }
     }
@@ -390,11 +390,13 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $isTerminal = Mode::is('zoneTerminal');
-        if(!$isTerminal){
-            $mvc->currentTab = 'Зони->Списък';
+        $data->isTerminal = Request::get('terminal', 'int');
+        if($data->isTerminal){
+            $mvc->currentTab = 'Зони->Терминал';
             unset($data->listFields['lineId']);
             arr::placeInAssocArray($data->listFields, array('lineId' => 'Линия'), 'readiness');
+        } else {
+            $mvc->currentTab = 'Зони->Списък';
         }
 
         $storeId = store_Stores::getCurrent();
@@ -404,7 +406,7 @@ class rack_Zones extends core_Master
 
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
-        if($isTerminal) {
+        if($data->isTerminal) {
             $data->listFilter->FLD('additional', 'enum(onlyMine=Моите,pendingAndMine=Свободни+Мои,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
         }
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
@@ -421,14 +423,14 @@ class rack_Zones extends core_Master
         }
 
         $data->listFilter->setOptions('grouping', $groupingOptions);
-        if($isTerminal) {
+        if($data->isTerminal) {
             $data->listFilter->setDefault('additional', 'pendingAndMine');
         }
 
         $data->listFilter->input(null, 'silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
-        if($isTerminal) {
+        if($data->isTerminal) {
             $data->listFilter->showFields = 'productId,grouping,additional';
             $data->listFilter->input('productId,grouping,additional');
         } else {
@@ -469,7 +471,7 @@ class rack_Zones extends core_Master
                 }
             }
 
-            if ($isTerminal && $filter->additional != 'all') {
+            if ($data->isTerminal && $filter->additional != 'all') {
 
                 // Ако е избран филтър само за зони с движения да се показват те
                 $mQuery = rack_Movements::getQuery();
@@ -851,7 +853,7 @@ class rack_Zones extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if(Mode::is('zoneTerminal')){
+        if($data->isTerminal){
             $data->listTableMvc->commonRowClass = 'zonesCommonRow zoneLighter';
         }
         $data->listTableMvc->setFieldType('num', 'varchar');
@@ -1172,31 +1174,5 @@ class rack_Zones extends core_Master
         $res->replace($element, 'element');
 
         return $res;
-    }
-
-
-    /**
-     * Екшън за работен терминал
-     */
-    function act_Terminal()
-    {
-        // Прокси към лист изгледа
-        Mode::setPermanent('zoneTerminal', true);
-        $res = Request::forward(array('Ctr' => 'rack_Zones', 'Act' => 'list'));
-
-        return $res;
-    }
-
-
-    /**
-     * Извиква се след изпълняването на екшън
-     */
-    protected function on_AfterAction(&$invoker, &$tpl, $act)
-    {
-        if (strtolower($act) == 'list') {
-            if(!Mode::is('zoneTerminal')){
-                Mode::setPermanent('zoneTerminal', null);
-            }
-        }
     }
 }
