@@ -73,7 +73,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,loadBtn=Вземи,startBtn=Започни,stopBtn=Приключи,workerId=Изпълнител,documents,createdOn,createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'productId,movement=Движение,leftColBtns=Запазване,rightColBtns=Действие,workerId=Изпълнител,documents,createdOn,createdBy,modifiedOn,modifiedBy';
 
 
     /**
@@ -1169,10 +1169,10 @@ class rack_Movements extends rack_MovementAbstract
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $loadUrl = toUrl($loadUrl, 'local');
-                $row->loadBtn = ht::createFnBtn('Запазване', '', null, array('class' => 'toggle-movement', 'data-url' => $loadUrl, 'title' => 'Запазване на движението', 'ef_icon' => 'img/16/checkbox_no.png'));
+                $row->leftColBtns = ht::createFnBtn('Запазване', '', null, array('class' => 'toggle-movement', 'data-url' => $loadUrl, 'title' => 'Запазване на движението', 'ef_icon' => 'img/16/checkbox_no.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/checkbox_no.png', '')));
-                $row->loadBtn = ht::createLink($img, $loadUrl, false, 'title=Запазване на движението');
+                $row->leftColBtns = ht::createLink($img, $loadUrl, false, 'title=Запазване на движението');
             }
         }
 
@@ -1193,10 +1193,10 @@ class rack_Movements extends rack_MovementAbstract
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl($startUrl, 'local');
-                $row->startBtn = ht::createFnBtn('Започване', '', $startWarning, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
+                $row->rightColBtns = ht::createFnBtn('Започване', '', $startWarning, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
-                $row->startBtn = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
+                $row->rightColBtns = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
             }
         }
 
@@ -1206,10 +1206,10 @@ class rack_Movements extends rack_MovementAbstract
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $stopUrl = toUrl($stopUrl, 'local');
-                $row->stopBtn = ht::createFnBtn('Приключване', '', null, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+                $row->rightColBtns .= ht::createFnBtn('Приключване', '', null, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
-                $row->stopBtn = ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
+                $row->rightColBtns .= ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
             }
         }
 

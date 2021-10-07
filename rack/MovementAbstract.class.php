@@ -363,9 +363,8 @@ abstract class rack_MovementAbstract extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
-        $data->listTableMvc->FLD('startBtn', 'varchar', 'tdClass=centered');
-        $data->listTableMvc->FLD('loadBtn', 'varchar', 'tdClass=centered');
-        $data->listTableMvc->FLD('stopBtn', 'varchar', 'tdClass=centered');
+        $data->listTableMvc->FLD('leftColBtns', 'varchar', 'tdClass=centered');
+        $data->listTableMvc->FLD('rightColBtns', 'varchar', 'tdClass=centered');
         if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
             $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
             $data->listFields['productId'] = '@Артикул';
