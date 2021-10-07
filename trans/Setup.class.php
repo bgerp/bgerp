@@ -157,9 +157,20 @@ class trans_Setup extends core_ProtoSetup
     public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
-        $res .= $this->callMigrate('updateLines', 'trans');
+
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('trans_Setup', 'migrateLines', NULL, $callOn);
 
         return $res;
+    }
+
+
+    /**
+     * Постепенна миграция, която се вика от showFiles2126 и се самонавива
+     */
+    public static function callback_migrateLines()
+    {
+        cls::get('trans_Setup')->updateLines();
     }
 
 
