@@ -132,7 +132,7 @@ class rack_MovementGenerator extends core_Manager
             $moves = arr::combine($moves, $res);
             $i++;
             if ($i > 100) {
-                // Ременна защита срещу безкраен цикъл;
+                // временна защита срещу безкраен цикъл;
                 expect(false, $res);
             }
         } while (countR($res) > 0);

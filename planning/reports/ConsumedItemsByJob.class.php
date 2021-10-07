@@ -74,8 +74,12 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-//Задания
-        $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=title,single=none');
+
+        //Център на дейност
+        $fieldset->FLD('department', 'keylist(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,after=title,placeholder=Всички,removeAndRefreshForm,silent');
+
+        //Задания
+        $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=department,single=none');
 
         //Да има ли филтър по артикул
         $fieldset->FLD('option', 'set(yes = )', 'caption=Филтър по артикул,after=jobses,single=none,removeAndRefreshForm,silent');
@@ -182,6 +186,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
             $jQuery->in('state', $stateArr);
 
+            if ($rec->department){
+                $jQuery->in('department', keylist::toArray($rec->department));
+            }
+
             $jQuery->show('productId');
             $prodArr = arr::extractValuesFromArray($jQuery->fetchAll(), 'productId');
             if (!empty($prodArr)) {
@@ -214,33 +222,47 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
 
         $recs = array();
 
-        //Избрани задания за производство
         if ($rec->option != 'yes') {
-            if ($rec->jobses) {
 
-                $jobsThreadArr = array();
+            $jobsThreadArr = $jobsContainersArr = array();
 
-                foreach (keylist::toArray($rec->jobses) as $val) {
+            //Ако има избран център на дейност филтрираме заданията по избраните центрове на дейност
+            if ($rec->department || $rec->jobses) {
 
-                    //Масив с ID-та на нишките на избраните ЗАДАНИЯ - $jobsThreadArr
-                    $jobsThreadArr[$val] = planning_Jobs::fetchField($val, 'threadId');
-                    $jobsContainersArr[planning_Jobs::fetchField($val, 'threadId')] = planning_Jobs::fetchField($val, 'containerId');
+                $plQuery = planning_Jobs::getQuery();
+                if ($rec->department) {
+                    $plQuery->in('department', keylist::toArray($rec->department));
                 }
 
-                if (!empty($jobsContainersArr)) {
-                    $tQuery = planning_Tasks::getQuery();
-                    $tQuery->where("#state != 'rejected'");
-                    $tQuery->in('originId', $jobsContainersArr);
+                if ($rec->jobses && $plQuery->count()>0) {
+                    $plQuery->in('id', keylist::toArray($rec->jobses));
 
+                    while ($plRec = $plQuery->fetch()){
+                        $jobsThreadArr[$plRec->id] = $plRec->threadId;
+                        $jobsContainersArr[$plRec->id] = $plRec->containerId;
+                    }
 
-                    while ($tRec = $tQuery->fetch()) {
-                        if (in_array($tRec->threadId, $jobsThreadArr)) {
-                            continue;
+                    if (!empty($jobsContainersArr)) {
+                        $tQuery = planning_Tasks::getQuery();
+                        $tQuery->where("#state != 'rejected'");
+                        $tQuery->in('originId', $jobsContainersArr);
+                        while ($tRec = $tQuery->fetch()) {
+                            if (in_array($tRec->threadId, $jobsThreadArr)) {
+                                continue;
+                            }
+                            $jobsThreadArr[$tRec->originId] = $tRec->threadId;
                         }
-                        $jobsThreadArr[$tRec->originId] = $tRec->threadId;
+                    }
+
+                }
+                if (empty($jobsThreadArr)){
+                    while ($plRec = $plQuery->fetch()){
+                        $jobsThreadArr[$plRec->id] = $plRec->threadId;
                     }
                 }
+                if (empty($jobsThreadArr))return $recs;
             }
+
         }
         //Вложени и върнати артикули в нишките на заданията
 
@@ -272,7 +294,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $pQuery->where("#state != 'rejected'");
             $pQuery->where("#canStore != 'no'");
 
-            //Ако има избрани задания, вадим само от техните нишки
+            //Ако има избрани задания или центрове на дейност вадим само от техните нишки
             if (!empty($jobsThreadArr)) {
                 $pQuery->in('threadId', ($jobsThreadArr));
             }
@@ -384,7 +406,6 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
                 }
             }
         }
-
         foreach ($recs as $key => $val) {
             $val->totalQuantity = $val->consumedQuantity - $val->returnedQuantity;
             $val->totalAmount = ($val->consumedAmount - $val->returnedAmount);

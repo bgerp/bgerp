@@ -155,32 +155,51 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        $isTerminal = Request::get('terminal', 'int');
         $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         if (isset($rec->containerId)) {
             $Document = doc_Containers::getDocument($rec->containerId);
-            $singleUrl = $Document->getSingleUrlArray();
-            $row->containerId = ht::createLink("#{$Document->abbr}{$Document->that}", $singleUrl);
+            if($isTerminal){
+                $singleUrl = $Document->getSingleUrlArray();
+                $row->containerId = ht::createLink("#{$Document->abbr}{$Document->that}", $singleUrl);
+            } else {
+                $row->containerId = $Document->getLink(0);
+            }
         }
 
-        $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] . " rack-zone-head";
+        if($isTerminal) {
+            $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] . " rack-zone-head";
+        }
+
         $row->num = $mvc->getHyperlink($rec->id);
 
         if (isset($rec->containerId)) {
             $document = doc_Containers::getDocument($rec->containerId);
             $documentRec = $document->fetch();
-            $row->folderId = doc_Folders::getTitleById($documentRec->folderId);
+            if($isTerminal) {
+                $row->folderId = doc_Folders::getTitleById($documentRec->folderId);
+            } else {
+                $row->folderId = doc_Folders::getFolderTitle($documentRec->folderId);
+            }
 
             if (isset($documentRec->{$document->lineFieldName})) {
-                $row->lineId = trans_Lines::getLink($documentRec->{$document->lineFieldName}, 0, array('ef_icon' => false));
+                $lineAttr = array();
+                if($isTerminal) {
+                    $lineAttr = array('ef_icon' => false);
+                }
+                $row->lineId = trans_Lines::getLink($documentRec->{$document->lineFieldName}, 0, $lineAttr);
             }
         }
 
         if (isset($fields['-list'])) {
             $rec->_isSingle = false;
-            $additional = Request::get('additional', 'varchar');
-            $pendingHtml = rack_ZoneDetails::renderInlineDetail($rec, $mvc, $additional);
-            if (!empty($pendingHtml)) {
-                $row->pendingHtml = $pendingHtml;
+
+            if($isTerminal) {
+                $additional = Request::get('additional', 'varchar');
+                $pendingHtml = rack_ZoneDetails::renderInlineDetail($rec, $mvc, $additional);
+                if (!empty($pendingHtml)) {
+                    $row->pendingHtml = $pendingHtml;
+                }
             }
 
             if ($mvc->haveRightFor('removedocument', $rec->id)) {
@@ -333,10 +352,11 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
-        $tpl->push('rack/css/style.css', 'CSS');
-
-        $tpl->push('rack/js/ZoneScripts.js', 'JS');
-        jquery_Jquery::run($tpl, 'zoneActions();');
+        if($data->isTerminal) {
+            $tpl->push('rack/css/style.css', 'CSS');
+            $tpl->push('rack/js/ZoneScripts.js', 'JS');
+            jquery_Jquery::run($tpl, 'zoneActions();');
+        }
     }
 
 
@@ -345,8 +365,9 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
-        $tpl->push('rack/css/style.css', 'CSS');
-
+        if($data->isTerminal) {
+            $tpl->push('rack/css/style.css', 'CSS');
+        }
     }
 
 
@@ -369,6 +390,15 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $data->isTerminal = Request::get('terminal', 'int');
+        if($data->isTerminal){
+            $mvc->currentTab = 'Зони->Терминал';
+            unset($data->listFields['lineId']);
+            arr::placeInAssocArray($data->listFields, array('lineId' => 'Линия'), 'readiness');
+        } else {
+            $mvc->currentTab = 'Зони->Списък';
+        }
+
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Зони в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
@@ -376,7 +406,10 @@ class rack_Zones extends core_Master
 
         // Добавяне на филтър по артикулите
         $data->listFilter->FLD('productId', "key2(mvc=cat_Products,storeId={$storeId},select=name,allowEmpty,selectSource=rack_Zones::getProductsInZones)", 'caption=Артикул,autoFilter,silent');
-        $data->listFilter->FLD('additional', 'enum(onlyMine=Моите,pendingAndMine=Свободни+Мои,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
+        $data->listFilter->FNC('terminal', "int", 'caption=Артикул,silent,input=hidden');
+        if($data->isTerminal) {
+            $data->listFilter->FLD('additional', 'enum(onlyMine=Моите,pendingAndMine=Свободни+Мои,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
+        }
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
         $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
 
@@ -391,12 +424,21 @@ class rack_Zones extends core_Master
         }
 
         $data->listFilter->setOptions('grouping', $groupingOptions);
-        $data->listFilter->setDefault('additional', 'pendingAndMine');
+        if($data->isTerminal) {
+            $data->listFilter->setDefault('additional', 'pendingAndMine');
+        }
+
         $data->listFilter->input(null, 'silent');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->showFields = 'productId,grouping,additional';
+
+        if($data->isTerminal) {
+            $data->listFilter->showFields = 'productId,grouping,additional';
+            $data->listFilter->input('productId,grouping,terminal,additional');
+        } else {
+            $data->listFilter->showFields = 'productId,grouping';
+            $data->listFilter->input('productId,grouping,terminal');
+        }
         $data->listFilter->view = 'horizontal';
-        $data->listFilter->input('productId,grouping,additional');
 
         // Ако се филтрира по артикул
         if ($filter = $data->listFilter->rec) {
@@ -430,7 +472,7 @@ class rack_Zones extends core_Master
                 }
             }
 
-            if ($filter->additional != 'all') {
+            if ($data->isTerminal && $filter->additional != 'all') {
 
                 // Ако е избран филтър само за зони с движения да се показват те
                 $mQuery = rack_Movements::getQuery();
@@ -720,9 +762,12 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
     {
-        $storeId = store_Stores::getCurrent();
-        if ($mvc->haveRightFor('orderpickup', (object)array('storeId' => $storeId))) {
-            $data->toolbar->addBtn('Генериране на движения', array($mvc, 'orderpickup', 'storeId' => $storeId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
+        if(Request::get('terminal')){
+            unset($data->toolbar->buttons['btnAdd']);
+            $storeId = store_Stores::getCurrent();
+            if ($mvc->haveRightFor('orderpickup', (object)array('storeId' => $storeId))) {
+                $data->toolbar->addBtn('Генериране на движения', array($mvc, 'orderpickup', 'storeId' => $storeId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Бързо нагласяне');
+            }
         }
     }
 
@@ -812,7 +857,10 @@ class rack_Zones extends core_Master
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $data->listTableMvc->commonRowClass = 'zonesCommonRow zoneLighter';
+        if($data->isTerminal){
+            $data->listTableMvc->commonRowClass = 'zonesCommonRow zoneLighter';
+            unset($data->listFields['_rowTools']);
+        }
         $data->listTableMvc->setFieldType('num', 'varchar');
     }
 
@@ -859,6 +907,19 @@ class rack_Zones extends core_Master
      */
     private static function pickupOrder($storeId, $zoneIds = null)
     {
+        $systemUserId = core_Users::SYSTEM_USER;
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId}");
+        if (isset($zoneIds)) {
+            $zoneIds = arr::make($zoneIds, true);
+            $mQuery->likeKeylist('zoneList', $zoneIds);
+        }
+        $mQuery->show('id');
+
+        while ($mRec = $mQuery->fetch()) {
+            rack_Movements::delete($mRec->id);
+        }
+
         // Какви са очакваните количества
         $expected = self::getExpectedProducts($storeId, $zoneIds);
 
@@ -1045,7 +1106,8 @@ class rack_Zones extends core_Master
     {
         $zoneRec = self::fetchRec($zoneId);
         Mode::push('shortZoneName', true);
-        $url = array('rack_Zones', 'list', '#' => rack_Zones::getRecTitle($zoneRec), 'ret_url' => true);
+        $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
+        $url = array('rack_Zones', 'list', 'terminal' => 1, 'grouping' => $grouping, 'ret_url' => true);
         Mode::pop('shortZoneName');
 
         if (isset($zoneRec->groupId)) {
@@ -1110,13 +1172,9 @@ class rack_Zones extends core_Master
     {
         $color = rack_Zones::fetchField($id, 'color');
         $backgroundColor = !empty($color) ? $color : rack_Setup::get('DEFAULT_ZONE_COLORS');
-        if(phpcolor_Adapter::checkColor($backgroundColor, 'dark')){
-            $textColor = "#fff";
-        } else {
-            $textColor = "#000";
-        }
+        $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
 
-        $res = new core_ET("<span class='{$class}' style='background-color:{$backgroundColor};color:{$textColor} !important'>[#element#]</span>");
+        $res = new core_ET("<span class='{$class} {$additionalClass}' style='background-color:{$backgroundColor};'>[#element#]</span>");
         $res->replace($element, 'element');
 
         return $res;
