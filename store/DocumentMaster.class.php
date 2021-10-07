@@ -1019,8 +1019,15 @@ abstract class store_DocumentMaster extends core_Master
         
         // Ако няма цена, опитваме се да я намерим от съответната ценова политика
         if (empty($price)) {
+            $firstDocumentInThread = doc_Threads::getFirstDocument($rec->threadId);
+            $listId = null;
+            if($firstDocumentInThread->isInstanceOf('deals_DealMaster')){
+                $listId = $firstDocumentInThread->fetchField('priceListId');
+                $listId = empty($listId) ? null : $listId;
+            }
             $Policy = (isset($Detail->Policy)) ? $Detail->Policy : cls::get('price_ListToCustomers');
-            $policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity);
+            $policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity, null, 1, 'no', $listId, true);
+
             $price = $policyInfo->price;
             if (!isset($discount) && isset($policyInfo->discount)) {
                 $discount = $policyInfo->discount;
