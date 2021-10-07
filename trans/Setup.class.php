@@ -72,7 +72,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'store=0.1,sales=0.1,purchase=0.1,cash=0.1,deals=0.1';
+    public $depends = 'store=0.1';
     
     
     /**
@@ -360,6 +360,12 @@ class trans_Setup extends core_ProtoSetup
 
         $LineDetails = cls::get('trans_LineDetails');
         $LineDetails->setupMvc();
+
+        $Purchases = cls::get('purchase_Purchases');
+        $Purchases->setupMvc();
+
+        $Sales = cls::get('sales_Sales');
+        $Sales->setupMvc();
 
         $statusColName = str::phpToMysqlName('status');
         $query = "UPDATE {$LineDetails->dbTableName} SET {$statusColName} = 'ready' WHERE ({$statusColName} = '' OR {$statusColName} IS NULL OR {$statusColName} = 'pending')";
