@@ -222,8 +222,8 @@ class trans_LineDetails extends doc_Detail
             // Ако документа в момента е в зона
             if(isset($transportInfo['zoneId'])){
                 $zoneTitle = rack_Zones::getVerbal($transportInfo['zoneId'], 'num');
-                $row->zoneId = core_Type::getByName('percent')->toVerbal($transportInfo['readiness']);
-                $row->zoneId = "<div class='zoneMovement' style='background-color:rgba(173, 62, 42, 0.9);color:white'>{$row->zoneId}</div>";
+                $row->zoneId = core_Type::getByName('percent(decimals=0)')->toVerbal($transportInfo['readiness']);
+                $row->zoneId = "<div class='zoneMovement' style='background-color:rgba(173, 62, 42, 0.9);color:white;padding:3px;font-weight:bold;font-size:0.8em'>{$row->zoneId}</div>";
                 $row->zoneId .= " " . rack_Zones::styleZone($transportInfo['zoneId'], $zoneTitle, 'zoneMovement');
             }
 
@@ -458,7 +458,7 @@ class trans_LineDetails extends doc_Detail
         $rkoClassId = cash_Rko::getClassId();
         
         $data->query->XPR('orderByClassId', 'int', "(CASE #classId WHEN {$shipClassId} THEN 1 WHEN {$receiptClassId} THEN 2 WHEN {$transferClassId} THEN 3 WHEN {$consClassId} THEN 4 WHEN {$pkoClassId} THEN 5 WHEN {$rkoClassId} THEN 6 ELSE 7 END)");
-        $data->query->orderBy('#orderByClassId=ASC,#containerId=ASC');
+        $data->query->orderBy('#orderByClassId=ASC,#status');
 
         if(Mode::is('printing')){
             $data->query->where("#status != 'removed'");
