@@ -255,7 +255,7 @@ abstract class rack_MovementAbstract extends core_Manager
         $data->listFilter->FLD('from', 'date');
         $data->listFilter->FLD('to', 'date');
         $data->listFilter->FNC('documentHnd', 'varchar', 'placeholder=Документ,caption=Документ,input,silent,recently');
-        $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,active=Активни,closed=Приключени)', 'placeholder=Всички');
+        $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,waiting=Запазени,active=Активни,closed=Приключени)', 'placeholder=Всички');
 
         $data->listFilter->showFields = 'selectPeriod,workerId,search,documentHnd,state1';
         $data->listFilter->input();
@@ -263,7 +263,7 @@ abstract class rack_MovementAbstract extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         if ($filterRec = $data->listFilter->rec) {
-            if (in_array($filterRec->state1, array('active', 'closed', 'pending'))) {
+            if (in_array($filterRec->state1, array('active', 'closed', 'pending', 'waiting'))) {
                 $data->query->where("#state = '{$filterRec->state1}'");
             }
 
