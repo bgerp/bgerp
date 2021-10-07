@@ -91,7 +91,6 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-
         $makeLinks = !($fields['-inline'] && !isset($fields['-inline-single']));
         if (!empty($rec->note)) {
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
@@ -363,8 +362,16 @@ abstract class rack_MovementAbstract extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
-        $data->listTableMvc->FLD('leftColBtns', 'varchar', 'tdClass=centered');
-        $data->listTableMvc->FLD('rightColBtns', 'varchar', 'tdClass=centered');
+        if(!$data->inlineMovement){
+            $data->listTableMvc->FLD('leftColBtns', 'varchar', 'tdClass=centered');
+            $data->listTableMvc->FLD('rightColBtns', 'varchar', 'tdClass=centered');
+            $data->listTableMvc->setField('workerId', 'tdClass=centered');
+        } else {
+            $data->listTableMvc->FLD('leftColBtns', 'varchar', 'tdClass=terminalLeftBtnsCol');
+            $data->listTableMvc->FLD('rightColBtns', 'varchar', 'tdClass=terminalRightBtnsCol');
+            $data->listTableMvc->setField('workerId', 'tdClass=terminalWorkerCol');
+        }
+
         if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
             $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
             $data->listFields['productId'] = '@Артикул';
