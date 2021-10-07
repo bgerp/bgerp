@@ -1169,13 +1169,9 @@ class rack_Zones extends core_Master
     {
         $color = rack_Zones::fetchField($id, 'color');
         $backgroundColor = !empty($color) ? $color : rack_Setup::get('DEFAULT_ZONE_COLORS');
-        if(phpcolor_Adapter::checkColor($backgroundColor, 'dark')){
-            $textColor = "#fff";
-        } else {
-            $textColor = "#000";
-        }
+        $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
 
-        $res = new core_ET("<span class='{$class}' style='background-color:{$backgroundColor};color:{$textColor} !important'>[#element#]</span>");
+        $res = new core_ET("<span class='{$class} {$additionalClass}' style='background-color:{$backgroundColor};'>[#element#]</span>");
         $res->replace($element, 'element');
 
         return $res;
