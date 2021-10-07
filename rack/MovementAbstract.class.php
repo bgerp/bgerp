@@ -177,10 +177,8 @@ abstract class rack_MovementAbstract extends core_Manager
 
             foreach ($zones as $zoneRec) {
                 $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
-
                 if(rack_Zones::fetchField($zoneRec->zone)){
-                    $zoneTitle = rack_Zones::getVerbal($zoneRec->zone, 'num');
-                    $zoneTitle = rack_Zones::styleZone($zoneRec->zone, $zoneTitle, 'zoneMovement');
+                    $zoneTitle = rack_Zones::getDisplayZone($zoneRec->zone, false, false);
                     if($makeLinks){
                         $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
                     }

@@ -221,20 +221,9 @@ class trans_LineDetails extends doc_Detail
 
             // Ако документа в момента е в зона
             if(isset($transportInfo['zoneId'])){
-                $zoneTitle = rack_Zones::getVerbal($transportInfo['zoneId'], 'num');
-
-                $row->zoneId = core_Type::getByName('percent(decimals=0)')->toVerbal($transportInfo['readiness']);
-                $row->zoneId = "<div class='zoneMovement' style='background-color:rgba(173, 62, 42, 0.8);color:white;border-radius: 3px;border: solid 1px #bbb;display: inline-block;padding-bottom:3px;padding-top:3px;font-weight:bold;font-size:0.8em'>{$row->zoneId}</div>";
-                $row->zoneId .= " " . rack_Zones::styleZone($transportInfo['zoneId'], $zoneTitle, 'zoneMovement');
-            }
-
-            // Бутон към зоната
-            if(core_Packs::isInstalled('rack') && store_Stores::getCurrent('id', false)){
-                $zoneBtn = rack_Zones::getBtnToZone($rec->containerId);
-                if (countR($zoneBtn->url)) {
-                    core_RowToolbar::createIfNotExists($row->_rowTools);
-                    $row->_rowTools->addLink($zoneBtn->caption, $zoneBtn->url, $zoneBtn->attr);
-                }
+                $readiness = core_Type::getByName('percent(decimals=0)')->toVerbal($transportInfo['readiness']);
+                $readiness = "<div class='zoneMovement' style='background-color:rgba(173, 62, 42, 0.8);color:white;border-radius: 3px;border: solid 1px #bbb;display: inline-block;padding-bottom:3px;padding-top:3px;font-weight:bold;font-size:0.8em'>{$readiness}</div>";
+                $row->zoneId = "{$readiness} " . rack_Zones::getDisplayZone($transportInfo['zoneId']);
             }
 
             // Подготовка на логистичната информация за документа
