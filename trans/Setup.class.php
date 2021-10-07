@@ -85,7 +85,6 @@ class trans_Setup extends core_ProtoSetup
         'trans_TransportModes',
         'trans_TransportUnits',
         'trans_LineDetails',
-        'migrate::updateLines',
         'migrate::updateLinesPlugin',
     );
     
@@ -150,8 +149,20 @@ class trans_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
+
+
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+        $res .= $this->callMigrate('updateLines', 'trans');
+
+        return $res;
+    }
+
+
     /**
      * Ъпдейт на ЛЕ в ЕН
      */
