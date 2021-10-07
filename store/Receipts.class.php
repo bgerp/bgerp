@@ -214,7 +214,8 @@ class store_Receipts extends store_DocumentMaster
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->setField('locationId', 'caption=Обект от');
+        $form = &$data->form;
+        $form->setField('locationId', 'caption=Обект от');
     }
     
     
@@ -328,6 +329,25 @@ class store_Receipts extends store_DocumentMaster
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields = 'deliveryTime,valior, title=Документ, amountDelivered, weight, volume,lineId';
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if(in_array($action, array('add', 'pending', 'conto', 'clonerec')) && isset($rec) && $requiredRoles != 'no_one'){
+
+            // Ако има финална доставка и СР не е коригираща - не може да се пускат нови
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDoc->isInstanceOf('purchase_Purchases')){
+                $ignoreContainerId =  ($action != 'clonerec') ? $rec->containerId : null;
+                if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)){
+                    $requiredRoles = 'no_one';
+                }
+            }
         }
     }
 }

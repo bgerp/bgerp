@@ -110,17 +110,11 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено->Сума,input=none,summary=amount,smartCenter'); // Сумата на доставената стока
         $mvc->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено->ДДС,input=none,summary=amount,smartCenter');
         $mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
-        
-        // Контрагент
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
-        
-        // Доставка
         $mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
         $mvc->FLD('deliveryTime', 'datetime');
         $mvc->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
-        
-        // Допълнително
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
@@ -132,7 +126,6 @@ abstract class store_DocumentMaster extends core_Master
         );
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
-        
         $mvc->setDbIndex('valior');
     }
     
@@ -171,7 +164,7 @@ abstract class store_DocumentMaster extends core_Master
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         $dealInfo = $origin->getAggregateDealInfo();
         $form->dealInfo = $dealInfo;
-        
+
         $form->setDefault('currencyId', $dealInfo->get('currency'));
         $form->setDefault('currencyRate', $dealInfo->get('rate'));
         $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
@@ -1026,8 +1019,15 @@ abstract class store_DocumentMaster extends core_Master
         
         // Ако няма цена, опитваме се да я намерим от съответната ценова политика
         if (empty($price)) {
+            $firstDocumentInThread = doc_Threads::getFirstDocument($rec->threadId);
+            $listId = null;
+            if($firstDocumentInThread->isInstanceOf('deals_DealMaster')){
+                $listId = $firstDocumentInThread->fetchField('priceListId');
+                $listId = empty($listId) ? null : $listId;
+            }
             $Policy = (isset($Detail->Policy)) ? $Detail->Policy : cls::get('price_ListToCustomers');
-            $policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity);
+            $policyInfo = $Policy->getPriceInfo($rec->contragentClassId, $rec->contragentId, $productId, $packagingId, $quantityInPack * $packQuantity, null, 1, 'no', $listId, true);
+
             $price = $policyInfo->price;
             if (!isset($discount) && isset($policyInfo->discount)) {
                 $discount = $policyInfo->discount;

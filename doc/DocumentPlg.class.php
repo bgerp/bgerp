@@ -936,7 +936,10 @@ class doc_DocumentPlg extends core_Plugin
                         $notifyArr = array($fRec->inCharge => $fRec->inCharge);
                         
                         // Настройките на пакета
+                        $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+                        core_ObjectConfiguration::$stopInvoke = true;
                         $notifyPendingConf = doc_Setup::get('NOTIFY_PENDING_DOC');
+                        core_ObjectConfiguration::$stopInvoke = $stopInvoke;
                         if ($notifyPendingConf == 'no') {
                             $notifyArr = array();
                         } elseif ($notifyPendingConf == 'yes') {

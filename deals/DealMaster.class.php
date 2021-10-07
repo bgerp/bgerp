@@ -240,7 +240,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
         $mvc->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
         $mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->От склад,notChangeableByContractor');
-        $mvc->FLD('oneTimeDelivery', 'enum(no=Не,yes=Да)', 'caption=Доставка->Еднократна доставка,notChangeableByContractor,notNull,value=no');
+        $mvc->FLD('oneTimeDelivery', 'enum(no=Не,yes=Да)', 'caption=Доставка->Еднократно,notChangeableByContractor,notNull,value=no');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
         $mvc->FLD('paymentType', 'enum(,cash=В брой,bank=По банков път,intercept=С прихващане,card=С карта,factoring=Факторинг,postal=Пощенски паричен превод)', 'caption=Плащане->Начин');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Плащане->Валута,removeAndRefreshForm=currencyRate,notChangeableByContractor');
@@ -307,10 +307,12 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         $form->setField('sharedUsers', 'input=none');
-        
-        $form->input('deliveryTermId');
-        if(isset($rec->deliveryTermId)){
-            cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
+
+        if($data->action != 'changefields'){
+            $form->input('deliveryTermId');
+            if(isset($rec->deliveryTermId)){
+                cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
+            }
         }
     }
     
@@ -2443,7 +2445,8 @@ abstract class deals_DealMaster extends deals_DealBase
         if(is_array($res)){
             $rec = $mvc->fetchRec($rec);
 
-            if($rec->state != 'pending' && $rec->state != 'active') {
+            // Ако документа не е заявка/активен или има финална експедиция - няма да запазва нищо
+            if(($rec->state != 'pending' && $rec->state != 'active') || !deals_Helper::canHaveMoreDeliveries($rec->threadId, $rec->containerId)) {
                 $res = array();
                 return;
             }
@@ -2464,7 +2467,7 @@ abstract class deals_DealMaster extends deals_DealBase
 
             // Ако има експедиция поне по един от артикулите в продажбата тя няма да запазва !
             // Или ако е с еднократна доставка и вече има доставки
-            if(array_intersect_key($plannedProducts, $shippedProducts) || ($rec->oneTimeDelivery == 'yes' && countR($pendingRecs))){
+            if(array_intersect_key($plannedProducts, $shippedProducts)){
 
                 $res = array();
                 return;
