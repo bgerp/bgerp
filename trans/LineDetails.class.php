@@ -218,7 +218,7 @@ class trans_LineDetails extends doc_Detail
 
         if(isset($transportInfo['locationId'])){
             if(crm_Locations::haveRightFor('single', $transportInfo['locationId'])){
-                $row->address = ht::createLinkRef($row->address, crm_Locations::getSingleUrlArray($transportInfo['locationId']));
+                $row->address = ht::createLinkRef($row->address, crm_Locations::getSingleUrlArray($transportInfo['locationId']), false, 'title=Преглед на локацията');
             }
         }
         $row->address = rtrim($row->address, ' ,');

@@ -446,7 +446,8 @@ class trans_Lines extends core_Master
         $row->totalAmountReturn = core_Type::getByName('double(decimals=2)')->toVerbal(abs($amountReturned));
         $row->totalAmountReturn = ht::styleNumber($row->totalAmountReturn, abs($amountReturned));
     }
-    
+
+
     /**
      * @see doc_DocumentIntf::getDocumentRow()
      */
