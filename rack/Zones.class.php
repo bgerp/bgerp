@@ -206,6 +206,7 @@ class rack_Zones extends core_Master
             }
         }
 
+        $row->readiness = "<div class='block-readiness'>{$row->readiness}</div>";
         if (isset($fields['-list'])) {
             $rec->_isSingle = false;
 
