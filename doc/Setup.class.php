@@ -566,6 +566,8 @@ class doc_Setup extends core_ProtoSetup
 
         doc_Files::logDebug("Файлове за миграция в документите - " . $cnt);
 
+        $deadline = time() + 45;
+
         while ($rec = $query->fetch()) {
             try {
                 doc_Files::recalcFiles($rec->containerId);
@@ -576,6 +578,11 @@ class doc_Setup extends core_ProtoSetup
             }
 
             $lastId = $rec->id;
+
+            if ($deadline > time()) {
+
+                break;
+            }
         }
 
         $lastId++;
