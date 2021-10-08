@@ -363,8 +363,8 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $row->storeReadiness = isset($row->storeReadiness) ? $row->storeReadiness : "<b class='quiet'>N/A</b>";
             }
 
-            if (Mode::isReadOnly()) {
-                unset($row->storeReadiness, $row->zoneReadiness);
+            if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
+                unset($row->storeReadiness);
             }
         }
 
