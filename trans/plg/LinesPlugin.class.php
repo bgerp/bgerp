@@ -162,7 +162,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                         }
                     }
                 }
-                
+                $rec->_changeLine = true;
                 $mvc->save($rec);
                 $mvc->updateMaster($rec);
                 $mvc->logWrite('Редакция на транспорта', $rec->id);
@@ -170,9 +170,9 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if (!$rec->lineId) {
                     trans_LineDetails::delete("#containerId = {$rec->containerId}");
                 }
-                
+
                 if ($exLineId && $exLineId != $rec->lineId) {
-                    $mvc->updateLines[$rec->lineId] = $exLineId;
+                    $mvc->updateLines[$exLineId] = $exLineId;
                 }
                 
                 // Редирект след успешния запис
@@ -380,7 +380,10 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
         if (isset($rec->lineId)) {
-            $mvc->updateLines[$rec->lineId] = $rec->lineId;
+            if($rec->_changeLine || $rec->_fromForm) {
+                $mvc->updateLines[$rec->lineId] = $rec->lineId;
+            }
+
             if(!cls::haveInterface('store_iface_DocumentIntf', $mvc) && isset($rec->containerId)){
                 $mvc->syncLineDetails[$rec->lineId] = $rec->containerId;
             }
@@ -435,7 +438,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         // Синхронизиране с транспортната линия ако е избрана
         if (isset($masterRec->lineId)) {
-            trans_LineDetails::sync($masterRec->lineId, $masterRec->containerId);
+            cls::get('trans_Lines')->updateMaster($masterRec->lineId);
         }
     }
     
@@ -540,6 +543,18 @@ class trans_plg_LinesPlugin extends core_Plugin
                     reportException($e);
                 }
             }
+        }
+    }
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if ($form->isSubmitted()) {
+            $rec->_fromForm = true;
         }
     }
 }
