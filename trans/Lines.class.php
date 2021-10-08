@@ -356,11 +356,11 @@ class trans_Lines extends core_Master
 
         // Показване на готовността
         $row->countStoreDocuments = $mvc->getVerbal($rec, 'countStoreDocuments');
-        $row->countStoreDocuments = ht::createHint($row->countStoreDocuments, 'Брой складови документи в линията', 'noicon', false);
+        $row->countStoreDocuments = ht::createHint($row->countStoreDocuments, 'Брой складови документи', 'noicon', false);
         $row->countActiveDocuments = $mvc->getVerbal($rec, 'countActiveDocuments');
-        $row->countActiveDocuments = ht::createHint($row->countActiveDocuments, 'Брой активирани складови документи в линията', 'noicon', false);
+        $row->countActiveDocuments = ht::createHint($row->countActiveDocuments, 'Брой активирани складови документи', 'noicon', false);
         $row->countReadyDocuments = $mvc->getVerbal($rec, 'countReadyDocuments');
-        $row->countReadyDocuments  = ht::createHint($row->countReadyDocuments , 'Брой нагласени в зони', 'noicon', false);
+        $row->countReadyDocuments  = ht::createHint($row->countReadyDocuments , 'Брой нагласени складови документи', 'noicon', false);
 
         $row->readiness = "{$row->countStoreDocuments} / {$row->countActiveDocuments} / {$row->countReadyDocuments}";
         if($rec->countStoreDocuments != ($rec->countActiveDocumentsVerbal + $rec->countReadyDocumentsVerbal)){
