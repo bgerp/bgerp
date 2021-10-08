@@ -541,14 +541,14 @@ abstract class cash_Document extends deals_PaymentDocument
             $requiredRoles = 'no_one';
         }
     }
-    
-    
+
+
     /**
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
      * @param int $lineId
-     * 
+     *
      * @return array
      *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
      *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
@@ -563,8 +563,9 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
-     *               ['address']        double|NULL - общ обем на стоките в документа
+     *               ['address']        double|NULL - адрес ба диставка
      *               ['storeMovement']  string|NULL - посока на движението на склада
+     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      */
     public function getTransportLineInfo_($rec, $lineId)
     {

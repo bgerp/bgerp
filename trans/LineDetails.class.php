@@ -216,6 +216,13 @@ class trans_LineDetails extends doc_Detail
             $row->address = "{$row->storeId} {$transportInfo['contragentName']}" . (!empty($row->address) ? ", {$row->address}" : '');
         }
 
+        if(isset($transportInfo['locationId'])){
+            if(crm_Locations::haveRightFor('single', $transportInfo['locationId'])){
+                $row->address = ht::createLinkRef($row->address, crm_Locations::getSingleUrlArray($transportInfo['locationId']));
+            }
+        }
+        $row->address = rtrim($row->address, ' ,');
+
         // Ако е складов документ
         if($Document->haveInterface('store_iface_DocumentIntf')){
 

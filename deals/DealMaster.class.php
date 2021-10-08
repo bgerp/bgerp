@@ -2169,42 +2169,44 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->tabs->TAB('DealReport', '|Поръчано|* / |Доставено|*', $url);
         }
     }
-    
-    
+
+
     /**
      * Информация за логистичните данни
      *
      * @param mixed $rec - ид или запис на документ
+     * @return array      - логистичните данни
      *
-     * @return array $data - логистичните данни
-     *
-     *		string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
-     * 		string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
-     * 		string|NULL   ['fromPlace']    - град за натоварване
-     * 		string|NULL   ['fromAddress']  - адрес за натоварване
-     *  	string|NULL   ['fromCompany']  - фирма
-     *   	string|NULL   ['fromPerson']   - лице
-     * 		datetime|NULL ['loadingTime']  - дата на натоварване
-     * 		string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
-     * 		string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
-     * 		string|NULL   ['toPlace']      - град за разтоварване
-     *  	string|NULL   ['toAddress']    - адрес за разтоварване
-     *   	string|NULL   ['toCompany']    - фирма
-     *   	string|NULL   ['toPerson']     - лице
-     *      string|NULL   ['toPersonPhones'] - телефон на лицето
-     *      string|NULL   ['instructions'] - инструкции
-     * 		datetime|NULL ['deliveryTime'] - дата на разтоварване
-     * 		text|NULL 	  ['conditions']   - други условия
-     *		varchar|NULL  ['ourReff']      - наш реф
-     * 		double|NULL   ['totalWeight']  - общо тегло
-     * 		double|NULL   ['totalVolume']  - общ обем
+     *		string(2)     ['fromCountry']     - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']       - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']       - град за натоварване
+     * 		string|NULL   ['fromAddress']     - адрес за натоварване
+     *  	string|NULL   ['fromCompany']     - фирма
+     *   	string|NULL   ['fromPerson']      - лице
+     *      string|NULL   ['fromLocationId']  - лице
+     * 		datetime|NULL ['loadingTime']     - дата на натоварване
+     * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']         - град за разтоварване
+     *  	string|NULL   ['toAddress']       - адрес за разтоварване
+     *   	string|NULL   ['toCompany']       - фирма
+     *   	string|NULL   ['toPerson']        - лице
+     *      string|NULL   ['toLocationId']    - лице
+     *      string|NULL   ['toPersonPhones']  - телефон на лицето
+     *      string|NULL   ['instructions']    - инструкции
+     * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
+     * 		text|NULL 	  ['conditions']      - други условия
+     *		varchar|NULL  ['ourReff']         - наш реф
+     * 		double|NULL   ['totalWeight']     - общо тегло
+     * 		double|NULL   ['totalVolume']     - общ обем
      */
     public function getLogisticData($rec)
     {
         $rec = $this->fetchRec($rec);
         $ownCompany = crm_Companies::fetchOurCompany();
         $ownCountryId = $ownCompany->country;
-        
+
+        $res = array();
         $contragentData = doc_Folders::getContragentData($rec->folderId);
         $contragentCountryId = $contragentData->countryId;
         
@@ -2225,14 +2227,14 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $ownPart = ($this instanceof sales_Sales) ? 'from' : 'to';
         $contrPart = ($this instanceof sales_Sales) ? 'to' : 'from';
-        
-        $res = array();
+
         $res["{$ownPart}Country"] = $ownCountry;
         if (isset($storeLocation)) {
             $res["{$ownPart}PCode"] = !empty($storeLocation->pCode) ? $storeLocation->pCode : null;
             $res["{$ownPart}Place"] = !empty($storeLocation->place) ? $storeLocation->place : null;
             $res["{$ownPart}Address"] = !empty($storeLocation->address) ? $storeLocation->address : null;
             $res["{$ownPart}Person"] = !empty($storeLocation->mol) ? $storeLocation->mol : null;
+            $res["{$ownPart}LocationId"] = $storeLocation->id;
         } else {
             $res["{$ownPart}PCode"] = !empty($ownCompany->pCode) ? $ownCompany->pCode : null;
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
@@ -2258,6 +2260,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $res["{$contrPart}PCode"] = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentLocation->place) ? $contragentLocation->place : null;
             $res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : null;
+            $res["{$contrPart}LocationId"] = $contragentLocation->id;
             if(!empty($contragentLocation->mol) || !empty($contragentLocation->tel)){
                 $res["{$contrPart}Person"] = !empty($contragentLocation->mol) ? $contragentLocation->mol : null;
                 $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;
