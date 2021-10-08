@@ -34,7 +34,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, purchase_Wrapper,purchase_plg_ExtractPurchasesData, acc_plg_Registry, plg_Sorting, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary,change_Plugin, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -47,12 +47,6 @@ class purchase_Purchases extends deals_DealMaster
      * Абревиатура
      */
     public $abbr = 'Pur';
-
-
-    /**
-     * Полетата, които могат да се променят с change_Plugin
-     */
-    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery';
 
 
     /**
@@ -171,12 +165,6 @@ class purchase_Purchases extends deals_DealMaster
 
 
     /**
-     * Кои роли може да променят активна продажбата
-     */
-    public $canChangerec = 'ceo, purchaseMaster';
-
-
-    /**
      * До потребители с кои роли може да се споделя документа
      *
      * @var string
@@ -199,7 +187,7 @@ class purchase_Purchases extends deals_DealMaster
         'chargeVat' => 'lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
-        'oneTimeDelivery' => 'clientCondition',
+        'oneTimeDelivery' => 'clientCondition'
     );
     
     

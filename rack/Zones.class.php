@@ -151,6 +151,21 @@ class rack_Zones extends core_Master
 
 
     /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetVerbal($mvc, &$num, $rec, $part)
+    {
+        if ($part == 'num') {
+            $num = "Z-{$num}";
+        } elseif($part == 'readiness'){
+            if(empty($rec->readiness)){
+                $num = core_Type::getByName('percent')->toVerbal(0);
+            }
+        }
+    }
+
+
+    /**
      * След преобразуване на записа в четим за хора вид
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
@@ -207,11 +222,9 @@ class rack_Zones extends core_Master
                 $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
             }
 
-            Mode::push('shortZoneName', true);
             $id = self::getRecTitle($rec);
-            Mode::pop('shortZoneName');
-            $row->num = ht::createElement("div", array('id' => $id), $row->num, true);
-            $row->num = rack_Zones::styleZone($rec->id, $row->num, 'zoneMovement');
+            $num = rack_Zones::getDisplayZone($rec->id, true);
+            $row->num = ht::createElement("div", array('id' => $id), $num, true);
         }
 
         if (!empty($rec->description)) {
@@ -290,17 +303,9 @@ class rack_Zones extends core_Master
     public static function getRecTitle($rec, $escaped = true)
     {
         $rec = self::fetchRec($rec);
-
         $num = self::getVerbal($rec, 'num');
-        $groupName = null;
-        if (!Mode::is('shortZoneName')) {
-            $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
-        }
-
-        $title = "Z-{$num}";
-        if (!empty($groupName)) {
-            $title .= " ({$groupName})";
-        }
+        $groupName = (is_null($rec->groupId)) ? tr('Без група') : rack_ZoneGroups::getVerbal($rec->groupId, 'name');
+        $title = "{$num} ({$groupName})";
 
         if ($escaped) {
             $title = type_Varchar::escape($title);
@@ -1060,43 +1065,6 @@ class rack_Zones extends core_Master
 
 
     /**
-     * Данни за бутона за зоната
-     *
-     * @param int $containerId
-     * @return stdClass $res
-     */
-    public static function getBtnToZone($containerId)
-    {
-        $res = (object)array('caption' => 'Зона', 'url' => array(), 'attr' => '');
-        $document = doc_Containers::getDocument($containerId);
-
-        if ($zoneRec = rack_Zones::fetch("#containerId = {$containerId}")) {
-            $res->caption .= "|* " . rack_Zones::getTitleById($zoneRec);
-        }
-
-        if (empty($zoneRec)) {
-            $zoneOptions = rack_Zones::getZones($document->fetch()->{$document->storeFieldName}, true);
-            if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $containerId))) {
-                $res->url = array('rack_Zones', 'selectdocument', 'containerId' => $containerId, 'ret_url' => true);
-                $res->attr = "ef_icon=img/16/hand-point.png,title=Избор на зона за нагласяне";
-            }
-            if (empty($zoneOptions)) {
-                $res->attr .= ',error=Няма свободни зони в склада|*!';
-            }
-
-        } else {
-            if (rack_Zones::haveRightFor('list')) {
-                $res->url = self::getUrlArr($zoneRec);
-                $res->attr = "ef_icon=img/16/package.png,title=Към зоната";
-            }
-        }
-        $res->attr = arr::make($res->attr, true);
-
-        return $res;
-    }
-
-
-    /**
      * Връща Урл към списъка на зоните филтрирани по зона и група
      *
      * @param mixed $zoneId - ид или запис на зона
@@ -1105,10 +1073,8 @@ class rack_Zones extends core_Master
     public static function getUrlArr($zoneId)
     {
         $zoneRec = self::fetchRec($zoneId);
-        Mode::push('shortZoneName', true);
         $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
         $url = array('rack_Zones', 'list', 'terminal' => 1, 'grouping' => $grouping, 'ret_url' => true);
-        Mode::pop('shortZoneName');
 
         if (isset($zoneRec->groupId)) {
             $url['grouping'] = $zoneRec->groupId;
@@ -1161,22 +1127,49 @@ class rack_Zones extends core_Master
 
 
     /**
-     * Стилва показването на името на зоната
+     * Линк към зоната
      *
-     * @param $id      - ид на зона
-     * @param $element - елемент
-     * @param $class   - клас
-     * @return core_ET - $res
+     * @param int $zoneId               - ид на зона
+     * @param bool $showGroup           - да се показва ли групата на зоната или не
+     * @param bool $makeLink            - да бъде ли линк
+     * @param string|null $class        - с какъв клас да е елемента
+     * @return string|null   $zoneTitle - заглавие на зоната
      */
-    public static function styleZone($id, $element, $class)
+    public static function getDisplayZone($zoneId, $showGroup = false, $makeLink = true, $class = 'zoneMovement')
     {
-        $color = rack_Zones::fetchField($id, 'color');
-        $backgroundColor = !empty($color) ? $color : rack_Setup::get('DEFAULT_ZONE_COLORS');
-        $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
+        if(Mode::is('printing') || Mode::is('text', 'xhtml')) return null;
+        $zoneTitle = ($showGroup) ? rack_Zones::getRecTitle($zoneId) : rack_Zones::getVerbal($zoneId, 'num');
 
-        $res = new core_ET("<span class='{$class} {$additionalClass}' style='background-color:{$backgroundColor};'>[#element#]</span>");
-        $res->replace($element, 'element');
+        // Линк към зоната
+        $zoneRec = rack_Zones::fetchRec($zoneId);
+        if($makeLink){
+            if(rack_Zones::haveRightFor('list')){
+                $currentStoreId = store_Stores::getCurrent('id', false);
+                $grouping = ($zoneRec->groupId) ? $zoneRec->groupId : "s{$zoneRec->id}";
+                $url = array('rack_Zones', 'list', 'terminal' => 1, 'grouping' => $grouping);
+                if($zoneRec->storeId != $currentStoreId){
+                    if(store_Stores::haveRightFor('select', $zoneRec->storeId)){
+                        $url = array('store_Stores', 'setCurrent', $zoneRec->storeId, 'ret_url' => $url);
+                    } else {
+                        $url = array();
+                    }
+                }
 
-        return $res;
+                if(countR($url)){
+                    $zoneTitle = ht::createLink($zoneTitle, $url);
+                }
+            }
+        }
+
+        // Ако има клас обвива се в него
+        if(isset($class)){
+            $backgroundColor = !empty($zoneRec->color) ? $zoneRec->color : rack_Setup::get('DEFAULT_ZONE_COLORS');
+            $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
+            $res = new core_ET("<div class='{$class} {$additionalClass}' style='background-color:{$backgroundColor};'>[#element#]</div>");
+            $res->replace($zoneTitle, 'element');
+            $zoneTitle = $res->getContent();
+        }
+
+        return $zoneTitle;
     }
 }

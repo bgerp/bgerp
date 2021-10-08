@@ -90,10 +90,7 @@ class trans_plg_LinesPlugin extends core_Plugin
      */
     public static function on_BeforeAction($mvc, &$res, $action)
     {
-        if ($action != 'changeline') {
-            
-            return;
-        }
+        if ($action != 'changeline') return;
         
         $mvc->requireRightFor('changeline');
         expect($id = Request::get('id', 'int'));
@@ -104,7 +101,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         $form = cls::get('core_Form');
         
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
-        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт' . ($exLineId ? '' : ''));
+        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт');
         $form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки,after=volume');
         $linesArr = trans_Lines::getSelectableLines();
         if(isset($exLineId) && !array_key_exists($exLineId, $linesArr)){
@@ -233,11 +230,23 @@ class trans_plg_LinesPlugin extends core_Plugin
         core_Lg::push($rec->tplLang);
         
         if (isset($rec->lineId)) {
-            $row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
-            
-            if (!Mode::isReadOnly()) {
-                $lineState = trans_Lines::fetchField($rec->lineId, 'state');
-                $row->lineId = "<span class='state-{$lineState} document-handler' style='line-height:110%'>{$row->lineId}</span>";
+            if(!Mode::is('printing')){
+                $lineRec = trans_Lines::fetch($rec->lineId, 'forwarderId,vehicle,state');
+                $row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
+                $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
+            }
+
+            if(!empty($lineRec->forwarderId)){
+                $row->lineForwarderId = crm_Companies::getHyperlink($lineRec->forwarderId);
+            }
+
+            if(!empty($lineRec->vehicle)){
+                $row->lineVehicleId = core_Type::getByName('varchar')->toVerbal($lineRec->vehicle);
+                if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))) {
+                    if(!empty($vehicleRec->number)){
+                        $row->lineVehicleId = trans_Vehicles::getVerbal($vehicleRec, 'number');
+                    }
+                }
             }
         }
         
@@ -321,13 +330,32 @@ class trans_plg_LinesPlugin extends core_Plugin
             $res = cls::get($mvc->mainDetail)->getTransportInfo($rec->id, $force);
         }
     }
-    
-    
+
+
+    /**
+     * При оттегляне на документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        // При оттегляне, ако е към т.линия кара се да се обнови
+        $rec = $mvc->fetchRec($id);
+        if($rec->brState == 'active'){
+            if(isset($rec->lineId)){
+                $mvc->updateLines[$rec->lineId] = $rec->lineId;
+            }
+        }
+    }
+
+
     /**
      * Функция, която се извиква след активирането на документа
      */
     public static function on_AfterActivation($mvc, &$rec)
     {
+        if(isset($rec->lineId)){
+            $mvc->updateLines[$rec->lineId] = $rec->lineId;
+        }
+
         if(!cls::haveInterface('store_iface_DocumentIntf', $mvc)) return;
         
         // Форсиране на мерките на редовете
@@ -366,16 +394,16 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_Shutdown($mvc)
     {
         // Обновяване на линиите
+        if (is_array($mvc->syncLineDetails)) {
+            foreach ($mvc->syncLineDetails as $lineId => $containerId) {
+                trans_LineDetails::sync($lineId, $containerId);
+            }
+        }
+
         if (is_array($mvc->updateLines)) {
             $Lines = cls::get('trans_Lines');
             foreach ($mvc->updateLines as $lineId) {
                 $Lines->updateMaster($lineId);
-            }
-        }
-        
-        if (is_array($mvc->syncLineDetails)) {
-            foreach ($mvc->syncLineDetails as $lineId => $containerId) {
-                trans_LineDetails::sync($lineId, $containerId);
             }
         }
     }
@@ -422,6 +450,9 @@ class trans_plg_LinesPlugin extends core_Plugin
      * 		['currencyId'] string|NULL - валутата на документа
      * 		['notes']      string|NULL - забележки за транспортната линия
      *  	['stores']     array       - склад(ове) в документа
+     *      ['cases']      array       - каси в документа
+     *      ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *      ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *   	['weight']     double|NULL - общо тегло на стоките в документа
      *     	['volume']     double|NULL - общ обем на стоките в документа
      *      ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
@@ -435,7 +466,13 @@ class trans_plg_LinesPlugin extends core_Plugin
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             $rec = $mvc->fetchRec($id);
             $transInfo = $mvc->getTotalTransportInfo($rec);
-            
+            if(core_Packs::isInstalled('rack')){
+                if($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}", 'id,readiness')){
+                    $res['zoneId'] = $zoneRec->id;
+                    $res['readiness'] = ($zoneRec->readiness) ? $zoneRec->readiness : 0;
+                }
+            }
+
             if (empty($res['weight'])) {
                 $res['weight'] = ($rec->weightInput) ? $rec->weightInput : $transInfo->weight;
             }
@@ -449,25 +486,6 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
             
             $res['transportUnits'] = trans_Helper::getCombinedTransUnits($rec->transUnits, $rec->transUnitsInput);
-        }
-    }
-    
-    
-    /**
-     * Трябва ли ръчно да се подготвя документа в Транспортната линия
-     *
-     * @param core_Mvc $mvc - документ
-     * @param bool     $res - TRUE или FALSE
-     * @param mixed    $id  - ид или запис на документа
-     *
-     * @return void
-     */
-    public static function on_AfterRequireManualCheckInTransportLine($mvc, &$res, $id)
-    {
-        if(!cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $res = false;
-        } elseif (!isset($res)) {
-            $res = true;
         }
     }
     

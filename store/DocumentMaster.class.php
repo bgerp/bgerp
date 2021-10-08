@@ -739,8 +739,8 @@ abstract class store_DocumentMaster extends core_Master
         
         return $details;
     }
-    
-    
+
+
     /**
      * Информацията на документа, за показване в транспортната линия
      *
@@ -754,9 +754,12 @@ abstract class store_DocumentMaster extends core_Master
      *               ['currencyId']     string|NULL - валутата на документа
      *               ['notes']          string|NULL - забележки за транспортната линия
      *               ['stores']         array       - склад(ове) в документа
+     *               ['cases']          array       - каси в документа
+     *               ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *               ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
-     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
      *               ['address']        double|NULL - общ обем на стоките в документа
      *               ['storeMovement']  string|NULL - посока на движението на склада
@@ -767,6 +770,7 @@ abstract class store_DocumentMaster extends core_Master
         $res = array('baseAmount' => null, 'amount' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
         $res['stores'] = array($rec->storeId);
         $res['storeMovement'] = ($this instanceof store_Receipts) ? (($rec->isReverse == 'yes') ? 'out' : 'in') : (($rec->isReverse == 'yes') ? 'in' : 'out');
+        $res['cases'] = array();
 
         $contragentClass = cls::get($rec->contragentClassId);
         $contragentRec = $contragentClass->fetch($rec->contragentId);

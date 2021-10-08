@@ -717,43 +717,6 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
-     * След извличане на името на документа за показване в RichText-а
-     */
-    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
-    {
-        if(Mode::is('text', 'xhtml')) return;
-
-        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if (isset($indicator)) {
-            if ($docName instanceof core_ET) {
-                $docName->append($indicator);
-            } else {
-                $docName .= $indicator;
-            }
-        }
-    }
-
-
-    /**
-     * Връща линк към документа
-     */
-    protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
-    {
-        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-
-        if (isset($indicator)) {
-            if ($link instanceof core_ET) {
-                $link->append($indicator);
-                $link->removeBlocks();
-                $link->removePlaces();
-            } else {
-                $link .= $indicator;
-            }
-        }
-    }
-
-
-    /**
      * Изпълнява се преди контиране на документа
      */
     protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)

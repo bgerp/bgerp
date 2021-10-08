@@ -56,7 +56,7 @@ class rack_plg_Shipments extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if ($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}")){
-            $row->zoneId = rack_Zones::getHyperlink($zoneRec);
+            $row->zoneId = rack_Zones::getDisplayZone($zoneRec, true);
             $row->zoneReadiness = rack_Zones::getVerbal($zoneRec, 'readiness');
         }
     }
@@ -72,12 +72,25 @@ class rack_plg_Shipments extends core_Plugin
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
+        $rec = $data->rec;
         $currentStoreId = store_Stores::getCurrent('id', false);
         if (empty($currentStoreId)) return;
-        
-        $btnData = rack_Zones::getBtnToZone($data->rec->containerId);
-        if(countR($btnData->url)){
-            $data->toolbar->addBtn($btnData->caption, $btnData->url, $btnData->attr);
+
+        $zoneOptions = rack_Zones::getZones($rec->{$mvc->storeFieldName}, true);
+        $attr = arr::make('ef_icon=img/16/hand-point.png,title=Избор на зона за нагласяне', true);
+
+        if (rack_Zones::haveRightFor('selectdocument', (object)array('containerId' => $rec->containerId))) {
+            $url = array('rack_Zones', 'selectdocument', 'containerId' => $rec->containerId, 'ret_url' => true);
+            if (empty($zoneOptions)) {
+                $zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId} and #storeId = {$rec->{$mvc->storeFieldName}}");
+                if(!isset($zoneId)){
+                    $attr['error'] = "Няма свободни зони в избрания склад|*!";
+                } else {
+                    $attr['row'] = 2;
+                }
+            }
+
+            $data->toolbar->addBtn('Зона', $url, null, $attr);
         }
     }
     
