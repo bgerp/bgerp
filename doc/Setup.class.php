@@ -579,7 +579,7 @@ class doc_Setup extends core_ProtoSetup
 
             $lastId = $rec->id;
 
-            if ($deadline > time()) {
+            if (time() > $deadline) {
 
                 break;
             }
