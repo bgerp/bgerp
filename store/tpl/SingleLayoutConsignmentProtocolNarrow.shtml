@@ -12,10 +12,15 @@
                                     <span class="bigData">[#valior#]</span>
                                 </span>
                         </div>
-                        
+
                         <!--ET_BEGIN zoneReadiness-->
-               			<div class="document-block"><span class='block-caption'>|В зона|* [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
-               			<!--ET_END zoneReadiness-->
+                        <table class="document-block no-border">
+                            <tr>
+                                <td class="block-caption leftCol">Zone [#zoneId#]</td>
+                                <td><div class="block-readiness">[#zoneReadiness#]</div></td>
+                            </tr>
+                        </table>
+                        <!--ET_END zoneReadiness-->
                     </td>
                 </tr>
                 <tr>

@@ -222,7 +222,7 @@ class trans_LineDetails extends doc_Detail
             // Ако документа в момента е в зона
             if(isset($transportInfo['zoneId'])){
                 $readiness = core_Type::getByName('percent(decimals=0)')->toVerbal($transportInfo['readiness']);
-                $readiness = "<div class='zoneMovement' style='background-color:rgba(173, 62, 42, 0.8);color:white;border-radius: 3px;border: solid 1px #bbb;display: inline-block;padding-bottom:3px;padding-top:3px;font-weight:bold;font-size:0.8em'>{$readiness}</div>";
+                $readiness = "<div class='block-readiness lineShow'>{$readiness}</div>";
                 $row->zoneId = "{$readiness} " . rack_Zones::getDisplayZone($transportInfo['zoneId']);
             }
 
