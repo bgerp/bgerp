@@ -39,15 +39,18 @@
                         <span class="gray-title">GLN |код|*:</span> [#gln#]
                     </li>
                     <!--ET_END gln-->
-                    <!--ET_BEGIN comment-->
-                    <li class="info">
-                        [#comment#]
-                    </li>
-                    <!--ET_END comment-->
                 </ul>
             </div>
         </fieldset>
         <!--ET_END type-->
+        <!--ET_BEGIN comment-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Особености|*</legend>
+            <div class="groupList">
+                [#comment#]
+                </div>
+        </fieldset>
+        <!--ET_END comment-->
         <!--ET_BEGIN ADDRESS_SECTION-->
         [#ADDRESS_SECTION#]
         <fieldset class="detail-info">

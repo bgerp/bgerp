@@ -125,14 +125,14 @@ class crm_Locations extends core_Master
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
+        $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=@Особености');
         $this->FLD('mol', 'varchar(64)', 'caption=Отговорник');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
-        $this->FLD('comment', 'richtext(bucket=Notes, rows=4)', 'caption=@Информация');
-        
+
         $this->setDbUnique('gln');
         $this->setDbIndex('contragentCls,contragentId');
     }
