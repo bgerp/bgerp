@@ -2150,10 +2150,11 @@ abstract class deals_Helper
      * @param $threadId
      * @param double $rate
      * @param string $currencyId
+     * @param null|stdClass $transportFeeRec
      *
      * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
     {
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
@@ -2185,7 +2186,15 @@ abstract class deals_Helper
 
         foreach (array($foundMinPrice, $foundPrice) as $i => $var){
             if(is_object($var)){
-                
+
+                // От записаната цена се маха тази на скрития транспорт, за да се сравни правилно с очакваната
+                $msgSuffix = '';
+                if(is_object($transportFeeRec)){
+                    $var->price += $transportFeeRec->fee / $quantity;
+                    $var->price = round($foundPrice->price, 6);
+                    $msgSuffix .= ", |вкл. транспорт|*";
+                }
+
                 $toleranceDiff = 0;
                 if (isset($var->listId)) {
                     $toleranceDiff = price_Lists::fetchField($var->listId, 'discountComparedShowAbove');
@@ -2207,7 +2216,7 @@ abstract class deals_Helper
                         if($i == 0 && $percent >= 0){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
                             $obj['hint'] ='Цената е под минималната за клиента';
-                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*";
+                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = 'error';
                             
                             return $obj;
@@ -2216,7 +2225,7 @@ abstract class deals_Helper
                         if($i == 1){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
                             $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
-                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*";
+                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
                         
                             return $obj;
@@ -2268,7 +2277,8 @@ abstract class deals_Helper
 
             while ($dRec = $dQuery->fetch()) {
                 $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId)){
+                $transportFeeRec = sales_TransportValues::get($mvc, $rec->id, $dRec->id);
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId, $transportFeeRec)){
                     if($checkedObject['hintType'] == 'error'){
                         $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
@@ -2297,5 +2307,37 @@ abstract class deals_Helper
         $canonize = preg_replace('/[^a-z\d]/i', '', $number);
 
         return strtoupper($canonize);
+    }
+
+
+    /**
+     * Може ли да се правят още доставки в нишката
+     *
+     * @param $threadId                - ид на нишка
+     * @param null $ignoreContainerId  - игнориране на документ
+     * @return bool                    - има ли финална експедиция или не
+     */
+    public static function canHaveMoreDeliveries($threadId, $ignoreContainerId = null)
+    {
+        $firstDocument = doc_Threads::getFirstDocument($threadId);
+        $firstDocRec = $firstDocument->fetch('oneTimeDelivery,contoActions');
+        if($firstDocRec->oneTimeDelivery != 'yes') return true;
+
+        $contoActions = type_Set::toArray($firstDocRec->contoActions);
+        if(isset($contoActions['ship'])) {
+            if($firstDocument->hasStorableProducts()) return false;
+        }
+
+        // Всички документи касаещи експедиции в нишката
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->in("docClass", array(store_Receipts::getClassId(), store_ShipmentOrders::getClassId()));
+        $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
+        if(isset($ignoreContainerId)){
+            $cQuery->where("#id != {$ignoreContainerId}");
+        }
+        $cQuery->show('id');
+        $count = $cQuery->count();
+
+        return empty($count);
     }
 }

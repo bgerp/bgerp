@@ -817,7 +817,10 @@ class doc_Folders extends core_Master
         $oSharedArr = keylist::toArray($rec->shared);
         
         // Настройките на пакета
+        $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+        core_ObjectConfiguration::$stopInvoke = true;
         $notifySharedConf = doc_Setup::get('NOTIFY_FOLDERS_SHARED_USERS');
+        core_ObjectConfiguration::$stopInvoke = $stopInvoke;
         if ($notifySharedConf == 'no') {
             $sharedArr = array();
         } else {

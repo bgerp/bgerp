@@ -1124,22 +1124,28 @@ class doc_Containers extends core_Manager
             $oUsersArr = $usersArr;
             
             // Ако глобално в настройките е зададено да се нотифицира или не
+            $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+            core_ObjectConfiguration::$stopInvoke = true;
             $docSettings = doc_Setup::get('NOTIFY_FOR_NEW_DOC');
+            core_ObjectConfiguration::$stopInvoke = $stopInvoke;
             if ($docSettings == 'no') {
                 $usersArr = array();
             } elseif ($docSettings == 'yes') {
                 $usersArr = core_Users::getByRole('powerUser');
             }
-            
+
             $pSettingsKey = crm_Profiles::getSettingsKey();
-            
+
             // Ако е зададено в персоналните настройки на потребителя за всички папки
             self::prepareUsersArrForNotifications($usersArr, $pSettingsKey, 'DOC_NOTIFY_FOR_NEW_DOC', $rec->threadId);
-            
+
             // Ако е избран вид документ за който да се спре или дава нотификация
             $pSettingsNotifyArr = core_Settings::fetchUsers($pSettingsKey);
+            $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+            core_ObjectConfiguration::$stopInvoke = true;
             $globalNotifyStr = doc_Setup::get('NOTIFY_NEW_DOC_TYPE');
-            
+            core_ObjectConfiguration::$stopInvoke = $stopInvoke;
+
             $clsId = $docMvc->getClassId();
             
             foreach ((array) $oUsersArr as $oUserId) {
@@ -1170,7 +1176,10 @@ class doc_Containers extends core_Manager
             self::prepareUsersArrForNotifications($usersArr, doc_Threads::getSettingsKey($rec->threadId), 'notify', $rec->threadId);
             
             // Ако е зададено за някои документи да не се получава нотификация - спираме ги
+            $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+            core_ObjectConfiguration::$stopInvoke = true;
             $globalNotifyStrStop = doc_Setup::get('STOP_NOTIFY_NEW_DOC_TYPE');
+            core_ObjectConfiguration::$stopInvoke = $stopInvoke;
             foreach ((array) $oUsersArr as $oUserId) {
                 if ($oUserId < 1) {
                     continue;

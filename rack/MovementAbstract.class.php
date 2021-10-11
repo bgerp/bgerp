@@ -91,7 +91,6 @@ abstract class rack_MovementAbstract extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-
         $makeLinks = !($fields['-inline'] && !isset($fields['-inline-single']));
         if (!empty($rec->note)) {
             $row->note = "<div style='font-size:0.8em;'>{$row->note}</div>";
@@ -245,7 +244,7 @@ abstract class rack_MovementAbstract extends core_Manager
     {
         $storeId = store_Stores::getCurrent();
         $data->query->where("#storeId = {$storeId}");
-        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'active' THEN 2 ELSE 3 END)");
+        $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'waiting' THEN 2 WHEN 'active' THEN 3 ELSE 4 END)");
         if ($palletId = Request::get('palletId', 'int')) {
             $data->query->where("#palletId = {$palletId}");
         }
@@ -255,7 +254,7 @@ abstract class rack_MovementAbstract extends core_Manager
         $data->listFilter->FLD('from', 'date');
         $data->listFilter->FLD('to', 'date');
         $data->listFilter->FNC('documentHnd', 'varchar', 'placeholder=Документ,caption=Документ,input,silent,recently');
-        $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,active=Активни,closed=Приключени)', 'placeholder=Всички');
+        $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,waiting=Запазени,active=Активни,closed=Приключени)', 'placeholder=Всички');
 
         $data->listFilter->showFields = 'selectPeriod,workerId,search,documentHnd,state1';
         $data->listFilter->input();
@@ -263,7 +262,7 @@ abstract class rack_MovementAbstract extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         if ($filterRec = $data->listFilter->rec) {
-            if (in_array($filterRec->state1, array('active', 'closed', 'pending'))) {
+            if (in_array($filterRec->state1, array('active', 'closed', 'pending', 'waiting'))) {
                 $data->query->where("#state = '{$filterRec->state1}'");
             }
 
@@ -363,9 +362,16 @@ abstract class rack_MovementAbstract extends core_Manager
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->listTableMvc->FLD('movement', 'varchar', 'tdClass=movement-description');
-        $data->listTableMvc->FLD('startBtn', 'varchar', 'tdClass=centered');
-        $data->listTableMvc->FLD('loadBtn', 'varchar', 'tdClass=centered');
-        $data->listTableMvc->FLD('stopBtn', 'varchar', 'tdClass=centered');
+        if(!$data->inlineMovement){
+            $data->listTableMvc->FLD('leftColBtns', 'varchar', 'tdClass=centered');
+            $data->listTableMvc->FLD('rightColBtns', 'varchar', 'tdClass=centered');
+            $data->listTableMvc->setField('workerId', 'tdClass=centered');
+        } else {
+            $data->listTableMvc->FLD('leftColBtns', 'varchar', 'tdClass=terminalLeftBtnsCol');
+            $data->listTableMvc->FLD('rightColBtns', 'varchar', 'tdClass=terminalRightBtnsCol');
+            $data->listTableMvc->setField('workerId', 'tdClass=terminalWorkerCol');
+        }
+
         if (Mode::is('screenMode', 'narrow') && array_key_exists('productId', $data->listFields)) {
             $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
             $data->listFields['productId'] = '@Артикул';
