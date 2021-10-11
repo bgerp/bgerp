@@ -457,6 +457,10 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
             $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
             $fld->FLD('name', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Количество');
+            if (!is_null($rec->seeAmount)) {
+                $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
+            }
             $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Количество');
             if (!is_null($rec->seeAmount)) {
                 $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
