@@ -8,7 +8,7 @@
  * @package   cash
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -157,8 +157,14 @@ class cash_InternalMoneyTransfer extends core_Master
      * @var int
      */
     public $defaultCopiesOnPrint = 2;
-    
-    
+
+
+    /**
+     * Опашка от свързване на документи
+     */
+    protected $addLinks = array();
+
+
     /**
      * Описание на модела
      */
@@ -503,5 +509,24 @@ class cash_InternalMoneyTransfer extends core_Master
         // Споделяме текущия потребител със нишката на заданието
         $cu = core_Users::getCurrent();
         doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
+
+        // Ако е създаден към друг документ да се добави като линк към него
+        if(!empty($rec->sourceId)){
+            $mvc->addLinks[$rec->id] = $rec;
+        }
+    }
+
+
+    /**
+     * Изпълнява се след края на изпълнението на скрипта
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(countR($mvc->addLinks)){
+            foreach($mvc->addLinks as $rec){
+                $linkComment = $mvc->getVerbal($rec, 'operationSysId');
+                doc_Linked::add($rec->containerId, $rec->sourceId, 'doc', 'doc', $linkComment);
+            }
+        }
     }
 }
