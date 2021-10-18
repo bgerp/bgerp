@@ -1103,6 +1103,11 @@ class core_App
     public static function getSelfURL()
     {
         $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
+
+        if (!$s && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+            $s = 's';
+        }
+
         if (!$s && (EF_HTTPS == 'MANDATORY')) {
             $s = 's';
         }
@@ -1127,6 +1132,11 @@ class core_App
         
         if ($absolute) {
             $s = (empty($_SERVER['HTTPS']) ? '' : ($_SERVER['HTTPS'] == 'on')) ? 's' : '';
+
+            if (!$s && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+                $s = 's';
+            }
+
             if (!$s && (EF_HTTPS == 'MANDATORY')) {
                 $s = 's';
             }
