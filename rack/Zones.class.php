@@ -226,7 +226,9 @@ class rack_Zones extends core_Master
 
             if ($mvc->haveRightFor('removedocument', $rec->id)) {
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
+                if(!rack_Movements::fetch("LOCATE('|{$rec->id}|', #zoneList) AND (#state = 'waiting' AND #state = 'active')")){
+                    $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), "id=remove{$rec->id},ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?");
+                }
             }
 
             $id = self::getRecTitle($rec);
@@ -258,7 +260,12 @@ class rack_Zones extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         if ($mvc->haveRightFor('removedocument', $data->rec->id)) {
-            $data->toolbar->addBtn('Премахване', array($mvc, 'removeDocument', $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?');
+            $btnAttr = arr::make('ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?', true);
+            if(rack_Movements::fetch("LOCATE('|{$data->rec->id}|', #zoneList) AND (#state = 'waiting' AND #state = 'active')")){
+                $btnAttr['error'] = 'По документа има Запазени или Започнати движения! Документът може да бъде премахнат след отказването им';
+            }
+
+            $data->toolbar->addBtn('Премахване', array($mvc, 'removeDocument', $data->rec->id, 'ret_url' => true), $btnAttr);
         }
     }
 
@@ -995,15 +1002,26 @@ class rack_Zones extends core_Master
         expect($rec = $this->fetch($id));
         $this->requireRightFor('removedocument', $rec);
 
+        expect(!rack_Movements::fetch("LOCATE('|{$rec->id}|', #zoneList) AND (#state = 'waiting' AND #state = 'active')"));
+
         $rec->containerId = null;
         $this->save($rec);
         rack_ZoneDetails::syncWithDoc($rec->id);
 
-        // Изтриване на всички заявки към зоната
+        // Изтриват се всички чакащи движение от зоната
+        $zoneLists = '';
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("LOCATE('|{$rec->id}|', #zoneList) AND #state = 'pending'");
         while ($mRec = $mQuery->fetch()) {
             rack_Movements::delete($mRec->id);
+            $zoneLists = keylist::merge($zoneLists, $mRec->zoneList);
+        }
+
+        // Регенериране на движенията на другите зони, ако е изтрито движение към няколко зони
+        $zoneLists = arr::make($zoneLists, true);
+        unset($zoneLists[$rec->id]);
+        if(countR($zoneLists)){
+            static::pickupOrder($rec->storeId, $zoneLists);
         }
 
         $this->updateMaster($rec);
