@@ -49,7 +49,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
         $mvc->FLD('quantityInPack', 'double', 'input=hidden');
-        $mvc->FLD('workerId', 'user(roles=ceo|rack)', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
+        $mvc->FLD('workerId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal)', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
 
         $mvc->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $mvc->FLD('state', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent');
