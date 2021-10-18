@@ -21,6 +21,12 @@ class rack_Zones extends core_Master
      */
     public $title = 'Зони';
 
+
+    /**
+     * Единично заглавие
+     */
+    public $singleTitle = 'Зона';
+
     /**
      * Плъгини за зареждане
      */
@@ -1172,5 +1178,19 @@ class rack_Zones extends core_Master
         }
 
         return $zoneTitle;
+    }
+
+
+    /**
+     * Промяне УРЛ-то за редирект след запис
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected function on_AfterPrepareRetUrl($mvc, $data)
+    {
+        if($data->action == 'manage'){
+            $data->retUrl = array('rack_Zones', 'list');
+        }
     }
 }
