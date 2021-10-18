@@ -85,6 +85,14 @@
                         [#deliveryTo#] [#deliveryLocationAddress#]
                      </td>
                   </tr>
+                  <!--ET_BEGIN addressInfo-->
+                  <tr>
+                     <td class='quiet nowrap aright'>|Особености|*:</td>
+                     <td>
+                        [#addressInfo#]
+                     </td>
+                  </tr>
+                  <!--ET_END addressInfo-->
                   <!--ET_END deliveryAddressBlock-->
                   <!--ET_BEGIN lineId-->
                   <tr class="no-print">

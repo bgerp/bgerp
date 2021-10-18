@@ -225,9 +225,9 @@ class store_ShipmentOrders extends store_DocumentMaster
         $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');
         $this->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData');
         $this->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData');
+        $this->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Особености');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->setField('deliveryTime', 'caption=Натоварване');
-
         $this->setDbIndex('createdOn');
     }
 
@@ -533,6 +533,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      *  	string|NULL   ['fromCompany']     - фирма
      *   	string|NULL   ['fromPerson']      - лице
      *      string|NULL   ['fromLocationId']  - лице
+     *      string|NULL   ['fromAddressInfo']   - особености
      * 		datetime|NULL ['loadingTime']     - дата на натоварване
      * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
      * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
@@ -542,6 +543,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      *   	string|NULL   ['toPerson']        - лице
      *      string|NULL   ['toLocationId']    - лице
      *      string|NULL   ['toPersonPhones']  - телефон на лицето
+     *      string|NULL   ['toAddressInfo']   - особености
      *      string|NULL   ['instructions']    - инструкции
      * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
      * 		text|NULL 	  ['conditions']      - други условия

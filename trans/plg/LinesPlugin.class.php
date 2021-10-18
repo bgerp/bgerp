@@ -382,9 +382,6 @@ class trans_plg_LinesPlugin extends core_Plugin
         if (isset($rec->lineId)) {
             if($rec->_changeLine || $rec->_fromForm) {
                 $mvc->updateLines[$rec->lineId] = $rec->lineId;
-            }
-
-            if(!cls::haveInterface('store_iface_DocumentIntf', $mvc) && isset($rec->containerId)){
                 $mvc->syncLineDetails[$rec->lineId] = $rec->containerId;
             }
         }

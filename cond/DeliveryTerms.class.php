@@ -306,7 +306,7 @@ class cond_DeliveryTerms extends core_Master
             if(!empty($locationId)){
                 $adress = crm_Locations::getAddress($locationId, true);
             }
-          
+
             return $adress;
         }
         

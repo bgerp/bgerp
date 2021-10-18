@@ -45,6 +45,11 @@
                   |От обект|*: [#locationId#]
                </div>
                <!--ET_END locationId-->
+               <!--ET_BEGIN addressInfo-->
+               <div>
+                  |Особености|*: [#addressInfo#]
+               </div>
+               <!--ET_END addressInfo-->
             </td>
          </tr>
       </tbody>

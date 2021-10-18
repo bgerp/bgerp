@@ -221,7 +221,11 @@ class trans_LineDetails extends doc_Detail
                 $row->address = ht::createLinkRef($row->address, crm_Locations::getSingleUrlArray($transportInfo['locationId']), false, 'title=Преглед на локацията');
             }
         }
+
         $row->address = rtrim($row->address, ' ,');
+        if(!empty($transportInfo['addressInfo'])){
+            $row->address .= ", " . core_Type::getByName('richtext')->toVerbal($transportInfo['addressInfo']);
+        }
 
         // Ако е складов документ
         if($Document->haveInterface('store_iface_DocumentIntf')){
@@ -469,7 +473,6 @@ class trans_LineDetails extends doc_Detail
     protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
         $recs = $data->recs;
-
         if(!countR($recs)) return;
 
         // Кои документи са платежни и кои документи могат да имат такива към тях

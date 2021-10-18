@@ -112,7 +112,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
-        $mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
+        $mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent,silent,removeAndRefreshForm=addressInfo');
         $mvc->FLD('deliveryTime', 'datetime');
         $mvc->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
@@ -171,6 +171,13 @@ abstract class store_DocumentMaster extends core_Master
         $form->setDefault('deliveryTime', $dealInfo->get('deliveryTime'));
         $form->setDefault('chargeVat', $dealInfo->get('vatType'));
         $form->setDefault('storeId', $dealInfo->get('storeId'));
+
+        if(isset($rec->locationId)){
+            $locationInfo = crm_Locations::fetchField($rec->locationId, 'comment');
+            if(!empty($locationInfo)){
+                $form->setDefault('addressInfo', $locationInfo);
+            }
+        }
     }
     
     
@@ -614,6 +621,7 @@ abstract class store_DocumentMaster extends core_Master
      *  	string|NULL   ['fromCompany']     - фирма
      *   	string|NULL   ['fromPerson']      - лице
      *      string|NULL   ['fromLocationId']  - лице
+     *      string|NULL   ['fromAddressInfo']   - особености
      * 		datetime|NULL ['loadingTime']     - дата на натоварване
      * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
      * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
@@ -623,6 +631,7 @@ abstract class store_DocumentMaster extends core_Master
      *   	string|NULL   ['toPerson']        - лице
      *      string|NULL   ['toLocationId']    - лице
      *      string|NULL   ['toPersonPhones']  - телефон на лицето
+     *      string|NULL   ['toAddressInfo']   - особености
      *      string|NULL   ['instructions']    - инструкции
      * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
      * 		text|NULL 	  ['conditions']      - други условия
@@ -662,6 +671,7 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$ownPart}Address"] = !empty($storeLocation->address) ? $storeLocation->address : null;
             $res["{$ownPart}Person"] = !empty($storeLocation->mol) ? $storeLocation->mol : null;
             $res["{$ownPart}LocationId"] = $storeLocation->id;
+            $res["{$ownPart}AddressInfo"] = $storeLocation->comment;
         } else {
             $res["{$ownPart}PCode"] = !empty($ownCompany->pCode) ? $ownCompany->pCode : null;
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
@@ -683,7 +693,7 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$contrPart}Person"] = !empty($contragentLocation->mol) ? $contragentLocation->mol : null;
             $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;
             $res["{$contrPart}LocationId"] = $contragentLocation->id;
-
+            $res["{$contrPart}AddressInfo"] = $contragentLocation->comment;
         } else {
             $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;
@@ -696,6 +706,10 @@ abstract class store_DocumentMaster extends core_Master
         
         $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $rec->weight;
         $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+
+        if(!empty($rec->addressInfo)){
+            $res["{$contrPart}AddressInfo"] = $rec->addressInfo;
+        }
 
         return $res;
     }
@@ -768,6 +782,7 @@ abstract class store_DocumentMaster extends core_Master
      *               ['address']        double|NULL - адрес ба диставка
      *               ['storeMovement']  string|NULL - посока на движението на склада
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -823,7 +838,11 @@ abstract class store_DocumentMaster extends core_Master
             $amountVerbal = ht::styleNumber($amountVerbal, $res['amount']);
             $res['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
         }
-        
+
+        if(!empty($logisticData["{$part}AddressInfo"])){
+            $res['addressInfo'] = $logisticData["{$part}AddressInfo"];
+        }
+
         return $res;
     }
     

@@ -548,8 +548,10 @@ class store_ConsignmentProtocols extends core_Master
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
-     *               ['address']        double|NULL - общ обем на стоките в документа
+     *               ['address']        double|NULL - адрес ба диставка
      *               ['storeMovement']  string|NULL - посока на движението на склада
+     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {

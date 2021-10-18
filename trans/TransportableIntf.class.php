@@ -46,6 +46,7 @@ class trans_TransportableIntf
      *               ['address']        double|NULL - адрес ба диставка
      *               ['storeMovement']  string|NULL - посока на движението на склада
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
      */
     public function getTransportLineInfo($rec, $lineId)
     {

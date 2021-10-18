@@ -227,6 +227,7 @@ class store_Transfers extends core_Master
 
         // Доставка
         $this->FLD('deliveryTime', 'datetime', 'caption=Натоварване');
+        $this->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Особености');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
@@ -508,6 +509,7 @@ class store_Transfers extends core_Master
      *  	string|NULL   ['fromCompany']     - фирма
      *   	string|NULL   ['fromPerson']      - лице
      *      string|NULL   ['fromLocationId']  - лице
+     *      string|NULL   ['fromAddressInfo']   - особености
      * 		datetime|NULL ['loadingTime']     - дата на натоварване
      * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
      * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
@@ -517,6 +519,7 @@ class store_Transfers extends core_Master
      *   	string|NULL   ['toPerson']        - лице
      *      string|NULL   ['toLocationId']    - лице
      *      string|NULL   ['toPersonPhones']  - телефон на лицето
+     *      string|NULL   ['toAddressInfo']   - особености
      *      string|NULL   ['instructions']    - инструкции
      * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
      * 		text|NULL 	  ['conditions']      - други условия
@@ -541,6 +544,7 @@ class store_Transfers extends core_Master
                 $res["{$part}Address"] = !empty($location->address) ? $location->address : null;
                 $res["{$part}Person"] = !empty($location->mol) ? $location->mol : null;
                 $res["{$part}LocationId"] = $location->id;
+                $res["{$part}AddressInfo"] = $location->comment;
             }
         }
 
@@ -589,6 +593,7 @@ class store_Transfers extends core_Master
      *               ['address']        double|NULL - адрес ба диставка
      *               ['storeMovement']  string|NULL - посока на движението на склада
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -601,8 +606,9 @@ class store_Transfers extends core_Master
         $res['storeMovement'] = 'out';
         $res['cases'] = array();
 
-        if($toStoreLocationId = store_Stores::fetchField($rec->toStore, 'locationId')){
-            $res['locationId'] = $toStoreLocationId;
+        if($toStoreLocation = store_Stores::fetch($rec->toStore)){
+            $res['locationId'] = $toStoreLocation->id;
+            $res['addressInfo'] = $toStoreLocation->comment;
         }
 
         return $res;
