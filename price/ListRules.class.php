@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -69,8 +69,14 @@ class price_ListRules extends core_Detail
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales,price';
-    
-    
+
+
+    /**
+     * Кой има право да импортира?
+     */
+    public $canImport = 'ceo,priceMaster';
+
+
     /**
      * Кой има право да изтрива?
      */
@@ -646,7 +652,7 @@ class price_ListRules extends core_Detail
             }
         }
         
-        if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->listId)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'import') && isset($rec->listId)) {
             if (!price_Lists::haveRightFor('edit', $rec->listId)) {
                 $requiredRoles = 'no_one';
             }
