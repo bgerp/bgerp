@@ -233,8 +233,8 @@ abstract class store_DocumentMaster extends core_Master
                 $form->setWarning('locationId', "Избраната локация е различна от договорената \"{$agreedLocation}\"");
             }
 
-            if ($rec->locationId) {
-                foreach (array('company','person','tel','country','pCode','place','address',) as $del) {
+            if (isset($rec->locationId)) {
+                foreach (array('company','person','tel','country','pCode','place','address', 'addressInfo') as $del) {
                     if ($rec->{$del}) {
                         $form->setError("locationId,{$del}", 'Не може да има избрана локация и въведени адресни данни');
                         break;

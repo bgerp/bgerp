@@ -347,4 +347,17 @@ class store_Receipts extends store_DocumentMaster
             }
         }
     }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($fields['-single'])){
+            core_Lg::push($rec->tplLang);
+            $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
+            core_Lg::pop();
+        }
+    }
 }

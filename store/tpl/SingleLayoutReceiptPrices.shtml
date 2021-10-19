@@ -43,11 +43,6 @@
                   |От обект|*: [#locationId#]
                </div>
                <!--ET_END locationId-->
-               <!--ET_BEGIN addressInfo-->
-               <div>
-                  |Особености|*: [#addressInfo#]
-               </div>
-               <!--ET_END addressInfo-->
             </td>
          </tr>
       </tbody>
@@ -68,7 +63,7 @@
                <table class='shipment-table' style='width:100%;'>
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
-                     <td class='quiet nowrap aright' style='width:1%;'>|Разтоварване|*:</td>
+                     <td class='quiet nowrap aright' style='width:1%;'>[#deliveryTimeCaption#]:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->

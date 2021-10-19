@@ -226,6 +226,7 @@ class trans_LineDetails extends doc_Detail
         if(!empty($transportInfo['addressInfo'])){
             $row->address .= ", " . core_Type::getByName('richtext')->toVerbal($transportInfo['addressInfo']);
         }
+        $row->address = str_replace(', <div', '<div', $row->address);
 
         // Ако е складов документ
         if($Document->haveInterface('store_iface_DocumentIntf')){
