@@ -126,6 +126,17 @@ abstract class store_DocumentMaster extends core_Master
         );
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
+
+        $mvc->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address,placeholder=От предишна доставка,autohide');
+        $mvc->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма,autohide');
+        $mvc->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, changable, class=contactData,autohide');
+        $mvc->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., changable, class=contactData,autohide');
+        $mvc->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава, class=contactData,autohide');
+        $mvc->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData,autohide');
+        $mvc->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData,autohide');
+        $mvc->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData,autohide');
+        $mvc->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Особености,autohide');
+
         $mvc->setDbIndex('valior');
     }
     
@@ -157,9 +168,7 @@ abstract class store_DocumentMaster extends core_Master
         }
         
         // Поле за избор на локация - само локациите на контрагента по продажбата
-        $form->getField('locationId')->type->options =
-        array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId);
-        
+        $form->setOptions('locationId', array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId));
         expect($origin = ($form->rec->originId) ? doc_Containers::getDocument($form->rec->originId) : doc_Threads::getFirstDocument($form->rec->threadId));
         expect($origin->haveInterface('bgerp_DealAggregatorIntf'));
         $dealInfo = $origin->getAggregateDealInfo();
@@ -172,11 +181,33 @@ abstract class store_DocumentMaster extends core_Master
         $form->setDefault('chargeVat', $dealInfo->get('vatType'));
         $form->setDefault('storeId', $dealInfo->get('storeId'));
 
-        if(isset($rec->locationId)){
-            $locationInfo = crm_Locations::fetchField($rec->locationId, 'comment');
-            if(!empty($locationInfo)){
-                $form->setDefault('addressInfo', $locationInfo);
+        // Вземаме другите ЕН, от същата папак
+        $prevShipmentArr = array('' => '');
+        if (isset($rec->folderId)) {
+            $sQuery = $mvc->getQuery();
+            $sQuery->where("#id != '{$rec->id}' AND #folderId = {$rec->folderId} AND #state != 'rejected' AND #state != 'draft'");
+            $sQuery->orderBy('modifiedOn', 'DESC');
+            $sQuery->limit(100);
+
+            while ($sRec = $sQuery->fetch()) {
+                if (!$mvc->haveRightFor('asClient', $sRec)) continue;
+                if (!$mvc->haveRightFor('single', $sRec)) continue;
+
+                $name = '#' . $mvc->getHandle($sRec->id);
+                if ($sRec->company) {
+                    $name .= ' - ' . $sRec->company;
+                }
+                if ($sRec->place) {
+                    $name .= ' (' . $sRec->place . ')';
+                }
+                $prevShipmentArr[$sRec->id] = $name;
             }
+        }
+
+        if (countR($prevShipmentArr)) {
+            $data->form->setOptions('prevShipment', $prevShipmentArr);
+        } else {
+            $data->form->setField('prevShipment', 'input=none');
         }
     }
     
@@ -186,6 +217,13 @@ abstract class store_DocumentMaster extends core_Master
      */
     protected static function on_AfterInputEditForm(core_Mvc $mvc, core_Form $form)
     {
+        if ($form->rec->prevShipment) {
+            $prevRec = $mvc->fetch($form->rec->prevShipment);
+            foreach (explode('|', $form->fields['prevShipment']->removeAndRefreshForm) as $fName) {
+                $form->setDefault($fName, $prevRec->{$fName});
+            }
+        }
+
         if ($form->isSubmitted()) {
             $rec = &$form->rec;
             
@@ -193,6 +231,19 @@ abstract class store_DocumentMaster extends core_Master
             if (!empty($rec->locationId) && $form->dealInfo->get('deliveryLocation') && $rec->locationId != $form->dealInfo->get('deliveryLocation')) {
                 $agreedLocation = crm_Locations::getTitleById($form->dealInfo->get('deliveryLocation'));
                 $form->setWarning('locationId', "Избраната локация е различна от договорената \"{$agreedLocation}\"");
+            }
+
+            if ($rec->locationId) {
+                foreach (array('company','person','tel','country','pCode','place','address',) as $del) {
+                    if ($rec->{$del}) {
+                        $form->setError("locationId,{$del}", 'Не може да има избрана локация и въведени адресни данни');
+                        break;
+                    }
+                }
+            }
+
+            if ((!empty($rec->tel) || !empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) && (empty($rec->tel) || empty($rec->country) || empty($rec->pCode) || empty($rec->place) || empty($rec->address))) {
+                $form->setError('tel,country,pCode,place,address', 'Трябва или да са попълнени всички полета за адрес или нито едно');
             }
         }
     }
@@ -202,7 +253,6 @@ abstract class store_DocumentMaster extends core_Master
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
-     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -357,6 +407,21 @@ abstract class store_DocumentMaster extends core_Master
             $tpl->append($btnIn, 'PACKAGING_BTNS');
             $tpl->append($btnOut, 'PACKAGING_BTNS');
         }
+
+        if ($data->rec->country) {
+            $deliveryAddress = "{$data->row->country} <br/> {$data->row->pCode} {$data->row->place} <br /> {$data->row->address}";
+            $inlineDeliveryAddress = "{$data->row->country},  {$data->row->pCode} {$data->row->place}, {$data->row->address}";
+        } else {
+            $deliveryAddress = $data->row->contragentAddress;
+        }
+
+        core_Lg::push($data->rec->tplLang);
+        $deliveryAddress = core_Lg::transliterate($deliveryAddress);
+
+        $tpl->replace($deliveryAddress, 'deliveryAddress');
+        $tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
+
+        core_Lg::pop();
     }
     
     
@@ -400,10 +465,38 @@ abstract class store_DocumentMaster extends core_Master
         
         if (isset($fields['-single'])) {
             core_Lg::push($rec->tplLang);
-            
+
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + (array) $headerInfo);
-            
+
+            $row->deliveryTo = '';
+            if ($row->country) {
+                $row->deliveryTo .= $row->country;
+            }
+
+            if ($row->pCode) {
+                $row->deliveryTo .= (($row->deliveryTo) ? ', ' : '') . $row->pCode;
+            }
+
+            if ($row->pCode) {
+                $row->deliveryTo .= ' ' . core_Lg::transliterate($row->place);
+            }
+
+            foreach (array('address', 'company', 'person', 'tel', 'addressInfo') as $fld) {
+                if (!empty($rec->{$fld})) {
+                    if ($fld == 'address') {
+                        $row->{$fld} = core_Lg::transliterate($row->{$fld});
+                    } elseif ($fld == 'tel') {
+                        if (callcenter_Talks::haveRightFor('list')) {
+                            $row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
+                        }
+                    }
+
+                    $row->deliveryTo .= ", {$row->{$fld}}";
+                }
+            }
+
+
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);
                 if ($ourLocation = store_Stores::fetchField($rec->storeId, 'locationId')) {
@@ -685,7 +778,18 @@ abstract class store_DocumentMaster extends core_Master
         // Подготвяне на данните за натоварване
         $res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
         $res["{$contrPart}Company"] = $contragentData->company;
-        if (isset($rec->locationId)) {
+
+
+        // Данните за разтоварване от ЕН-то са с приоритет
+        if (!empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) {
+            $res["{$contrPart}Country"] = !empty($rec->country) ? drdata_Countries::fetchField($rec->country, 'commonName') : null;
+            $res["{$contrPart}PCode"] = !empty($rec->pCode) ? $rec->pCode : null;
+            $res["{$contrPart}Place"] = !empty($rec->place) ? $rec->place : null;
+            $res["{$contrPart}Address"] = !empty($rec->address) ? $rec->address : null;
+
+            $res["{$contrPart}Company"] = !empty($rec->company) ? $rec->company : $contragentData->company;
+            $res["{$contrPart}Person"] = !empty($rec->person) ? $rec->person : $contragentData->person;
+        } elseif (isset($rec->locationId)) {
             $res["{$contrPart}Country"] = !empty($contragentLocation->countryId) ? drdata_Countries::fetchField($contragentLocation->countryId, 'commonName') : null;
             $res["{$contrPart}PCode"] = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : null;
             $res["{$contrPart}Place"] = !empty($contragentLocation->place) ? $contragentLocation->place : null;
@@ -694,16 +798,26 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;
             $res["{$contrPart}LocationId"] = $contragentLocation->id;
             $res["{$contrPart}AddressInfo"] = $contragentLocation->comment;
-        } else {
-            $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
-            $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;
-            $res["{$contrPart}Address"] = !empty($contragentData->pAddress) ? $contragentData->pAddress : (($contragentData->address) ? $contragentData->address : null);
-            $res["{$contrPart}Person"] = !empty($contragentData->person) ? $contragentData->person : null;
+        } elseif($rec->isReverse == 'no') {
+            if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
+                if($firstDocument->haveInterface('trans_LogisticDataIntf')){
+                    $firstDocumentLogisticData = $firstDocument->getLogisticData();
+                    $res["{$contrPart}Country"] = $firstDocumentLogisticData["{$contrPart}Country"];
+                    $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"];
+                    $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"];
+                    $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"];
+                    $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                    $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"];
+                    $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"];
+                    $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"];
+                    $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"];
+                    $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"];
+                }
+            }
         }
         
         $res['deliveryTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
         $res['ourReff'] = '#' . $this->getHandle($rec);
-        
         $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $rec->weight;
         $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
 

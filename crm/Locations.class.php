@@ -684,7 +684,12 @@ class crm_Locations extends core_Master
         
         $string .= "{$row->pCode} {$row->place}, {$row->address}";
         $string = trim($string, ',  ');
-        
+
+        if(!empty($rec->comment)){
+            $comment = core_Type::getByName('richtext')->toVerbal($rec->comment);
+            $string .= ", {$comment}";
+        }
+
         return $string;
     }
     

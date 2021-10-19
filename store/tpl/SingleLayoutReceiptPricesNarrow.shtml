@@ -74,6 +74,15 @@
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
+                  <!--ET_BEGIN deliveryAddressBlock-->
+                  [#deliveryAddressBlock#]
+                  <tr>
+                     <td class='quiet nowrap aright'>|От адрес|*:</td>
+                     <td>
+                        [#deliveryTo#] [#deliveryLocationAddress#]
+                     </td>
+                  </tr>
+                  <!--ET_END deliveryAddressBlock-->
                   <!--ET_BEGIN lineId-->
                   <tr class="no-print">
                      <td class='quiet nowrap' style='width:1%;'>|Транспорт|*: </td>

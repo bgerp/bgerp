@@ -217,15 +217,6 @@ class store_ShipmentOrders extends store_DocumentMaster
         parent::setDocFields($this);
 
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryTime');
-        $this->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор, removeAndRefreshForm=company|person|tel|country|pCode|place|address,placeholder=От предишна доставка');
-        $this->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма');
-        $this->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, changable, class=contactData');
-        $this->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., changable, class=contactData');
-        $this->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава, class=contactData');
-        $this->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData');
-        $this->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData');
-        $this->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData');
-        $this->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Особености');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->setField('deliveryTime', 'caption=Натоварване');
         $this->setDbIndex('createdOn');
@@ -243,61 +234,9 @@ class store_ShipmentOrders extends store_DocumentMaster
         if (!isset($rec->id)) {
             expect($origin = static::getOrigin($rec), $rec);
             if ($origin->isInstanceOf('sales_Sales')) {
-                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички)', 'caption=Вкарване от продажбата->Артикули, input,before=sharedUsers');
+                $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички)', 'caption=Артикули, input,after=responsible');
             }
         }
-
-        // Вземаме другите ЕН, от същата папак
-        $prevShipmentArr = array('' => '');
-        if (isset($rec->folderId)) {
-            $sQuery = store_ShipmentOrders::getQuery();
-            $sQuery->where("#id != '{$rec->id}' AND #folderId = {$rec->folderId} AND #state != 'rejected' AND #state != 'draft'");
-            $sQuery->orderBy('modifiedOn', 'DESC');
-            $sQuery->limit(100);
-
-            while ($sRec = $sQuery->fetch()) {
-                if (!$mvc->haveRightFor('asClient', $sRec)) continue;
-                if (!$mvc->haveRightFor('single', $sRec)) continue;
-
-                $name = '#' . $mvc->getHandle($sRec->id);
-                if ($sRec->company) {
-                    $name .= ' - ' . $sRec->company;
-                }
-                if ($sRec->place) {
-                    $name .= ' (' . $sRec->place . ')';
-                }
-                $prevShipmentArr[$sRec->id] = $name;
-            }
-        }
-
-        if (countR($prevShipmentArr)) {
-            $data->form->setOptions('prevShipment', $prevShipmentArr);
-        } else {
-            $data->form->setField('prevShipment', 'input=none');
-        }
-    }
-
-
-    /**
-     * След рендиране на сингъла
-     */
-    protected static function on_AfterRenderSingle($mvc, $tpl, $data)
-    {
-        $tpl->append(sbf('img/16/toggle1.png', "'"), 'iconPlus');
-        if ($data->rec->country) {
-            $deliveryAddress = "{$data->row->country} <br/> {$data->row->pCode} {$data->row->place} <br /> {$data->row->address}";
-            $inlineDeliveryAddress = "{$data->row->country},  {$data->row->pCode} {$data->row->place}, {$data->row->address}";
-        } else {
-            $deliveryAddress = $data->row->contragentAddress;
-        }
-
-        core_Lg::push($data->rec->tplLang);
-        $deliveryAddress = core_Lg::transliterate($deliveryAddress);
-
-        $tpl->replace($deliveryAddress, 'deliveryAddress');
-        $tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
-
-        core_Lg::pop();
     }
 
 
@@ -310,39 +249,8 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
-        core_Lg::push($rec->tplLang);
-        $row->deliveryTo = '';
-        if ($row->country) {
-            $row->deliveryTo .= $row->country;
-        }
-
-        if ($row->pCode) {
-            $row->deliveryTo .= (($row->deliveryTo) ? ', ' : '') . $row->pCode;
-        }
-
-        if ($row->pCode) {
-            $row->deliveryTo .= ' ' . core_Lg::transliterate($row->place);
-        }
-
-        foreach (array('address', 'company', 'person', 'tel') as $fld) {
-            if (!empty($rec->{$fld})) {
-                if ($fld == 'address') {
-                    $row->{$fld} = core_Lg::transliterate($row->{$fld});
-                } elseif ($fld == 'tel') {
-                    if (callcenter_Talks::haveRightFor('list')) {
-                        $row->{$fld} = ht::createLink($rec->{$fld}, array('callcenter_Talks', 'list', 'number' => $rec->{$fld}));
-                    }
-                }
-
-                $row->deliveryTo .= ", {$row->{$fld}}";
-            }
-        }
-
-        if (isset($rec->locationId)) {
-            $row->locationId = crm_Locations::getHyperLink($rec->locationId);
-        }
-
         // Кой е съставителя на документа
+        core_Lg::push($rec->tplLang);
         $row->username = transliterate(deals_Helper::getIssuer($rec->createdBy, $rec->activatedBy));
 
         if (isset($fields['-single'])) {
@@ -384,32 +292,8 @@ class store_ShipmentOrders extends store_DocumentMaster
             $operation = $operations['delivery'];
             $rec->accountId = $operation['debit'];
             $rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
-
-            if ($rec->locationId) {
-                foreach (array('company','person','tel','country','pCode','place','address',) as $del) {
-                    if ($rec->{$del}) {
-                        $form->setError("locationId,{$del}", 'Не може да има избрана локация и въведени адресни данни');
-                        break;
-                    }
-                }
-            }
-
-            if ((!empty($rec->tel) || !empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) && (empty($rec->tel) || empty($rec->country) || empty($rec->pCode) || empty($rec->place) || empty($rec->address))) {
-                $form->setError('tel,country,pCode,place,address', 'Трябва или да са попълнени всички полета за адрес или нито едно');
-            }
-
-
         }
-
-        if ($form->cmd == 'refresh') {
-            if ($form->rec->prevShipment) {
-                $prevRec = $mvc->fetch($form->rec->prevShipment);
-                foreach (explode('|', $form->fields['prevShipment']->removeAndRefreshForm) as $fName) {
-                    $form->setDefault($fName, $prevRec->{$fName});
-                }
-            }
-        }
-;    }
+    }
 
 
     /**
@@ -555,34 +439,6 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         $rec = $this->fetchRec($rec);
         $res = parent::getLogisticData($rec);
-
-        // Данните за разтоварване от ЕН-то са с приоритет
-        if (!empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) {
-            $res['toCountry'] = !empty($rec->country) ? drdata_Countries::fetchField($rec->country, 'commonName') : null;
-            $res['toPCode'] = !empty($rec->pCode) ? $rec->pCode : null;
-            $res['toPlace'] = !empty($rec->place) ? $rec->place : null;
-            $res['toAddress'] = !empty($rec->address) ? $rec->address : null;
-
-            $res['toCompany'] = !empty($rec->company) ? $rec->company : $res['toCompany'];
-            $res['toPerson'] = !empty($rec->person) ? $rec->person : $res['toPerson'];
-            $res['toPersonPhones'] = !empty($rec->tel) ? $rec->tel : $res['toPersonPhones'];
-        } elseif (empty($rec->locationId) && $rec->isReverse == 'no') {
-            if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
-                if($firstDocument->haveInterface('trans_LogisticDataIntf')){
-                    $firstDocumentLogisticData = $firstDocument->getLogisticData();
-                    $res['toCountry'] = $firstDocumentLogisticData['toCountry'];
-                    $res['toPCode'] = $firstDocumentLogisticData['toPCode'];
-                    $res['toPlace'] = $firstDocumentLogisticData['toPlace'];
-                    $res['toAddress'] = $firstDocumentLogisticData['toAddress'];
-                    $res['instructions'] = $firstDocumentLogisticData['instructions'];
-                    $res['toCompany'] = $firstDocumentLogisticData['toCompany'];
-                    $res['toPerson'] = $firstDocumentLogisticData['toPerson'];
-                    $res['toPersonPhones'] = $firstDocumentLogisticData['toPersonPhones'];
-                    $res['toLocationId'] = $firstDocumentLogisticData['toLocationId'];
-                    $res['instructions'] = $firstDocumentLogisticData['instructions'];
-                }
-            }
-        }
 
         unset($res['deliveryTime']);
         $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');

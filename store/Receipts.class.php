@@ -188,7 +188,16 @@ class store_Receipts extends store_DocumentMaster
         parent::setDocFields($this);
         $this->setField('storeId', 'caption=В склад');
         $this->setField('deliveryTime', 'caption=Разтоварване');
-        $this->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Особености,after=deliveryTime');
+
+        $this->setField('prevShipment', 'caption=Адрес за натоварване->Избор');
+        $this->setField('company', 'caption=Адрес за натоварване->Фирма');
+        $this->setField('person', 'caption=Адрес за натоварване->Име');
+        $this->setField('tel', 'caption=Адрес за натоварване->Тел');
+        $this->setField('country', 'caption=Адрес за натоварване->Държава');
+        $this->setField('pCode', 'caption=Адрес за натоварване->П. код');
+        $this->setField('place', 'caption=Адрес за натоварване->Град/с');
+        $this->setField('address', 'caption=Адрес за натоварване->Адрес');
+        $this->setField('addressInfo', 'caption=Адрес за натоварване->Особености');
     }
     
     
