@@ -87,10 +87,14 @@ $selfUri = "{$protocol}{$auth}{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
 // Определяне на локалното URL и контекста
 $opts = array(
     'http' => array(
-    'method' => 'GET',
-    'header' => "Accept-language: en\r\n" .
-                "Cookie: setup=bar\r\n",
-    'timeout' => 2
+                    'method' => 'GET',
+                    'header' => "Accept-language: en\r\n" .
+                    "Cookie: setup=bar\r\n",
+                    'timeout' => 2
+      ),
+    "ssl" => array(
+        "verify_peer"=>false,
+        "verify_peer_name"=>false,
       )
 );
 
