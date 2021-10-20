@@ -66,6 +66,9 @@
 <div class="lines"></div>
 <div class='scrolling-holder'>
    <div class="details">
+      <div style="padding-bottom:0px">
+         [#store_DocumentPackagingDetail#]
+      </div>
       [#store_ShipmentOrderDetails#]
    </div>
 </div>
@@ -150,18 +153,6 @@
          </tr>
       </tbody>
    </table>
-   <!--ET_BEGIN store_DocumentPackagingDetail-->
-   <div class='scrolling-holder' style="margin-top: 10px;">
-      <div class="details smallerText" >
-         <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазене</p>
-         [#store_DocumentPackagingDetail#]
-      </div>
-   </div>
-   <!--ET_END store_DocumentPackagingDetail-->
-   <!--ET_BEGIN PACKAGING_BTNS-->
-   <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
-   <!--ET_END PACKAGING_BTNS-->
-
    <div class='footerDocBlock'   style="border-top: none !important">
       [#/doc/tpl/Copyright.shtml#]
    </div>

@@ -44,7 +44,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_Wrapper, plg_SaveAndNew,plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy';
+    public $loadList = 'plg_RowTools2, store_Wrapper, plg_SaveAndNew,plg_AlignDecimals2, LastPricePolicy=sales_SalesLastPricePolicy, cat_plg_ShowCodes, plg_RowNumbering';
     
     
     /**
@@ -89,8 +89,17 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         $this->FLD('type', 'enum(in=Приемане,out=Предаване)', 'column=none,notNull,silent,mandatory,caption=Действие,after=productId,input=hidden');
         $this->setDbUnique('documentClassId,documentId,productId,packagingId,type');
     }
-    
-    
+
+
+    /**
+     * Извиква се преди подготовката на колоните
+     */
+    protected static function on_BeforePrepareListFields($mvc, &$res, $data)
+    {
+        $data->showCodeColumn = true;
+    }
+
+
     /**
      * Подготвя заявката за данните на детайла
      */
@@ -168,7 +177,9 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
             
             return new core_ET('');
         }
-        
+
+        $data->listFields['productId'] = 'Отговорно пазене';
+
         return parent::renderDetail_($data);
     }
     
@@ -272,5 +283,21 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->type = "<div class='centered'>{$row->type}</div>";
+    }
+
+
+    /**
+     * Добавя бутони към тулбара
+     *
+     * @param core_Toolbar $toolbar
+     * @param core_Master $mvc
+     * @param int $documentId
+     */
+    public static function addBtnsToToolbar(&$toolbar, $mvc, $documentId)
+    {
+        if (store_DocumentPackagingDetail::haveRightFor('add', (object)array('documentClassId' => $mvc->getClassId(), 'documentId' => $documentId))) {
+            $toolbar->addBtn('Отг.пазене: ПРЕДАВАНЕ', array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $documentId, 'type' => 'out', 'ret_url' => true), null, 'title=Отговорно пазене: предаване КЪМ Контрагент,ef_icon=img/16/lorry_add.png,row=2');
+            $toolbar->addBtn('Отг.пазене: ПРИЕМАНЕ', array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $documentId, 'type' => 'in', 'ret_url' => true), null, 'title=Отговорно пазене: приемане ОТ Контрагент,ef_icon=img/16/lorry_add.png,row=2');
+        }
     }
 }

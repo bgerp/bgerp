@@ -34,6 +34,7 @@ class cat_plg_ShowCodes extends core_Plugin
     public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         $data->showReffCode = $mvc->showReffCode;
+        $data->showCodeColumn = $mvc->showCodeColumn;
     }
     
     
@@ -77,7 +78,7 @@ class cat_plg_ShowCodes extends core_Plugin
      */
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if ($mvc->showCodeColumn === true) {
+        if ($data->showCodeColumn === true) {
             arr::placeInAssocArray($data->listFields, array('code' => 'Код'), $mvc->productFld);
             $data->listTableMvc->FNC('code', 'varchar', 'tdClass=small-field morePadding nowrap');
         }
