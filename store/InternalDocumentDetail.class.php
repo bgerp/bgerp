@@ -177,7 +177,11 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         
         foreach ($data->rows as $i => &$row) {
             $rec = &$data->recs[$i];
-            $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+            if($data->showCodeColumn){
+                $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+            } else {
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+            }
             deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             
             // Показваме подробната информация за опаковката при нужда

@@ -400,27 +400,18 @@ abstract class store_DocumentMaster extends core_Master
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
             $tpl->removeBlock('header');
         }
-        
-        if (store_DocumentPackagingDetail::haveRightFor('add', (object) array('documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id))) {
-            $btnIn = ht::createBtn('Отг.пазене: ПРЕДАВАНЕ', array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'out','ret_url' => true), false, false, 'title=Отговорно пазене: предаване КЪМ Контрагент,ef_icon=img/16/lorry_add.png');
-            $btnOut = ht::createBtn('Отг.пазене: ПРИЕМАНЕ', array('store_DocumentPackagingDetail', 'add', 'documentClassId' => $mvc->getClassId(), 'documentId' => $data->rec->id, 'type' => 'in','ret_url' => true), false, false, 'title=Отговорно пазене: приемане ОТ Контрагент,ef_icon=img/16/lorry_add.png');
-            $tpl->append($btnIn, 'PACKAGING_BTNS');
-            $tpl->append($btnOut, 'PACKAGING_BTNS');
-        }
 
         if ($data->rec->country) {
             $deliveryAddress = "{$data->row->country} <br/> {$data->row->pCode} {$data->row->place} <br /> {$data->row->address}";
             $inlineDeliveryAddress = "{$data->row->country},  {$data->row->pCode} {$data->row->place}, {$data->row->address}";
+            $tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
         } else {
             $deliveryAddress = $data->row->contragentAddress;
         }
 
         core_Lg::push($data->rec->tplLang);
         $deliveryAddress = core_Lg::transliterate($deliveryAddress);
-
         $tpl->replace($deliveryAddress, 'deliveryAddress');
-        $tpl->replace($inlineDeliveryAddress, 'inlineDeliveryAddress');
-
         core_Lg::pop();
     }
     

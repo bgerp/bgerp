@@ -84,6 +84,9 @@
     <div class="lines"></div>
     <div class="scrolling-holder">
         <div class="details">
+            <div style="padding-bottom:0px">
+                [#store_DocumentPackagingDetail#]
+            </div>
             [#store_ShipmentOrderDetails#]
         </div>
     </div>
