@@ -114,6 +114,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $fld->FLD('saleId', 'varchar', 'caption=Сделка');
 
 
+
         return $fld;
     }
 
