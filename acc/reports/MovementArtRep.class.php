@@ -146,33 +146,33 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         // Намира се баланса на началния период
         $periodRec = acc_Periods::fetchByDate($rec->from); 
         $balanceId = acc_Balances::fetchField("#periodId = {$periodRec->id}", 'id');
-     
+
         // Извличат се само записите за сметка 321 с участието на перата на артикулите
-        $bQuery = acc_BalanceDetails::getQuery();
-        $bQuery->show('ent2Id,baseQuantity');
-        acc_BalanceDetails::filterQuery($bQuery, $balanceId, '321', $itemAll);
-        
+        $Balance = new acc_ActiveShortBalance(array('from' => $rec->from, 'to' => $rec->to, 'accs' => '321', 'cacheBalance' => false, 'keepUnique' => true));
+        $balanceRec = $Balance->getBalance('321');
+
         // От баланса извлизаме всички начални количества във всички складове, групирани по артикули
-        while ($bRec = $bQuery->fetch()) {
-            $productId = $productItemsFlip[$bRec->ent2Id];
+        foreach ($balanceRec as $bRec) {
+            $productId = $productItemsFlip[$bRec->ent2Id]; 
+            
             if (!array_key_exists($productId, $baseQuantities)) {
                 $baseQuantities[$productId] = $bRec->baseQuantity;
             } else {
                 $baseQuantities[$productId] += $bRec->baseQuantity;
             }
         }
-        
+
         // Извличане на записите от журнала по желаните сметки
         $jQuery = acc_JournalDetails::getQuery();
-        //$from = acc_Periods::fetchByDate($rec->from)->start;
-        //$to = acc_Periods::fetchByDate($rec->to)->end;
+
         $from = $rec->from;
         $to = $rec->to;
-        //bp($rec, $from, $to);
+
         acc_JournalDetails::filterQuery($jQuery, $from, $to, '321,401,61101,61102,701');
         
         $jRecs = $jQuery->fetchAll();
-
+        
+        
         //Производство
         $id2 = planning_DirectProductionNote::getClassid();
         $jQuery2 = clone $jQuery;

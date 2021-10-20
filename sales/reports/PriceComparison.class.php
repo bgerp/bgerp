@@ -58,6 +58,9 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
+        $fieldset->FLD('priceList', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика,after=title,mandatory,silent,single=none');
+        $fieldset->FLD('policyClassId', 'class(interface=price_CostPolicyIntf,select=title)', 'caption=Себестойност,after=priceList');
+
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=title,removeAndRefreshForm,placeholder=Всички,silent,single=none');
 
     }
@@ -76,6 +79,22 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
+        //Да се заредят само публични политики
+        $priceListsQuery = price_Lists::getQuery();
+        $priceListsQuery->where("#public = 'yes' AND #state = 'active'");
+        $suggestions = array();
+        while ($priceListsRec = $priceListsQuery->fetch()){
+
+            if ($priceListsRec->title == 'Каталог'){
+                $katalog = $priceListsRec->id;
+            }
+                $suggestions[$priceListsRec->id] = $priceListsRec->title;
+        }
+        $form->setSuggestions('priceList', $suggestions);
+
+        $form->setDefault('priceList', $katalog);
+
+
     }
 
 
@@ -91,7 +110,10 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     {
 
         $recs = array();
+        $priceListsQuery = price_ProductCosts::getQuery();
 
+      //  price_CostPolicyIntf
+//bp( $rec,$priceListsQuery->count(),$priceListsQuery->fetchAll(),core_Classes::fetch(968));
 
         return $recs;
     }
@@ -112,6 +134,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         $fld->FLD('saleId', 'varchar', 'caption=Сделка');
+
 
 
         return $fld;
