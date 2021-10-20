@@ -45,11 +45,6 @@
                   |От обект|*: [#locationId#]
                </div>
                <!--ET_END locationId-->
-               <!--ET_BEGIN addressInfo-->
-               <div>
-                  |Особености|*: [#addressInfo#]
-               </div>
-               <!--ET_END addressInfo-->
             </td>
          </tr>
       </tbody>
@@ -70,10 +65,19 @@
                <table style='width:100%;'>
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
-                     <td class='quiet' style='width:1%'>|Разтоварване|*:</td>
+                     <td class='quiet' style='width:1%'>[#deliveryTimeCaption#]:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
+                  <!--ET_BEGIN deliveryAddressBlock-->
+                  [#deliveryAddressBlock#]
+                  <tr>
+                     <td class='quiet nowrap aright'>|От адрес|*:</td>
+                     <td>
+                        [#deliveryTo#] [#deliveryLocationAddress#]
+                     </td>
+                  </tr>
+                  <!--ET_END deliveryAddressBlock-->
                   <!--ET_BEGIN lineId-->
                   <tr class="no-print">
                      <td class='quiet'  style='width:1%'>|Транспорт|*: </td>

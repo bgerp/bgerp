@@ -239,7 +239,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor');
         $mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
         $mvc->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
-        $mvc->FLD('deliveryInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Доставка->Особености, changable');
         $mvc->FLD('oneTimeDelivery', 'enum(no=Не,yes=Да)', 'caption=Доставка->Еднократно,notChangeableByContractor,notNull,value=no');
         $mvc->FLD('shipmentStoreId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Доставка->От склад,notChangeableByContractor');
         $mvc->FLD('paymentMethodId', 'key(mvc=cond_PaymentMethods,select=title,allowEmpty)', 'caption=Плащане->Метод,notChangeableByContractor,removeAndRefreshForm=paymentType,silent');
@@ -313,13 +312,6 @@ abstract class deals_DealMaster extends deals_DealBase
             $form->input('deliveryTermId');
             if(isset($rec->deliveryTermId)){
                 cond_DeliveryTerms::prepareDocumentForm($rec->deliveryTermId, $form, $mvc);
-            }
-        }
-
-        if(isset($rec->deliveryLocationId)){
-            $locationInfo = crm_Locations::fetchField($rec->deliveryLocationId, 'comment');
-            if(!empty($locationInfo)){
-                $form->setDefault('deliveryInfo', $locationInfo);
             }
         }
     }
@@ -1143,10 +1135,10 @@ abstract class deals_DealMaster extends deals_DealBase
             
             if (!empty($deliveryAdress)) {
                 if(!isset($rec->deliveryTermId)){
-                    $row->deliveryBlock .= "<li>" . tr('За адрес') . ": {$deliveryAdress} {$row->deliveryInfo}</li>";
+                    $row->deliveryBlock .= "<li>" . tr('За адрес') . ": {$deliveryAdress}</li>";
                 } else {
                     $deliveryAdress1 = (isset($rec->deliveryTermId)) ? ($row->deliveryTermId . ', ') : '';
-                    $deliveryAdress = $deliveryAdress1 . $deliveryAdress . $row->deliveryInfo;
+                    $deliveryAdress = $deliveryAdress1 . $deliveryAdress;
                     $row->deliveryTermId = $deliveryAdress;
                 }
             }

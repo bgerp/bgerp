@@ -606,7 +606,8 @@ class store_Transfers extends core_Master
         $res['storeMovement'] = 'out';
         $res['cases'] = array();
 
-        if($toStoreLocation = store_Stores::fetch($rec->toStore)){
+        if($toStoreLocationId = store_Stores::fetchField($rec->toStore, 'locationId')){
+            $toStoreLocation = crm_Locations::fetch($toStoreLocationId);
             $res['locationId'] = $toStoreLocation->id;
             $res['addressInfo'] = $toStoreLocation->comment;
         }
