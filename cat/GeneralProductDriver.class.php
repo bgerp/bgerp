@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -162,7 +162,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             
             // Ако артикула е прототипен, взимаме неговите параметри с техните стойностти
             $paramQuery = cat_products_Params::getQuery();
-            $paramQuery->where("#classId = {$classId} AND #productId = {$originRecId}");
+            $paramQuery->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
+            $paramQuery->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
+            $paramQuery->where("#productId = {$originRecId} AND #classId = {$classId}");
+            $paramQuery->orderBy('group,order,id', 'ASC');
             while ($pRec = $paramQuery->fetch()) {
                 $res[$pRec->paramId] = $pRec->paramValue;
             }
