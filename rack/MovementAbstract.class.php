@@ -49,7 +49,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
         $mvc->FLD('quantityInPack', 'double', 'input=hidden');
-        $mvc->FLD('workerId', 'user(roles=ceo|rack)', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
+        $mvc->FLD('workerId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal)', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
 
         $mvc->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $mvc->FLD('state', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent');
@@ -175,13 +175,10 @@ abstract class rack_MovementAbstract extends core_Manager
             $zones = self::getZoneArr($rec, $quantityInZones);
             $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
 
-            Mode::push('shortZoneName', true);
             foreach ($zones as $zoneRec) {
                 $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
-
                 if(rack_Zones::fetchField($zoneRec->zone)){
-                    $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
-                    $zoneTitle = rack_Zones::styleZone($zoneRec->zone, $zoneTitle, 'zoneMovement');
+                    $zoneTitle = rack_Zones::getDisplayZone($zoneRec->zone, false, false);
                     if($makeLinks){
                         $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
                     }
@@ -191,9 +188,8 @@ abstract class rack_MovementAbstract extends core_Manager
 
                 $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
                 $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
-                $movementArr[] = "<span {$class}>{$zoneTitle} ({$zoneQuantity})</span>";
+                $movementArr[] = "<span {$class}>{$zoneTitle} ( {$zoneQuantity} )</span>";
             }
-            Mode::pop('shortZoneName');
         }
 
         if (!empty($positionTo) && $restQuantity) {
@@ -322,7 +318,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
             if($rec->workerId != $userId){
                 if(!haveRole('rackMaster')){
-                    $requiredRoles = 'no_one';
+
                 }
             }
         }

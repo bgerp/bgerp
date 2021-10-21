@@ -1181,40 +1181,39 @@ class rack_Movements extends rack_MovementAbstract
             $row->_rowTools->addLink('Отказване', $unloadUrl, 'ef_icon=img/16/checked.png,title=Отказване на движението');
         }
 
-        $startWarning = (isset($rec->workerId) && $rec->workerId != core_Users::getCurrent())  ? 'Сигурни ли сте, че искате да започнете движение от друг потребител|*?' : null;
-        $returnWarning = (isset($rec->workerId) && $rec->workerId != core_Users::getCurrent())  ? 'Сигурни ли сте, че искате да върнете движение от друг потребител|*?' : 'Наистина ли искате да върнете движението|*?';
+        $isDifferentWarning = isset($rec->workerId) && $rec->workerId != core_Users::getCurrent();
+        $startWarning = $isDifferentWarning  ? 'Сигурни ли сте, че искате да започнете движение от друг потребител|*?' : null;
+        $returnWarning = $isDifferentWarning  ? 'Сигурни ли сте, че искате да върнете движение от друг потребител|*?' : 'Наистина ли искате да върнете движението|*?';
+        $doneWarning = $isDifferentWarning  ? 'Сигурни ли сте, че искате да приключите движение от друг потребител|*?' : null;
 
         if ($mvc->haveRightFor('start', $rec)) {
             $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
-            $row->_rowTools->addLink('Започване', $startUrl, "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
-            if (isset($startWarning)) {
-                $row->_rowTools->setWarning("start{$rec->id}", $startWarning);
-            }
+            $row->_rowTools->addLink('Започване', $startUrl, array('warning' => $startWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/control_play.png', 'title' => 'Започване на движението'));
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl($startUrl, 'local');
                 $row->rightColBtns = ht::createFnBtn('Започване', '', $startWarning, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
-                $row->rightColBtns = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
+                $row->rightColBtns = ht::createLink($img, $startUrl, $startWarning, 'title=Започване на движението');
             }
         }
 
         if ($mvc->haveRightFor('done', $rec)) {
             $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
+            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), array('warning' => $doneWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $stopUrl = toUrl($stopUrl, 'local');
-                $row->rightColBtns .= ht::createFnBtn('Приключване', '', null, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+                $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
-                $row->rightColBtns .= ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
+                $row->rightColBtns .= ht::createLink($img, $stopUrl, $doneWarning, 'title=Приключване на движението');
             }
         }
 
         if ($mvc->haveRightFor('reject', $rec)) {
-            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), "warning={$returnWarning},ef_icon=img/16/reject.png,title=Връщане на движението");
+            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), array('warning' => $returnWarning, 'id' => "return{$rec->id}", 'ef_icon' => 'img/16/reject.png', 'title' => 'Връщане на движението'));
         }
     }
 }

@@ -21,8 +21,8 @@ class trans_TransportableIntf
      * Клас имплементиращ мениджъра
      */
     public $class;
-    
-    
+
+
     /**
      * Информацията на документа, за показване в транспортната линия
      *
@@ -36,27 +36,20 @@ class trans_TransportableIntf
      *               ['currencyId']     string|NULL - валутата на документа
      *               ['notes']          string|NULL - забележки за транспортната линия
      *               ['stores']         array       - склад(ове) в документа
+     *               ['cases']          array       - каси в документа
+     *               ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *               ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
+     *               ['address']        double|NULL - адрес ба диставка
      *               ['storeMovement']  string|NULL - посока на движението на склада
+     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
      */
-    public function getTransportLineInfo($id, $lineId)
+    public function getTransportLineInfo($rec, $lineId)
     {
-        return $this->class->getTransportLineInfo($id, $lineId);
-    }
-    
-    
-    /**
-     * Трябва ли ръчно да се подготвя документа в Транспортната линия
-     *
-     * @param mixed $id - ид или запис на документа
-     *
-     * @return bool - TRUE или FALSE
-     */
-    public function requireManualCheckInTransportLine($id)
-    {
-        return $this->class->requireManualCheckInTransportLine($id);
+        return $this->class->getTransportLineInfo($rec, $lineId);
     }
 }

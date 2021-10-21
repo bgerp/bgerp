@@ -435,23 +435,42 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
     protected function getTableFieldSet($rec, $export = false)
     {
         $fld = cls::get('core_FieldSet');
+        if ($export === false) {
+            $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
+            $fld->FLD('name', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
 
-        $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
-        $fld->FLD('name', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Количество');
+            if (!is_null($rec->seeAmount)) {
+                $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
+            }
+            $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Количество');
+            if (!is_null($rec->seeAmount)) {
+                $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
+            }
 
-        $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Количество');
-        if (!is_null($rec->seeAmount)) {
-            $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
-        }
-        $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Количество');
-        if (!is_null($rec->seeAmount)) {
-            $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
-        }
+            $fld->FLD('totalQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Резултат->Количество');
+            if (!is_null($rec->seeAmount)) {
+                $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Резултат->Стойност');
+            }
+        }else{
+            $fld->FLD('code', 'varchar', 'caption=Код,tdClass=centered');
+            $fld->FLD('name', 'varchar', 'caption=Артикул');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('consumedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Количество');
+            if (!is_null($rec->seeAmount)) {
+                $fld->FLD('consumedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Вложено->Стойност');
+            }
+            $fld->FLD('returnedQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Количество');
+            if (!is_null($rec->seeAmount)) {
+                $fld->FLD('returnedAmount', 'double(smartRound,decimals=2)', 'smartCenter,caption=Върнато->Стойност');
+            }
 
-        $fld->FLD('totalQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Резултат->Количество');
-        if (!is_null($rec->seeAmount)) {
-            $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Резултат->Стойност');
+            $fld->FLD('totalQuantity', 'double(smartRound,decimals=2)', 'smartCenter,caption=Резултат->Количество');
+            if (!is_null($rec->seeAmount)) {
+                $fld->FLD('totalAmount', 'double(smartRound,decimals=2)', 'caption=Резултат->Стойност');
+            }
+
         }
         return $fld;
     }
@@ -641,6 +660,9 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+
+        $res->name = cat_Products::fetch($dRec->productId)->name;
+        $res->measure = cat_UoM::fetchField(cat_Products::fetch($dRec->productId)->measureId, 'shortName');
     }
 
 

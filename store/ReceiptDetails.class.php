@@ -194,4 +194,13 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
             unset($res->operation['out']);
         }
     }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        store_DocumentPackagingDetail::addBtnsToToolbar($data->toolbar, $mvc->Master, $data->masterId);
+    }
 }

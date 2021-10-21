@@ -450,7 +450,7 @@ class acc_CostAllocations extends core_Manager
         }
 
         if(!Mode::isReadOnly()){
-            $row->quantity = ht::createHint($row->quantity, "Разпределяне|*: {$row->allocationBy}");
+            $row->quantity = ht::createHint($row->quantity, "Разпределяне|*: {$row->allocationBy} / {$row->allocationFilter}");
         }
 
         if ($isPercent === false) {

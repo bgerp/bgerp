@@ -526,8 +526,8 @@ class store_ConsignmentProtocols extends core_Master
         
         return $this->save($rec);
     }
-    
-    
+
+
     /**
      * Информацията на документа, за показване в транспортната линия
      *
@@ -541,11 +541,17 @@ class store_ConsignmentProtocols extends core_Master
      *               ['currencyId']     string|NULL - валутата на документа
      *               ['notes']          string|NULL - забележки за транспортната линия
      *               ['stores']         array       - склад(ове) в документа
+     *               ['cases']          array       - каси в документа
+     *               ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *               ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
-     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
+     *               ['address']        double|NULL - адрес ба диставка
      *               ['storeMovement']  string|NULL - посока на движението на склада
+     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -555,8 +561,7 @@ class store_ConsignmentProtocols extends core_Master
         $res['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
         $res['stores'] = array($rec->storeId);
         $res['address'] = str_replace('<br>', '', $row->contragentAddress);
-        //$res['storeMovement']
-
+        $res['cases'] = array();
 
         return $res;
     }

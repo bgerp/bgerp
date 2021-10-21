@@ -24,6 +24,8 @@ class label_plg_Print extends core_Plugin
     {
         setIfNot($mvc->canPrintlabel, 'label, admin, ceo');
         setIfNot($mvc->canPrintPeripheralLabel, 'label, admin, ceo');
+        setIfNot($mvc->printLabelCaptionPlural, 'Етикети');
+        setIfNot($mvc->printLabelCaptionSingle, 'Етикет');
     }
     
     
@@ -42,7 +44,7 @@ class label_plg_Print extends core_Plugin
             // Ако има бутон за печат на бърз етикет, показва се
             if($mvc->haveRightFor('printperipherallabel', $rec)){
                 core_RowToolbar::createIfNotExists($row->_rowTools);
-                $row->_rowTools->addLink('Етикет', array($mvc, 'printperipherallabel', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/printer.png', 'title' => 'Разпечатване на бърз етикет', 'style' => 'position: relative; top: -2px;'), 'alwaysShow');
+                $row->_rowTools->addLink($mvc->printLabelCaptionSingle, array($mvc, 'printperipherallabel', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/printer.png', 'title' => 'Разпечатване на ' . mb_strtolower($mvc->printLabelCaptionSingle), 'style' => 'position: relative; top: -2px;'), 'alwaysShow');
                 $alwaysShow = false;
             }
             
@@ -52,7 +54,7 @@ class label_plg_Print extends core_Plugin
                 $btnParams['attr'] = arr::make($btnParams['attr']);
                 $btnParams['attr']['style'] = 'position: relative; top: -2px;';
                 $alwaysShow = ($alwaysShow) ? 'alwaysShow' : null;
-                $row->_rowTools->addLink('Етикети', $btnParams['url'], $btnParams['attr'], $alwaysShow);
+                $row->_rowTools->addLink($mvc->printLabelCaptionPlural, $btnParams['url'], $btnParams['attr'], $alwaysShow);
             }
         }
     }
@@ -169,7 +171,7 @@ class label_plg_Print extends core_Plugin
                 $res['url'] = array('label_Prints', 'add', 'classId' => $source['class']->getClassid(), 'objectId' => $source['id'], 'ret_url' => true);
                 $res['url'] = toUrl($res['url']);
                 core_Request::removeProtected('classId,objectId');
-                $res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на етикети от|* {$title} №{$rec->id}{$error}";
+                $res['attr'] = "target=_blank,ef_icon = img/16/price_tag_label.png,title=Разпечатване на ". mb_strtolower($mvc->printLabelCaptionSingle). " от|* {$title} №{$rec->id}{$error}";
             }
         }
         
@@ -219,7 +221,7 @@ class label_plg_Print extends core_Plugin
     {
         $btnParams = self::getLabelBtnParams($mvc, $data->rec);
         if (!empty($btnParams['url'])) {
-            $data->toolbar->addBtn('Етикети', $btnParams['url'], null, $btnParams['attr']);
+            $data->toolbar->addBtn($mvc->printLabelCaptionPlural, $btnParams['url'], null, $btnParams['attr']);
         }
     }
     

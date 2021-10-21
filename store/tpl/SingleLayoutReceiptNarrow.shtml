@@ -54,6 +54,13 @@
 <div class='scrolling-holder'>
    <div class="details">
       [#store_ReceiptDetails#]
+      <!--ET_BEGIN store_DocumentPackagingDetail-->
+      <div class="lines"></div>
+      <div style="margin-top2:1px">
+         <div class="safeKeepingDetail">|Отговорно пазене|*</div>
+         [#store_DocumentPackagingDetail#]
+      </div>
+      <!--ET_END store_DocumentPackagingDetail-->
    </div>
 </div>
 <div class="lines"></div>
@@ -65,16 +72,37 @@
                <table style='width:100%;'>
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
-                     <td class='quiet' style='width:1%'>|Разтоварване|*:</td>
+                     <td class='quiet' style='width:1%'>[#deliveryTimeCaption#]:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
-                  <!--ET_BEGIN lineId-->
+                  <!--ET_BEGIN deliveryAddressBlock-->
+                  [#deliveryAddressBlock#]
                   <tr>
+                     <td class='quiet nowrap aright'>|От адрес|*:</td>
+                     <td>
+                        [#deliveryTo#] [#deliveryLocationAddress#]
+                     </td>
+                  </tr>
+                  <!--ET_END deliveryAddressBlock-->
+                  <!--ET_BEGIN lineId-->
+                  <tr class="no-print">
                      <td class='quiet'  style='width:1%'>|Транспорт|*: </td>
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
+                  <!--ET_BEGIN lineForwarderId-->
+                  <tr>
+                     <td class='nowrap quiet aright'>|Спедитор|*: </td>
+                     <td>[#lineForwarderId#]</td>
+                  </tr>
+                  <!--ET_END lineForwarderId-->
+                  <!--ET_BEGIN lineVehicleId-->
+                  <tr>
+                     <td class='nowrap quiet aright'>|МПС|*: </td>
+                     <td>[#lineVehicleId#]</td>
+                  </tr>
+                  <!--ET_END lineVehicleId-->
                   <!--ET_BEGIN lineNotes-->
                   <tr>
                      <td class='nowrap' colspan=2><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>
@@ -115,17 +143,6 @@
          </tr>
       </tbody>
    </table>
-   <!--ET_BEGIN store_DocumentPackagingDetail-->
-   <div class='scrolling-holder' style="margin-top: 10px;">
-      <div class="details smallerText" >
-         <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазене</p>
-         [#store_DocumentPackagingDetail#]
-      </div>
-   </div>
-   <!--ET_END store_DocumentPackagingDetail-->
-   <!--ET_BEGIN PACKAGING_BTNS-->
-   <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
-   <!--ET_END PACKAGING_BTNS-->
 
    <div class='footerDocBlock'   style="border-top: none !important">
       [#/doc/tpl/Copyright.shtml#]
