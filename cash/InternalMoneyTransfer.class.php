@@ -223,7 +223,7 @@ class cash_InternalMoneyTransfer extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме към формата за търсене търсене по Каса
-        cash_Cases::prepareCaseFilter($data, array('creditCase', 'debitCase'));
+        cash_Cases::prepareCaseFilter($data, array('creditCase', 'debitCase'), 'operationSysId');
     }
     
     
