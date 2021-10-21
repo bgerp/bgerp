@@ -594,7 +594,7 @@ class rack_Zones extends core_Master
         $form = cls::get('core_Form');
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
         $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($storeId, true);
-        $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона,mandatory');
+        $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
         $zoneOptions = rack_Zones::getZones($storeId, true);
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');
         if (!empty($zoneId) && !array_key_exists($zoneId, $zoneOptions)) {
@@ -643,7 +643,15 @@ class rack_Zones extends core_Master
 
             // Ако е избрана зона редирект към нея, иначе се остава в документа
             if (isset($fRec->zoneId)) {
+                if(empty($zoneId)){
+                    $document->getInstance()->logWrite('Задаване на зона', $document->that);
+                } elseif($zoneId != $fRec->zoneId) {
+                    $document->getInstance()->logWrite('Промяна на зона', $document->that);
+                }
+
                 redirect(self::getUrlArr($fRec->zoneId));
+            } elseif(isset($zoneId)) {
+                $document->getInstance()->logWrite('Премахване от зона', $document->that);
             }
 
             followRetUrl();
@@ -1001,6 +1009,7 @@ class rack_Zones extends core_Master
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('removedocument', $rec);
+        $document = doc_Containers::getDocument($rec->containerId);
 
         expect(!rack_Movements::fetch("LOCATE('|{$rec->id}|', #zoneList) AND (#state = 'waiting' AND #state = 'active')"));
 
@@ -1025,6 +1034,7 @@ class rack_Zones extends core_Master
         }
 
         $this->updateMaster($rec);
+        $document->getInstance()->logWrite('Премахване от зона', $document->that);
 
         followRetUrl(null, 'Документът е премахнат от зоната');
     }
