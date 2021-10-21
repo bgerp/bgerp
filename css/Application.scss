@@ -8333,3 +8333,13 @@ body.narrow {
 	padding: 2px;
 	display: inline-block;
 }
+
+.document .details .safeKeepingDetail {
+	border-top:1px solid #bbb;
+	border-left:1px solid #bbb;
+	border-right:1px solid #bbb;
+	background-color:#eee;
+	padding:2px;
+	text-indent:5px;
+	font-weight:bold;
+}

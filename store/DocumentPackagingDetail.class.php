@@ -178,8 +178,6 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
             return new core_ET('');
         }
 
-        $data->listFields['productId'] = 'Отговорно пазене';
-
         return parent::renderDetail_($data);
     }
     

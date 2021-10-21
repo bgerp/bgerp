@@ -46,10 +46,14 @@
         </table>
         <div class="lines"></div>
         <div class="details">
-            <div style="padding-bottom:0px">
+            [#store_ShipmentOrderDetails#]
+            <!--ET_BEGIN store_DocumentPackagingDetail-->
+            <div class="lines"></div>
+            <div style="margin-top2:1px">
+                <div class="safeKeepingDetail">|Отговорно пазене|*</div>
                 [#store_DocumentPackagingDetail#]
             </div>
-            [#store_ShipmentOrderDetails#]
+            <!--ET_END store_DocumentPackagingDetail-->
         </div>
         <div class="lines"></div>
         <table class="innerTable footer-notes paddingCells"  style="width: 100%">
