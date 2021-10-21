@@ -235,11 +235,21 @@ class cash_Cases extends core_Master
      * @param array    $fields - масив от полета в полета в които ще се
      *                         търси по caseId
      */
-    public static function prepareCaseFilter(&$data, $fields = array())
+    public static function prepareCaseFilter(&$data, $fields = array(), $operationFieldName = null)
     {
         $data->listFilter->FNC('case', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,width=10em,silent');
         $data->listFilter->showFields .= ',case';
         $data->listFilter->setDefault('case', static::getCurrent('id', false));
+
+        if($operationFieldName){
+            $operationOptions = array('all' => 'Всички');
+            $operationOptions += $data->query->mvc->getFieldType($operationFieldName)->options;
+            $data->listFilter->FNC('operation', 'varchar', 'caption=Операция');
+            $data->listFilter->setOptions('operation', $operationOptions);
+            $data->listFilter->showFields .= ',operation';
+            $data->listFilter->setDefault('operation', 'all');
+        }
+
         $data->listFilter->input();
         
         if ($filter = $data->listFilter->rec) {
@@ -248,6 +258,10 @@ class cash_Cases extends core_Master
                     $or = ($i === 0) ? false : true;
                     $data->query->where("#{$fld} = {$filter->case}", $or);
                 }
+            }
+
+            if(!empty($filter->operation) && $filter->operation != 'all'){
+                $data->query->where("#{$operationFieldName} = '{$filter->operation}'");
             }
         }
     }

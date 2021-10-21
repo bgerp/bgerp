@@ -13,13 +13,23 @@
             <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
             <!--ET_END state-->
 
-            <!--ET_BEGIN storeReadiness-->
-            <div class="document-block"><span class='block-caption'>Налично в склад</span>: <span class='block-instock'>[#storeReadiness#]</span></div>
-            <!--ET_END storeReadiness-->
-
-            <!--ET_BEGIN zoneReadiness-->
-            <div class="document-block"><span class='block-caption'>В зона [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
-            <!--ET_END zoneReadiness-->
+            <!--ET_BEGIN MISC_BLOCK-->
+            [#MISC_BLOCK#]
+            <table class="document-block no-border">
+               <!--ET_BEGIN storeReadiness-->
+               <tr>
+                  <td class="block-caption leftCol">In stock</td>
+                  <td><div class="block-instock">[#storeReadiness#]</div></td>
+               </tr>
+               <!--ET_END storeReadiness-->
+               <!--ET_BEGIN zoneReadiness-->
+               <tr>
+                  <td class="block-caption leftCol">Zone [#zoneId#]</td>
+                  <td><div class="block-readiness">[#zoneReadiness#]</div></td>
+               </tr>
+               <!--ET_END zoneReadiness-->
+            </table>
+            <!--ET_END MISC_BLOCK-->
          </td>
          <td class="cell custom-header-bg vtop" style='width:33%;'><b>|До склад|*</b></td>
       </tr>
@@ -64,7 +74,19 @@
                   <td class='quiet nowrap aright' style='width:1%;'>|Транспорт|*: </td>
                   <td>[#lineId#]</td>
                </tr>
-               <!--ET_END lineId--> 
+               <!--ET_END lineId-->
+               <!--ET_BEGIN lineForwarderId-->
+               <tr>
+                  <td class='nowrap quiet aright'>Forwarder: </td>
+                  <td>[#lineForwarderId#]</td>
+               </tr>
+               <!--ET_END lineForwarderId-->
+               <!--ET_BEGIN lineVehicleId-->
+               <tr>
+                  <td class='nowrap quiet aright'>Motor vehicle: </td>
+                  <td>[#lineVehicleId#]</td>
+               </tr>
+               <!--ET_END lineVehicleId-->
                <!--ET_BEGIN lineNotes-->
                <tr>
                   <td class='nowrap' colspan=2><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>

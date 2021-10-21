@@ -81,13 +81,25 @@
                                 
                                 <!--ET_BEGIN lineId-->
                                 <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                	<span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]
+                                	<span class='quiet no-print'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]
                                 </td>
                                 <!--ET_END lineId-->
-                                
+
+                                <!--ET_BEGIN lineForwarderId-->
+                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
+                                    <span class='quiet'>|Спедитор|*:</span> &nbsp;&nbsp;&nbsp;[#lineForwarderId#]
+                                </td>
+                                <!--ET_END lineForwarderId-->
+
+                                <!--ET_BEGIN lineVehicleId-->
+                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
+                                    <span class='quiet'>|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#]
+                                </td>
+                                <!--ET_END lineVehicleId-->
+
                                 <!--ET_BEGIN lineNotes-->
                                 <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                	<span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]
+                                	<span class='quiet'>|Забележки за транспорта|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]
                                 </td>
                                 <!--ET_END lineNotes-->
                                 

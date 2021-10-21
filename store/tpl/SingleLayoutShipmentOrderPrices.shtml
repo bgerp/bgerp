@@ -15,13 +15,23 @@
                <!--ET_BEGIN state-->
                <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
                <!--ET_END state-->
-               <!--ET_BEGIN storeReadiness-->
-               <div class="document-block"><span class='block-caption'>Налично в склад</span>: <span class='block-instock'>[#storeReadiness#]</span></div>
-               <!--ET_END storeReadiness-->
-
-               <!--ET_BEGIN zoneReadiness-->
-               <div class="document-block"><span class='block-caption'>В зона [#zoneId#]</span>: <span class='block-readiness'>[#zoneReadiness#]</span></div>
-               <!--ET_END zoneReadiness-->
+               <!--ET_BEGIN MISC_BLOCK-->
+               [#MISC_BLOCK#]
+               <table class="document-block no-border">
+                  <!--ET_BEGIN storeReadiness-->
+                  <tr>
+                     <td class="block-caption leftCol">In stock</td>
+                     <td><div class="block-instock">[#storeReadiness#]</div></td>
+                  </tr>
+                  <!--ET_END storeReadiness-->
+                  <!--ET_BEGIN zoneReadiness-->
+                  <tr>
+                     <td class="block-caption leftCol">Zone [#zoneId#]</td>
+                     <td><div class="block-readiness">[#zoneReadiness#]</div></td>
+                  </tr>
+                  <!--ET_END zoneReadiness-->
+               </table>
+               <!--ET_END MISC_BLOCK-->
             </td>
             <td class="cell custom-header-bg"  style='width:35%;'><b>|Доставчик|*</b></td>
          </tr>
@@ -52,6 +62,13 @@
 <div class='scrolling-holder'>
    <div class="details">
       [#store_ShipmentOrderDetails#]
+      <!--ET_BEGIN store_DocumentPackagingDetail-->
+      <div class="lines"></div>
+      <div style="margin-top2:1px">
+         <div class="safeKeepingDetail">|Отговорно пазене|*</div>
+         [#store_DocumentPackagingDetail#]
+      </div>
+      <!--ET_END store_DocumentPackagingDetail-->
    </div>
 </div>
 <div class="lines"></div>
@@ -77,19 +94,30 @@
                   </tr>
                   <!--ET_END deliveryAddressBlock-->
                   <!--ET_BEGIN lineId-->
-                  <tr>
+                  <tr class="no-print">
                      <td class='nowrap quiet aright'>|Транспорт|*: </td>
                      <td>[#lineId#]</td>
                   </tr>
                   <!--ET_END lineId-->
-                  [#InvoicesToDocuments#]
-
+                  <!--ET_BEGIN lineForwarderId-->
+                  <tr>
+                     <td class='nowrap quiet aright'>|Спедитор|*: </td>
+                     <td>[#lineForwarderId#]</td>
+                  </tr>
+                  <!--ET_END lineForwarderId-->
+                  <!--ET_BEGIN lineVehicleId-->
+                  <tr>
+                     <td class='nowrap quiet aright'>|МПС|*: </td>
+                     <td>[#lineVehicleId#]</td>
+                  </tr>
+                  <!--ET_END lineVehicleId-->
                   <!--ET_BEGIN lineNotes-->
                   <tr>
                      <td class='quiet nowrap aright'>|Забележки|*: </td>
                      <td>[#lineNotes#]</td>
                   </tr>
                   <!--ET_END lineNotes-->
+                  [#InvoicesToDocuments#]
                   <!--ET_BEGIN note-->
                   <tr>
                      <td colspan="2" >
@@ -139,19 +167,6 @@
          </tr>
       </tbody>
    </table>
-
-   <!--ET_BEGIN store_DocumentPackagingDetail-->
-   <div class='scrolling-holder' style="margin-top: 10px;">
-      <div class="details smallerText" >
-         <p style="margin: 10px 0 5px; font-weight:bold">Отговорно пазане</p>
-         [#store_DocumentPackagingDetail#]
-      </div>
-   </div>
-   <!--ET_END store_DocumentPackagingDetail-->
-   <!--ET_BEGIN PACKAGING_BTNS-->
-   <div style='margin-top:10px'>[#PACKAGING_BTNS#]</div>
-   <!--ET_END PACKAGING_BTNS-->
-
    <div class='footerDocBlock'   style="border-top: none !important">
       [#/doc/tpl/Copyright.shtml#]
    </div>

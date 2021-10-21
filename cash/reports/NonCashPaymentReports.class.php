@@ -17,9 +17,6 @@
  */
 class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
 {
-    const START_DATE = '2020-02-05';
-    
-    
     /**
      * Кой може да избира драйвъра
      */
@@ -117,36 +114,6 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     
     
     /**
-     * След рендиране на единичния изглед
-     *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_Form         $form
-     * @param stdClass          $data
-     */
-    protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
-    {
-        $Date = cls::get('type_Date');
-        
-        $rec = $form->rec;
-        if ($form->isSubmitted()) {
-            
-            // Проверка на периоди
-            $startDate = self::START_DATE;
-            $startDateVerb = $Date -> toVerbal($startDate);
-            
-            if (isset($rec->from) && ($rec->from < $startDate)) {
-                $form->setError('from', "Началната дата на периода не може да бъде по-стара от {$startDateVerb} .");
-            }
-            
-            if (isset($form->rec->from, $form->rec->to) && ($form->rec->from > $form->rec->to)) {
-                $form->setError('from,to', 'Началната дата на периода не може да бъде по-голяма от крайната.');
-            }
-        }
-    }
-    
-    
-    /**
      * Кои записи ще се показват в таблицата
      *
      * @param stdClass $rec
@@ -157,13 +124,9 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
         $recs = array();
-        
-        setIfNot($rec->from, self::START_DATE);
         setIfNot($rec->to, dt::addDays(0, null, false));
-        
         $nonCashQuery = cash_NonCashPaymentDetails::getQuery();
-        
-        
+
         //Масив с id-та на ПКО-та по които има избрани безналични методи на плащане
         $pkoWitnNonCashPaymentsArr = arr::extractValuesFromArray($nonCashQuery->fetchAll(), 'documentId');
         
@@ -323,13 +286,11 @@ class cash_reports_NonCashPaymentReports extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
-        $Int = cls::get('type_Int');
         $Date = cls::get('type_Date');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         
         $row = new stdClass();
-        
         if (isset($dRec->contragentName)) {
             $row->contragentName = $dRec->contragentName;
         }

@@ -113,7 +113,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior, contragentName, reason';
+    public $searchFields = 'valior, contragentName, reason, operationSysId';
     
     
     /**
@@ -541,14 +541,14 @@ abstract class cash_Document extends deals_PaymentDocument
             $requiredRoles = 'no_one';
         }
     }
-    
-    
+
+
     /**
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
      * @param int $lineId
-     * 
+     *
      * @return array
      *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
      *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
@@ -556,12 +556,17 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['currencyId']     string|NULL - валутата на документа
      *               ['notes']          string|NULL - забележки за транспортната линия
      *               ['stores']         array       - склад(ове) в документа
+     *               ['cases']          array       - каси в документа
+     *               ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *               ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
-     *               ['address']        double|NULL - общ обем на стоките в документа
+     *               ['address']        double|NULL - адрес ба диставка
      *               ['storeMovement']  string|NULL - посока на движението на склада
+     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -574,7 +579,8 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
-        
+        $info['cases'] = array($rec->peroCase);
+        $info['stores'] = array();
         if($this->haveRightFor('conto', $rec)){
             $contoUrl = $this->getContoUrl($rec->id);
             $warning = $this->getContoWarning($rec->id, $rec->isContable);
