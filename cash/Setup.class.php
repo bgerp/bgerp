@@ -60,7 +60,8 @@ class cash_Setup extends core_ProtoSetup
         'cash_ExchangeDocument',
         'cash_NonCashPaymentDetails',
         'migrate::recontoDocuments1',
-        'migrate::updateCashDocuments'
+        'migrate::updateCashDocuments',
+        'migrate::updateNonCashPayments',
     );
     
     
@@ -103,6 +104,54 @@ class cash_Setup extends core_ProtoSetup
     {
         foreach (array('cash_Pko', 'cash_Rko') as $mvc){
             deals_InvoicesToDocuments::migrateContainerIds($mvc);
+        }
+    }
+
+
+    /**
+     * Миграция на инкасиранията на касовите плащания
+     */
+    function updateNonCashPayments()
+    {
+        $sources = array();
+        $CashTransfers = cls::get('cash_InternalMoneyTransfer');
+        $pkoClassId = cash_Pko::getClassId();
+        $query = cash_InternalMoneyTransfer::getQuery();
+        $query->where("#operationSysId = 'nonecash2case' AND #sourceId IS NULL");
+        $allTransfers = $query->fetchAll();
+        $idArr = arr::extractValuesFromArray($allTransfers, 'containerId');
+
+        if(!countR($idArr)) return;
+        $ids = implode(',', $idArr);
+        core_App::setTimeLimit(400);
+
+        $lQuery = doc_Linked::getQuery();
+        $lQuery->where("(#outVal IN ({$ids}) AND #outType = 'doc') OR (#inVal  IN ({$ids}) AND #inType = 'doc')");
+
+        while($lRec = $lQuery->fetch()){
+            foreach (array('outVal', 'inVal') as $fld){
+                $otherVal = ($fld == 'outVal') ? 'inVal' : 'outVal';
+                if(!array_key_exists($lRec->{$fld}, $idArr)){
+                    $cRec = doc_Containers::fetch($lRec->{$fld}, 'docClass,id');
+                    if($cRec->docClass == $pkoClassId){
+                        $sources[$lRec->{$otherVal}] = $cRec->id;
+                    }
+                }
+            }
+        }
+
+        if(!countR($sources)) return;
+
+        $saveArr = array();
+        foreach ($allTransfers as $tRec){
+            if(array_key_exists($tRec->containerId, $sources)){
+                $tRec->sourceId = $sources[$tRec->containerId];
+                $saveArr[$tRec->id] = $tRec;
+            }
+        }
+
+        if(countR($saveArr)){
+            $CashTransfers->saveArray($saveArr, 'id,sourceId');
         }
     }
 }
