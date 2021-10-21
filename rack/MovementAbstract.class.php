@@ -188,7 +188,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
                 $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
                 $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
-                $movementArr[] = "<span {$class}>{$zoneTitle} ({$zoneQuantity})</span>";
+                $movementArr[] = "<span {$class}>{$zoneTitle} ( {$zoneQuantity} )</span>";
             }
         }
 
