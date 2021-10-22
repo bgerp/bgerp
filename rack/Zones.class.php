@@ -192,8 +192,6 @@ class rack_Zones extends core_Master
             $row->ROW_ATTR['class'] = $row->ROW_ATTR['class'] . " rack-zone-head";
         }
 
-        $row->num = $mvc->getHyperlink($rec->id);
-
         if (isset($rec->containerId)) {
             $document = doc_Containers::getDocument($rec->containerId);
             $documentRec = $document->fetch();
@@ -213,6 +211,7 @@ class rack_Zones extends core_Master
         }
 
         $row->readiness = "<div class='block-readiness'>{$row->readiness}</div>";
+        $row->num = $mvc->getHyperlink($rec->id);
         if (isset($fields['-list'])) {
             $rec->_isSingle = false;
 
@@ -240,6 +239,7 @@ class rack_Zones extends core_Master
         }
 
         if (isset($fields['-single'])) {
+            $row->num = rack_Zones::getRecTitle($rec->id);
             if(empty($rec->color)){
                 $row->color = $mvc->getFieldType('color')->toVerbal(rack_Setup::get('DEFAULT_ZONE_COLORS'));
             }
@@ -611,53 +611,31 @@ class rack_Zones extends core_Master
             }
 
             if(!$form->gotErrors()){
+                $msg = null;
 
-                // Присвояване на новата зона
-                if (isset($fRec->zoneId)) {
-                    $zoneRec = $this->fetch($fRec->zoneId);
-                    $zoneRec->containerId = $containerId;
-                    $this->save($zoneRec);
-
-                    // Синхронизиране с детайла на зоната
-                    rack_ZoneDetails::syncWithDoc($zoneRec->id, $containerId);
-                    $this->updateMaster($zoneRec);
-
-                    // Ако групата е с групиране, се извличат всички зони от същата група
-                    if (isset($zoneRec->groupId)) {
-                        $selectedZones = self::getZones($storeId, false, true, $zoneRec->groupId);
-                        $selectedZones = arr::make(array_keys($selectedZones), true);
-                    } else {
-                        $selectedZones = $zoneRec->id;
-                    }
-
-                    // Генериране на движенията за нагласяне
-                    self::pickupOrder($storeId, $selectedZones);
-                }
-
-                // Старата зона се отчуждава от документа
+                // Ако е сменена зоната, документа се премахва от старата и се регенерират движенията за нея и групата
                 if ($zoneId != $fRec->zoneId && isset($zoneId)) {
-                    $zoneRec1 = $this->fetch($zoneId);
-                    $zoneRec1->containerId = null;
-                    $this->save($zoneRec1);
-                    rack_ZoneDetails::syncWithDoc($zoneRec1->id);
-
-                    $this->updateMaster($zoneRec1);
+                    $this->updateZone($zoneId, $containerId, true);
                 }
 
-                // Ако е избрана зона редирект към нея, иначе се остава в документа
+                // Ако е избрана нова зона се регенерират движенията за нея и групата ѝ
                 if (isset($fRec->zoneId)) {
+                    $this->updateZone($fRec->zoneId, $containerId);
                     if(empty($zoneId)){
-                        $document->getInstance()->logWrite('Задаване на зона', $document->that);
+                        $document->getInstance()->logWrite('Задаване на нова зона', $document->that);
+                        $msg = 'Зоната е успешно зададена|*!';
                     } elseif($zoneId != $fRec->zoneId) {
                         $document->getInstance()->logWrite('Промяна на зона', $document->that);
+                        $msg = 'Зоната е успешно променена|*!';
                     }
 
-                    redirect(self::getUrlArr($fRec->zoneId));
+                    redirect(self::getUrlArr($fRec->zoneId), false, $msg);
                 } elseif(isset($zoneId)) {
                     $document->getInstance()->logWrite('Премахване от зона', $document->that);
+                    $msg = 'Документът е премахнат от зоната|*!';
                 }
 
-                followRetUrl();
+                followRetUrl(null, $msg);
             }
         }
 
@@ -671,6 +649,44 @@ class rack_Zones extends core_Master
         core_Form::preventDoubleSubmission($tpl, $form);
 
         return $tpl;
+    }
+
+
+    /**
+     * Обновява и регенерира информацията за зоната
+     *
+     * @param int $zoneId           - ид на зона
+     * @param int|null $containerId - ид на контейнер
+     * @param bool $remove          - да се добави или да се премахне документът от зоната
+     */
+    private function updateZone($zoneId, $containerId, $remove = false)
+    {
+        // Запис на документа към зоната
+        $zoneRec = $this->fetch($zoneId);
+        $zoneRec->containerId = ($remove) ? null : $containerId;
+        $this->save($zoneRec);
+
+        // Синхронизиране с детайла на зоната
+        rack_ZoneDetails::syncWithDoc($zoneRec->id, $zoneRec->containerId);
+
+        if($remove){
+
+            // Ако документа се премахва от зоната, изтриват се чакащите движения към тях
+            rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending'");
+        }
+
+        // Обновяване на информацията в зоната
+        $this->updateMaster($zoneRec);
+
+        // Ако групата е с групиране, се извличат всички зони от същата група
+        $selectedZones = $zoneRec->id;
+        if (isset($zoneRec->groupId)) {
+            $selectedZones = self::getZones($zoneRec->storeId, false, true, $zoneRec->groupId);
+            $selectedZones = arr::make(array_keys($selectedZones), true);
+        }
+
+        // Генериране нови движения след отразяване на промяната
+        self::pickupOrder($zoneRec->storeId, $selectedZones);
     }
 
 
@@ -926,7 +942,7 @@ class rack_Zones extends core_Master
             self::pickupOrder($storeId, $zoneId);
         }
 
-        followRetUrl(null, 'Движенията са генерирани успешно');
+        followRetUrl(null, 'Движенията са генерирани успешно|*!');
     }
 
 
@@ -1019,27 +1035,8 @@ class rack_Zones extends core_Master
             followRetUrl(null, "По документа има Запазени или Започнати движения! Документът може да бъде премахнат след отказването им|*!", 'error');
         }
 
-        $rec->containerId = null;
-        $this->save($rec);
-        rack_ZoneDetails::syncWithDoc($rec->id);
-
-        // Изтриват се всички чакащи движение от зоната
-        $zoneLists = '';
-        $mQuery = rack_Movements::getQuery();
-        $mQuery->where("LOCATE('|{$rec->id}|', #zoneList) AND #state = 'pending'");
-        while ($mRec = $mQuery->fetch()) {
-            rack_Movements::delete($mRec->id);
-            $zoneLists = keylist::merge($zoneLists, $mRec->zoneList);
-        }
-
-        // Регенериране на движенията на другите зони, ако е изтрито движение към няколко зони
-        $zoneLists = arr::make($zoneLists, true);
-        unset($zoneLists[$rec->id]);
-        if(countR($zoneLists)){
-            static::pickupOrder($rec->storeId, $zoneLists);
-        }
-
-        $this->updateMaster($rec);
+        // Зоната се нотифицира, че документът е премахнат от нея
+        $this->updateZone($rec->id, $rec->containerId, true);
         $document->getInstance()->logWrite('Премахване от зона', $document->that);
 
         followRetUrl(null, 'Документът е премахнат от зоната');
@@ -1073,7 +1070,6 @@ class rack_Zones extends core_Master
             $zoneIds = arr::make($zoneIds, true);
             $mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
             $zoneMovements = $mQuery->fetchAll();
-
         }
 
         while ($dRec = $dQuery->fetch()) {
