@@ -276,7 +276,7 @@ class trans_Lines extends core_Master
         $rec = $data->rec;
         
         if (!$data->toolbar->haveButton('btnClose')) {
-            if (self::countDocumentsByState($rec->id, 'draft,pending')) {
+            if (self::countDocumentsByState($rec->id, 'draft,pending') && $rec->state == 'active') {
                 $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нев|*!', 'title' => 'Затваряне на транспортна линия'));
             }
         }
@@ -363,8 +363,10 @@ class trans_Lines extends core_Master
         $row->countReadyDocuments  = ht::createHint($row->countReadyDocuments , 'Брой нагласени складови документи', 'noicon', false);
 
         $row->readiness = "{$row->countStoreDocuments} / {$row->countActiveDocuments} / {$row->countReadyDocuments}";
-        if($rec->countStoreDocuments != ($rec->countActiveDocuments + $rec->countReadyDocuments)){
-            $row->readiness = "<span class='red'>{$row->readiness}</span>";
+        if(!Mode::isReadOnly()){
+            if($rec->countStoreDocuments != ($rec->countActiveDocuments + $rec->countReadyDocuments)){
+                $row->readiness = "<span class='red'>{$row->readiness}</span>";
+            }
         }
 
         $row->handler = $mvc->getHyperlink($rec->id, true);

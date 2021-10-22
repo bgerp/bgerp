@@ -216,7 +216,7 @@ class trans_LineDetails extends doc_Detail
             $row->address = "{$row->storeId} {$transportInfo['contragentName']}" . (!empty($row->address) ? ", {$row->address}" : '');
         }
 
-        if(isset($transportInfo['locationId'])){
+        if(isset($transportInfo['locationId']) && !core_Mode::isReadOnly()){
             if(crm_Locations::haveRightFor('single', $transportInfo['locationId'])){
                 $row->address = ht::createLinkRef($row->address, crm_Locations::getSingleUrlArray($transportInfo['locationId']), false, 'title=Преглед на локацията');
             }
@@ -300,7 +300,9 @@ class trans_LineDetails extends doc_Detail
                     $paymentInfo['amountVerbal'] = "<span class='state-{$p->containerState} document-handler'>{$paymentInfo['amountVerbal']}</span>";
                 }
 
-                $paymentInfo['amountVerbal'] = ht::createLinkRef($paymentInfo['amountVerbal'], $PayDoc->getSingleUrlArray(), false, 'title=Преглед на документа');
+                if(!core_Mode::isReadOnly()){
+                    $paymentInfo['amountVerbal'] = ht::createLinkRef($paymentInfo['amountVerbal'], $PayDoc->getSingleUrlArray(), false, 'title=Преглед на документа');
+                }
                 $amountTpl->append('<div class="payment-line-amount">');
                 $amountTpl->append($paymentInfo['amountVerbal']);
                 $amountTpl->append('</div>');
