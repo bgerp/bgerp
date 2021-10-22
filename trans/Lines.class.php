@@ -404,6 +404,7 @@ class trans_Lines extends core_Master
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
 
+
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
             $transInfo = $Document->getTransportLineInfo($rec->id);
@@ -627,7 +628,8 @@ class trans_Lines extends core_Master
         
         $docContainerId = trans_LineDetails::fetchField($detId, 'containerId');
         $Document = doc_Containers::getDocument($docContainerId);
-        $documentRec = $Document->fetch('sharedUsers,createdBy,modifiedBy');
+
+        $documentRec = $Document->fetch();
         $res['body'] = 'За: #' . $Document->getHandle() . "\n";
 
         $users = '';

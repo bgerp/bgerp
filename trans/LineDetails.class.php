@@ -110,8 +110,7 @@ class trans_LineDetails extends doc_Detail
                                         'store_ConsignmentProtocols' => 'Отговорно пазене',
                                         'store_Transfers' => 'Трансфери',
                                         'cash_Pko' => 'Приходни касови ордери',
-                                        'cash_Rko' => 'Разходни касови ордери',
-        );
+                                        'cash_Rko' => 'Разходни касови ордери',);
     
     
     /**
