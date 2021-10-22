@@ -214,6 +214,8 @@ class trans_LineDetails extends doc_Detail
 
             $row->address = "{$row->storeId} {$transportInfo['contragentName']}" . (!empty($row->address) ? ", {$row->address}" : '');
         }
+        $row->address = rtrim($row->address, ' ,');
+        $row->address = rtrim($row->address, ', ');
 
         if(isset($transportInfo['locationId']) && !core_Mode::isReadOnly()){
             if(crm_Locations::haveRightFor('single', $transportInfo['locationId'])){
@@ -221,7 +223,6 @@ class trans_LineDetails extends doc_Detail
             }
         }
 
-        $row->address = rtrim($row->address, ' ,');
         if(!empty($transportInfo['addressInfo'])){
             $row->address .= ", " . core_Type::getByName('richtext')->toVerbal($transportInfo['addressInfo']);
         }
