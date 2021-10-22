@@ -186,12 +186,12 @@ class trans_LineDetails extends doc_Detail
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
         }
-        
+        $row->containerId = "<span class='state-{$rec->containerState} document-handler'>{$row->containerId}</span>";
+
         if (Mode::is('renderHtmlInLine') && isset($Document->layoutFileInLine)) {
             $row->documentHtml = $Document->getInlineDocumentBody();
         }
-        
-        $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$transportInfo['state']}";
+
         if (!empty($transportInfo['notes'])) {
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
         }
@@ -282,12 +282,16 @@ class trans_LineDetails extends doc_Detail
 
         // Ако има платежни документи към складовия
         if(is_array($rec->paymentsArr) ){
+            $rec->_allPaymentActive = (bool)countR($rec->paymentsArr);
             $amountTpl = new core_ET("");
             foreach ($rec->paymentsArr as $p){
 
                 // Каква е сумата на платежния документ
                 $PayDoc = doc_Containers::getDocument($p->containerId);
                 $paymentInfo = $PayDoc->getTransportLineInfo($rec->lineId);
+                if($paymentInfo['state'] != 'active') {
+                    $rec->_allPaymentActive = false;
+                }
                 if($p->containerState == 'rejected'){
                     $paymentInfo['amountVerbal'] = "<span class='state-{$p->containerState} document-handler'>{$paymentInfo['amountVerbal']}</span>";
                 }
@@ -300,6 +304,31 @@ class trans_LineDetails extends doc_Detail
 
             $row->amount = $amountTpl;
         }
+
+
+        if($Document->haveInterface('store_iface_DocumentIntf')){
+            $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? $transportInfo['state'] : 'waiting';
+            if($rec->_allPaymentActive && $class == 'active'){
+                $class = 'closed';
+            }
+        } else {
+            $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? 'closed' : 'waiting';
+        }
+
+        $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$class}";
+
+
+
+        /*
+         * Да уеднаквим състоянията на редовете при ТЛ с тези в "Зони"-те:
+зелен - когато ЕН е включено в ТЛ, но още не е активирано - аналог на състоянието "Запазен" в Зоните - т.е. това ЕН е запазено за тази ТЛ
+оранжев (трудно ми е да го назова този цвят - или май е "кремав") - когато ЕН е активирано - т.е. аналог на "Започнат"-ите редове в Зоните
+сив - когато вече и ПКО-то е контирано - аналог на "Приключен" в Зоните - т.е. този ред вече е приключен.
+
+         */
+
+
+
     }
     
     
