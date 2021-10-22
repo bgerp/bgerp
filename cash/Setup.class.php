@@ -61,7 +61,7 @@ class cash_Setup extends core_ProtoSetup
         'cash_NonCashPaymentDetails',
         'migrate::recontoDocuments1',
         'migrate::updateCashDocuments',
-        'migrate::updateNonCashPayments',
+        'migrate::updateNonCashPayments1',
     );
     
     
@@ -111,13 +111,13 @@ class cash_Setup extends core_ProtoSetup
     /**
      * Миграция на инкасиранията на касовите плащания
      */
-    function updateNonCashPayments()
+    function updateNonCashPayments1()
     {
         $sources = array();
         $CashTransfers = cls::get('cash_InternalMoneyTransfer');
         $pkoClassId = cash_Pko::getClassId();
         $query = cash_InternalMoneyTransfer::getQuery();
-        $query->where("#operationSysId = 'nonecash2case' AND #sourceId IS NULL");
+        $query->where("(#operationSysId = 'nonecash2case' OR #operationSysId = 'nonecash2bank') AND #sourceId IS NULL");
         $allTransfers = $query->fetchAll();
         $idArr = arr::extractValuesFromArray($allTransfers, 'containerId');
 
