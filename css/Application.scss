@@ -2753,7 +2753,7 @@ white-space: nowrap;
 	padding: 1px 3px 1px 3px;
 	font-weight:bold;
 	font-size:0.8em;
-	.quiet {
+	&.quiet {
 		color:white;
 	}
 }
@@ -2768,6 +2768,9 @@ white-space: nowrap;
 	font-size:0.8em;
 	&.lineShow {
 		padding: 3px 3px 3px 3px;
+	}
+	&.quiet {
+		color:white;
 	}
 }
 

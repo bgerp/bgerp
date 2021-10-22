@@ -185,8 +185,8 @@ class trans_LineDetails extends doc_Detail
         $row->containerId = '#' . $Document->getHandle();
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
+            $row->containerId = "<span class='state-{$rec->containerState} document-handler'>{$row->containerId}</span>";
         }
-        $row->containerId = "<span class='state-{$rec->containerState} document-handler'>{$row->containerId}</span>";
 
         if (Mode::is('renderHtmlInLine') && isset($Document->layoutFileInLine)) {
             $row->documentHtml = $Document->getInlineDocumentBody();
@@ -234,7 +234,9 @@ class trans_LineDetails extends doc_Detail
             // Ако документа в момента е в зона
             if(isset($transportInfo['zoneId'])){
                 $readiness = core_Type::getByName('percent(decimals=0)')->toVerbal($transportInfo['readiness']);
-                $readiness = "<div class='block-readiness lineShow'>{$readiness}</div>";
+                if(!Mode::isReadOnly()){
+                    $readiness = "<div class='block-readiness lineShow'>{$readiness}</div>";
+                }
                 $row->zoneId = "{$readiness} " . rack_Zones::getDisplayZone($transportInfo['zoneId']);
             }
 
@@ -272,11 +274,13 @@ class trans_LineDetails extends doc_Detail
         $masterRec = trans_Lines::fetch($rec->lineId);
         if ($mvc->haveRightFor('doc_Comments', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
             $commentUrl = array('doc_Comments', 'add', 'originId' => $masterRec->containerId, 'detId' => $rec->id, 'ret_url' => true);
+            core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => 'img/16/comment_add.png', 'alwaysShow' => true, 'title' => 'Известяване на отговорниците на документа'));
         }
         
         // Бутон за изключване
         if ($mvc->haveRightFor('remove', $rec)) {
+            core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Премахване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Премахване на документа от транспортната линия'));
         }
 
@@ -305,7 +309,7 @@ class trans_LineDetails extends doc_Detail
             $row->amount = $amountTpl;
         }
 
-
+        // В какъв цвят да се оцвети реда на линията
         if($Document->haveInterface('store_iface_DocumentIntf')){
             $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? $transportInfo['state'] : 'waiting';
             if($rec->_allPaymentActive && $class == 'active'){
@@ -314,21 +318,7 @@ class trans_LineDetails extends doc_Detail
         } else {
             $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? 'closed' : 'waiting';
         }
-
         $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$class}";
-
-
-
-        /*
-         * Да уеднаквим състоянията на редовете при ТЛ с тези в "Зони"-те:
-зелен - когато ЕН е включено в ТЛ, но още не е активирано - аналог на състоянието "Запазен" в Зоните - т.е. това ЕН е запазено за тази ТЛ
-оранжев (трудно ми е да го назова този цвят - или май е "кремав") - когато ЕН е активирано - т.е. аналог на "Започнат"-ите редове в Зоните
-сив - когато вече и ПКО-то е контирано - аналог на "Приключен" в Зоните - т.е. този ред вече е приключен.
-
-         */
-
-
-
     }
     
     
@@ -359,10 +349,9 @@ class trans_LineDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $data->listTableMvc->FNC('payment', 'varchar', 'smartCenter');
-        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter');
+        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
-        $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter');
+        $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
     }
     
     
@@ -375,7 +364,6 @@ class trans_LineDetails extends doc_Detail
     public static function setTransUnitField(&$form, $value)
     {
         $form->setDefault('transUnitsInput', $value);
-        
         $units = trans_TransportUnits::getAll();
         $form->FLD('transUnitsInput', 'table(columns=unitId|quantity,captions=ЛЕ|Брой,validate=trans_LineDetails::validateTransTable)', 'caption=Лог. ед.,after=lineNotes');
         $form->setFieldTypeParams('transUnitsInput', array('unitId_opt' => array('' => '') + $units));
@@ -521,6 +509,7 @@ class trans_LineDetails extends doc_Detail
                 return ($paymentRec->originId == $rec->containerId);
             });
 
+            // Премахване на платежните документи, закачени към Складов документ от последващо показване в линията
             $rec->paymentsArr = array();
             foreach ($shipmentPayments as $i => $shipPayment){
                 $rec->paymentsArr[$i] = $shipPayment;
@@ -545,6 +534,7 @@ class trans_LineDetails extends doc_Detail
                 $rec1->paymentsArr = array();
             }
 
+            // Премахване на платежните документи, закачени към Складов документ от последващо показване в линията
             foreach ($shipmentPayments as $i => $shipPayment) {
                 $rec1->paymentsArr[$i] = $shipPayment;
                 unset($paymentDocuments[$i]);

@@ -2362,7 +2362,7 @@ pre.document {
   padding: 1px 3px 1px 3px;
   font-weight: bold;
   font-size: 0.8em; }
-  .block-instock .quiet {
+  .block-instock.quiet {
     color: white; }
 
 .block-readiness {
@@ -2376,6 +2376,8 @@ pre.document {
   font-size: 0.8em; }
   .block-readiness.lineShow {
     padding: 3px 3px 3px 3px; }
+  .block-readiness.quiet {
+    color: white; }
 
 .tags {
   margin-left: 2px; }
