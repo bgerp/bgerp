@@ -177,6 +177,8 @@ class cal_Calendar extends core_Master
         // Индекси
         $this->setDbUnique('key');
         $this->setDbIndex('time');
+        $this->setDbIndex('time,type');
+        $this->setDbIndex('type');
     }
     
     

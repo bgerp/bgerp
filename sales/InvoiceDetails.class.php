@@ -114,9 +114,9 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     public static function on_AfterCreate($mvc, $rec)
     {
         $containerId = sales_Invoices::fetchField($rec->invoiceId, 'threadId');
-        
+
         // Ако е инсталиран пакета за партиди
-        if (core_Packs::isInstalled('batch')) {
+        if (core_Packs::isInstalled('batch') && $rec->_importBatches != 'no') {
             $cQuery = doc_Containers::getQuery();
             $cQuery->where("#threadId = {$containerId} AND #state != 'draft' AND #state != 'rejected'");
             $cQuery->show('id');

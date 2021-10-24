@@ -297,6 +297,7 @@ class eshop_Carts extends core_Master
         core_Lg::push($lang);
         
         // Данните от опаковката
+        $quantityInPack = null;
         if (isset($productId)) {
             $packRec = cat_products_Packagings::getPack($productId, $packagingId);
             $quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
@@ -313,18 +314,32 @@ class eshop_Carts extends core_Master
         if(!empty($msg)){
             $msg = '|Проблем при добавянето на артикула|*!';
         }
-        
-        $maxQuantity = eshop_CartDetails::getMaxQuantity($productId, $quantityInPack, $eshopProductId);
-        if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
-            $msg = '|Избраното количество не е налично|*';
-            $success = false;
-            $skip = true;
+
+        $availableQuantity = eshop_CartDetails::getAvailableQuantity($productId, $eshopProductId);
+        if (isset($availableQuantity)) {
+            $q = $packQuantity * $quantityInPack;
+            if($availableQuantity < $packQuantity * $quantityInPack){
+                $msg = '|Избраното количество не е налично|*';
+                $skip = true;
+            }
+
+            // Проверка колко общо има от избрания артикул в количката без значение от опаковката
+            $checkQuantity = $packQuantity;
+            $quantityByNow = 0;
+            if($exCartId = self::force(null, null, false)){
+                $dQuery = eshop_CartDetails::getQuery();
+                $dQuery->where("#cartId = {$exCartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId}");
+                $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
+                $quantityByNow = $dQuery->fetch()->sum;
+                $checkQuantity += $quantityByNow / $quantityInPack;
+            }
+
+
         }
        
         $actions = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'action');
         if(in_array($actions, array('price', 'inquiry'))){
             $msg = '|Артикулът не може да бъде добавен в количка|*';
-            $success = false;
             $skip = true;
         }
 
@@ -861,7 +876,7 @@ class eshop_Carts extends core_Master
     public static function forceSale($id, $force = false, $sendEmailIfNecessary = true)
     {
         $rec = static::fetchRec($id);
-        
+
         if ($force === false) {
             if (isset($rec->saleId)) {
                 
@@ -897,10 +912,11 @@ class eshop_Carts extends core_Master
                 $place = $rec->deliveryPlace;
                 $address = $rec->deliveryAddress;
             }
+
             $folderId = marketing_InquiryRouter::route($company, $personNames, $rec->email, $rec->tel, $country, $pCode, $place, $address, $rec->brid, $rec->invoiceVatNo, $rec->invoiceUicNo, $routerExplanation, $rec->domainId);
             $Cover = doc_Folders::getCover($folderId);
         }
-        
+
         $settings = cms_Domains::getSettings($rec->domainId);
         $templateId = ($settings->lg == 'bg') ? eshop_Setup::get('SALE_DEFAULT_TPL_BG') : eshop_Setup::get('SALE_DEFAULT_TPL_EN');
         $templateLang = doc_TplManager::fetchField($templateId, 'lang');
@@ -931,7 +947,15 @@ class eshop_Carts extends core_Master
             'deliveryCalcTransport' => 'no',
             'note' => tr("Поръчка") . " #{$rec->id}",
         );
-        
+
+        /*
+         * if(!empty($rec->deliveryCountry)){
+            $fields['deliveryAdress'] = drdata_Countries::getTitleById($rec->deliveryCountry);
+            if(!empty($rec->deliveryPCode)) {
+                $fields['deliveryAdress'] .= ", {$rec->deliveryPCode}";
+            }
+         */
+
         // Коя е ценовата политика
         $priceListId = $settings->listId;
         if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
@@ -950,7 +974,6 @@ class eshop_Carts extends core_Master
         // Създаване на продажба по количката
         try{
             $saleId = sales_Sales::createNewDraft($Cover->getClassId(), $Cover->that, $fields);
-           
          } catch(core_exception_Expect $e){
             reportException($e);
             eshop_Carts::logErr("Грешка при създаване на онлайн продажба: '{$e->getMessage()}'", $rec->id);
@@ -1109,7 +1132,11 @@ class eshop_Carts extends core_Master
         $body = getTplFromFile($file);
         $body->replace(new core_ET($settings->emailBodyIntroduction), 'INTRODUCTION');
         $body->replace(new core_ET($settings->emailBodyFooter), 'FOOTER');
-        
+
+        if ($rec->deliveryNoVat < 0) {
+            $body->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'PROBLEM_WITH_DELIVERY');
+        }
+
         $threadCount = doc_Threads::count("#folderId = {$saleRec->folderId}");
         $makeInvoice = tr(self::getVerbal($rec, 'makeInvoice'));
         $body->replace($makeInvoice, 'MAKE_INVOICE');
@@ -1549,7 +1576,7 @@ class eshop_Carts extends core_Master
         }
         
         if ($rec->deliveryNoVat < 0) {
-            $tpl->replace(tr('Има проблем при изчислението на доставката. Моля, обърнете се към нас|*!'), 'deliveryError');
+            $tpl->replace(tr('Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите|*!'), 'deliveryError');
         }
         
         if (!empty($rec->instruction)) {
@@ -1905,8 +1932,6 @@ class eshop_Carts extends core_Master
                 $requiredRoles = 'no_one';
             } elseif (empty($rec->personNames) || empty($rec->productCount)) {
                 $requiredRoles = 'no_one';
-            } elseif ($rec->deliveryNoVat < 0) {
-                $requiredRoles = 'no_one';
             } elseif ($rec->paidOnline != 'yes') {
                 if ($PaymentDriver = cond_PaymentMethods::getOnlinePaymentDriver($rec->paymentId)) {
                     if ($PaymentDriver->isPaymentMandatory($rec->paymentId, $mvc, $rec->id)) {
@@ -2165,34 +2190,10 @@ class eshop_Carts extends core_Master
                 $form->setField('invoiceUicNo', 'caption=Данни за фактуриране->ЕГН');
                 $form->setFieldType('invoiceUicNo', 'bglocal_EgnType');
                 $form->setDefault('invoiceNames', $form->rec->personNames);
-
-                if($settings->mandatoryEGN == 'mandatory'){
-                    $form->setField('invoiceUicNo', 'mandatory');
-                } elseif($settings->mandatoryEGN == 'no'){
-                    $form->setField('invoiceUicNo', 'input=none');
-                } elseif($settings->mandatoryEGN == 'optional' && $settings->mandatoryVatId == 'no'){
-                    $form->setField('invoiceUicNo', 'mandatory');
-                }
             } else {
                 $form->setFieldType('invoiceUicNo', 'drdata_type_Uic');
                 $form->setField('invoiceNames', 'caption=Данни за фактуриране->Фирма');
                 $form->setField('invoiceVatNo', 'caption=Данни за фактуриране->ДДС №||VAT ID');
-
-                if($settings->mandatoryUicId == 'mandatory'){
-                    $form->setField('invoiceUicNo', 'mandatory');
-                } elseif($settings->mandatoryUicId == 'no'){
-                    $form->setField('invoiceUicNo', 'input=none');
-                } elseif($settings->mandatoryUicId == 'optional' && $settings->mandatoryVatId == 'no'){
-                    $form->setField('invoiceUicNo', 'mandatory');
-                }
-            }
-
-            if($settings->mandatoryVatId == 'mandatory'){
-                $form->setField('invoiceVatNo', 'mandatory');
-            } elseif($settings->mandatoryVatId == 'no'){
-                $form->setField('invoiceVatNo', 'input=none');
-            } elseif($settings->mandatoryVatId == 'optional' && $settings->mandatoryUicId == 'no'){
-                $form->setField('invoiceVatNo', 'mandatory');
             }
 
             $form->setFieldAttr('deliveryCountry', 'data-updateonchange=invoiceCountry,class=updateselectonchange');
@@ -2240,8 +2241,8 @@ class eshop_Carts extends core_Master
             }
 
             if ($rec->makeInvoice != 'none') {
-                if($settings->mandatoryUicId == 'optional' && empty($rec->invoiceUicNo) && $settings->mandatoryVatId == 'optional' && empty($rec->invoiceVatNo)){
-                    $form->setError('mandatoryUicId,invoiceVatNo', 'Поне едно от полетата трябва да бъде въведено');
+                if(empty($rec->invoiceUicNo) && empty($rec->invoiceVatNo)){
+                    $form->setError('invoiceUicNo,invoiceVatNo', 'Поне едно от полетата трябва да бъде въведено');
                 }
             }
             

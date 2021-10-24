@@ -43,7 +43,12 @@
 <td> [#state#]</td>
 </tr>
 <!--ET_END state-->
-
+	<!--ET_BEGIN earliestUsedOn-->
+	<tr>
+		<td class='quiet aright'>|Първо използване|*:</td>
+		<td> [#earliestUsedOn#]</td>
+	</tr>
+	<!--ET_END earliestUsedOn-->
 <!--ET_BEGIN closedOn-->
 <tr>
 <td class='quiet aright'>|Затворено на|*:</td>

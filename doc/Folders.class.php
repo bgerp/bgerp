@@ -521,9 +521,10 @@ class doc_Folders extends core_Master
             $title = str::limitLen($title, $maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
-        
-        if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')) {
-            $haveRight = colab_Folders::haveRightFor('single', $rec);
+
+        $isPartner = core_Packs::isInstalled('colab') && core_Users::haveRole('partner');
+        if ($isPartner) {
+            $haveRight = colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->id));
             $link = array('colab_Threads', 'list', 'folderId' => $rec->id);
         } else {
             $haveRight = $mvc->haveRightFor('single', $rec);
@@ -555,7 +556,7 @@ class doc_Folders extends core_Master
             }
 
             $title = ht::createLink($title, $link, null, $attr);
-        } else {
+        } elseif(!$isPartner) {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
             $title = ht::createElement('span', $attr, $title);
         }
@@ -816,7 +817,10 @@ class doc_Folders extends core_Master
         $oSharedArr = keylist::toArray($rec->shared);
         
         // Настройките на пакета
+        $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+        core_ObjectConfiguration::$stopInvoke = true;
         $notifySharedConf = doc_Setup::get('NOTIFY_FOLDERS_SHARED_USERS');
+        core_ObjectConfiguration::$stopInvoke = $stopInvoke;
         if ($notifySharedConf == 'no') {
             $sharedArr = array();
         } else {
@@ -2149,12 +2153,29 @@ class doc_Folders extends core_Master
             
             $query->in('coverClass', $skipCoverClasses);
         }
+
+        // Ако има филтър по документи в папката
+        if (isset($params['containingDocumentIds'])) {
+            $documentIds = arr::make($params['containingDocumentIds'], true);
+            if(countR($documentIds)){
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->in('docClass', $documentIds);
+                $cQuery->show('folderId');
+                $cQuery->groupBy('folderId');
+                $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
+                if(countR($documentIds)) {
+                    $query->in('id', $folderIds);
+                } else {
+                    $query->where("1=2");
+                }
+            }
+        }
         
         $viewAccess = true;
         if ($params['restrictViewAccess'] == 'yes') {
             $viewAccess = false;
         }
-        
+
         $me = cls::get(get_called_class());
         
         $me->restrictAccess($query, null, $viewAccess);

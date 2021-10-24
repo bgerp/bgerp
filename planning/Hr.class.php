@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     0.12
@@ -36,7 +36,7 @@ class planning_Hr extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'planning_Wrapper,plg_Created,plg_RowTools2,plg_Search,label_plg_Print';
+    public $loadList = 'planning_Wrapper,plg_Sorting,plg_Created,plg_RowTools2,plg_Search,label_plg_Print';
     
     
     /**
@@ -104,7 +104,7 @@ class planning_Hr extends core_Master
      */
     public function description()
     {
-        $this->FLD('personId', 'key(mvc=crm_Persons)', 'input=hidden,silent,mandatory,caption=Оператор');
+        $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,mandatory,caption=Оператор');
         $this->FLD('code', 'varchar', 'caption=Код');
         $this->FNC('centers', 'keylist(mvc=doc_Folders,select=title)', 'mandatory, input, caption=Центрове на дейност');
         
@@ -245,6 +245,8 @@ class planning_Hr extends core_Master
                 $data->addExtUrl = array($this, 'add', 'personId' => $data->masterId, 'ret_url' => true);
             }
         }
+
+
     }
     
     

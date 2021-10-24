@@ -450,9 +450,9 @@ class tcost_FeeZones extends core_Master
     {
         $settings = cms_Domains::getSettings($cartRec->domainId);
         
-        if(!empty($settings->freeDelivery) && $cartRec->haveOnlyServices != 'yes'){
+        if(!empty($settings->freeDelivery) && $cartRec->haveOnlyServices != 'yes' && $cartRec->deliveryNoVat >= 0){
             $deliveryAmount = $settings->freeDelivery;
-            
+
             if($cartRec->freeDelivery != 'yes'){
                 $string1 = tr('Добавете артикули на обща стойност');
                 $string2 = tr("|за да спечелите|* <b style='color:green;text-transform:uppercase'>" . tr('безплатна') . "</b> |доставка|*.");

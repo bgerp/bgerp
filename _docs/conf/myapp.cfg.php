@@ -89,6 +89,9 @@ DEFINE('EF_APP_TITLE', 'bgERP');
 // Статично задаване на домейна, в който отвън се вижда bgERP
  # DEFINE('BGERP_ABSOLUTE_HTTP_HOST', 'bgerp.mycompany.com');
  
+// Път към частен пакет
+ # DEFINE ('EF_PRIVATE_PATH', EF_ROOT_PATH . '');
+
 // Git бранч - на частния пакет - ако не е дефинирано се взима бранча на основния пакет
  # DEFINE('PRIVATE_GIT_BRANCH', 'master');
 

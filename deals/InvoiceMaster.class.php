@@ -603,8 +603,10 @@ abstract class deals_InvoiceMaster extends core_Master
 
         if ($Source && $Source->haveInterface('deals_InvoiceSourceIntf')) {
             $detailsToSave = $Source->getDetailsFromSource($mvc, $rec->importProducts);
+
             if (is_array($detailsToSave)) {
                 foreach ($detailsToSave as $det) {
+                    $det->_importBatches = $rec->importBatches;
                     $det->{$Detail->masterKey} = $rec->id;
                     $Detail->save($det);
                 }
@@ -795,6 +797,11 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             $data->form->FNC('importProducts', "enum(" . arr::fromArray($types) . ")", 'caption=Допълнително->Артикули, input,after=additionalInfo');
+            if(core_Packs::isInstalled('batch') && $mvc instanceof sales_Invoices){
+                $data->form->FNC('importBatches', "enum(yes=Да,no=Не)", 'caption=Допълнително->Партиди, input,after=importProducts');
+                $data->form->setDefault('importBatches', batch_Setup::get('SHOW_IN_INVOICES'));
+            }
+
             if(isset($rec->sourceContainerId)){
                 $form->setDefault('importProducts', 'fromSource');
             }

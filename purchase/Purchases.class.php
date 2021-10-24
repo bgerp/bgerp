@@ -34,7 +34,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, purchase_Wrapper,purchase_plg_ExtractPurchasesData, acc_plg_Registry, plg_Sorting, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -47,8 +47,8 @@ class purchase_Purchases extends deals_DealMaster
      * Абревиатура
      */
     public $abbr = 'Pur';
-    
-    
+
+
     /**
      * Кой може да го активира?
      */
@@ -174,6 +174,12 @@ class purchase_Purchases extends deals_DealMaster
 
 
     /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery';
+
+
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -187,6 +193,7 @@ class purchase_Purchases extends deals_DealMaster
         'chargeVat' => 'lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
+        'oneTimeDelivery' => 'clientCondition'
     );
     
     
@@ -282,6 +289,7 @@ class purchase_Purchases extends deals_DealMaster
         $this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
+        $this->setField('oneTimeDelivery', 'salecondSysId=purchaseOneTimeDelivery');
     }
     
     
@@ -731,15 +739,16 @@ class purchase_Purchases extends deals_DealMaster
             $row->title .= "  «  " . $row->folderId;
         }
     }
-    
-    
+
+
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id     - ид или запис
-     * @param mixed $forMvc - за кой мениджър
-     * 
-     * @return array $products        - масив с информация за артикули
+     * @param mixed $id          - ид или запис
+     * @param mixed $forMvc      - за кой мениджър
+     * @param string  $option    - опции
+     *
+     * @return array $products         - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
      *               o quantity        - к-во
@@ -748,12 +757,11 @@ class purchase_Purchases extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id, $forMvc)
+    public function getCorrectableProducts($id, $forMvc, $option = null)
     {
         $rec = $this->fetchRec($id);
-        $ForMvc = cls::get($forMvc);
-        $accounts = ($ForMvc instanceof acc_ValueCorrections) ? '321,60201' : '321';
-        
+        $accounts = ($option == 'storable') ? '321' : '321,60201';
+
         $products = array();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, $accounts, true, true, true);

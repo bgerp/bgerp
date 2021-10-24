@@ -79,13 +79,13 @@ class acs_Permissions extends core_Master
         $this->FLD('personId', "key2(mvc=crm_Persons, select=name, allowEmpty, group={$groupSysId})", 'caption=Лице, refreshForm');
         
         // @todo - може да е наш тип наследник на varchar. Там може да е логиката за преобразуване на id'то на картата
-        $this->FLD('cardId', 'varchar', 'caption=Карта, refreshForm');
+        $this->FLD('cardId', 'varchar(64)', 'caption=Карта, refreshForm');
         $this->FLD('cardType', 'enum(card=Карта, bracelet=Гривна, phone=Телефон, chip=Чип)', 'caption=Тип на карта');
         $this->FLD('zones', 'keylist(mvc=acs_Zones, select=nameLoc)', 'caption=Зони');
         $this->FLD('scheduleId', 'int', 'caption=График'); //@todo
         $this->FLD('duration', 'time(min=1)', 'caption=Продължителност');
         $this->FLD('expiredOn', 'datetime', 'caption=Изтича на');
-        $this->FLD('activatedOn', 'datetime', 'caption=Активирано на, input=none');
+        $this->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активирано на, input=none');
         $this->FLD('state', 'enum(,pending=Заявка,active=Активен,closed=Закрит,rejected=Оттеглен)','caption=Състояние,column=none,input=none,smartCenter, refreshForm');
         
         $this->setDbIndex('personId');
@@ -102,6 +102,8 @@ class acs_Permissions extends core_Master
      * @param $rec
      *
      * @return array
+     *
+     * @deprecated
      */
     public static function prepareUserName($rec)
     {
@@ -109,7 +111,7 @@ class acs_Permissions extends core_Master
 
         $name = '';
 
-        if ($rec->personId) {
+        if ($rec->permType == '') {
             $name = crm_Persons::getVerbal($rec->personId, 'name');
         } elseif ($rec->companyId) {
             $name = crm_Companies::getVerbal($rec->companyId, 'name');
@@ -495,12 +497,6 @@ class acs_Permissions extends core_Master
                 $form->setError('companyId, personId, cardId', $msg);
             }
             
-            if ($rec->cardId) {
-                if ((!$rec->companyId) && (!$rec->personId)) {
-                    $form->setError('companyId, personId', $msg);
-                }
-            }
-            
             if (($rec->companyId) && ($rec->personId)) {
                 if (!$rec->zones) {
                     $form->setError('zones', $msg);
@@ -519,8 +515,17 @@ class acs_Permissions extends core_Master
             if (!empty($iArr)) {
                 if ($iArr['card']) {
                     $w = 'Тази карта в момента се използва|*. |Ще бъде разкачена от|*:';
+                    $haveLink = false;
                     foreach ($iArr['card'] as $iRec) {
+                        $cLinks = $mvc->getLinkTocard($iRec);
+                        if ($cLinks) {
+                            $haveLink = true;
+                        }
                         $w .= "<br>" . $mvc->getLinkTocard($iRec);
+                    }
+
+                    if (!$haveLink) {
+                        $w = 'Тази карта в момента се използва|*.';
                     }
                     
                     $form->setWarning('cardId', $w);
@@ -621,6 +626,11 @@ class acs_Permissions extends core_Master
                 $title = $cTitle;
             }
         }
+
+        if (!trim($title)) {
+
+            return null;
+        }
         
         return ht::createLink($title, $url);
     }
@@ -666,8 +676,8 @@ class acs_Permissions extends core_Master
         
         return $resArr;
     }
-    
-    
+
+
     /**
      * Връща масив с времето на активност на картата
      * 
@@ -728,6 +738,8 @@ class acs_Permissions extends core_Master
                 $data->query->where(array("#{$fName} = '[#1#]'", $rec->{$fName}));
             }
         }
+
+        $data->query->orderBy('activatedOn', 'DESC');
     }
     
     

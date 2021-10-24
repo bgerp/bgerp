@@ -1,11 +1,22 @@
 .document .group-by-field-row{
-	padding: 5px !important;
+	padding: 10px !important;
 	color: #fff !important;
 	background-color: #777 !important;
 	border: 1px solid #777 !important;
 	font-weight:bold;
 }
 
+.document .group-by-field-row td {
+	line-height: 22px !important;
+}
+
+.lineSummary .sum-th {
+	font-weight: normal;
+	font-size:14px;
+	color:#555;
+	background-color: #e0e0e0;
+	text-align: center;
+}
 .document .details .shipment-th {
 	background-color:#eee;
 	padding:4px;
@@ -35,10 +46,33 @@
     padding: 5px 0;
 }
 
-.lu {
-	font-size: 0.9em;
+table .lineSummary th {
+	font-size:1em;
+	padding: 7px !important;
 }
-.lu-light {
-	color: #777;
+
+table .lineSummary td {
+	font-size:1em;
+	padding: 7px !important;
+}
+
+table .paymentInStoreDocument {
+	width:100%;
+}
+
+.line-detail .document-handler {
+	padding:5px;
+}
+
+table .paymentInStoreDocument td {
+	border:0px !important;
+}
+
+.payment-line-amount .state-rejected {
 	text-decoration: line-through;
+}
+
+.payment-line-amount {
+	padding:1px;
+	text-align: right !important
 }

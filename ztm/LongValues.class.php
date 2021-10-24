@@ -79,8 +79,8 @@ class ztm_LongValues extends core_Manager
      */
     public static function getValueByHash($var)
     {
-        $value = ztm_LongValues::fetchField("#hash = '{$var}'", 'value');
-        
+        $value = ztm_LongValues::fetchField(array("#hash = '[#1#]'", $var), 'value');
+
         return isset($value) ? $value : $var;
     }
 }

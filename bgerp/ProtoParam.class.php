@@ -73,7 +73,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $mvc->FNC('typeExt', 'varchar', 'caption=Име');
         $mvc->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,value=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
         $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-        $mvc->FLD('group', 'varchar(64,ci)', 'caption=Група,after=suffix,placeholder=В която да се показва параметъра в списъците');
+        $mvc->FLD('group', 'varchar(64,ci,nullIfEmpty)', 'caption=Група,after=suffix,placeholder=В която да се показва параметъра в списъците');
         $mvc->FLD('order', 'int', 'caption=Позиция,after=group');
         $mvc->FLD('roles', 'keylist(mvc=core_Roles,select=role,allowEmpty,groupBy=type)', 'caption=Роли,after=group');
         

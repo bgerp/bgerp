@@ -898,6 +898,10 @@ class core_Url
         // Максимално време за чакане в секунди
         curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
         
+        // Не дава грешки при selfsigned сертификат
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        
         // Логваме заявката
         log_System::add(get_called_class(), "URL({$url}) " . $res, 'debug', 1);
         

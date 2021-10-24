@@ -828,7 +828,7 @@ abstract class deals_Helper
         } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
             if($showNegativeWarning) {
                 $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                $hint = "Недостатъчна |*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
             }
         } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
             if($showNegativeWarning) {
@@ -1290,14 +1290,18 @@ abstract class deals_Helper
             $rateFld = 'rate';
         }
 
+        $updateMaster = false;
         if ($masterMvc instanceof acc_ValueCorrections) {
-            $updateMaster = false;
             $rec->amount = round(($rec->amount / $rec->rate) * $newRate, 6);
             foreach ($rec->productsData as &$pData){
                 $pData->allocated = round(($pData->allocated / $rec->rate) * $newRate, 6);
             }
             $rec->rate = $newRate;
-        } else {
+        } elseif($masterMvc instanceof deals_PaymentDocument) {
+            if(round($rec->amountDeal,2) == round($rec->amount, 2)) {
+                $rec->rate = $newRate;
+            }
+        } elseif(isset($masterMvc->mainDetail)) {
             $Detail = cls::get($masterMvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
@@ -1988,50 +1992,6 @@ abstract class deals_Helper
     
     
     /**
-     * Допълнителен индикатор на складовите документи на заявка
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     *
-     * @return string|NULL
-     */
-    public static function getShipmentDocumentPendingIndicator($mvc, $rec)
-    {
-        $rec = $mvc->fetchRec($rec);
-        expect($mvc instanceof store_ShipmentOrders || $mvc instanceof store_Transfers);
-        
-        // Ако документа е на заявка
-        if ($rec->state == 'pending') {
-            $transInfo = cls::get($mvc->mainDetail)->getTransportInfo($rec);
-            
-            // Колко е общото тегло
-            $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
-            $string = "<span id='weight{$rec->containerId}' class='enTag weightTag' title='Общо тегло на документа'></span>";
-            $style = "#weight{$rec->containerId}:after{content: '${weightVerbal}'} ";
-
-            // Колко е готовността от склада
-            $readinessVerbal = (isset($rec->storeReadiness)) ? core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness) : 'N/A';
-            $string .= "<span id='percent{$rec->containerId}' class='enTag percent' title='Наличност в склада'></span>";
-            $style .= "#percent{$rec->containerId}:after{content: '${readinessVerbal}'} ";
-            
-            // Ако има зони, колко % е готово от зоната
-            if (core_Packs::isInstalled('rack')) {
-                $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
-                if (isset($zoneReadiness)) {
-                    $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
-                    $string .= "<span id='zone{$rec->containerId}' class='enTag zone' title='Колко е нагласено в зоната'></span>";
-                    $style .= "#zone{$rec->containerId}.zone:after{content: '${zoneReadinessVerbal}'} ";
-                }
-            }
-
-            $string = '<style>' . $style . "</style><span class='docTags'>" . $string . '</span>';
-
-            return $string;
-        }
-    }
-    
-    
-    /**
      * Помощна ф-я за умно конвертиране на цена и к-во
      *
      * Функцията намира d1, d2 и d3 - абсолютните разлики между:
@@ -2145,10 +2105,11 @@ abstract class deals_Helper
      * @param $threadId
      * @param double $rate
      * @param string $currencyId
+     * @param null|stdClass $transportFeeRec
      *
      * @return stdClass|null
      */
-    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId)
+    public static function checkPriceWithContragentPrice($productId, $price, $discount, $quantity, $quantityInPack, $contragentClassId, $contragentId, $valior, $listId = null, $useQuotationPrice = true, $mvc, $threadId, $rate, $currencyId, $transportFeeRec = null)
     {
         $price = $price * (1 - $discount);
         $minListId = sales_Setup::get('MIN_PRICE_POLICY');
@@ -2180,7 +2141,15 @@ abstract class deals_Helper
 
         foreach (array($foundMinPrice, $foundPrice) as $i => $var){
             if(is_object($var)){
-                
+
+                // От записаната цена се маха тази на скрития транспорт, за да се сравни правилно с очакваната
+                $msgSuffix = '';
+                if(is_object($transportFeeRec)){
+                    $var->price += $transportFeeRec->fee / $quantity;
+                    $var->price = round($foundPrice->price, 6);
+                    $msgSuffix .= ", |вкл. транспорт|*";
+                }
+
                 $toleranceDiff = 0;
                 if (isset($var->listId)) {
                     $toleranceDiff = price_Lists::fetchField($var->listId, 'discountComparedShowAbove');
@@ -2202,7 +2171,7 @@ abstract class deals_Helper
                         if($i == 0 && $percent >= 0){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
                             $obj['hint'] ='Цената е под минималната за клиента';
-                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*";
+                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = 'error';
                             
                             return $obj;
@@ -2211,7 +2180,7 @@ abstract class deals_Helper
                         if($i == 1){
                             $primeVerbal = core_Type::getByName('double(smartRound)')->toVerbal($price2Round * $quantityInPack);
                             $obj['hint'] = ($percent < 0) ? 'Цената е над очакваната за клиента' : 'Цената е под очакваната за клиента';
-                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*";
+                            $obj['hint'] .= "|*: {$primeVerbal} {$currencyId} |без ДДС|*{$msgSuffix}";
                             $obj['hintType'] = ($percent < 0) ? 'notice' : 'warning';
                         
                             return $obj;
@@ -2263,7 +2232,8 @@ abstract class deals_Helper
 
             while ($dRec = $dQuery->fetch()) {
                 $discount = isset($dRec->discount) ? $dRec->discount : $dRec->autoDiscount;
-                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId)){
+                $transportFeeRec = sales_TransportValues::get($mvc, $rec->id, $dRec->id);
+                if($checkedObject = deals_Helper::checkPriceWithContragentPrice($dRec->productId, $dRec->price, $discount, $dRec->quantity, $dRec->quantityInPack, $rec->contragentClassId, $rec->contragentId, $priceDate, $rec->priceListId, $useQuotationPrice, $mvc, $rec->threadId, $rec->currencyRate, $rec->currencyId, $transportFeeRec)){
                     if($checkedObject['hintType'] == 'error'){
                         $products[$dRec->productId] = cat_Products::getTitleById($dRec->productId);
                     }
@@ -2292,5 +2262,37 @@ abstract class deals_Helper
         $canonize = preg_replace('/[^a-z\d]/i', '', $number);
 
         return strtoupper($canonize);
+    }
+
+
+    /**
+     * Може ли да се правят още доставки в нишката
+     *
+     * @param $threadId                - ид на нишка
+     * @param null $ignoreContainerId  - игнориране на документ
+     * @return bool                    - има ли финална експедиция или не
+     */
+    public static function canHaveMoreDeliveries($threadId, $ignoreContainerId = null)
+    {
+        $firstDocument = doc_Threads::getFirstDocument($threadId);
+        $firstDocRec = $firstDocument->fetch('oneTimeDelivery,contoActions');
+        if($firstDocRec->oneTimeDelivery != 'yes') return true;
+
+        $contoActions = type_Set::toArray($firstDocRec->contoActions);
+        if(isset($contoActions['ship'])) {
+            if($firstDocument->hasStorableProducts()) return false;
+        }
+
+        // Всички документи касаещи експедиции в нишката
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->in("docClass", array(store_Receipts::getClassId(), store_ShipmentOrders::getClassId()));
+        $cQuery->where("#threadId = {$threadId} AND #state != 'rejected'");
+        if(isset($ignoreContainerId)){
+            $cQuery->where("#id != {$ignoreContainerId}");
+        }
+        $cQuery->show('id');
+        $count = $cQuery->count();
+
+        return empty($count);
     }
 }

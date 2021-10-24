@@ -100,13 +100,13 @@
 		                                
 		                                <!--ET_BEGIN lineId-->
 		                                <td colspan='2'>
-		                                	<div class='richtext-holder'><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]</div>
+		                                	<div class='richtext-holder no-print'><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]</div>
 		                                </td>
 		                                <!--ET_END lineId-->
-		                                
+
 		                                <!--ET_BEGIN lineNotes-->
 		                                <td colspan='2'>
-		                                	<div class='richtext-holder'><span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
+		                                	<div class='richtext-holder'><span class='quiet'>|Забележки за транспорта|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
 		                                </td>
 		                                <!--ET_END lineNotes-->
 		                                

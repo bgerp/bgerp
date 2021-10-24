@@ -293,7 +293,7 @@ class doc_ExpensesSummary extends core_Manager
         $entries = acc_Journal::getEntries($itemRec);
         $accId = acc_Accounts::getRecBySystemId('60201')->id;
         
-        $sysIds = array('701', '703', '321');
+        $sysIds = array('701', '703', '321', '60201');
         foreach ($sysIds as &$sysId) {
             $sysId = acc_Accounts::fetchField("#systemId = {$sysId}");
         }
@@ -382,9 +382,11 @@ class doc_ExpensesSummary extends core_Manager
         }
 
         $rec->count = 0;
-        foreach ($allocated as $allocRec){
-            $rec->count += ($allocRec->quantity < 0) ? -1 : 1;
-        }
+        array_walk($recs, function($r) use (&$rec) {
+            if($r->type == 'allocated'){
+                $rec->count += ($r->quantity < 0) ? -1 : 1;
+            }
+        });
 
         if ($saveCount === true) {
             

@@ -936,7 +936,10 @@ class doc_DocumentPlg extends core_Plugin
                         $notifyArr = array($fRec->inCharge => $fRec->inCharge);
                         
                         // Настройките на пакета
+                        $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+                        core_ObjectConfiguration::$stopInvoke = true;
                         $notifyPendingConf = doc_Setup::get('NOTIFY_PENDING_DOC');
+                        core_ObjectConfiguration::$stopInvoke = $stopInvoke;
                         if ($notifyPendingConf == 'no') {
                             $notifyArr = array();
                         } elseif ($notifyPendingConf == 'yes') {
@@ -1543,8 +1546,14 @@ class doc_DocumentPlg extends core_Plugin
             $fileNavArr[$fh]['allFilesArr'] = $allFileArr;
             $fileNavArr[$fh]['current'] = $cUrlStr;
             Mode::setPermanent('fileNavArr', $fileNavArr);
-            
-            $res = new Redirect(array('fileman_Files', 'single', $fh));
+
+            $rUrl = array('fileman_Files', 'single', $fh);
+
+            if ($currentTab = Request::get('currentTab')) {
+                $rUrl['currentTab'] = $currentTab;
+            }
+
+            $res = new Redirect($rUrl);
             
             return false;
         }

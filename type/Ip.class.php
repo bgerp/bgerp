@@ -180,4 +180,19 @@ class type_Ip extends type_Varchar
         
         return false;
     }
+
+    
+    /**
+     * Извлича реално ИП зад прокси сървър
+     * 
+     * @return string $ip
+     */
+    public static function getRealIp() {
+        $ip = $_SERVER['REMOTE_ADDR'];
+        if (!self::isPublic($ip) && !empty($_SERVER['HTTP_X_FORWARDED_FOR']) && self::isPublic($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+        }
+
+        return $ip;
+    }
 }

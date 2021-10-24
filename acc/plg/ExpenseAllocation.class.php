@@ -57,8 +57,9 @@ class acc_plg_ExpenseAllocation extends core_Plugin
         
         // Добавяне на виртуални полета
         $form->FNC('expenseItemId', 'acc_type_Item(select=titleNum,allowEmpty,lists=600,showAll)', "input=none,after={$mvc->expenseItemAfterField},caption=Отнасяне (и разпределяне) на разходи->Разход за,removeAndRefreshForm=allocationBy");
-        $form->FNC('allocationBy', 'enum(auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'input=none,caption=Отнасяне (и разпределяне) на разходи->Разпределяне,after=expenseItemId,silent,removeAndRefreshForm=chosenProducts');
-        
+        $form->FNC('allocationBy', 'enum(auto=Автоматично (по стойност),no=Няма,value=По стойност,quantity=По количество,weight=По тегло,volume=По обем)', 'input=none,caption=Отнасяне (и разпределяне) на разходи->Разпределяне,after=expenseItemId,silent,removeAndRefreshForm=chosenProducts|allocationFilter');
+        $form->FNC('allocationFilter', 'enum(all=Всички артикули,storable=Само складируеми)', 'input=none,caption=Отнасяне (и разпределяне) на разходи->Артикули');
+
         // Ако е избран артикул
         if (isset($rec->productId)) {
             $pRec = cat_Products::fetch($rec->productId, 'canConvert,fixedAsset,canStore');
@@ -90,6 +91,11 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                                 $form->setDefault('allocationBy', 'auto');
                             } else {
                                 $form->setDefault('allocationBy', 'no');
+                            }
+
+                            if($rec->allocationBy == 'auto'){
+                                $form->setField('allocationFilter', 'input');
+                                $form->setDefault('allocationFilter', 'all');
                             }
                         }
                     }
@@ -138,7 +144,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 if($rec->allocationBy == 'auto'){
                     $itemRec = acc_Items::fetch($rec->expenseItemId, 'classId,objectId');
                     $origin = new core_ObjectReference($itemRec->classId, $itemRec->objectId);
-                    $rec->productsData = $origin->getCorrectableProducts($mvc->Master);
+                    $rec->productsData = $origin->getCorrectableProducts($mvc->Master, $rec->allocationFilter);
                 } elseif(isset($rec->chosenProducts)){
                     $rec->productsData = array_intersect_key($form->allProducts, type_Set::toArray($rec->chosenProducts));
                 }
@@ -176,6 +182,7 @@ class acc_plg_ExpenseAllocation extends core_Plugin
                 'detailRecId' => $rec->id,
                 'productId' => $rec->{$mvc->productFld},
                 'quantity' => $rec->{$mvc->quantityFld},
+                'allocationFilter' => $rec->allocationFilter,
                 'productsData' => $rec->productsData,
                 'containerId' => $containerId);
             

@@ -33,8 +33,8 @@ class type_JSON extends type_Text
 
             $value = ht::wrapMixedToHtml(ht::mixedToHtml(
                 $value,
-                isset($this->params['hideLevel']) ? $this->params['hideLevel'] : 1,
-                isset($this->params['maxLevel']) ? $this->params['maxLevel'] : 5
+                isset($this->params['hideLevel']) ? $this->params['hideLevel'] : 3,
+                isset($this->params['maxLevel']) ? $this->params['maxLevel'] : 6
             ));
         }
 
