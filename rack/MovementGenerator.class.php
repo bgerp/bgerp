@@ -128,7 +128,7 @@ class rack_MovementGenerator extends core_Manager
         do {
             $fullPallets = self::getFullPallets($p, $quantityPerPallet);
             $res = self::p2q($p, $z, $fullPallets, $quantityPerPallet);
-            
+ 
             $moves = arr::combine($moves, $res);
             $i++;
             if ($i > 100) {
@@ -137,7 +137,8 @@ class rack_MovementGenerator extends core_Manager
             }
         } while (countR($res) > 0);
         
-        
+    
+
         $res = array();
         $i = 0;
         foreach ($moves as $m => $q) {
@@ -153,14 +154,12 @@ class rack_MovementGenerator extends core_Manager
             if ($l == $o->pallet) {
                 $o->zones[$r] = $q;
             }
-            if ($l == 'ret') {
+            if ($l == 'ret') { 
                 // Ако върнатото количество е над 80% от палета, приемаме, че е по-добре да вземем
                 // само това, което ни трябва за зоните. Тук трябва да се проеми това ограничение по зададено максимално тегло
                 // на вземането от палета, което може да стане ръчно. Функцията трябва да получава макс количество,
                 // при което не се взема целия палет, а само необходимата част
-                if ($q >= self::ALMOST_FULL * $o->quantity) {
-                    $o->quantity = array_sum($o->zones);
-                } else {
+                if ($quantityPerPallet && ($q <= (1-self::ALMOST_FULL) * $quantityPerPallet)) {
                     $o->ret = $q;
                     
                     // Къде да е върнат палета?
@@ -183,6 +182,8 @@ class rack_MovementGenerator extends core_Manager
                             }
                         }
                     }
+                } else {
+                    $o->quantity = array_sum($o->zones);
                 }
             }
         }
@@ -193,6 +194,9 @@ class rack_MovementGenerator extends core_Manager
     
     /**
      * Връща масив от масиви. Вторите масиви, са движения, които изчепват или P или Q
+     * 
+     * @param array $p позициите на които има дадения продукт => наличността на дадената позиция
+     * @param array $z зоните където се търси дадения продукт => количеството, което се търси
      */
     public static function p2q(&$p, &$z, $fullPallets, $quantityPerPallet)
     {
@@ -395,6 +399,17 @@ class rack_MovementGenerator extends core_Manager
     }
     
     
+    /**
+     * Връща масив с генерирани движения, на базата на функцията rack_MovementGenerator::mainP2Q
+     * 
+     * @param array  $allocatedArr Масив с резултата от фунцията mainP2Q
+     * @param int    $productId ID на продукта
+     * @param int    $packagingId ID на опаковката
+     * @param string $batch Партида
+     * @param int    $storeId ИД na sklada
+     *
+     * @return array
+     */
     public static function getMovements($allocatedArr, $productId, $packagingId, $batch, $storeId)
     {
         $res = array();
