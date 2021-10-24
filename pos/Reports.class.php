@@ -95,9 +95,18 @@ class pos_Reports extends core_Master
     
     
     /**
-     * Полета, които ще се показват в листов изгле,д
+     * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, valior, title=Документ, pointId, total, paid, state, createdOn, createdBy';
+    
+    
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+        'dealerId' => 'lastDocUser|lastDoc',
+        'chargeVat' => 'lastDocUser|lastDoc',
+    );
     
     
     /**
