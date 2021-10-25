@@ -166,14 +166,11 @@ class rack_Movements extends rack_MovementAbstract
                     $form->setWarning($transaction->warningFields, implode(',', $transaction->warnings));
                 }
 
-                if($rec->state == 'pending' && isset($rec->workerId)){
-                    $form->setWarning('workerId', "Наистина ли искате да запазите движението за|* <b>" . core_Users::getVerbal($rec->workerId, 'nick') . "</b>");
-                }
-
                 if (!$form->gotErrors()) {
                     $rec->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
                     $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
-                    
+                    $rec->_isEdited = true;
+
                     if ($rec->state == 'closed') {
                         $rec->_isCreatedClosed = true;
                     }
@@ -233,6 +230,10 @@ class rack_Movements extends rack_MovementAbstract
             $rec->state = 'waiting';
             $rec->brState = 'pending';
         }
+
+        if(empty($rec->id)){
+            $rec->_isCreated = true;
+        }
     }
     
     
@@ -261,6 +262,23 @@ class rack_Movements extends rack_MovementAbstract
         // Синхронизиране на записа
         if(isset($rec->id)){
             rack_OldMovements::sync($rec);
+            if($rec->_isCreated){
+                rack_Logs::add($rec->positionTo, $rec->id, "Създаване на движение #{$rec->id}");
+            }
+
+            if($rec->_isEdited && !$rec->_isCreated){
+                rack_Logs::add($rec->position, $rec->id, "Редактиране на движение #{$rec->id}");
+            } elseif($rec->state == 'waiting' && $rec->brState == 'pending'){
+                rack_Logs::add($rec->position, $rec->id, "Запазване на движение #{$rec->id}");
+            } elseif($rec->state == 'active' && ($rec->brState == 'pending' || $rec->brState == 'waiting')){
+                rack_Logs::add($rec->position, $rec->id, "Започване на движение #{$rec->id}");
+            } elseif($rec->brState == 'active' && ($rec->state == 'pending' || $rec->state == 'waiting')){
+                rack_Logs::add($rec->position, $rec->id, "Връщане на движение #{$rec->id}");
+            } elseif($rec->state == 'pending' && $rec->brState == 'waiting'){
+                rack_Logs::add($rec->position, $rec->id, "Отказване на движение #{$rec->id}");
+            } elseif($rec->state == 'closed'){
+                rack_Logs::add($rec->positionTo, $rec->id, "Приключване на движение #{$rec->id}");
+            }
         }
     }
 
@@ -275,6 +293,7 @@ class rack_Movements extends rack_MovementAbstract
 
         foreach ($query->getDeletedRecs() as $rec) {
             rack_OldMovements::delete("#movementId = {$rec->id}");
+            rack_Logs::delete("#movementId = {$rec->id}");
         }
     }
 
@@ -658,6 +677,8 @@ class rack_Movements extends rack_MovementAbstract
                 $rec->workerId = null;
             }
             $rec->_canceled = true;
+            $rec->canceledOn = dt::now();
+            $rec->canceledBy = core_Users::getCurrent();
             $reverse = true;
         }
 
@@ -680,7 +701,7 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             // Записва се служителя и се обновява движението
-            $this->save($rec, 'state,brState,workerId,modifiedOn,modifiedBy,documents');
+            $this->save($rec, 'state,brState,workerId,modifiedOn,modifiedBy,documents,canceledOn,canceledBy');
 
             $msg = (countR($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
             $type = (countR($transaction->warnings)) ? 'warning' : 'notice';
@@ -1109,6 +1130,7 @@ class rack_Movements extends rack_MovementAbstract
         if($olderThan = rack_Setup::get('DELETE_ARCHIVED_MOVEMENTS')){
             $createdBefore = dt::addSecs(-1 * $olderThan);
             rack_OldMovements::delete("#createdOn <= '{$createdBefore}'");
+            rack_Logs::delete("#createdOn <= '{$createdBefore}'");
         }
     }
     
@@ -1222,6 +1244,10 @@ class rack_Movements extends rack_MovementAbstract
 
         if ($mvc->haveRightFor('reject', $rec)) {
             $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), array('warning' => $returnWarning, 'id' => "return{$rec->id}", 'ef_icon' => 'img/16/reject.png', 'title' => 'Връщане на движението'));
+        }
+
+        if(rack_Logs::haveRightFor('list')){
+            $row->_rowTools->addLink('История', array('rack_Logs', 'list', "movementId" => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движението');
         }
     }
 }

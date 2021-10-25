@@ -963,6 +963,7 @@ class rack_Zones extends core_Master
         }
         $mQuery->show('id');
 
+        core_Users::forceSystemUser();
         while ($mRec = $mQuery->fetch()) {
             rack_Movements::delete($mRec->id);
         }
@@ -1008,7 +1009,6 @@ class rack_Zones extends core_Master
             $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId);
 
             // Движенията се създават от името на системата
-            core_Users::forceSystemUser();
             foreach ($movements as $movementRec) {
                 rack_Movements::save($movementRec);
             }
