@@ -165,7 +165,11 @@ class rack_Movements extends rack_MovementAbstract
                 if (!empty($transaction->warnings)) {
                     $form->setWarning($transaction->warningFields, implode(',', $transaction->warnings));
                 }
-                
+
+                if($rec->state == 'pending' && isset($rec->workerId)){
+                    $form->setWarning('workerId', "Наистина ли искате да запазите движението за|* <b>" . core_Users::getVerbal($rec->workerId, 'nick') . "</b>");
+                }
+
                 if (!$form->gotErrors()) {
                     $rec->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
                     $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
@@ -223,6 +227,11 @@ class rack_Movements extends rack_MovementAbstract
                 $documents = (countR($documents)) ? keylist::fromArray($documents) : null;
                 $rec->documents = keylist::merge($rec->documents, $documents);
             }
+        }
+
+        if($rec->state == 'pending' && isset($rec->workerId)){
+            $rec->state = 'waiting';
+            $rec->brState = 'pending';
         }
     }
     
@@ -334,7 +343,6 @@ class rack_Movements extends rack_MovementAbstract
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setDefault('fromIncomingDocument', 'no');
         $form->setField('storeId', 'input=hidden');
-        $form->setField('workerId', 'input=none');
         
         $defZones = Request::get('defaultZones', 'varchar');
         if($rec->fromIncomingDocument == 'yes'){
