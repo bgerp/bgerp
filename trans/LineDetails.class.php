@@ -269,7 +269,7 @@ class trans_LineDetails extends doc_Detail
         }
 
         if(!Mode::isReadOnly() && !empty($row->notes)){
-            $row->address = " <a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','notes{$rec->id}', 'true')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Допълнителна информация за транспорта') . "</a>" . $row->address;
+            $row->address = " <a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','notes{$rec->id}', 'true')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>" . $row->address;
         }
 
         if(!empty($row->address)){
