@@ -59,6 +59,9 @@ abstract class rack_MovementAbstract extends core_Manager
         $mvc->FNC('containerId', 'int', 'input=hidden,caption=Документи,silent');
         $mvc->FLD('documents', 'keylist(mvc=doc_Containers,select=id)', 'input=none,caption=Документи');
 
+        $mvc->FLD('canceledOn', 'datetime(format=smartTime)', 'caption=Върнато||Returned->На, input=none');
+        $mvc->FLD('canceledBy', 'key(mvc=core_Users)', 'caption=Върнато||Returned->От||By, input=none');
+
         $mvc->setDbIndex('storeId');
         $mvc->setDbIndex('palletId');
         $mvc->setDbIndex('productId,storeId');
@@ -117,6 +120,12 @@ abstract class rack_MovementAbstract extends core_Manager
             }
             $row->documents = implode(',', $documents);
         }
+
+        if(isset($rec->canceledBy) && !empty($rec->canceledOn)){
+            $dateVerbal = core_Type::getByName('datetime(smartTime)')->toVerbal($rec->canceledOn);
+            $userIdVerbal = crm_Profiles::createLink($rec->canceledBy);
+            $row->productId = ht::createHint($row->productId, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", 'img/16/cart_go_back.png');
+        }
     }
 
 
@@ -141,8 +150,10 @@ abstract class rack_MovementAbstract extends core_Manager
      *
      * @return string $res
      */
-    protected function getMovementDescription($rec, $skipZones = false, $makeLinks = true)
+    public function getMovementDescription($rec, $skipZones = false, $makeLinks = true)
     {
+        $rec = $this->fetchRec($rec);
+
         $packQuantity = isset($rec->_originalPackQuantity) ? $rec->_originalPackQuantity : $rec->packQuantity;
         $position = $this->getFieldType('position')->toVerbal($rec->position);
         $positionTo = $this->getFieldType('positionTo')->toVerbal($rec->positionTo);
@@ -239,6 +250,8 @@ abstract class rack_MovementAbstract extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $storeId = store_Stores::getCurrent();
+        $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
+
         $data->query->where("#storeId = {$storeId}");
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'waiting' THEN 2 WHEN 'active' THEN 3 ELSE 4 END)");
         if ($palletId = Request::get('palletId', 'int')) {
