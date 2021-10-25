@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логистична информаци,notes=@,address=@,documentHtml=@,classId=Клас';
+    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логистична информация,address=@,notes=@,documentHtml=@,classId=Клас';
     
     
     /**
@@ -194,6 +194,7 @@ class trans_LineDetails extends doc_Detail
 
         if (!empty($transportInfo['notes'])) {
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
+            $row->notes = "<div class='notes{$rec->id}'>{$row->notes}</div>";
         }
         if (!empty($transportInfo['address'])) {
             $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
@@ -265,6 +266,10 @@ class trans_LineDetails extends doc_Detail
             $amountTpl->append($transportInfo['amountVerbal']);
             $amountTpl->append('</div>');
             $row->amount = $amountTpl;
+        }
+
+        if(!Mode::isReadOnly() && !empty($row->notes)){
+            $row->address = " <a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','notes{$rec->id}', 'true')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Допълнителна информация за транспорта') . "</a>" . $row->address;
         }
 
         if(!empty($row->address)){
@@ -463,9 +468,6 @@ class trans_LineDetails extends doc_Detail
         if (!array_key_exists($groupId, self::$cache)) {
             $className = cls::getClassName($groupId);
             $className = tr(self::$classGroups[$className]);
-            if(!Mode::isReadOnly()){
-                $className .= " <a id= 'groupBtn{$groupId}' href=\"javascript:toggleDisplayByClass('groupBtn{$groupId}','group{$groupId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
-            }
             self::$cache[$groupId] = $className;
         }
 

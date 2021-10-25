@@ -1211,10 +1211,14 @@ function toggleDisplay(id) {
 
 
 // Скриване на полета с определен клас при натискане на конкретен бутон
-function toggleDisplayByClass(btnId, toggleClass) {
+function toggleDisplayByClass(btnId, toggleClass, toggleParent) {
     var elem = $("#" + btnId);
-    $("." + toggleClass).fadeToggle("slow");
-    console.log(toggleClass, elem);
+    if(toggleParent){
+        $("." + toggleClass).parent().fadeToggle("slow");
+    } else {
+        $("." + toggleClass).fadeToggle("slow");
+    }
+
     elem.toggleClass('show-btn');
 }
 
