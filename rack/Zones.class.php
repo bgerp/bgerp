@@ -358,11 +358,7 @@ class rack_Zones extends core_Master
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
-        if ($form->isSubmitted()) {
-            if (empty($form->rec->groupId)) {
-                $form->setWarning('groupId', 'Сигурни ли сте, че не искате да изберете група|*?');
-            }
-        }
+        if ($form->isSubmitted()) 
     }
 
 
