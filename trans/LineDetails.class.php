@@ -324,6 +324,7 @@ class trans_LineDetails extends doc_Detail
             $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? 'closed' : 'waiting';
         }
         $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$class}";
+        $row->ROW_ATTR['class'] .= " group{$rec->classId}";
     }
     
     
@@ -462,6 +463,9 @@ class trans_LineDetails extends doc_Detail
         if (!array_key_exists($groupId, self::$cache)) {
             $className = cls::getClassName($groupId);
             $className = tr(self::$classGroups[$className]);
+            if(!Mode::isReadOnly()){
+                $className .= " <a id= 'groupBtn{$groupId}' href=\"javascript:toggleDisplayByClass('groupBtn{$groupId}','group{$groupId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+            }
             self::$cache[$groupId] = $className;
         }
 

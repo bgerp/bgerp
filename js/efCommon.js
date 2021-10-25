@@ -1208,6 +1208,16 @@ function toggleDisplay(id) {
     $("#" + id).fadeToggle("slow");
     elem.toggleClass('show-btn');
 }
+
+
+// Скриване на полета с определен клас при натискане на конкретен бутон
+function toggleDisplayByClass(btnId, toggleClass) {
+    var elem = $("#" + btnId);
+    $("." + toggleClass).fadeToggle("slow");
+    console.log(toggleClass, elem);
+    elem.toggleClass('show-btn');
+}
+
 function saveChecked(ul){
     var text = "";
     $('#' + ul).find('input[type=checkbox]:checked').each(function () {
