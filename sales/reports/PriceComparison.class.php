@@ -58,10 +58,13 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('priceList', 'key(mvc=price_Lists,select=title)', 'caption=Ценова политика,after=title,mandatory,silent,single=none');
-        $fieldset->FLD('policyClassId', 'class(interface=price_CostPolicyIntf,select=title)', 'caption=Себестойност,after=priceList');
+        $fieldset->FLD('priceListLow', 'keylist(mvc=price_Lists,allowEmpty,select=title)', 'caption=Ниска->Ценова политика,removeAndRefreshForm,after=title,mandatory,silent,single=none');
+        $fieldset->FLD('policyClassId', 'class(interface=price_CostPolicyIntf,allowEmpty,select=title)', 'caption=Ниска->Себестойност,removeAndRefreshForm,silent,after=priceListLow');
 
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=title,removeAndRefreshForm,placeholder=Всички,silent,single=none');
+
+        $fieldset->FLD('priceListHigh', 'key(mvc=price_Lists,select=title)', 'caption=Висока->Ценова политика,after=priceListLow,removeAndRefreshForm,mandatory,silent,single=none');
+
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=priceListHigh,removeAndRefreshForm,placeholder=Всички,silent,single=none');
 
     }
 
@@ -78,6 +81,10 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
+        //bp($rec);
+        if ($rec->priceListLow == 'month') {
+            $form->setField('policyClassId', 'input=hidden');
+            }
 
         //Да се заредят само публични политики
         $priceListsQuery = price_Lists::getQuery();
@@ -90,9 +97,12 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
             }
                 $suggestions[$priceListsRec->id] = $priceListsRec->title;
         }
-        $form->setSuggestions('priceList', $suggestions);
+        $form->setSuggestions('priceListLow', $suggestions);
+        $form->setSuggestions('priceListHigh', $suggestions);
 
-        $form->setDefault('priceList', $katalog);
+        $form->setDefault('priceListLow', array());
+        $form->setDefault('policyClassId', array());
+        $form->setDefault('priceListHigh', $katalog);
 
 
     }
@@ -113,7 +123,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $priceListsQuery = price_ProductCosts::getQuery();
 
       //  price_CostPolicyIntf
-//bp( $rec,$priceListsQuery->count(),$priceListsQuery->fetchAll(),core_Classes::fetch(968));
+bp( $rec,$priceListsQuery->count(),$priceListsQuery->fetchAll(),core_Classes::fetch(968));
 
         return $recs;
     }
