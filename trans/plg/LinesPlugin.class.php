@@ -72,10 +72,8 @@ class trans_plg_LinesPlugin extends core_Plugin
         $rec = $data->rec;
         
         if ($rec->state != 'rejected') {
-            $url = array($mvc, 'changeLine', $rec->id, 'ret_url' => true);
-           
-            if ($mvc->haveRightFor('changeLine', $rec)) {
-                $data->toolbar->addBtn('Транспорт', $url, 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
+            if ($mvc->haveRightFor('changeline', $rec)) {
+                $data->toolbar->addBtn('Транспорт', array($mvc, 'changeline', $rec->id, 'ret_url' => true), 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
             }
         }
     }
