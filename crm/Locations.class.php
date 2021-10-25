@@ -125,7 +125,8 @@ class crm_Locations extends core_Master
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
-        $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=@Особености');
+        $this->FLD('specifics', 'richtext(bucket=Notes, rows=2)', 'caption=@Особености');
+        $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=@Информация');
         $this->FLD('mol', 'varchar(64)', 'caption=Отговорник');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
@@ -685,9 +686,9 @@ class crm_Locations extends core_Master
         $string .= "{$row->pCode} {$row->place}, {$row->address}";
         $string = trim($string, ',  ');
 
-        if(!empty($rec->comment)){
-            $comment = core_Type::getByName('richtext')->toVerbal($rec->comment);
-            $string .= ", {$comment}";
+        if(!empty($rec->specifics)){
+            $specifics = core_Type::getByName('richtext')->toVerbal($rec->specifics);
+            $string .= ", {$specifics}";
         }
 
         return $string;

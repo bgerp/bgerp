@@ -2240,7 +2240,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $res["{$ownPart}Address"] = !empty($storeLocation->address) ? $storeLocation->address : null;
             $res["{$ownPart}Person"] = !empty($storeLocation->mol) ? $storeLocation->mol : null;
             $res["{$ownPart}LocationId"] = $storeLocation->id;
-            $res["{$ownPart}AddressInfo"] = $storeLocation->comment;
+            $res["{$ownPart}AddressInfo"] = $storeLocation->specifics;
         } else {
             $res["{$ownPart}PCode"] = !empty($ownCompany->pCode) ? $ownCompany->pCode : null;
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
@@ -2266,7 +2266,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $res["{$contrPart}Place"] = !empty($contragentLocation->place) ? $contragentLocation->place : null;
             $res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : null;
             $res["{$contrPart}LocationId"] = $contragentLocation->id;
-            $res["{$contrPart}AddressInfo"] = $contragentLocation->comment;
+            $res["{$contrPart}AddressInfo"] = $contragentLocation->specifics;
             if(!empty($contragentLocation->mol) || !empty($contragentLocation->tel)){
                 $res["{$contrPart}Person"] = !empty($contragentLocation->mol) ? $contragentLocation->mol : null;
                 $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;

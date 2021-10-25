@@ -544,7 +544,7 @@ class store_Transfers extends core_Master
                 $res["{$part}Address"] = !empty($location->address) ? $location->address : null;
                 $res["{$part}Person"] = !empty($location->mol) ? $location->mol : null;
                 $res["{$part}LocationId"] = $location->id;
-                $res["{$part}AddressInfo"] = $location->comment;
+                $res["{$part}AddressInfo"] = $location->specifics;
             }
         }
 
