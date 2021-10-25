@@ -58,13 +58,13 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('priceListLow', 'keylist(mvc=price_Lists,allowEmpty,select=title)', 'caption=Ниска->Ценова политика,removeAndRefreshForm,after=title,mandatory,silent,single=none');
-        $fieldset->FLD('policyClassId', 'class(interface=price_CostPolicyIntf,allowEmpty,select=title)', 'caption=Ниска->Себестойност,removeAndRefreshForm,silent,after=priceListLow');
+        $fieldset->FLD('priceListLow', 'key(mvc=price_Lists,allowEmpty,select=title)', 'caption=Ниска->Ценова политика,after=title,removeAndRefreshForm,placeholder=Избери,silent,single=none');
+        $fieldset->FLD('policyClassId', 'class(interface=price_CostPolicyIntf,allowEmpty,select=title)', 'caption=Ниска->Себестойност,placeholder=Избери,removeAndRefreshForm,silent,after=priceListLow');
 
 
         $fieldset->FLD('priceListHigh', 'key(mvc=price_Lists,select=title)', 'caption=Висока->Ценова политика,after=priceListLow,removeAndRefreshForm,mandatory,silent,single=none');
 
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=priceListHigh,removeAndRefreshForm,placeholder=Всички,silent,single=none');
+        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=priceListHigh,removeAndRefreshForm,placeholder=Избери,mandatory,silent,single=none');
 
     }
 
@@ -81,10 +81,13 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        //bp($rec);
-        if ($rec->priceListLow == 'month') {
-            $form->setField('policyClassId', 'input=hidden');
+
+        if ($rec->priceListLow) {
+            $form->setReadOnly('policyClassId');
             }
+        if ($rec->policyClassId) {
+            $form->setReadOnly('priceListLow');
+        }
 
         //Да се заредят само публични политики
         $priceListsQuery = price_Lists::getQuery();
@@ -120,10 +123,53 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     {
 
         $recs = array();
-        $priceListsQuery = price_ProductCosts::getQuery();
 
-      //  price_CostPolicyIntf
-bp( $rec,$priceListsQuery->count(),$priceListsQuery->fetchAll(),core_Classes::fetch(968));
+        $pQuery = store_Products::getQuery();
+        $pQuery->where("#isPublic = 'yes'");
+
+        $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $pQuery->where("#isPublic = 'yes'");
+        while ($pRec = $pQuery->fetch()){
+            $diffPrice = $lowPrice = $hiPrice = $diffPercent = 0;
+
+            //Намиране на ниската цена
+            //Ако е избрана някаква себестойност
+            if ($rec->policyClassId){
+            $lowPrice = price_ProductCosts::getPrice($pRec->productId,core_Classes::fetch($rec->policyClassId)->name);
+            }
+            if ($rec->priceListLow){
+                   $lowPrice = price_ListRules::getPrice($rec->priceListLow,$pRec->productId, null, dt::today());
+
+            }
+
+            //Намиране на високата цена
+            $hiPrice = price_ListRules::getPrice($rec->priceListHigh,$pRec->productId, null, dt::today());
+
+            //Изчисляване на разликата в стойност
+            $diffPrice = $hiPrice - $lowPrice;
+
+            //Изчисляване на разликата в процент
+            if ($lowPrice) {
+                $diffPercent = $hiPrice / $lowPrice * 100;
+            }
+
+
+
+
+            $id = $pRec->productId;
+
+            //САМО ЗА ТЕСТ
+            if(!$hiPrice || !$lowPrice)continue;
+
+            $recs[$id] = (object)array(
+                'productId' => $pRec->productId,
+                'lowPrice'=> $lowPrice,
+                'hiPrice' => $hiPrice,
+                'diffPrice' => $diffPrice,
+                'diffPercent' => $diffPercent,
+                );
+        }
+
 
         return $recs;
     }
@@ -143,7 +189,11 @@ bp( $rec,$priceListsQuery->count(),$priceListsQuery->fetchAll(),core_Classes::fe
     {
         $fld = cls::get('core_FieldSet');
 
-        $fld->FLD('saleId', 'varchar', 'caption=Сделка');
+        $fld->FLD('productId', 'varchar', 'caption=Артикул');
+        $fld->FLD('lowPrice', 'varchar', 'caption=Цена -> ниска');
+        $fld->FLD('hiPrice', 'varchar', 'caption=Цена -> висока');
+        $fld->FLD('diffPrice', 'varchar', 'caption=Разлика -> стойност');
+        $fld->FLD('diffPercent', 'varchar', 'caption=Разлика -> процент');
 
 
 
@@ -166,9 +216,24 @@ bp( $rec,$priceListsQuery->count(),$priceListsQuery->fetchAll(),core_Classes::fe
         $Int = cls::get('type_Int');
 
         $row = new stdClass();
+        if (isset($dRec->productId)) {
+            $row->productId = $dRec->productId;
+        }
+        if (isset($dRec->lowPrice)) {
+            $row->lowPrice = $dRec->lowPrice;
+        }
 
+        if (isset($dRec->hiPrice)) {
+            $row->hiPrice = $dRec->hiPrice;
+        }
 
+        if (isset($dRec->diffPrice)) {
+            $row->diffPrice = $dRec->diffPrice;
+        }
 
+        if (isset($dRec->diffPercent)) {
+            $row->diffPercent = $dRec->diffPercent;
+        }
 
         return $row;
     }
