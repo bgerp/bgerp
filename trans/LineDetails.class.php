@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логистична информаци,notes=@,address=@,documentHtml=@,classId=Клас';
+    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логистична информация,address=@,notes=@,documentHtml=@,classId=Клас';
     
     
     /**
@@ -179,6 +179,7 @@ class trans_LineDetails extends doc_Detail
         // Транспортната информация за транспортната линия
         $Document = doc_Containers::getDocument($rec->containerId);
         $transportInfo = $Document->getTransportLineInfo($rec->lineId);
+        core_RowToolbar::createIfNotExists($row->_rowTools);
 
         // Линк към документа
         $row->containerId = '#' . $Document->getHandle();
@@ -193,6 +194,7 @@ class trans_LineDetails extends doc_Detail
 
         if (!empty($transportInfo['notes'])) {
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
+            $row->notes = "<div class='notes{$rec->id}'>{$row->notes}</div>";
         }
         if (!empty($transportInfo['address'])) {
             $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
@@ -266,6 +268,10 @@ class trans_LineDetails extends doc_Detail
             $row->amount = $amountTpl;
         }
 
+        if(!Mode::isReadOnly() && !empty($row->notes)){
+            $row->address = " <a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','notes{$rec->id}', 'true')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Допълнителна информация за транспорта') . "</a>" . $row->address;
+        }
+
         if(!empty($row->address)){
             $row->address = "<div style='margin:2px;font-size:0.9em'>{$row->address}</div>";
         }
@@ -274,14 +280,16 @@ class trans_LineDetails extends doc_Detail
         $masterRec = trans_Lines::fetch($rec->lineId);
         if ($mvc->haveRightFor('doc_Comments', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
             $commentUrl = array('doc_Comments', 'add', 'originId' => $masterRec->containerId, 'detId' => $rec->id, 'ret_url' => true);
-            core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => 'img/16/comment_add.png', 'alwaysShow' => true, 'title' => 'Известяване на отговорниците на документа'));
         }
         
         // Бутон за изключване
         if ($mvc->haveRightFor('remove', $rec)) {
-            core_RowToolbar::createIfNotExists($row->_rowTools);
             $row->_rowTools->addLink('Премахване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Премахване на документа от транспортната линия'));
+        }
+
+        if ($Document->haveRightFor('changeline')) {
+            $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
         }
 
         // Ако има платежни документи към складовия
@@ -321,6 +329,7 @@ class trans_LineDetails extends doc_Detail
             $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? 'closed' : 'waiting';
         }
         $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$class}";
+        $row->ROW_ATTR['class'] .= " group{$rec->classId}";
     }
     
     
