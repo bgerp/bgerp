@@ -620,7 +620,7 @@ abstract class cash_Document extends deals_PaymentDocument
      * Коя е дефолтната каса на документа
      * 
      * 1. Ако документа е към транспортна линия с дефолтна каса и може да контира в нея - това е тя
-     * 2. Избраната в сесията, ако има
+     * 2. Избраната в сесията, ако има (и може да контира с нея)
      * 2. Първата, която може да контира
      * 3. Първата, която може да избира
      * 4. Не намира каса
@@ -633,25 +633,35 @@ abstract class cash_Document extends deals_PaymentDocument
     {
         $caseId = null;
 
-        // Ако има транс. линия с дефолтна каса и потребителя може да контира в нея - това е тя
+        // Ако има транс. линия с дефолтна каса
+        $priorityCases = array();
         if(!empty($rec->{$this->lineFieldName})){
-            $lineDefaultCaseId = trans_Lines::fetchField($rec->{$this->lineFieldName}, 'defaultCaseId');
-            $clone = clone $rec;
-            $clone->peroCase = $lineDefaultCaseId;
-            if(deals_Helper::canSelectObjectInDocument('conto', $clone, 'cash_Cases', 'peroCase')){
-                $caseId = $lineDefaultCaseId;
+            if($lineDefaultCaseId = trans_Lines::fetchField($rec->{$this->lineFieldName}, 'defaultCaseId')){
+                $priorityCases[] = $lineDefaultCaseId;
             }
         }
 
-        // Ако няма се взима касата от сесията
-        $userId = isset($userId) ? $userId : core_Users::getCurrent();
-        if(!isset($caseId)){
-            $caseId = cash_Cases::getCurrent('id', false);
+        // Текущата каса от сесията
+        $sessionCaseId = cash_Cases::getCurrent('id', false);
+        if(isset($sessionCaseId)){
+            $priorityCases[$sessionCaseId] = $sessionCaseId;
         }
 
-        if(!isset($caseId)){
+        // Проверяват се първо касата от ТЛ и тази от сесията и се връща първата с която може да контира потребителя
+        foreach ($priorityCases as $defaultCaseId){
+            $clone = clone $rec;
+            $clone->peroCase = $defaultCaseId;
+            if(deals_Helper::canSelectObjectInDocument('conto', $clone, 'cash_Cases', 'peroCase')){
+                $caseId = $defaultCaseId;
+                break;
+            }
+        }
 
-            // Ако няма търси се първата каса в която може да контира
+        // Ако не може да контира с касата от тл или сесията
+        if(!isset($caseId)){
+            $userId = isset($userId) ? $userId : core_Users::getCurrent();
+
+            // Ако няма търси се първата каса в която може да контира, след това първата, която може да избира
             foreach (array(true, false) as $exp){
                 $query = cash_Cases::getQuery();
                 $query->show('id');
