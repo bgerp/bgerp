@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Продажби » Мониторинг на доставни цени. Сравнение на доставни и продажни цени
+ * @title     Продажби » Сравнение на цени (политики/себест-сти)
  */
 class sales_reports_PriceComparison extends frame2_driver_TableData
 {
@@ -20,6 +20,30 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'debug';
+
+    /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var int
+     */
+    protected $sortableListFields = 'diffPercent,diffPrice';
+
+
+    /**
+     * Кои полета от таблицата в справката да се сумират в обобщаващия ред
+     *
+     * @var int
+     */
+    protected $summaryListFields  ;
+
+
+    /**
+     * Как да се казва обобщаващия ред. За да се покаже трябва да е зададено $summaryListFields
+     *
+     * @var int
+     */
+    protected $summaryRowCaption = 'ОБЩО';
+
 
 
     /**
@@ -64,8 +88,9 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         $fieldset->FLD('priceListHigh', 'key(mvc=price_Lists,select=title)', 'caption=Висока->Ценова политика,after=priceListLow,removeAndRefreshForm,mandatory,silent,single=none');
 
-        $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=priceListHigh,removeAndRefreshForm,placeholder=Избери,mandatory,silent,single=none');
+        $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=priceListHigh,placeholder=Избери,silent,single=none');
 
+        $fieldset->FLD('orderBy', 'enum(name=Име,code=Код,diffPrice=Разлика ст.,diffPercent=Разлика %)', 'caption=Сортиране по,maxRadio=4,columns=4,after=groups');
     }
 
 
@@ -82,6 +107,8 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
+        $form->setDefault('orderBy', 'diffPrice');
+
         if ($rec->priceListLow) {
             $form->setReadOnly('policyClassId');
         }
@@ -96,7 +123,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         while ($priceListsRec = $priceListsQuery->fetch()) {
 
             if ($priceListsRec->title == 'Каталог') {
-                $katalog = $priceListsRec->id;
+                $katalogId = $priceListsRec->id;
             }
             $suggestions[$priceListsRec->id] = $priceListsRec->title;
         }
@@ -105,7 +132,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         $form->setDefault('priceListLow', array());
         $form->setDefault('policyClassId', array());
-        $form->setDefault('priceListHigh', $katalog);
+        $form->setDefault('priceListHigh', $katalogId);
 
 
     }
@@ -128,7 +155,18 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $pQuery->where("#isPublic = 'yes'");
 
         $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $pQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+        $pQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
+        $pQuery->EXT('name', 'cat_Products', 'externalName=name,externalKey=productId');
+
         $pQuery->where("#isPublic = 'yes'");
+
+        //Филтър по групи артикули
+        if($rec->groups){
+            $pQuery->likeKeylist('groups', $rec->groups);
+        }
+
+
         while ($pRec = $pQuery->fetch()) {
             $diffPrice = $lowPrice = $hiPrice = $diffPercent = 0;
 
@@ -147,6 +185,9 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
             //Изчисляване на разликата в стойност
             $diffPrice = $hiPrice - $lowPrice;
+            if (!$hiPrice && !$lowPrice){
+                $diffPrice = '';
+            }
 
             //Изчисляване на разликата в процент
             if ($hiPrice && $lowPrice) {
@@ -162,11 +203,24 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
             $recs[$id] = (object)array(
                 'productId' => $pRec->productId,
+                'code' => $pRec->code,
+                'name' => $pRec->name,
                 'lowPrice' => $lowPrice,
                 'hiPrice' => $hiPrice,
                 'diffPrice' => $diffPrice,
                 'diffPercent' => $diffPercent,
             );
+        }
+
+        //Подредба на резултатите
+        if (!is_null($recs)) {
+            $typeOrder = ($rec->orderBy == 'name' || $rec->orderBy == 'code') ? 'stri' : 'native';
+
+            $order = in_array($rec->orderBy, array('name', 'code')) ? 'ASC' : 'DESC';
+
+            $orderBy = $rec->orderBy;
+
+            arr::sortObjects($recs, $orderBy, $order, $typeOrder);
         }
 
         return $recs;
@@ -227,10 +281,14 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         if (isset($dRec->diffPrice)) {
             $row->diffPrice = $Double->toVerbal($dRec->diffPrice);
+            $row->diffPrice = ht::styleIfNegative($row->diffPrice, $dRec->diffPrice);
+
         }
 
         if (isset($dRec->diffPercent)) {
+
             $row->diffPercent = $Percent->toVerbal($dRec->diffPercent);
+            $row->diffPercent = ht::styleIfNegative($row->diffPercent, $dRec->diffPercent);
         }
 
         return $row;
@@ -262,6 +320,51 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        $Date = cls::get('type_Date');
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+
+        $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
+								<fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
+                                    <div class='small'>
+                                        <!--ET_BEGIN priceListLow--><div>|Ниска цена по|*: [#priceListLow#]</div><!--ET_END priceListLow-->
+                                        <!--ET_BEGIN policyClassId--><div>|Ниска цена по|*: [#policyClassId#]</div><!--ET_END policyClassId-->
+                                        <!--ET_BEGIN priceListHigh--><div>|Висока цена по|*: [#priceListHigh#]</div><!--ET_END priceListHigh-->
+                                        <!--ET_BEGIN groups--><div>|Групи продукти|*: [#groups#]</div><!--ET_END groups-->
+                                    </div>
+                                </fieldset><!--ET_END BLOCK-->"));
+        if (isset($data->rec->priceListLow)) {
+            $priceListLowName = price_Lists::fetch($data->rec->priceListLow)->title;
+            $fieldTpl->append('<b>' . $priceListLowName . '</b>', 'priceListLow');
+        }
+
+        if (isset($data->rec->policyClassId)) {
+            $fieldTpl->append('<b>' .core_Classes::fetch($data->rec->policyClassId)->title . '</b>', 'policyClassId');
+        }
+
+        if ((isset($data->rec->priceListHigh))) {
+            $priceListHighName = price_Lists::fetch($data->rec->priceListHigh)->title;
+            $fieldTpl->append('<b>' . $priceListHighName . '</b>', 'priceListHigh');
+        }
+
+        $marker = 0;
+        if (isset($data->rec->groups)) {
+            foreach (type_Keylist::toArray($data->rec->groups) as $group) {
+                $marker++;
+
+                $groupVerb .= (cat_Groups::getTitleById($group));
+
+                if ((countR((type_Keylist::toArray($data->rec->groups))) - $marker) != 0) {
+                    $groupVerb .= ', ';
+                }
+            }
+
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
+        } else {
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'groups');
+        }
+
+        $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
 }
