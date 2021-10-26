@@ -53,10 +53,10 @@
 					<div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div>
 					<!--ET_END forwarderId-->
 					<!--ET_BEGIN vehicle-->
-					<div style='margin-bottom: 5px;'>[#vehicle#]<!--ET_BEGIN regNumber-->, [#regNumber#]<!--ET_END regNumber--></div>
+					<div style='margin-bottom: 5px;'>|МПС|*:[#vehicle#]<!--ET_BEGIN regNumber-->, [#regNumber#]<!--ET_END regNumber--></div>
 					<!--ET_END vehicle-->
 					<!--ET_BEGIN forwarderPersonId-->
-					<div style='margin-bottom: 5px;'>[#forwarderPersonId#]</div>
+					<div style='margin-bottom: 5px;'>|МОЛ|*:[#forwarderPersonId#]</div>
 					<!--ET_END forwarderPersonId-->
 				</div>
 				<table class='signature-table'>
@@ -103,7 +103,9 @@
 					<td class="centered">[#totalAmountReturn#]</td>
 					<td class="centered">[#transUnitsTotal#]</td>
 					<td class="centered" style="font-size:0.8em;text-align:left">
+						<!--ET_BEGIN defaultCaseId-->
 						<span style='font-weight:normal'>|Каса|*</span>: [#defaultCaseId#]<br>
+						<!--ET_END defaultCaseId-->
 						<!--ET_BEGIN cases-->
 						<span style='font-weight:normal'>|Каси|*</span>: [#cases#]<br>
 						<!--ET_END cases-->
