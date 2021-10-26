@@ -619,7 +619,8 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Коя е дефолтната каса на документа
      * 
-     * 1. Избраната в сесията, ако има
+     * 1. Ако документа е към транспортна линия с дефолтна каса и може да контира в нея - това е тя
+     * 2. Избраната в сесията, ако има
      * 2. Първата, която може да контира
      * 3. Първата, която може да избира
      * 4. Не намира каса
@@ -630,10 +631,27 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     public function getDefaultCase($rec, $userId = null)
     {
+        $caseId = null;
+
+        // Ако има транс. линия с дефолтна каса и потребителя може да контира в нея - това е тя
+        if(!empty($rec->{$this->lineFieldName})){
+            $lineDefaultCaseId = trans_Lines::fetchField($rec->{$this->lineFieldName}, 'defaultCaseId');
+            $clone = clone $rec;
+            $clone->peroCase = $lineDefaultCaseId;
+            if(deals_Helper::canSelectObjectInDocument('conto', $clone, 'cash_Cases', 'peroCase')){
+                $caseId = $lineDefaultCaseId;
+            }
+        }
+
+        // Ако няма се взима касата от сесията
         $userId = isset($userId) ? $userId : core_Users::getCurrent();
-        $caseId = cash_Cases::getCurrent('id', false);
-        
         if(!isset($caseId)){
+            $caseId = cash_Cases::getCurrent('id', false);
+        }
+
+        if(!isset($caseId)){
+
+            // Ако няма търси се първата каса в която може да контира
             foreach (array(true, false) as $exp){
                 $query = cash_Cases::getQuery();
                 $query->show('id');
@@ -655,7 +673,7 @@ abstract class cash_Document extends deals_PaymentDocument
     public static function getContoWarning_($id, $isContable)
     {
         $rec = static::fetchRec($id);
-        $currentCaseId = cash_Cases::getCurrent('id', false);
+        $currentCaseId = cls::get(get_called_class())->getDefaultCase($rec);
         
         if(!isset($rec->peroCase) && isset($currentCaseId)){
             $currentCaseName = cash_Cases::getTitleById($currentCaseId);
