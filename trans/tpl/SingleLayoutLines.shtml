@@ -109,7 +109,9 @@
 						<!--ET_BEGIN cases-->
 						<span style='font-weight:normal'>|Каси|*</span>: [#cases#]<br>
 						<!--ET_END cases-->
+						<!--ET_BEGIN stores-->
 						<span style='font-weight:normal'>|Складове|*</span>: [#stores#]<br>
+						<!--ET_END stores-->
 					</td>
 				</tr>
 			</table>
