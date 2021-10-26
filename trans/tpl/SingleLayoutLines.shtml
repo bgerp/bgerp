@@ -93,6 +93,7 @@
 					<td class="sum-th">|Инкасирано|*, [#baseCurrencyCode#]</td>
 					<td class="sum-th">|Изплатено|*, [#baseCurrencyCode#]</td>
 					<td class="sum-th">|Логистични единици|*</td>
+					<td class="sum-th">|Информация|*</td>
 				</tr>
 				</thead>
 				<tr>
@@ -101,6 +102,13 @@
 					<td class="centered">[#totalAmount#]</td>
 					<td class="centered">[#totalAmountReturn#]</td>
 					<td class="centered">[#transUnitsTotal#]</td>
+					<td class="centered" style="font-size:0.8em;text-align:left">
+						<span style='font-weight:normal'>|Каса|*</span>: [#defaultCaseId#]<br>
+						<!--ET_BEGIN cases-->
+						<span style='font-weight:normal'>|Каси|*</span>: [#cases#]<br>
+						<!--ET_END cases-->
+						<span style='font-weight:normal'>|Складове|*</span>: [#stores#]<br>
+					</td>
 				</tr>
 			</table>
 		</div>

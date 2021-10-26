@@ -195,10 +195,14 @@ class trans_Lines extends core_Master
         $this->FLD('start', 'datetime', 'caption=Начало, mandatory');
         $this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици)', 'caption=Повторение');
         $this->FLD('state', 'enum(draft=Чернова,,pending=Заявка,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
+
+        $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name)', 'caption=Каса по подразбиране');
+
         $this->FLD('forwarderId', 'key2(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Превоз->Спедитор');
         $this->FLD('vehicle', 'varchar', 'caption=Превоз->МПС,oldFieldName=vehicleId');
         $this->FLD('forwarderPersonId', 'key2(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Превоз->МОЛ');
         $this->FLD('description', 'richtext(bucket=Notes,rows=4)', 'caption=Допълнително->Бележки');
+
 
         $this->FLD('stores', 'keylist(mvc=store_Stores,select=name)', 'caption=Складове,input=none');
         $this->FLD('cases', 'keylist(mvc=cash_Cases,select=name)', 'caption=Каси,input=none');
@@ -331,6 +335,14 @@ class trans_Lines extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-single'])) {
+            if(isset($rec->defaultCaseId)){
+                $row->defaultCaseId = cash_Cases::getHyperlink($rec->defaultCaseId, true);
+                $allCases = keylist::toArray($rec->cases);
+                if(countR($allCases) && array_key_exists($rec->defaultCaseId, $allCases)){
+                    unset($row->cases);
+                }
+            }
+
             if (!empty($rec->vehicle)) {
                 if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $rec->vehicle))) {
                     $row->vehicle = trans_Vehicles::getHyperlink($vehicleRec->id, true);
