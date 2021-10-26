@@ -1243,11 +1243,11 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('reject', $rec)) {
-            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), array('warning' => $returnWarning, 'id' => "return{$rec->id}", 'ef_icon' => 'img/16/reject.png', 'title' => 'Връщане на движението'));
+            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), array('warning' => $returnWarning, 'id' => "return{$rec->id}", 'ef_icon' => 'img/16/red-back.png', 'title' => 'Връщане на движението'));
         }
 
         if(rack_Logs::haveRightFor('list')){
-            $row->_rowTools->addLink('История', array('rack_Logs', 'list', "movementId" => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движението');
+            $row->_rowTools->addLink('Логове', array('rack_Logs', 'list', "movementId" => $rec->id), 'ef_icon=img/16/clock_history.png,title=Логове на потребителските действия с движението');
         }
     }
 }
