@@ -196,7 +196,7 @@ class trans_Lines extends core_Master
         $this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици)', 'caption=Повторение');
         $this->FLD('state', 'enum(draft=Чернова,,pending=Заявка,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
 
-        $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name)', 'caption=Каса по подразбиране');
+        $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name)', 'caption=Каса,unit=(по подразбиране)');
 
         $this->FLD('forwarderId', 'key2(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Превоз->Спедитор');
         $this->FLD('vehicle', 'varchar', 'caption=Превоз->МПС,oldFieldName=vehicleId');

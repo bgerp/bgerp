@@ -407,7 +407,7 @@ class rack_Zones extends core_Master
             $data->listFilter->FLD('additional', 'enum(onlyMine=Моите,pendingAndMine=Свободни+Мои,pending=Свободни,yes=С движения,all=Всички)', 'autoFilter,silent');
         }
         $data->listFilter->FLD('grouping', "varchar", 'caption=Всички,autoFilter,silent');
-        $groupingOptions = array('' => '', 'no' => tr('Без групиране'));
+        $groupingOptions = array('' => '', 'no' => tr('Без групиране'), 'free' => tr('Свободни'), 'notfree' => tr('С документи'));
 
         // Добавяне на групите, както и самостоятелните зони
         $gQuery = rack_ZoneGroups::getQuery();
@@ -438,7 +438,6 @@ class rack_Zones extends core_Master
 
         // Ако се филтрира по артикул
         if ($filter = $data->listFilter->rec) {
-
             if (isset($filter->productId)) {
 
                 // Оставят се само тези зони където се среща артикула
@@ -464,6 +463,12 @@ class rack_Zones extends core_Master
                     case strpos($filter->grouping, 's'):
                         $id = trim($filter->grouping, 's');
                         $data->query->where("#id = {$id}");
+                        break;
+                    case 'notfree':
+                        $data->query->where("#containerId IS NOT NULL");
+                        break;
+                    case 'free':
+                        $data->query->where("#containerId IS NULL");
                         break;
                 }
             }
@@ -965,7 +970,6 @@ class rack_Zones extends core_Master
 
             // Какви са наличните палети за избор
             $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true);
-
             $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
 

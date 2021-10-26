@@ -268,10 +268,6 @@ class trans_LineDetails extends doc_Detail
             $row->amount = $amountTpl;
         }
 
-        if(!Mode::isReadOnly() && !empty($row->notes)){
-            $row->address = " <a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','notes{$rec->id}', 'true')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>" . $row->address;
-        }
-
         if(!empty($row->address)){
             $row->address = "<div style='margin:2px;font-size:0.9em'>{$row->address}</div>";
         }
@@ -289,11 +285,11 @@ class trans_LineDetails extends doc_Detail
         }
 
         if ($Document->haveRightFor('changeline')) {
-            if($Document->haveInterface('store_iface_DocumentIntf')){
-                $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
-            } else {
-                $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
-            }
+            $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
+        }
+
+        if(!Mode::isReadOnly() && !empty($row->notes)){
+            $row->logistic .= "&nbsp; <a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','notes{$rec->id}', 'true')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>";
         }
 
         // Ако има платежни документи към складовия
