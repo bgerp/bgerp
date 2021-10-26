@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Продажби » Сравнение на цените
+ * @title     Продажби » Мониторинг на доставни цени. Сравнение на доставни и продажни цени
  */
 class sales_reports_PriceComparison extends frame2_driver_TableData
 {
@@ -35,19 +35,19 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
      *
      * @var string
      */
-    protected $newFieldsToCheck ;
+    protected $newFieldsToCheck;
 
 
     /**
      * По-кое поле да се групират листовите данни
      */
-    protected $groupByField ;
+    protected $groupByField;
 
 
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields ;
+    protected $changeableFields;
 
 
     /**
@@ -74,8 +74,8 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
      *
      * @param frame2_driver_Proto $Driver
      *                                      $Driver
-     * @param embed_Manager       $Embedder
-     * @param stdClass            $data
+     * @param embed_Manager $Embedder
+     * @param stdClass $data
      */
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
@@ -84,7 +84,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         if ($rec->priceListLow) {
             $form->setReadOnly('policyClassId');
-            }
+        }
         if ($rec->policyClassId) {
             $form->setReadOnly('priceListLow');
         }
@@ -93,12 +93,12 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $priceListsQuery = price_Lists::getQuery();
         $priceListsQuery->where("#public = 'yes' AND #state = 'active'");
         $suggestions = array();
-        while ($priceListsRec = $priceListsQuery->fetch()){
+        while ($priceListsRec = $priceListsQuery->fetch()) {
 
-            if ($priceListsRec->title == 'Каталог'){
+            if ($priceListsRec->title == 'Каталог') {
                 $katalog = $priceListsRec->id;
             }
-                $suggestions[$priceListsRec->id] = $priceListsRec->title;
+            $suggestions[$priceListsRec->id] = $priceListsRec->title;
         }
         $form->setSuggestions('priceListLow', $suggestions);
         $form->setSuggestions('priceListHigh', $suggestions);
@@ -129,47 +129,43 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
         $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
         $pQuery->where("#isPublic = 'yes'");
-        while ($pRec = $pQuery->fetch()){
+        while ($pRec = $pQuery->fetch()) {
             $diffPrice = $lowPrice = $hiPrice = $diffPercent = 0;
 
             //Намиране на ниската цена
             //Ако е избрана някаква себестойност
-            if ($rec->policyClassId){
-            $lowPrice = price_ProductCosts::getPrice($pRec->productId,core_Classes::fetch($rec->policyClassId)->name);
+            if ($rec->policyClassId) {
+                $lowPrice = price_ProductCosts::getPrice($pRec->productId, core_Classes::fetch($rec->policyClassId)->name);
             }
-            if ($rec->priceListLow){
-                   $lowPrice = price_ListRules::getPrice($rec->priceListLow,$pRec->productId, null, dt::today());
+            if ($rec->priceListLow) {
+                $lowPrice = price_ListRules::getPrice($rec->priceListLow, $pRec->productId, null, dt::today());
 
             }
 
             //Намиране на високата цена
-            $hiPrice = price_ListRules::getPrice($rec->priceListHigh,$pRec->productId, null, dt::today());
+            $hiPrice = price_ListRules::getPrice($rec->priceListHigh, $pRec->productId, null, dt::today());
 
             //Изчисляване на разликата в стойност
             $diffPrice = $hiPrice - $lowPrice;
 
             //Изчисляване на разликата в процент
-            if ($lowPrice) {
-                $diffPercent = $hiPrice / $lowPrice * 100;
+            if ($hiPrice) {
+                $diffPercent = $diffPrice / $hiPrice;
             }
-
-
-
 
             $id = $pRec->productId;
 
             //САМО ЗА ТЕСТ
-            if(!$hiPrice || !$lowPrice)continue;
+            //if (!$hiPrice || !$lowPrice) continue;
 
             $recs[$id] = (object)array(
                 'productId' => $pRec->productId,
-                'lowPrice'=> $lowPrice,
+                'lowPrice' => $lowPrice,
                 'hiPrice' => $hiPrice,
                 'diffPrice' => $diffPrice,
                 'diffPercent' => $diffPercent,
-                );
+            );
         }
-
 
         return $recs;
     }
@@ -180,7 +176,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
      *
      * @param stdClass $rec
      *                         - записа
-     * @param bool     $export
+     * @param bool $export
      *                         - таблицата за експорт ли е
      *
      * @return core_FieldSet - полетата
@@ -196,17 +192,14 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $fld->FLD('diffPercent', 'varchar', 'caption=Разлика -> процент');
 
 
-
         return $fld;
     }
-
-
 
 
     /**
      * Вербализиране на редовете, които ще се показват на текущата страница в отчета
      *
-     * @param stdClass $rec  - записа
+     * @param stdClass $rec - записа
      * @param stdClass $dRec - чистия запис
      *
      * @return stdClass $row - вербалния запис
@@ -214,25 +207,28 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Int = cls::get('type_Int');
+        $Double = core_Type::getByName('double(decimals=2,smartRound)');
+        $Date = cls::get('type_Date');
+        $Percent = cls::get('type_Percent');
 
         $row = new stdClass();
         if (isset($dRec->productId)) {
-            $row->productId = $dRec->productId;
+            $row->productId = cat_Products::getHyperlink($dRec->productId);
         }
         if (isset($dRec->lowPrice)) {
-            $row->lowPrice = $dRec->lowPrice;
+            $row->lowPrice = $Double->toVerbal($dRec->lowPrice);
         }
 
         if (isset($dRec->hiPrice)) {
-            $row->hiPrice = $dRec->hiPrice;
+            $row->hiPrice = $Double->toVerbal($dRec->hiPrice);
         }
 
         if (isset($dRec->diffPrice)) {
-            $row->diffPrice = $dRec->diffPrice;
+            $row->diffPrice = $Double->toVerbal($dRec->diffPrice);
         }
 
         if (isset($dRec->diffPercent)) {
-            $row->diffPercent = $dRec->diffPercent;
+            $row->diffPercent = $Percent->toVerbal($dRec->diffPercent);
         }
 
         return $row;
@@ -242,11 +238,11 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     /**
      * След подготовка на реда за експорт
      *
-     * @param frame2_driver_Proto $Driver      - драйвер
-     * @param stdClass            $res         - резултатен запис
-     * @param stdClass            $rec         - запис на справката
-     * @param stdClass            $dRec        - запис на реда
-     * @param core_BaseClass      $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     * @param frame2_driver_Proto $Driver - драйвер
+     * @param stdClass $res - резултатен запис
+     * @param stdClass $rec - запис на справката
+     * @param stdClass $dRec - запис на реда
+     * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
@@ -258,9 +254,9 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
      * След рендиране на единичния изглед
      *
      * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param embed_Manager $Embedder
+     * @param core_ET $tpl
+     * @param stdClass $data
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
