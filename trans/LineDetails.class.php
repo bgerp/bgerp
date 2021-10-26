@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логистична информация,address=@,notes=@,documentHtml=@,classId=Клас';
+    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Лог. информация,address=@,notes=@,documentHtml=@,classId=Клас';
     
     
     /**
@@ -57,7 +57,7 @@ class trans_LineDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'notes,address,documentHtml,zoneId,classId';
+    public $hideListFieldsIfEmpty = 'notes,address,documentHtml,amount,zoneId,classId';
     
     
     /**
