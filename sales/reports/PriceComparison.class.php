@@ -149,8 +149,10 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
             $diffPrice = $hiPrice - $lowPrice;
 
             //Изчисляване на разликата в процент
-            if ($hiPrice) {
+            if ($hiPrice && $lowPrice) {
                 $diffPercent = $diffPrice / $hiPrice;
+            }else{
+                $diffPercent = '';
             }
 
             $id = $pRec->productId;
@@ -186,10 +188,10 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
-        $fld->FLD('lowPrice', 'varchar', 'caption=Цена -> ниска');
-        $fld->FLD('hiPrice', 'varchar', 'caption=Цена -> висока');
-        $fld->FLD('diffPrice', 'varchar', 'caption=Разлика -> стойност');
-        $fld->FLD('diffPercent', 'varchar', 'caption=Разлика -> процент');
+        $fld->FLD('lowPrice', 'double', 'caption=Цена -> ниска');
+        $fld->FLD('hiPrice', 'double', 'caption=Цена -> висока');
+        $fld->FLD('diffPrice', 'double', 'caption=Разлика -> стойност');
+        $fld->FLD('diffPercent', 'double', 'caption=Разлика -> процент');
 
 
         return $fld;
