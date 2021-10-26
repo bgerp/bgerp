@@ -45,9 +45,31 @@
                             [#InvoicesToDocuments#]
                         </table>
                         <!--ET_END Invoices-->
-                    	<!--ET_BEGIN termDate-->
-                     	<div class='richtext-holder'><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
-                     	<!--ET_END termDate-->
+                        <!--ET_BEGIN reason-->
+                        <div class='richtext-holder'><span class='quiet'>|Основание|*:</span>[#reason#]</div>
+                        <!--ET_END reason-->
+
+                        <!--ET_BEGIN termDate-->
+                        <div class='richtext-holder'><span class='quiet'>|Срок|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
+                        <!--ET_END termDate-->
+                        [#OTHER_TEXT#]
+                        <!--ET_BEGIN otherText-->
+                        <div><span class='quiet'>[#otherCaption#]:</span>[#otherText#]</div>
+                        <!--ET_END otherText-->
+
+                        <!--ET_BEGIN lineId-->
+                        <div class="no-print"><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#] </div>
+                        <!--ET_END lineId-->
+                        <!--ET_BEGIN lineForwarderId-->
+                        <div><span class='quiet'>|Спедитор|*:</span> &nbsp;&nbsp;&nbsp;[#lineForwarderId#] </div>
+                        <!--ET_END lineForwarderId-->
+                        <!--ET_BEGIN lineVehicleId-->
+                        <div><span class='quiet'>|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
+                        <!--ET_END lineVehicleId-->
+
+                        <!--ET_BEGIN lineNotes-->
+                        <div><span class='quiet'>|Забележки за транспорта|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
+                        <!--ET_END lineNotes-->
                     </td>
                     <td style='padding-left:10px; padding-top: 10px;'>
                         <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
@@ -66,43 +88,6 @@
                     <td colspan='2'>
                         <table style='width:100%' class="no-border">
                             <tr>
-                                <!--ET_BEGIN reason-->
-                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                	<span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]
-                                </td>
-                                <!--ET_END reason-->
-                                
-                                [#OTHER_TEXT#]
-                                <!--ET_BEGIN otherText-->
-                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                	<span class='quiet'>[#otherCaption#]:</span> &nbsp;&nbsp;&nbsp;[#otherText#]
-                                </td>
-                                <!--ET_END otherText-->
-                                
-                                <!--ET_BEGIN lineId-->
-                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                	<span class='quiet no-print'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]
-                                </td>
-                                <!--ET_END lineId-->
-
-                                <!--ET_BEGIN lineForwarderId-->
-                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                    <span class='quiet'>|Спедитор|*:</span> &nbsp;&nbsp;&nbsp;[#lineForwarderId#]
-                                </td>
-                                <!--ET_END lineForwarderId-->
-
-                                <!--ET_BEGIN lineVehicleId-->
-                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                    <span class='quiet'>|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#]
-                                </td>
-                                <!--ET_END lineVehicleId-->
-
-                                <!--ET_BEGIN lineNotes-->
-                                <td colspan='2' class='notes-block' style='height: auto; padding:10px;'>
-                                	<span class='quiet'>|Забележки за транспорта|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]
-                                </td>
-                                <!--ET_END lineNotes-->
-                                
                                 <!--ET_BEGIN amountDeal-->
                                 <td style='vertical-align:middle !important'>
                                     <div class ='misc' style='float:right'>
