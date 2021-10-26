@@ -142,7 +142,7 @@ class rack_Zones extends core_Master
      */
     public function description()
     {
-        $this->FLD('num', 'int(max=100)', 'caption=Номер,mandatory');
+        $this->FLD('num', 'int(max=999)', 'caption=Номер,mandatory');
         $this->FLD('color', 'color_Type', 'caption=Цвят');
         $this->FLD('description', 'text(rows=2)', 'caption=Описание');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
@@ -340,22 +340,6 @@ class rack_Zones extends core_Master
         }
 
         $form->setDefault('num', $mvc->getNextNumber($rec->storeId));
-    }
-
-
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc $mvc
-     * @param core_Form $form
-     */
-    protected static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            if (empty($form->rec->groupId)) {
-                $form->setWarning('groupId', 'Сигурни ли сте, че не искате да изберете група|*?');
-            }
-        }
     }
 
 
