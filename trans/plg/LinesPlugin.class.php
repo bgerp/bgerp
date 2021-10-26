@@ -36,7 +36,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             $mvc->setField($mvc->lineFieldName, 'input=none');
         }
         
-        $mvc->FLD('lineNotes', 'text(rows=2)', 'input=none,caption=Забележки');
+        $mvc->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'input=none,caption=Забележки');
         
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             setIfNot($mvc->totalWeightFieldName, 'weight');
@@ -100,7 +100,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
         $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт');
-        $form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки,after=volume');
+        $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Забележки,after=volume');
         $linesArr = trans_Lines::getSelectableLines();
         if(isset($exLineId) && !array_key_exists($exLineId, $linesArr)){
             $linesArr[$exLineId] = trans_Lines::getRecTitle($exLineId, true);
