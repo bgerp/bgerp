@@ -494,8 +494,9 @@ class trans_plg_LinesPlugin extends core_Plugin
             if (empty($res['state'])) {
                 $res['state'] = $rec->state;
             }
-            
-            $res['transportUnits'] = trans_Helper::getCombinedTransUnits($rec->transUnits, $rec->transUnitsInput);
+
+            $units =  !empty($rec->transUnitsInput) ? $rec->transUnitsInput : $rec->transUnits;
+            $res['transportUnits'] = $units;
         }
     }
     

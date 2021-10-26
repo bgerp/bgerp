@@ -289,7 +289,11 @@ class trans_LineDetails extends doc_Detail
         }
 
         if ($Document->haveRightFor('changeline')) {
-            $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
+            if($Document->haveInterface('store_iface_DocumentIntf')){
+                $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
+            } else {
+                $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
+            }
         }
 
         // Ако има платежни документи към складовия
