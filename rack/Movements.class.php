@@ -263,21 +263,21 @@ class rack_Movements extends rack_MovementAbstract
         if(isset($rec->id)){
             rack_OldMovements::sync($rec);
             if($rec->_isCreated){
-                rack_Logs::add($rec->positionTo, $rec->id, "Създаване на движение #{$rec->id}");
+                rack_Logs::add($rec->storeId, $rec->productId, 'create', $rec->position, $rec->id,"Създаване на движение #{$rec->id}");
+            } elseif($rec->_isEdited){
+                rack_Logs::add($rec->storeId, $rec->productId, 'edit', $rec->position, $rec->id, "Редактиране на движение #{$rec->id}");
             }
 
-            if($rec->_isEdited && !$rec->_isCreated){
-                rack_Logs::add($rec->position, $rec->id, "Редактиране на движение #{$rec->id}");
-            } elseif($rec->state == 'waiting' && $rec->brState == 'pending'){
-                rack_Logs::add($rec->position, $rec->id, "Запазване на движение #{$rec->id}");
-            } elseif($rec->state == 'active' && ($rec->brState == 'pending' || $rec->brState == 'waiting')){
-                rack_Logs::add($rec->position, $rec->id, "Започване на движение #{$rec->id}");
+            if($rec->state == 'waiting' && $rec->brState == 'pending'){
+                rack_Logs::add($rec->storeId, $rec->productId, 'waiting', $rec->position, $rec->id, "Запазване на движение #{$rec->id}");
+            } elseif($rec->state == 'active'){
+                rack_Logs::add($rec->storeId, $rec->productId, 'start', $rec->position, $rec->id, "Започване на движение #{$rec->id}");
             } elseif($rec->brState == 'active' && ($rec->state == 'pending' || $rec->state == 'waiting')){
-                rack_Logs::add($rec->position, $rec->id, "Връщане на движение #{$rec->id}");
+                rack_Logs::add($rec->storeId, $rec->productId, 'return', $rec->position, $rec->id, "Връщане на движение #{$rec->id}");
             } elseif($rec->state == 'pending' && $rec->brState == 'waiting'){
-                rack_Logs::add($rec->position, $rec->id, "Отказване на движение #{$rec->id}");
+                rack_Logs::add($rec->storeId, $rec->productId, 'reject', $rec->position, $rec->id, "Отказване на движение #{$rec->id}");
             } elseif($rec->state == 'closed'){
-                rack_Logs::add($rec->positionTo, $rec->id, "Приключване на движение #{$rec->id}");
+                rack_Logs::add($rec->storeId, $rec->productId, 'close', $rec->positionTo, $rec->id, "Приключване на движение #{$rec->id}");
             }
         }
     }

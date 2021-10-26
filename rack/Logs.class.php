@@ -2,7 +2,7 @@
 
 
 /**
- * Логове на движения
+ * Логове в палетния склад
  *
  *
  * @category  bgerp
@@ -61,19 +61,26 @@ class rack_Logs extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'message,createdBy=От,createdOn=На';
+    public $listFields = 'createdBy=От,createdOn=На,action,message,productId';
 
 
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'movementId,position,message';
+    public $searchFields = 'movementId,position,productId,message';
 
 
     /**
-     * Дефолтни предложения за търсене
+     * Информация за позволени движения
      */
-    const SEARCH_SUGGESTIONS = array('Създаване', 'Започване', 'Отказване', 'Връщане', 'Приключване', 'Ревизия');
+    protected static $actionClasses = array('create'   => 'state-pending',
+                                            'waiting'  => 'state-waiting',
+                                            'edit'     => 'state-edited',
+                                            'start'    => 'state-active',
+                                            'return'   => 'state-hidden',
+                                            'reject'   => 'state-stopped',
+                                            'close'    => 'state-closed',
+                                            'revision' => 'state-revision');
 
 
     /**
@@ -83,22 +90,31 @@ class rack_Logs extends core_Manager
     {
         $this->FLD('movementId', 'key(mvc=rack_Movements,select=id)', 'caption=Движение');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул');
         $this->FLD('message', 'text', 'caption=Текст');
+        $this->FLD('action', 'enum(,create=Създаване,edit=Редактиране,waiting=Запазване,start=Започване,close=Приключване,return=Връщане,reject=Отказване,revision=Ревизия)', 'caption=Действие,after=to,placeholder=Всички');
+
+        $this->setDbIndex('storeId');
+        $this->setDbIndex('action');
     }
 
 
     /**
      * Добавя Лог на историята на движението
      *
-     * @param $position   - позиция
-     * @param $movementId - ид на движение
-     * @param $message    - текст
+     * @param int $storeId
+     * @param int $productId
+     * @param string $action
+     * @param string $position
+     * @param int|null $movementId
+     * @param text $message
      */
-    public static function add($position, $movementId, $message)
+    public static function add($storeId, $productId, $action, $position, $movementId, $message)
     {
         $Movements = cls::get('rack_Movements');
         $movementRec = rack_Movements::fetchRec($movementId);
-        $rec = (object)array('position' => $position, 'message' => $message);
+        $rec = (object)array('position' => $position, 'message' => $message, 'storeId' => $storeId, 'productId' => $productId, 'action' => $action);
 
         if(is_object($movementRec)){
             $rec->movementId = $movementRec->id;
@@ -115,6 +131,9 @@ class rack_Logs extends core_Manager
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
+        $storeId = store_Stores::getCurrent();
+        $data->query->where("#storeId = {$storeId}");
+        $data->title = 'Логове в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->orderBy('createdOn=DESC');
 
         if($movementId = Request::get('movementId', 'int')){
@@ -123,16 +142,13 @@ class rack_Logs extends core_Manager
 
         $data->listFilter->FLD('from', 'date', 'caption=От');
         $data->listFilter->FLD('to', 'date', 'caption=До');
-        $data->listFilter->showFields = 'selectPeriod, from, to, createdBy, search';
+        $data->listFilter->showFields = 'selectPeriod, from, to, createdBy, search, productId, action';
         $data->listFilter->setField('createdBy', 'caption=Потребител,placeholder=Всички');
         $data->listFilter->setFieldTypeParams('createdBy', array('allowEmpty' => 'allowEmpty'));
         $users = core_Users::getUsersByRoles('ceo,rack,store');
         $users = array(core_Users::SYSTEM_USER => core_Users::getTitleById(core_Users::SYSTEM_USER, 'nick')) + $users;
         $data->listFilter->setOptions('createdBy', $users);
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
-
-        $searchSuggestions = array_combine(static::SEARCH_SUGGESTIONS, static::SEARCH_SUGGESTIONS);
-        $data->listFilter->setSuggestions('search', array('' => '') + $searchSuggestions);
 
         $data->listFilter->input();
         if($filterRec = $data->listFilter->rec){
@@ -144,11 +160,27 @@ class rack_Logs extends core_Manager
                 $data->query->where("#createdOn <= '{$filterRec->to} 23:59:59'");
             }
 
-            if(!empty($filterRec->createdBy)){
-                $data->query->where("#createdBy = '{$filterRec->createdBy}'");
+            foreach (array('createdBy', 'action', 'productId') as $fld){
+                if(!empty($filterRec->{$fld})){
+                    $data->query->where("#{$fld} = '{$filterRec->{$fld}}'");
+                }
             }
         }
 
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        $row->ROW_ATTR['class'] = static::$actionClasses[$rec->action];
+        $row->productId = cat_Products::getHyperlink($rec->productId, true);
     }
 }
