@@ -619,9 +619,10 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Коя е дефолтната каса на документа
      * 
-     * 1. Избраната в сесията, ако има
+     * 1. Ако документа е към транспортна линия с дефолтна каса и може да контира в нея - това е тя
+     * 2. Избраната в сесията, ако има (и може да контира с нея)
      * 2. Първата, която може да контира
-     * 3. Първата, която може да избира
+     * 3. Първата, която може да избира или текущата каса от сесията
      * 4. Не намира каса
      * 
      * @param stdClass $rec
@@ -630,13 +631,47 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     public function getDefaultCase($rec, $userId = null)
     {
-        $userId = isset($userId) ? $userId : core_Users::getCurrent();
-        $caseId = cash_Cases::getCurrent('id', false);
-        
+        $caseId = null;
+
+        // Ако има транс. линия с дефолтна каса
+        $priorityCases = array();
+        if(!empty($rec->{$this->lineFieldName})){
+            if($lineDefaultCaseId = trans_Lines::fetchField($rec->{$this->lineFieldName}, 'defaultCaseId')){
+                $priorityCases[] = $lineDefaultCaseId;
+            }
+        }
+
+        // Текущата каса от сесията
+        $sessionCaseId = cash_Cases::getCurrent('id', false);
+        if(isset($sessionCaseId)){
+            $priorityCases[$sessionCaseId] = $sessionCaseId;
+        }
+
+        // Проверяват се първо касата от ТЛ и тази от сесията и се връща първата с която може да контира потребителя
+        foreach ($priorityCases as $defaultCaseId){
+            $clone = clone $rec;
+            $clone->peroCase = $defaultCaseId;
+            if(deals_Helper::canSelectObjectInDocument('conto', $clone, 'cash_Cases', 'peroCase')){
+                $caseId = $defaultCaseId;
+                break;
+            }
+        }
+
+        // Ако не може да контира с касата от тл или сесията
         if(!isset($caseId)){
+            $userId = isset($userId) ? $userId : core_Users::getCurrent();
+
+            // Ако няма търси се първата каса в която може да контира, след това първата, която може да избира
             foreach (array(true, false) as $exp){
                 $query = cash_Cases::getQuery();
                 $query->show('id');
+
+                // Ако не е намерена контираща каса, но има избрана каса в сесията - това е тя
+                if($exp === false && isset($sessionCaseId)){
+                    $caseId = $sessionCaseId;
+                    break;
+                }
+
                 bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
                 if($firstRec = $query->fetch()){
                     $caseId = $firstRec->id;
@@ -644,7 +679,7 @@ abstract class cash_Document extends deals_PaymentDocument
                 }
             }
         }
-        
+
         return $caseId;
     }
     
@@ -655,7 +690,7 @@ abstract class cash_Document extends deals_PaymentDocument
     public static function getContoWarning_($id, $isContable)
     {
         $rec = static::fetchRec($id);
-        $currentCaseId = cash_Cases::getCurrent('id', false);
+        $currentCaseId = cls::get(get_called_class())->getDefaultCase($rec);
         
         if(!isset($rec->peroCase) && isset($currentCaseId)){
             $currentCaseName = cash_Cases::getTitleById($currentCaseId);
