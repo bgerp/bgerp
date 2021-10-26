@@ -622,7 +622,7 @@ abstract class cash_Document extends deals_PaymentDocument
      * 1. Ако документа е към транспортна линия с дефолтна каса и може да контира в нея - това е тя
      * 2. Избраната в сесията, ако има (и може да контира с нея)
      * 2. Първата, която може да контира
-     * 3. Първата, която може да избира
+     * 3. Първата, която може да избира или текущата каса от сесията
      * 4. Не намира каса
      * 
      * @param stdClass $rec
@@ -665,6 +665,13 @@ abstract class cash_Document extends deals_PaymentDocument
             foreach (array(true, false) as $exp){
                 $query = cash_Cases::getQuery();
                 $query->show('id');
+
+                // Ако не е намерена контираща каса, но има избрана каса в сесията - това е тя
+                if($exp === false && isset($sessionCaseId)){
+                    $caseId = $sessionCaseId;
+                    break;
+                }
+
                 bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
                 if($firstRec = $query->fetch()){
                     $caseId = $firstRec->id;
@@ -672,7 +679,7 @@ abstract class cash_Document extends deals_PaymentDocument
                 }
             }
         }
-        
+
         return $caseId;
     }
     
