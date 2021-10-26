@@ -242,10 +242,10 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
-        $fld->FLD('lowPrice', 'double', 'caption=Цена -> ниска');
-        $fld->FLD('hiPrice', 'double', 'caption=Цена -> висока');
-        $fld->FLD('diffPrice', 'double', 'caption=Разлика -> стойност');
-        $fld->FLD('diffPercent', 'double', 'caption=Разлика -> процент');
+        $fld->FLD('lowPrice', 'double', 'caption=Цена -> Ниска');
+        $fld->FLD('hiPrice', 'double', 'caption=Цена -> Висока');
+        $fld->FLD('diffPrice', 'double', 'caption=Разлика -> Стойност');
+        $fld->FLD('diffPercent', 'double', 'caption=Разлика -> Процент');
 
 
         return $fld;
