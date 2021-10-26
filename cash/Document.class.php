@@ -258,8 +258,8 @@ abstract class cash_Document extends deals_PaymentDocument
         if(!isset($expectedPayment)){
             $expectedPayment = $dealInfo->get('expectedPayment');
         }
-        
-        if ($expectedPayment) {
+
+        if ($expectedPayment > 0) {
             $amount = round($expectedPayment / $dealInfo->get('rate'), 2);
             
             if ($form->rec->currencyId == $form->rec->dealCurrencyId) {
