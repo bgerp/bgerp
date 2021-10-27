@@ -102,8 +102,8 @@ class rack_Pallets extends core_Manager
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
-        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell,silent');
+        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,silent');
         $this->FLD('batch', 'text', 'smartCenter,caption=Партида');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
@@ -192,6 +192,7 @@ class rack_Pallets extends core_Manager
         $form->setReadOnly('quantity');
         $form->setReadOnly('position');
         $form->setReadOnly('batch');
+
         $packName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
         $form->setField('quantity', "unit={$packName}");
 
