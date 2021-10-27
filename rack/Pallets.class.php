@@ -463,7 +463,7 @@ class rack_Pallets extends core_Manager
             rack_Logs::add($rec->storeId, $rec->productId, 'revision', $rec->position, null, $rec->_logMsg);
 
             // Имали движения към ревизирания палет засягащи зони?
-            $hasMovementWithZones = rack_Movements::count("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}') AND (#zoneList IS NOT NULL OR #zoneList != ''))");
+            $hasMovementWithZones = rack_Movements::count("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}') AND (#zoneList IS NOT NULL OR #zoneList != '')");
 
             // Изтриване на чакащите движения за този палет
             rack_Movements::delete("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}')");
