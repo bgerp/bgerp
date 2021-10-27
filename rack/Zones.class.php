@@ -591,11 +591,15 @@ class rack_Zones extends core_Master
         if ($form->isSubmitted()) {
 
             $fRec = $form->rec;
-            if(isset($zoneId) && $fRec->zoneId != $zoneId){
-                if(!$this->haveRightFor('removedocument', $zoneId)){
-                    $form->setError('zoneId', "Нямате права да премахнете документа от Зона:|*" . rack_Zones::getRecTitle($zoneId, false));
-                } elseif(rack_Movements::fetch("LOCATE('|{$zoneId}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
-                    $form->setError('zoneId', "Не може да премахнете документа от зона|* <b>" . rack_Zones::getDisplayZone($zoneId) . "</b>, |защото има вече запазени или започнати движения. Документът може да бъде премахнат след отказването им|*!");
+            if(isset($zoneId)){
+                if($fRec->zoneId != $zoneId){
+                    if(!$this->haveRightFor('removedocument', $zoneId)){
+                        $form->setError('zoneId', "Нямате права да премахнете документа от Зона:|*" . rack_Zones::getRecTitle($zoneId, false));
+                    } elseif(rack_Movements::fetch("LOCATE('|{$zoneId}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
+                        $form->setError('zoneId', "Не може да премахнете документа от зона|* <b>" . rack_Zones::getDisplayZone($zoneId) . "</b>, |защото има вече запазени или започнати движения. Документът може да бъде премахнат след отказването им|*!");
+                    }
+                } else {
+                    $form->setError('zoneId', "Зоната е същата");
                 }
             }
 
@@ -914,6 +918,21 @@ class rack_Zones extends core_Master
         expect($storeId = Request::get('storeId', 'int'));
         $this->requireRightFor('orderpickup', (object)array('storeId' => $storeId));
 
+        // Регенериране на всички движения
+        static::pickupAll($storeId);
+
+        followRetUrl(null, 'Движенията са генерирани успешно|*!');
+    }
+
+
+    /**
+     * Генериране на всички движения за склада
+     *
+     * @param int $storeId - ид на склад
+     * @param void
+     */
+    public static function pickupAll($storeId)
+    {
         // Групиране по групи на зоните
         $gQuery = rack_ZoneGroups::getQuery();
         $gQuery->orderBy('order', 'ASC');
@@ -931,8 +950,6 @@ class rack_Zones extends core_Master
         foreach ($nonGroupableZones as $zoneId) {
             self::pickupOrder($storeId, $zoneId);
         }
-
-        followRetUrl(null, 'Движенията са генерирани успешно|*!');
     }
 
 
