@@ -80,7 +80,7 @@ class rack_Logs extends core_Manager
                                             'return'   => 'state-hidden',
                                             'reject'   => 'state-stopped',
                                             'close'    => 'state-closed',
-                                            'revision' => 'state-revision');
+                                            'revision' => 'state-opened');
 
 
     /**
@@ -112,14 +112,16 @@ class rack_Logs extends core_Manager
      */
     public static function add($storeId, $productId, $action, $position, $movementId, $message)
     {
-        $Movements = cls::get('rack_Movements');
-        $movementRec = rack_Movements::fetchRec($movementId);
         $rec = (object)array('position' => $position, 'message' => $message, 'storeId' => $storeId, 'productId' => $productId, 'action' => $action);
 
-        if(is_object($movementRec)){
-            $rec->movementId = $movementRec->id;
-            $description = strip_tags($Movements->getMovementDescription($movementRec, false, false));
-            $rec->message .= " / {$description}";
+        if(isset($movementId)){
+            $movementRec = rack_Movements::fetchRec($movementId);
+            if(is_object($movementRec)){
+                $rec->movementId = $movementRec->id;
+                $Movements = cls::get('rack_Movements');
+                $description = strip_tags($Movements->getMovementDescription($movementRec, false, false));
+                $rec->message .= " / {$description}";
+            }
         }
 
         static::save($rec);
