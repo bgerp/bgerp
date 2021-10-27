@@ -609,11 +609,12 @@ class rack_Zones extends core_Master
 
                 // Ако е избрана нова зона се регенерират движенията за нея и групата ѝ
                 if (isset($fRec->zoneId)) {
-                    $this->updateZone($fRec->zoneId, $containerId);
                     if(empty($zoneId)){
+                        $this->updateZone($fRec->zoneId, $containerId);
                         $document->getInstance()->logWrite('Задаване на нова зона', $document->that);
                         $msg = 'Зоната е успешно зададена|*!';
                     } elseif($zoneId != $fRec->zoneId) {
+                        $this->updateZone($fRec->zoneId, $containerId);
                         $document->getInstance()->logWrite('Промяна на зона', $document->that);
                         $msg = 'Зоната е успешно променена|*!';
                     }
@@ -1080,7 +1081,7 @@ class rack_Zones extends core_Master
             array_walk($zoneMovements, function($a) use ($dRec, &$notActiveQuantity){
                 if($dRec->productId == $a->productId && $dRec->packagingId == $a->packagingId && $dRec->batch == $a->batch){
                     $zones = rack_Movements::getZoneArr($a);
-                    $quantityInZoneArr = array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;});
+                    $quantityInZoneArr = array_values(array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;}));
                     if(is_object($quantityInZoneArr[0])){
                         $notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
                     }
