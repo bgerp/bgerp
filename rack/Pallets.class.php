@@ -101,12 +101,12 @@ class rack_Pallets extends core_Manager
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
+        $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
-        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
+        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter');
         $this->FLD('batch', 'text', 'smartCenter,caption=Партида');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
-        $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter,input=none,after=productId');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none,notNull,value=active');
         $this->FLD('closedOn', 'datetime(format=smartTime)', 'caption=Затворено на,input=none');
 
@@ -189,9 +189,11 @@ class rack_Pallets extends core_Manager
         $rec = &$form->rec;
 
         $form->setReadOnly('productId');
-        $form->setField('position', 'input');
+        $form->setReadOnly('quantity');
         $form->setReadOnly('position');
         $form->setReadOnly('batch');
+        $packName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
+        $form->setField('quantity', "unit={$packName}");
 
         // Ако е избран нов артикул да се появят полетата за опаковка и партида (ако има)
         if(isset($rec->newProductId)){
@@ -260,13 +262,16 @@ class rack_Pallets extends core_Manager
                     }
 
                     if(!$form->gotErrors()){
-
-                        // Подмяна на ревизираните данни със новите
-                        $rec->_logMsg = $mvc->getRevisionLogMsg($rec->position, $rec->productId, $rec->batch, $rec->quantity, $rec->newProductId, $rec->newBatch, $rec->newQuantity);
-                        $rec->productId = $rec->newProductId;
-                        $rec->quantity = $rec->newQuantity;
-                        $rec->batch = $rec->newBatch;
-                        $rec->_isRevisioned = true;
+                        if($rec->productId == $rec->newProductId && $rec->quantity == $rec->newQuantity && $rec->batch == $rec->newBatch){
+                            $form->setError('newProductId,newBatch,newPackQuantity,newPackagingId', 'За ревизия трябва да има промяна');
+                        } else {
+                            // Подмяна на ревизираните данни със новите
+                            $rec->_logMsg = $mvc->getRevisionLogMsg($rec->position, $rec->productId, $rec->batch, $rec->quantity, $rec->newProductId, $rec->newBatch, $rec->newQuantity);
+                            $rec->productId = $rec->newProductId;
+                            $rec->quantity = $rec->newQuantity;
+                            $rec->batch = $rec->newBatch;
+                            $rec->_isRevisioned = true;
+                        }
                     }
                 }
             }
