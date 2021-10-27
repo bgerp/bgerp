@@ -293,7 +293,7 @@ class trans_LineDetails extends doc_Detail
         }
 
         // Ако има платежни документи към складовия
-        if(is_array($rec->paymentsArr) ){
+        if(is_array($rec->paymentsArr)){
             $rec->_allPaymentActive = (bool)countR($rec->paymentsArr);
             $amountTpl = new core_ET("");
             foreach ($rec->paymentsArr as $p){
@@ -316,7 +316,9 @@ class trans_LineDetails extends doc_Detail
                 $amountTpl->append('</div>');
             }
 
-            $row->amount = $amountTpl;
+            if(countR($rec->paymentsArr)){
+                $row->amount = $amountTpl;
+            }
         }
 
         // В какъв цвят да се оцвети реда на линията
