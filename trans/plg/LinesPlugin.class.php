@@ -174,7 +174,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 }
                 
                 // Редирект след успешния запис
-                redirect($mvc->getSingleUrlArray($id), false, 'Промените са записани успешно|*!');
+                followRetUrl(null, 'Промените са записани успешно|*!');
             }
         }
         
