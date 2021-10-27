@@ -306,10 +306,6 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if(!empty($rec->transUnitsInput)){
                     $units = $rec->transUnitsInput;
                     $hint = '|Лог. ед. са ръчно въведени за целия документ|*';
-                    if(!empty($rec->transUnits)){
-                        $logisticInfo = trans_Helper::displayTransUnits($rec->transUnits);
-                        $hint .= ". |Изчислени по документа|*: {$logisticInfo}";
-                    }
                 } else {
                     $units = $rec->transUnits;
                     $hint = tr('Лог. ед. са изчислени сумарно за документа');
