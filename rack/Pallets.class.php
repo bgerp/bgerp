@@ -456,10 +456,22 @@ class rack_Pallets extends core_Manager
         $cacheType = 'UsedRacksPositions' . $rec->storeId;
         core_Cache::removeByType($cacheType);
 
-        // Лог на ревизията и изтриване на чакащите движения
+        // Ако е ревизирано движението
         if($rec->_isRevisioned){
+
+            // Лог на ревизията и изтриване на чакащите движения
             rack_Logs::add($rec->storeId, $rec->productId, 'revision', $rec->position, null, $rec->_logMsg);
+
+            // Имали движения към ревизирания палет засягащи зони?
+            $hasMovementWithZones = rack_Movements::count("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}') AND (#zoneList IS NOT NULL OR #zoneList != ''))");
+
+            // Изтриване на чакащите движения за този палет
             rack_Movements::delete("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}')");
+
+            // Ако е изтрито поне едно движение към зона, да се регенерират всички движения в склада
+            if($hasMovementWithZones){
+                rack_Zones::pickupAll($rec->storeId);
+            }
         }
     }
 
