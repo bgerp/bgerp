@@ -99,7 +99,7 @@ class rack_Pallets extends core_Manager
      */
     public function description()
     {
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden,mandatory,silent');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell,silent');
@@ -113,7 +113,7 @@ class rack_Pallets extends core_Manager
         $this->FNC('newProductId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Ревизия->Артикул,class=w100,removeAndRefreshForm=newPackagingId|newPackQuantity|newBatch,input,autohide,silent');
         $this->FNC('newPackagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Ревизия->Опаковка,input=hidden');
         $this->FNC('newPackQuantity', 'double(smartRound,decimals=3,min=0)', 'caption=Ревизия->Количество,input=hidden');
-        $this->FNC('newBatch', 'text', 'caption=Ревизия->Партида,input=hidden');
+        $this->FNC('newBatch', 'text', 'caption=Ревизия->Партида,input=hidden,silent');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('productId,storeId');
@@ -210,7 +210,11 @@ class rack_Pallets extends core_Manager
             if ($BatchClass) {
                 $form->setField('newBatch', 'input,placeholder=Без партида');
                 $batches = batch_Items::getBatches($rec->newProductId, $rec->storeId, true);
-                $form->setOptions('newBatch', array('' => '') + $batches);
+                if(countR($batches)){
+                    $form->setOptions('newBatch', array('' => '') + $batches);
+                } else {
+                    $form->setReadOnly('newBatch');
+                }
 
                 $fieldCaption = $BatchClass->getFieldCaption();
                 if (!empty($fieldCaption)) {
@@ -733,8 +737,10 @@ class rack_Pallets extends core_Manager
                 
                 $row->_rowTools->addLink('Сваляне', $addUrl + array('movementType' => 'rack2floor'), 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода');
                 $row->label .= '&nbsp;' . ht::createLink('', $addUrl + array('movementType' => 'rack2floor'), null, 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода') ;
-                
-                $row->_rowTools->addLink('Хронология', array('rack_Movements', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
+
+                if(rack_OldMovements::haveRightFor('list')){
+                    $row->_rowTools->addLink('Хронология', array('rack_OldMovements', 'list', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
+                }
             }
             
             $row->productId = cat_Products::getShortHyperlink($rec->productId, true);
