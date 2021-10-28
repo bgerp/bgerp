@@ -290,7 +290,13 @@ class core_Form extends core_FieldSet
                 $this->rec->{$name} = $value;
             }
         }
-        
+
+        if ($this->gotErrors()) {
+            foreach ((array) $this->fields as &$fObj) {
+                unset($fObj->type->params['forceOpen']);
+            }
+        }
+
         return $this->rec;
     }
     
