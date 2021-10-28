@@ -626,7 +626,12 @@ class rack_Zones extends core_Master
                         $msg = 'Зоната е успешно променена|*!';
                     }
 
-                    redirect(self::getUrlArr($fRec->zoneId), false, $msg);
+                    $zoneUrl = self::getUrlArr($fRec->zoneId);
+                    if(isset($fRec->defaultUserId)){
+                        $zoneUrl['additional'] = 'yes';
+                    }
+
+                    redirect($zoneUrl, false, $msg);
                 } elseif(isset($zoneId)) {
                     $document->getInstance()->logWrite('Премахване от зона', $document->that);
                     $msg = 'Документът е премахнат от зоната|*!';
