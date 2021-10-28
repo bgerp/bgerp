@@ -221,7 +221,7 @@ class trans_Lines extends core_Master
         
         $title = (countR($titleArr) == 2) ? $titleArr[1] : $rec->title;
         $title = str::limitLen($title, 32);
-        $recTitle = $title . "/{$start}";
+        $recTitle = "№{$rec->id}/" . $title . "/{$start}";
 
         return $recTitle;
     }
