@@ -129,6 +129,12 @@ class acs_Tests extends core_Manager
         $zones = '';
         $cArr = array();
         while ($rec = $query->fetch()) {
+            $rec->cardId = trim($rec->cardId);
+            if (!$rec->cardId) {
+
+                continue;
+            }
+
             $cArr[$rec->cardId] = $rec->cardId;
             $zones = type_Keylist::merge($zones, $rec->zones);
         }
@@ -153,8 +159,37 @@ class acs_Tests extends core_Manager
         echo $res;
 
         echo "<pre>";
-        var_dump(acs_Permissions::getRelationsMap('card'));
-        var_dump(acs_Permissions::getRelationsMap('zone'));
+
+        $cardsResArr = acs_Permissions::getRelationsMap('card');
+        $zonesResArr = acs_Permissions::getRelationsMap('zone');
+
+        foreach ($cardsResArr as $cardId => $cArr) {
+            foreach ($cArr as $zId => $tArr) {
+                if ($tArr['activeFrom']) {
+                    $cardsResArr[$cardId][$zId]['activeFrom'] = dt::mysql2verbal(dt::timestamp2Mysql($tArr['activeFrom']), 'smartTime');
+                }
+
+                if ($tArr['activeUntil']) {
+                    $cardsResArr[$cardId][$zId]['activeUntil'] = dt::mysql2verbal(dt::timestamp2Mysql($tArr['activeUntil']), 'smartTime');
+                }
+            }
+        }
+
+        foreach ($zonesResArr as $zId => $cArr) {
+            foreach ($cArr as $cardId => $tArr) {
+                if ($tArr['activeFrom']) {
+                    $zonesResArr[$zId][$cardId]['activeFrom'] = dt::mysql2verbal(dt::timestamp2Mysql($tArr['activeFrom']), 'smartTime');
+                }
+
+                if ($tArr['activeUntil']) {
+                    $zonesResArr[$zId][$cardId]['activeUntil'] = dt::mysql2verbal(dt::timestamp2Mysql($tArr['activeUntil']), 'smartTime');
+                }
+            }
+        }
+
+        var_dump($cardsResArr);
+        echo "<hr>";
+        var_dump($zonesResArr);
 
         shutdown();
     }
