@@ -291,7 +291,7 @@ class core_Form extends core_FieldSet
             }
         }
 
-        if ($this->gotErrors() || $this->isSubmitted()) {
+        if ($this->gotErrors() || $this->isSubmitted() || Request::get('ajax_mode')) {
             foreach ((array) $this->fields as &$fObj) {
                 unset($fObj->type->params['forceOpen']);
             }
