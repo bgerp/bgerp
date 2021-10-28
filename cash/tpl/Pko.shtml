@@ -68,11 +68,6 @@
                          <!--ET_BEGIN lineVehicleId-->
                          <div><span class='quiet'>|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
                          <!--ET_END lineVehicleId-->
-
-                        <!--ET_BEGIN lineNotes-->
-                            <div><span class='quiet'>|Забележки за транспорта|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
-                        <!--ET_END lineNotes-->
-                        
                         <!--ET_BEGIN amountDeal-->
                         <div class ='misc' style='float:right'>
                             <div style='margin-top:7px;'>

@@ -105,12 +105,6 @@
                                <td>[#lineVehicleId#]</td>
                            </tr>
                            <!--ET_END lineVehicleId-->
-                           <!--ET_BEGIN lineNotes-->
-                           <tr>
-                               <td class='quiet nowrap aright'>|Забележки|*: </td>
-                               <td>[#lineNotes#]</td>
-                           </tr>
-                           <!--ET_END lineNotes-->
                             <!--ET_END lineId-->
                            [#InvoicesToDocuments#]
                            <!--ET_BEGIN note-->

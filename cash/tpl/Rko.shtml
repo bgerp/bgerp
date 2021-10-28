@@ -66,10 +66,6 @@
                         <!--ET_BEGIN lineVehicleId-->
                         <div><span class='quiet'>|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
                         <!--ET_END lineVehicleId-->
-
-                        <!--ET_BEGIN lineNotes-->
-                        <div><span class='quiet'>|Забележки за транспорта|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
-                        <!--ET_END lineNotes-->
                     </td>
                     <td style='padding-left:10px; padding-top: 10px;'>
                         <span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span>
