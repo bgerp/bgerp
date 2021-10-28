@@ -244,7 +244,7 @@ class trans_Lines extends core_Master
         }
 
         $data->listFilter->setDefault('lineState', 'pendingAndActive');
-        $data->listFilter->input();
+        $data->listFilter->input($data->listFilter->showFields);
 
         if($filterRec = $data->listFilter->rec){
             if(isset($filterRec->lineState) && $filterRec->lineState != 'all'){
