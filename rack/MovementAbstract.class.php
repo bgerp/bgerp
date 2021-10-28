@@ -49,7 +49,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
         $mvc->FLD('quantityInPack', 'double', 'input=hidden');
-        $mvc->FLD('workerId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal,allowEmpty)', 'caption=Движение->Товарач,tdClass=nowrap');
+        $mvc->FLD('workerId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal,allowEmpty)', 'caption=Движение->Изпълнител,tdClass=nowrap');
 
         $mvc->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $mvc->FLD('state', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent');
@@ -124,7 +124,12 @@ abstract class rack_MovementAbstract extends core_Manager
         if(isset($rec->canceledBy) && !empty($rec->canceledOn)){
             $dateVerbal = core_Type::getByName('datetime(smartTime)')->toVerbal($rec->canceledOn);
             $userIdVerbal = crm_Profiles::createLink($rec->canceledBy);
-            $row->productId = ht::createHint($row->productId, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", 'img/16/cart_go_back.png');
+
+            if(isset($fields['-inline'])){
+                $row->movement = ht::createHint($row->movement, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", 'img/16/cart_go_back.png');
+            } else {
+                $row->productId = ht::createHint($row->productId, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", 'img/16/cart_go_back.png');
+            }
         }
     }
 
