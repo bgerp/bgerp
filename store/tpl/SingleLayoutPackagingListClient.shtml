@@ -116,12 +116,6 @@
                         </tr>
                         <!--ET_END lineId-->
                        [#InvoicesToDocuments#]
-                       <!--ET_BEGIN lineNotes-->
-                       <tr>
-                           <td class='quiet nowrap aright'>Remarks: </td>
-                           <td>[#lineNotes#]</td>
-                       </tr>
-                       <!--ET_END lineNotes-->
                        <!--ET_BEGIN note-->
                        <tr>
                            <td colspan="2" >

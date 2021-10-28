@@ -109,21 +109,39 @@ class cms_VerbalIdPlg extends core_Plugin
             $cond .= " AND #id != {$rec->id}";
         }
         
-        $baseVid = $recVid;
-        
         $i = 0;
-        
+
+        // Дали вербалното ид е над допустимото
+        if(mb_strlen($recVid) > EF_VID_LEN){
+
+            // Ако е намаля се до допустимата дължина
+            $recVid = mb_substr($recVid, 0, EF_VID_LEN);
+        }
+
+        // Докато има същото вербално ид - генерираме ново, докато стане уникално
         while ($mvc->fetchField(array($cond, $recVid), 'id') || is_numeric($recVid) || empty($recVid)) {
+
             $i++;
-            $recVid = $baseVid . '-' . $i;
+            $suffix = '-' . $i;
+
+            // Проверява се колко ще стане дължината на новия уникален стринг
+            $newLen = mb_strlen($recVid) + mb_strlen($suffix);
+            if($newLen > EF_VID_LEN){
+
+                // Ако е над допустимото, съкращаваме го до допустимата дължина като запазваме наставката
+                $recVid = mb_substr($recVid, 0, mb_strlen($recVid) - mb_strlen($suffix));
+            }
+
+            $recVid = $recVid . $suffix;
             if (is_numeric($recVid)) {
                 $recVid .= '_';
             }
+
             if ($i > 3000) {
                 expect(false, $recVid, $rec, $i);
             }
         }
-        
+
         expect($rec->{$fieldName});
         
         cms_VerbalId::saveVid($recVid, $mvc, $rec->id);

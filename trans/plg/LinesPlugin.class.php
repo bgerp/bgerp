@@ -36,7 +36,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             $mvc->setField($mvc->lineFieldName, 'input=none');
         }
         
-        $mvc->FLD('lineNotes', 'text(rows=2)', 'input=none,caption=Забележки');
+        $mvc->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'input=none,caption=Забележки');
         
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             setIfNot($mvc->totalWeightFieldName, 'weight');
@@ -72,10 +72,8 @@ class trans_plg_LinesPlugin extends core_Plugin
         $rec = $data->rec;
         
         if ($rec->state != 'rejected') {
-            $url = array($mvc, 'changeLine', $rec->id, 'ret_url' => true);
-           
-            if ($mvc->haveRightFor('changeLine', $rec)) {
-                $data->toolbar->addBtn('Транспорт', $url, 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
+            if ($mvc->haveRightFor('changeline', $rec)) {
+                $data->toolbar->addBtn('Транспорт', array($mvc, 'changeline', $rec->id, 'ret_url' => true), 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
             }
         }
     }
@@ -102,7 +100,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
         $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт');
-        $form->FLD('lineNotes', 'text(rows=2)', 'caption=Забележки,after=volume');
+        $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Забележки,after=volume');
         $linesArr = trans_Lines::getSelectableLines();
         if(isset($exLineId) && !array_key_exists($exLineId, $linesArr)){
             $linesArr[$exLineId] = trans_Lines::getRecTitle($exLineId, true);
@@ -176,7 +174,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 }
                 
                 // Редирект след успешния запис
-                redirect($mvc->getSingleUrlArray($id), false, 'Промените са записани успешно|*!');
+                followRetUrl(null, 'Промените са записани успешно|*!');
             }
         }
         
@@ -305,7 +303,15 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
             
             if (isset($fields['-single'])) {
-                $row->logisticInfo = trans_Helper::displayTransUnits($rec->transUnits, $rec->transUnitsInput);
+                if(!empty($rec->transUnitsInput)){
+                    $units = $rec->transUnitsInput;
+                    $hint = '|Лог. ед. са ръчно въведени за целия документ|*';
+                } else {
+                    $units = $rec->transUnits;
+                    $hint = tr('Лог. ед. са изчислени сумарно за документа');
+                }
+                $row->logisticInfo = trans_Helper::displayTransUnits($units);
+                $row->logisticInfo = ht::createHint($row->logisticInfo, $hint);
             }
         }
         
@@ -484,8 +490,9 @@ class trans_plg_LinesPlugin extends core_Plugin
             if (empty($res['state'])) {
                 $res['state'] = $rec->state;
             }
-            
-            $res['transportUnits'] = trans_Helper::getCombinedTransUnits($rec->transUnits, $rec->transUnitsInput);
+
+            $units =  !empty($rec->transUnitsInput) ? $rec->transUnitsInput : $rec->transUnits;
+            $res['transportUnits'] = $units;
         }
     }
     

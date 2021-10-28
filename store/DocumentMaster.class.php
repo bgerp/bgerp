@@ -755,7 +755,7 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$ownPart}Address"] = !empty($storeLocation->address) ? $storeLocation->address : null;
             $res["{$ownPart}Person"] = !empty($storeLocation->mol) ? $storeLocation->mol : null;
             $res["{$ownPart}LocationId"] = $storeLocation->id;
-            $res["{$ownPart}AddressInfo"] = $storeLocation->comment;
+            $res["{$ownPart}AddressInfo"] = $storeLocation->specifics;
         } else {
             $res["{$ownPart}PCode"] = !empty($ownCompany->pCode) ? $ownCompany->pCode : null;
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
@@ -788,7 +788,7 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$contrPart}Person"] = !empty($contragentLocation->mol) ? $contragentLocation->mol : null;
             $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;
             $res["{$contrPart}LocationId"] = $contragentLocation->id;
-            $res["{$contrPart}AddressInfo"] = $contragentLocation->comment;
+            $res["{$contrPart}AddressInfo"] = $contragentLocation->specifics;
         } elseif($rec->isReverse == 'no') {
             if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
                 if($firstDocument->haveInterface('trans_LogisticDataIntf')){

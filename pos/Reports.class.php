@@ -37,7 +37,7 @@ class pos_Reports extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'pos_Wrapper, plg_Printing, sales_plg_CalcPriceDelta, acc_plg_Contable, doc_DocumentPlg, bgerp_plg_Blank, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
+    public $loadList = 'pos_Wrapper, plg_Printing, sales_plg_CalcPriceDelta, acc_plg_Contable, cond_plg_DefaultValues, doc_DocumentPlg, bgerp_plg_Blank, doc_plg_Close, acc_plg_Registry, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
     
     
     /**
@@ -95,9 +95,18 @@ class pos_Reports extends core_Master
     
     
     /**
-     * Полета, които ще се показват в листов изгле,д
+     * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'id, valior, title=Документ, pointId, total, paid, state, createdOn, createdBy';
+    
+    
+    /**
+     * Стратегии за дефолт стойностти
+     */
+    public static $defaultStrategies = array(
+        'dealerId' => 'lastDocUser|lastDoc',
+        'chargeVat' => 'lastDocUser|lastDoc',
+    );
     
     
     /**

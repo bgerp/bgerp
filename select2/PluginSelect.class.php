@@ -150,7 +150,7 @@ class select2_PluginSelect extends core_Plugin
         }
         
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, $ajaxUrl, false, $invoker->params['forceOpen']);
     }
     
     
