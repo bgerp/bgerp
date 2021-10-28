@@ -12,6 +12,7 @@ defIfNot('TRANS_CMR_SENDER_INSTRUCTIONS', '');
  */
 defIfNot('TRANS_CMR_SHOW_BTN', 'no');
 
+
 /**
  * От коя дата да започнат да се изчисляват индикаторите за транспортните линии
  */
@@ -38,7 +39,7 @@ defIfNot('TRANS_LINES_PENDING_AFTER', '604800');
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1

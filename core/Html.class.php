@@ -935,8 +935,20 @@ class core_Html
             $arrowImg = ht::createElement('img', array('src' => sbf($imgSrc, '')));
             $link = self::createLink("<span class='anchor-arrow'>{$arrowImg}</span>", $url, $warning, $attr);
         }
-        
-        return "{$title}&nbsp;{$link}";
+
+        if(!empty($link)){
+            if($title instanceof core_ET){
+                $res = new core_ET("[#title#]&nbsp;[#link#]");
+                $res->append($title, 'title');
+                $res->append($link, 'link');
+
+                return $res;
+            } else {
+                return "{$title}&nbsp;{$link}";
+            }
+        }
+
+        return $title;
     }
     
     

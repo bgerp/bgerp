@@ -195,6 +195,7 @@ class trans_Lines extends core_Master
         $this->FLD('start', 'datetime', 'caption=Начало, mandatory');
         $this->FLD('repeat', 'time(suggestions=1 ден|1 седмица|1 месец|2 дена|2 седмици|2 месеца|3 седмици)', 'caption=Повторение');
         $this->FLD('state', 'enum(draft=Чернова,,pending=Заявка,active=Активен,rejected=Оттеглен,closed=Затворен)', 'caption=Състояние,input=none');
+        $this->FLD('defaultCaseId', 'key(mvc=cash_Cases,select=name,allowEmpty)', 'caption=Каса,unit=(по подразбиране)');
         $this->FLD('forwarderId', 'key2(mvc=crm_Companies,select=name,allowEmpty)', 'caption=Превоз->Спедитор');
         $this->FLD('vehicle', 'varchar', 'caption=Превоз->МПС,oldFieldName=vehicleId');
         $this->FLD('forwarderPersonId', 'key2(mvc=crm_Persons,select=name,group=employees,allowEmpty)', 'caption=Превоз->МОЛ');
@@ -220,7 +221,7 @@ class trans_Lines extends core_Master
         
         $title = (countR($titleArr) == 2) ? $titleArr[1] : $rec->title;
         $title = str::limitLen($title, 32);
-        $recTitle = $title . "/{$start}";
+        $recTitle = "№{$rec->id}/" . $title . "/{$start}";
 
         return $recTitle;
     }
@@ -275,9 +276,9 @@ class trans_Lines extends core_Master
     {
         $rec = $data->rec;
         
-        if ($data->toolbar->haveButton('btnClose')) {
-            if (self::countDocumentsByState($rec->id, 'draft')) {
-                $data->toolbar->setError('btnClose', 'Линията не може да бъде затворена докато има чернови документи към нея|*!');
+        if (!$data->toolbar->haveButton('btnClose')) {
+            if (self::countDocumentsByState($rec->id, 'draft,pending') && $rec->state == 'active') {
+                $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нев|*!', 'title' => 'Затваряне на транспортна линия'));
             }
         }
         
@@ -287,8 +288,8 @@ class trans_Lines extends core_Master
         }
         
         if (!$data->toolbar->haveButton('btnActivate')) {
-            if (self::countDocumentsByState($rec->id, 'pending,draft,rejected')) {
-                $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В транспортната линия има заявки, чернови или оттеглени документи|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на документа'));
+            if (self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
+                $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В транспортната линия има заявки, чернови или оттеглени експедиционни документи|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на транспортната линия'));
             }
         }
     }
@@ -331,6 +332,14 @@ class trans_Lines extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-single'])) {
+            if(isset($rec->defaultCaseId)){
+                $row->defaultCaseId = cash_Cases::getHyperlink($rec->defaultCaseId, true);
+                $allCases = keylist::toArray($rec->cases);
+                if(countR($allCases) == 1 && array_key_exists($rec->defaultCaseId, $allCases)){
+                    unset($row->cases);
+                }
+            }
+
             if (!empty($rec->vehicle)) {
                 if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $rec->vehicle))) {
                     $row->vehicle = trans_Vehicles::getHyperlink($vehicleRec->id, true);
@@ -363,8 +372,10 @@ class trans_Lines extends core_Master
         $row->countReadyDocuments  = ht::createHint($row->countReadyDocuments , 'Брой нагласени складови документи', 'noicon', false);
 
         $row->readiness = "{$row->countStoreDocuments} / {$row->countActiveDocuments} / {$row->countReadyDocuments}";
-        if($rec->countStoreDocuments != ($rec->countActiveDocumentsVerbal + $rec->countReadyDocumentsVerbal)){
-            $row->readiness = "<span class='red'>{$row->readiness}</span>";
+        if(!Mode::isReadOnly()){
+            if($rec->countStoreDocuments != ($rec->countActiveDocuments + $rec->countReadyDocuments)){
+                $row->readiness = "<span class='red'>{$row->readiness}</span>";
+            }
         }
 
         $row->handler = $mvc->getHyperlink($rec->id, true);
@@ -401,6 +412,7 @@ class trans_Lines extends core_Master
 
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
+
 
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
@@ -476,23 +488,38 @@ class trans_Lines extends core_Master
     {
         $tpl->push('trans/tpl/LineStyles.css', 'CSS');
     }
-    
-    
+
+
     /**
      * Връща броя на документите в посочената линия
-     * Може да се филтрират по #state и да се ограничат до maxDocs
+     *
+     * @param int $id                - ид
+     * @param array $states          - състояния
+     * @param null|string $interface - интерфейс на документи
+     * @return int                   - брой документи в линията, отговарящи на условията
      */
-    private static function countDocumentsByState($id, $states)
+    private static function countDocumentsByState($id, $states, $interface = null)
     {
         $states = arr::make($states);
         $query = trans_LineDetails::getQuery();
         $query->where("#lineId = {$id} AND #status != 'removed'");
         $query->in('containerState', $states);
-       
+
+        if($interface){
+            $iOptions = array_keys(core_Classes::getOptionsByInterface($interface));
+            if(countR($iOptions)){
+                $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
+                $query->in('docClass', $iOptions);
+            }
+        }
+
         return $query->count();
     }
 
-
+function act_test()
+{
+    $this->updateMaster_(336);
+}
     /**
      * Обновява данни в мастъра
      *
@@ -550,16 +577,27 @@ class trans_Lines extends core_Master
         $rec->modifiedOn = dt::now();
         $rec->modifiedBy = core_Users::getCurrent();
         $this->save_($rec, 'stores,cases,transUnitsTotal,countReadyDocuments,countActiveDocuments,countStoreDocuments,modifiedBy,modifiedOn');
-        
-        // Ако всичко е готово нишката се отваря
+
+        // Ако има неща за приготвяне - нишката се отваря
         $Threads = cls::get('doc_Threads');
-        $threadState = ($rec->countStoreDocuments == ($rec->countActiveDocuments + $rec->countReadyDocuments)) ? 'opened' : 'closed';
         $threadRec = doc_Threads::fetch($rec->threadId, 'state');
-        $threadRec->state = $threadState;
+        $threadRec->state = static::getThreadState($rec);
         $Threads->save($threadRec, 'state');
         $Threads->updateThread($threadRec->id);
     }
-    
+
+
+    /**
+     * Състояние на нишката
+     */
+    public static function getThreadState($id)
+    {
+        $rec = static::fetchRec($id);
+        if(empty($rec->countStoreDocuments)) return 'opened';
+
+        return ($rec->countStoreDocuments == ($rec->countActiveDocuments + $rec->countReadyDocuments)) ? 'closed' : 'opened';
+    }
+
     
     /**
      * Връща всички избираеми линии
@@ -613,7 +651,8 @@ class trans_Lines extends core_Master
         
         $docContainerId = trans_LineDetails::fetchField($detId, 'containerId');
         $Document = doc_Containers::getDocument($docContainerId);
-        $documentRec = $Document->fetch('sharedUsers,createdBy,modifiedBy');
+
+        $documentRec = $Document->fetch();
         $res['body'] = 'За: #' . $Document->getHandle() . "\n";
 
         $users = '';
@@ -651,7 +690,13 @@ class trans_Lines extends core_Master
         if ($action == 'activate' && isset($rec)) {
             if (!trans_LineDetails::fetchField("#lineId = {$rec->id}")) {
                 $requiredRoles = 'no_one';
-            } elseif (self::countDocumentsByState($rec->id, 'pending,draft,rejected')) {
+            } elseif (self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'close' && isset($rec)){
+            if(self::countDocumentsByState($rec->id, 'draft,pending')){
                 $requiredRoles = 'no_one';
             }
         }
@@ -674,7 +719,7 @@ class trans_Lines extends core_Master
         $query->where("#state = 'active' || #state = 'pending'");
 
         while($rec = $query->fetch()){
-            if (self::countDocumentsByState($rec->id, 'draft')) continue;
+            if (self::countDocumentsByState($rec->id, 'draft,pending')) continue;
 
             // Затварят се активните и заявките, на които им е изтекло времето
             if($rec->state == 'active'){

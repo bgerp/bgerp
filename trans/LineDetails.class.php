@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Логистична информаци,notes=@,address=@,documentHtml=@,classId=Клас';
+    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Лог. информация,address=@,notes=@,documentHtml=@,classId=Клас';
     
     
     /**
@@ -57,7 +57,7 @@ class trans_LineDetails extends doc_Detail
      *
      *  @var string
      */
-    public $hideListFieldsIfEmpty = 'notes,address,documentHtml,zoneId,classId';
+    public $hideListFieldsIfEmpty = 'notes,address,documentHtml,amount,zoneId,classId';
     
     
     /**
@@ -110,8 +110,7 @@ class trans_LineDetails extends doc_Detail
                                         'store_ConsignmentProtocols' => 'Отговорно пазене',
                                         'store_Transfers' => 'Трансфери',
                                         'cash_Pko' => 'Приходни касови ордери',
-                                        'cash_Rko' => 'Разходни касови ордери',
-        );
+                                        'cash_Rko' => 'Разходни касови ордери',);
     
     
     /**
@@ -180,20 +179,22 @@ class trans_LineDetails extends doc_Detail
         // Транспортната информация за транспортната линия
         $Document = doc_Containers::getDocument($rec->containerId);
         $transportInfo = $Document->getTransportLineInfo($rec->lineId);
+        core_RowToolbar::createIfNotExists($row->_rowTools);
 
         // Линк към документа
         $row->containerId = '#' . $Document->getHandle();
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
+            $row->containerId = "<span class='state-{$rec->containerState} document-handler'>{$row->containerId}</span>";
         }
-        
+
         if (Mode::is('renderHtmlInLine') && isset($Document->layoutFileInLine)) {
             $row->documentHtml = $Document->getInlineDocumentBody();
         }
-        
-        $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$transportInfo['state']}";
+
         if (!empty($transportInfo['notes'])) {
             $row->notes = core_Type::getByName('richtext')->toVerbal($transportInfo['notes']);
+            $row->notes = "<div class='notes{$rec->id}'>{$row->notes}</div>";
         }
         if (!empty($transportInfo['address'])) {
             $row->address = core_Type::getByName('varchar')->toVerbal($transportInfo['address']);
@@ -218,7 +219,7 @@ class trans_LineDetails extends doc_Detail
         $row->address = rtrim($row->address, ' ,');
         $row->address = rtrim($row->address, ', ');
 
-        if(isset($transportInfo['locationId'])){
+        if(isset($transportInfo['locationId']) && !core_Mode::isReadOnly()){
             if(crm_Locations::haveRightFor('single', $transportInfo['locationId'])){
                 $row->address = ht::createLinkRef($row->address, crm_Locations::getSingleUrlArray($transportInfo['locationId']), false, 'title=Преглед на локацията');
             }
@@ -235,7 +236,9 @@ class trans_LineDetails extends doc_Detail
             // Ако документа в момента е в зона
             if(isset($transportInfo['zoneId'])){
                 $readiness = core_Type::getByName('percent(decimals=0)')->toVerbal($transportInfo['readiness']);
-                $readiness = "<div class='block-readiness lineShow'>{$readiness}</div>";
+                if(!Mode::isReadOnly()){
+                    $readiness = "<div class='block-readiness lineShow'>{$readiness}</div>";
+                }
                 $row->zoneId = "{$readiness} " . rack_Zones::getDisplayZone($transportInfo['zoneId']);
             }
 
@@ -281,26 +284,54 @@ class trans_LineDetails extends doc_Detail
             $row->_rowTools->addLink('Премахване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Премахване на документа от транспортната линия'));
         }
 
+        if ($Document->haveRightFor('changeline')) {
+            $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
+        }
+
+        if(!Mode::isReadOnly() && !empty($row->notes)){
+            $row->logistic .= "&nbsp; <a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','notes{$rec->id}', 'true')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>";
+        }
+
         // Ако има платежни документи към складовия
-        if(is_array($rec->paymentsArr) ){
+        if(is_array($rec->paymentsArr)){
+            $rec->_allPaymentActive = (bool)countR($rec->paymentsArr);
             $amountTpl = new core_ET("");
             foreach ($rec->paymentsArr as $p){
 
                 // Каква е сумата на платежния документ
                 $PayDoc = doc_Containers::getDocument($p->containerId);
                 $paymentInfo = $PayDoc->getTransportLineInfo($rec->lineId);
+                if($paymentInfo['state'] != 'active') {
+                    $rec->_allPaymentActive = false;
+                }
                 if($p->containerState == 'rejected'){
                     $paymentInfo['amountVerbal'] = "<span class='state-{$p->containerState} document-handler'>{$paymentInfo['amountVerbal']}</span>";
                 }
 
-                $paymentInfo['amountVerbal'] = ht::createLinkRef($paymentInfo['amountVerbal'], $PayDoc->getSingleUrlArray(), false, 'title=Преглед на документа');
+                if(!core_Mode::isReadOnly()){
+                    $paymentInfo['amountVerbal'] = ht::createLinkRef($paymentInfo['amountVerbal'], $PayDoc->getSingleUrlArray(), false, 'title=Преглед на документа');
+                }
                 $amountTpl->append('<div class="payment-line-amount">');
                 $amountTpl->append($paymentInfo['amountVerbal']);
                 $amountTpl->append('</div>');
             }
 
-            $row->amount = $amountTpl;
+            if(countR($rec->paymentsArr)){
+                $row->amount = $amountTpl;
+            }
         }
+
+        // В какъв цвят да се оцвети реда на линията
+        if($Document->haveInterface('store_iface_DocumentIntf')){
+            $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? $transportInfo['state'] : 'waiting';
+            if($rec->_allPaymentActive && $class == 'active'){
+                $class = 'closed';
+            }
+        } else {
+            $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? 'closed' : 'waiting';
+        }
+        $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$class}";
+        $row->ROW_ATTR['class'] .= " group{$rec->classId}";
     }
     
     
@@ -331,10 +362,9 @@ class trans_LineDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $data->listTableMvc->FNC('payment', 'varchar', 'smartCenter');
-        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter');
+        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
-        $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter');
+        $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
     }
     
     
@@ -347,7 +377,6 @@ class trans_LineDetails extends doc_Detail
     public static function setTransUnitField(&$form, $value)
     {
         $form->setDefault('transUnitsInput', $value);
-        
         $units = trans_TransportUnits::getAll();
         $form->FLD('transUnitsInput', 'table(columns=unitId|quantity,captions=ЛЕ|Брой,validate=trans_LineDetails::validateTransTable)', 'caption=Лог. ед.,after=lineNotes');
         $form->setFieldTypeParams('transUnitsInput', array('unitId_opt' => array('' => '') + $units));
@@ -493,6 +522,7 @@ class trans_LineDetails extends doc_Detail
                 return ($paymentRec->originId == $rec->containerId);
             });
 
+            // Премахване на платежните документи, закачени към Складов документ от последващо показване в линията
             $rec->paymentsArr = array();
             foreach ($shipmentPayments as $i => $shipPayment){
                 $rec->paymentsArr[$i] = $shipPayment;
@@ -517,6 +547,7 @@ class trans_LineDetails extends doc_Detail
                 $rec1->paymentsArr = array();
             }
 
+            // Премахване на платежните документи, закачени към Складов документ от последващо показване в линията
             foreach ($shipmentPayments as $i => $shipPayment) {
                 $rec1->paymentsArr[$i] = $shipPayment;
                 unset($paymentDocuments[$i]);

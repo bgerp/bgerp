@@ -61,7 +61,7 @@ class cms_VerbalId extends core_Manager
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'vid,mvc,recId';
+    public $listFields = 'id,vid,mvc,recId';
     
     
     /**
@@ -81,7 +81,7 @@ class cms_VerbalId extends core_Manager
      */
     public function description()
     {
-        $this->FLD('vid', 'varchar(128)', 'caption=Вербално ID,mandatory');
+        $this->FLD('vid', 'varchar(100)', 'caption=Вербално ID,mandatory');
         $this->FLD('mvc', 'class(interface=cms_SourceIntf, allowEmpty, select=title)', 'caption=Източник,mandatory');
         $this->FLD('recId', 'int', 'caption=Запис,mandatory');
         

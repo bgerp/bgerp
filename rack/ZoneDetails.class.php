@@ -363,6 +363,7 @@ class rack_ZoneDetails extends core_Detail
         $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements, 'inlineMovement' => true);
         $data->listFields = arr::make('movement=Движение,leftColBtns,rightColBtns,workerId=Работник', true);
         if($masterRec->_isSingle === true){
+            $data->listFields = array('id' => '№') + $data->listFields;
             $data->listFields['modifiedOn'] = 'Модифициране||Modified->На||On';
             $data->listFields['modifiedBy'] = 'Модифициране||Modified->От||By';
         }

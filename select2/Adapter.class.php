@@ -40,8 +40,9 @@ class select2_Adapter
      * @param bool              $allowClear
      * @param string|NULL|FALSE $lg
      * @param boolean $isTree
+     * @param boolean $forceOpen
      */
-    public static function appendAndRun(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false)
+    public static function appendAndRun(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false, $forceOpen = false)
     {
         if (!($tpl instanceof core_ET)) {
             
@@ -54,6 +55,13 @@ class select2_Adapter
         
         self::appendFiles($tpl, $lg, $isTree);
         self::run($tpl, $id, $placeHolder, $allowClear, $lg, $ajaxUrl, $isTree);
+
+        if ($forceOpen) {
+            if (!Request::get('ajax_mode')) {
+                jquery_Jquery::run($tpl, "$('#" . $id . "').select2('open');", true);
+                jquery_Jquery::run($tpl, "$('#" . $id . "').focus();", true);
+            }
+        }
     }
     
     
@@ -159,7 +167,7 @@ class select2_Adapter
         $select2Str .= '});';
         
         jquery_Jquery::run($tpl, $select2Str, true);
-        
+
         $tpl->push(('select2/js/adapter.js'), 'JS');
     }
     
