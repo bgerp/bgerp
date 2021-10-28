@@ -116,11 +116,6 @@
                            <td>[#lineVehicleId#]</td>
                        </tr>
                        <!--ET_END lineVehicleId-->
-                       <!--ET_BEGIN lineNotes-->
-                       <tr>
-                           <td class="quiet aright">Remarks:</td><td>[#lineNotes#]</td>
-                       </tr>
-                       <!--ET_END lineNotes-->
                        [#InvoicesToDocuments#]
                        <!--ET_BEGIN note-->
                        <tr>

@@ -87,11 +87,6 @@
                   <td>[#lineVehicleId#]</td>
                </tr>
                <!--ET_END lineVehicleId-->
-               <!--ET_BEGIN lineNotes-->
-               <tr>
-                  <td class='nowrap' colspan=2><span class="quiet">|Забележки|*:</span> [#lineNotes#]</td>
-               </tr>
-               <!--ET_END lineNotes-->
                <!--ET_BEGIN logisticInfo-->
                <tr>
                   <td colspan="2" ><hr><span class='quiet'>|Логистични единици|*</span>: [#logisticInfo#]</td>

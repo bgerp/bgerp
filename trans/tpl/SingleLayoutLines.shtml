@@ -53,10 +53,10 @@
 					<div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div>
 					<!--ET_END forwarderId-->
 					<!--ET_BEGIN vehicle-->
-					<div style='margin-bottom: 5px;'>|МПС|*:[#vehicle#]<!--ET_BEGIN regNumber-->, [#regNumber#]<!--ET_END regNumber--></div>
+					<div style='margin-bottom: 5px;'>|МПС|*: [#vehicle#]<!--ET_BEGIN regNumber-->, [#regNumber#]<!--ET_END regNumber--></div>
 					<!--ET_END vehicle-->
 					<!--ET_BEGIN forwarderPersonId-->
-					<div style='margin-bottom: 5px;'>|МОЛ|*:[#forwarderPersonId#]</div>
+					<div style='margin-bottom: 5px;'>|МОЛ|*: [#forwarderPersonId#]</div>
 					<!--ET_END forwarderPersonId-->
 				</div>
 				<table class='signature-table'>

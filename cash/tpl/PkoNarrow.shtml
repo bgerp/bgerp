@@ -132,14 +132,6 @@
 										</td>
 									</tr>
 										<!--ET_END lineVehicleId-->
-
-		                                <!--ET_BEGIN lineNotes-->
-									<tr>
-		                                <td colspan='2'>
-		                                	<div class='richtext-holder'><span class='quiet'>|Забележки за транспорта|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
-		                                </td>
-									</tr>
-		                                <!--ET_END lineNotes-->
 		                                
 		                                <!--ET_BEGIN amountDeal-->
 									<tr>

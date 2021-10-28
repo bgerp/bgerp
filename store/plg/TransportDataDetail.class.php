@@ -77,16 +77,9 @@ class store_plg_TransportDataDetail extends core_Plugin
         
         $canStore = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');
         if($canStore != 'yes') return;
-        
-        // Показване на ЛЕ на реда, ако ако не е зададена същата такава от потребителя
-        $masterInputUnits = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'transUnitsInput');
-        $masterInputUnits = is_array($masterInputUnits) ? $masterInputUnits : array();
+
         $transUnitId = isset($rec->transUnitId) ? $rec->transUnitId : trans_TransportUnits::fetchIdByName('load');
-        if (!array_key_exists($transUnitId, $masterInputUnits)) {
-             $row->transUnitId = trans_TransportUnits::display($rec->transUnitId, $rec->transUnitQuantity);
-        } else {
-            unset($row->transUnitId);
-        }
+        $row->transUnitId = trans_TransportUnits::display($transUnitId, $rec->transUnitQuantity);
         
         if(empty($rec->transUnitQuantity)){
             unset($row->transUnitId);

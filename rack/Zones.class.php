@@ -577,25 +577,32 @@ class rack_Zones extends core_Master
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
         $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($storeId, true);
         $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
+        $form->FLD('defaultUserId', 'user(roles=rack|ceo, allowEmpty)', 'caption=Изпълнител,placeholder=Без');
         $zoneOptions = rack_Zones::getZones($storeId, true);
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');
         if (!empty($zoneId) && !array_key_exists($zoneId, $zoneOptions)) {
             $zoneOptions[$zoneId] = $this->getRecTitle($zoneId);
         }
         $form->setOptions('zoneId', array('' => '') + $zoneOptions);
-        $form->setDefault('zoneId', $zoneId);
-        $form->setDefault('zoneId', key($zoneOptions));
+        if($form->cmd != 'refresh'){
+            $form->setDefault('zoneId', $zoneId);
+            $form->setDefault('zoneId', key($zoneOptions));
+        }
         $form->input();
 
         // Изпращане на формата
         if ($form->isSubmitted()) {
 
             $fRec = $form->rec;
-            if(isset($zoneId) && $fRec->zoneId != $zoneId){
-                if(!$this->haveRightFor('removedocument', $zoneId)){
-                    $form->setError('zoneId', "Нямате права да премахнете документа от Зона:|*" . rack_Zones::getRecTitle($zoneId, false));
-                } elseif(rack_Movements::fetch("LOCATE('|{$zoneId}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
-                    $form->setError('zoneId', "Не може да премахнете документа от зона|* <b>" . rack_Zones::getDisplayZone($zoneId) . "</b>, |защото има вече запазени или започнати движения. Документът може да бъде премахнат след отказването им|*!");
+            if(isset($zoneId)){
+                if($fRec->zoneId != $zoneId){
+                    if(!$this->haveRightFor('removedocument', $zoneId)){
+                        $form->setError('zoneId', "Нямате права да премахнете документа от Зона:|*" . rack_Zones::getRecTitle($zoneId, false));
+                    } elseif(rack_Movements::fetch("LOCATE('|{$zoneId}|', #zoneList) AND (#state = 'waiting' OR #state = 'active')")){
+                        $form->setError('zoneId', "Не може да премахнете документа от зона|* <b>" . rack_Zones::getDisplayZone($zoneId) . "</b>, |защото има вече запазени или започнати движения. Документът може да бъде премахнат след отказването им|*!");
+                    }
+                } else {
+                    $form->setError('zoneId', "Зоната е същата");
                 }
             }
 
@@ -609,16 +616,22 @@ class rack_Zones extends core_Master
 
                 // Ако е избрана нова зона се регенерират движенията за нея и групата ѝ
                 if (isset($fRec->zoneId)) {
-                    $this->updateZone($fRec->zoneId, $containerId);
                     if(empty($zoneId)){
+                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Задаване на нова зона', $document->that);
                         $msg = 'Зоната е успешно зададена|*!';
                     } elseif($zoneId != $fRec->zoneId) {
+                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Промяна на зона', $document->that);
                         $msg = 'Зоната е успешно променена|*!';
                     }
 
-                    redirect(self::getUrlArr($fRec->zoneId), false, $msg);
+                    $zoneUrl = self::getUrlArr($fRec->zoneId);
+                    if(isset($fRec->defaultUserId)){
+                        $zoneUrl['additional'] = 'yes';
+                    }
+
+                    redirect($zoneUrl, false, $msg);
                 } elseif(isset($zoneId)) {
                     $document->getInstance()->logWrite('Премахване от зона', $document->that);
                     $msg = 'Документът е премахнат от зоната|*!';
@@ -648,7 +661,7 @@ class rack_Zones extends core_Master
      * @param int|null $containerId - ид на контейнер
      * @param bool $remove          - да се добави или да се премахне документът от зоната
      */
-    private function updateZone($zoneId, $containerId, $remove = false)
+    private function updateZone($zoneId, $containerId, $remove = false, $defaultUserId = null)
     {
         // Запис на документа към зоната
         $zoneRec = $this->fetch($zoneId);
@@ -675,7 +688,7 @@ class rack_Zones extends core_Master
         }
 
         // Генериране нови движения след отразяване на промяната
-        self::pickupOrder($zoneRec->storeId, $selectedZones);
+        self::pickupOrder($zoneRec->storeId, $selectedZones, $defaultUserId);
     }
 
 
@@ -913,6 +926,21 @@ class rack_Zones extends core_Master
         expect($storeId = Request::get('storeId', 'int'));
         $this->requireRightFor('orderpickup', (object)array('storeId' => $storeId));
 
+        // Регенериране на всички движения
+        static::pickupAll($storeId);
+
+        followRetUrl(null, 'Движенията са генерирани успешно|*!');
+    }
+
+
+    /**
+     * Генериране на всички движения за склада
+     *
+     * @param int $storeId - ид на склад
+     * @param void
+     */
+    public static function pickupAll($storeId)
+    {
         // Групиране по групи на зоните
         $gQuery = rack_ZoneGroups::getQuery();
         $gQuery->orderBy('order', 'ASC');
@@ -930,8 +958,6 @@ class rack_Zones extends core_Master
         foreach ($nonGroupableZones as $zoneId) {
             self::pickupOrder($storeId, $zoneId);
         }
-
-        followRetUrl(null, 'Движенията са генерирани успешно|*!');
     }
 
 
@@ -940,8 +966,9 @@ class rack_Zones extends core_Master
      *
      * @param int $storeId - ид на склад
      * @param array|null $zoneIds - ид-та само на избраните зони
+     * @param null $workerId - ид на дефолтен товарач
      */
-    private static function pickupOrder($storeId, $zoneIds = null)
+    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null)
     {
         $systemUserId = core_Users::SYSTEM_USER;
         $mQuery = rack_Movements::getQuery();
@@ -1002,7 +1029,7 @@ class rack_Zones extends core_Master
             $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
 
             // Ако има генерирани движения се записват
-            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId);
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId);
 
             // Движенията се създават от името на системата
             if(!$isOriginalSystemUser) {
@@ -1080,7 +1107,7 @@ class rack_Zones extends core_Master
             array_walk($zoneMovements, function($a) use ($dRec, &$notActiveQuantity){
                 if($dRec->productId == $a->productId && $dRec->packagingId == $a->packagingId && $dRec->batch == $a->batch){
                     $zones = rack_Movements::getZoneArr($a);
-                    $quantityInZoneArr = array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;});
+                    $quantityInZoneArr = array_values(array_filter($zones, function($z) use ($dRec){return $z->zone == $dRec->zoneId;}));
                     if(is_object($quantityInZoneArr[0])){
                         $notActiveQuantity += $quantityInZoneArr[0]->quantity * $a->quantityInPack;
                     }
@@ -1197,7 +1224,11 @@ class rack_Zones extends core_Master
                 }
 
                 if(countR($url)){
-                    $zoneTitle = ht::createLink($zoneTitle, $url);
+                    $backgroundColor = !empty($zoneRec->color) ? $zoneRec->color : rack_Setup::get('DEFAULT_ZONE_COLORS');
+                    $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
+                    $zoneTitle = ht::createLink($zoneTitle, $url,false, array("style"=> "color:{$additionalClass}"));
+                    $zoneTitle->content = str_replace('lightText', '#eceff4', $zoneTitle->content);
+                    $zoneTitle->content = str_replace('darkText', '#2e3440', $zoneTitle->content); 
                 }
             }
         }

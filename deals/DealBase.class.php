@@ -390,7 +390,12 @@ abstract class deals_DealBase extends core_Master
                         $CloseDoc->conto($clId);
                     }
                 }
-                
+
+                if(empty($rec->valior)){
+                    $rec->valior = dt::today();
+                    $this->save_($rec, 'valior');
+                }
+
                 $this->invoke('AfterActivation', array($rec));
                 
                 // Записваме, че потребителя е разглеждал този списък

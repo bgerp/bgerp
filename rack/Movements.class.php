@@ -1151,20 +1151,29 @@ class rack_Movements extends rack_MovementAbstract
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#state = 'closed'");
         $pQuery->where("#closedOn <= '{$closedBefore}'");
-        $pQuery->show('id');
-        $palletsToDelete = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+        $pQuery->show('id,storeId,productId');
+        $allPalletsRecs = $pQuery->fetchAll();
+
+        $palletsToDelete = arr::extractValuesFromArray($allPalletsRecs, 'id');
         if(!countR($palletsToDelete)) return;
-        
-        // От тези палети, кои от тх все още участват в движения
+
+
+        // От тези палети, кои от тях все още участват в движения
         $query = rack_Movements::getQuery();
         $query->in('palletId', $palletsToDelete);
-        $query->show('palletId');
+        $query->show('palletId, productId,storeId');
+
         $palletsInMovements = arr::extractValuesFromArray($query->fetchAll(), 'palletId');
-        
-        // Изтриват се тези палети, към които вече няма движения
         $palletsLeftToDelete = array_diff_key($palletsToDelete, $palletsInMovements);
-        foreach ($palletsLeftToDelete as $palletId) {
-            rack_Pallets::delete($palletId);
+
+        // Всички стари палети
+        foreach ($allPalletsRecs as $palletRec) {
+
+            // Изтриват се тези палети, към които вече няма движения
+            if(array_key_exists($palletRec->id, $palletsLeftToDelete)){
+                rack_Pallets::delete($palletRec->id);
+                rack_Pallets::recalc($palletRec->productId, $palletRec->storeId);
+            }
         }
     }
     

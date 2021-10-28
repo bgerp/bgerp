@@ -221,7 +221,7 @@ class trans_Lines extends core_Master
         
         $title = (countR($titleArr) == 2) ? $titleArr[1] : $rec->title;
         $title = str::limitLen($title, 32);
-        $recTitle = $title . "/{$start}";
+        $recTitle = "№{$rec->id}/" . $title . "/{$start}";
 
         return $recTitle;
     }
@@ -516,7 +516,10 @@ class trans_Lines extends core_Master
         return $query->count();
     }
 
-
+function act_test()
+{
+    $this->updateMaster_(336);
+}
     /**
      * Обновява данни в мастъра
      *
@@ -574,16 +577,27 @@ class trans_Lines extends core_Master
         $rec->modifiedOn = dt::now();
         $rec->modifiedBy = core_Users::getCurrent();
         $this->save_($rec, 'stores,cases,transUnitsTotal,countReadyDocuments,countActiveDocuments,countStoreDocuments,modifiedBy,modifiedOn');
-        
-        // Ако всичко е готово нишката се отваря
+
+        // Ако има неща за приготвяне - нишката се отваря
         $Threads = cls::get('doc_Threads');
-        $threadState = ($rec->countStoreDocuments == ($rec->countActiveDocuments + $rec->countReadyDocuments)) ? 'opened' : 'closed';
         $threadRec = doc_Threads::fetch($rec->threadId, 'state');
-        $threadRec->state = $threadState;
+        $threadRec->state = static::getThreadState($rec);
         $Threads->save($threadRec, 'state');
         $Threads->updateThread($threadRec->id);
     }
-    
+
+
+    /**
+     * Състояние на нишката
+     */
+    public static function getThreadState($id)
+    {
+        $rec = static::fetchRec($id);
+        if(empty($rec->countStoreDocuments)) return 'opened';
+
+        return ($rec->countStoreDocuments == ($rec->countActiveDocuments + $rec->countReadyDocuments)) ? 'closed' : 'opened';
+    }
+
     
     /**
      * Връща всички избираеми линии
