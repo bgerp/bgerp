@@ -577,14 +577,17 @@ class rack_Zones extends core_Master
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
         $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($storeId, true);
         $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
+        $form->FLD('defaultUserId', 'user(roles=rack|ceo, allowEmpty)', 'caption=Изпълнител,placeholder=Без');
         $zoneOptions = rack_Zones::getZones($storeId, true);
         $zoneId = rack_Zones::fetchField("#containerId = {$containerId}", 'id');
         if (!empty($zoneId) && !array_key_exists($zoneId, $zoneOptions)) {
             $zoneOptions[$zoneId] = $this->getRecTitle($zoneId);
         }
         $form->setOptions('zoneId', array('' => '') + $zoneOptions);
-        $form->setDefault('zoneId', $zoneId);
-        $form->setDefault('zoneId', key($zoneOptions));
+        if($form->cmd != 'refresh'){
+            $form->setDefault('zoneId', $zoneId);
+            $form->setDefault('zoneId', key($zoneOptions));
+        }
         $form->input();
 
         // Изпращане на формата
@@ -614,11 +617,11 @@ class rack_Zones extends core_Master
                 // Ако е избрана нова зона се регенерират движенията за нея и групата ѝ
                 if (isset($fRec->zoneId)) {
                     if(empty($zoneId)){
-                        $this->updateZone($fRec->zoneId, $containerId);
+                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Задаване на нова зона', $document->that);
                         $msg = 'Зоната е успешно зададена|*!';
                     } elseif($zoneId != $fRec->zoneId) {
-                        $this->updateZone($fRec->zoneId, $containerId);
+                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Промяна на зона', $document->that);
                         $msg = 'Зоната е успешно променена|*!';
                     }
@@ -653,7 +656,7 @@ class rack_Zones extends core_Master
      * @param int|null $containerId - ид на контейнер
      * @param bool $remove          - да се добави или да се премахне документът от зоната
      */
-    private function updateZone($zoneId, $containerId, $remove = false)
+    private function updateZone($zoneId, $containerId, $remove = false, $defaultUserId = null)
     {
         // Запис на документа към зоната
         $zoneRec = $this->fetch($zoneId);
@@ -680,7 +683,7 @@ class rack_Zones extends core_Master
         }
 
         // Генериране нови движения след отразяване на промяната
-        self::pickupOrder($zoneRec->storeId, $selectedZones);
+        self::pickupOrder($zoneRec->storeId, $selectedZones, $defaultUserId);
     }
 
 
@@ -958,8 +961,9 @@ class rack_Zones extends core_Master
      *
      * @param int $storeId - ид на склад
      * @param array|null $zoneIds - ид-та само на избраните зони
+     * @param null $workerId - ид на дефолтен товарач
      */
-    private static function pickupOrder($storeId, $zoneIds = null)
+    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null)
     {
         $systemUserId = core_Users::SYSTEM_USER;
         $mQuery = rack_Movements::getQuery();
@@ -1020,7 +1024,7 @@ class rack_Zones extends core_Master
             $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
 
             // Ако има генерирани движения се записват
-            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId);
+            $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId);
 
             // Движенията се създават от името на системата
             if(!$isOriginalSystemUser) {

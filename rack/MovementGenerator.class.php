@@ -400,27 +400,18 @@ class rack_MovementGenerator extends core_Manager
 
 
     /**
-     * Генериране на движение
-     *
-     * @param array $allocatedArr
-     * @param int $productId
-     * @param int $packagingId
-     * @param string $batch
-     * @param int $storeId
-     * @return array $res
-     */
-    /**
      * Връща масив с генерирани движения, на базата на функцията rack_MovementGenerator::mainP2Q
      * 
-     * @param array  $allocatedArr Масив с резултата от фунцията mainP2Q
-     * @param int    $productId ID на продукта
-     * @param int    $packagingId ID на опаковката
-     * @param string $batch Партида
-     * @param int    $storeId ИД na sklada
+     * @param array    $allocatedArr Масив с резултата от фунцията mainP2Q
+     * @param int      $productId ID на продукта
+     * @param int      $packagingId ID на опаковката
+     * @param string   $batch Партида
+     * @param int      $storeId ИД na склада
+     * @param int|null $workerId - ид на потребител
      *
      * @return array
      */
-    public static function getMovements($allocatedArr, $productId, $packagingId, $batch, $storeId)
+    public static function getMovements($allocatedArr, $productId, $packagingId, $batch, $storeId, $workerId = null)
     {
         $res = array();
         if (!is_array($allocatedArr)) {
@@ -436,9 +427,10 @@ class rack_MovementGenerator extends core_Manager
                 'packagingId' => $packagingId,
                 'storeId' => $storeId,
                 'quantityInPack' => $quantityInPack,
-                'state' => 'pending',
+                'state' => isset($workerId) ? 'waiting' : 'pending',
+                'brState' => isset($workerId) ? 'pending' : 'null',
                 'batch' => $batch,
-                'workerId' => null,
+                'workerId' => $workerId,
                 'quantity' => $obj->quantity,
                 'position' => $obj->pallet,
             );
