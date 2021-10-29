@@ -201,9 +201,11 @@ class trans_LineDetails extends doc_Detail
 
         if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {
             if($rec->containerState != 'rejected' && $rec->status != 'removed'){
+                Mode::push('noBlank', true);
                 Mode::push('renderHtmlInLine', true);
                 $row->documentHtml = $Document->getInlineDocumentBody('xhtml');
                 Mode::pop('renderHtmlInLine');
+                Mode::pop('noBlank');
             }
         }
 
@@ -345,8 +347,12 @@ class trans_LineDetails extends doc_Detail
         } else {
             $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? 'closed' : 'waiting';
         }
+
         $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$class}";
         $row->ROW_ATTR['class'] .= " group{$rec->classId}";
+        if($fields['renderDocumentInline']){
+            $row->ROW_ATTR['class'] .= " detailedView";
+        }
     }
     
     
@@ -378,7 +384,9 @@ class trans_LineDetails extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         unset($data->listFields['renderDocumentInline']);
-        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter,tdClass=small-field');
+
+        $data->listTableMvc->setField('containerId', 'tdClass=documentCol');
+        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter,tdClass=small-field logisticCol');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');

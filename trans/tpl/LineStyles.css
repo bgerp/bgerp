@@ -26,6 +26,10 @@
 .document table.listTable tbody tr td.status-cell {
   padding-left: 10px !important; }
 
+.document table.listTable tbody tr.detailedView td.documentCol,
+.document table.listTable tbody tr.detailedView td.logisticCol {
+  font-weight: bold !important; }
+
 .document table.listTable tbody tr td.row-notes {
   font-size: 0.8em; }
 
@@ -64,7 +68,8 @@ table .paymentInStoreDocument td {
 td .documentHtml {
   font-size: 0.9em; }
   td .documentHtml th {
-    background-color: #eeeeee !important; }
+    background-color: #eeeeee !important;
+    font-weight: normal !important; }
   td .documentHtml tr {
     background-color: #f4f5cf; }
 
