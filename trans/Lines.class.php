@@ -31,7 +31,7 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, bgerp_plg_Blank, plg_Search, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
@@ -244,7 +244,7 @@ class trans_Lines extends core_Master
         }
 
         $data->listFilter->setDefault('lineState', 'pendingAndActive');
-        $data->listFilter->input($data->listFilter->showFields);
+        $data->listFilter->input();
 
         if($filterRec = $data->listFilter->rec){
             if(isset($filterRec->lineState) && $filterRec->lineState != 'all'){
