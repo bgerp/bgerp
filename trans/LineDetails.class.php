@@ -201,11 +201,9 @@ class trans_LineDetails extends doc_Detail
 
         if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {
             if($rec->containerState != 'rejected' && $rec->status != 'removed'){
-                Mode::push('noBlank', true);
                 Mode::push('renderHtmlInLine', true);
                 $row->documentHtml = $Document->getInlineDocumentBody('xhtml');
                 Mode::pop('renderHtmlInLine');
-                Mode::pop('noBlank');
             }
         }
 
