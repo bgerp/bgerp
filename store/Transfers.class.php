@@ -594,6 +594,7 @@ class store_Transfers extends core_Master
      *               ['storeMovement']  string|NULL - посока на движението на склада
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
+     *               ['countryId']      string|NULL - ид на държава
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -610,6 +611,7 @@ class store_Transfers extends core_Master
             $toStoreLocation = crm_Locations::fetch($toStoreLocationId);
             $res['locationId'] = $toStoreLocation->id;
             $res['addressInfo'] = $toStoreLocation->comment;
+            $res['countryId'] = $toStoreLocation->countryId;
         }
 
         return $res;
