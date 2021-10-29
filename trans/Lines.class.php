@@ -222,10 +222,11 @@ class trans_Lines extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
+        $rec = static::fetchRec($rec);
         $titleArr = array();
         $titleArr[] = str_replace(' 00:00', '', dt::mysql2verbal($rec->start, 'd.m.Y H:i'));
         if(!empty($rec->forwarderId)){
-            $titleArr[] = str::limitLen(static::getVerbal($rec, 'forwarderId'), 32);
+            $titleArr[] = str::limitLen(crm_Companies::getTitleById($rec->forwarderId, $escaped), 32);
         }
         $titleArr[] = str::limitLen(static::getVerbal($rec, 'title'), 32);
         $recTitle = implode('/', $titleArr);
@@ -641,7 +642,7 @@ class trans_Lines extends core_Master
         array_walk($recs, function ($rec) use (&$linesArr) {
             $linesArr[$rec->id] = trans_Lines::getRecTitle($rec, false);
         });
-        
+
         return $linesArr;
     }
     
