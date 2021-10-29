@@ -364,13 +364,13 @@ class store_ShipmentOrders extends store_DocumentMaster
             'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,packPrice,discount,amount'));
         $tplArr[] = array('name' => 'Packing list',
             'content' => 'store/tpl/SingleLayoutPackagingList.shtml', 'lang' => 'en', 'oldName' => 'Packaging list', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListNarrow.shtml',
-            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight'));
         $tplArr[] = array('name' => 'Експедиционно нареждане с декларация',
             'content' => 'store/tpl/SingleLayoutShipmentOrderDec.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutShipmentOrderDecNarrow.shtml',
             'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
         $tplArr[] = array('name' => 'Packing list with Declaration',
             'content' => 'store/tpl/SingleLayoutPackagingListDec.shtml', 'lang' => 'en', 'oldName' => 'Packaging list with Declaration', 'narrowContent' => 'store/tpl/SingleLayoutPackagingListDecNarrow.shtml',
-            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight'));
         $tplArr[] = array('name' => 'Експедиционно нареждане с цени в евро',
             'content' => 'store/tpl/SingleLayoutShipmentOrderEuro.shtml', 'lang' => 'bg',
             'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
