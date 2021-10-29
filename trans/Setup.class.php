@@ -162,6 +162,9 @@ class trans_Setup extends core_ProtoSetup
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('trans_Setup', 'migrateLines', NULL, $callOn);
 
+        //$callOn = dt::addSecs(240);
+        //core_CallOnTime::setCall('trans_Setup', 'migrateLines', NULL, $callOn);
+
         return $res;
     }
 

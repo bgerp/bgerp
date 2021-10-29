@@ -888,6 +888,7 @@ abstract class store_DocumentMaster extends core_Master
      *               ['storeMovement']  string|NULL - посока на движението на склада
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
+     *               ['countryId']      string|NULL - ид на държава
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -905,9 +906,12 @@ abstract class store_DocumentMaster extends core_Master
         $address = '';
         $part = ($this instanceof store_ShipmentOrders) ? 'to' : 'from';
         $logisticData = $this->getLogisticData($rec);
+
+        $countryId = drdata_Countries::getIdByName($logisticData["{$part}Country"]);
+        $res['countryId'] .= $countryId;
+
         if($logisticData['fromCountry'] != $logisticData['toCountry']){
             $this->pushTemplateLg($rec->template);
-            $countryId = drdata_Countries::getIdByName($logisticData["{$part}Country"]);
             $address .= drdata_Countries::getTitleById($countryId) . " ";
             core_Lg::pop();
         }
@@ -920,7 +924,7 @@ abstract class store_DocumentMaster extends core_Master
         }
 
         if(!empty($logisticData["{$part}LocationId"])){
-            $res['locationId'] .= " {$logisticData["{$part}LocationId"]}";
+            $res['locationId'] .= $logisticData["{$part}LocationId"];
         }
 
         $amount = null;
