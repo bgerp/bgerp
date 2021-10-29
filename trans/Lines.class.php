@@ -766,18 +766,20 @@ class trans_Lines extends core_Master
             $res = plg_Search::getKeywords($mvc, $rec);
         }
 
-        $dQuery = trans_LineDetails::getQuery();
-        $dQuery->where("#lineId = {$rec->id}");
-        while($dRec = $dQuery->fetch()){
-            $Document = doc_Containers::getDocument($dRec->containerId);
-            if(!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)){
-                $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
-            }
-            $tInfo = $mvc->cacheLineInfo[$dRec->containerId];
+        if(isset($rec->id)){
+            $dQuery = trans_LineDetails::getQuery();
+            $dQuery->where("#lineId = {$rec->id}");
+            while($dRec = $dQuery->fetch()){
+                $Document = doc_Containers::getDocument($dRec->containerId);
+                if(!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)){
+                    $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
+                }
+                $tInfo = $mvc->cacheLineInfo[$dRec->containerId];
 
-            foreach (array('address', 'addressInfo', 'contragentName') as $fld){
-                if(!empty($tInfo[$fld])){
-                    $res .= ' ' . plg_Search::normalizeText($tInfo[$fld]);
+                foreach (array('address', 'addressInfo', 'contragentName') as $fld){
+                    if(!empty($tInfo[$fld])){
+                        $res .= ' ' . plg_Search::normalizeText($tInfo[$fld]);
+                    }
                 }
             }
         }
