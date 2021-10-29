@@ -103,7 +103,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'start, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy, countries';
+    public $listFields = 'start, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy';
     
     
     /**
@@ -159,7 +159,7 @@ class trans_Lines extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'title,start,repeat,countStoreDocuments,countActiveDocuments,countReadyDocuments,cases,stores';
+    public $fieldsNotToClone = 'title,start,repeat,countStoreDocuments,countActiveDocuments,countReadyDocuments,cases,stores, countries';
     
     
     /**
@@ -222,13 +222,13 @@ class trans_Lines extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $titleArr = explode('/', $rec->title);
-        $start = dt::mysql2verbal($rec->start, 'd.m.Y H:i');
-        $start = str_replace(' 00:00', '', $start);
-        
-        $title = (countR($titleArr) == 2) ? $titleArr[1] : $rec->title;
-        $title = str::limitLen($title, 32);
-        $recTitle = "№{$rec->id}/" . $title . "/{$start}";
+        $titleArr = array();
+        $titleArr[] = str_replace(' 00:00', '', dt::mysql2verbal($rec->start, 'd.m.Y H:i'));
+        if(!empty($rec->forwarderId)){
+            $titleArr[] = str::limitLen(static::getVerbal($rec, 'forwarderId'), 32);
+        }
+        $titleArr[] = str::limitLen(static::getVerbal($rec, 'title'), 32);
+        $recTitle = implode('/', $titleArr);
 
         return $recTitle;
     }
