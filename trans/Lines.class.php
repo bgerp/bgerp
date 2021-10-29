@@ -778,6 +778,12 @@ class trans_Lines extends core_Master
                 }
                 $tInfo = $mvc->cacheLineInfo[$dRec->containerId];
 
+                if(isset($tInfo['countryId'])){
+                    $countryNameBg = drdata_Countries::getCountryName($tInfo['countryId'], 'bg');
+                    $countryNameEn = drdata_Countries::getCountryName($tInfo['countryId'], 'en');
+                    $res .= ' ' . plg_Search::normalizeText($countryNameBg) . ' ' . plg_Search::normalizeText($countryNameEn);
+                }
+
                 foreach (array('address', 'addressInfo', 'contragentName') as $fld){
                     if(!empty($tInfo[$fld])){
                         $res .= ' ' . plg_Search::normalizeText($tInfo[$fld]);
