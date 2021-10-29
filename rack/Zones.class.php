@@ -1228,7 +1228,11 @@ class rack_Zones extends core_Master
                 }
 
                 if(countR($url)){
-                    $zoneTitle = ht::createLink($zoneTitle, $url);
+                    $backgroundColor = !empty($zoneRec->color) ? $zoneRec->color : rack_Setup::get('DEFAULT_ZONE_COLORS');
+                    $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
+                    $zoneTitle = ht::createLink($zoneTitle, $url,false, array("style"=> "color:{$additionalClass}"));
+                    $zoneTitle->content = str_replace('lightText', '#eceff4', $zoneTitle->content);
+                    $zoneTitle->content = str_replace('darkText', '#2e3440', $zoneTitle->content); 
                 }
             }
         }
