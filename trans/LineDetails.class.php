@@ -201,13 +201,11 @@ class trans_LineDetails extends doc_Detail
 
         if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {
             if($rec->containerState != 'rejected' && $rec->status != 'removed'){
-                core_Lg::push('bg');
                 Mode::push('noBlank', true);
                 Mode::push('renderHtmlInLine', true);
                 $row->documentHtml = $Document->getInlineDocumentBody('xhtml');
                 Mode::pop('renderHtmlInLine');
                 Mode::pop('noBlank');
-                core_Lg::pop();
             }
         }
 
@@ -303,7 +301,7 @@ class trans_LineDetails extends doc_Detail
             $row->_rowTools->addLink('Премахване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Премахване на документа от транспортната линия'));
         }
 
-        if ($Document->haveRightFor('changeline') && (!Mode::is('printing') && !Mode::is('xhtml'))) {
+        if ($Document->haveRightFor('changeline') && (!Mode::is('printing') && !Mode::is('xhtml')) && $rec->status != 'removed') {
             $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
         }
 
@@ -312,7 +310,7 @@ class trans_LineDetails extends doc_Detail
         }
 
         // Ако има платежни документи към складовия
-        if(is_array($rec->paymentsArr)){
+        if(is_array($rec->paymentsArr) && $rec->status != 'removed'){
             $rec->_allPaymentActive = (bool)countR($rec->paymentsArr);
             $amountTpl = new core_ET("");
             foreach ($rec->paymentsArr as $p){

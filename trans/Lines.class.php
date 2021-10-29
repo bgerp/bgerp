@@ -316,7 +316,6 @@ class trans_Lines extends core_Master
     protected static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
     {
         $form = &$data->form;
-        
         $vehicleOptions = trans_Vehicles::makeArray4Select();
         if (countR($vehicleOptions) && is_array($vehicleOptions)) {
             $form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, true));
@@ -324,8 +323,21 @@ class trans_Lines extends core_Master
         
         $form->setOptions('forwarderPersonId', trans_Vehicles::getDriverOptions());
     }
-    
-    
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+        if(isset($data->form->rec->id)){
+            if(trans_LineDetails::fetchField("#lineId = {$data->form->rec->id}")){
+                $data->form->toolbar->removeBtn('save');
+            }
+        }
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
