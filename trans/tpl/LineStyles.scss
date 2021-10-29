@@ -32,6 +32,10 @@
 	padding-left:10px !important;
 }
 
+.document table.listTable tbody tr.detailedView td.documentCol, .document table.listTable tbody tr.detailedView td.logisticCol {
+	font-weight:bold !important;
+}
+
 .document table.listTable tbody tr td.row-notes {
 	font-size: 0.8em;
 }
@@ -75,4 +79,16 @@ table .paymentInStoreDocument td {
 .payment-line-amount {
 	padding:1px;
 	text-align: right !important
+}
+
+td .documentHtml {
+
+	font-size:0.9em;
+	th {
+		background-color:#eee !important;
+		font-weight:normal !important;;
+	}
+	tr {
+		background-color:#f4f5cf;
+	}
 }
