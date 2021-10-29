@@ -577,13 +577,6 @@ function act_test()
         $rec->modifiedOn = dt::now();
         $rec->modifiedBy = core_Users::getCurrent();
         $this->save_($rec, 'stores,cases,transUnitsTotal,countReadyDocuments,countActiveDocuments,countStoreDocuments,modifiedBy,modifiedOn');
-
-        // Ако има неща за приготвяне - нишката се отваря
-        $Threads = cls::get('doc_Threads');
-        $threadRec = doc_Threads::fetch($rec->threadId, 'state');
-        $threadRec->state = static::getThreadState($rec);
-        $Threads->save($threadRec, 'state');
-        $Threads->updateThread($threadRec->id);
     }
 
 
@@ -593,9 +586,9 @@ function act_test()
     public static function getThreadState($id)
     {
         $rec = static::fetchRec($id);
-        if(empty($rec->countStoreDocuments)) return 'opened';
+        if($rec->state == 'closed') return 'closed';
 
-        return ($rec->countStoreDocuments == ($rec->countActiveDocuments + $rec->countReadyDocuments)) ? 'closed' : 'opened';
+        return 'opened';
     }
 
     
