@@ -49,7 +49,7 @@ class trans_LineDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Лог. информация,address=@,notes=@,documentHtml=@,classId=Клас';
+    public $listFields = 'containerId=Документ,amount=Инкасиране,zoneId=Зона,logistic=Лог. информация,documentHtml=@,address=@,notes=@,classId=Клас';
     
     
     /**
@@ -165,8 +165,19 @@ class trans_LineDetails extends doc_Detail
         
         return $rec->id;
     }
-    
-    
+
+
+    /**
+     * Преди подготовката на полетата за листовия изглед
+     */
+    protected static function on_AfterPrepareListFields($mvc, &$res, &$data)
+    {
+        if(Request::get('lineTab') == 'detailed'){
+            $data->listFields['renderDocumentInline'] = true;
+        }
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      *
@@ -188,8 +199,14 @@ class trans_LineDetails extends doc_Detail
             $row->containerId = "<span class='state-{$rec->containerState} document-handler'>{$row->containerId}</span>";
         }
 
-        if (Mode::is('renderHtmlInLine') && isset($Document->layoutFileInLine)) {
-            $row->documentHtml = $Document->getInlineDocumentBody();
+        if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {
+            if($rec->containerState != 'rejected' && $rec->status != 'removed'){
+                Mode::push('noBlank', true);
+                Mode::push('renderHtmlInLine', true);
+                $row->documentHtml = $Document->getInlineDocumentBody('xhtml');
+                Mode::pop('renderHtmlInLine');
+                Mode::pop('noBlank');
+            }
         }
 
         if (!empty($transportInfo['notes'])) {
@@ -284,7 +301,7 @@ class trans_LineDetails extends doc_Detail
             $row->_rowTools->addLink('Премахване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Премахване на документа от транспортната линия'));
         }
 
-        if ($Document->haveRightFor('changeline')) {
+        if ($Document->haveRightFor('changeline') && (!Mode::is('printing') && !Mode::is('xhtml')) && $rec->status != 'removed') {
             $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
         }
 
@@ -293,7 +310,7 @@ class trans_LineDetails extends doc_Detail
         }
 
         // Ако има платежни документи към складовия
-        if(is_array($rec->paymentsArr)){
+        if(is_array($rec->paymentsArr) && $rec->status != 'removed'){
             $rec->_allPaymentActive = (bool)countR($rec->paymentsArr);
             $amountTpl = new core_ET("");
             foreach ($rec->paymentsArr as $p){
@@ -330,8 +347,12 @@ class trans_LineDetails extends doc_Detail
         } else {
             $class = (in_array($transportInfo['state'], array('active', 'rejected '))) ? 'closed' : 'waiting';
         }
+
         $row->ROW_ATTR['class'] = ($rec->status == 'removed') ? 'state-removed' : "state-{$class}";
         $row->ROW_ATTR['class'] .= " group{$rec->classId}";
+        if($fields['renderDocumentInline']){
+            $row->ROW_ATTR['class'] .= " detailedView";
+        }
     }
     
     
@@ -362,12 +383,38 @@ class trans_LineDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter,tdClass=small-field');
+        unset($data->listFields['renderDocumentInline']);
+
+        $data->listTableMvc->setField('containerId', 'tdClass=documentCol');
+        $data->listTableMvc->FNC('logistic', 'varchar', 'smartCenter,tdClass=small-field logisticCol');
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
+        $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');
     }
-    
-    
+
+
+    /**
+     * Добавя след таблицата
+     */
+    protected static function on_AfterRenderListTable($mvc, &$tpl, $data)
+    {
+        if(!Mode::is('printing') && !Mode::is('xhtml')){
+            $tabs = cls::get('core_Tabs', array('htmlClass' => 'deal-history-tab', 'urlParam' => 'lineTab'));
+
+            // Подготовка на табовете
+            $url = getCurrentUrl();
+            unset($url['lineTab']);
+            $tabs->TAB('List', 'Списък', $url);
+            $url['lineTab'] = 'detailed';
+            $tabs->TAB('Detailed', 'Подробно', $url);
+            $selected = (Request::get('lineTab') == 'detailed') ? 'Detailed' : 'List';
+            $tabHtml = $tabs->renderHtml('', $selected);
+
+            $tpl->prepend($tabHtml);
+        }
+    }
+
+
     /**
      * Подготвя формата за добавяне на ЛЕ
      *
@@ -554,35 +601,6 @@ class trans_LineDetails extends doc_Detail
                 unset($data->recs[$i]);
             }
         }
-    }
-
-
-    /**
-     * Подготовка на детайла
-     */
-    public function prepareDetail_($data)
-    {
-        // Ако ще се печата разширено се пушва в определен мод
-        if (Mode::is('printing') && Request::get('Width')) {
-            Mode::push('renderHtmlInLine', true);
-            $data->renderDocumentInLine = true;
-        }
-        
-        parent::prepareDetail_($data);
-    }
-    
-    
-    /**
-     * Рендиране на детайла
-     */
-    public function renderDetail_($data)
-    {
-        $tpl = parent::renderDetail_($data);
-        if ($data->renderDocumentInLine === true) {
-            Mode::pop('renderHtmlInLine');
-        }
-        
-        return $tpl;
     }
     
     

@@ -31,7 +31,7 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, bgerp_plg_Blank, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary, plg_Search';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary, plg_Search';
     
     
     /**
@@ -222,10 +222,11 @@ class trans_Lines extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
+        $rec = static::fetchRec($rec);
         $titleArr = array();
         $titleArr[] = str_replace(' 00:00', '', dt::mysql2verbal($rec->start, 'd.m.Y H:i'));
         if(!empty($rec->forwarderId)){
-            $titleArr[] = str::limitLen(static::getVerbal($rec, 'forwarderId'), 32);
+            $titleArr[] = str::limitLen(crm_Companies::getTitleById($rec->forwarderId, $escaped), 32);
         }
         $titleArr[] = str::limitLen(static::getVerbal($rec, 'title'), 32);
         $recTitle = implode('/', $titleArr);
@@ -294,15 +295,18 @@ class trans_Lines extends core_Master
             }
         }
         
-        if ($mvc->haveRightFor('single', $data->rec) && $rec->state != 'rejected') {
-            $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes');
-            $data->toolbar->addBtn('Печат (Детайли)', $url, 'target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
-        }
-        
         if (!$data->toolbar->haveButton('btnActivate')) {
             if (self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
                 $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В транспортната линия има заявки, чернови или оттеглени експедиционни документи|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на транспортната линия'));
             }
+        }
+
+        // Подмяна на бутона за принтиране с такъв да отчита натиснатия таб на детайла
+        $printBtnId = plg_Printing::getPrintBtnId($mvc, $rec->id);
+        if($data->toolbar->buttons[$printBtnId]){
+            $data->toolbar->removeBtn[$printBtnId];
+            $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes', 'lineTab' => Request::get('lineTab'));
+            $data->toolbar->addBtn('Печат', $url, 'target=_blank,row=2', "id={$printBtnId},target=_blank,row=2,ef_icon = img/16/printer.png,title=Печат на документа");
         }
     }
     
@@ -313,7 +317,6 @@ class trans_Lines extends core_Master
     protected static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
     {
         $form = &$data->form;
-        
         $vehicleOptions = trans_Vehicles::makeArray4Select();
         if (countR($vehicleOptions) && is_array($vehicleOptions)) {
             $form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, true));
@@ -321,8 +324,21 @@ class trans_Lines extends core_Master
         
         $form->setOptions('forwarderPersonId', trans_Vehicles::getDriverOptions());
     }
-    
-    
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+        if(isset($data->form->rec->id)){
+            if(trans_LineDetails::fetchField("#lineId = {$data->form->rec->id}")){
+                $data->form->toolbar->removeBtn('save');
+            }
+        }
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
@@ -424,7 +440,6 @@ class trans_Lines extends core_Master
 
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
-
 
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
@@ -627,7 +642,7 @@ class trans_Lines extends core_Master
         array_walk($recs, function ($rec) use (&$linesArr) {
             $linesArr[$rec->id] = trans_Lines::getRecTitle($rec, false);
         });
-        
+
         return $linesArr;
     }
     
@@ -775,6 +790,12 @@ class trans_Lines extends core_Master
                     $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
                 }
                 $tInfo = $mvc->cacheLineInfo[$dRec->containerId];
+
+                if(isset($tInfo['countryId'])){
+                    $countryNameBg = drdata_Countries::getCountryName($tInfo['countryId'], 'bg');
+                    $countryNameEn = drdata_Countries::getCountryName($tInfo['countryId'], 'en');
+                    $res .= ' ' . plg_Search::normalizeText($countryNameBg) . ' ' . plg_Search::normalizeText($countryNameEn);
+                }
 
                 foreach (array('address', 'addressInfo', 'contragentName') as $fld){
                     if(!empty($tInfo[$fld])){
