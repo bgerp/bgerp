@@ -294,15 +294,18 @@ class trans_Lines extends core_Master
             }
         }
         
-        if ($mvc->haveRightFor('single', $data->rec) && $rec->state != 'rejected') {
-            $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes');
-            $data->toolbar->addBtn('Печат (Детайли)', $url, 'target=_blank,row=2', 'ef_icon = img/16/printer.png,title=Разширен печат на документа');
-        }
-        
         if (!$data->toolbar->haveButton('btnActivate')) {
             if (self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
                 $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В транспортната линия има заявки, чернови или оттеглени експедиционни документи|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на транспортната линия'));
             }
+        }
+
+        // Подмяна на бутона за принтиране с такъв да отчита натиснатия таб на детайла
+        $printBtnId = plg_Printing::getPrintBtnId($mvc, $rec->id);
+        if($data->toolbar->buttons[$printBtnId]){
+            $data->toolbar->removeBtn[$printBtnId];
+            $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes', 'lineTab' => Request::get('lineTab'));
+            $data->toolbar->addBtn('Печат', $url, 'target=_blank,row=2', "id={$printBtnId},target=_blank,row=2,ef_icon = img/16/printer.png,title=Печат на документа");
         }
     }
     
@@ -424,7 +427,6 @@ class trans_Lines extends core_Master
 
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
-
 
         while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);

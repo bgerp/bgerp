@@ -450,22 +450,27 @@ class trans_plg_LinesPlugin extends core_Plugin
      * Информацията на документа, за показване в транспортната линия
      *
      * @param core_Mvc $mvc
-     * @param $res
-     * 		['baseAmount'] double|NULL - сумата за инкасиране във базова валута
-     * 		['amount']     double|NULL - сумата за инкасиране във валутата на документа
-     * 		['currencyId'] string|NULL - валутата на документа
-     * 		['notes']      string|NULL - забележки за транспортната линия
-     *  	['stores']     array       - склад(ове) в документа
-     *      ['cases']      array       - каси в документа
-     *      ['zoneId']         array       - ид на зона, в която е нагласен документа
-     *      ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
-     *   	['weight']     double|NULL - общо тегло на стоките в документа
-     *     	['volume']     double|NULL - общ обем на стоките в документа
-     *      ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
-     *      ['contragentName'] double|NULL - име на контрагента
-     *      
+     *
+     * @return array
+     *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
+     *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
+     *               ['amountVerbal']   double|NULL - сумата за инкасиране във валутата на документа
+     *               ['currencyId']     string|NULL - валутата на документа
+     *               ['notes']          string|NULL - забележки за транспортната линия
+     *               ['stores']         array       - склад(ове) в документа
+     *               ['weight']         double|NULL - общо тегло на стоките в документа
+     *               ['volume']         double|NULL - общ обем на стоките в документа
+     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['contragentName'] double|NULL - име на контрагента
+     *               ['address']        double|NULL - адрес ба диставка
+     *               ['storeMovement']  string|NULL - посока на движението на склада
+     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
+     *               ['countryId']      string|NULL - ид на държава
+     *
      * @param mixed $id
      * @param int $lineId
+     * @return void
      */
     public function on_AfterGetTransportLineInfo($mvc, &$res, $id, $lineId)
     {
