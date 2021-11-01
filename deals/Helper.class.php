@@ -1455,7 +1455,7 @@ abstract class deals_Helper
             $row = trans_TransportUnits::display($bestArr['unitId'], $bestArr['quantity']);
             $row = "<span style='color:blue'>{$row}</span>";
 
-            return ht::createHint($row, 'Логистичните еденици са изчислени динамично', 'notice', false);
+            return ht::createHint($row, 'Логистичните единици са изчислени динамично', 'notice', false);
 
         }
 
