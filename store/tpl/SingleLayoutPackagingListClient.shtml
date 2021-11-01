@@ -59,7 +59,7 @@
                     <b>[#company#]</b>
                     <div class='address-block'>
                         [#country#], [#pCode#] [#place#] <br>
-                        [#address#]
+                        [#address#][#addressInfo#]
                         <!--ET_BEGIN person-->
                         <hr style="margin: 3px 0 1px;">
                         <div>
@@ -133,7 +133,7 @@
                        <tr>
                            <td colspan="2" >
                                <div>
-                                   <span class='half-col'>Total weight:&nbsp;[#weight#]</span> <span class='half-col'>Total volume:&nbsp;[#volume#]</span>
+                                   <span class='half-col'>Total weight:&nbsp;[#weight#]</span>
                                </div>
                            </td>
                        </tr>
