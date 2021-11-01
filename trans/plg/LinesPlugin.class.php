@@ -310,8 +310,11 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $units = $rec->transUnits;
                     $hint = tr('Лог. ед. са изчислени сумарно за документа');
                 }
-                $row->logisticInfo = trans_Helper::displayTransUnits($units);
-                $row->logisticInfo = ht::createHint($row->logisticInfo, $hint);
+
+                if(countR($units)){
+                    $row->logisticInfo = trans_Helper::displayTransUnits($units);
+                    $row->logisticInfo = ht::createHint($row->logisticInfo, $hint);
+                }
             }
         }
         

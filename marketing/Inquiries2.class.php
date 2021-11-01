@@ -1225,7 +1225,7 @@ class marketing_Inquiries2 extends embed_Manager
             // Ако няма въведени количества
             if (empty($rec->quantity1) && empty($rec->quantity2) && empty($rec->quantity3)) {
                 
-                // Ако има МОК, потребителя трябва да въведе количество, иначе се приема за еденица
+                // Ако има МОК, потребителя трябва да въведе количество, иначе се приема за единица
                 if ($rec->moq > 0) {
                     $form->setError('quantity1,quantity2,quantity3', "Очаква се поне едно от количествата да е над||It is expected that at least one quantity is over|* <b>{$moqVerbal}</b>");
                 } else {

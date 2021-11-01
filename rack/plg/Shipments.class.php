@@ -198,8 +198,22 @@ class rack_plg_Shipments extends core_Plugin
         $rec = $mvc->fetchRec($id);
         rack_Zones::clearZone($rec->containerId);
     }
-    
-    
+
+
+    /**
+     * След ръчно реконтиране на документа
+     *
+     * @param core_Mvc   $mvc
+     * @param mixed      $res
+     * @param int|object $id  първичен ключ или запис на $mvc
+     */
+    public static function on_AfterDebugReconto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        rack_Zones::clearZone($rec->containerId);
+    }
+
+
     /**
      * Реакция в счетоводния журнал при оттегляне на счетоводен документ
      *
