@@ -374,6 +374,7 @@ abstract class deals_DealBase extends core_Master
             }
             
             if (!$form->gotErrors()) {
+                setIfNot($rec->valior, dt::today());
                 $this->save($rec);
                 
                 if (!empty($form->rec->closeWith)) {
@@ -389,11 +390,6 @@ abstract class deals_DealBase extends core_Master
                         $this->logWrite('Приключено с друга сделка', $dealId);
                         $CloseDoc->conto($clId);
                     }
-                }
-
-                if(empty($rec->valior)){
-                    $rec->valior = dt::today();
-                    $this->save_($rec, 'valior');
                 }
 
                 $this->invoke('AfterActivation', array($rec));
