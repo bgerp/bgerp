@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -33,7 +33,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         $mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Бруто,forceField,autohide');
         $mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
         $mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,tdClass=nowrap,after={$mvc->volumeField},input=none");
-        $mvc->FLD('transUnitQuantity', 'int', 'caption=Логистична информация->К-во,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
+        $mvc->FLD('transUnitQuantity', 'int(min=1)', 'caption=Логистична информация->К-во,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
     }
     
     
@@ -47,7 +47,10 @@ class store_plg_TransportDataDetail extends core_Plugin
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
+        $remFields = $form->getFieldParam($mvc->packagingFld, 'removeAndRefreshForm') . '|transUnitId|transUnitQuantity';
+        $form->setField($mvc->packagingFld, "removeAndRefreshForm={$remFields}");
+
         if (isset($rec->{$mvc->productFld})) {
             
             // Ако артикула е складируем, показват се полетата за тегло/обем
@@ -71,19 +74,13 @@ class store_plg_TransportDataDetail extends core_Plugin
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        // Показване на транспортното тегло/обем ако няма, се показва 'live'
-        $row->weight = deals_Helper::getWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->weightField});
-        $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->volumeField});
-        
         $canStore = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');
         if($canStore != 'yes') return;
 
-        $transUnitId = isset($rec->transUnitId) ? $rec->transUnitId : trans_TransportUnits::fetchIdByName('load');
-        $row->transUnitId = trans_TransportUnits::display($transUnitId, $rec->transUnitQuantity);
-        
-        if(empty($rec->transUnitQuantity)){
-            unset($row->transUnitId);
-        }
+        // Показване на транспортното тегло/обем/лог.ед ако няма, сизчисляват динамично
+        $row->weight = deals_Helper::getWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->weightField});
+        $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->volumeField});
+        $row->transUnitId = deals_Helper::getTransUnitRow($rec->{$mvc->productFld}, $rec->{$mvc->quantityFld}, $rec->transUnitId, $rec->transUnitQuantity);
     }
     
     
@@ -143,17 +140,41 @@ class store_plg_TransportDataDetail extends core_Plugin
             } else {
                 $cVolume = null;
             }
-            
-            $unitId = (!empty($rec->transUnitId)) ? $rec->transUnitId : trans_TransportUnits::fetchIdByName('load');
-            $uQuantity = (!empty($rec->transUnitQuantity)) ? $rec->transUnitQuantity : 1;
-            
-            $units[$unitId] += $uQuantity;
+
+            // Изчисляват се логиситчните еденици
+            $unitId = $uQuantity = null;
+            if(isset($rec->transUnitId) && isset($rec->transUnitQuantity)){
+                $unitId = $rec->transUnitId;
+                $uQuantity = $rec->transUnitQuantity;
+            } else {
+                $bestUnits = trans_TransportUnits::getBestUnit($rec->{$mvc->productFld}, $rec->{$mvc->quantityFld});
+                if(is_array($bestUnits)){
+                    $unitId = $bestUnits['unitId'];
+                    $uQuantity = $bestUnits['quantity'];
+                }
+            }
+
+            if(isset($unitId) && isset($uQuantity)){
+                $units[$unitId] += $uQuantity;
+            }
+
+            if ($force === true && empty($rec->{$mvc->transUnitId}) && !empty($unitId)) {
+                $clone = clone $rec;
+                $clone->transUnitId = $unitId;
+                $mvc->save_($clone, 'transUnitId');
+            }
+
+            if ($force === true && empty($rec->{$mvc->transUnitQuantity}) && !empty($uQuantity)) {
+                $clone = clone $rec;
+                $clone->transUnitQuantity = $uQuantity;
+                $mvc->save_($clone, 'transUnitQuantity');
+            }
         }
         
         // Връщане на обема и теглото
         $weight = (!empty($cWeight)) ? $cWeight : null;
         $volume = (!empty($cVolume)) ? $cVolume : null;
-        
+
         $res = (object) array('weight' => $weight, 'volume' => $volume, 'transUnits' => $units);
     }
     
@@ -229,7 +250,9 @@ class store_plg_TransportDataDetail extends core_Plugin
             $rec = &$form->rec;
             
             if (empty($rec->transUnitId) && !empty($rec->transUnitQuantity)) {
-                $form->setError('transUnitId,transUnitQuantity', 'Липсва логистична единица');
+                $form->setError('transUnitId,transUnitQuantity', 'Липсва логистична еденица');
+            } elseif(empty($rec->transUnitQuantity) && !empty($rec->transUnitId)){
+                $form->setError('transUnitId,transUnitQuantity', 'Липсва количеството на логистичната еденица');
             }
         }
     }
@@ -246,29 +269,25 @@ class store_plg_TransportDataDetail extends core_Plugin
      */
     public static function on_AfterGetTransUnits($mvc, &$res, $masterRec)
     {
-        if (!empty($res)) {
-            
-            return;
-        }
-        
+        if (!empty($res)) return;
+
         $res = array();
         $dQuery = $mvc->getQuery();
-        $dQuery->where("#{$mvc->masterKey} = {$masterRec->id}");
-        $dQuery->show("transUnitId,transUnitQuantity,{$mvc->productFld}");
-        
+        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$mvc->productFld}");
+        $dQuery->where("#{$mvc->masterKey} = {$masterRec->id} AND #canStore = 'yes'");
+        $dQuery->show("transUnitId,transUnitQuantity,{$mvc->productFld},{$mvc->quantityFld}");
+
         while ($dRec = $dQuery->fetch()) {
-            $canStore = cat_Products::fetchField($dRec->{$mvc->productFld}, 'canStore');
-            if($canStore != 'yes') continue;
-            if(empty($dRec->transUnitQuantity)) continue;
-            
-            if (!empty($dRec->transUnitId)) {
+            if(isset($dRec->transUnitId) && isset($dRec->transUnitQuantity)){
                 $res[$dRec->transUnitId] += $dRec->transUnitQuantity;
             } else {
-                $defUnitId = trans_TransportUnits::fetchIdByName('load');
-                ++$res[$defUnitId];
+                $bestArr = trans_TransportUnits::getBestUnit($dRec->{$mvc->productFld}, $dRec->{$mvc->quantityFld});
+                if(is_array($bestArr)){
+                    $res[$bestArr['unitId']] += $bestArr['quantity'];
+                }
             }
         }
-        
+
         return $res;
     }
 }

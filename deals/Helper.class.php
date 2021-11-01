@@ -1404,7 +1404,8 @@ abstract class deals_Helper
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
         if ($hint === true) {
             $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : 'Транспортният обем е прогнозен';
-            $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството");
+            $valueRow = "<span style='color:blue'>{$valueRow}</span>";
+            $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
        
         // Показване на предупреждение
@@ -1431,8 +1432,37 @@ abstract class deals_Helper
     {
         return self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume);
     }
-    
-    
+
+
+    /**
+     * Показва реда за логистичната информация за артикула
+     *
+     * @param $productId
+     * @param $quantity
+     * @param null|int $transUnitId
+     * @param null|double $transUnitQuantity
+     * @return null|array
+     */
+    public static function getTransUnitRow($productId, $quantity, $transUnitId = null, $transUnitQuantity = null)
+    {
+        if(isset($transUnitId) && isset($transUnitQuantity)){
+
+            return trans_TransportUnits::display($transUnitId, $transUnitQuantity);
+        }
+
+        $bestArr = trans_TransportUnits::getBestUnit($productId, $quantity);
+        if(isset($bestArr)){
+            $row = trans_TransportUnits::display($bestArr['unitId'], $bestArr['quantity']);
+            $row = "<span style='color:blue'>{$row}</span>";
+
+            return ht::createHint($row, 'Логистичните еденици са изчислени динамично', 'notice', false);
+
+        }
+
+        return null;
+    }
+
+
     /**
      * Връща реда за транспортното тегло на артикула
      *
