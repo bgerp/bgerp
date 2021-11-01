@@ -59,7 +59,7 @@
                     <b>[#company#]</b>
                     <div class='address-block'>
                         [#country#], [#pCode#] [#place#] <br>
-                        [#address#]
+                        [#address#][#addressInfo#]
                         <!--ET_BEGIN person-->
                         <hr style="margin: 3px 0 1px;">
                         <div>
