@@ -256,38 +256,4 @@ class store_plg_TransportDataDetail extends core_Plugin
             }
         }
     }
-    
-    
-    /**
-     * Какви са използваните ЛЕ
-     *
-     * @param core_Mvc $mvc       - документ
-     * @param array    $res       - масив с резултати
-     * @param stdClass $masterRec - ид на мастъра
-     *
-     * @return void
-     */
-    public static function on_AfterGetTransUnits($mvc, &$res, $masterRec)
-    {
-        if (!empty($res)) return;
-
-        $res = array();
-        $dQuery = $mvc->getQuery();
-        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$mvc->productFld}");
-        $dQuery->where("#{$mvc->masterKey} = {$masterRec->id} AND #canStore = 'yes'");
-        $dQuery->show("transUnitId,transUnitQuantity,{$mvc->productFld},{$mvc->quantityFld}");
-
-        while ($dRec = $dQuery->fetch()) {
-            if(isset($dRec->transUnitId) && isset($dRec->transUnitQuantity)){
-                $res[$dRec->transUnitId] += $dRec->transUnitQuantity;
-            } else {
-                $bestArr = trans_TransportUnits::getBestUnit($dRec->{$mvc->productFld}, $dRec->{$mvc->quantityFld});
-                if(is_array($bestArr)){
-                    $res[$bestArr['unitId']] += $bestArr['quantity'];
-                }
-            }
-        }
-
-        return $res;
-    }
 }
