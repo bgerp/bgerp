@@ -1278,7 +1278,7 @@ class rack_Zones extends core_Master
             
             if (!empty($zoneRec->description)) {
                 $description = rack_Zones::getVerbal($zoneRec, 'description');
-                $hint = ht::createHint($hint, $description, 'notice', false,'style=background-color:#fff !important;margin-left:3px;border-radius:3px;');
+                $hint = ht::createHint($hint, $description, 'notice', false,'style=background-color:#fff !important;margin-left:3px;border-radius:8px;');
             }
             
             if(countR($url)){
