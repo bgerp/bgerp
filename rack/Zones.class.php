@@ -153,7 +153,7 @@ class rack_Zones extends core_Master
         $this->FLD('description', 'text(rows=2)', 'caption=Описание');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory,remember,input=hidden');
         $this->FLD('containerId', 'key(mvc=doc_Containers)', 'caption=Документ,input=none');
-        $this->FLD('defaultUserId', 'key(mvc=core_Users,select=nick)', 'caption=Дефолтен работник,input=none');
+        $this->FLD('defaultUserId', 'key(mvc=core_Users,select=nick)', 'caption=Изпълнител,input=none');
         $this->FLD('readiness', 'percent', 'caption=Готовност,input=none');
         $this->FLD('groupId', 'key(mvc=rack_ZoneGroups,select=name,allowEmpty)', 'caption=Група,placeholder=Без групиране');
 
@@ -193,6 +193,7 @@ class rack_Zones extends core_Master
             } else {
                 $row->containerId = $Document->getLink(0);
             }
+            $row->containerId = "<span class='document-handler state-{$Document->fetchField('state')}'>{$row->containerId}</span>";
         }
 
         if($isTerminal) {
@@ -213,7 +214,9 @@ class rack_Zones extends core_Master
                 if($isTerminal) {
                     $lineAttr = array('ef_icon' => false);
                 }
+                $lineState = trans_Lines::fetchField($documentRec->{$document->lineFieldName}, 'state');
                 $row->lineId = trans_Lines::getLink($documentRec->{$document->lineFieldName}, 0, $lineAttr);
+                $row->lineId = "<span class='document-handler state-{$lineState}'>{$row->lineId}</span>";
             }
         }
 
@@ -398,6 +401,7 @@ class rack_Zones extends core_Master
         if($data->isTerminal){
             $mvc->currentTab = 'Зони->Терминал';
             unset($data->listFields['lineId']);
+            unset($data->listFields['defaultUserId']);
             arr::placeInAssocArray($data->listFields, array('lineId' => 'Линия'), 'readiness');
         } else {
             $mvc->currentTab = 'Зони->Списък';
@@ -585,7 +589,7 @@ class rack_Zones extends core_Master
         $form->title = 'Събиране на редовете на|* ' . $document->getFormTitleLink();
         $form->info = tr('Склад|*: ') . store_Stores::getHyperlink($storeId, true);
         $form->FLD('zoneId', 'key(mvc=rack_Zones,select=name)', 'caption=Зона');
-        $form->FLD('defaultUserId', 'user(roles=rack|ceo, allowEmpty)', 'caption=Изпълнител,placeholder=Без');
+        $form->FLD('defaultUserId', 'user(roles=rack|ceo, allowEmpty)', 'caption=Изпълнител,placeholder=Няма');
         $zoneOptions = rack_Zones::getZones($storeId, true);
         $zoneRec = rack_Zones::fetch("#containerId = {$containerId}");
 
