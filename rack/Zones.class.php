@@ -238,15 +238,10 @@ class rack_Zones extends core_Master
                 $row->_rowTools->addLink('Премахване', array($mvc, 'removeDocument', $rec->id, 'ret_url' => true), "id=remove{$rec->id},ef_icon=img/16/gray-close.png,title=Премахване на документа от зоната,warning=Наистина ли искате да премахнете документа и свързаните движения|*?");
             }
 
-            $id = self::getRecTitle($rec);
+            $id = self::getRecTitle($rec); 
             $terminalLink = ($isTerminal) ? 'single' : 'terminal';
-            $num = rack_Zones::getDisplayZone($rec->id, true, $terminalLink);
+            $num = rack_Zones::getDisplayZone($rec->id, true, $terminalLink);             
             $row->num = ht::createElement("div", array('id' => $id), $num, true);
-        }
-
-        if (!empty($rec->description)) {
-            $description = $mvc->getVerbal($rec, 'description');
-            $row->num = ht::createHint($row->num, $description);
         }
 
         if (isset($fields['-single'])) {
@@ -1254,7 +1249,7 @@ class rack_Zones extends core_Master
         $warning = null;
 
         // Линк към зоната
-        $zoneRec = rack_Zones::fetchRec($zoneId);
+        $zoneRec = rack_Zones::fetchRec($zoneId); 
         if($makeLink !== false){
             expect(in_array($makeLink, array('single', 'terminal')));
             $url = array();
@@ -1280,7 +1275,12 @@ class rack_Zones extends core_Master
                     }
                 }
             }
-
+            
+            if (!empty($zoneRec->description)) {
+                $description = rack_Zones::getVerbal($zoneRec, 'description');
+                $hint = ht::createHint($hint, $description, 'notice', false,'style=background-color:#fff !important;margin-left:3px;border-radius:3px;');
+            }
+            
             if(countR($url)){
                 $backgroundColor = !empty($zoneRec->color) ? $zoneRec->color : rack_Setup::get('DEFAULT_ZONE_COLORS');
                 $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
@@ -1294,8 +1294,9 @@ class rack_Zones extends core_Master
         if(isset($class)){
             $backgroundColor = !empty($zoneRec->color) ? $zoneRec->color : rack_Setup::get('DEFAULT_ZONE_COLORS');
             $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
-            $res = new core_ET("<div class='{$class} {$additionalClass}' style='background-color:{$backgroundColor};'>[#element#]</div>");
+            $res = new core_ET("<div class='{$class} {$additionalClass}' style='background-color:{$backgroundColor};'>[#element#]</div>[#hint#]");
             $res->replace($zoneTitle, 'element');
+            $res->replace($hint, 'hint');
             $zoneTitle = $res->getContent();
         }
 
