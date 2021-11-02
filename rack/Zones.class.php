@@ -616,7 +616,9 @@ class rack_Zones extends core_Master
                         $form->setError('zoneId', "Не може да премахнете документа от зона|* <b>" . rack_Zones::getDisplayZone($zoneRec->id) . "</b>, |защото има вече запазени или започнати движения. Документът може да бъде премахнат след отказването им|*!");
                     }
                 } elseif($fRec->defaultUserId == $zoneRec->defaultUserId) {
-                    $form->setError('zoneId', "Зоната е същата");
+                    $form->setError('zoneId,defaultUserId', "Зоната и изпълнителя са същите");
+                } elseif(rack_Movements::fetch("LOCATE('|{$zoneRec->id}|', #zoneList) AND #state = 'waiting' AND #workerId = '{$zoneRec->defaultUserId}'")){
+                    $form->setError('defaultUserId', "За да смените изпълнителя, трябва първо да откажете запазените движения от предишния");
                 }
             }
 
