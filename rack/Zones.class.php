@@ -235,7 +235,7 @@ class rack_Zones extends core_Master
             }
 
             $id = self::getRecTitle($rec);
-            $num = rack_Zones::getDisplayZone($rec->id, true, 'single');
+            $num = rack_Zones::getDisplayZone($rec->id, true);
             $row->num = ht::createElement("div", array('id' => $id), $num, true);
         }
 
