@@ -209,7 +209,6 @@ class trans_Lines extends core_Master
 
         $this->FLD('stores', 'keylist(mvc=store_Stores,select=name)', 'caption=Складове,input=none');
         $this->FLD('cases', 'keylist(mvc=cash_Cases,select=name)', 'caption=Каси,input=none');
-        $this->FLD('transUnitsTotal', 'blob(serialize, compress)', 'input=none,caption=Логистична информация');
         $this->FLD('countStoreDocuments', 'int', 'input=none,notNull,value=0');
         $this->FLD('countActiveDocuments', 'int', 'input=none,notNull,value=0');
         $this->FLD('countReadyDocuments', 'int', 'input=none,notNull,value=0');
@@ -422,7 +421,22 @@ class trans_Lines extends core_Master
             }
         }
 
-        $transUnitsVerbal = trans_Helper::displayTransUnits($rec->transUnitsTotal);
+        // Лайв изчисление на общите ЛЕ
+        $transUnitsTotal = array();
+        $dQuery = trans_LineDetails::getQuery();
+        $dQuery->where("#lineId = {$rec->id}");
+        while($dRec = $dQuery->fetch()){
+            $Document = doc_Containers::getDocument($dRec->containerId);
+            if(!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)){
+                $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
+            }
+            $transportInfo = $mvc->cacheLineInfo[$dRec->containerId];
+            if(is_array($transportInfo['transportUnits'])){
+                trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
+            }
+        }
+
+        $transUnitsVerbal = trans_Helper::displayTransUnits($transUnitsTotal);
         $row->transUnitsTotal = empty($transUnitsVerbal) ? "<span class='quiet'>N/A</span>" : $transUnitsVerbal;
     }
 
@@ -559,7 +573,7 @@ class trans_Lines extends core_Master
         $dQuery->where("#containerState != 'rejected' AND #status != 'removed'");
         $dQuery->show('status,containerId,containerState');
 
-        $stores = $cases = $transUnitsTotal = $countries = array();
+        $stores = $cases = $countries = array();
         $rec->countStoreDocuments = $rec->countActiveDocuments = $rec->countReadyDocuments = 0;
         while ($dRec = $dQuery->fetch()) {
             $Doc = doc_Containers::getDocument($dRec->containerId);
@@ -580,10 +594,6 @@ class trans_Lines extends core_Master
 
                 if(rack_Zones::fetchField("#containerId = {$dRec->containerId} AND #readiness >= 1")){
                     $rec->countReadyDocuments++;
-                }
-
-                if(is_array($lineInfo['transportUnits'])){
-                    trans_Helper::sumTransUnits($transUnitsTotal, $lineInfo['transportUnits']);
                 }
             }
 
@@ -606,7 +616,6 @@ class trans_Lines extends core_Master
             $cases = array_combine(array_values($cases), $cases);
             $rec->cases = keylist::fromArray($cases);
         }
-        $rec->transUnitsTotal = countR($transUnitsTotal) ? $transUnitsTotal : null;
 
         $rec->modifiedOn = dt::now();
         $rec->modifiedBy = core_Users::getCurrent();
