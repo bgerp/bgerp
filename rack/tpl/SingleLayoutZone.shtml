@@ -30,6 +30,12 @@
                     <td >[#description#]</td>
                 </tr>
                 <!--ET_END description-->
+                <!--ET_BEGIN defaultUserId-->
+                <tr>
+                    <td style='text-align:left' class='quiet'>|Дефолтен работник|*:</td>
+                    <td >[#defaultUserId#]</td>
+                </tr>
+                <!--ET_END defaultUserId-->
             </table>
         </div>
     </fieldset>
