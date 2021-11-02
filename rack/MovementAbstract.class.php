@@ -126,7 +126,7 @@ abstract class rack_MovementAbstract extends core_Manager
             $userIdVerbal = crm_Profiles::createLink($rec->canceledBy);
 
             if(isset($fields['-inline'])){
-                $row->movement = ht::createHint($row->movement, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", 'img/16/cart_go_back.png');
+                $row->movement = ht::createHint($row->movement, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", null,true, array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18));
             } else {
                 $row->productId = ht::createHint($row->productId, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", 'img/16/cart_go_back.png');
             }
