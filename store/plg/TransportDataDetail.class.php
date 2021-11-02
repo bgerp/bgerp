@@ -250,9 +250,9 @@ class store_plg_TransportDataDetail extends core_Plugin
             $rec = &$form->rec;
             
             if (empty($rec->transUnitId) && !empty($rec->transUnitQuantity)) {
-                $form->setError('transUnitId,transUnitQuantity', 'Липсва логистична еденица');
+                $form->setError('transUnitId,transUnitQuantity', 'Липсва логистична единица');
             } elseif(empty($rec->transUnitQuantity) && !empty($rec->transUnitId)){
-                $form->setError('transUnitId,transUnitQuantity', 'Липсва количеството на логистичната еденица');
+                $form->setError('transUnitId,transUnitQuantity', 'Липсва количеството на логистичната единица');
             }
         }
     }

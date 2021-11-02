@@ -173,12 +173,12 @@ class trans_TransportUnits extends core_Manager
 
 
     /**
-     * Коя е най-добрата логистична еденица за подаденото к-во от артикула
+     * Коя е най-добрата логистична единица за подаденото к-во от артикула
      *
      * @param $productId
      * @param $quantity
      * @return array|null
-     *      ['unitId']   - ид на лог. еденица
+     *      ['unitId']   - ид на лог. единица
      *      ['quantity'] - к-во от логистичната единица
      */
     public static function getBestUnit($productId, $quantity)
