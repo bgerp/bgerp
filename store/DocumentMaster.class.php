@@ -1150,7 +1150,7 @@ abstract class store_DocumentMaster extends core_Master
             $notes = cls::get('type_Richtext')->fromVerbal($notes);
         }
         
-        // Броя еденици в опаковка, се определя от информацията за продукта
+        // Броя единици в опаковка се определя от информацията за продукта
         $productInfo = cat_Products::getProductInfo($productId);
         if (empty($packagingId)) {
             $packagingId = $productInfo->productRec->measureId;

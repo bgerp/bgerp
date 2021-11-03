@@ -1884,7 +1884,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $notes = cls::get('type_Richtext')->fromVerbal($notes);
         }
         
-        // Броя еденици в опаковка, се определя от информацията за продукта
+        // Броят единици в опаковка се определя от информацията за продукта
         $productInfo = cat_Products::getProductInfo($productId);
         if (empty($packagingId)) {
             $packagingId = $productInfo->productRec->measureId;
