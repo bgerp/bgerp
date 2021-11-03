@@ -816,8 +816,10 @@ abstract class store_DocumentMaster extends core_Master
         
         $res['deliveryTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
         $res['ourReff'] = '#' . $this->getHandle($rec);
-        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $rec->weight;
-        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+
+        $totalInfo = $this->getTotalTransportInfo($rec);
+        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $totalInfo->weight;
+        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $totalInfo->volume;
 
         if(!empty($rec->addressInfo)){
             $res["{$contrPart}AddressInfo"] = $rec->addressInfo;
