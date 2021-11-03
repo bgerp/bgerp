@@ -643,7 +643,10 @@ abstract class store_DocumentMaster extends core_Master
         $rec = $this->fetchRec($id);
         
         // Конвертираме данъчната основа към валутата идваща от продажбата
-        $aggregator->setIfNot('deliveryLocation', $rec->locationId);
+        if(isset($rec->locationId)){
+            $aggregator->setIfNot('deliveryLocation', $rec->locationId);
+        }
+
         $aggregator->setIfNot('deliveryTime', $rec->deliveryTime);
         $aggregator->setIfNot('storeId', $rec->storeId);
         $aggregator->setIfNot('shippedValior', $rec->valior);
