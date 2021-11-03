@@ -141,7 +141,7 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $cVolume = null;
             }
 
-            // Изчисляват се логиситчните еденици
+            // Изчисляват се логистичните единици
             $unitId = $uQuantity = null;
             if(isset($rec->transUnitId) && isset($rec->transUnitQuantity)){
                 $unitId = $rec->transUnitId;
