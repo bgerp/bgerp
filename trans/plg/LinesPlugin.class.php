@@ -252,7 +252,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             
             $transInfo = $mvc->getTotalTransportInfo($rec->id);
             $warningWeight = $warningVolume = false;
-            
+
             setIfNot($rec->{$mvc->totalWeightFieldName}, $transInfo->weight);
             $rec->calcedWeight = $rec->{$mvc->totalWeightFieldName};
             $rec->{$mvc->totalWeightFieldName} = ($rec->weightInput) ? $rec->weightInput : $rec->{$mvc->totalWeightFieldName};
@@ -269,7 +269,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalWeightFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalWeightFieldName} = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->{$mvc->totalWeightFieldName});
-                $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight);
+                $row->{$mvc->totalWeightFieldName} = ht::createHint($row->{$mvc->totalWeightFieldName}, $hintWeight, 'notice', false);
                 
                 if($warningWeight){
                     $liveValueVerbal = $mvc->getFieldType($mvc->totalWeightFieldName)->toVerbal($rec->calcedWeight);
@@ -294,7 +294,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->{$mvc->totalVolumeFieldName} = "<span class='quiet'>N/A</span>";
             } else {
                 $row->{$mvc->totalVolumeFieldName} = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->{$mvc->totalVolumeFieldName});
-                $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume);
+                $row->{$mvc->totalVolumeFieldName} = ht::createHint($row->{$mvc->totalVolumeFieldName}, $hintVolume, 'notice', false);
                 
                 if($warningVolume){
                     $liveVolumeVerbal = $mvc->getFieldType($mvc->totalVolumeFieldName)->toVerbal($rec->calcedVolume);
@@ -306,14 +306,16 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if(!empty($rec->transUnitsInput)){
                     $units = $rec->transUnitsInput;
                     $hint = '|Лог. ед. са ръчно въведени за целия документ|*';
+                    $hintType = 'notice';
                 } else {
-                    $units = $rec->transUnits;
+                    $units = ($rec->transUnits) ? $rec->transUnits : $transInfo->transUnits;
                     $hint = tr('Лог. ед. са изчислени сумарно за документа');
+                    $hintType = 'warning';
                 }
 
                 if(countR($units)){
                     $row->logisticInfo = trans_Helper::displayTransUnits($units);
-                    $row->logisticInfo = ht::createHint($row->logisticInfo, $hint);
+                    $row->logisticInfo = ht::createHint($row->logisticInfo, $hint, $hintType, false);
                 }
             }
         }
@@ -426,22 +428,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
         $masterRec = $mvc->fetchRec($id);
-        
-        if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $details = arr::make($mvc->details, true);
-            $unitsArr = array();
-            foreach ($details as $det) {
-                if (cls::haveInterface('store_iface_DetailsTransportData', $det)) {
-                    $units = cls::get($det)->getTransUnits($masterRec);
-                    trans_Helper::sumTransUnits($unitsArr, $units);
-                }
-            }
-            
-            // Записват се сумарните ЛЕ от детайлите на документа
-            $masterRec->transUnits = $unitsArr;
-            $mvc->save_($masterRec, 'transUnits');
-        }
-        
+
         // Синхронизиране с транспортната линия ако е избрана
         if (isset($masterRec->lineId)) {
             cls::get('trans_Lines')->updateMaster($masterRec->lineId);
@@ -499,7 +486,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $res['state'] = $rec->state;
             }
 
-            $units =  !empty($rec->transUnitsInput) ? $rec->transUnitsInput : $rec->transUnits;
+            $units =  !empty($rec->transUnitsInput) ? $rec->transUnitsInput : $transInfo->transUnits;
             $res['transportUnits'] = $units;
         }
     }
@@ -580,10 +567,8 @@ class trans_plg_LinesPlugin extends core_Plugin
      */
     public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
     {
-        if(is_array($res)){
-            $res[$mvc->lineFieldName] = $mvc->lineFieldName;
-        } else {
-            $res .= ",{$mvc->lineFieldName}";
+        foreach (array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName, $mvc->lineFieldName, $mvc->lineNoteFieldName) as $fld){
+            $res[$fld] = $fld;
         }
     }
 }

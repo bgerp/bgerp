@@ -25,8 +25,16 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
     public $hideListFieldsIfEmpty = 'transUnitId';
-    
-    
+
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'transUnitId,transUnitQuantity';
+
+
     /**
      * Описание на модела (таблицата)
      */

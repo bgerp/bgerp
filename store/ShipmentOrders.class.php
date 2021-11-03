@@ -377,7 +377,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         $tplArr[] = array('name' => 'Packing list за митница',
             'content' => 'store/tpl/SingleLayoutPackagingListGrouped.shtml', 'lang' => 'en',
-            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight,volume'));
+            'toggleFields' => array('masterFld' => null, 'store_ShipmentOrderDetails' => 'info,packagingId,packQuantity,weight'));
 
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
