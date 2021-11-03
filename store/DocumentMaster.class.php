@@ -769,7 +769,9 @@ abstract class store_DocumentMaster extends core_Master
         // Подготвяне на данните за натоварване
         $res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
         $res["{$contrPart}Company"] = $contragentData->company;
-
+        $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
+        $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;
+        $res["{$contrPart}Address"] = !empty($contragentData->address) ? $contragentData->address : null;
 
         // Данните за разтоварване от ЕН-то са с приоритет
         if (!empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) {
@@ -792,17 +794,19 @@ abstract class store_DocumentMaster extends core_Master
         } elseif($rec->isReverse == 'no') {
             if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
                 if($firstDocument->haveInterface('trans_LogisticDataIntf')){
-                    $firstDocumentLogisticData = $firstDocument->getLogisticData();
-                    $res["{$contrPart}Country"] = $firstDocumentLogisticData["{$contrPart}Country"];
-                    $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"];
-                    $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"];
-                    $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"];
-                    $res['instructions'] = $firstDocumentLogisticData['instructions'];
-                    $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"];
-                    $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"];
-                    $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"];
-                    $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"];
-                    $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"];
+                    if(!$firstDocument->fetchField('deliveryLocationId')){
+                        $firstDocumentLogisticData = $firstDocument->getLogisticData();
+                        $res["{$contrPart}Country"] = $firstDocumentLogisticData["{$contrPart}Country"];
+                        $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"];
+                        $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"];
+                        $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"];
+                        $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                        $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"];
+                        $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"];
+                        $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"];
+                        $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"];
+                        $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"];
+                    }
                 }
             }
         }
