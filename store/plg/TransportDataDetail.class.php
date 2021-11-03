@@ -32,7 +32,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         
         $mvc->FLD($mvc->weightField, 'cat_type_Weight', 'input=none,caption=Логистична информация->Бруто,forceField,autohide');
         $mvc->FLD($mvc->volumeField, 'cat_type_Volume', 'input=none,caption=Логистична информация->Обем,forceField,autohide');
-        $mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,tdClass=nowrap,after={$mvc->volumeField},input=none");
+        $mvc->FLD('transUnitId', 'key(mvc=trans_TransportUnits,select=name,allowEmpty)', "caption=Логистична информация->Единици,forceField,autohide,tdClass=nowrap,after={$mvc->volumeField},smartCenter,input=none");
         $mvc->FLD('transUnitQuantity', 'int(min=1)', 'caption=Логистична информация->К-во,autohide,inlineTo=transUnitId,forceField,unit=бр.,input=none');
     }
     
@@ -141,7 +141,7 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $cVolume = null;
             }
 
-            // Изчисляват се логиситчните еденици
+            // Изчисляват се логистичните единици
             $unitId = $uQuantity = null;
             if(isset($rec->transUnitId) && isset($rec->transUnitQuantity)){
                 $unitId = $rec->transUnitId;
@@ -250,44 +250,10 @@ class store_plg_TransportDataDetail extends core_Plugin
             $rec = &$form->rec;
             
             if (empty($rec->transUnitId) && !empty($rec->transUnitQuantity)) {
-                $form->setError('transUnitId,transUnitQuantity', 'Липсва логистична еденица');
+                $form->setError('transUnitId,transUnitQuantity', 'Липсва логистична единица');
             } elseif(empty($rec->transUnitQuantity) && !empty($rec->transUnitId)){
-                $form->setError('transUnitId,transUnitQuantity', 'Липсва количеството на логистичната еденица');
+                $form->setError('transUnitId,transUnitQuantity', 'Липсва количеството на логистичната единица');
             }
         }
-    }
-    
-    
-    /**
-     * Какви са използваните ЛЕ
-     *
-     * @param core_Mvc $mvc       - документ
-     * @param array    $res       - масив с резултати
-     * @param stdClass $masterRec - ид на мастъра
-     *
-     * @return void
-     */
-    public static function on_AfterGetTransUnits($mvc, &$res, $masterRec)
-    {
-        if (!empty($res)) return;
-
-        $res = array();
-        $dQuery = $mvc->getQuery();
-        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$mvc->productFld}");
-        $dQuery->where("#{$mvc->masterKey} = {$masterRec->id} AND #canStore = 'yes'");
-        $dQuery->show("transUnitId,transUnitQuantity,{$mvc->productFld},{$mvc->quantityFld}");
-
-        while ($dRec = $dQuery->fetch()) {
-            if(isset($dRec->transUnitId) && isset($dRec->transUnitQuantity)){
-                $res[$dRec->transUnitId] += $dRec->transUnitQuantity;
-            } else {
-                $bestArr = trans_TransportUnits::getBestUnit($dRec->{$mvc->productFld}, $dRec->{$mvc->quantityFld});
-                if(is_array($bestArr)){
-                    $res[$bestArr['unitId']] += $bestArr['quantity'];
-                }
-            }
-        }
-
-        return $res;
     }
 }

@@ -123,7 +123,7 @@ class store_ReceiptDetails extends deals_DeliveryDocumentDetail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'requestedQuantity,weight,volume';
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume,transUnitId,transUnitQuantity';
     
     
     /**

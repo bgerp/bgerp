@@ -47,10 +47,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      */
     public function modifyDetailData(core_Mvc $detail, &$data)
     {
-        if(!countR($data->recs)) {
-            
-            return;
-        }
+        if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
         
         // Извлича се тарифния номер на артикулите
         $length = store_Setup::get('TARIFF_NUMBER_LENGTH');
@@ -74,10 +71,8 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      */
     public function beforeRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
-        if(!countR($data->recs)) {
-            
-            return;
-        }
+        if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
+
         $columns = countR($data->listFields);
         $masterRec = $data->masterData->rec;
 

@@ -11,7 +11,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -102,7 +102,7 @@ class trans_TransportUnits extends core_Manager
                 }
             }
             
-            if ($rec->systemId) {
+            if (isset($rec->systemId)) {
                 $roles = 'no_one';
             }
         }
@@ -173,12 +173,12 @@ class trans_TransportUnits extends core_Manager
 
 
     /**
-     * Коя е най-добрата логистична еденица за подаденото к-во от артикула
+     * Коя е най-добрата логистична единица за подаденото к-во от артикула
      *
      * @param $productId
      * @param $quantity
      * @return array|null
-     *      ['unitId']   - ид на лог. еденица
+     *      ['unitId']   - ид на лог. единица
      *      ['quantity'] - к-во от логистичната единица
      */
     public static function getBestUnit($productId, $quantity)
@@ -201,8 +201,8 @@ class trans_TransportUnits extends core_Manager
             }
         }
 
-        // Сортират се във възходящ ред и се връщата лог.ед с най-малкото изчислено к-во
-        asort($calcQuantity);
+        // Сортират се във възходящ ред и се връщата лог.ед с най-голямо изчислена опаковка
+        arsort($calcQuantity);
         $bestTransUnitId = key($calcQuantity);
         $bestQuantity = $calcQuantity[key($calcQuantity)];
         if(isset($bestTransUnitId) && isset($bestQuantity)){

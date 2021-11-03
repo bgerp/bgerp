@@ -102,7 +102,7 @@ class cat_products_Params extends doc_Detail
     {
         $this->FLD('classId', 'class', 'input=hidden,silent');
         $this->FLD('productId', 'int', 'input=hidden,silent');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'input,caption=Параметър,mandatory,silent');
+        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'text', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
