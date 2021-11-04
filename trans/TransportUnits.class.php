@@ -241,9 +241,9 @@ class trans_TransportUnits extends core_Manager
 
                     // Ако има такова и то е над стандартното се закръгля нагоре иначе надоло
                     if($lastProducedPackQuantity > $transQuantityInPack){
-                        $transUnitCalcedQuantity = ceil($transUnitCalcedQuantity);
-                    } else {
                         $transUnitCalcedQuantity = floor($transUnitCalcedQuantity);
+                    } else {
+                        $transUnitCalcedQuantity = ceil($transUnitCalcedQuantity);
                     }
                 } else {
 
