@@ -47,7 +47,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId, packagingId, quantity, packPrice, discount, amount';
+    public $listFields = 'id,productId, packagingId, quantity, packPrice, discount, amount';
     
     
     /**
@@ -245,11 +245,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public static function modifyDcDetails(&$recs, $rec, $mvc)
     {
         expect($rec->type != 'invoice');
-        
+        arr::sortObjects($recs, 'id', 'ASC');
+
         if (countR($recs)) {
             // Намираме оригиналните к-ва и цени
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId);
-            
+
             // За всеки запис ако е променен от оригиналния показваме промяната
             $count = 0;
             foreach ($recs as &$dRec) {
@@ -277,6 +278,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $count++;
             }
         }
+
+        //bp($recs, $cached);
     }
     
     

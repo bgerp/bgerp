@@ -35,14 +35,18 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
     {
         // Извличаме записа
         expect($rec = $this->class->fetchRec($id));
+        if (Mode::get('saveTransaction')) {
+            $this->class->updateMaster_($rec, false);
+        }
+
         $cloneRec = clone $rec;
-        
+
         $result = (object) array(
             'reason' => "Фактура №{$rec->id}", // основанието за ордера
             'valior' => $rec->date,   // датата на ордера
             'entries' => array(),
         );
-        
+
         if (Mode::get('saveTransaction')) {
             $productArr = array();
             $error = null;
