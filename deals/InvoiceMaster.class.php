@@ -1160,6 +1160,13 @@ abstract class deals_InvoiceMaster extends core_Master
                 $originRec = $mvc->getSourceOrigin($rec)->fetch();
                 $originRow = $mvc->recToVerbal($originRec);
                 $row->originInv = $originRow->number;
+                if(!Mode::isReadOnly()){
+                    $singleUrlArray = $mvc->getSingleUrlArray($originRec->id);
+                    if(countR($singleUrlArray)){
+                        $row->originInv = ht::createLink($originRow->number, $singleUrlArray);
+                    }
+                }
+
                 $row->originInvDate = $originRow->date;
             }
             
