@@ -248,7 +248,7 @@ class trans_TransportUnits extends core_Manager
                 } else {
 
                     // Ако няма последно произведена нестандартна опаковка
-                    $minModuleToRound = $transQuantityInPack * 0.2;
+                    $minModuleToRound = $transQuantityInPack * 0.15;
 
                     // Какъв ще е остатъка от к-то ако се побере в опаковката
                     $module = fmod($quantity, $transQuantityInPack);
