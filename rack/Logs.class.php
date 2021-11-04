@@ -73,14 +73,14 @@ class rack_Logs extends core_Manager
     /**
      * Информация за позволени движения
      */
-    protected static $actionClasses = array('create'   => 'state-pending',
+    protected static $actionClasses = array('create'   => 'state-opened',
                                             'waiting'  => 'state-waiting',
                                             'edit'     => 'state-edited',
                                             'start'    => 'state-active',
                                             'return'   => 'state-hidden',
                                             'reject'   => 'state-stopped',
                                             'close'    => 'state-closed',
-                                            'revision' => 'state-opened');
+                                            'revision' => 'rackRevisionRow');
 
 
     /**
