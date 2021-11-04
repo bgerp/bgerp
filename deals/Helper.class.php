@@ -1438,19 +1438,20 @@ abstract class deals_Helper
      * Показва реда за логистичната информация за артикула
      *
      * @param $productId
+     * @param $packagingId
      * @param $quantity
      * @param null|int $transUnitId
      * @param null|double $transUnitQuantity
      * @return null|array
      */
-    public static function getTransUnitRow($productId, $quantity, $transUnitId = null, $transUnitQuantity = null)
+    public static function getTransUnitRow($productId, $packagingId, $quantity, $transUnitId = null, $transUnitQuantity = null)
     {
         if(isset($transUnitId) && isset($transUnitQuantity)){
 
             return trans_TransportUnits::display($transUnitId, $transUnitQuantity);
         }
 
-        $bestArr = trans_TransportUnits::getBestUnit($productId, $quantity);
+        $bestArr = trans_TransportUnits::getBestUnit($productId, $quantity, $packagingId);
         if(isset($bestArr)){
             $row = trans_TransportUnits::display($bestArr['unitId'], $bestArr['quantity']);
             $row = "<span style='color:blue'>{$row}</span>";

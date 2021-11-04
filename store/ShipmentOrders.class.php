@@ -518,7 +518,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             if ($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")) {
                 if (trans_Cmrs::haveRightFor('single', $cmrId)) {
                     $arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-                    $data->toolbar->addBtn("ЧМР|* {$arrow}", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => true), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/lorry_go.png");
+                    $data->toolbar->addBtn("ЧМР|* {$arrow}", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => true), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/passage.png");
                 }
             } elseif (trans_Cmrs::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
 
@@ -532,7 +532,7 @@ class store_ShipmentOrders extends store_DocumentMaster
                     }
                 }
 
-                $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/lorry_add.png,row={$cmrRow}");
+                $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/passage.png,row={$cmrRow}");
             }
         }
 

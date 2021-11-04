@@ -87,7 +87,7 @@ class trans_Cmrs extends core_Master
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/lorry_go.png';
+    public $singleIcon = 'img/16/passage.png';
     
     
     /**
