@@ -629,9 +629,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 $this->_total->amount = $rec->dealValue / $rec->rate;
                 $this->_total->vat = $rec->vatAmount / $rec->rate;
                 @$percent = round($this->_total->vat / $this->_total->amount, 2);
+                $percent = is_nan($percent) ? 0 : $percent;
                 $this->_total->vats["{$percent}"] = (object) array('amount' => $this->_total->vat, 'sum' => $this->_total->amount);
             }
-            
+
             $this->invoke('BeforePrepareSummary', array($this->_total));
             
             $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
