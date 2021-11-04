@@ -58,14 +58,15 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         
         $origin = $this->class->getOrigin($rec);
         if (Mode::get('saveTransaction')) {
-            $this->class->updateMaster_($cloneRec, false);
-
-            if(round($rec->dealValue, 4) != round($cloneRec->dealValue, 4)){
-                wp('Оправяне на грешна сума във входяща фактура', $rec, $cloneRec);
-                $rec->dealValue = $cloneRec->dealValue;
-                $rec->vatAmount = $cloneRec->vatAmount;
-                $rec->discountAmount = $cloneRec->discountAmount;
-                $this->class->save_($rec, 'dealValue,vatAmount,discountAmount');
+            if ($rec->type != 'invoice' && empty($rec->changeAmount)) {
+                $this->class->updateMaster_($cloneRec, false);
+                if(round($rec->dealValue, 4) != round($cloneRec->dealValue, 4)){
+                    wp('Оправяне на грешна сума във входяща фактура', $rec, $cloneRec);
+                    $rec->dealValue = $cloneRec->dealValue;
+                    $rec->vatAmount = $cloneRec->vatAmount;
+                    $rec->discountAmount = $cloneRec->discountAmount;
+                    $this->class->save_($rec, 'dealValue,vatAmount,discountAmount');
+                }
             }
         }
 
