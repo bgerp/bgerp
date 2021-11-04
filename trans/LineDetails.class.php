@@ -302,7 +302,7 @@ class trans_LineDetails extends doc_Detail
         }
 
         if ($Document->haveRightFor('changeline') && (!Mode::is('printing') && !Mode::is('xhtml')) && $rec->status != 'removed') {
-            $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/door_in.png, title = Промяна на транспортната информация');
+            $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
         }
 
         if(!Mode::isReadOnly() && !empty($row->notes)){

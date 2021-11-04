@@ -133,7 +133,7 @@ class trans_Lines extends core_Master
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/door_in.png';
+    public $singleIcon = 'img/16/lorry_go.png';
 
 
     /**
