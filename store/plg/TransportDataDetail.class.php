@@ -80,7 +80,7 @@ class store_plg_TransportDataDetail extends core_Plugin
         // Показване на транспортното тегло/обем/лог.ед ако няма, сизчисляват динамично
         $row->weight = deals_Helper::getWeightRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->weightField});
         $row->volume = deals_Helper::getVolumeRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->volumeField});
-        $row->transUnitId = deals_Helper::getTransUnitRow($rec->{$mvc->productFld}, $rec->{$mvc->quantityFld}, $rec->transUnitId, $rec->transUnitQuantity);
+        $row->transUnitId = deals_Helper::getTransUnitRow($rec->{$mvc->productFld}, $rec->{$mvc->packagingFld}, $rec->{$mvc->quantityFld}, $rec->transUnitId, $rec->transUnitQuantity);
     }
     
     
@@ -147,7 +147,7 @@ class store_plg_TransportDataDetail extends core_Plugin
                 $unitId = $rec->transUnitId;
                 $uQuantity = $rec->transUnitQuantity;
             } else {
-                $bestUnits = trans_TransportUnits::getBestUnit($rec->{$mvc->productFld}, $rec->{$mvc->quantityFld});
+                $bestUnits = trans_TransportUnits::getBestUnit($rec->{$mvc->productFld}, $rec->{$mvc->quantityFld}, $rec->{$mvc->packagingFld});
                 if(is_array($bestUnits)){
                     $unitId = $bestUnits['unitId'];
                     $uQuantity = $bestUnits['quantity'];

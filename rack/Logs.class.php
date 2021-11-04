@@ -73,14 +73,14 @@ class rack_Logs extends core_Manager
     /**
      * Информация за позволени движения
      */
-    protected static $actionClasses = array('create'   => 'state-pending',
+    protected static $actionClasses = array('create'   => 'state-opened',
                                             'waiting'  => 'state-waiting',
                                             'edit'     => 'state-edited',
                                             'start'    => 'state-active',
                                             'return'   => 'state-hidden',
                                             'reject'   => 'state-stopped',
                                             'close'    => 'state-closed',
-                                            'revision' => 'state-opened');
+                                            'revision' => 'rackRevisionRow');
 
 
     /**
@@ -137,6 +137,19 @@ class rack_Logs extends core_Manager
         $data->query->where("#storeId = {$storeId}");
         $data->title = 'Логове в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->orderBy('createdOn=DESC');
+
+        $newOptions = array();
+        $actionOptions = $data->listFilter->getFieldType('action')->options;
+        unset($actionOptions['']);
+        foreach ($actionOptions as $action => $actionCaption){
+            $actionOptionRec = new stdClass();
+            $actionOptionRec->attr = array('class' => static::$actionClasses[$action]);
+            $actionOptionRec->title = $actionCaption;
+            $newOptions[$action] = $actionOptionRec;
+        }
+        $data->listFilter->setOptions('action', $newOptions);
+
+
 
         if($movementId = Request::get('movementId', 'int')){
             $data->query->where("#movementId = {$movementId}");

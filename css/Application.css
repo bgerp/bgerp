@@ -2362,8 +2362,9 @@ pre.document {
   padding: 1px 3px 1px 3px;
   font-weight: bold;
   font-size: 0.8em; }
-  .block-instock.quiet {
-    color: white; }
+
+.block-instock .quiet {
+  color: white !important; }
 
 .block-readiness {
   background-color: rgba(173, 62, 42, 0.8);
@@ -7353,4 +7354,7 @@ only screen and (max-width: 320px) {
   padding: 2px;
   text-indent: 5px;
   font-weight: bold; }
+
+.rackRevisionRow {
+  background-color: #ff6b4b; }
 
