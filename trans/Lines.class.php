@@ -322,6 +322,9 @@ class trans_Lines extends core_Master
         }
         
         $form->setOptions('forwarderPersonId', trans_Vehicles::getDriverOptions());
+        if($data->form->toolbar->haveButton('activate')){
+            $data->form->toolbar->removeBtn('activate');
+        }
     }
 
 
