@@ -1160,6 +1160,13 @@ abstract class deals_InvoiceMaster extends core_Master
                 $originRec = $mvc->getSourceOrigin($rec)->fetch();
                 $originRow = $mvc->recToVerbal($originRec);
                 $row->originInv = $originRow->number;
+                if(!Mode::isReadOnly()){
+                    $singleUrlArray = $mvc->getSingleUrlArray($originRec->id);
+                    if(countR($singleUrlArray)){
+                        $row->originInv = ht::createLink($originRow->number, $singleUrlArray);
+                    }
+                }
+
                 $row->originInvDate = $originRow->date;
             }
             
@@ -1394,6 +1401,8 @@ abstract class deals_InvoiceMaster extends core_Master
             
             $count = 0;
             $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
+            $query->orderBy('id', 'ASC');
+
             while ($dRec = $query->fetch()) {
                 $cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
                 $count++;

@@ -23,19 +23,6 @@ class store_iface_DetailsTransportData
     
     
     /**
-     * Какви са използваните ЛЕ
-     *
-     * @param stdClass $masterRec - ид на мастъра
-     *
-     * @return array - масив с ле => к-во
-     */
-    public function getTransUnits($masterRec)
-    {
-        return $this->getTransUnits($masterRec);
-    }
-    
-    
-    /**
      * Изчисляване на общото тегло и обем на редовете
      *
      * @param stdClass $masterRec - ид на мастъра
@@ -44,7 +31,7 @@ class store_iface_DetailsTransportData
      * @return stdClass $res
      *                  - weight    - теглото на реда
      *                  - volume    - теглото на реда
-     *                  - transUnits - транспортните еденици
+     *                  - transUnits - транспортните единици
      */
     public function getTransportInfo($masterId, $force = false)
     {

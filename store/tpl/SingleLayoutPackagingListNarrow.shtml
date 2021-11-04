@@ -131,7 +131,7 @@
                            </td>
                        </tr>
                        <tr>
-                           <td colspan="2">Total weight:&nbsp;[#weight#]</span> <span class='half-col'>Total volume:&nbsp;[#volume#]</td>
+                           <td colspan="2">Total weight:&nbsp;[#weight#]</td>
                        </tr>
                        <!--ET_BEGIN logisticInfo-->
                        <tr>

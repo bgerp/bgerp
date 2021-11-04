@@ -491,7 +491,7 @@ class cat_UoM extends core_Manager
     
     
     /**
-     * Връща мерна еденициа по систем ид
+     * Връща мерна единица по систем ид
      *
      * @param string $sysId - sistem Id
      *

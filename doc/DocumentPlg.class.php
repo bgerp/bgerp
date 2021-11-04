@@ -2776,7 +2776,7 @@ class doc_DocumentPlg extends core_Plugin
                 // Само чакащите и черновите могат да стават от чакащи -> чернова или обратно
                 if (isset($rec->state) && $rec->state != 'draft') {
                     $requiredRoles = 'no_one';
-                } elseif (!$mvc->haveRightFor('single', $rec)) {
+                } elseif (isset($rec->id) && !$mvc->haveRightFor('single', $rec)) {
                     $requiredRoles = 'no_one';
                 }
             }

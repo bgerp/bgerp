@@ -643,7 +643,10 @@ abstract class store_DocumentMaster extends core_Master
         $rec = $this->fetchRec($id);
         
         // Конвертираме данъчната основа към валутата идваща от продажбата
-        $aggregator->setIfNot('deliveryLocation', $rec->locationId);
+        if(isset($rec->locationId)){
+            $aggregator->setIfNot('deliveryLocation', $rec->locationId);
+        }
+
         $aggregator->setIfNot('deliveryTime', $rec->deliveryTime);
         $aggregator->setIfNot('storeId', $rec->storeId);
         $aggregator->setIfNot('shippedValior', $rec->valior);
@@ -769,7 +772,9 @@ abstract class store_DocumentMaster extends core_Master
         // Подготвяне на данните за натоварване
         $res["{$contrPart}Country"] = drdata_Countries::fetchField($contragentCountryId, 'commonName');
         $res["{$contrPart}Company"] = $contragentData->company;
-
+        $res["{$contrPart}PCode"] = !empty($contragentData->pCode) ? $contragentData->pCode : null;
+        $res["{$contrPart}Place"] = !empty($contragentData->place) ? $contragentData->place : null;
+        $res["{$contrPart}Address"] = !empty($contragentData->address) ? $contragentData->address : null;
 
         // Данните за разтоварване от ЕН-то са с приоритет
         if (!empty($rec->country) || !empty($rec->pCode) || !empty($rec->place) || !empty($rec->address)) {
@@ -792,25 +797,29 @@ abstract class store_DocumentMaster extends core_Master
         } elseif($rec->isReverse == 'no') {
             if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
                 if($firstDocument->haveInterface('trans_LogisticDataIntf')){
-                    $firstDocumentLogisticData = $firstDocument->getLogisticData();
-                    $res["{$contrPart}Country"] = $firstDocumentLogisticData["{$contrPart}Country"];
-                    $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"];
-                    $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"];
-                    $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"];
-                    $res['instructions'] = $firstDocumentLogisticData['instructions'];
-                    $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"];
-                    $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"];
-                    $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"];
-                    $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"];
-                    $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"];
+                    if(!$firstDocument->fetchField('deliveryLocationId')){
+                        $firstDocumentLogisticData = $firstDocument->getLogisticData();
+                        $res["{$contrPart}Country"] = $firstDocumentLogisticData["{$contrPart}Country"];
+                        $res["{$contrPart}PCode"] = $firstDocumentLogisticData["{$contrPart}PCode"];
+                        $res["{$contrPart}Place"] = $firstDocumentLogisticData["{$contrPart}Place"];
+                        $res["{$contrPart}Address"] = $firstDocumentLogisticData["{$contrPart}Address"];
+                        $res['instructions'] = $firstDocumentLogisticData['instructions'];
+                        $res["{$contrPart}Company"] = $firstDocumentLogisticData["{$contrPart}Company"];
+                        $res["{$contrPart}Person"] = $firstDocumentLogisticData["{$contrPart}Person"];
+                        $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"];
+                        $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"];
+                        $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"];
+                    }
                 }
             }
         }
         
         $res['deliveryTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
         $res['ourReff'] = '#' . $this->getHandle($rec);
-        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $rec->weight;
-        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $rec->volume;
+
+        $totalInfo = $this->getTotalTransportInfo($rec);
+        $res['totalWeight'] = isset($rec->weightInput) ? $rec->weightInput : $totalInfo->weight;
+        $res['totalVolume'] = isset($rec->volumeInput) ? $rec->volumeInput : $totalInfo->volume;
 
         if(!empty($rec->addressInfo)){
             $res["{$contrPart}AddressInfo"] = $rec->addressInfo;
@@ -888,6 +897,7 @@ abstract class store_DocumentMaster extends core_Master
      *               ['storeMovement']  string|NULL - посока на движението на склада
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
+     *               ['countryId']      string|NULL - ид на държава
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -905,9 +915,12 @@ abstract class store_DocumentMaster extends core_Master
         $address = '';
         $part = ($this instanceof store_ShipmentOrders) ? 'to' : 'from';
         $logisticData = $this->getLogisticData($rec);
+
+        $countryId = drdata_Countries::getIdByName($logisticData["{$part}Country"]);
+        $res['countryId'] .= $countryId;
+
         if($logisticData['fromCountry'] != $logisticData['toCountry']){
             $this->pushTemplateLg($rec->template);
-            $countryId = drdata_Countries::getIdByName($logisticData["{$part}Country"]);
             $address .= drdata_Countries::getTitleById($countryId) . " ";
             core_Lg::pop();
         }
@@ -920,7 +933,7 @@ abstract class store_DocumentMaster extends core_Master
         }
 
         if(!empty($logisticData["{$part}LocationId"])){
-            $res['locationId'] .= " {$logisticData["{$part}LocationId"]}";
+            $res['locationId'] .= $logisticData["{$part}LocationId"];
         }
 
         $amount = null;
@@ -1146,7 +1159,7 @@ abstract class store_DocumentMaster extends core_Master
             $notes = cls::get('type_Richtext')->fromVerbal($notes);
         }
         
-        // Броя еденици в опаковка, се определя от информацията за продукта
+        // Броя единици в опаковка се определя от информацията за продукта
         $productInfo = cat_Products::getProductInfo($productId);
         if (empty($packagingId)) {
             $packagingId = $productInfo->productRec->measureId;

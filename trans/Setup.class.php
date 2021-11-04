@@ -162,6 +162,9 @@ class trans_Setup extends core_ProtoSetup
         $callOn = dt::addSecs(120);
         core_CallOnTime::setCall('trans_Setup', 'migrateLines', NULL, $callOn);
 
+        //$callOn = dt::addSecs(240);
+        //core_CallOnTime::setCall('trans_Setup', 'migrateLines', NULL, $callOn);
+
         return $res;
     }
 
@@ -229,42 +232,6 @@ class trans_Setup extends core_ProtoSetup
         $sod->saveArray($save, 'id,transUnitId,transUnitQuantity');
         
         wp('UPDATE LU COUNT' . countR($save));
-    }
-    
-    
-    /**
-     * Обновява ЛЕ в складовите документи
-     */
-    private function updateStoreMasters()
-    {
-        $loadId = trans_TransportUnits::fetchIdByName('load');
-        
-        //, 'store_Receipts' => 'store_ReceiptDetails', 'store_Transfers' => 'store_TransfersDetails'
-        foreach (array('store_ShipmentOrders' => 'store_ShipmentOrderDetails') as $Doc => $det) {
-            $Document = cls::get($Doc);
-            $Document->setupMvc();
-            
-            $Detail = cls::get($det);
-            $Detail->setupMvc();
-            
-            $query = $Document->getQuery();
-            $query->FLD('palletCountInput', 'double');
-            
-            $save = array();
-            while ($dRec = $query->fetch()) {
-                $dRec->transUnits = $Detail->getTransUnits($dRec);
-                if ($dRec->palletCountInput && empty($dRec->transUnitsInput)) {
-                    $dRec->transUnitsInput = array($loadId => $dRec->palletCountInput);
-                } else {
-                    $dRec->transUnitsInput = array();
-                }
-                $save[$dRec->id] = $dRec;
-            }
-            
-            $Document->saveArray($save, 'id,transUnits,transUnitsInput');
-        }
-        
-        wp('UPDATE SO COUNT' . countR($save));
     }
     
     

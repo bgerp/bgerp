@@ -7292,7 +7292,7 @@ only screen and (max-width: 320px) {
     height: 16px; }
 
 .narrow .elem-holder .endTooltip {
-  float: right; }
+  float: right !important; }
 
 .textHint {
   display: inline-block;
@@ -7331,7 +7331,15 @@ only screen and (max-width: 320px) {
     to {
     opacity: 0; }
  }
-.zoneMovement {
+.zoneMovement.darkText {
+  color: #2e3440;
+  border-radius: 3px;
+  border: solid 1px #bbbbbb;
+  padding: 2px;
+  display: inline-block; }
+
+.zoneMovement.lightText {
+  color: #eceff4;
   border-radius: 3px;
   border: solid 1px #bbbbbb;
   padding: 2px;
@@ -7345,4 +7353,7 @@ only screen and (max-width: 320px) {
   padding: 2px;
   text-indent: 5px;
   font-weight: bold; }
+
+.rackRevisionRow {
+  background-color: #ff6b4b; }
 

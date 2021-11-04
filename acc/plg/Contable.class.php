@@ -114,6 +114,10 @@ class acc_plg_Contable extends core_Plugin
             $msg = ($success) ? 'Документът е реконтиран|*!' : 'Документът не е реконтиран|*!';
             $msgType = ($success) ? 'notice' : 'error';
             $mvc->logWrite('Ръчно реконтиране', $rec->id);
+            if($success){
+                $mvc->invoke('AfterDebugReconto', array($rec, $rec));
+            }
+
             doc_DocumentCache::cacheInvalidation($rec->containerId);
             
             followRetUrl(null, $msg, $msgType);

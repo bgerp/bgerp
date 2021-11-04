@@ -8299,7 +8299,7 @@ body.narrow {
 }
 
 .narrow .elem-holder .endTooltip {
-	float: right;
+	float: right !important;
 }
 
 .textHint {
@@ -8333,7 +8333,16 @@ body.narrow {
   to { opacity: 0.0; }
 }
 
-.zoneMovement {
+.zoneMovement.darkText {
+	color: #2e3440;
+	border-radius: 3px;
+	border: solid 1px #bbb;
+	padding: 2px;
+	display: inline-block;
+}
+
+.zoneMovement.lightText {
+	color: #eceff4;
 	border-radius: 3px;
 	border: solid 1px #bbb;
 	padding: 2px;
@@ -8349,3 +8358,8 @@ body.narrow {
 	text-indent:5px;
 	font-weight:bold;
 }
+
+.rackRevisionRow {
+	background-color:rgb(255, 107, 75, 0.8);
+}
+
