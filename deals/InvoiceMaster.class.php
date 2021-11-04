@@ -1394,6 +1394,8 @@ abstract class deals_InvoiceMaster extends core_Master
             
             $count = 0;
             $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
+            $query->orderBy('id', 'ASC');
+
             while ($dRec = $query->fetch()) {
                 $cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
                 $count++;

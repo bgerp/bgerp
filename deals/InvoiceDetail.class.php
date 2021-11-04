@@ -261,7 +261,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $diffPrice = $dRec->packPrice - $originPrice;
 
                 $priceIsChanged = false;
-                $diffPrice =round($diffPrice, 5);
+                $diffPrice = round($diffPrice, 5);
                 if(abs($diffPrice) > 0.0001){
                     $priceIsChanged = true;
                 }
