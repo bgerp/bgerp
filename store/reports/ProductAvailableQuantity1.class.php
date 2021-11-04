@@ -284,6 +284,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     'minQuantity' => $minQuantity,
                     'maxQuantity' => $maxQuantity,
                     'code' => $code,
+                    'groups' => $recProduct->groups,
                 );
             }
         }
@@ -518,7 +519,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         }
 
-        $url = array('store_reports_ProductAvailableQuantity1', 'groupimport', 'ret_url' => true);
+        $url = array('store_reports_ProductAvailableQuantity1', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
 
         $toolbar = cls::get('core_Toolbar');
 
@@ -653,18 +654,13 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      * @param mixed $res
      * @param string $action
      */
-    public static function on_BeforeAction($mvc, &$res, $action)
+    public static function on_BeforeAction(frame2_driver_Proto $Driver, &$res, $action)
     {
 
-        // self::act_GroupImport();
-
-        //   if ($action == 'groupimport') {
-
-        //  }
     }
 
     /**
-     * Изключва един том от по-голям
+     * Изтриване на ред
      */
     public static function act_DelRow()
     {
@@ -754,5 +750,58 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         return $form->renderHtml();
 
 
+    }
+
+    /**
+     * Филтриране на група
+     */
+    public static function act_GroupFilter()
+    {
+        requireRole('debug');
+
+
+        expect($recId = Request::get('recId', 'int'));
+
+        $rec = frame2_Reports::fetch($recId);
+
+        frame2_Reports::refresh($rec);
+
+        $form = cls::get('core_Form');
+
+        $form->title = "Филтър за група ";
+
+
+        if ($rec->groups) {
+            foreach (keylist::toArray($rec->groups) as $val) {
+
+                $groupsSuggestionsArr[$val] = cat_Groups::fetch($val)->name;
+            }
+        }
+
+        $form->FLD('groupFilter', 'key(mvc=cat_Groups, select=name)', 'caption=Покажи група,silent');
+
+        $form->setOptions('groupFilter', $groupsSuggestionsArr);
+
+        $mRec = $form->input();
+
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        if ($form->isSubmitted()) {
+
+            foreach ($rec->data->recs as $pRec) {
+                $groupsArr = keylist::toArray($pRec->groups);
+                if (!in_array($form->rec->groupFilter, $groupsArr)) {
+                    unset($rec->data->recs[$pRec->productId]);
+                }
+            }
+
+            frame2_Reports::save($rec);
+
+            return new Redirect(getRetUrl());
+        }
+
+        return $form->renderHtml();
     }
 }
