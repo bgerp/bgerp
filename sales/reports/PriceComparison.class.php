@@ -91,6 +91,8 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=priceListHigh,placeholder=Избери,silent,single=none');
 
         $fieldset->FLD('orderBy', 'enum(name=Име,code=Код,diffPrice=Разлика ст.,diffPercent=Разлика %)', 'caption=Сортиране по,maxRadio=4,columns=4,after=groups');
+
+        $fieldset->FLD('typePercent', 'enum(none=Без,up=Надценка,down=Отстъпка)', 'caption=Тип отчитане в %,maxRadio=3,columns=3,after=orderBy');
     }
 
 
@@ -108,6 +110,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('orderBy', 'diffPrice');
+        $form->setDefault('typePercent', 'none');
 
         if ($rec->priceListLow) {
             $form->setReadOnly('policyClassId');
@@ -190,8 +193,11 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
             }
 
             //Изчисляване на разликата в процент
+
+            $d = ($rec->typePercent == 'up') ? $lowPrice: $hiPrice;
+
             if ($hiPrice && $lowPrice) {
-                $diffPercent = $diffPrice / $hiPrice;
+                $diffPercent = $diffPrice / $d;
             }else{
                 $diffPercent = '';
             }
@@ -245,7 +251,10 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $fld->FLD('lowPrice', 'double', 'caption=Цена -> Ниска');
         $fld->FLD('hiPrice', 'double', 'caption=Цена -> Висока');
         $fld->FLD('diffPrice', 'double', 'caption=Разлика -> Стойност');
-        $fld->FLD('diffPercent', 'double', 'caption=Разлика -> Процент');
+        if ($rec->typePercent != 'none'){
+            $fld->FLD('diffPercent', 'double', 'caption=Разлика -> Процент');
+        }
+
 
 
         return $fld;
