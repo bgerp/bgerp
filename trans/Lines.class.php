@@ -20,166 +20,166 @@ class trans_Lines extends core_Master
      * Заглавие
      */
     public $title = 'Транспортни линии';
-    
-    
+
+
     /**
      * Абревиатура
      */
     public $abbr = 'Tl';
-    
-    
+
+
     /**
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary, plg_Search';
-    
-    
+
+
     /**
      * Кой може да променя активирани записи
      */
     public $canChangerec = 'ceo, trans';
-    
-    
+
+
     /**
      * По кои полета ще се търси
      */
     public $searchFields = 'title, vehicle, forwarderId, forwarderPersonId';
-    
-    
+
+
     /**
      * Поле за единичен изглед
      */
     public $rowToolsSingleField = 'handler';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
     public $canList = 'ceo, trans';
-    
-    
+
+
     /**
      * Кой има право да променя?
      */
     public $canEdit = 'ceo, trans';
-    
-    
+
+
     /**
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo, trans';
-    
-    
+
+
     /**
      * Кой има право да прави документа на заявка?
      */
     public $canPending = 'ceo, trans';
-    
-    
+
+
     /**
      * Кой има право да пише?
      */
     public $canWrite = 'ceo, trans';
-    
-    
+
+
     /**
      * Кой може да пише?
      */
     public $canClose = 'ceo, trans';
-    
-    
+
+
     /**
      * Кой може да активира?
      */
     public $canActivate = 'ceo, trans';
-    
-    
+
+
     /**
      * Детайла, на модела
      */
     public $details = 'trans_LineDetails';
-    
-    
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
     public $listFields = 'start, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy';
-    
-    
+
+
     /**
      * Кои полета да могат да се променят след активацията на документа
      */
     public $changableFields = 'title, start, repeat, vehicle, forwarderId, forwarderPersonId';
-    
-    
+
+
     /**
      * Заглавие в единствено число
      */
     public $singleTitle = 'Транспортна линия';
-    
-    
+
+
     /**
      * Файл за единичния изглед
      */
     public $singleLayoutFile = 'trans/tpl/SingleLayoutLines.shtml';
-    
-    
+
+
     /**
      * Файл за единичния изглед в мобилен
      */
     public $singleLayoutFileNarrow = 'trans/tpl/SingleLayoutLinesNarrow.shtml';
-    
-    
+
+
     /**
      * Икона за единичния изглед
      */
     public $singleIcon = 'img/16/door_in.png';
-    
-    
+
+
     /**
      * Групиране на документите
      */
     public $newBtnGroup = '4.5|Логистика';
-    
-    
+
+
     /**
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = true;
-    
-    
+
+
     /**
      * Списък с корици и интерфейси, където може да се създава нов документ от този клас
      */
     public $coversAndInterfacesForNewDoc = 'doc_UnsortedFolders';
-    
-    
+
+
     /**
      * Полета, които при клониране да не са попълнени
      *
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'title,start,repeat,countStoreDocuments,countActiveDocuments,countReadyDocuments,cases,stores, countries';
-    
-    
+
+
     /**
      * Да се забрани ли кеширането на документа
      */
     public $preventCache = true;
-    
-    
+
+
     /**
      * Поле за филтриране по дата
      */
     public $filterDateField = 'start,createdOn';
-    
-    
+
+
     /**
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
     public $filterRolesForTeam = 'ceo, trans';
-    
-    
+
+
     /**
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
@@ -214,8 +214,8 @@ class trans_Lines extends core_Master
         $this->FLD('countReadyDocuments', 'int', 'input=none,notNull,value=0');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'input=none,caption=Държави');
     }
-    
-    
+
+
     /**
      * Връща разбираемо за човека заглавие, отговарящо на записа
      */
@@ -224,7 +224,7 @@ class trans_Lines extends core_Master
         $rec = static::fetchRec($rec);
         $titleArr = array();
         $titleArr[] = str_replace(' 00:00', '', dt::mysql2verbal($rec->start, 'd.m.Y H:i'));
-        if(!empty($rec->forwarderId)){
+        if (!empty($rec->forwarderId)) {
             $titleArr[] = str::limitLen(crm_Companies::getTitleById($rec->forwarderId, $escaped), 32);
         }
         $titleArr[] = str::limitLen(static::getVerbal($rec, 'title'), 32);
@@ -232,8 +232,8 @@ class trans_Lines extends core_Master
 
         return $recTitle;
     }
-    
-    
+
+
     /**
      * Малко манипулации след подготвянето на формата за филтриране
      */
@@ -247,31 +247,31 @@ class trans_Lines extends core_Master
         $showFields = arr::make($data->listFilter->showFields, true);
         unset($showFields['filterDateField']);
         $data->listFilter->showFields = implode(',', $showFields);
-        if($selectedStore = core_Permanent::get('storeFilter' . core_Users::getCurrent())){
+        if ($selectedStore = core_Permanent::get('storeFilter' . core_Users::getCurrent())) {
             $data->listFilter->setDefault('storeId', $selectedStore);
         }
 
         $data->listFilter->setDefault('lineState', 'pendingAndActive');
         $data->listFilter->input();
 
-        if($filterRec = $data->listFilter->rec){
-            if(isset($filterRec->lineState) && $filterRec->lineState != 'all'){
-                if($filterRec->lineState == 'pendingAndActive'){
+        if ($filterRec = $data->listFilter->rec) {
+            if (isset($filterRec->lineState) && $filterRec->lineState != 'all') {
+                if ($filterRec->lineState == 'pendingAndActive') {
                     $data->query->where("#state = 'pending' OR #state = 'active'");
                 } else {
                     $data->query->where("#state = '{$filterRec->lineState}'");
                 }
             }
 
-            if(isset($filterRec->folder)){
+            if (isset($filterRec->folder)) {
                 unset($data->listFields['folderId']);
             }
 
-            if(isset($filterRec->countryId)) {
+            if (isset($filterRec->countryId)) {
                 $data->query->where("LOCATE('|{$filterRec->countryId}|', #countries)");
             }
 
-            if(isset($filterRec->storeId)){
+            if (isset($filterRec->storeId)) {
                 $data->query->where("LOCATE('|{$filterRec->storeId}|', #stores)");
                 core_Permanent::set('storeFilter' . core_Users::getCurrent(), $filterRec->storeId, 24 * 60 * 100);
             } else {
@@ -279,21 +279,21 @@ class trans_Lines extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * След подготовка на тулбара на единичен изглед
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        
+
         if (!$data->toolbar->haveButton('btnClose')) {
             if (self::countDocumentsByState($rec->id, 'draft,pending') && $rec->state == 'active') {
                 $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нев|*!', 'title' => 'Затваряне на транспортна линия'));
             }
         }
-        
+
         if (!$data->toolbar->haveButton('btnActivate')) {
             if (self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
                 $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В транспортната линия има заявки, чернови или оттеглени експедиционни документи|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на транспортната линия'));
@@ -302,14 +302,14 @@ class trans_Lines extends core_Master
 
         // Подмяна на бутона за принтиране с такъв да отчита натиснатия таб на детайла
         $printBtnId = plg_Printing::getPrintBtnId($mvc, $rec->id);
-        if($data->toolbar->buttons[$printBtnId]){
+        if ($data->toolbar->buttons[$printBtnId]) {
             $data->toolbar->removeBtn[$printBtnId];
             $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes', 'lineTab' => Request::get('lineTab'));
             $data->toolbar->addBtn('Печат', $url, 'target=_blank,row=2', "id={$printBtnId},target=_blank,row=2,ef_icon = img/16/printer.png,title=Печат на документа");
         }
     }
-    
-    
+
+
     /**
      * След подготовка на формата
      */
@@ -320,9 +320,9 @@ class trans_Lines extends core_Master
         if (countR($vehicleOptions) && is_array($vehicleOptions)) {
             $form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, true));
         }
-        
+
         $form->setOptions('forwarderPersonId', trans_Vehicles::getDriverOptions());
-        if($data->form->toolbar->haveButton('activate')){
+        if ($data->form->toolbar->haveButton('activate')) {
             $data->form->toolbar->removeBtn('activate');
         }
     }
@@ -333,8 +333,8 @@ class trans_Lines extends core_Master
      */
     protected static function on_AfterPrepareEditToolbar($mvc, $data)
     {
-        if(isset($data->form->rec->id)){
-            if(trans_LineDetails::fetchField("#lineId = {$data->form->rec->id}")){
+        if (isset($data->form->rec->id)) {
+            if (trans_LineDetails::fetchField("#lineId = {$data->form->rec->id}")) {
                 $data->form->toolbar->removeBtn('save');
             }
         }
@@ -354,18 +354,18 @@ class trans_Lines extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if (isset($fields['-single'])) {
-            if(isset($rec->defaultCaseId)){
+            if (isset($rec->defaultCaseId)) {
                 $row->defaultCaseId = cash_Cases::getHyperlink($rec->defaultCaseId, true);
                 $allCases = keylist::toArray($rec->cases);
-                if(countR($allCases) == 1 && array_key_exists($rec->defaultCaseId, $allCases)){
+                if (countR($allCases) == 1 && array_key_exists($rec->defaultCaseId, $allCases)) {
                     unset($row->cases);
                 }
             }
@@ -376,7 +376,7 @@ class trans_Lines extends core_Master
                     $row->regNumber = trans_Vehicles::getVerbal($vehicleRec, 'number');
                 }
             }
-            
+
             $ownCompanyData = crm_Companies::fetchOwnCompany();
             $row->myCompany = ht::createLink($ownCompanyData->company, crm_Companies::getSingleUrlArray($ownCompanyData->companyId));
 
@@ -387,7 +387,7 @@ class trans_Lines extends core_Master
             if (isset($rec->forwarderPersonId) && !Mode::isReadOnly()) {
                 $row->forwarderPersonId = ht::createLink($row->forwarderPersonId, crm_Persons::getSingleUrlArray($rec->forwarderPersonId));
             }
-            
+
             if (isset($rec->forwarderId)) {
                 $row->forwarderId = ht::createLink(crm_Companies::getVerbal($rec->forwarderId, 'name'), crm_Companies::getSingleUrlArray($rec->forwarderId));
             }
@@ -399,11 +399,11 @@ class trans_Lines extends core_Master
         $row->countActiveDocuments = $mvc->getVerbal($rec, 'countActiveDocuments');
         $row->countActiveDocuments = ht::createHint($row->countActiveDocuments, 'Брой активирани складови документи', 'noicon', false);
         $row->countReadyDocuments = $mvc->getVerbal($rec, 'countReadyDocuments');
-        $row->countReadyDocuments  = ht::createHint($row->countReadyDocuments , 'Брой нагласени складови документи', 'noicon', false);
+        $row->countReadyDocuments = ht::createHint($row->countReadyDocuments, 'Брой нагласени складови документи', 'noicon', false);
 
         $row->readiness = "{$row->countStoreDocuments} / {$row->countActiveDocuments} / {$row->countReadyDocuments}";
-        if(!Mode::isReadOnly()){
-            if($rec->countStoreDocuments != ($rec->countActiveDocuments + $rec->countReadyDocuments)){
+        if (!Mode::isReadOnly()) {
+            if ($rec->countStoreDocuments != ($rec->countActiveDocuments + $rec->countReadyDocuments)) {
                 $row->readiness = "<span class='red'>{$row->readiness}</span>";
             }
         }
@@ -413,12 +413,12 @@ class trans_Lines extends core_Master
         if (isset($fields['-list'])) {
             $row->start = str_replace(' ', '<br>', $row->start);
 
-            if(!empty($rec->stores)){
+            if (!empty($rec->stores)) {
                 $row->stores = $mvc->getVerbal($rec, 'stores');
                 $row->handler .= "<div class='small'>" . tr('Складове') . ": {$row->stores}</div>";
             }
 
-            if(!empty($rec->cases)){
+            if (!empty($rec->cases)) {
                 $row->cases = $mvc->getVerbal($rec, 'cases');
                 $row->handler .= "<div class='small'> " . tr('Каси') . ": {$row->cases}</div>";
             }
@@ -428,13 +428,13 @@ class trans_Lines extends core_Master
         $transUnitsTotal = array();
         $dQuery = trans_LineDetails::getQuery();
         $dQuery->where("#lineId = {$rec->id}");
-        while($dRec = $dQuery->fetch()){
+        while ($dRec = $dQuery->fetch()) {
             $Document = doc_Containers::getDocument($dRec->containerId);
-            if(!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)){
+            if (!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)) {
                 $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
             }
             $transportInfo = $mvc->cacheLineInfo[$dRec->containerId];
-            if(is_array($transportInfo['transportUnits'])){
+            if (is_array($transportInfo['transportUnits'])) {
                 trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
             }
         }
@@ -463,8 +463,8 @@ class trans_Lines extends core_Master
             $transInfo = $Document->getTransportLineInfo($rec->id);
             $isStoreDocument = $Document->haveInterface('store_iface_DocumentIntf');
 
-            if(!$isStoreDocument && $dRec->containerState == 'active'){
-                if($transInfo['baseAmount'] < 0){
+            if (!$isStoreDocument && $dRec->containerState == 'active') {
+                if ($transInfo['baseAmount'] < 0) {
                     $amountReturned += $transInfo['baseAmount'];
                 } else {
                     $amount += $transInfo['baseAmount'];
@@ -475,7 +475,7 @@ class trans_Lines extends core_Master
             if ($sumWeight === true) {
                 if ($transInfo['weight']) {
                     $weight += $transInfo['weight'];
-                } elseif($isStoreDocument) {
+                } elseif ($isStoreDocument) {
                     unset($weight);
                     $sumWeight = false;
                 }
@@ -485,7 +485,7 @@ class trans_Lines extends core_Master
             if ($sumVolume === true) {
                 if ($transInfo['volume']) {
                     $volume += $transInfo['volume'];
-                } elseif($isStoreDocument) {
+                } elseif ($isStoreDocument) {
                     unset($volume);
                     $sumVolume = false;
                 }
@@ -512,7 +512,7 @@ class trans_Lines extends core_Master
         expect($rec = $this->fetch($id));
         $row = cls::get(get_called_class())->recToVerbal($rec, 'title,readiness');
 
-        $row = (object) array(
+        $row = (object)array(
             'title' => $this->getRecTitle($rec),
             'authorId' => $rec->createdBy,
             'author' => $this->getVerbal($rec, 'createdBy'),
@@ -520,11 +520,11 @@ class trans_Lines extends core_Master
             'recTitle' => $row->title,
             'subTitle' => $row->readiness,
         );
-        
+
         return $row;
     }
-    
-    
+
+
     /**
      * Извиква се преди рендирането на 'опаковката'
      */
@@ -537,8 +537,8 @@ class trans_Lines extends core_Master
     /**
      * Връща броя на документите в посочената линия
      *
-     * @param int $id                - ид
-     * @param array $states          - състояния
+     * @param int $id - ид
+     * @param array $states - състояния
      * @param null|string $interface - интерфейс на документи
      * @return int                   - брой документи в линията, отговарящи на условията
      */
@@ -549,9 +549,9 @@ class trans_Lines extends core_Master
         $query->where("#lineId = {$id} AND #status != 'removed'");
         $query->in('containerState', $states);
 
-        if($interface){
+        if ($interface) {
             $iOptions = array_keys(core_Classes::getOptionsByInterface($interface));
-            if(countR($iOptions)){
+            if (countR($iOptions)) {
                 $query->EXT('docClass', 'doc_Containers', 'externalName=docClass,externalKey=containerId');
                 $query->in('docClass', $iOptions);
             }
@@ -580,22 +580,22 @@ class trans_Lines extends core_Master
         $rec->countStoreDocuments = $rec->countActiveDocuments = $rec->countReadyDocuments = 0;
         while ($dRec = $dQuery->fetch()) {
             $Doc = doc_Containers::getDocument($dRec->containerId);
-            if(!array_key_exists($dRec->containerId, $this->cacheLineInfo)){
+            if (!array_key_exists($dRec->containerId, $this->cacheLineInfo)) {
                 $this->cacheLineInfo[$dRec->containerId] = $Doc->getTransportLineInfo($rec->id);
             }
             $lineInfo = $this->cacheLineInfo[$dRec->containerId];
 
-            if(!empty($lineInfo['countryId'])){
+            if (!empty($lineInfo['countryId'])) {
                 $countries[$lineInfo['countryId']] = $lineInfo['countryId'];
             }
 
-            if($Doc->haveInterface('store_iface_DocumentIntf')){
+            if ($Doc->haveInterface('store_iface_DocumentIntf')) {
                 $rec->countStoreDocuments++;
-                if($dRec->containerState == 'active'){
+                if ($dRec->containerState == 'active') {
                     $rec->countActiveDocuments++;
                 }
 
-                if(rack_Zones::fetchField("#containerId = {$dRec->containerId} AND #readiness >= 1")){
+                if (rack_Zones::fetchField("#containerId = {$dRec->containerId} AND #readiness >= 1")) {
                     $rec->countReadyDocuments++;
                 }
             }
@@ -609,13 +609,13 @@ class trans_Lines extends core_Master
 
         // Запис на изчислените полета
         $rec->stores = null;
-        if(countR($stores)){
+        if (countR($stores)) {
             $stores = array_combine(array_values($stores), $stores);
             $rec->stores = keylist::fromArray($stores);
         }
 
         $rec->cases = null;
-        if(countR($cases)){
+        if (countR($cases)) {
             $cases = array_combine(array_values($cases), $cases);
             $rec->cases = keylist::fromArray($cases);
         }
@@ -632,12 +632,12 @@ class trans_Lines extends core_Master
     public static function getThreadState($id)
     {
         $rec = static::fetchRec($id);
-        if($rec->state == 'closed') return 'closed';
+        if ($rec->state == 'closed') return 'closed';
 
         return 'opened';
     }
 
-    
+
     /**
      * Връща всички избираеми линии
      *
@@ -649,7 +649,7 @@ class trans_Lines extends core_Master
         $query = self::getQuery();
         $query->where("#state = 'pending'");
         $query->orderBy('id', 'DESC');
-        
+
         $recs = $query->fetchAll();
         array_walk($recs, function ($rec) use (&$linesArr) {
             $linesArr[$rec->id] = trans_Lines::getRecTitle($rec, false);
@@ -657,8 +657,8 @@ class trans_Lines extends core_Master
 
         return $linesArr;
     }
-    
-    
+
+
     /**
      * Изпълнява се преди записа
      */
@@ -670,12 +670,12 @@ class trans_Lines extends core_Master
             $rec->countReadyDocuments = 0;
         }
     }
-    
-    
+
+
     /**
      * Дефолтни данни, които да се попълват към коментар от документа
      *
-     * @param mixed    $rec   - ид или запис
+     * @param mixed $rec - ид или запис
      * @param int|NULL $detId - допълнително ид, ако е нужно
      *
      * @return array $res     - дефолтните данни за коментара
@@ -687,7 +687,7 @@ class trans_Lines extends core_Master
     {
         $res = array();
         if (empty($detId)) return $res;
-        
+
         $docContainerId = trans_LineDetails::fetchField($detId, 'containerId');
         $Document = doc_Containers::getDocument($docContainerId);
 
@@ -702,8 +702,8 @@ class trans_Lines extends core_Master
 
         return $res;
     }
-    
-    
+
+
     /**
      * Извиква се след успешен запис в модела
      */
@@ -714,13 +714,13 @@ class trans_Lines extends core_Master
             $dQuery = trans_LineDetails::getQuery();
             $dQuery->where("#lineId = {$rec->id}");
             $dQuery->show('containerId');
-            while($dRec = $dQuery->fetch()){
+            while ($dRec = $dQuery->fetch()) {
                 doc_DocumentCache::cacheInvalidation($dRec->containerId);
             }
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -734,8 +734,8 @@ class trans_Lines extends core_Master
             }
         }
 
-        if($action == 'close' && isset($rec)){
-            if(self::countDocumentsByState($rec->id, 'draft,pending')){
+        if ($action == 'close' && isset($rec)) {
+            if (self::countDocumentsByState($rec->id, 'draft,pending')) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -757,13 +757,13 @@ class trans_Lines extends core_Master
         $query = $this->getQuery();
         $query->where("#state = 'active' || #state = 'pending'");
 
-        while($rec = $query->fetch()){
+        while ($rec = $query->fetch()) {
             if (self::countDocumentsByState($rec->id, 'draft,pending')) continue;
 
             // Затварят се активните и заявките, на които им е изтекло времето
-            if($rec->state == 'active'){
+            if ($rec->state == 'active') {
                 $date = !empty($rec->activatedOn) ? $rec->activatedOn : $rec->modifiedOn;
-                if($date <= $activeFrom){
+                if ($date <= $activeFrom) {
                     $rec->state = 'closed';
                     $rec->brState = 'active';
                     $this->save($rec, 'state,brState,modifiedOn,modifiedBy');
@@ -772,7 +772,7 @@ class trans_Lines extends core_Master
             } else {
 
                 // Ако началото е в миналото, и не е бутана дълго време
-                if($rec->start <= $now && $rec->modifiedOn <= $pendingFrom){
+                if ($rec->start <= $now && $rec->modifiedOn <= $pendingFrom) {
                     $rec->state = 'closed';
                     $rec->brState = 'pending';
                     $this->save($rec, 'state,brState,modifiedOn,modifiedBy');
@@ -793,24 +793,24 @@ class trans_Lines extends core_Master
             $res = plg_Search::getKeywords($mvc, $rec);
         }
 
-        if(isset($rec->id)){
+        if (isset($rec->id)) {
             $dQuery = trans_LineDetails::getQuery();
             $dQuery->where("#lineId = {$rec->id}");
-            while($dRec = $dQuery->fetch()){
+            while ($dRec = $dQuery->fetch()) {
                 $Document = doc_Containers::getDocument($dRec->containerId);
-                if(!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)){
+                if (!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)) {
                     $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
                 }
                 $tInfo = $mvc->cacheLineInfo[$dRec->containerId];
 
-                if(isset($tInfo['countryId'])){
+                if (isset($tInfo['countryId'])) {
                     $countryNameBg = drdata_Countries::getCountryName($tInfo['countryId'], 'bg');
                     $countryNameEn = drdata_Countries::getCountryName($tInfo['countryId'], 'en');
                     $res .= ' ' . plg_Search::normalizeText($countryNameBg) . ' ' . plg_Search::normalizeText($countryNameEn);
                 }
 
-                foreach (array('address', 'addressInfo', 'contragentName') as $fld){
-                    if(!empty($tInfo[$fld])){
+                foreach (array('address', 'addressInfo', 'contragentName') as $fld) {
+                    if (!empty($tInfo[$fld])) {
                         $res .= ' ' . plg_Search::normalizeText($tInfo[$fld]);
                     }
                 }
