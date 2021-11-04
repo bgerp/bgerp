@@ -7354,3 +7354,6 @@ only screen and (max-width: 320px) {
   text-indent: 5px;
   font-weight: bold; }
 
+.rackRevisionRow {
+  background-color: #ff6b4b; }
+
