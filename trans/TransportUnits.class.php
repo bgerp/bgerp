@@ -253,7 +253,7 @@ class trans_TransportUnits extends core_Manager
                     // Какъв ще е остатъка от к-то ако се побере в опаковката
                     $module = fmod($quantity, $transQuantityInPack);
 
-                    // Ако е над зададените 20% ще се закръгля нагоре иначе надоло
+                    // Ако е над зададените 15% ще се закръгля нагоре иначе надоло
                     if($module >= $minModuleToRound){
                         $transUnitCalcedQuantity = ceil($transUnitCalcedQuantity);
                     } else {
