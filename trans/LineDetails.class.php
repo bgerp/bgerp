@@ -301,12 +301,12 @@ class trans_LineDetails extends doc_Detail
             $row->_rowTools->addLink('Премахване', array($mvc, 'remove', $rec->id, 'ret_url' => true), array('ef_icon' => 'img/16/gray-close.png', 'title' => 'Премахване на документа от транспортната линия'));
         }
 
-        if ($Document->haveRightFor('changeline') && (!Mode::is('printing') && !Mode::is('xhtml')) && $rec->status != 'removed') {
-            $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
-        }
-
         if(!Mode::isReadOnly() && !empty($row->notes)){
             $row->logistic .= "&nbsp; <a id= 'btn{$rec->id}' href=\"javascript:toggleDisplayByClass('btn{$rec->id}','notes{$rec->id}', 'true')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>";
+        }
+
+        if ($Document->haveRightFor('changeline') && (!Mode::is('printing') && !Mode::is('xhtml')) && $rec->status != 'removed') {
+            $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
         }
 
         // Ако има платежни документи към складовия
