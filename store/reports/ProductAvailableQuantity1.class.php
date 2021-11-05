@@ -118,6 +118,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $rec = $form->rec;
         $rec->flag = true;
 
+
+
 //        $form->setDefault('orderBy', 'conditionQuantity');
 //
 //        $form->setDefault('typeOfQuantity', 'free');
@@ -148,9 +150,16 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     {
 
         $rec = $form->rec;
-
+        //bp($form->cmd);
 
         if ($form->isSubmitted()) {
+
+            if ($form->cmd == 'save'){
+
+                frame2_Reports::refresh($rec);
+            }
+
+
 
 
         }
@@ -423,7 +432,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
             list($a, $conditionQuantity) = explode('|', $dRec->conditionQuantity);
 
-            $row->conditionQuantity = "<span style='color: {$dRec->conditionColor}'>${conditionQuantity}</span>";
+            $row->conditionQuantity = "<span style='color: $dRec->conditionColor'>$conditionQuantity</span>";
 //bp();
             $row->delrow = ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'delRow', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/delete.png");
             $row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
@@ -448,7 +457,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN groupsChecked--><div>|Наблюдавани групи|*: [#groupsChecked#]</div><!--ET_END groupsChecked-->
+                                        <!--ET_BEGIN groups--><div>|Наблюдавани групи|*: [#groups#]</div><!--ET_END groups-->
                                         <!--ET_BEGIN inputArts--><div>|Наблюдавани артикули|*: [#inputArts#]</div><!--ET_END inputArts-->
                                         <!--ET_BEGIN ariculsData--><div>|Артикули с данни|*: [#ariculsData#]</div><!--ET_END ariculsData-->
                                         <!--ET_BEGIN storeId--><div>|Складове|*: [#storeId#]</div><!--ET_END storeId-->
@@ -459,20 +468,19 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                                  </fieldset><!--ET_END BLOCK-->"));
 
 
-        if (isset($data->rec->groupsChecked)) {
+        if (isset($data->rec->groups)) {
             $marker = 0;
-            $arr = explode(',', $data->rec->groupsChecked);
-            foreach ($arr as $group) {
+            foreach (keylist::toArray($data->rec->groups) as $group) {
                 $marker++;
 
                 $groupVerb .= cat_Groups::fetch($group)->name;
 
-                if ((countR($arr)) - $marker != 0) {
+                if ((countR(keylist::toArray($data->rec->groups))) - $marker != 0) {
                     $groupVerb .= ', ';
                 }
             }
 
-            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groupsChecked');
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
         }
 
         //  if ($data->rec->limits == 'no') {
@@ -518,14 +526,19 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fieldTpl->append('<b>' . 'Налично към ' . $dateVerb . '</b>', 'typeOfQuantity');
 
         }
-
+        $grFilter = Request::get('grFilter','int');
+        if ($grFilter){
+            $grFilterName = cat_Groups::fetch($grFilter)->name;
+        }else{
+            $grFilterName = 'Не е избрана';
+        }
         $url = array('store_reports_ProductAvailableQuantity1', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
 
         $toolbar = cls::get('core_Toolbar');
 
         $toolbar->addBtn('Избери група', toUrl($url));
 
-        $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
+        $fieldTpl->append('<b>'."$grFilterName" . $toolbar->renderHtml() . '</b>', 'button');
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
@@ -798,8 +811,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             }
 
             frame2_Reports::save($rec);
+            return new Redirect(array('doc_Containers','list','threadId'=>$rec->threadId,'docId'=>$recId,'grFilter' => $form->rec->groupFilter, 'ret_url' => true));
 
-            return new Redirect(getRetUrl());
         }
 
         return $form->renderHtml();
