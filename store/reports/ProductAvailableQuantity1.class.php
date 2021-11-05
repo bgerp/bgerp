@@ -151,8 +151,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if ($form->isSubmitted()) {
 
             if ($form->cmd == 'save') {
+if ($rec){
+    frame2_Reports::refresh($rec);
+}
 
-                frame2_Reports::refresh($rec);
             }
 
 
