@@ -104,7 +104,7 @@ class sales_transaction_Invoice extends acc_DocumentTransactionSource
         if (Mode::get('saveTransaction')) {
             if ($rec->type != 'invoice' && empty($rec->changeAmount)) {
                 $this->class->updateMaster_($cloneRec, false);
-                if (round($rec->dealValue, 4) != round($cloneRec->dealValue, 4)) {
+                if (round($rec->dealValue, 4) != round($cloneRec->dealValue, 4) || round($rec->vatAmount, 4) != round($cloneRec->vatAmount, 4) || round($rec->discountAmount, 4) != round($cloneRec->discountAmount, 4)) {
                     wp('Оправяне на грешна сума във фактура', $rec, $cloneRec);
                     $rec->dealValue = $cloneRec->dealValue;
                     $rec->vatAmount = $cloneRec->vatAmount;
