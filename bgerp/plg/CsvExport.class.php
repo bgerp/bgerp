@@ -60,7 +60,9 @@ class bgerp_plg_CsvExport extends core_BaseClass
                 }
             }
         }
-        
+
+        $mvc->invoke('afterGetCsvFieldSetForExport', array(&$fieldset));
+
         return $fieldset;
     }
     
@@ -143,14 +145,14 @@ class bgerp_plg_CsvExport extends core_BaseClass
         }
         
         $fieldsArr = arr::make($filter->fields, true);
-        
+
         if ($fieldsArr['ExternalLink'] && $recs) {
             $this->prepareExternalLink($recs);
         }
-        
+
         $params = array();
         $fieldSet = $this->getCsvFieldSet($this->mvc);
-        
+
         if ($filter->showColumnNames == 'yes') {
             if ($this->mvc && $this->mvc instanceof core_FieldSet) {
                 foreach ($fieldsArr as $field => &$caption) {
