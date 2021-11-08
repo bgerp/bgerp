@@ -224,12 +224,13 @@ class trans_Lines extends core_Master
         $rec = static::fetchRec($rec);
         $titleArr = array();
         $titleArr[] = str_replace(' 00:00', '', dt::mysql2verbal($rec->start, 'd.m.Y H:i'));
-        $ourCompany =crm_Companies::fetchOurCompany();
+        $ourCompany = crm_Companies::fetchOurCompany();
 
         if (!empty($rec->forwarderId) && $rec->forwarderId != $ourCompany->id) {
             $companyName = crm_Companies::fetchField($rec->forwarderId, 'name');
             $titleArr[] = str::limitLen($companyName, 32);
         }
+        
         $titleArr[] = str::limitLen($rec->title, 32);
         $recTitle = implode('/', $titleArr);
 
