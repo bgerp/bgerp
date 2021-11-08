@@ -132,7 +132,7 @@ class store_transaction_ConsignmentProtocol extends acc_DocumentTransactionSourc
             );
 
             if($debitAccId == '3232'){
-                $amount = $amount = round($sendRec->amount * $rate, 2);
+                $amount = round($sendRec->amount * $rate, 2);
                 $entry['amount'] = $amount;
             }
 
