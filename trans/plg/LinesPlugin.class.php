@@ -410,12 +410,12 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
         }
     }
-    
-    
+
+
     /**
-     * Изчиства записите, заопашени за запис
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_Shutdown($mvc)
+    public static function on_AfterSessionClose($mvc)
     {
         // Обновяване на линиите
         if (is_array($mvc->syncLineDetails)) {
