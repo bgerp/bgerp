@@ -159,7 +159,8 @@ class trans_LineDetails extends doc_Detail
         if (empty($rec)) {
             $rec = (object) array('lineId' => $lineId, 'containerId' => $containerId, 'classId' => $Document->getClassId());
         }
-        
+        $rec->status = 'ready';
+
         self::save($rec);
         cls::get('trans_Lines')->updateMaster($rec->lineId);
         
@@ -559,7 +560,7 @@ class trans_LineDetails extends doc_Detail
         $paymentDocuments = array_filter($recs, function ($a) use ($paymentDocsClassIds) {return in_array($a->classId, $paymentDocsClassIds);});
 
         foreach ($data->recs as $rec){
-            if(!in_array($rec->classId, $documentsWithPayments)) continue;
+            if(!in_array($rec->classId, $documentsWithPayments) || $rec->status == 'removed') continue;
 
             // Към всеки документ който може да има платежен се добавят на неговия ред тези създадени към него
             $shipmentPayments = array_filter($paymentDocuments, function($a) use (&$rec){
@@ -579,7 +580,7 @@ class trans_LineDetails extends doc_Detail
         }
 
         foreach ($data->recs as $rec1){
-            if(!in_array($rec1->classId, $documentsWithPayments)) continue;
+            if(!in_array($rec1->classId, $documentsWithPayments) || $rec1->status == 'removed') continue;
 
             // При второто обикаляне, гледа се от останалите платежни, които не са към конкретен документ
             // има ли такива към някоя от нишките, ако има се добавя към първия документ от нея
