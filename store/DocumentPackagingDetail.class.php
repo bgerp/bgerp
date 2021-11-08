@@ -84,11 +84,11 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     {
         $this->FLD('documentClassId', 'class', 'column=none,notNull,silent,input=hidden,mandatory');
         $this->FLD('documentId', 'int', 'column=none,notNull,silent,input=hidden,mandatory');
-        $this->FLD('productType', 'enum(ours=Наш артикул,other=Чужд артикул)', 'silent,caption=Вид,mandatory,notNull,default=ours,removeAndRefreshForm=productId|packagingId|quantity|quantityInPack|smartCenter');
+        $this->FLD('productType', 'enum(ours=Наш артикул,other=Чужд артикул)', 'silent,caption=Вид,mandatory,notNull,default=ours,removeAndRefreshForm=productId|packagingId|quantity|quantityInPack,smartCenter');
         parent::setFields($this);
         $this->setField('amount', 'smartCenter');
         $this->FLD('type', 'enum(in=Приемане,out=Предаване)', 'column=none,notNull,silent,mandatory,caption=Действие,after=productId,input=hidden');
-        $this->setDbUnique('documentClassId,documentId,productId,packagingId,type');
+        $this->setDbUnique('documentClassId,documentId,productId,packagingId,type,productType');
     }
 
 
@@ -261,18 +261,39 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         
         $dRecs = self::getRecs($mvc->getClassId(), $rec->id);
 
-        foreach ($dRecs as $dRec) {
-            $quantity = $dRec->quantityInPack * $dRec->packQuantity;
+        // Ако е за "Наши артикули"
+        $theirs = $ours = array();
+        array_walk($dRecs, function($a) use(&$theirs, &$ours){if($a->productType == 'other') {$theirs[] = $a;} else {$ours[] = $a;}});
+        $combined = array_values($theirs);
+
+        $ourCombined = array();
+        foreach ($ours as $ourRec) {
+            if(!array_key_exists($ourRec->productId, $ourCombined)){
+                $ourCombined[$ourRec->productId] = (object)array('productId' => $ourRec->productId, 'productType' => 'ours');
+            }
+
+            $signOurs = ($ourRec->type == 'in') ? 1 : -1;
+            $ourCombined[$ourRec->productId]->quantity += $signOurs * $ourRec->quantity;
+        }
+
+        foreach ($ourCombined as $ourRec1) {
+            $clone = clone $ourRec1;
+            $clone->type = ($ourRec1->quantity > 0) ? 'in' : 'out';
+            $clone->quantity = abs($ourRec1->quantity);
+            $combined[] = $clone;
+        }
+
+        foreach ($combined as $dRec) {
             $acc323Id = ($dRec->productType == 'ours') ? '3231' : '3232';
 
             $arr323 = array($acc323Id, array($rec->contragentClassId, $rec->contragentId),
                 array('cat_Products', $dRec->productId),
-                'quantity' => $sign * $quantity);
-            
+                'quantity' => $sign * $dRec->quantity);
+
             $arr321 = array('321', array('store_Stores', $rec->storeId),
                 array('cat_Products', $dRec->productId),
-                'quantity' => $sign * $quantity);
-            
+                'quantity' => $sign * $dRec->quantity);
+
             if ($dRec->type == 'in') {
                 $entry = array('debit' => $arr321, 'credit' => $arr323);
             } else {

@@ -48,7 +48,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planning,purchase';
+    public $canSelectDriver = 'ceo,manager,store,planning,purchase,cat,acc';
 
 
     /**
@@ -70,7 +70,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId,orderBy,limits,date,seeByStores';
+    protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId,orderBy,limits,date,seeByStores,grFilterName';
 
 
     /**
@@ -116,16 +116,16 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $rec->flag = true;
 
 
-//        $form->setDefault('orderBy', 'conditionQuantity');
-//
-//        $form->setDefault('typeOfQuantity', 'free');
-//
-//        if ($rec->limits == 'no') {
-//
-//            unset($rec->orderBy);
-//            unset($rec->groupsChecked);
-//            $form->setField('orderBy', 'input=none');
-//        }
+        $form->setDefault('orderBy', 'conditionQuantity');
+
+        $form->setDefault('typeOfQuantity', 'free');
+
+        if ($rec->limits == 'no') {
+
+            unset($rec->orderBy);
+            unset($rec->groupsChecked);
+            $form->setField('orderBy', 'input=none');
+        }
 
         if ($rec->typeOfQuantity == 'free') {
             $form->setField('date', 'input');
@@ -330,10 +330,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
 
         if ($rec->limits == 'yes') {
-            $fld->FLD('minQuantity', 'double(smartRound,decimals=2)', 'caption=Минимално,smartCenter');
-            $fld->FLD('maxQuantity', 'double(smartRound,decimals=2)', 'caption=Максимално,smartCenter');
+            $fld->FLD('minQuantity', 'double(smartRound,decimals=2)', 'caption=Лимит->Мин.,smartCenter');
+            $fld->FLD('maxQuantity', 'double(smartRound,decimals=2)', 'caption=Лимит->Макс.,smartCenter');
             $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
-            $fld->FLD('delrow', 'text', 'caption=Действие,smartCenter');
+            $fld->FLD('delrow', 'text', 'caption=Корекция,smartCenter');
         }
 
         return $fld;
@@ -631,9 +631,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      * Изтриване на ред
      */
     public static function act_DelRow()
-    {
-        requireRole('debug');
-
+    {        
         expect($recId = Request::get('recId', 'int'));
         expect($productId = Request::get('productId', 'int'));
         expect($code = Request::get('code'));
@@ -660,9 +658,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         /**
          * Установява необходима роля за да се стартира екшъна
          */
-
-        requireRole('debug');
-
+        
         expect($recId = Request::get('recId', 'int'));
         expect($productId = Request::get('productId', 'int'));
         expect($code = Request::get('code'));
@@ -679,21 +675,20 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->title = "Промяна на min и max за |* ' " . ' ' . $nameVal . "' ||*";
 
-        $form->FLD('volOldMin', 'varchar', 'caption=Стойност min,silent');
-
         $volOldMin = $minVal;
+        $volOldMax = $maxVal;
 
-        $form->setReadOnly('volOldMin', "$volOldMin");
+        //   $form->FLD('volOldMin', 'varchar', 'caption=Стойност min,silent');
+        //  $form->setReadOnly('volOldMin', "$volOldMin");
+        //   $form->FLD('volOldMax', 'varchar', 'caption=Стойност max,silent');
+        //  $form->setReadOnly('volOldMax', "$volOldMax");
 
-        $form->input('volOldMin');
+        $form->FLD('volNewMin', 'varchar', 'caption=Въведи min,input');
 
-        $form->FLD('volNewMin', 'varchar', 'caption=Въведи min,placeholder=0,input');
-
-        $form->FLD('volOldMax', 'varchar', 'caption=Стойност max,silent');
         $form->FLD('volNewMax', 'varchar', 'caption=Въведи max в,input');
 
-        $volOldMax = $maxVal;
-        $form->setReadOnly('volOldMax', "$volOldMax");
+        $form->setDefault('volNewMax', $volOldMax);
+        $form->setDefault('volNewMin', $volOldMin);
 
         $mRec = $form->input();
 
@@ -725,9 +720,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     public static function act_GroupFilter()
     {
-        requireRole('debug');
-
-
+        
         expect($recId = Request::get('recId', 'int'));
 
         $rec = frame2_Reports::fetch($recId);
