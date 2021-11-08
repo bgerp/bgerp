@@ -99,12 +99,24 @@
 
                         <!--ET_END locationData-->
                         <!--ET_BEGIN lineId-->
-                       [#InvoicesToDocuments#]
                         <tr>
                             <td class='nowrap quiet aright'>Transport: </td>
                             <td>[#lineId#]</td>
                         </tr>
                         <!--ET_END lineId-->
+                       <!--ET_BEGIN lineForwarderId-->
+                       <tr>
+                           <td class='nowrap quiet aright'>Forwarder: </td>
+                           <td>[#lineForwarderId#]</td>
+                       </tr>
+                       <!--ET_END lineForwarderId-->
+                       <!--ET_BEGIN lineVehicleId-->
+                       <tr>
+                           <td class='nowrap quiet aright'>Motor vehicle: </td>
+                           <td>[#lineVehicleId#]</td>
+                       </tr>
+                       <!--ET_END lineVehicleId-->
+                       [#InvoicesToDocuments#]
                        <!--ET_BEGIN note-->
                        <tr>
                            <td colspan="2" >
