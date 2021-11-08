@@ -230,13 +230,12 @@ class trans_plg_LinesPlugin extends core_Plugin
         if (isset($rec->lineId)) {
             if(!Mode::is('printing')){
                 $lineRec = trans_Lines::fetch($rec->lineId);
-                $row->lineId = "#" . trans_Lines::getHandle($lineRec);
+                $row->lineId = '';
                 if($lineRec->start != $rec->{$mvc->termDateFld}){
                     $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
-                    $row->lineId .= "/{$lineDate}";
+                    $row->lineId .= $lineDate . '/';
                 }
-
-                $row->lineId .= '/' . trans_Lines::getVerbal($lineRec, 'title');
+                $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
                 $lineSingleUrl = trans_Lines::getSingleUrlArray($lineRec);
                 if(countR($lineSingleUrl)){
                     $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
