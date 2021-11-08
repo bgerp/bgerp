@@ -70,7 +70,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId,orderBy,limits,date,seeByStores,grFilterName';
+    protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId,orderBy,limits,date,seeByStores';
 
 
     /**
@@ -333,7 +333,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fld->FLD('minQuantity', 'double(smartRound,decimals=2)', 'caption=Лимит->Мин.,smartCenter');
             $fld->FLD('maxQuantity', 'double(smartRound,decimals=2)', 'caption=Лимит->Макс.,smartCenter');
             $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
-            $fld->FLD('delrow', 'text', 'caption=Корекция,smartCenter');
+            $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
         }
 
         return $fld;
@@ -685,7 +685,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->FLD('volNewMin', 'varchar', 'caption=Въведи min,input');
 
-        $form->FLD('volNewMax', 'varchar', 'caption=Въведи max в,input');
+        $form->FLD('volNewMax', 'varchar', 'caption=Въведи max,input');
 
         $form->setDefault('volNewMax', $volOldMax);
         $form->setDefault('volNewMin', $volOldMin);
