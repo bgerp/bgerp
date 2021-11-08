@@ -194,7 +194,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      *
      * @see plg_Clone
      */
-    public $cloneDetails = 'store_ShipmentOrderDetails';
+    public $cloneDetails = 'store_ShipmentOrderDetails,store_DocumentPackagingDetail';
 
 
     /**
