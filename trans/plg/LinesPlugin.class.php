@@ -231,11 +231,9 @@ class trans_plg_LinesPlugin extends core_Plugin
             if(!Mode::is('printing')){
                 $lineRec = trans_Lines::fetch($rec->lineId);
                 $row->lineId = "#" . trans_Lines::getHandle($lineRec);
-                if(!empty($rec->{$mvc->termDateFld})){
-                    if($lineRec->start != $rec->{$mvc->termDateFld}){
-                        $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
-                        $row->lineId .= "/{$lineDate}";
-                    }
+                if($lineRec->start != $rec->{$mvc->termDateFld}){
+                    $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
+                    $row->lineId .= "/{$lineDate}";
                 }
 
                 $row->lineId .= '/' . trans_Lines::getVerbal($lineRec, 'title');
