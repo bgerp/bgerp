@@ -50,7 +50,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Артикул, packagingId, packQuantity,type,packPrice, amount';
+    public $listFields = 'productId=Артикул, packagingId, packQuantity,type,productType,packPrice,amount';
     
     
     /**
@@ -84,6 +84,7 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
     {
         $this->FLD('documentClassId', 'class', 'column=none,notNull,silent,input=hidden,mandatory');
         $this->FLD('documentId', 'int', 'column=none,notNull,silent,input=hidden,mandatory');
+        $this->FLD('productType', 'enum(ours=Наш артикул,other=Чужд артикул)', 'silent,caption=Вид,mandatory,notNull,default=ours,removeAndRefreshForm=productId|packagingId|quantity|quantityInPack|smartCenter');
         parent::setFields($this);
         $this->setField('amount', 'smartCenter');
         $this->FLD('type', 'enum(in=Приемане,out=Предаване)', 'column=none,notNull,silent,mandatory,caption=Действие,after=productId,input=hidden');
@@ -218,7 +219,14 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         
         $groupId = cat_Groups::fetchField("#sysId = 'packagings'", 'id');
         $Cover = doc_Folders::getCover($masterRec->folderId);
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'hasProperties' => 'canStore', 'groups' => $groupId, 'hasnotProperties' => 'generic'));
+        $form->setDefault('productType', 'ours');
+
+        $params = array('customerClass' => $Cover->getClassId(), 'customerId' => $Cover->that, 'hasProperties' => 'canStore', 'groups' => $groupId, 'hasnotProperties' => 'generic');
+        if($form->rec->productType == 'other'){
+            $params['isPublic'] = 'no';
+        }
+
+        $data->form->setFieldTypeParams('productId', $params);
     }
     
     
@@ -252,9 +260,12 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
         $sign = 1;
         
         $dRecs = self::getRecs($mvc->getClassId(), $rec->id);
+
         foreach ($dRecs as $dRec) {
             $quantity = $dRec->quantityInPack * $dRec->packQuantity;
-            $arr323 = array('3231', array($rec->contragentClassId, $rec->contragentId),
+            $acc323Id = ($dRec->productType == 'ours') ? '3231' : '3232';
+
+            $arr323 = array($acc323Id, array($rec->contragentClassId, $rec->contragentId),
                 array('cat_Products', $dRec->productId),
                 'quantity' => $sign * $quantity);
             
@@ -267,7 +278,12 @@ class store_DocumentPackagingDetail extends store_InternalDocumentDetail
             } else {
                 $entry = array('debit' => $arr323, 'credit' => $arr321);
             }
-            
+
+            if($acc323Id == '3232'){
+                $amount = round($dRec->amount * $rec->currencyRate, 2);
+                $entry['amount'] = $amount;
+            }
+
             $entries[] = $entry;
         }
         
