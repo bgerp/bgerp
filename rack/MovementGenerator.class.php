@@ -137,7 +137,6 @@ class rack_MovementGenerator extends core_Manager
             }
         } while (countR($res) > 0);
         
-    
 
         $res = array();
         $i = 0;
@@ -159,7 +158,7 @@ class rack_MovementGenerator extends core_Manager
                 // само това, което ни трябва за зоните. Тук трябва да се проеми това ограничение по зададено максимално тегло
                 // на вземането от палета, което може да стане ръчно. Функцията трябва да получава макс количество,
                 // при което не се взема целия палет, а само необходимата част
-                if ($quantityPerPallet && ($q <= (1-self::ALMOST_FULL) * $quantityPerPallet)) {
+                if ($quantityPerPallet && $q > 0 && ($q <= (1-self::ALMOST_FULL) * $quantityPerPallet)) {
                     $o->ret = $q;
                     
                     // Къде да е върнат палета?
@@ -187,7 +186,7 @@ class rack_MovementGenerator extends core_Manager
                 }
             }
         }
-        
+    
         return $res;
     }
     
@@ -233,10 +232,13 @@ class rack_MovementGenerator extends core_Manager
         while ($cnt-- > 0 && countR($zCombi) < 20000) {
             $zCombi = self::addCombi($z, $zCombi);
         }
-        
+
+        // Подреждаме от най-големите комбинации към най-малките
+        krsort($zCombi);
+
         // Вкарваме точните съответсвия
         foreach ($pCombi as $pQ => $pK) {
-            if ($zK = $zCombi[$pQ]) {
+            if ($zK = (float) $zCombi[$pQ]) {
                 $moves = self::moveGen($p, $z, $pK, $zK);
                 break;
             }
@@ -307,13 +309,13 @@ class rack_MovementGenerator extends core_Manager
         $zK = explode('|', trim($zK, '|'));
         
         foreach ($pK as $pI) {
-            $pQ = $p[$pI];
+            $pQ = (float) $p[$pI];  
             if ($pQ <= 0) {
                 continue;
             }
             $moves["get=>{$pI}"] = $pQ;
             foreach ($zK as $zI) {
-                $zQ = $z[$zI];
+                $zQ = (float) $z[$zI];
                 if ($zQ <= 0) {
                     continue;
                 }
@@ -390,7 +392,7 @@ class rack_MovementGenerator extends core_Manager
             $res = array();
             foreach ($pallets as $i => $iP) {
                 if ($iP >= $quantityPerPallet) {
-                    $res[$i] = $iP;
+                    $res[$i] = (float) $iP;
                 }
             }
         }
@@ -450,7 +452,7 @@ class rack_MovementGenerator extends core_Manager
             $zoneArr = array('zone' => array(), 'quantity' => array());
             foreach ($obj->zones as $zoneId => $zoneQuantity) {
                 $zoneArr['zone'][] = $zoneId;
-                $zoneArr['quantity'][] = round($zoneQuantity / $quantityInPack, 5);
+                $zoneArr['quantity'][] = $zoneQuantity / $quantityInPack ;
             }
             
             $TableType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
