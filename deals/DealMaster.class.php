@@ -791,6 +791,10 @@ abstract class deals_DealMaster extends deals_DealBase
         if (empty($rec->currencyRate)) {
             $rec->currencyRate = currency_CurrencyRates::getRate($rec->valior, $rec->currencyId, null);
         }
+
+        if(isset($rec->id)){
+            $rec->productIdWithBiggestAmount = $mvc->findProductIdWithBiggestAmount($rec);
+        }
     }
     
     
@@ -2321,10 +2325,13 @@ abstract class deals_DealMaster extends deals_DealBase
         $arr = array_values($arr);
         
         if ($productId = $arr[0]->productId) {
-            $pRec = cat_Products::fetch($productId, 'name,code');
+            $tplLang = doc_TplManager::fetchField($rec->template, 'lang');
+            core_Lg::push($tplLang);
+            $pRec = cat_Products::fetch($productId, 'name,code,nameEn');
             $productName = cat_Products::getVerbal($pRec, 'name');
+            core_Lg::pop();
             $productName .= ' ' . (($pRec->code) ? "({$pRec->code})" : "(#Art{$pRec->id})");
-            
+
             return $productName;
         }
     }

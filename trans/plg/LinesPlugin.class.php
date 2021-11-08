@@ -103,7 +103,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Забележки,after=volume');
         $linesArr = trans_Lines::getSelectableLines();
         if(isset($exLineId) && !array_key_exists($exLineId, $linesArr)){
-            $linesArr[$exLineId] = trans_Lines::getRecTitle($exLineId, true);
+            $linesArr[$exLineId] = trans_Lines::getRecTitle($exLineId, false);
         }
 
         if(!countR($linesArr)){
@@ -229,8 +229,17 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         if (isset($rec->lineId)) {
             if(!Mode::is('printing')){
-                $lineRec = trans_Lines::fetch($rec->lineId, 'forwarderId,vehicle,state');
-                $row->lineId = (isset($fields['-single'])) ? trans_Lines::getHyperlink($rec->lineId) : trans_Lines::getLink($rec->lineId, 0);
+                $lineRec = trans_Lines::fetch($rec->lineId);
+                $row->lineId = '';
+                if($lineRec->start != $rec->{$mvc->termDateFld}){
+                    $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
+                    $row->lineId .= $lineDate . '/';
+                }
+                $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
+                $lineSingleUrl = trans_Lines::getSingleUrlArray($lineRec);
+                if(countR($lineSingleUrl)){
+                    $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
+                }
                 $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
             }
 
@@ -316,6 +325,9 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if(countR($units)){
                     $row->logisticInfo = trans_Helper::displayTransUnits($units);
                     $row->logisticInfo = ht::createHint($row->logisticInfo, $hint, $hintType, false);
+                    if(empty($rec->transUnitsInput)){
+                        $row->logisticInfo = "<span style='color:blue'>{$row->logisticInfo}</span>";
+                    }
                 }
             }
         }
@@ -397,12 +409,12 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
         }
     }
-    
-    
+
+
     /**
-     * Изчиства записите, заопашени за запис
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
      */
-    public static function on_Shutdown($mvc)
+    public static function on_AfterSessionClose($mvc)
     {
         // Обновяване на линиите
         if (is_array($mvc->syncLineDetails)) {
