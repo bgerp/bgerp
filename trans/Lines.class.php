@@ -213,6 +213,7 @@ class trans_Lines extends core_Master
         $this->FLD('countActiveDocuments', 'int', 'input=none,notNull,value=0');
         $this->FLD('countReadyDocuments', 'int', 'input=none,notNull,value=0');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'input=none,caption=Държави');
+        $this->FLD('transUnitsTotal', 'blob(serialize, compress)', 'input=none,caption=Логистична информация');
     }
 
 
@@ -230,7 +231,7 @@ class trans_Lines extends core_Master
             $companyName = crm_Companies::fetchField($rec->forwarderId, 'name');
             $titleArr[] = str::limitLen($companyName, 32);
         }
-        
+
         $titleArr[] = str::limitLen($rec->title, 32);
         $recTitle = implode('/', $titleArr);
 
@@ -399,6 +400,21 @@ class trans_Lines extends core_Master
             if (isset($rec->forwarderId)) {
                 $row->forwarderId = ht::createLink(crm_Companies::getVerbal($rec->forwarderId, 'name'), crm_Companies::getSingleUrlArray($rec->forwarderId));
             }
+
+            // Лайв изчисление на общите ЛЕ
+            $transUnitsTotal = array();
+            $dQuery = trans_LineDetails::getQuery();
+            $dQuery->where("#lineId = {$rec->id}");
+            while ($dRec = $dQuery->fetch()) {
+                $Document = doc_Containers::getDocument($dRec->containerId);
+                if (!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)) {
+                    $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
+                }
+                $transportInfo = $mvc->cacheLineInfo[$dRec->containerId];
+                if (is_array($transportInfo['transportUnits'])) {
+                    trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
+                }
+            }
         }
 
         // Показване на готовността
@@ -430,25 +446,11 @@ class trans_Lines extends core_Master
                 $row->cases = $mvc->getVerbal($rec, 'cases');
                 $row->handler .= "<div class='small'> " . tr('Каси') . ": {$row->cases}</div>";
             }
+
+            $transUnitsTotal = $rec->transUnitsTotal;
         }
 
-        // Лайв изчисление на общите ЛЕ
-        $transUnitsTotal = array();
-        $dQuery = trans_LineDetails::getQuery();
-        $dQuery->where("#lineId = {$rec->id}");
-        while ($dRec = $dQuery->fetch()) {
-            $Document = doc_Containers::getDocument($dRec->containerId);
-            if (!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)) {
-                $mvc->cacheLineInfo[$dRec->containerId] = $Document->getTransportLineInfo($rec->id);
-            }
-            $transportInfo = $mvc->cacheLineInfo[$dRec->containerId];
-            if (is_array($transportInfo['transportUnits'])) {
-                trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
-            }
-        }
-
-        $transUnitsVerbal = trans_Helper::displayTransUnits($transUnitsTotal);
-        $row->transUnitsTotal = empty($transUnitsVerbal) ? "<span class='quiet'>N/A</span>" : $transUnitsVerbal;
+        $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal);
     }
 
 
@@ -584,7 +586,7 @@ class trans_Lines extends core_Master
         $dQuery->where("#containerState != 'rejected' AND #status != 'removed'");
         $dQuery->show('status,containerId,containerState');
 
-        $stores = $cases = $countries = array();
+        $stores = $cases = $countries = $transUnitsTotal = array();
         $rec->countStoreDocuments = $rec->countActiveDocuments = $rec->countReadyDocuments = 0;
         while ($dRec = $dQuery->fetch()) {
             $Doc = doc_Containers::getDocument($dRec->containerId);
@@ -605,6 +607,10 @@ class trans_Lines extends core_Master
 
                 if (rack_Zones::fetchField("#containerId = {$dRec->containerId} AND #readiness >= 1")) {
                     $rec->countReadyDocuments++;
+                }
+
+                if(is_array($lineInfo['transportUnits'])){
+                    trans_Helper::sumTransUnits($transUnitsTotal, $lineInfo['transportUnits']);
                 }
             }
 
@@ -628,6 +634,7 @@ class trans_Lines extends core_Master
             $rec->cases = keylist::fromArray($cases);
         }
 
+        $rec->transUnitsTotal = countR($transUnitsTotal) ? $transUnitsTotal : null;
         $rec->modifiedOn = dt::now();
         $rec->modifiedBy = core_Users::getCurrent();
         $this->save($rec);
