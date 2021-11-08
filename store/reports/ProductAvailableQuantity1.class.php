@@ -287,10 +287,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 continue;
             }
             if ($prodRec->quantity > $prodRec->maxQuantity && ($prodRec->maxQuantity != 0)) {
-                $prodRec->conditionQuantity = '2|свръх наличност';
+                $prodRec->conditionQuantity = '2|над Макс.';
                 $prodRec->conditionColor = 'blue';
             } elseif ($prodRec->quantity < $prodRec->minQuantity) {
-                $prodRec->conditionQuantity = '1|под минимум';
+                $prodRec->conditionQuantity = '1|под Мин.';
                 $prodRec->conditionColor = 'red';
             }
         }
