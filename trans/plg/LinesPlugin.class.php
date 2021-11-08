@@ -233,7 +233,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->lineId = "#" . trans_Lines::getHandle($lineRec);
                 if(!empty($rec->{$mvc->termDateFld})){
                     if($lineRec->start != $rec->{$mvc->termDateFld}){
-                        $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($rec->start, 'd.m.Y H:i'));
+                        $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
                         $row->lineId .= "/{$lineDate}";
                     }
                 }
