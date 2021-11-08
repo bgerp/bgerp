@@ -36,6 +36,26 @@ class plg_ExpandInput extends core_Plugin
         $mvc->setParams($mvc->expandFieldName, array('input' => 'none'));
       
         $mvc->setExpandInputField($mvc, $mvc->expandInputFieldName, $mvc->expandFieldName);
+
+        setIfNot($mvc->forceExpandInputFieldOnExport, true);
+    }
+
+
+    /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        if ($mvc->forceExpandInputFieldOnExport) {
+            if (isset($fieldset->fields[$mvc->expandFieldName]) && !isset($fieldset->fields[$mvc->expandInputFieldName])) {
+                $fNameCaption = $fieldset->fields[$mvc->expandFieldName]->caption;
+                unset($fieldset->fields[$mvc->expandFieldName]);
+                $fieldset->fields[$mvc->expandInputFieldName] = $mvc->getField($mvc->expandInputFieldName, false);
+                if (isset($fieldset->fields[$mvc->expandInputFieldName])) {
+                    $fieldset->fields[$mvc->expandInputFieldName]->caption = $fNameCaption;
+                }
+            }
+        }
     }
 
 
