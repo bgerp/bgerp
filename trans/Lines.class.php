@@ -227,10 +227,15 @@ class trans_Lines extends core_Master
         $ourCompany =crm_Companies::fetchOurCompany();
 
         if (!empty($rec->forwarderId) && $rec->forwarderId != $ourCompany->id) {
-            $titleArr[] = str::limitLen(crm_Companies::getVerbal($rec->forwarderId, 'name'), 32);
+            $companyName = crm_Companies::fetchField($rec->forwarderId, 'name');
+            $titleArr[] = str::limitLen($companyName, 32);
         }
-        $titleArr[] = str::limitLen(static::getVerbal($rec, 'title'), 32);
+        $titleArr[] = str::limitLen($rec->title, 32);
         $recTitle = implode('/', $titleArr);
+
+        if ($escaped) {
+            $recTitle = type_Varchar::escape($recTitle);
+        }
 
         return $recTitle;
     }

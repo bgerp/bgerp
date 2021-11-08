@@ -103,7 +103,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Забележки,after=volume');
         $linesArr = trans_Lines::getSelectableLines();
         if(isset($exLineId) && !array_key_exists($exLineId, $linesArr)){
-            $linesArr[$exLineId] = trans_Lines::getRecTitle($exLineId, true);
+            $linesArr[$exLineId] = trans_Lines::getRecTitle($exLineId, false);
         }
 
         if(!countR($linesArr)){
