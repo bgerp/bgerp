@@ -48,7 +48,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planning,purchase,cat,acc';
+    public $canSelectDriver = 'ceo,debug,manager,store,planning,purchase,cat,acc';
 
 
     /**
@@ -177,7 +177,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        // bp($rec);
+
 
         $recs = $storesQuatity = $artLimitsArr = array();
 
@@ -186,7 +186,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $tempArr = $tempArrRec->artLimits;
 
 
-        if (is_array($tempArr) && !empty($tempArr)) { // bp($tempArr);
+        if (is_array($tempArr) && !empty($tempArr)) {
             $artLimitsArr = frame2_Reports::fetch($rec->id)->artLimits;
         }
 
@@ -669,11 +669,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $minVal = $details[$productId]['minQuantity'];
         $maxVal = $details[$productId]['maxQuantity'];
         $keyVal = $productId;
+
         $nameVal = "Продукт $productId";
 
         $form = cls::get('core_Form');
 
-        $form->title = "Промяна на min и max за |* ' " . ' ' . $nameVal . "' ||*";
+        $form->title = "Промяна на min и max за |* ' " . ' ' . cat_Products::getHyperlink($productId) . "' ||*";
 
         $volOldMin = $minVal;
         $volOldMax = $maxVal;
@@ -736,12 +737,13 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             foreach (keylist::toArray($rec->groups) as $val) {
 
                 $groupsSuggestionsArr[$val] = cat_Groups::fetch($val)->name;
+
             }
         }
 
         $form->FLD('groupFilter', 'key(mvc=cat_Groups, select=name)', 'caption=Покажи група,silent');
 
-        $form->setOptions('groupFilter', $groupsSuggestionsArr);
+        //$form->setOptions('groupFilter', $groupsSuggestionsArr);
 
         $mRec = $form->input();
 

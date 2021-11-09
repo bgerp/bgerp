@@ -1356,7 +1356,7 @@ abstract class deals_Helper
     /**
      * Помощна ф-я за намиране на транспортното тегло/обем
      */
-    private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = null)
+    private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = null, $masterState)
     {
         expect(in_array($type, array('volume', 'weight')));
         $hint = $warning = false;
@@ -1366,7 +1366,8 @@ abstract class deals_Helper
         if ($isStorable != 'yes') {
             return;
         }
-        
+
+        if(in_array($masterState, array('draft', 'pending')))
         if ($type == 'weight') {
             $liveValue = cat_Products::getTransportWeight($productId, $quantity);
         } else {
@@ -1424,13 +1425,14 @@ abstract class deals_Helper
      * @param int        $productId   - артикул
      * @param int        $packagingId - ид на опаковка
      * @param int        $quantity    - общо количество
+     * @param string     $masterState - общо количество
      * @param float|NULL $weight      - обем на артикула (ако няма се взима 'live')
      *
      * @return core_ET|NULL - шаблона за показване
      */
-    public static function getVolumeRow($productId, $packagingId, $quantity, $volume = null)
+    public static function getVolumeRow($productId, $packagingId, $quantity, $masterState, $volume = null)
     {
-        return self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume);
+        return self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume, $masterState);
     }
 
 
@@ -1440,24 +1442,27 @@ abstract class deals_Helper
      * @param $productId
      * @param $packagingId
      * @param $quantity
+     * @param string $masterState
      * @param null|int $transUnitId
      * @param null|double $transUnitQuantity
      * @return null|array
      */
-    public static function getTransUnitRow($productId, $packagingId, $quantity, $transUnitId = null, $transUnitQuantity = null)
+    public static function getTransUnitRow($productId, $packagingId, $quantity, $masterState, $transUnitId = null, $transUnitQuantity = null)
     {
         if(isset($transUnitId) && isset($transUnitQuantity)){
 
             return trans_TransportUnits::display($transUnitId, $transUnitQuantity);
         }
 
-        $bestArr = trans_TransportUnits::getBestUnit($productId, $quantity, $packagingId);
-        if(isset($bestArr)){
-            $row = trans_TransportUnits::display($bestArr['unitId'], $bestArr['quantity']);
-            $row = "<span style='color:blue'>{$row}</span>";
+        if(in_array($masterState, array('draft', 'pending'))){
+            $bestArr = trans_TransportUnits::getBestUnit($productId, $quantity, $packagingId);
+            if(isset($bestArr)){
+                $row = trans_TransportUnits::display($bestArr['unitId'], $bestArr['quantity']);
+                $row = "<span style='color:blue'>{$row}</span>";
 
-            return ht::createHint($row, 'Логистичните единици са изчислени динамично', 'notice', false);
+                return ht::createHint($row, 'Логистичните единици са изчислени динамично', 'notice', false);
 
+            }
         }
 
         return null;
@@ -1470,13 +1475,14 @@ abstract class deals_Helper
      * @param int        $productId   - артикул
      * @param int        $packagingId - ид на опаковка
      * @param int        $quantity    - общо количество
+     * @param string     $masterState - общо количество
      * @param float|NULL $weight      - тегло на артикула (ако няма се взима 'live')
      *
      * @return core_ET|NULL - шаблона за показване
      */
-    public static function getWeightRow($productId, $packagingId, $quantity, $weight = null)
+    public static function getWeightRow($productId, $packagingId, $quantity, $masterState, $weight = null)
     {
-        return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight);
+        return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight, $masterState);
     }
     
     
