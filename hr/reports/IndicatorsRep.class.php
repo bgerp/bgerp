@@ -83,7 +83,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
 
         // Само потребителите с по-нисък ранг може да бъдат избрани
         $allUsers = core_Users::getUsersByRoles('powerUser');
-        $filteredUsers = array();
+        $filteredUsers = array($cu => $allUsers[$cu]);
         foreach ($allUsers as $userId => $userNick){
             if(core_Users::compareRangs($userId, $cu) < 0){
                 $filteredUsers[$userId] = $userNick;
