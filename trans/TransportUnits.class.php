@@ -184,6 +184,8 @@ class trans_TransportUnits extends core_Manager
      */
     public static function getBestUnit($productId, $quantity, $packagingId)
     {
+        if(empty($quantity)) return null;
+
         // От опаковките на артикула, кои са свързани към ЛЕ
         $packs = cat_Products::getPacks($productId);
         $uQuery = trans_TransportUnits::getQuery();
