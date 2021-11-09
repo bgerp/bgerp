@@ -59,7 +59,7 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
     {
         $fieldset->FLD('periods', 'key(mvc=acc_Periods,select=title)', 'caption=Месец,after=title');
         $fieldset->FLD('indocators', 'keylist(mvc=hr_IndicatorNames,select=name,allowEmpty)', 'caption=Индикатори,after=periods');
-        $fieldset->FLD('personId', 'type_UserList', 'caption=Потребители,after=indocators');
+        $fieldset->FLD('personId', 'keylist(mvc=core_Users,select=nick)', 'caption=Потребители,after=indocators');
         $fieldset->FLD('formula', 'text(rows=2)', 'caption=Формула,after=indocators,single=none');
     }
     
@@ -78,6 +78,18 @@ class hr_reports_IndicatorsRep extends frame2_driver_TableData
         $periodToday = acc_Periods::fetchByDate(dt::now());
         $form->setDefault('periods', $periodToday->id);
         $form->setSuggestions('formula', hr_IndicatorNames::getFormulaSuggestions());
+
+        $cu = core_Users::getCurrent();
+
+        // Само потребителите с по-нисък ранг може да бъдат избрани
+        $allUsers = core_Users::getUsersByRoles('powerUser');
+        $filteredUsers = array();
+        foreach ($allUsers as $userId => $userNick){
+            if(core_Users::compareRangs($userId, $cu) < 0){
+                $filteredUsers[$userId] = $userNick;
+            }
+        }
+        $form->setSuggestions('personId', $filteredUsers);
     }
     
     
