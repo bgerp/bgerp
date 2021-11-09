@@ -214,7 +214,7 @@ class trans_TransportUnits extends core_Manager
                     if(array_key_exists($packagingId, $calcQuantity[0])){
 
                         // С приоритет е опаковката от документа
-                        $res  = array('unitId' => $calcQuantity[0]->unitId, 'quantity' => $quantity / $calcQuantity[0]->quantity);
+                        $res  = array('unitId' => $calcQuantity[0][$packagingId]->unitId, 'quantity' => $quantity / $calcQuantity[0][$packagingId]->quantity);
                     } else {
 
                         // Иначе е първата опаковка от документа
