@@ -189,17 +189,42 @@ class trans_TransportUnits extends core_Manager
         $uQuery = trans_TransportUnits::getQuery();
         $uQuery->in('packagingId', array_keys($packs));
         $uQuery->show('id,packagingId');
+        $isPublic = cat_Products::fetchField($productId, 'isPublic');
 
         // За всяка ле, която е опаковка се събира по к-то в нея
         $calcQuantity = array();
         while ($uRec = $uQuery->fetch()){
             if($packRec = cat_products_Packagings::getPack($productId, $uRec->packagingId)){
-                $calcQuantity[$packRec->quantity][$uRec->packagingId] = (object)array('unitId' => $uRec->id, 'quantity' => $packRec->quantity);
+
+                // Ако артикула е стандартен - ще се сортират по остатъка им иначе по-кто в опакока
+                $index = ($isPublic) ? (($quantity * 1000) % ($packRec->quantity * 1000)) : $packRec->quantity;
+                $calcQuantity[$index][$uRec->packagingId] = (object)array('unitId' => $uRec->id, 'quantity' => $packRec->quantity);
             }
         }
 
         // Ако има намерени
         if(countR($calcQuantity)){
+
+            // Ако е стандартен артикула
+            if($isPublic == 'yes'){
+                $res = null;
+
+                // и има опаковки на които количеството е кратно
+                if(is_array($calcQuantity[0])){
+                    if(array_key_exists($packagingId, $calcQuantity[0])){
+
+                        // С приоритет е опаковката от документа
+                        $res  = array('unitId' => $calcQuantity[0]->unitId, 'quantity' => $quantity / $calcQuantity[0]->quantity);
+                    } else {
+
+                        // Иначе е първата опаковка от документа
+                        $res  = array('unitId' => $calcQuantity[0][key($calcQuantity[0])]->unitId, 'quantity' => $quantity / $calcQuantity[0][key($calcQuantity[0])]->quantity);
+                    }
+                }
+
+                // Връща се така намерената опаковка
+                return $res;
+            }
 
             // Сортират се във възходящ ред, така че ЛЕ с най-малко к-во в опаковка да са първи в масива
             ksort($calcQuantity);
