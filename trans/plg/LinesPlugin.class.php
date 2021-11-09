@@ -579,7 +579,12 @@ class trans_plg_LinesPlugin extends core_Plugin
      */
     public static function on_AfterGetFieldsNotToClone($mvc, &$res, $rec)
     {
-        foreach (array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName, $mvc->lineFieldName, $mvc->lineNoteFieldName) as $fld){
+        $unsetFields = array($mvc->lineFieldName, $mvc->lineNoteFieldName);
+        if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
+            $unsetFields = array_merge(array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName));
+        }
+
+        foreach ($unsetFields as $fld){
             $res[$fld] = $fld;
         }
     }
