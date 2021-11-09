@@ -89,12 +89,12 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_BeforeAction($mvc, &$res, $action)
     {
         if ($action != 'changeline') return;
-        
+
         $mvc->requireRightFor('changeline');
         expect($id = Request::get('id', 'int'));
         expect($rec = $mvc->fetch($id));
         $mvc->requireRightFor('changeline', $rec);
-        
+
         $exLineId = $rec->lineId;
         $form = cls::get('core_Form');
         
@@ -383,12 +383,26 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         // Форсиране на мерките на редовете
         $measures = $mvc->getTotalTransportInfo($rec->id, true);
-        
-        // Ако няма обем или тегло се обновяват ако може
-        if (empty($rec->{$mvc->totalVolumeFieldName}) || empty($rec->{$mvc->totalWeightFieldName})) {
+
+        // Кеширане на изчислено тегло/обем/ле ако не са изчислени
+        $updateFields = array();
+        if(empty($rec->{$mvc->totalVolumeFieldName})) {
             $rec->{$mvc->totalWeightFieldName} = $measures->weight;
+            $updateFields[] = $mvc->totalWeightFieldName;
+        }
+
+        if(empty($rec->{$mvc->totalWeightFieldName})) {
             $rec->{$mvc->totalVolumeFieldName} = $measures->volume;
-            $mvc->save_($rec, "{$mvc->totalWeightFieldName},{$mvc->totalVolumeFieldName}");
+            $updateFields[] = $mvc->totalVolumeFieldName;
+        }
+
+        if(empty($rec->transUnits)) {
+            $rec->transUnits = $measures->transUnits;
+            $updateFields[] = 'transUnits';
+        }
+
+        if(countR($updateFields)){
+            $mvc->save_($rec, $updateFields);
         }
     }
     
