@@ -218,6 +218,7 @@ class trans_TransportUnits extends core_Manager
                     } else {
 
                         // Иначе е първата опаковка от документа
+                        arr::sortObjects($calcQuantity[0], 'quantity');
                         $res  = array('unitId' => $calcQuantity[0][key($calcQuantity[0])]->unitId, 'quantity' => $quantity / $calcQuantity[0][key($calcQuantity[0])]->quantity);
                     }
                 }
