@@ -200,7 +200,7 @@ class doc_reports_ActivatedDocumentsByTime extends frame2_driver_TableData
                     
                     'counter' => 1,
                     'time' => $id,
-                    'amount' => ''
+                    'amount' => 0
                 
                 );
             } else {
