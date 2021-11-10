@@ -173,6 +173,7 @@ class sales_QuotationsDetails extends deals_QuotationDetails
     public static function recToVerbal_($rec, &$fields = array())
     {
         $row = parent::recToVerbal_($rec, $fields);
+        $masterRec = sales_Quotations::fetch($rec->quotationId);
 
         $hintTerm = false;
         $row->tolerance = deals_Helper::getToleranceRow($rec->tolerance, $rec->productId, $rec->quantity);
@@ -187,7 +188,6 @@ class sales_QuotationsDetails extends deals_QuotationDetails
         }
         
         if (isset($term)) {
-            $masterRec = sales_Quotations::fetch($rec->quotationId);
             if(empty($masterRec->deliveryTermTime) && empty($masterRec->deliveryTime)){
                 $row->term = core_Type::getByName('time(uom=days,noSmart)')->toVerbal($term);
                 if ($hintTerm === true) {
@@ -203,8 +203,9 @@ class sales_QuotationsDetails extends deals_QuotationDetails
 
             // Показва се теглото, само ако мярката не е производна на килограм
             $kgMeasures = cat_UoM::getSameTypeMeasures(cat_UoM::fetchBySysId('kg')->id);
+
             if (!array_key_exists($rec->packagingId, $kgMeasures)) {
-                $row->weight = deals_Helper::getWeightRow($rec->productId, $rec->packagingId, $rec->quantity, $rec->weight);
+                $row->weight = deals_Helper::getWeightRow($rec->productId, $rec->packagingId, $rec->quantity, $masterRec->state, $rec->weight);
             } else {
                 unset($row->weight);
             }
