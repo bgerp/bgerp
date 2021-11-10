@@ -451,6 +451,8 @@ class rack_Zones extends core_Master
                 $dQuery = rack_ZoneDetails::getQuery();
                 $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
                 $dQuery->where("#productId={$filter->productId} AND #storeId = {$storeId}");
+                $dQuery->where("#movementQuantity != 0 OR #documentQuantity != 0");
+
                 $zoneIdsWithProduct = arr::extractValuesFromArray($dQuery->fetchAll(), 'zoneId');
                 if (countR($zoneIdsWithProduct)) {
                     $data->query->in('id', $zoneIdsWithProduct);
@@ -622,21 +624,21 @@ class rack_Zones extends core_Master
 
                 // Ако е сменена зоната, документа се премахва от старата и се регенерират движенията за нея и групата
                 if ($zoneRec->id != $fRec->zoneId && isset($zoneRec->id)) {
-                    $this->updateZone($zoneRec->id, $containerId, true);
+                    static::updateZone($zoneRec->id, $containerId, true);
                 }
 
                 // Ако е избрана нова зона се регенерират движенията за нея и групата ѝ
                 if (isset($fRec->zoneId)) {
                     if(empty($zoneRec->id)){
-                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
+                        static::updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Задаване на нова зона', $document->that);
                         $msg = 'Зоната е успешно зададена|*!';
                     } elseif($zoneRec->id != $fRec->zoneId) {
-                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
+                        static::updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Промяна на зона', $document->that);
                         $msg = 'Зоната е успешно променена|*!';
                     } elseif($zoneRec->defaultUserId != $fRec->defaultUserId){
-                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
+                        static::updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Промяна на дефолтен работник', $document->that);
                         $msg = 'Дефолтния работник е променен успешно|*!';
                     }
@@ -676,13 +678,13 @@ class rack_Zones extends core_Master
      * @param int|null $containerId - ид на контейнер
      * @param bool $remove          - да се добави или да се премахне документът от зоната
      */
-    private function updateZone($zoneId, $containerId, $remove = false, $defaultUserId = null)
+    public static function updateZone($zoneId, $containerId, $remove = false, $defaultUserId = null)
     {
         // Запис на документа към зоната
-        $zoneRec = $this->fetch($zoneId);
+        $zoneRec = static::fetch($zoneId);
         $zoneRec->containerId = ($remove) ? null : $containerId;
         $zoneRec->defaultUserId = ($remove) ? null : $defaultUserId;
-        $this->save($zoneRec);
+        static::save($zoneRec);
 
         // Синхронизиране с детайла на зоната
         rack_ZoneDetails::syncWithDoc($zoneRec->id, $zoneRec->containerId);
@@ -694,7 +696,7 @@ class rack_Zones extends core_Master
         }
 
         // Обновяване на информацията в зоната
-        $this->updateMaster($zoneRec);
+        cls::get(get_called_class())->updateMaster($zoneRec);
 
         // Ако групата е с групиране, се извличат всички зони от същата група
         $selectedZones = $zoneRec->id;
@@ -1000,10 +1002,12 @@ class rack_Zones extends core_Master
         $systemUserId = core_Users::SYSTEM_USER;
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId}");
+
         if (isset($zoneIds)) {
             $zoneIds = arr::make($zoneIds, true);
             $mQuery->likeKeylist('zoneList', $zoneIds);
         }
+
         $mQuery->show('id');
 
         $isOriginalSystemUser = core_Users::isSystemUser();
@@ -1030,15 +1034,18 @@ class rack_Zones extends core_Master
             // Ако в зоната реда е без партидност, но продукта има партидност - се търсят само палетите, които са с празна партидност
             $batch = (is_object($BatchClass)) ? $pRec->batch : null;
 
-            // Какви са наличните палети за избор
-            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true);
+            // Какви са наличните палети за избор (запазените се приспадат)
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true, true);
+
             $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
 
             // Ако к-то по палети е достатъчно за изпълнение, не се добавя ПОД-а, @TODO да се изнесе в mainP2Q
             if ($quantityOnPallets < $requiredQuantityOnZones) {
                 $floorQuantity = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
-                if ($floorQuantity) {
+                $floorWaitingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'waiting');
+                $floorQuantity -= $floorWaitingQuantity;
+                if ($floorQuantity > 0) {
                     $pallets[$floor] = (object)array('quantity' => $floorQuantity, 'position' => $floor);
                 }
             }
@@ -1048,9 +1055,7 @@ class rack_Zones extends core_Master
                 $palletsArr[$obj->position] = $obj->quantity;
             }
 
-            if (!countR($palletsArr)) {
-                continue;
-            }
+            if (!countR($palletsArr)) continue;
 
             // Какво е разпределянето на палетите
             $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
@@ -1110,7 +1115,7 @@ class rack_Zones extends core_Master
         }
 
         // Зоната се нотифицира, че документът е премахнат от нея
-        $this->updateZone($rec->id, $rec->containerId, true);
+        static::updateZone($rec->id, $rec->containerId, true);
         $document->getInstance()->logWrite('Премахване от зона', $document->that);
 
         followRetUrl(null, 'Документът е премахнат от зоната');
@@ -1122,6 +1127,7 @@ class rack_Zones extends core_Master
      *
      * @param int $storeId
      * @param array|null $zoneIds - ид-та само на избраните зони
+     * @param array|null $productArr - ид-та само на избраните артикули или null за всички
      *
      * @return stdClass $res
      */

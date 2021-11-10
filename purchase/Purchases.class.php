@@ -276,8 +276,14 @@ class purchase_Purchases extends deals_DealMaster
      * Кои които трябва да имат потребителите да се изберат като дилъри
      */
     public $dealerRolesList = 'purchase,ceo';
-    
-    
+
+
+    /**
+     * Кои роли може да променят активна покупка
+     */
+    public $canChangerec = 'ceo,purchaseMaster';
+
+
     /**
      * Описание на модела (таблицата)
      */

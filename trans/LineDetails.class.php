@@ -194,10 +194,11 @@ class trans_LineDetails extends doc_Detail
         core_RowToolbar::createIfNotExists($row->_rowTools);
 
         // Линк към документа
-        $row->containerId = '#' . $Document->getHandle();
+        $handle = $Document->getHandle();
+        $row->containerId = "#{$handle}";
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
-            $row->containerId = "<span class='state-{$rec->containerState} document-handler'>{$row->containerId}</span>";
+            $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$row->containerId}</span>";
         }
 
         if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {

@@ -184,6 +184,8 @@ class trans_TransportUnits extends core_Manager
      */
     public static function getBestUnit($productId, $quantity, $packagingId)
     {
+        if(empty($quantity)) return null;
+
         // От опаковките на артикула, кои са свързани към ЛЕ
         $packs = cat_Products::getPacks($productId);
         $uQuery = trans_TransportUnits::getQuery();
@@ -197,7 +199,7 @@ class trans_TransportUnits extends core_Manager
             if($packRec = cat_products_Packagings::getPack($productId, $uRec->packagingId)){
 
                 // Ако артикула е стандартен - ще се сортират по остатъка им иначе по-кто в опакока
-                $index = ($isPublic) ? (($quantity * 1000) % ($packRec->quantity * 1000)) : $packRec->quantity;
+                $index = ($isPublic == 'yes') ? (($quantity * 1000) % ($packRec->quantity * 1000)) : $packRec->quantity;
                 $calcQuantity[$index][$uRec->packagingId] = (object)array('unitId' => $uRec->id, 'quantity' => $packRec->quantity);
             }
         }

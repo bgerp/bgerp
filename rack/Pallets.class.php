@@ -121,8 +121,45 @@ class rack_Pallets extends core_Manager
         $this->setDbIndex('storeId');
         $this->setDbIndex('position');
     }
-    
-    
+
+
+    /**
+     * Връща к-то от палета в движения оставящи по зони
+     *
+     * @param int $productId
+     * @param mixed $batch
+     * @param int|null $id
+     * @param string $state
+     *
+     * @return double $sum
+     */
+    public static function getSumInZoneMovements($productId, $batch, $id, $state)
+    {
+        $sum = 0;
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->XPR('sum', 'double', 'ROUND(#quantity, 2)');
+        $mQuery->where("#state = '{$state}'");
+        if(isset($id)){
+            $mQuery->where("#palletId = {$id}");
+        } else {
+            $floorPosition = rack_PositionType::FLOOR;
+            $mQuery->where("#productId = {$productId} AND #palletId IS NULL AND #position = '{$floorPosition}'");
+            if(!is_null($batch)){
+                $mQuery->where("#batch = '{$batch}'");
+            }
+        }
+
+        while($mRec = $mQuery->fetch()){
+            $zones = type_Table::toArray($mRec->zones);
+            if(countR($zones)){
+                array_filter($zones, function($a) use (&$sum, $mRec){$sum += $a->quantity * $mRec->quantityInPack;});
+            }
+        }
+
+        return $sum;
+    }
+
+
     /**
      * Връща наличните палети за артикула
      *
@@ -130,10 +167,11 @@ class rack_Pallets extends core_Manager
      * @param int  $storeId                 - ид на склад
      * @param mixed $batch                  - null за всички партиди, стринг за конкретна (включително и без партида)
      * @param bool $withoutPendingMovements - към които да има или няма чакащи движения
+     * @param bool $deductWaitingMovements  - да се приспаднат ли и запазените движения
      *
      * @return array $pallets - масив с палети
      */
-    public static function getAvailablePallets($productId, $storeId, $batch = null, $withoutPendingMovements = false)
+    public static function getAvailablePallets($productId, $storeId, $batch = null, $withoutPendingMovements = false, $deductWaitingMovements = false)
     {
         $pallets = array();
         $query = self::getQuery();
@@ -153,26 +191,22 @@ class rack_Pallets extends core_Manager
                 // Палет, от който има неприключено движение не се изключва автоматично от подаваните, а се сумират количествата
                 // на всички неприключени движения насочени от него, и ако въпросната сума е по-малка от наличното на палета
                 // количество, той се подава на функцията, с остатъчното количество.
-                $sum = null;
-                $mQuery = rack_Movements::getQuery();
-                $mQuery->XPR('sum', 'double', 'ROUND(#quantity, 2)');
-                $mQuery->where("#palletId = {$rec->id} AND #state = 'pending'");
-                while($mRec = $mQuery->fetch()){
-                    $zones = type_Table::toArray($mRec->zones);
-                    if(countR($zones)){
-                        array_filter($zones, function($a) use (&$sum, $mRec){$sum += $a->quantity * $mRec->quantityInPack;});
-                    }
-                }
-                
-                if(isset($sum) && $sum >= $rec->quantity) continue;
-                
-                $rest = $rec->quantity - $sum;
+                $sumPending = static::getSumInZoneMovements($productId, $rec->batch, $rec->id, 'pending');
+                if($sumPending >= $rec->quantity) continue;
+                $rest = $rec->quantity - $sumPending;
             }
-            
-            // разликата
+
+            // Ако ще се приспадат и запазените движения тяхното к-во да се изважда от наличното на палета
+            if ($withoutPendingMovements === true) {
+                $sumWaiting = static::getSumInZoneMovements($productId, $rec->batch, $rec->id, 'waiting');
+                if($sumWaiting >= $rest) continue;
+                $rest = $rest - $sumWaiting;
+            }
+
+            // Разликата
             $pallets[$rec->id] = (object) array('quantity' => $rest, 'position' => $rec->position);
         }
-        
+
         return $pallets;
     }
     
