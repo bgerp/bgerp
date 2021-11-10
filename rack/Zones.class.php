@@ -1030,15 +1030,18 @@ class rack_Zones extends core_Master
             // Ако в зоната реда е без партидност, но продукта има партидност - се търсят само палетите, които са с празна партидност
             $batch = (is_object($BatchClass)) ? $pRec->batch : null;
 
-            // Какви са наличните палети за избор
-            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true);
+            // Какви са наличните палети за избор (запазените се приспадат)
+            $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true, true);
+
             $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
 
             // Ако к-то по палети е достатъчно за изпълнение, не се добавя ПОД-а, @TODO да се изнесе в mainP2Q
             if ($quantityOnPallets < $requiredQuantityOnZones) {
                 $floorQuantity = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
-                if ($floorQuantity) {
+                $floorWaitingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'waiting');
+                $floorQuantity -= $floorWaitingQuantity;
+                if ($floorQuantity > 0) {
                     $pallets[$floor] = (object)array('quantity' => $floorQuantity, 'position' => $floor);
                 }
             }
@@ -1048,9 +1051,7 @@ class rack_Zones extends core_Master
                 $palletsArr[$obj->position] = $obj->quantity;
             }
 
-            if (!countR($palletsArr)) {
-                continue;
-            }
+            if (!countR($palletsArr)) continue;
 
             // Какво е разпределянето на палетите
             $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
