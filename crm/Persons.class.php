@@ -342,6 +342,7 @@ class crm_Persons extends core_Master
         $this->setDbIndex('name');
         $this->setDbIndex('country');
         $this->setDbIndex('email');
+        $this->setDbIndex('buzCompanyId');
     }
     
     

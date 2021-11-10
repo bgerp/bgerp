@@ -165,11 +165,12 @@ class rack_Movements extends rack_MovementAbstract
                 if (!empty($transaction->warnings)) {
                     $form->setWarning($transaction->warningFields, implode(',', $transaction->warnings));
                 }
-                
+
                 if (!$form->gotErrors()) {
                     $rec->packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultPackQuantity;
                     $rec->quantity = $rec->quantityInPack * $rec->packQuantity;
-                    
+                    $rec->_isEdited = true;
+
                     if ($rec->state == 'closed') {
                         $rec->_isCreatedClosed = true;
                     }
@@ -224,6 +225,15 @@ class rack_Movements extends rack_MovementAbstract
                 $rec->documents = keylist::merge($rec->documents, $documents);
             }
         }
+
+        if($rec->state == 'pending' && isset($rec->workerId)){
+            $rec->state = 'waiting';
+            $rec->brState = 'pending';
+        }
+
+        if(empty($rec->id)){
+            $rec->_isCreated = true;
+        }
     }
     
     
@@ -252,6 +262,23 @@ class rack_Movements extends rack_MovementAbstract
         // Синхронизиране на записа
         if(isset($rec->id)){
             rack_OldMovements::sync($rec);
+            if($rec->_isCreated){
+                rack_Logs::add($rec->storeId, $rec->productId, 'create', $rec->position, $rec->id,"Създаване на движение #{$rec->id}");
+            } elseif($rec->_isEdited){
+                rack_Logs::add($rec->storeId, $rec->productId, 'edit', $rec->position, $rec->id, "Редактиране на движение #{$rec->id}");
+            }
+
+            if($rec->state == 'waiting' && $rec->brState == 'pending'){
+                rack_Logs::add($rec->storeId, $rec->productId, 'waiting', $rec->position, $rec->id, "Запазване на движение #{$rec->id}");
+            } elseif($rec->state == 'active'){
+                rack_Logs::add($rec->storeId, $rec->productId, 'start', $rec->position, $rec->id, "Започване на движение #{$rec->id}");
+            } elseif($rec->brState == 'active' && ($rec->state == 'pending' || $rec->state == 'waiting')){
+                rack_Logs::add($rec->storeId, $rec->productId, 'return', $rec->position, $rec->id, "Връщане на движение #{$rec->id}");
+            } elseif($rec->state == 'pending' && $rec->brState == 'waiting'){
+                rack_Logs::add($rec->storeId, $rec->productId, 'reject', $rec->position, $rec->id, "Отказване на движение #{$rec->id}");
+            } elseif($rec->state == 'closed'){
+                rack_Logs::add($rec->storeId, $rec->productId, 'close', $rec->positionTo, $rec->id, "Приключване на движение #{$rec->id}");
+            }
         }
     }
 
@@ -266,6 +293,7 @@ class rack_Movements extends rack_MovementAbstract
 
         foreach ($query->getDeletedRecs() as $rec) {
             rack_OldMovements::delete("#movementId = {$rec->id}");
+            rack_Logs::delete("#movementId = {$rec->id}");
         }
     }
 
@@ -334,7 +362,6 @@ class rack_Movements extends rack_MovementAbstract
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setDefault('fromIncomingDocument', 'no');
         $form->setField('storeId', 'input=hidden');
-        $form->setField('workerId', 'input=none');
         
         $defZones = Request::get('defaultZones', 'varchar');
         if($rec->fromIncomingDocument == 'yes'){
@@ -650,6 +677,8 @@ class rack_Movements extends rack_MovementAbstract
                 $rec->workerId = null;
             }
             $rec->_canceled = true;
+            $rec->canceledOn = dt::now();
+            $rec->canceledBy = core_Users::getCurrent();
             $reverse = true;
         }
 
@@ -672,7 +701,7 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             // Записва се служителя и се обновява движението
-            $this->save($rec, 'state,brState,workerId,modifiedOn,modifiedBy,documents');
+            $this->save($rec, 'state,brState,workerId,modifiedOn,modifiedBy,documents,canceledOn,canceledBy');
 
             $msg = (countR($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
             $type = (countR($transaction->warnings)) ? 'warning' : 'notice';
@@ -1101,6 +1130,7 @@ class rack_Movements extends rack_MovementAbstract
         if($olderThan = rack_Setup::get('DELETE_ARCHIVED_MOVEMENTS')){
             $createdBefore = dt::addSecs(-1 * $olderThan);
             rack_OldMovements::delete("#createdOn <= '{$createdBefore}'");
+            rack_Logs::delete("#createdOn <= '{$createdBefore}'");
         }
     }
     
@@ -1121,20 +1151,29 @@ class rack_Movements extends rack_MovementAbstract
         $pQuery = rack_Pallets::getQuery();
         $pQuery->where("#state = 'closed'");
         $pQuery->where("#closedOn <= '{$closedBefore}'");
-        $pQuery->show('id');
-        $palletsToDelete = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
+        $pQuery->show('id,storeId,productId');
+        $allPalletsRecs = $pQuery->fetchAll();
+
+        $palletsToDelete = arr::extractValuesFromArray($allPalletsRecs, 'id');
         if(!countR($palletsToDelete)) return;
-        
-        // От тези палети, кои от тх все още участват в движения
+
+
+        // От тези палети, кои от тях все още участват в движения
         $query = rack_Movements::getQuery();
         $query->in('palletId', $palletsToDelete);
-        $query->show('palletId');
+        $query->show('palletId, productId,storeId');
+
         $palletsInMovements = arr::extractValuesFromArray($query->fetchAll(), 'palletId');
-        
-        // Изтриват се тези палети, към които вече няма движения
         $palletsLeftToDelete = array_diff_key($palletsToDelete, $palletsInMovements);
-        foreach ($palletsLeftToDelete as $palletId) {
-            rack_Pallets::delete($palletId);
+
+        // Всички стари палети
+        foreach ($allPalletsRecs as $palletRec) {
+
+            // Изтриват се тези палети, към които вече няма движения
+            if(array_key_exists($palletRec->id, $palletsLeftToDelete)){
+                rack_Pallets::delete($palletRec->id);
+                rack_Pallets::recalc($palletRec->productId, $palletRec->storeId);
+            }
         }
     }
     
@@ -1181,40 +1220,43 @@ class rack_Movements extends rack_MovementAbstract
             $row->_rowTools->addLink('Отказване', $unloadUrl, 'ef_icon=img/16/checked.png,title=Отказване на движението');
         }
 
-        $startWarning = (isset($rec->workerId) && $rec->workerId != core_Users::getCurrent())  ? 'Сигурни ли сте, че искате да започнете движение от друг потребител|*?' : null;
-        $returnWarning = (isset($rec->workerId) && $rec->workerId != core_Users::getCurrent())  ? 'Сигурни ли сте, че искате да върнете движение от друг потребител|*?' : 'Наистина ли искате да върнете движението|*?';
+        $isDifferentWarning = isset($rec->workerId) && $rec->workerId != core_Users::getCurrent();
+        $startWarning = $isDifferentWarning  ? 'Сигурни ли сте, че искате да започнете движение от друг потребител|*?' : null;
+        $returnWarning = $isDifferentWarning  ? 'Сигурни ли сте, че искате да върнете движение от друг потребител|*?' : 'Наистина ли искате да върнете движението|*?';
+        $doneWarning = $isDifferentWarning  ? 'Сигурни ли сте, че искате да приключите движение от друг потребител|*?' : null;
 
         if ($mvc->haveRightFor('start', $rec)) {
             $startUrl = array($mvc, 'toggle', $rec->id, 'type' => 'start', 'ret_url' => true);
-            $row->_rowTools->addLink('Започване', $startUrl, "id=start{$rec->id},ef_icon=img/16/control_play.png,title=Започване на движението");
-            if (isset($startWarning)) {
-                $row->_rowTools->setWarning("start{$rec->id}", $startWarning);
-            }
+            $row->_rowTools->addLink('Започване', $startUrl, array('warning' => $startWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/control_play.png', 'title' => 'Започване на движението'));
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $startUrl = toUrl($startUrl, 'local');
                 $row->rightColBtns = ht::createFnBtn('Започване', '', $startWarning, array('class' => 'toggle-movement', 'data-url' => $startUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/control_play.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/control_play.png', '')));
-                $row->rightColBtns = ht::createLink($img, $startUrl, false, 'title=Започване на движението');
+                $row->rightColBtns = ht::createLink($img, $startUrl, $startWarning, 'title=Започване на движението');
             }
         }
 
         if ($mvc->haveRightFor('done', $rec)) {
             $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), 'ef_icon=img/16/gray-close.png,title=Приключване на движението');
+            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), array('warning' => $doneWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
 
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $stopUrl = toUrl($stopUrl, 'local');
-                $row->rightColBtns .= ht::createFnBtn('Приключване', '', null, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+                $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
-                $row->rightColBtns .= ht::createLink($img, $stopUrl, false, 'title=Приключване на движението');
+                $row->rightColBtns .= ht::createLink($img, $stopUrl, $doneWarning, 'title=Приключване на движението');
             }
         }
 
         if ($mvc->haveRightFor('reject', $rec)) {
-            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), "warning={$returnWarning},ef_icon=img/16/reject.png,title=Връщане на движението");
+            $row->_rowTools->addLink('Връщане', array($mvc, 'toggle', $rec->id, 'type' => 'reject', 'ret_url' => true), array('warning' => $returnWarning, 'id' => "return{$rec->id}", 'ef_icon' => 'img/16/red-back.png', 'title' => 'Връщане на движението'));
+        }
+
+        if(rack_Logs::haveRightFor('list')){
+            $row->_rowTools->addLink('Логове', array('rack_Logs', 'list', "movementId" => $rec->id), 'ef_icon=img/16/clock_history.png,title=Логове на потребителските действия с движението');
         }
     }
 }

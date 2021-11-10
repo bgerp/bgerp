@@ -374,6 +374,7 @@ abstract class deals_DealBase extends core_Master
             }
             
             if (!$form->gotErrors()) {
+                setIfNot($rec->valior, dt::today());
                 $this->save($rec);
                 
                 if (!empty($form->rec->closeWith)) {
@@ -390,7 +391,7 @@ abstract class deals_DealBase extends core_Master
                         $CloseDoc->conto($clId);
                     }
                 }
-                
+
                 $this->invoke('AfterActivation', array($rec));
                 
                 // Записваме, че потребителя е разглеждал този списък

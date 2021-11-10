@@ -108,7 +108,6 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $pQuery->where("#state = 'active' AND #canStore = 'yes'");
 
-
         if ($rec->typeOfProducts == 'public') {
             $pQuery->where("#isPublic = 'yes'");
         } else {

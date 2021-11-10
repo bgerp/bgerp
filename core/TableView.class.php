@@ -78,8 +78,8 @@ class core_TableView extends core_BaseClass
             if (is_array($rows)) {
                 foreach ($rows as $id => $row) {
                     $row1 = (object) $row;
-                    
-                    if (!empty($row1->{$name})) {
+
+                    if (!empty($row1->{$name}) && !((is_object($row1->{$name}) && $row1->{$name} instanceof core_ET && !strlen($row1->{$name}->getContent())))) {
                         $hide = false;
                         break;
                     }

@@ -227,6 +227,7 @@ class store_Transfers extends core_Master
 
         // Доставка
         $this->FLD('deliveryTime', 'datetime', 'caption=Натоварване');
+        $this->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Особености');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
@@ -499,29 +500,32 @@ class store_Transfers extends core_Master
      * Информация за логистичните данни
      *
      * @param mixed $rec - ид или запис на документ
+     * @return array      - логистичните данни
      *
-     * @return array $data - логистичните данни
-     *
-     *        string(2)     ['fromCountry']  - международното име на английски на държавата за натоварване
-     *        string|NULL   ['fromPCode']    - пощенски код на мястото за натоварване
-     *        string|NULL   ['fromPlace']    - град за натоварване
-     *        string|NULL   ['fromAddress']  - адрес за натоварване
-     *    string|NULL   ['fromCompany']  - фирма
-     *    string|NULL   ['fromPerson']   - лице
-     *        datetime|NULL ['loadingTime']  - дата на натоварване
-     *        string(2)     ['toCountry']    - международното име на английски на държавата за разтоварване
-     *        string|NULL   ['toPCode']      - пощенски код на мястото за разтоварване
-     *        string|NULL   ['toPlace']      - град за разтоварване
-     *    string|NULL   ['toAddress']    - адрес за разтоварване
-     *    string|NULL   ['toCompany']    - фирма
-     *    string|NULL   ['toPerson']     - лице
-     *      string|NULL   ['toPersonPhones'] - телефон на лицето
-     *      string|NULL   ['instructions'] - инструкции
-     *        datetime|NULL ['deliveryTime'] - дата на разтоварване
-     *        text|NULL      ['conditions']   - други условия
-     *        varchar|NULL  ['ourReff']      - наш реф
-     *        double|NULL   ['totalWeight']  - общо тегло
-     *        double|NULL   ['totalVolume']  - общ обем
+     *		string(2)     ['fromCountry']     - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']       - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']       - град за натоварване
+     * 		string|NULL   ['fromAddress']     - адрес за натоварване
+     *  	string|NULL   ['fromCompany']     - фирма
+     *   	string|NULL   ['fromPerson']      - лице
+     *      string|NULL   ['fromLocationId']  - лице
+     *      string|NULL   ['fromAddressInfo']   - особености
+     * 		datetime|NULL ['loadingTime']     - дата на натоварване
+     * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']         - град за разтоварване
+     *  	string|NULL   ['toAddress']       - адрес за разтоварване
+     *   	string|NULL   ['toCompany']       - фирма
+     *   	string|NULL   ['toPerson']        - лице
+     *      string|NULL   ['toLocationId']    - лице
+     *      string|NULL   ['toPersonPhones']  - телефон на лицето
+     *      string|NULL   ['toAddressInfo']   - особености
+     *      string|NULL   ['instructions']    - инструкции
+     * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
+     * 		text|NULL 	  ['conditions']      - други условия
+     *		varchar|NULL  ['ourReff']         - наш реф
+     * 		double|NULL   ['totalWeight']     - общо тегло
+     * 		double|NULL   ['totalVolume']     - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -539,6 +543,8 @@ class store_Transfers extends core_Master
                 $res["{$part}Place"] = !empty($location->place) ? $location->place : null;
                 $res["{$part}Address"] = !empty($location->address) ? $location->address : null;
                 $res["{$part}Person"] = !empty($location->mol) ? $location->mol : null;
+                $res["{$part}LocationId"] = $location->id;
+                $res["{$part}AddressInfo"] = $location->specifics;
             }
         }
 
@@ -577,12 +583,18 @@ class store_Transfers extends core_Master
      *               ['currencyId']     string|NULL - валутата на документа
      *               ['notes']          string|NULL - забележки за транспортната линия
      *               ['stores']         array       - склад(ове) в документа
+     *               ['cases']          array       - каси в документа
+     *               ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *               ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
-     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
-     *               ['address']        double|NULL - общ обем на стоките в документа
+     *               ['address']        double|NULL - адрес ба диставка
      *               ['storeMovement']  string|NULL - посока на движението на склада
+     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
+     *               ['countryId']      string|NULL - ид на държава
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -593,6 +605,14 @@ class store_Transfers extends core_Master
         $res['stores'] = array($rec->fromStore, $rec->toStore);
         $res['address'] = $row->toAdress;
         $res['storeMovement'] = 'out';
+        $res['cases'] = array();
+
+        if($toStoreLocationId = store_Stores::fetchField($rec->toStore, 'locationId')){
+            $toStoreLocation = crm_Locations::fetch($toStoreLocationId);
+            $res['locationId'] = $toStoreLocation->id;
+            $res['addressInfo'] = $toStoreLocation->comment;
+            $res['countryId'] = $toStoreLocation->countryId;
+        }
 
         return $res;
     }
@@ -626,40 +646,6 @@ class store_Transfers extends core_Master
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields = 'deliveryTime,valior, title=Документ, folderId , weight, volume,lineId';
-        }
-    }
-
-
-    /**
-     * След извличане на името на документа за показване в RichText-а
-     */
-    protected static function on_AfterGetDocNameInRichtext($mvc, &$docName, $id)
-    {
-        if(Mode::is('text', 'xhtml')) return;
-
-        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if (isset($indicator)) {
-            if ($docName instanceof core_ET) {
-                $docName->append($indicator);
-            } else {
-                $docName .= $indicator;
-            }
-        }
-    }
-
-
-    /**
-     * Връща линк към документа
-     */
-    protected function on_AfterGetLink($mvc, &$link, $id, $maxLength = false, $attr = array())
-    {
-        $indicator = deals_Helper::getShipmentDocumentPendingIndicator($mvc, $id);
-        if (isset($indicator)) {
-            if ($link instanceof core_ET) {
-                $link->append($indicator);
-            } else {
-                $link .= $indicator;
-            }
         }
     }
 

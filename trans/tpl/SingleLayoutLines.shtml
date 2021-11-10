@@ -17,7 +17,7 @@
 				<!--ET_BEGIN state-->
 				<div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
 				<!--ET_END state-->
-				<div style='margin-top: 5px;font-weight:bold'>( [#countReady#] / [#countTotal#] )</div>
+				<div style='margin-top: 5px;font-weight:bold'>( [#readiness#] )</div>
 			</td>
 			<td class='custom-header-bg' style='width:36%;'><b>|Изпълнител|*</b></td>
 		</tr>
@@ -30,9 +30,6 @@
 					<!--ET_BEGIN logistic-->
 					<div style='margin-bottom: 5px;'>[#logistic#]</div>
 					<!--ET_END logistic-->
-					<!--ET_BEGIN caseId-->
-					<div style='margin-bottom: 5px;'>|Инкасиране в|*: [#caseId#]</div>
-					<!--ET_END caseId-->
 
 				</div>
 				<table class='signature-table'>
@@ -56,10 +53,10 @@
 					<div style='margin-bottom: 5px;'><b>[#forwarderId#]</b></div>
 					<!--ET_END forwarderId-->
 					<!--ET_BEGIN vehicle-->
-					<div style='margin-bottom: 5px;'>[#vehicle#]<!--ET_BEGIN regNumber-->, [#regNumber#]<!--ET_END regNumber--></div>
+					<div style='margin-bottom: 5px;'>|МПС|*: [#vehicle#]<!--ET_BEGIN regNumber-->, [#regNumber#]<!--ET_END regNumber--></div>
 					<!--ET_END vehicle-->
 					<!--ET_BEGIN forwarderPersonId-->
-					<div style='margin-bottom: 5px;'>[#forwarderPersonId#]</div>
+					<div style='margin-bottom: 5px;'>|МОЛ|*: [#forwarderPersonId#]</div>
 					<!--ET_END forwarderPersonId-->
 				</div>
 				<table class='signature-table'>
@@ -77,50 +74,58 @@
 		<!--ET_BEGIN description-->
 		<tr>
 			<td colspan="3">
-
 				[#description#]
-
 			</td>
 		</tr>
 		<!--ET_END description-->
 	</table>
 	<div class="lines"></div>
 	<div class='mergedDetailsholder'>
+		<!--ET_BEGIN TOTAL-->
+		<div class='line-detail'>
+			[#TOTAL#]
+			<!--ET_END cases-->
+			<table class="listTable lineSummary" style="margin-top:10px;margin-bottom:10px">
+				<thead>
+				<tr>
+					<td class="sum-th">|Общо тегло|*</td>
+					<td class="sum-th">|Общ обем|*</td>
+					<td class="sum-th">|Инкасирано|*, [#baseCurrencyCode#]</td>
+					<td class="sum-th">|Изплатено|*, [#baseCurrencyCode#]</td>
+					<td class="sum-th">|Логистични единици|*</td>
+					<td class="sum-th">|Информация|*</td>
+				</tr>
+				</thead>
+				<tr>
+					<td class="centered">[#weight#]</td>
+					<td class="centered">[#volume#]</td>
+					<td class="centered">[#totalAmount#]</td>
+					<td class="centered">[#totalAmountReturn#]</td>
+					<td class="centered">[#transUnitsTotal#]</td>
+					<td class="centered" style="font-size:0.8em;text-align:left">
+						<!--ET_BEGIN defaultCaseId-->
+						<span style='font-weight:normal'>|Каса|*</span>: [#defaultCaseId#]<br>
+						<!--ET_END defaultCaseId-->
+						<!--ET_BEGIN cases-->
+						<span style='font-weight:normal'>|Каси|*</span>: [#cases#]<br>
+						<!--ET_END cases-->
+						<!--ET_BEGIN stores-->
+						<span style='font-weight:normal'>|Складове|*</span>: [#stores#]<br>
+						<!--ET_END stores-->
+						<!--ET_BEGIN countries-->
+						<span style='font-weight:normal'>|Държави|*</span>: [#countries#]<br>
+						<!--ET_END countries-->
+					</td>
+				</tr>
+			</table>
+		</div>
+		<!--ET_END TOTAL-->
 	<div class='line-detail'>
 		<div class="scrolling-holder">
 			[#trans_LineDetails#]
 		</div>
 	</div>
 	</div>
-	<!--ET_BEGIN TOTAL-->
-	<div class='line-detail'>
-		[#TOTAL#]
-		<table class="listTable">
-			<thead>
-			<tr>
-				<th rowspan=2>|Общо тегло|*</th>
-				<th rowspan=2>|Общ обем|*</th>
-				<th colspan=2>|Общо логистични единици|*</th>
-				<th colspan=2>|Общо|*</th>
-			</tr>
-			<tr>
-				<th>|Всички|*</th>
-				<th>|Подготвени|*</th>
-				<th>|Инкасирано|*</th>
-				<th>|Изплатено|*</th>
-			</tr>
-			</thead>
-			<tr>
-				<td class="centered">[#weight#]</td>
-				<td class="centered">[#volume#]</td>
-				<td class="centered">[#logisticUnitsDocument#]</td>
-				<td class="centered">[#logisticUnits#]</td>
-				<td class="centered">[#totalAmount#]</td>
-				<td class="centered">[#totalAmountReturn#]</td>
-			</tr>
-		</table>
-	</div>
-	<!--ET_END TOTAL-->
 	</div>
 <div class='footerDocBlock'>
 	[#/doc/tpl/Copyright.shtml#]

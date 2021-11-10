@@ -595,6 +595,11 @@ class cat_products_Packagings extends core_Detail
 
         if($fields['-list']) {
             $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
+
+            if($transUnitId = trans_TransportUnits::fetchField("#packagingId = {$rec->packagingId}", 'id')){
+                $transUnitName = trans_TransportUnits::getTitleById($transUnitId);
+                $row->packagingId = ht::createHint($row->packagingId, "Опаковката съответства на ЛЕ|*: {$transUnitName}", 'notice', false);
+            }
         }
     }
     

@@ -49,7 +49,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $mvc->FLD('quantity', 'double', 'caption=Количество,input=none');
         $mvc->FLD('quantityInPack', 'double', 'input=hidden');
-        $mvc->FLD('workerId', 'user(roles=ceo|rack)', 'caption=Движение->Товарач,tdClass=nowrap,input=none');
+        $mvc->FLD('workerId', 'user(roles=ceo|rack, rolesForTeams=officer|manager|ceo|storeAll, rolesForAll=ceo|storeAllGlobal,allowEmpty)', 'caption=Движение->Изпълнител,tdClass=nowrap');
 
         $mvc->FLD('note', 'varchar(64)', 'caption=Движение->Забележка,column=none');
         $mvc->FLD('state', 'enum(pending=Чакащо, waiting=Запазено, active=Активно, closed=Приключено)', 'caption=Движение->Състояние,silent');
@@ -58,6 +58,9 @@ abstract class rack_MovementAbstract extends core_Manager
         $mvc->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
         $mvc->FNC('containerId', 'int', 'input=hidden,caption=Документи,silent');
         $mvc->FLD('documents', 'keylist(mvc=doc_Containers,select=id)', 'input=none,caption=Документи');
+
+        $mvc->FLD('canceledOn', 'datetime(format=smartTime)', 'caption=Върнато||Returned->На, input=none');
+        $mvc->FLD('canceledBy', 'key(mvc=core_Users)', 'caption=Върнато||Returned->От||By, input=none');
 
         $mvc->setDbIndex('storeId');
         $mvc->setDbIndex('palletId');
@@ -117,6 +120,17 @@ abstract class rack_MovementAbstract extends core_Manager
             }
             $row->documents = implode(',', $documents);
         }
+
+        if(isset($rec->canceledBy) && !empty($rec->canceledOn)){
+            $dateVerbal = core_Type::getByName('datetime(smartTime)')->toVerbal($rec->canceledOn);
+            $userIdVerbal = crm_Profiles::createLink($rec->canceledBy);
+
+            if(isset($fields['-inline'])){
+                $row->movement = ht::createHint($row->movement, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}", null,true, array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18));
+            } else {
+                $row->productId = ht::createHint($row->productId, "|*{$userIdVerbal} |върна движение|* №{$rec->id} |на|* {$dateVerbal}",  null,true, array('src' => 'img/16/cart_go_back.png', 'style'=> 'background-color:rgba(173, 62, 42, 0.8);padding:4px;border-radius:2px;display: inline-block;', 'height' => 18, 'width' => 18));
+            }
+        }
     }
 
 
@@ -141,8 +155,10 @@ abstract class rack_MovementAbstract extends core_Manager
      *
      * @return string $res
      */
-    protected function getMovementDescription($rec, $skipZones = false, $makeLinks = true)
+    public function getMovementDescription($rec, $skipZones = false, $makeLinks = true)
     {
+        $rec = $this->fetchRec($rec);
+
         $packQuantity = isset($rec->_originalPackQuantity) ? $rec->_originalPackQuantity : $rec->packQuantity;
         $position = $this->getFieldType('position')->toVerbal($rec->position);
         $positionTo = $this->getFieldType('positionTo')->toVerbal($rec->positionTo);
@@ -175,13 +191,10 @@ abstract class rack_MovementAbstract extends core_Manager
             $zones = self::getZoneArr($rec, $quantityInZones);
             $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
 
-            Mode::push('shortZoneName', true);
             foreach ($zones as $zoneRec) {
                 $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
-
                 if(rack_Zones::fetchField($zoneRec->zone)){
-                    $zoneTitle = rack_Zones::getRecTitle($zoneRec->zone);
-                    $zoneTitle = rack_Zones::styleZone($zoneRec->zone, $zoneTitle, 'zoneMovement');
+                    $zoneTitle = rack_Zones::getDisplayZone($zoneRec->zone, false, false);
                     if($makeLinks){
                         $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
                     }
@@ -191,9 +204,8 @@ abstract class rack_MovementAbstract extends core_Manager
 
                 $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
                 $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
-                $movementArr[] = "<span {$class}>{$zoneTitle} ({$zoneQuantity})</span>";
+                $movementArr[] = "<span {$class}>{$zoneTitle} ( {$zoneQuantity} )</span>";
             }
-            Mode::pop('shortZoneName');
         }
 
         if (!empty($positionTo) && $restQuantity) {
@@ -243,6 +255,8 @@ abstract class rack_MovementAbstract extends core_Manager
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $storeId = store_Stores::getCurrent();
+        $data->title = 'Движения на палети в склад |*<b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
+
         $data->query->where("#storeId = {$storeId}");
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'waiting' THEN 2 WHEN 'active' THEN 3 ELSE 4 END)");
         if ($palletId = Request::get('palletId', 'int')) {
@@ -251,14 +265,16 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $data->listFilter->setFieldTypeParams('workerId', array('allowEmpty' => 'allowEmpty'));
         $data->listFilter->setField('fromIncomingDocument', 'input=none');
-        $data->listFilter->FLD('from', 'date');
-        $data->listFilter->FLD('to', 'date');
+        $data->listFilter->setField('workerId', 'caption=Товарач,after=to');
+        $data->listFilter->FLD('from', 'date', 'caption=От');
+        $data->listFilter->FLD('to', 'date', 'caption=До');
         $data->listFilter->FNC('documentHnd', 'varchar', 'placeholder=Документ,caption=Документ,input,silent,recently');
-        $data->listFilter->FLD('state1', 'enum(,pending=Чакащи,waiting=Запазени,active=Активни,closed=Приключени)', 'placeholder=Всички');
+        $data->listFilter->FLD('state1', 'enum(all=Всички,pending=Чакащи,waiting=Запазени,active=Активни,closed=Приключени)', 'caption=Състояние');
 
-        $data->listFilter->showFields = 'selectPeriod,workerId,search,documentHnd,state1';
+        $data->listFilter->showFields = 'selectPeriod, from, to, workerId,search,documentHnd,state1';
+        $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
+
         $data->listFilter->input();
-        $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
 
         if ($filterRec = $data->listFilter->rec) {
@@ -322,7 +338,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
             if($rec->workerId != $userId){
                 if(!haveRole('rackMaster')){
-                    $requiredRoles = 'no_one';
+
                 }
             }
         }

@@ -1348,7 +1348,7 @@ abstract class deals_Helper
         if ($rec->state == 'active') {
             acc_Journal::deleteTransaction($masterMvc->getClassId(), $rec->id);
             acc_Journal::saveTransaction($masterMvc->getClassId(), $rec->id, false);
-            $masterMvc->logWrite('Рекондиране след промяна на курса', $rec->id);
+            $masterMvc->logWrite('Реконтиране след промяна на курса', $rec->id);
         }
     }
     
@@ -1356,7 +1356,7 @@ abstract class deals_Helper
     /**
      * Помощна ф-я за намиране на транспортното тегло/обем
      */
-    private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = null)
+    private static function getMeasureRow($productId, $packagingId, $quantity, $type, $value = null, $masterState)
     {
         expect(in_array($type, array('volume', 'weight')));
         $hint = $warning = false;
@@ -1366,7 +1366,8 @@ abstract class deals_Helper
         if ($isStorable != 'yes') {
             return;
         }
-        
+
+        if(in_array($masterState, array('draft', 'pending')))
         if ($type == 'weight') {
             $liveValue = cat_Products::getTransportWeight($productId, $quantity);
         } else {
@@ -1404,7 +1405,8 @@ abstract class deals_Helper
         $valueRow = core_Type::getByName($valueType)->toVerbal($value);
         if ($hint === true) {
             $hintType = ($type == 'weight') ? 'Транспортното тегло e прогнозно' : 'Транспортният обем е прогнозен';
-            $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството");
+            $valueRow = "<span style='color:blue'>{$valueRow}</span>";
+            $valueRow = ht::createHint($valueRow, "{$hintType} на база количеството", 'notice', false);
         }
        
         // Показване на предупреждение
@@ -1423,29 +1425,64 @@ abstract class deals_Helper
      * @param int        $productId   - артикул
      * @param int        $packagingId - ид на опаковка
      * @param int        $quantity    - общо количество
+     * @param string     $masterState - общо количество
      * @param float|NULL $weight      - обем на артикула (ако няма се взима 'live')
      *
      * @return core_ET|NULL - шаблона за показване
      */
-    public static function getVolumeRow($productId, $packagingId, $quantity, $volume = null)
+    public static function getVolumeRow($productId, $packagingId, $quantity, $masterState, $volume = null)
     {
-        return self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume);
+        return self::getMeasureRow($productId, $packagingId, $quantity, 'volume', $volume, $masterState);
     }
-    
-    
+
+
+    /**
+     * Показва реда за логистичната информация за артикула
+     *
+     * @param $productId
+     * @param $packagingId
+     * @param $quantity
+     * @param string $masterState
+     * @param null|int $transUnitId
+     * @param null|double $transUnitQuantity
+     * @return null|array
+     */
+    public static function getTransUnitRow($productId, $packagingId, $quantity, $masterState, $transUnitId = null, $transUnitQuantity = null)
+    {
+        if(isset($transUnitId) && isset($transUnitQuantity)){
+
+            return trans_TransportUnits::display($transUnitId, $transUnitQuantity);
+        }
+
+        if(in_array($masterState, array('draft', 'pending'))){
+            $bestArr = trans_TransportUnits::getBestUnit($productId, $quantity, $packagingId);
+            if(isset($bestArr)){
+                $row = trans_TransportUnits::display($bestArr['unitId'], $bestArr['quantity']);
+                $row = "<span style='color:blue'>{$row}</span>";
+
+                return ht::createHint($row, 'Логистичните единици са изчислени динамично', 'notice', false);
+
+            }
+        }
+
+        return null;
+    }
+
+
     /**
      * Връща реда за транспортното тегло на артикула
      *
      * @param int        $productId   - артикул
      * @param int        $packagingId - ид на опаковка
      * @param int        $quantity    - общо количество
+     * @param string     $masterState - общо количество
      * @param float|NULL $weight      - тегло на артикула (ако няма се взима 'live')
      *
      * @return core_ET|NULL - шаблона за показване
      */
-    public static function getWeightRow($productId, $packagingId, $quantity, $weight = null)
+    public static function getWeightRow($productId, $packagingId, $quantity, $masterState, $weight = null)
     {
-        return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight);
+        return self::getMeasureRow($productId, $packagingId, $quantity, 'weight', $weight, $masterState);
     }
     
     
@@ -1988,51 +2025,6 @@ abstract class deals_Helper
         }
         
         return array('notActive' => $errorNotActive, 'metasError' => $errorMetas);
-    }
-    
-    
-    /**
-     * Допълнителен индикатор на складовите документи на заявка
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     *
-     * @return string|NULL
-     */
-    public static function getShipmentDocumentPendingIndicator($mvc, $rec)
-    {
-        $rec = $mvc->fetchRec($rec);
-        expect($mvc instanceof store_ShipmentOrders || $mvc instanceof store_Transfers);
-        
-        // Ако документа е на заявка
-        if ($rec->state == 'pending') {
-            $transInfo = cls::get($mvc->mainDetail)->getTransportInfo($rec);
-            
-            // Колко е общото тегло
-            $transInfo->weight = round($transInfo->weight);
-            $weightVerbal = !empty($transInfo->weight) ? core_Type::getByName('cat_type_Weight')->toVerbal($transInfo->weight) : 'N/A';
-            $string = "<span id='weight{$rec->containerId}' class='enTag weightTag' title='Общо тегло на документа'></span>";
-            $style = "#weight{$rec->containerId}:after{content: '${weightVerbal}'} ";
-
-            // Колко е готовността от склада
-            $readinessVerbal = (isset($rec->storeReadiness)) ? core_Type::getByName('percent(smartRound)')->toVerbal($rec->storeReadiness) : 'N/A';
-            $string .= "<span id='percent{$rec->containerId}' class='enTag percent' title='Наличност в склада'></span>";
-            $style .= "#percent{$rec->containerId}:after{content: '${readinessVerbal}'} ";
-            
-            // Ако има зони, колко % е готово от зоната
-            if (core_Packs::isInstalled('rack')) {
-                $zoneReadiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
-                if (isset($zoneReadiness)) {
-                    $zoneReadinessVerbal = core_Type::getByName('percent(smartRound)')->toVerbal($zoneReadiness);
-                    $string .= "<span id='zone{$rec->containerId}' class='enTag zone' title='Колко е нагласено в зоната'></span>";
-                    $style .= "#zone{$rec->containerId}.zone:after{content: '${zoneReadinessVerbal}'} ";
-                }
-            }
-
-            $string = '<style>' . $style . "</style><span class='docTags'>" . $string . '</span>';
-
-            return $string;
-        }
     }
     
     

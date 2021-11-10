@@ -135,7 +135,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'requestedQuantity,weight,volume';
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume,transUnitId,transUnitQuantity';
     
     
     /**
@@ -307,5 +307,14 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             $res->operation['out'] = $masterRec->storeId;
             unset($res->operation['in']);
         }
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        store_DocumentPackagingDetail::addBtnsToToolbar($data->toolbar, $mvc->Master, $data->masterId);
     }
 }

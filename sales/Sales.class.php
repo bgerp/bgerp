@@ -232,7 +232,7 @@ class sales_Sales extends deals_DealMaster
         'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
-        'oneTimeDelivery' => 'clientCondition',
+        'oneTimeDelivery' => 'clientCondition'
     );
     
     
@@ -336,9 +336,9 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
-        $this->setField('oneTimeDelivery', 'salecondSysId=salesOneTimeDelivery');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,silent,removeAndRefreshForm=caseId|paymentType');
         $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
+        $this->setField('oneTimeDelivery', 'salecondSysId=salesOneTimeDelivery');
     }
     
     

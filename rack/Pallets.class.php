@@ -99,25 +99,67 @@ class rack_Pallets extends core_Manager
      */
     public function description()
     {
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=none,mandatory');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden,mandatory,silent');
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell');
-        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,input=none');
-        $this->FLD('batch', 'text', 'smartCenter');
-        $this->FLD('label', 'varchar(32)', 'caption=Палет,tdClass=rightCol,smartCenter');
+        $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell,silent');
+        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,silent');
+        $this->FLD('batch', 'text', 'smartCenter,caption=Партида');
+        $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
-        $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter,input=none,after=productId');
         $this->FLD('state', 'enum(active=Активно,closed=Затворено)', 'caption=Състояние,input=none,notNull,value=active');
         $this->FLD('closedOn', 'datetime(format=smartTime)', 'caption=Затворено на,input=none');
-        
+
+        $this->FNC('newProductId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Ревизия->Артикул,class=w100,removeAndRefreshForm=newPackagingId|newPackQuantity|newBatch,input,autohide,silent');
+        $this->FNC('newPackagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Ревизия->Опаковка,input=hidden');
+        $this->FNC('newPackQuantity', 'double(smartRound,decimals=3,min=0)', 'caption=Ревизия->Количество,input=hidden');
+        $this->FNC('newBatch', 'text', 'caption=Ревизия->Партида,input=hidden,silent');
+
         $this->setDbIndex('productId');
         $this->setDbIndex('productId,storeId');
         $this->setDbIndex('state');
         $this->setDbIndex('storeId');
         $this->setDbIndex('position');
     }
-    
-    
+
+
+    /**
+     * Връща к-то от палета в движения оставящи по зони
+     *
+     * @param int $productId
+     * @param mixed $batch
+     * @param int|null $id
+     * @param string $state
+     *
+     * @return double $sum
+     */
+    public static function getSumInZoneMovements($productId, $batch, $id, $state)
+    {
+        $sum = 0;
+        $mQuery = rack_Movements::getQuery();
+        $mQuery->XPR('sum', 'double', 'ROUND(#quantity, 2)');
+        $mQuery->where("#state = '{$state}'");
+        if(isset($id)){
+            $mQuery->where("#palletId = {$id}");
+        } else {
+            $floorPosition = rack_PositionType::FLOOR;
+            $mQuery->where("#productId = {$productId} AND #palletId IS NULL AND #position = '{$floorPosition}'");
+            if(!is_null($batch)){
+                $mQuery->where("#batch = '{$batch}'");
+            }
+        }
+
+        while($mRec = $mQuery->fetch()){
+            $zones = type_Table::toArray($mRec->zones);
+            if(countR($zones)){
+                array_filter($zones, function($a) use (&$sum, $mRec){$sum += $a->quantity * $mRec->quantityInPack;});
+            }
+        }
+
+        return $sum;
+    }
+
+
     /**
      * Връща наличните палети за артикула
      *
@@ -125,10 +167,11 @@ class rack_Pallets extends core_Manager
      * @param int  $storeId                 - ид на склад
      * @param mixed $batch                  - null за всички партиди, стринг за конкретна (включително и без партида)
      * @param bool $withoutPendingMovements - към които да има или няма чакащи движения
+     * @param bool $deductWaitingMovements  - да се приспаднат ли и запазените движения
      *
      * @return array $pallets - масив с палети
      */
-    public static function getAvailablePallets($productId, $storeId, $batch = null, $withoutPendingMovements = false)
+    public static function getAvailablePallets($productId, $storeId, $batch = null, $withoutPendingMovements = false, $deductWaitingMovements = false)
     {
         $pallets = array();
         $query = self::getQuery();
@@ -148,26 +191,22 @@ class rack_Pallets extends core_Manager
                 // Палет, от който има неприключено движение не се изключва автоматично от подаваните, а се сумират количествата
                 // на всички неприключени движения насочени от него, и ако въпросната сума е по-малка от наличното на палета
                 // количество, той се подава на функцията, с остатъчното количество.
-                $sum = null;
-                $mQuery = rack_Movements::getQuery();
-                $mQuery->XPR('sum', 'double', 'ROUND(#quantity, 2)');
-                $mQuery->where("#palletId = {$rec->id} AND #state = 'pending'");
-                while($mRec = $mQuery->fetch()){
-                    $zones = type_Table::toArray($mRec->zones);
-                    if(countR($zones)){
-                        array_filter($zones, function($a) use (&$sum, $mRec){$sum += $a->quantity * $mRec->quantityInPack;});
-                    }
-                }
-                
-                if(isset($sum) && $sum >= $rec->quantity) continue;
-                
-                $rest = $rec->quantity - $sum;
+                $sumPending = static::getSumInZoneMovements($productId, $rec->batch, $rec->id, 'pending');
+                if($sumPending >= $rec->quantity) continue;
+                $rest = $rec->quantity - $sumPending;
             }
-            
-            // разликата
+
+            // Ако ще се приспадат и запазените движения тяхното к-во да се изважда от наличното на палета
+            if ($withoutPendingMovements === true) {
+                $sumWaiting = static::getSumInZoneMovements($productId, $rec->batch, $rec->id, 'waiting');
+                if($sumWaiting >= $rest) continue;
+                $rest = $rest - $sumWaiting;
+            }
+
+            // Разликата
             $pallets[$rec->id] = (object) array('quantity' => $rest, 'position' => $rec->position);
         }
-        
+
         return $pallets;
     }
     
@@ -180,14 +219,125 @@ class rack_Pallets extends core_Manager
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $form = $data->form;
-        
+        $form = &$data->form;
+        $rec = &$form->rec;
+
         $form->setReadOnly('productId');
-        $form->setField('position', 'input');
+        $form->setReadOnly('quantity');
         $form->setReadOnly('position');
+        $form->setReadOnly('batch');
+
+        $packName = tr(cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId')));
+        $form->setField('quantity', "unit={$packName}");
+
+        // Ако е избран нов артикул да се появят полетата за опаковка и партида (ако има)
+        if(isset($rec->newProductId)){
+            $form->setField('newPackagingId', 'input');
+            $form->setField('newPackQuantity', 'input');
+
+            $packs = cat_Products::getPacks($rec->newProductId);
+            $form->setOptions('newPackagingId', $packs);
+            $form->setDefault('newPackagingId', cat_Products::fetchField($rec->newProductId, 'measureId'));
+
+            // Ако има партиди, позволява се да се смени партидата с друга налична
+            $BatchClass = batch_Defs::getBatchDef($rec->newProductId);
+            if ($BatchClass) {
+                $form->setField('newBatch', 'input,placeholder=Без партида');
+                $batches = batch_Items::getBatches($rec->newProductId, $rec->storeId, true);
+                if(countR($batches)){
+                    $form->setOptions('newBatch', array('' => '') + $batches);
+                } else {
+                    $form->setReadOnly('newBatch');
+                }
+
+                $fieldCaption = $BatchClass->getFieldCaption();
+                if (!empty($fieldCaption)) {
+                    $form->setField('newBatch', "caption=Ревизия->{$fieldCaption}");
+                }
+            }
+        }
     }
-    
-    
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = &$form->rec;
+
+        if ($form->isSubmitted()) {
+            if(!empty($rec->newProductId)){
+                $activeMovementCount = rack_Movements::count("#storeId = {$rec->storeId} AND (#state = 'active' OR #state = 'waiting') AND (#palletId = {$rec->id} OR (#productId = {$rec->productId} AND #batch = '{$rec->batch}' AND (#position = '{$rec->position}' OR #positionTo = '{$rec->position}')))");
+                if($activeMovementCount){
+                    $countVerbal = core_Type::getByName('int')->toVerbal($activeMovementCount);
+                    if(rack_Movements::haveRightFor('list')){
+                        $countVerbal = ht::createLink($countVerbal, array('rack_Movements', 'list', 'palletId' => $rec->id));
+                    }
+                    $form->setError("newProductId", "Не може да ревизирате палета, докато има|* <b>{$countVerbal}</b> |започнато или запазено движение|*");
+                } elseif(empty($rec->newPackQuantity)){
+                    $form->setError("newPackQuantity", "Количеството трябва да е попълнено");
+                } else {
+                    $warning = null;
+                    if (!deals_Helper::checkQuantity($rec->newPackagingId, $rec->newPackQuantity, $warning)) {
+                        $form->setWarning('newPackQuantity', $warning);
+                    }
+                }
+
+                if(!$form->gotErrors()){
+
+                    // От новия артикул каква е наличността
+                    $packRec = cat_products_Packagings::getPack($rec->newProductId, $rec->newPackagingId);
+                    $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+                    $availableQuantity = rack_Pallets::getAvailableQuantity(null, $rec->newProductId, $rec->storeId, $rec->newBatch);
+                    $rec->newQuantity = $quantityInPack * $rec->newPackQuantity;
+
+                    // Ако въведеното е над наличното
+                    if($rec->newQuantity > $availableQuantity){
+                        $measureId = cat_Products::fetchField($rec->productId, 'measureId');
+                        $measureName = cat_UoM::getVerbal($measureId, 'name');
+                        $availableQuantityVerbal = str::getPlural($availableQuantity, $measureName);
+                        $form->setError('newQuantity', "Над наличното количество в склада от:|* <b>{$availableQuantityVerbal}</b>");
+                    }
+
+                    if(!$form->gotErrors()){
+                        if($rec->productId == $rec->newProductId && $rec->quantity == $rec->newQuantity && $rec->batch == $rec->newBatch){
+                            $form->setError('newProductId,newBatch,newPackQuantity,newPackagingId', 'За ревизия трябва да има промяна');
+                        } else {
+                            // Подмяна на ревизираните данни със новите
+                            $rec->_logMsg = $mvc->getRevisionLogMsg($rec->position, $rec->productId, $rec->batch, $rec->quantity, $rec->newProductId, $rec->newBatch, $rec->newQuantity);
+                            $rec->productId = $rec->newProductId;
+                            $rec->quantity = $rec->newQuantity;
+                            $rec->batch = $rec->newBatch;
+                            $rec->_isRevisioned = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     *  Подготвя лога за ревизия на палета
+     */
+    private function getRevisionLogMsg($position, $oldProductId, $oldBatch, $oldQuantity, $newProductId, $newBatch, $newQuantity)
+    {
+        // Подготовка на лога за ревизия
+        $oldMeasureId = cat_Products::fetchField($oldProductId, 'measureId');
+        $newMeasureId = cat_Products::fetchField($newProductId, 'measureId');
+
+        $oldProductName = cat_Products::getTitleById($oldProductId);
+        $newProductName = cat_Products::getTitleById($newProductId);
+        $oldMeasureName = cat_UoM::getVerbal($oldMeasureId, 'name');
+        $newMeasureName = cat_UoM::getVerbal($newMeasureId, 'name');
+
+        $msg = "Ревизиране на палет {$position}: {$oldProductName}/{$oldBatch}/{$oldMeasureName}/{$oldQuantity} => {$newProductName}/{$newBatch}/{$newMeasureName}/{$newQuantity}";
+
+        return $msg;
+    }
+
+
     /**
      * Връща най-добрата позиция за разполагане на дадения продукт
      */
@@ -343,6 +493,24 @@ class rack_Pallets extends core_Manager
         self::recalc($rec->productId, $rec->storeId);
         $cacheType = 'UsedRacksPositions' . $rec->storeId;
         core_Cache::removeByType($cacheType);
+
+        // Ако е ревизирано движението
+        if($rec->_isRevisioned){
+
+            // Лог на ревизията и изтриване на чакащите движения
+            rack_Logs::add($rec->storeId, $rec->productId, 'revision', $rec->position, null, $rec->_logMsg);
+
+            // Имали движения към ревизирания палет засягащи зони?
+            $hasMovementWithZones = rack_Movements::count("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}') AND (#zoneList IS NOT NULL OR #zoneList != '')");
+
+            // Изтриване на чакащите движения за този палет
+            rack_Movements::delete("#storeId = {$rec->storeId} AND #state = 'pending' AND (#palletId = {$rec->id} OR #positionTo = '{$rec->position}')");
+
+            // Ако е изтрито поне едно движение към зона, да се регенерират всички движения в склада
+            if($hasMovementWithZones){
+                rack_Zones::pickupAll($rec->storeId);
+            }
+        }
     }
 
 
@@ -603,8 +771,10 @@ class rack_Pallets extends core_Manager
                 
                 $row->_rowTools->addLink('Сваляне', $addUrl + array('movementType' => 'rack2floor'), 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода');
                 $row->label .= '&nbsp;' . ht::createLink('', $addUrl + array('movementType' => 'rack2floor'), null, 'ef_icon=img/16/arrow_down.png,title=Сваляне на палета на пода') ;
-                
-                $row->_rowTools->addLink('Хронология', array('rack_Movements', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
+
+                if(rack_OldMovements::haveRightFor('list')){
+                    $row->_rowTools->addLink('Хронология', array('rack_OldMovements', 'list', 'palletId' => $rec->id), 'ef_icon=img/16/clock_history.png,title=Хронология на движенията на палета');
+                }
             }
             
             $row->productId = cat_Products::getShortHyperlink($rec->productId, true);

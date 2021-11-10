@@ -60,13 +60,14 @@
                             <div><span class='quiet'>[#otherCaption#]:</span>[#otherText#]</div>
                         <!--ET_END otherText-->
                         <!--ET_BEGIN lineId-->
-                            <div><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#] </div>
+                            <div class="no-print"><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#] </div>
                         <!--ET_END lineId-->
-                        
-                        <!--ET_BEGIN lineNotes-->
-                            <div><span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
-                        <!--ET_END lineNotes-->
-                        
+                         <!--ET_BEGIN lineForwarderId-->
+                         <div><span class='quiet'>|Спедитор|*:</span> &nbsp;&nbsp;&nbsp;[#lineForwarderId#] </div>
+                         <!--ET_END lineForwarderId-->
+                         <!--ET_BEGIN lineVehicleId-->
+                         <div><span class='quiet'>|МПС|*:</span> &nbsp;&nbsp;&nbsp;[#lineVehicleId#] </div>
+                         <!--ET_END lineVehicleId-->
                         <!--ET_BEGIN amountDeal-->
                         <div class ='misc' style='float:right'>
                             <div style='margin-top:7px;'>

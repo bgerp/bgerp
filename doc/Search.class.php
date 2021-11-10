@@ -105,7 +105,6 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
         $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички');
-
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
         $data->listFilter->setField('search', 'caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
@@ -202,7 +201,7 @@ class doc_Search extends core_Manager
         if ($isFiltered && !$data->listFilter->gotErrors()) {
             
             // Ако някой ще направи обработки преди вземането на резултата
-            $mvc->invoke('BeforePrepareSearhQuery', array($data, $filterRec));
+            $mvc->invoke('BeforePrepareSearchQuery', array($data, $filterRec));
             
             // Търсене на определен тип документи
             $SearchDocument = null;
@@ -414,7 +413,7 @@ class doc_Search extends core_Manager
      * @param object     $data
      * @param object     $filtreRec
      */
-    public function on_BeforePrepareSearhQuery($mvc, $data, $filtreRec)
+    public function on_BeforePrepareSearchQuery($mvc, $data, $filtreRec)
     {
         // Тримваме търсенето
         $search = trim($filtreRec->search);

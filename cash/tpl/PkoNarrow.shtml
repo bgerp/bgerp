@@ -52,19 +52,16 @@
                 <tr>
                     <td>
 			            <table class='border-table' style='width:100%;'>
+							<!--ET_BEGIN InvoicesToDocuments-->
 			                <tr>
 			                    <td class='aleft' style='padding-left:10px;padding-top: 10px;width:67%;'>
-									<!--ET_BEGIN Invoices-->
 									<table>
 										[#InvoicesToDocuments#]
 									</table>
-									<!--ET_END Invoices-->
-			                   		<!--ET_BEGIN termDate-->
-                     				<div class='richtext-holder'><span class='quiet'>|Очаквано на|*:</span>&nbsp;&nbsp;&nbsp;[#termDate#]</div>
-                     				<!--ET_END termDate-->
-			                   	</td>
 
+			                   	</td>
 			                </tr>
+							<!--ET_END InvoicesToDocuments-->
 							<tr>
 								<td style='padding-left:10px; padding-top: 10px;'>
 									<div><span style='font-size:20px'>|Сума|*:</span><span class='amount'><span class='cCode'>[#currencyId#]</span>&nbsp;&nbsp;<b>[#amount#]</b></span></div>
@@ -85,32 +82,59 @@
 		                <tr>
 		                    <td>
 		                        <table style='width:100%' class='no-border'>
-		                            <tr>
+
 		                                <!--ET_BEGIN reason-->
+									<tr>
 		                                <td colspan='2'>
 		                                	<div class='richtext-holder'><span class='quiet'>|Основание|*:</span> &nbsp;&nbsp;&nbsp;[#reason#]</div>
 		                                </td>
+									</tr>
 		                                <!--ET_END reason-->
+
+									<!--ET_BEGIN termDate-->
+									<tr>
+										<td colspan='2'>
+											<div class='richtext-holder'><span class='quiet'>|Очаквано на|*:</span> &nbsp;&nbsp;&nbsp;[#termDate#]</div>
+										</td>
+									</tr>
+									<!--ET_END termDate-->
+
+
 		                                [#OTHER_TEXT#]
 		                                <!--ET_BEGIN otherText-->
+									<tr>
 		                                <td colspan='2'>
 		                                	<div class='richtext-holder'><span class='quiet'>[#otherCaption#]:</span> &nbsp;&nbsp;&nbsp;[#otherText#]</div>
 		                                </td>
+									</tr>
 		                                <!--ET_END otherText-->
 		                                
 		                                <!--ET_BEGIN lineId-->
+									<tr>
 		                                <td colspan='2'>
-		                                	<div class='richtext-holder'><span class='quiet'>|Транспортна линия|*:</span> &nbsp;&nbsp;&nbsp;[#lineId#]</div>
+		                                	<div class='richtext-holder no-print'><span class='quiet'>|Транспортна линия|*:</span> [#lineId#]</div>
 		                                </td>
+									</tr>
 		                                <!--ET_END lineId-->
-		                                
-		                                <!--ET_BEGIN lineNotes-->
-		                                <td colspan='2'>
-		                                	<div class='richtext-holder'><span class='quiet'>|Транспорт: Забележки|*:</span> &nbsp;&nbsp;&nbsp;[#lineNotes#]</div>
-		                                </td>
-		                                <!--ET_END lineNotes-->
+
+										<!--ET_BEGIN lineForwarderId-->
+									<tr>
+										<td colspan='2'>
+											<div class='richtext-holder no-print'><span class='quiet'>|Спедитор|*:</span> [#lineForwarderId#]</div>
+										</td>
+									</tr>
+										<!--ET_END lineForwarderId-->
+
+										<!--ET_BEGIN lineVehicleId-->
+									<tr>
+										<td colspan='2'>
+											<div class='richtext-holder no-print'><span class='quiet'>|МПС|*:</span> [#lineVehicleId#]</div>
+										</td>
+									</tr>
+										<!--ET_END lineVehicleId-->
 		                                
 		                                <!--ET_BEGIN amountDeal-->
+									<tr>
 		                                <td style='vertical-align:middle !important'>
 		                                    <div class ='misc' style='float:right'>
 		                                        <div style='margin-top:7px;'>
@@ -120,6 +144,7 @@
 		                                         <span class='labels'>|Курс|*: <b>[#rate#]</b> <i>[#rateFromCurrencyId#]</i> |за|* 1 <i>[#rateToCurrencyId#]</i><br></span>
 		                                    </div>
 		                                </td>
+									</tr>
 		                                <!--ET_END amountDeal-->
 		                            </tr>
 		                        </table>
