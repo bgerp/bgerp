@@ -829,7 +829,10 @@ class acc_plg_Contable extends core_Plugin
         }
         
         // Ако глобално в настройките е зададено да се нотифицира или не
+        $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+        core_ObjectConfiguration::$stopInvoke = true;
         $docSettings = doc_Setup::get('NOTIFY_FOR_CONTO');
+        core_ObjectConfiguration::$stopInvoke = $stopInvoke;
         if ($docSettings == 'no') {
             $userArr = array();
         } elseif ($docSettings == 'yes') {

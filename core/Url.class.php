@@ -903,7 +903,7 @@ class core_Url
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         
         // Логваме заявката
-        log_System::add(get_called_class(), "URL({$url}) " . $res, 'debug', 1);
+        log_System::add(get_called_class(), "URL({$url}) " . $res, null, 'debug', 1);
         
         // Изпълняваме заявката
         $res = @curl_exec($ch);
