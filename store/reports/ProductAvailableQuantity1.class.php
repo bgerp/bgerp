@@ -149,7 +149,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if ($form->isSubmitted()) {
 
             if ($form->cmd == 'save' && $rec->id && $rec->limits == 'yes') {
-                    frame2_Reports::refresh($rec);
+                frame2_Reports::refresh($rec);
             }
 
         }
@@ -444,7 +444,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
         }
 
-        //  if ($data->rec->limits == 'no') {
         if (isset($data->rec->storeId)) {
 
             $marker = 0;
@@ -492,6 +491,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $toolbar = cls::get('core_Toolbar');
 
         $toolbar->addBtn('Избери група', toUrl($url));
+        $toolbar->addBtn('Избери артикул', toUrl($url));
 
         $fieldTpl->append('<b>' . "$grFilterName" . $toolbar->renderHtml() . '</b>', 'button');
 
@@ -631,7 +631,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      * Изтриване на ред
      */
     public static function act_DelRow()
-    {        
+    {
         expect($recId = Request::get('recId', 'int'));
         expect($productId = Request::get('productId', 'int'));
         expect($code = Request::get('code'));
@@ -658,7 +658,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         /**
          * Установява необходима роля за да се стартира екшъна
          */
-        
+
         expect($recId = Request::get('recId', 'int'));
         expect($productId = Request::get('productId', 'int'));
         expect($code = Request::get('code'));
@@ -721,7 +721,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     public static function act_GroupFilter()
     {
-        
+
         expect($recId = Request::get('recId', 'int'));
 
         $rec = frame2_Reports::fetch($recId);
@@ -738,12 +738,30 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
                 $groupsSuggestionsArr[$val] = cat_Groups::fetch($val)->name;
 
+                //Проверка за подгрупи
+                $q = cat_Groups::getQuery()->where("#parentId = $val");
+
+                if(!empty($q->fetchAll())) {
+                    foreach ($q->fetchAll() as $subGr) {
+
+                            $subGrArr = self::getGroupsSubLevels($subGr->id);
+
+                            foreach ($subGrArr as $v) {
+                                $groupsSuggestionsArr[$v] = cat_Groups::fetch($v)->name;
+                            }
+
+                    }
+
+                }
+
+
             }
+
         }
 
         $form->FLD('groupFilter', 'key(mvc=cat_Groups, select=name)', 'caption=Покажи група,silent');
 
-        //$form->setOptions('groupFilter', $groupsSuggestionsArr);
+        $form->setOptions('groupFilter', $groupsSuggestionsArr);
 
         $mRec = $form->input();
 
@@ -766,5 +784,34 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
 
         return $form->renderHtml();
+    }
+
+    /**
+     * Вземане на поднивата на групите
+     */
+    public static function getGroupsSubLevels($groupId)
+    {
+
+        $subGrArr[$groupId] = $groupId;
+
+        $groupsQuery = cat_Groups::getQuery();
+
+        $groupsQuery->where("#parentId = $groupId");
+
+        while ($gRec = $groupsQuery->fetch()){
+
+            $groupsQuery1 = cat_Groups::getQuery();
+
+            if (!$groupsQuery1->fetchAll()){
+                self::getGroupsSubLevels($gRec->id);
+            }else{
+                $subGrArr[$gRec->id] = $gRec->id;
+            }
+
+        }
+
+     return $subGrArr;
+
+
     }
 }
