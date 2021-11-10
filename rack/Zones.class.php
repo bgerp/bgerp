@@ -624,21 +624,21 @@ class rack_Zones extends core_Master
 
                 // Ако е сменена зоната, документа се премахва от старата и се регенерират движенията за нея и групата
                 if ($zoneRec->id != $fRec->zoneId && isset($zoneRec->id)) {
-                    $this->updateZone($zoneRec->id, $containerId, true);
+                    static::updateZone($zoneRec->id, $containerId, true);
                 }
 
                 // Ако е избрана нова зона се регенерират движенията за нея и групата ѝ
                 if (isset($fRec->zoneId)) {
                     if(empty($zoneRec->id)){
-                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
+                        static::updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Задаване на нова зона', $document->that);
                         $msg = 'Зоната е успешно зададена|*!';
                     } elseif($zoneRec->id != $fRec->zoneId) {
-                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
+                        static::updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Промяна на зона', $document->that);
                         $msg = 'Зоната е успешно променена|*!';
                     } elseif($zoneRec->defaultUserId != $fRec->defaultUserId){
-                        $this->updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
+                        static::updateZone($fRec->zoneId, $containerId, false, $fRec->defaultUserId);
                         $document->getInstance()->logWrite('Промяна на дефолтен работник', $document->that);
                         $msg = 'Дефолтния работник е променен успешно|*!';
                     }
@@ -678,13 +678,13 @@ class rack_Zones extends core_Master
      * @param int|null $containerId - ид на контейнер
      * @param bool $remove          - да се добави или да се премахне документът от зоната
      */
-    private function updateZone($zoneId, $containerId, $remove = false, $defaultUserId = null)
+    public static function updateZone($zoneId, $containerId, $remove = false, $defaultUserId = null)
     {
         // Запис на документа към зоната
-        $zoneRec = $this->fetch($zoneId);
+        $zoneRec = static::fetch($zoneId);
         $zoneRec->containerId = ($remove) ? null : $containerId;
         $zoneRec->defaultUserId = ($remove) ? null : $defaultUserId;
-        $this->save($zoneRec);
+        static::save($zoneRec);
 
         // Синхронизиране с детайла на зоната
         rack_ZoneDetails::syncWithDoc($zoneRec->id, $zoneRec->containerId);
@@ -696,7 +696,7 @@ class rack_Zones extends core_Master
         }
 
         // Обновяване на информацията в зоната
-        $this->updateMaster($zoneRec);
+        cls::get(get_called_class())->updateMaster($zoneRec);
 
         // Ако групата е с групиране, се извличат всички зони от същата група
         $selectedZones = $zoneRec->id;
@@ -998,10 +998,12 @@ class rack_Zones extends core_Master
         $systemUserId = core_Users::SYSTEM_USER;
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId}");
+
         if (isset($zoneIds)) {
             $zoneIds = arr::make($zoneIds, true);
             $mQuery->likeKeylist('zoneList', $zoneIds);
         }
+
         $mQuery->show('id');
 
         $isOriginalSystemUser = core_Users::isSystemUser();
@@ -1108,7 +1110,7 @@ class rack_Zones extends core_Master
         }
 
         // Зоната се нотифицира, че документът е премахнат от нея
-        $this->updateZone($rec->id, $rec->containerId, true);
+        static::updateZone($rec->id, $rec->containerId, true);
         $document->getInstance()->logWrite('Премахване от зона', $document->that);
 
         followRetUrl(null, 'Документът е премахнат от зоната');
@@ -1120,6 +1122,7 @@ class rack_Zones extends core_Master
      *
      * @param int $storeId
      * @param array|null $zoneIds - ид-та само на избраните зони
+     * @param array|null $productArr - ид-та само на избраните артикули или null за всички
      *
      * @return stdClass $res
      */
