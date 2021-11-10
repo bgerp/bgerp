@@ -38,6 +38,7 @@ class plg_ExpandInput extends core_Plugin
         $mvc->setExpandInputField($mvc, $mvc->expandInputFieldName, $mvc->expandFieldName);
 
         setIfNot($mvc->forceExpandInputFieldOnExport, true);
+        setIfNot($mvc->useExpandInputTypeOnExport, false);
     }
 
 
@@ -49,8 +50,13 @@ class plg_ExpandInput extends core_Plugin
         if ($mvc->forceExpandInputFieldOnExport) {
             if (isset($fieldset->fields[$mvc->expandFieldName]) && !isset($fieldset->fields[$mvc->expandInputFieldName])) {
                 $fNameCaption = $fieldset->fields[$mvc->expandFieldName]->caption;
+                if (!$mvc->useExpandInputTypeOnExport) {
+                    $fieldset->fields[$mvc->expandInputFieldName] = $fieldset->fields[$mvc->expandFieldName];
+                } else {
+                    $fieldset->fields[$mvc->expandInputFieldName] = $mvc->getField($mvc->expandInputFieldName, false);
+                }
+
                 unset($fieldset->fields[$mvc->expandFieldName]);
-                $fieldset->fields[$mvc->expandInputFieldName] = $mvc->getField($mvc->expandInputFieldName, false);
                 if (isset($fieldset->fields[$mvc->expandInputFieldName])) {
                     $fieldset->fields[$mvc->expandInputFieldName]->caption = $fNameCaption;
                 }
