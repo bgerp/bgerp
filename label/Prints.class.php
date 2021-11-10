@@ -934,6 +934,13 @@ class label_Prints extends core_Master
                 if (cls::load($rec->classId, true)) {
                     if (!cls::haveInterface('label_SequenceIntf', $rec->classId)) {
                         $requiredRoles = 'no_one';
+                    } else {
+                        $intfInst = cls::getInterface('label_SequenceIntf', $rec->classId);
+                        try{
+                            $intfInst->getLabelName($rec->objectId);
+                        } catch(core_exception_Expect $e){
+                            $requiredRoles = 'no_one';
+                        }
                     }
                 }
             }

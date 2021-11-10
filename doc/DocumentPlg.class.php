@@ -858,7 +858,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($fields && !isset($fields['modifiedOn'])) {
                 $updateAll = false;
             }
-            
+
             doc_Containers::update($containerId, $updateAll);
         }
         
@@ -936,7 +936,10 @@ class doc_DocumentPlg extends core_Plugin
                         $notifyArr = array($fRec->inCharge => $fRec->inCharge);
                         
                         // Настройките на пакета
+                        $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+                        core_ObjectConfiguration::$stopInvoke = true;
                         $notifyPendingConf = doc_Setup::get('NOTIFY_PENDING_DOC');
+                        core_ObjectConfiguration::$stopInvoke = $stopInvoke;
                         if ($notifyPendingConf == 'no') {
                             $notifyArr = array();
                         } elseif ($notifyPendingConf == 'yes') {
@@ -1355,9 +1358,11 @@ class doc_DocumentPlg extends core_Plugin
             acc_Items::force($mvc->getClassId(), $rec->id, $listId);
             
             // Създаване на празен запис в кеш таблицата за разходите
-            doc_ExpensesSummary::save((object) array('containerId' => $rec->containerId));
+            $exRec = (object) array('containerId' => $rec->containerId);
+            doc_ExpensesSummary::save($exRec);
             $mvc->logInAct('Документа става разходно перо', $rec);
-            
+            $mvc->invoke('AfterForceAsExpenseItem', array($rec));
+
             if (!$res = getRetUrl()) {
                 $res = array($mvc, 'single', $id);
             }
@@ -1541,8 +1546,14 @@ class doc_DocumentPlg extends core_Plugin
             $fileNavArr[$fh]['allFilesArr'] = $allFileArr;
             $fileNavArr[$fh]['current'] = $cUrlStr;
             Mode::setPermanent('fileNavArr', $fileNavArr);
-            
-            $res = new Redirect(array('fileman_Files', 'single', $fh));
+
+            $rUrl = array('fileman_Files', 'single', $fh);
+
+            if ($currentTab = Request::get('currentTab')) {
+                $rUrl['currentTab'] = $currentTab;
+            }
+
+            $res = new Redirect($rUrl);
             
             return false;
         }
@@ -1737,7 +1748,7 @@ class doc_DocumentPlg extends core_Plugin
             
             // Премахваме този документ от нотификациите
             $keyUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId);
-            bgerp_Notifications::setHidden($keyUrl, $rec->state == 'rejected' ? 'yes':'no');
+            bgerp_Notifications::setHidden($keyUrl, $rec->state == 'rejected' ? 'yes':'no', null, $rec->threadId);
             
             // Премахваме документа от "Последно"
             bgerp_Recently::setHidden('document', $rec->containerId, $rec->state == 'rejected' ? 'yes':'no');
@@ -2289,7 +2300,7 @@ class doc_DocumentPlg extends core_Plugin
                 $sP = cls::get('store_Products');
                 $sP->updateOnShutdown = true;
             }
-            
+
             if ($form->cmd == 'save_pending' && ($mvc->haveRightFor('pending', $rec) || $rec->state == 'pending')) {
                 // Преизчисляване на запазените количествата, ако новото състояние е "Заявка"
                 if ($rec->state != 'pending') {
@@ -2298,6 +2309,11 @@ class doc_DocumentPlg extends core_Plugin
                 }
                 $form->rec->state = 'pending';
                 $form->rec->pendingSaved = true;
+
+                if ($form->rec->id) {
+                    $oldRec = $mvc->fetch($form->rec->id);
+                    doc_Containers::changeNotifications($rec, $oldRec->sharedUsers, $rec->sharedUsers);
+                }
             }
         }
     }
@@ -2760,7 +2776,7 @@ class doc_DocumentPlg extends core_Plugin
                 // Само чакащите и черновите могат да стават от чакащи -> чернова или обратно
                 if (isset($rec->state) && $rec->state != 'draft') {
                     $requiredRoles = 'no_one';
-                } elseif (!$mvc->haveRightFor('single', $rec)) {
+                } elseif (isset($rec->id) && !$mvc->haveRightFor('single', $rec)) {
                     $requiredRoles = 'no_one';
                 }
             }

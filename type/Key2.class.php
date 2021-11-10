@@ -253,9 +253,9 @@ class type_Key2 extends type_Int
             if ($this->params['allowEmpty'] || isset($options[''])) {
                 $allowClear = true;
             }
-            
+
             // Добавяме необходимите файлове и стартирам select2
-            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl);
+            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl, false, $this->params['forceOpen']);
         } elseif ((!defined('TEST_MODE') && !TEST_MODE) && ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')))) {
             // Показваме Combobox
             

@@ -19,7 +19,7 @@
      /**
       * Кой може да избира драйвъра
       */
-     public $canSelectDriver = 'ceo,planning';
+     public $canSelectDriver = 'ceo,planning,hrMaster';
      
      
      /**
@@ -186,7 +186,11 @@
              
              foreach ($counter as $val) {
                  $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
-                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation');
+                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity');
+
+                 if(!empty($iRec->indTime)){
+                     $iRec->indTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $iRec->totalQuantity);
+                 }
                   $divisor = countR(keylist::toArray($tRec->employees));
                  if ($rec->typeOfReport == 'short') {
                     
@@ -346,7 +350,7 @@
          
          if ($export === false) {
              if ($rec->typeOfReport == 'full') {
-                 $fld->FLD('taskId', 'varchar', 'caption=Задача');
+                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
                  $fld->FLD('article', 'varchar', 'caption=Артикул');
                  
                  $fld->FLD('measureId', 'varchar', 'caption=Произведено->Мярка,tdClass=centered');
@@ -407,8 +411,8 @@
          $Double->params['decimals'] = 2;
          $row = new stdClass();
          
-         $row->taskId = planning_Tasks::getHyperlink($dRec->taskId);
-         $row->article = cat_Products::getHyperlink($dRec->productId);
+         $row->taskId = planning_Tasks::getHyperlink($dRec->taskId, true);
+         $row->article = cat_Products::getHyperlink($dRec->productId, true);
          
          $row->measureId = cat_UoM::getShortName($dRec->measureId);
          $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
@@ -610,5 +614,19 @@
         }
 
          return $key;
+     }
+
+
+     /**
+      * След рендиране на единичния изглед
+      *
+      * @param frame2_driver_Proto $Driver
+      * @param embed_Manager $Embedder
+      * @param core_ET $tpl
+      * @param stdClass $data
+      */
+     protected static function on_AfterRecToVerbal(frame2_driver_Proto $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+     {
+         $row->centre = planning_Centers::getHyperlink($rec->centre, true);
      }
  }

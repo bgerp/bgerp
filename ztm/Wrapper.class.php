@@ -24,5 +24,6 @@ class ztm_Wrapper extends plg_ProtoWrapper
         $this->TAB('ztm_RegisterValues', 'Регистри->Стойности', 'ztm, ceo');
         $this->TAB('ztm_Registers', 'Регистри->Регистри', 'ztm, ceo');
         $this->TAB('ztm_LongValues', 'Регистри->Дълги стойности', 'debug');
+//        $this->TAB('ztm_Simulation', 'Симулация->Топлинна', 'debug');
     }
 }

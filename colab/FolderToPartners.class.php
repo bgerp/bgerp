@@ -80,8 +80,14 @@ class colab_FolderToPartners extends core_Manager
      * Заглавие в единствено число
      */
     public $singleTitle = 'Споделяне с партньор';
-    
-    
+
+
+    /**
+     * Кои полета да се извличат при изтриване
+     */
+    public $fetchFieldsBeforeDelete = 'folderId,contractorId';
+
+
     /**
      * Описание на модела на нишките от контейнери за документи
      */
@@ -334,11 +340,6 @@ class colab_FolderToPartners extends core_Manager
      */
     public static function preparePartners($data)
     {
-        if (!$data->isCurrent) {
-            
-            return;
-        }
-        
         $data->rows = array();
         $folderId = $data->masterData->rec->folderId;
         if ($folderId) {
@@ -346,7 +347,7 @@ class colab_FolderToPartners extends core_Manager
             $query->EXT('lastLogin', 'core_Users', 'externalName=lastLoginTime,externalKey=contractorId');
             $query->where("#folderId = {$folderId}");
             $query->orderBy('lastLogin', 'DESC');
-            
+
             $rejectedArr = array();
             $count = 1;
             while ($rec = $query->fetch()) {
@@ -638,9 +639,17 @@ class colab_FolderToPartners extends core_Manager
                 }
             }
         }
-        
+
+        $userName = '';
+        if($rec->className == 'crm_Persons'){
+            $personUserId = crm_Profiles::getUserByPerson($rec->companyId);
+            if(empty($personUserId)){
+                $userName = crm_Persons::fetchField($rec->companyId, 'name');
+            }
+        }
+
         $PML->Encoding = 'quoted-printable';
-        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => '', 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), 604800);
+        $url = core_Forwards::getUrl($this, 'Createnewcontractor', array('companyId' => (int) $rec->companyId, 'email' => $userEmail, 'rand' => str::getRand(), 'userNames' => $userName, 'className' => $rec->className, 'onlyPartner' => $rec->onlyPartner), 604800);
         $rec->body = str_replace($rec->placeHolder, "[link=${url}]link[/link]", $rec->body);
         
         Mode::push('text', 'plain');
@@ -708,7 +717,7 @@ class colab_FolderToPartners extends core_Manager
         expect($objectId = Request::get('companyId', 'int'));
         expect($contragentRec = $Class::fetch($objectId));
         $onlyPartner = Request::get('onlyPartner');
-        
+
         $Users = cls::get('core_Users');
         core_Lg::push(drdata_Countries::getLang($contragentRec->country));
         $rand = Request::get('rand');
@@ -750,8 +759,9 @@ class colab_FolderToPartners extends core_Manager
                 $form->setOptions('personId', $pOpt);
             }
         }
-        
-        $form->setDefault('roleRank', core_Roles::fetchByName('partner'));
+
+        $defaultRole = ($onlyPartner == 'yes') ? 'partner' : 'powerPartner';
+        $form->setDefault('roleRank', core_Roles::fetchByName($defaultRole));
         $Users->invoke('AfterPrepareEditForm', array((object) array('form' => $form), (object) array('form' => $form)));
         $form->setDefault('state', 'active');
         
@@ -770,7 +780,6 @@ class colab_FolderToPartners extends core_Manager
         }
         
         // Задаваме дефолтните роли
-        $defaultRole = ($onlyPartner == 'yes') ? 'partner' : 'powerPartner';
         $dRolesArr = array($defaultRole);
         
         $defRoles = array();
@@ -838,7 +847,7 @@ class colab_FolderToPartners extends core_Manager
                 $form->setWarning($fields, $wStr);
             }
         }
-        
+
         // След събмит ако всичко е наред създаваме потребител, лице и профил
         if ($form->isSubmitted()) {
             $force = true;
@@ -846,15 +855,21 @@ class colab_FolderToPartners extends core_Manager
             // Ако регистрацията ще е към папка на лице
             if($Class instanceof crm_Persons){
                 if(empty(crm_Profiles::fetch("#personId = {$objectId}"))){
+
                     $personEmails = arr::make(type_Emails::toArray($contragentRec->email), true);
+                    $msg = "Person: {$contragentRec->name} emails: (" . implode($personEmails) . ") - User: {$form->rec->names} email: '{$form->rec->email}'";
                     if(in_array($form->rec->email, $personEmails)){
                         
                         // И потребителя е със същия имейл и име, то ще му се присвои въпросната папка като лична
                         if(trim($contragentRec->name) == trim($form->rec->names)){
                             $form->rec->personId = $objectId;
                             $force = false;
+                            $msg = "TAKEN-" . $msg;
+                            $Class->logWrite('Присвоена визитка към новорегистриран партньор', $objectId);
                         }
                     }
+
+                    $Class->logDebug($msg, $objectId);
                 }
             }
             
@@ -877,22 +892,27 @@ class colab_FolderToPartners extends core_Manager
                 
                 crm_Persons::save($personRec);
             }
-            
+
             $folderId = $Class->forceCoverAndFolder($objectId);
+            $redirectUrl = array('core_Users', 'login');
             if($force === true){
-                static::save((object) array('contractorId' => $uId, 'folderId' => $folderId));
+                $redirectUrl = array('colab_Threads', 'list', 'folderId' => $folderId);
             }
-            
+
+            // Подсигуряваме се че винаги папката ще е споделена
+            colab_FolderToPartners::force($folderId, $uId);
+            $Class->logWrite("Споделяне на папка към партньор след покана за регистрация", $objectId);
+
             $Class->logInAct('Регистрация на нов партньор', $objectId);
             vislog_History::add("Регистрация на нов партньор «{$form->rec->nick}» |в|* «{$contragentName}»");
             
             // Изтриваме линка, да не може друг да се регистрира с него
             core_Forwards::deleteUrl($this, 'Createnewcontractor', array('companyId' => (int) $objectId, 'email' => $email, 'rand' => $rand, 'userNames' => $userNames, 'className' => $requestClassName), 604800);
-            
+
             if($fromEmail){
-                return new Redirect(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+                return new Redirect($redirectUrl, '|Успешно са създадени потребител и визитка на нов партньор');
             } else {
-                return followRetUrl(array('colab_Threads', 'list', 'folderId' => $folderId), '|Успешно са създадени потребител и визитка на нов партньор');
+                return followRetUrl($redirectUrl, '|Успешно са създадени потребител и визитка на нов партньор');
             }
         }
         
@@ -1010,5 +1030,45 @@ class colab_FolderToPartners extends core_Manager
         Request::removeProtected('companyId,rand,className,fromEmail,userNames,email');
         
         return $url;
+    }
+
+
+    /**
+     * След изтриване в детайла извиква събитието 'AfterUpdateDetail' в мастъра
+     */
+    protected static function on_AfterDelete($mvc, &$numRows, $query, $cond)
+    {
+        // Логване на изтриванията
+        foreach ($query->getDeletedRecs() as $rec) {
+            $Cover = doc_Folders::getCover($rec->folderId);
+            $Cover->getInstance()->logWrite('Премахване на споделяне към партньор', $Cover->that);
+        }
+    }
+
+
+    /**
+     * Преди изтриване на запис
+     */
+    protected static function on_BeforeDelete($mvc, &$res, &$query, $cond)
+    {
+        // Добавено следене как се трие споделената лична папка на партньора
+        while ($rec = $query->fetch($cond)) {
+            $profileFolderId = crm_Profiles::getProfile($rec->contractorId)->folderId;
+            if($profileFolderId == $rec->folderId){
+                wp($query, $cond, $res);
+            }
+        }
+    }
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(isset($rec->folderId)){
+            $Cover = doc_Folders::getCover($rec->folderId);
+            $Cover->getInstance()->logWrite('Споделяне към партньор', $Cover->that);
+        }
     }
 }

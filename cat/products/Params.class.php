@@ -102,11 +102,12 @@ class cat_products_Params extends doc_Detail
     {
         $this->FLD('classId', 'class', 'input=hidden,silent');
         $this->FLD('productId', 'int', 'input=hidden,silent');
-        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt)', 'input,caption=Параметър,mandatory,silent');
+        $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'text', 'input=none,caption=Стойност,mandatory');
         
         $this->setDbUnique('classId,productId,paramId');
         $this->setDbIndex('classId,productId');
+        $this->setDbIndex('productId,classId');
     }
     
     
@@ -180,7 +181,8 @@ class cat_products_Params extends doc_Detail
             if ($Type = cat_Params::getTypeInstance($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue)) {
                 $form->setField('paramValue', 'input');
                 $form->setFieldType('paramValue', $Type);
-                
+                $form->setDefault('paramValue', cat_Params::getDefaultValue($rec->paramId, $rec->classId, $rec->productId, $rec->paramValue));
+
                 if (!empty($pRec->suffix)) {
                     $suffix = cat_Params::getVerbal($pRec, 'suffix');
                     $form->setField('paramValue', "unit={$suffix}");
@@ -301,7 +303,7 @@ class cat_products_Params extends doc_Detail
             $paramValue = self::fetchField("#productId = {$productId} AND #paramId = {$paramId} AND #classId = {$classId}", 'paramValue');
             
             // Ако има записана конкретна стойност за този продукт връщаме я, иначе глобалния дефолт
-            $paramValue = ($paramValue) ? $paramValue : cat_Params::getDefault($paramId);
+            $paramValue = ($paramValue) ? $paramValue : cat_Params::getDefaultValue($paramId, $classId, $productId);
             if ($verbal === true) {
                 $ParamType = cat_Params::getTypeInstance($paramId, $classId, $productId, $paramValue);
                 $paramValue = $ParamType->toVerbal(trim($paramValue));
@@ -358,10 +360,9 @@ class cat_products_Params extends doc_Detail
         $query = self::getQuery();
         $query->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
         $query->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
-        $query->where("#productId = {$data->masterId}");
-        $query->where("#classId = {$data->masterClassId}");
+        $query->where("#productId = {$data->masterId} AND #classId = {$data->masterClassId}");
         $query->orderBy('group,order,id', 'ASC');
-        
+
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
         if ($data->documentType == 'public' || $data->documentType == 'invoice') {
             $query->EXT('showInPublicDocuments', 'cat_Params', 'externalName=showInPublicDocuments,externalKey=paramId');

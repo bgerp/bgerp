@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Milen Georgiev <milen@experta.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -69,8 +69,14 @@ class price_ListRules extends core_Detail
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales,price';
-    
-    
+
+
+    /**
+     * Кой има право да импортира?
+     */
+    public $canImport = 'ceo,priceMaster';
+
+
     /**
      * Кой има право да изтрива?
      */
@@ -105,7 +111,8 @@ class price_ListRules extends core_Detail
         
         $this->FLD('validFrom', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime)', 'caption=В сила->От,remember');
         $this->FLD('validUntil', 'datetime(timeSuggestions=00:00|04:00|08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00|22:00,format=smartTime,defaultTime=23:59:59)', 'caption=В сила->До,remember');
-        
+
+        $this->setDbIndex('listId,productId');
         $this->setDbIndex('priority');
         $this->setDbIndex('validFrom');
         $this->setDbIndex('productId');
@@ -645,7 +652,7 @@ class price_ListRules extends core_Detail
             }
         }
         
-        if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->listId)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'import') && isset($rec->listId)) {
             if (!price_Lists::haveRightFor('edit', $rec->listId)) {
                 $requiredRoles = 'no_one';
             }
@@ -892,7 +899,7 @@ class price_ListRules extends core_Detail
                     $toolbar->addBtn('Стойност', $url, null, 'title=Задаване на цена на артикул,ef_icon=img/16/wooden-box.png');
                 }
 
-                if ($this->haveRightFor('import')) {
+                if ($this->haveRightFor('import', (object)array($this->masterKey => $data->masterId))) {
                     $url = array($this, 'import', 'listId' => $masterRec->id, 'ret_url' => true);
                     $toolbar->addBtn('Импорт', $url, null, 'row=2,ef_icon=img/16/import.png,title=Импортиране на ' . mb_strtolower($mvc->title));
                 }
@@ -983,9 +990,10 @@ class price_ListRules extends core_Detail
             if (isset($params['onlyPublic'])) {
                 $pQuery->where("#isPublic = 'yes'");
             }
-            
-            // Нестандартните артикули да се показват само в политика 'Себестойност'
-            $pQuery->where("#canSell = 'yes'");
+
+            if ($params['listId'] != price_ListRules::PRICE_LIST_COST) {
+                $pQuery->where("#canSell = 'yes'");
+            }
             
             if (isset($params['listId'])) {
                 if ($params['listId'] == price_ListRules::PRICE_LIST_COST) {

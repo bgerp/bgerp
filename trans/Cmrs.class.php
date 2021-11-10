@@ -87,7 +87,7 @@ class trans_Cmrs extends core_Master
     /**
      * Икона за единичния изглед
      */
-    public $singleIcon = 'img/16/lorry_go.png';
+    public $singleIcon = 'img/16/passage.png';
     
     
     /**
@@ -334,19 +334,17 @@ class trans_Cmrs extends core_Master
         $deliveryPlace = $lData['toPCode'] . ' ' .  transliterate($lData['toPlace']) . ', ' . $lData['toCountry'];
         
         // Има ли общо тегло в ЕН-то
-        $weight = ($sRec->weightInput) ? $sRec->weightInput : $sRec->weight;
-        if (!empty($weight)) {
+        if (!empty($lData['totalWeight'])) {
             Mode::push('text', 'plain');
-            $weight = core_Type::getByName('cat_type_Weight')->toVerbal($weight);
+            $weight = core_Type::getByName('cat_type_Weight')->toVerbal($lData['totalWeight']);
             Mode::pop('text');
             $form->setDefault('grossWeight1', $weight);
         }
         
         // Има ли общ обем в ЕН-то
-        $volume = ($sRec->volumeInput) ? $sRec->volumeInput : $sRec->volume;
-        if (!empty($weight)) {
+        if (!empty($lData['totalVolume'])) {
             Mode::push('text', 'plain');
-            $volume = core_Type::getByName('cat_type_Volume')->toVerbal($volume);
+            $volume = core_Type::getByName('cat_type_Volume')->toVerbal($lData['totalVolume']);
             Mode::pop('text');
             $form->setDefault('volume1', $volume);
         }

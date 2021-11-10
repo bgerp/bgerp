@@ -123,8 +123,8 @@ class barcode_Search extends core_Manager
             }
             $tableTpl->append('</table></div>');
         }
-        
-        $tpl->appendOnce('<script type="text/javascript" src="https://unpkg.com/@zxing/library@latest"></script>', 'HEAD');
+
+        $tpl->appendOnce('<script type="text/javascript" src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>', 'HEAD');
         $tpl->push('barcode/js/scan.js', 'JS');
         $a = '<div id="scanTools" style="display:none">
                 <div class="scanTools" style="display: none">

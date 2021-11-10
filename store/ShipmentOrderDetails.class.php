@@ -135,7 +135,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'requestedQuantity,weight,volume';
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume,transUnitId,transUnitQuantity';
     
     
     /**
@@ -194,7 +194,8 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 $masterStore = $masterRec->storeId;
                 $canStore = cat_Products::fetchField($rec->productId, 'canStore');
                 if ($canStore == 'yes') {
-                    $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $foundQuantity);
+                    $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
+                    $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore, $deliveryDate, $foundQuantity);
                     $form->info = $storeInfo->formInfo;
                     if (!empty($foundQuantity) && $foundQuantity > 0) {
                         $form->setSuggestions('baseQuantity', array('' => '', "{$foundQuantity}" => $foundQuantity));
@@ -227,7 +228,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
 
             $rec = $data->recs[$id];
             $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state, $deliveryDate, $masterRec->threadId);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->storeId, $rec->quantity, $masterRec->state, $deliveryDate, $masterRec->threadId);
             
             if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice) && $masterRec->isReverse == 'no') {
                 $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
@@ -235,8 +236,9 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                 if (sales_PrimeCostByDocument::isPriceBellowPrimeCost($rec->price, $rec->productId, $rec->packagingId, $rec->quantity, $masterRec->containerId, $priceDate, $foundPrimeCost)) {
                     $warning = 'Цената е под себестойността';
                     if(isset($foundPrimeCost)){
+                        $foundPrimeCost /= $masterRec->currencyRate;
                         $primeCostVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
-                        $warning = "{$warning}|*: {$primeCostVerbal} |без ДДС|*";
+                        $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                     }
                     
                     $row->packPrice = ht::createHint($row->packPrice, $warning, 'warning', false);
@@ -253,7 +255,7 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     }
                     
                     // Предупреждение дали цената е под очакваната за клиента
-                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $listId, $useQuotationPrice)){
+                    if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $rec->discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $listId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId)){
                         $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
                     }
                 }
@@ -305,5 +307,14 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
             $res->operation['out'] = $masterRec->storeId;
             unset($res->operation['in']);
         }
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    public static function on_AfterPrepareListToolbar($mvc, &$data)
+    {
+        store_DocumentPackagingDetail::addBtnsToToolbar($data->toolbar, $mvc->Master, $data->masterId);
     }
 }

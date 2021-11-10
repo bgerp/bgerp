@@ -395,9 +395,12 @@ class core_page_InternalModern extends core_page_Active
         // Добавя линк към броя на отворените нотификации
         $portalLink = ht::createLink($coreConf->EF_APP_TITLE, $url, null, $portalLinkAttr);
         $nLink = ht::createLink("{$openNotifications}", $url, null, $attr);
-        
-        $about = ht::createLink(tr('За bgERP||About'), array('Bgerp', 'About'), null, array('ef_icon' => 'img/16/info-icon.png', 'title' => 'Информация за инсталацията'));
-        
+
+        $about = '';
+        if (trim($conf->EF_BGERP_LINK_TITLE)) {
+            $about = ht::createLink(tr($conf->EF_BGERP_LINK_TITLE), array('Bgerp', 'About'), null, array('ef_icon' => 'img/16/info-icon.png', 'title' => 'Информация за инсталацията'));
+        }
+
         $tpl->replace($debug, 'DEBUG_BTN');
         $tpl->replace($about, 'ABOUT_BTN');
         $tpl->replace($mode, 'CHANGE_MODE');

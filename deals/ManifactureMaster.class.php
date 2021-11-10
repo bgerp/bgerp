@@ -46,14 +46,10 @@ abstract class deals_ManifactureMaster extends core_Master
     protected static function setDocumentFields($mvc)
     {
         $mvc->FLD('valior', 'date', 'caption=Вальор');
-        $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад, mandatory,silent');
+        $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,silent');
         $mvc->FLD('deadline', 'datetime', 'caption=Срок до');
         $mvc->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
-        $mvc->FLD(
-            'state',
-                'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)',
-                'caption=Статус, input=none'
-        );
+        $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
         
         $mvc->setDbIndex('valior');
     }

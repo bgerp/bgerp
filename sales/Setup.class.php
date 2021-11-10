@@ -34,7 +34,7 @@ defIfNot('SALES_DELTA_CAT_GROUPS', '');
 /**
  * Колко време след като не е платена една продажба, да се отбелязва като просрочена
  */
-defIfNot('SALE_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
+defIfNot('SALES_OVERDUE_CHECK_DELAY', 60 * 60 * 6);
 
 
 /**
@@ -115,6 +115,7 @@ defIfNot('SALE_INVOICES_SHOW_DEAL', 'yes');
 defIfNot('SALES_ADD_BY_PRODUCT_BTN', '');
 
 
+
 /**
  * Роли за добавяне на артикул в продажба от бутона 'Създаване'
  */
@@ -176,6 +177,19 @@ defIfNot('SALES_MIN_PRICE_POLICY', '');
 
 
 /**
+ * Нотификацията за нефактурирани авансови сделки
+ */
+defIfNot('SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '432000');
+
+
+/**
+ * Място за фактура
+ */
+defIfNot('SALES_DEFAULT_LOCATION_FOR_INVOICE', '');
+
+
+
+/**
  * Продажби - инсталиране / деинсталиране
  *
  *
@@ -218,7 +232,7 @@ class sales_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'SALE_OVERDUE_CHECK_DELAY' => array(
+        'SALES_OVERDUE_CHECK_DELAY' => array(
             'time',
             'caption=Толеранс за просрочване на продажбата->Време'
         ),
@@ -321,17 +335,20 @@ class sales_Setup extends core_ProtoSetup
         ),
         
         'SALES_NEW_SALE_AUTO_ACTION_BTN' => array(
-            'enum(none=Няма,form=Форма за продажба,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни продажби)',
-            'mandatory,caption=Действие на бързите бутони в папките->Продажба,customizeBy=ceo|sales|purchase',
+            'enum(none=Договор в "Чернова",form=Създаване на договор,addProduct=Добавяне на артикул,createProduct=Създаване на артикул,importlisted=Списък от предишни продажби)',
+            'mandatory,caption=Действие на бързите бутони "Продажба" и "Оферта" в папките->Продажба,customizeBy=ceo|sales|purchase',
         ),
         
         'SALES_NEW_QUOTATION_AUTO_ACTION_BTN' => array(
-            'enum(none=Няма,form=Форма за оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
-            'mandatory,caption=Действие на бързите бутони в папките->Оферта,customizeBy=ceo|sales',
+            'enum(none=Оферта в "Чернова",form=Създаване на оферта,addProduct=Добавяне на артикул,createProduct=Създаване на артикул)',
+            'mandatory,caption=Действие на бързите бутони "Продажба" и "Оферта" в папките->Оферта,customizeBy=ceo|sales',
         ),
         'SALES_STATISTIC_DATA_FOR_THE_LAST' => array('time', 'caption=Изчисляване на рейтинги за продажба->Време назад'),
     
         'SALES_MIN_PRICE_POLICY' => array('key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Ценова политика за минимални цени->Избор'),
+
+        'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане ("0" за изключване)->Време'),
+        'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicer,optionsFunc=crm_Locations::getOwnLocations'),
     );
     
     
@@ -355,7 +372,6 @@ class sales_Setup extends core_ProtoSetup
         'sales_TransportValues',
         'sales_ProductRelations',
         'sales_ProductRatings',
-        'migrate::migrateValidFor1',
     );
     
     
@@ -369,7 +385,7 @@ class sales_Setup extends core_ProtoSetup
             'Продажби',
             'sales_Sales',
             'default',
-            'sales, ceo, acc'
+            'sales, ceo, acc, saleAll'
         )
     );
     
@@ -379,7 +395,9 @@ class sales_Setup extends core_ProtoSetup
      */
     public $defClasses = 'sales_SalesLastPricePolicy, 
                        sales_reports_ShipmentReadiness,sales_reports_PurBomsRep,sales_reports_OverdueByAdvancePayment,
-                       sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_interface_FreeRegularDelivery';
+                       sales_reports_VatOnSalesWithoutInvoices,sales_reports_SoldProductsRep, sales_reports_PriceDeviation,
+                       sales_reports_OverdueInvoices,sales_reports_SalesByContragents,sales_interface_FreeRegularDelivery,
+                       sales_reports_PriceComparison';
     
     /**
      * Настройки за Cron
@@ -475,7 +493,7 @@ class sales_Setup extends core_ProtoSetup
                 'SALE_SALE_DEF_TPL_BG' => $key
             ));
         }
-        
+
         // Поставяме първия намерен шаблон на английски за дефолтен на продажбата
         if (strlen($config->SALE_SALE_DEF_TPL_EN) === 0) {
             $key = key(sales_Sales::getTemplateEnOptions());
@@ -531,64 +549,5 @@ class sales_Setup extends core_ProtoSetup
         }
         
         return $res;
-    }
-    
-    
-    /**
-     * Добавя втори рейндж на фактурите ако има такива
-     */
-    public static function updateSecondInvoiceRange()
-    {
-        $Invoices = cls::get('sales_Invoices');
-        $query = $Invoices->getQuery();
-        $query->where('numlimit=2');
-        
-        if ($query->count()) {
-            cond_Ranges::add('sales_Invoices', 2000000, 2999999, null, 'acc,ceo', 2, false);
-        }
-    }
-
-
-    /**
-     * Миграция на срока на валидност на офертите без
-     */
-    public function migrateValidFor1()
-    {
-        core_App::setTimeLimit(250);
-        $Quotations = cls::get('sales_Quotations');
-        $validForColName = str::phpToMysqlName('validFor');
-
-        $secondsInYear = core_DateTime::SECONDS_IN_MONTH * 12;
-        $tableName = $Quotations->dbTableName;
-
-        // Тези без срок на валидност, променя се на 1 година
-        $query = "UPDATE {$tableName} SET {$validForColName} = {$secondsInYear} WHERE {$tableName}.{$validForColName} IS NULL";
-        $Quotations->db->query($query);
-
-        $saveArr = array();
-        $query = $Quotations->getQuery();
-        $query->XPR('cDate', 'date', 'DATE(COALESCE(#activatedOn,#createdOn))');
-        $query->where("#state = 'active' AND #date IS NULL");
-        $query->show('date,cDate');
-        while($rec = $query->fetch()){
-            $rec->date = $rec->cDate;
-            $saveArr[$rec->id] = $rec;
-        }
-
-        if(countR($saveArr)){
-            $Quotations->saveArray($saveArr, 'id,date');
-        }
-
-        $cancelSystemUser = false;
-        if (!core_Users::isSystemUser()) {
-            core_Users::forceSystemUser();
-            $cancelSystemUser = true;
-        }
-
-        $Quotations->cron_CloseQuotations();
-
-        if (core_Users::isSystemUser() && $cancelSystemUser) {
-            core_Users::cancelSystemUser();
-        }
     }
 }

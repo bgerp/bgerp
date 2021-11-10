@@ -281,8 +281,8 @@ class speedy_plg_BillOfLading extends core_Plugin
         $form->FLD('payerPackaging', 'enum(same=Както куриерската услуга,sender=1.Подател,receiver=2.Получател)', 'caption=Описание на пратката->Платец опаковка,mandatory');
         
         $form->FLD('isDocuments', 'enum(no=Не,yes=Да)', 'caption=Описание на пратката->Документи,silent,removeAndRefreshForm=amountInsurance|isFragile|insurancePayer|palletCount,maxRadio=2');
-        $form->FLD('palletCount', 'int(min=0,Max=10)', 'caption=Описание на пратката->Бр. пакети');
-        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина|Дълбочина|Височина|Тегло,validate=speedy_plg_BillOfLading::validatePallets)", 'caption=Описание на пратката->Палети,after=palletCount');
+        $form->FLD('palletCount', 'int(min=0,max=10)', 'caption=Описание на пратката->Бр. пакети');
+        $form->FLD("parcelInfo", "table(columns=width|depth|height|weight,captions=Ширина|Дълбочина|Височина|Тегло,validate=speedy_plg_BillOfLading::validatePallets)", 'caption=Описание на пратката->Описание,after=palletCount');
         $form->FLD('content', 'varchar', 'caption=Описание на пратката->Съдържание,mandatory,recently');
         $form->FLD('packaging', 'varchar', 'caption=Описание на пратката->Опаковка,mandatory,recently');
         $form->FLD('totalWeight', 'double(min=0)', 'caption=Описание на пратката->Общо тегло,unit=кг');
@@ -410,6 +410,7 @@ class speedy_plg_BillOfLading extends core_Plugin
         if($rec->amountCODBase){
             $form->setDefault('isFragile', 'no');
             $form->setField('codType', 'input');
+            $form->setDefault('codType', 'post');
             $form->setSuggestions('amountInsurance', array('' => '', "{$amountCod}" => $amountCod));
         }
         $form->setDefault('returnShipmentIsFragile', 'no');

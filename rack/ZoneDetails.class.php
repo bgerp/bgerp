@@ -25,7 +25,7 @@ class rack_ZoneDetails extends core_Detail
     /**
      * Кой може да листва?
      */
-    public $canList = 'no_one,admin';
+    public $canList = 'no_one';
     
     
     /**
@@ -96,7 +96,7 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('zoneId', 'key(mvc=rack_Zones)', 'caption=Зона, input=hidden,silent,mandatory');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,mandatory,tdClass=productCell nowrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=hidden,mandatory,removeAndRefreshForm=quantity|quantityInPack|displayPrice,tdClass=nowrap rack-quantity');
-        $this->FLD('batch', 'varchar', 'caption=Партида,smartCenter,tdClass=rack-zone-batch,notNull');
+        $this->FLD('batch', 'varchar', 'caption=Партида,tdClass=rack-zone-batch,notNull');
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
         $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
@@ -128,7 +128,7 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->productId = cat_Products::getShortHyperlink($rec->productId);
+        $row->productId = Mode::get('inlineDetail') ? cat_Products::getTitleById($rec->productId) : cat_Products::getShortHyperlink($rec->productId, true);
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $movementQuantityVerbal = $mvc->getFieldType('movementQuantity')->toVerbal($rec->movementQuantity);
         $documentQuantityVerbal = $mvc->getFieldType('documentQuantity')->toVerbal($rec->documentQuantity);
@@ -169,15 +169,15 @@ class rack_ZoneDetails extends core_Detail
         setIfNot($data->inlineDetail, false);
         setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
         $requestedProductId = Request::get('productId', 'int');
-        
+
         // Допълнително обикаляне на записите
         foreach ($data->rows as $id => &$row){
             $rec = $data->recs[$id];
             $productCode = cat_Products::fetchField($rec->productId, 'code');
             $row->_code = !empty($productCode) ? $productCode : "Art{$rec->id}";
-            
+
             $row->ROW_ATTR['class'] = 'row-added';
-            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec);
+            $movementsHtml = self::getInlineMovements($rec, $data->masterData->rec, $data->filter);
             if(!empty($movementsHtml)){
                 $row->movementsHtml = $movementsHtml;
             }
@@ -187,7 +187,7 @@ class rack_ZoneDetails extends core_Detail
                 unset($data->rows[$id]);
             }
         }
-        
+
         arr::sortObjects($data->rows, '_code', 'asc', 'str');
     }
     
@@ -323,19 +323,18 @@ class rack_ZoneDetails extends core_Detail
      * 
      * @param stdClass $masterRec
      * @param core_Mvc $masterMvc
+     * @param string $additional
      * @return core_ET
      */
-    public static function renderInlineDetail($masterRec, $masterMvc)
+    public static function renderInlineDetail($masterRec, $masterMvc, $additional = null)
     {
         $tpl = new core_ET();
 
-        if(empty($masterRec)){
-            bp();
-        }
-
+        Mode::push('inlineDetail', true);
         $me = cls::get(get_called_class());
-        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true);
-        //bp($masterRec);
+        $additional = !empty($additional) ? $additional : 'pendingAndMine';
+        setIfNot($additional, 'pendingAndMine');
+        $dData = (object)array('masterId' => $masterRec->id, 'masterMvc' => $masterMvc, 'masterData' => (object)array('rec' => $masterRec), 'listTableHideHeaders' => true, 'inlineDetail' => true, 'filter' => $additional);
 
         $dData = $me->prepareDetail($dData);
         if(!countR($dData->recs)) return $tpl;
@@ -344,7 +343,8 @@ class rack_ZoneDetails extends core_Detail
         $tpl = $me->renderDetail($dData);
         $tpl->removePlaces();
         $tpl->removeBlocks();
-        
+        Mode::pop('inlineDetail');
+
         return $tpl;
     }
     
@@ -353,23 +353,23 @@ class rack_ZoneDetails extends core_Detail
      * Рендира таблицата със движения към детайла на зоната
      *
      * @param stdClass $rec
-     * @return core_ET $tpl
+     * @return string filter
      */
-    private static function getInlineMovements(&$rec, $masterRec)
+    private static function getInlineMovements(&$rec, &$masterRec, $filter)
     {
         $Movements = clone cls::get('rack_Movements');
         $Movements->FLD('_rowTools', 'varchar', 'tdClass=small-field');
         
         $data = (object) array('recs' => array(), 'rows' => array(), 'listTableMvc' => $Movements, 'inlineMovement' => true);
-        $data->listFields = arr::make('movement=Движение,startBtn=Започни,stopBtn=Приключи,workerId=Работник', true);
+        $data->listFields = arr::make('movement=Движение,leftColBtns,rightColBtns,workerId=Работник', true);
         if($masterRec->_isSingle === true){
+            $data->listFields = array('id' => '№') + $data->listFields;
             $data->listFields['modifiedOn'] = 'Модифициране||Modified->На||On';
             $data->listFields['modifiedBy'] = 'Модифициране||Modified->От||By';
         }
-        
+
         $Movements->setField('workerId', "tdClass=inline-workerId");
-        $skipClosed = ($masterRec->_isSingle === true) ? false : true;
-        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $skipClosed);
+        $movementArr = rack_Zones::getCurrentMovementRecs($rec->zoneId, $filter);
         $allocated = &rack_ZoneDetails::$allocatedMovements[$rec->zoneId];
         $allocated = is_array($allocated) ? $allocated : array();
         
@@ -377,14 +377,18 @@ class rack_ZoneDetails extends core_Detail
         $data->recs = array_filter($movementArr, function($o) use($productId, $packagingId, $batch, $allocated){
             return $o->productId == $productId && $o->packagingId == $packagingId && $o->batch == $batch && !array_key_exists($o->id, $allocated);
         });
-        
+
+        if(countR($data->recs)){
+            $masterRec->_noMovements = true;
+        }
+
         $rec->_movements = $data->recs;
         if(countR($rec->_movements)){
             $allocated += $rec->_movements;
         }
         
         $requestedProductId = Request::get('productId', 'int');
-        
+
         foreach ($data->recs as $mRec) {
             if(isset($requestedProductId) && $mRec->productId != $requestedProductId) continue;
             

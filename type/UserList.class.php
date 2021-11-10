@@ -34,7 +34,8 @@ class type_UserList extends type_Keylist
         setIfNot($params['params']['mvc'], 'core_Users');
         setIfNot($params['params']['select'], 'nick');
         setIfNot($params['params']['showClosedGroups'], 'showClosedGroups');
-        
+        setIfNot($params['params']['showClosedUsers'], 'yes');
+
         parent::init($params);
         
         setIfNot($this->params['roles'], 'executive,officer,manager,ceo');
@@ -106,9 +107,13 @@ class type_UserList extends type_Keylist
         // Заявка за да вземем всички запсии
         $uQueryAll = core_Users::getQuery();
         $uQueryAll->where("#state != 'rejected' AND #state != 'draft'");
+        if ($this->params['showClosedUsers'] == 'no') {
+            $uQueryAll->where("#state != 'closed'");
+        }
+
         $uQueryAll->likeKeylist('roles', "{$teamsKeylist}");
         $uQueryAll->likeKeylist('roles', $roles);
-        
+
         // Броя на потребителите
         $cnt = $uQueryAll->count();
         
@@ -180,6 +185,12 @@ class type_UserList extends type_Keylist
                 $uRec = $userArr['r'][$uId];
                 if ($uRec->state == 'rejected' || $uRec->state == 'draft') {
                     continue;
+                }
+
+                if ($this->params['showClosedUsers'] == 'no') {
+                    if ($uRec->state == 'closed') {
+                        continue;
+                    }
                 }
                 
                 if (!empty($rolesArr)) {

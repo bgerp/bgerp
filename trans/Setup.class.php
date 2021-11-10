@@ -12,6 +12,7 @@ defIfNot('TRANS_CMR_SENDER_INSTRUCTIONS', '');
  */
 defIfNot('TRANS_CMR_SHOW_BTN', 'no');
 
+
 /**
  * От коя дата да започнат да се изчисляват индикаторите за транспортните линии
  */
@@ -38,7 +39,7 @@ defIfNot('TRANS_LINES_PENDING_AFTER', '604800');
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -72,7 +73,7 @@ class trans_Setup extends core_ProtoSetup
     /**
      * Необходими пакети
      */
-    public $depends = 'store=0.1';
+    public $depends = 'store=0.1,sales=0.1,cash=0.1,deals=0.1,crm=0.1';
     
     
     /**
@@ -85,6 +86,7 @@ class trans_Setup extends core_ProtoSetup
         'trans_TransportModes',
         'trans_TransportUnits',
         'trans_LineDetails',
+        'migrate::updateLinesPlugin',
     );
     
     
@@ -148,8 +150,34 @@ class trans_Setup extends core_ProtoSetup
         
         return $html;
     }
-    
-    
+
+
+    /**
+     * Зареждане на данни
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('trans_Setup', 'migrateLines', NULL, $callOn);
+
+        //$callOn = dt::addSecs(240);
+        //core_CallOnTime::setCall('trans_Setup', 'migrateLines', NULL, $callOn);
+
+        return $res;
+    }
+
+
+    /**
+     * Постепенна миграция, която се вика от showFiles2126 и се самонавива
+     */
+    public static function callback_migrateLines()
+    {
+        cls::get('trans_Setup')->updateLines();
+    }
+
+
     /**
      * Ъпдейт на ЛЕ в ЕН
      */
@@ -204,42 +232,6 @@ class trans_Setup extends core_ProtoSetup
         $sod->saveArray($save, 'id,transUnitId,transUnitQuantity');
         
         wp('UPDATE LU COUNT' . countR($save));
-    }
-    
-    
-    /**
-     * Обновява ЛЕ в складовите документи
-     */
-    private function updateStoreMasters()
-    {
-        $loadId = trans_TransportUnits::fetchIdByName('load');
-        
-        //, 'store_Receipts' => 'store_ReceiptDetails', 'store_Transfers' => 'store_TransfersDetails'
-        foreach (array('store_ShipmentOrders' => 'store_ShipmentOrderDetails') as $Doc => $det) {
-            $Document = cls::get($Doc);
-            $Document->setupMvc();
-            
-            $Detail = cls::get($det);
-            $Detail->setupMvc();
-            
-            $query = $Document->getQuery();
-            $query->FLD('palletCountInput', 'double');
-            
-            $save = array();
-            while ($dRec = $query->fetch()) {
-                $dRec->transUnits = $Detail->getTransUnits($dRec);
-                if ($dRec->palletCountInput && empty($dRec->transUnitsInput)) {
-                    $dRec->transUnitsInput = array($loadId => $dRec->palletCountInput);
-                } else {
-                    $dRec->transUnitsInput = array();
-                }
-                $save[$dRec->id] = $dRec;
-            }
-            
-            $Document->saveArray($save, 'id,transUnits,transUnitsInput');
-        }
-        
-        wp('UPDATE SO COUNT' . countR($save));
     }
     
     
@@ -332,5 +324,46 @@ class trans_Setup extends core_ProtoSetup
         asort($res);
         
         return $res;
+    }
+
+
+    /**
+     * Преизчисляване на текущите транспортни линии
+     */
+    function updateLines()
+    {
+        $Lines = cls::get('trans_Lines');
+        $Lines->setupMvc();
+        $lineCount = $Lines->count();
+        if(!$lineCount) return;
+
+        $LineDetails = cls::get('trans_LineDetails');
+        $LineDetails->setupMvc();
+
+        $Purchases = cls::get('purchase_Purchases');
+        $Purchases->setupMvc();
+
+        $Sales = cls::get('sales_Sales');
+        $Sales->setupMvc();
+
+        $statusColName = str::phpToMysqlName('status');
+        $query = "UPDATE {$LineDetails->dbTableName} SET {$statusColName} = 'ready' WHERE ({$statusColName} = '' OR {$statusColName} IS NULL OR {$statusColName} = 'pending')";
+        $LineDetails->db->query($query);
+
+        core_App::setTimeLimit(0.7 * $lineCount, false, 180);
+        $tQuery = trans_Lines::getQuery();
+        $tQuery->where("#state = 'pending' OR #state = 'active'");
+        while($tRec = $tQuery->fetch()){
+            $Lines->updateMaster($tRec);
+        }
+    }
+
+
+    /**
+     * Изтриване на плъгин
+     */
+    function updateLinesPlugin()
+    {
+        core_Plugins::delete("#plugin = 'uiext_plg_DetailLabels' AND #class = 'trans_LineDetails'");
     }
 }

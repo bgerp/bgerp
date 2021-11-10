@@ -13,9 +13,28 @@
  *
  * @since     v 0.1
  */
-class email_ServiceRules extends core_Manager
+class email_ServiceRules extends embed_Manager
 {
-    
+
+
+    /**
+     * @var string
+     */
+    public $recTitleTpl = ' ';
+
+
+    /**
+     * @var string
+     */
+    public $driverClassCaption = 'Действие';
+
+
+    /**
+     * @var string
+     */
+    public $driverInterface = 'email_ServiceRulesIntf';
+
+
     /**
      * Инрерфейси
      */
@@ -76,7 +95,7 @@ class email_ServiceRules extends core_Manager
     public $canEditsysdata = 'admin';
     
     
-    public $listFields = 'id, email, subject, body, classId, note, createdOn, createdBy, state';
+    public $listFields = 'id, driverClass, email, emailTo, subject, body, note, createdOn, createdBy, state';
     
     
     /**
@@ -93,12 +112,11 @@ class email_ServiceRules extends core_Manager
     public function description()
     {
         $this->FLD('systemId', 'varchar(32)', 'caption=Ключ,input=none');
-        $this->FLD('email', 'varchar', 'caption=Условие->Изпращач', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('emailTo', 'varchar', 'caption=Условие->Получател', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('subject', 'varchar', 'caption=Условие->Относно', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('body', 'varchar', 'caption=Условие->Текст', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('classId', 'class(interface=email_ServiceRulesIntf, select=title)', 'caption=Обработвач, mandatory', array('attr' => array('style' => 'width: 350px;')));
-        $this->FLD('note', 'text', 'caption=@Забележка', array('attr' => array('style' => 'width: 100%;', 'rows' => 4)));
+        $this->FLD('email', 'varchar', 'caption=Условие->Изпращач, silent', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('emailTo', 'varchar', 'caption=Условие->Получател, silent', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('subject', 'varchar', 'caption=Условие->Относно, silent', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('body', 'varchar', 'caption=Условие->Текст, silent', array('attr' => array('style' => 'width: 350px;')));
+        $this->FLD('note', 'text', 'caption=Забележка', array('attr' => array('style' => 'width: 100%;', 'rows' => 4)));
         
         $this->setDbUnique('systemId');
     }
@@ -128,13 +146,14 @@ class email_ServiceRules extends core_Manager
         
         if (!isset($allFilters)) {
             $query = static::getQuery();
+            $query->orderBy('createdOn', 'DESC');
             
             $query->where("#state = 'active'");
             
             // Зареждаме всички активни филтри
             $allFilters = $query->fetchAll();
         }
-        
+
         if (!$allFilters) {
             
             return ;
@@ -143,24 +162,27 @@ class email_ServiceRules extends core_Manager
         $pRes = null;
         
         foreach ($allFilters as $filterRec) {
-            
-            if (email_Filters::match($sDataArr, $filterRec)) {
+            $classIdFld = $this->driverClassField;
+
+            if (email_ServiceRules::match($sDataArr, $filterRec)) {
                 
-                if (!$filterRec->classId) {
+                if (!$filterRec->{$classIdFld}) {
                     
-                    $this->logDebug('Липсва classId', null, 3);
+                    $this->logDebug("Липсва {$classIdFld}", null, 3);
                     
                     continue;
                 }
                 
-                $sInst = cls::getInterface('email_ServiceRulesIntf', $filterRec->classId);
+                $sInst = cls::getInterface('email_ServiceRulesIntf', $filterRec->$classIdFld);
                 
-                $pRes = $sInst->process($mime);
-                
+                $pRes = $sInst->process($mime, $filterRec);
+
                 if (isset($pRes)) {
-                    
-                    email_ServiceRulesData::add($mime, $accId, $uid, $filterRec->id);
-                    
+
+                    if (!is_array($pRes)) {
+                        email_ServiceRulesData::add($mime, $accId, $uid, $filterRec->id);
+                    }
+
                     break;
                 }
             }
@@ -184,12 +206,12 @@ class email_ServiceRules extends core_Manager
             }
         }
         
-        $str = trim($rec->email) . '|' . trim($rec->subject) . '|' . trim($rec->body);
+        $str = trim($rec->email) . '|' . trim($rec->subject) . '|' . trim($rec->body) . '|' . trim($rec->emailTo);
         $systemId = md5($str);
         
         return $systemId;
     }
-    
+
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -199,7 +221,7 @@ class email_ServiceRules extends core_Manager
      */
     public static function on_AfterInputEditForm($mvc, &$form)
     {
-        $fArr = array('email', 'subject', 'body');
+        $fArr = array('email', 'subject', 'body', 'emailTo');
         
         if ($form->isSubmitted()) {
             $systemId = $mvc->getSystemId($form->rec, true);
@@ -220,12 +242,36 @@ class email_ServiceRules extends core_Manager
             }
         }
     }
+
+
+    /**
+     * След обработка на лист филтъра
+     */
+    protected static function on_AfterPrepareListFilter($mvc, $data)
+    {
+        $data->query->orderBy('createdOn', 'DESC');
+
+        $driverClassField = $mvc->driverClassField;
+
+        // Добавяме поле във формата за търсене
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        // Показваме само това поле. Иначе и другите полета
+        // на модела ще се появят
+        $data->listFilter->showFields = $driverClassField;
+        $data->listFilter->input(null, 'silent');
+
+        if ($data->listFilter->rec->{$driverClassField}) {
+            $data->query->where(array("#{$driverClassField} = '[#1#]'", $data->listFilter->rec->{$driverClassField}));
+        }
+    }
     
     
     /**
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
-     * @param email_Filters $mvc
+     * @param email_ServiceRules $mvc
      * @param stdClass      $res
      * @param stdClass      $rec
      *
@@ -236,5 +282,110 @@ class email_ServiceRules extends core_Manager
         if (!$rec->systemId) {
             $rec->systemId = $mvc->getSystemId($rec);
         }
+    }
+
+
+    /**
+     * Провека дали филтриращо правило покрива данните в $subjectData
+     *
+     * @param array    $subjectData
+     * @param stdClass $filterRec   запис на модела
+     *
+     * @return bool
+     */
+    public static function match($subjectData, $filterRec)
+    {
+        foreach ($subjectData as $filterField => $haystack) {
+            // Ако няма въведена стойност или са само * или интервали
+            if (!strlen(trim($filterRec->{$filterField}, '*')) || !strlen(trim($filterRec->{$filterField}))) {
+                continue ;
+            }
+
+            $pattern = self::getPatternForFilter($filterRec->{$filterField});
+
+            // Трябва всички зададени филтри да съвпадат - &
+            if (!preg_match($pattern, $haystack)) {
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Връща шаблона за търсене с preg
+     *
+     * @param string $str
+     *
+     * @return string
+     */
+    protected static function getPatternForFilter($str)
+    {
+        static $filtersArr = array();
+
+        if ($filtersArr[$str]) {
+
+            return $filtersArr[$str];
+        }
+
+        $pattern = $str;
+
+        $pattern = preg_quote($pattern, '/');
+
+        $pattern = str_ireplace('\\*', '.{0,1000}', $pattern);
+
+        $pattern = '/' . $pattern . '/iu';
+
+        $filtersArr[$str] = $pattern;
+
+        return $filtersArr[$str];
+    }
+
+
+    /**
+     * Извиква се след SetUp-а на таблицата за модела
+     *
+     * Зареждане на потребителски правила за
+     * рутиране на имейли според събджект или тяло
+     */
+    public function loadSetupData()
+    {
+        // Подготвяме пътя до файла с данните
+        $file = 'email/data/Filters.csv';
+
+        // Кои колонки ще вкарваме
+        $fields = array(
+            0 => 'email',
+            1 => 'subject',
+            2 => 'body',
+            3 => 'action',
+            4 => 'folderId',
+            5 => 'note',
+            6 => 'state',
+        );
+
+        // Импортираме данните от CSV файла.
+        // Ако той не е променян - няма да се импортират повторно
+        $cntObj = csv_Lib::importOnce($this, $file, $fields, null, null);
+
+        // Записваме в лога вербалното представяне на резултата от импортирането
+        return $cntObj->html;
+    }
+
+
+    /**
+     * Изпълнява се преди импортирването на данните
+     */
+    public static function on_BeforeImportRec($mvc, &$rec)
+    {
+        if ($rec->action == 'email') {
+            $rec->driverClass = email_drivers_RouteByFirstEmail::getClassId();
+        } elseif ($rec->action == 'folder') {
+            $rec->driverClass = email_drivers_RouteByFolder::getClassId();
+        }
+
+        $rec->systemId = $mvc->getSystemId($rec);
     }
 }

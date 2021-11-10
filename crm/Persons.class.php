@@ -211,7 +211,13 @@ class crm_Persons extends core_Master
      * Кой има право да оттегля системните данни?
      */
     public $canRejectsysdata = 'admin, ceo';
-    
+
+
+    /**
+     * @see plg_ExpandInput
+     */
+    public $fixExpandFieldOnSetup = false;
+
     
     /**
      * Шаблон за единичния изглед
@@ -306,9 +312,9 @@ class crm_Persons extends core_Master
         $this->FLD(
             'buzCompanyId',
             'key2(mvc=crm_Companies,where=#state !\\= \\\'rejected\\\', allowEmpty)',
-            'caption=Служебни комуникации->Фирма,oldFieldName=buzCumpanyId,class=contactData,silent,export=Csv,remember'
+            'caption=Служебни комуникации->Фирма,class=contactData,silent,export=Csv,remember,removeAndRefreshForm=buzLocationId'
         );
-        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv');
+        $this->FLD('buzLocationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Служебни комуникации->Локация,class=contactData,export=Csv,input=hidden');
         $this->FLD('buzPosition', 'varchar(64)', 'caption=Служебни комуникации->Длъжност,class=contactData,export=Csv');
         $this->FLD('buzEmail', 'emails', 'caption=Служебни комуникации->Имейли,class=contactData,export=Csv');
         $this->FLD('buzTel', 'drdata_PhoneType(type=tel,unrecognized=warning)', 'caption=Служебни комуникации->Телефони,class=contactData,export=Csv');
@@ -336,6 +342,7 @@ class crm_Persons extends core_Master
         $this->setDbIndex('name');
         $this->setDbIndex('country');
         $this->setDbIndex('email');
+        $this->setDbIndex('buzCompanyId');
     }
     
     
@@ -574,6 +581,25 @@ class crm_Persons extends core_Master
             
             if ($rec->place) {
                 $rec->place = bglocal_Address::canonizePlace($rec->place);
+            }
+
+            if(isset($rec->id)){
+
+                // Ако е сменена фирмата, но има останали стари контактни данни
+                $exRec = $mvc->fetch($rec->id, '*', false);
+
+                if(!empty($exRec->buzCompanyId) && $exRec->buzCompanyId != $rec->buzCompanyId){
+                    $warningFields = array();
+                    foreach (array('buzLocationId', 'buzPosition', 'buzEmail', 'buzTel', 'buzFax', 'buzAddress') as $buzFld){
+                        if($rec->{$buzFld} = $exRec->{$buzFld}){
+                            $warningFields[] = $buzFld;
+                        }
+                    }
+
+                    if(countR($warningFields)){
+                        $form->setWarning($warningFields, 'При промяна на фирмата, моля проверете контактните данни');
+                    }
+                }
             }
         }
     }
@@ -1839,24 +1865,19 @@ class crm_Persons extends core_Master
             $data->form->setField($mvc->expandInputFieldName, array('maxColumns' => 2));
         }
         
-        if (empty($form->rec->buzCompanyId)) {
-            $form->setField('buzLocationId', 'input=none');
-        }
-        
         if (!$form->rec->id && $form->rec->buzCompanyId && isset($_GET['buzCompanyId'])) {
             $form->setReadOnly('buzCompanyId');
-        } else {
-            $form->addAttr('buzCompanyId', array('onchange' => "addCmdRefresh(this.form); if(document.forms['{$form->formAttr['id']}'].elements['buzLocationId'] != undefined) document.forms['{$form->formAttr['id']}'].elements['buzLocationId'].value ='';this.form.submit();"));
         }
-        
-        if ($form->rec->buzCompanyId) {
+
+        if (!empty($form->rec->buzCompanyId)) {
             $locations = crm_Locations::getContragentOptions(crm_Companies::getClassId(), $form->rec->buzCompanyId);
             $form->setOptions('buzLocationId', $locations);
-            if (!countR($locations)) {
-                $form->setField('buzLocationId', 'input=none');
+            if (countR($locations)) {
+                $form->setOptions('buzLocationId', $locations);
+                $form->setField('buzLocationId', 'input');
             }
         }
-        
+
         crm_Companies::autoChangeFields($form);
     }
     
@@ -2262,12 +2283,12 @@ class crm_Persons extends core_Master
         
         return $resArr;
     }
-    
-    
+
+
     /**
      * Подготвяме рожденния ден. Ако няма въведение хубави данни, използваме ЕГН' то
      */
-    protected static function prepareBirthday(&$rec)
+    public static function prepareBirthday(&$rec)
     {
         list($y, $m, $d) = type_Combodate::toArray($rec->birthday);
         
@@ -2277,7 +2298,7 @@ class crm_Persons extends core_Master
             } catch (bglocal_exception_EGN $e) {
                 $err = $e->getMessage();
             }
-            
+
             if (!$err) {
                 $rec->birthday = type_Combodate::create($Egn->birth_year, $Egn->birth_month, $Egn->birth_day);
             }
@@ -2790,7 +2811,7 @@ class crm_Persons extends core_Master
         // Ако е в група на достачик, показваме бутона за покупка
         if (in_array($supplierGroupId, $groupList)) {
             $res[] = (object)array('class' => 'purchase_Purchases', 'url' => array('purchase_Purchases', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true));
-            $res[] = (object)array('class' => 'purchase_Offers', 'caption' => 'Вх. оферта');
+            $res[] = (object)array('class' => 'purchase_Quotations', 'url' => array('purchase_Quotations', 'autoCreateInFolder', 'folderId' => $rec->folderId, 'ret_url' => true), 'caption' => 'Оферта от доставчик');
         }
         
         return $res;

@@ -42,6 +42,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
     {
         $fieldset->FLD('fTasksPerPage', 'int(min=1, max=50)', 'caption=Показване на задачите в бъдеще->Редове, mandatory');
         $fieldset->FLD('fTasksDays', 'time(suggestions=1 месец|3 месеца|6 месеца)', 'caption=Показване на задачите в бъдеще->Дни, mandatory');
+        $fieldset->FLD('hideClosedTasks', 'time(suggestions=8 часа|16 часа|24 часа)', 'caption=Скриване на приключените задачи->След');
         $fieldset->FLD('taskPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Задачи');
         $fieldset->FLD('remPriority', 'enum(low=Нисък,normal=Нормален,high=Спешен,critical=Критичен)', 'caption=Минимален приоритет за включване->Напомняния');
     }
@@ -178,12 +179,13 @@ class bgerp_drivers_Calendar extends core_BaseClass
                 $to = dt::addDays(360, $to);
             }
         }
-        
+
         $pArr = array();
         $pArr['tPageVar'] = $this->getPageVar($dRec->originIdCalc);
         $pArr['search'] = Request::get($sInputField);
         $pArr['tPerPage'] = $dRec->fTasksPerPage ? $dRec->fTasksPerPage : 5;
         $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
+        $pArr['hideClosedTasks'] = isset($dRec->hideClosedTasks) ? $dRec->hideClosedTasks : 86400;
         $pArr['taskPriority'] = $dRec->taskPriority;
         $pArr['remPriority'] = $dRec->remPriority;
 
@@ -444,28 +446,32 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $query->where("#state != 'rejected'");
         $query->where("#state != 'draft'");
-        
+
         $query->likeKeylist('assign', $pArr['_userId']);
         
         $query->where('#timeStart IS NOT NULL');
-        $query->orWhere('#timeEnd IS NOT NULL');
+        $query->orWhere('#timeEnd IS NOT NULL AND (#timeStart IS NOT NULL OR #timeDuration IS NOT NULL)');
         
         $todayF = $pArr['_todayF'];
         $query->where(array("#expectationTimeStart >= '[#1#]'", $todayF));
         $query->orWhere(array("#expectationTimeEnd >= '[#1#]'", $todayF));
-        
-        $query->XPR('expectationTimeOrder', 'datetime', "IF((#expectationTimeStart < '{$todayF}'), #expectationTimeEnd, #expectationTimeStart)");
+
+        $query->XPR('expectationTimeOrder', 'datetime', "IF((#expectationTimeStart < '{$todayF}' OR #expectationTimeStart IS NULL), #expectationTimeEnd, #expectationTimeStart)");
         
         $query->orderBy('expectationTimeOrder', 'ASC');
-        
+
         // Задачите в бъдеще
         $fQuery = clone $query;
         $fQuery->where(array("#expectationTimeOrder >= '[#1#]'", $pArr['_endWorkingDay']));
         $fQuery->where(array("#expectationTimeOrder <= '[#1#]'", $pArr['fTasksDays']));
+
+        if (isset($pArr['hideClosedTasks'])) {
+            $query->where(array("(#state != 'closed' AND #state != 'stopped') OR (#timeClosed >= '[#1#]')", dt::subtractSecs($pArr['hideClosedTasks'])));
+        }
         
         // Задачите за близко бъдеще
         $query->where(array("#expectationTimeOrder <= '[#1#]'", $pArr['_endWorkingDay']));
-        
+
         $resArr = array();
         $i = 0;
         while ($rec = $query->fetch()) {
@@ -481,7 +487,6 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $fTasks->query = $fQuery;
         
         $Tasks->listItemsPerPage = $pArr['tPerPage'];
-        $fTasks->usePortalArrange = false;
         $fTasks->listFields = 'title, progress';
         
         $Tasks->prepareListPager($fTasks);
@@ -496,7 +501,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $Tasks->prepareListRows($fTasks);
 
         foreach ($fTasks->recs as $id => $fRec) {
-            $fTasks->rows[$id] = $this->getRowForTask($fRec, $pArr['_userId'], false);
+            $fTasks->rows[$id] = $this->getRowForTask($fRec, $pArr['_userId'], false, true);
         }
         
         if ($fTasks->recs) {
@@ -518,7 +523,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
      *
      * @return stdClass
      */
-    protected function getRowForTask($rec, $userId = null, $appendProgress = true)
+    protected function getRowForTask($rec, $userId = null, $appendProgress = true, $showDate = false)
     {
         $Tasks = cls::get('cal_Tasks');
         
@@ -526,10 +531,12 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $f = array('title', 'progress');
         
         $rToVerb = cal_Tasks::recToVerbal($rec, $f);
-        
+
         $dRow = $Tasks->getDocumentRow($rec->id);
-        
+
         $subTitle = "<span class='threadSubTitle'> {$dRow->subTitleNoTime}</span>";
+
+        $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
 
         if ($dRow->subTitleDateRec) {
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $dRow->subTitleDateRec);
@@ -537,19 +544,31 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->timeEnd);
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->expectationTimeEnd);
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, $rec->expectationTimeStart);
-            
+
             $time = dt::mysql2verbal($dRow->subTitleDateRec, 'H:i');
-            if ($time != '00:00') {
-                $rec->title =  $time . ' ' . $rec->title;
+
+            if (!$showDate) {
+                if ($time != '00:00') {
+                    $rec->title =  $time . ' ' . $rec->title;
+                }
+            } else {
+                if ($dRow->subTitleDateRec) {
+                    $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
+                    $date = dt::mysql2verbal($dRow->subTitleDateRec, 'smartDate');
+                    $title =  $date . ' ' . $title;
+                    if ($time != '00:00') {
+                        $linkArr['title'] = $time;
+                    }
+                }
             }
         } else {
             $rec->title = $this->removeDateAndHoursFromTitle($rec->title, '1970-01-01 00:00:00');
         }
 
-        $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
-        
-        $linkArr = array('ef_icon' => $Tasks->getIcon($rec->id));
-        
+        if (!$showDate) {
+            $title = str::limitLen(type_Varchar::escape($rec->title), 60, 30, ' ... ', true);
+        }
+
         // Добавяме стил, ако има промяна след последното разглеждане
         if ($rec->modifiedOn > bgerp_Recently::getLastDocumentSee($rec->containerId, $userId, false)) {
             $linkArr['class'] = 'tUnsighted';
@@ -560,15 +579,15 @@ class bgerp_drivers_Calendar extends core_BaseClass
         }
         
         $title = cal_Tasks::prepareTitle($title, $rec);
-        
+
         $rToVerb->title = ht::createLink($title, cal_Tasks::getSingleUrlArray($rec->id), null, $linkArr);
-        
+
         if ($appendProgress) {
             $rToVerb->title->append(' ' . $rToVerb->progress);
         }
         
         $rToVerb->title->append($subTitle);
-        
+
         return $rToVerb;
     }
     

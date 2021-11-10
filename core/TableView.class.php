@@ -78,8 +78,8 @@ class core_TableView extends core_BaseClass
             if (is_array($rows)) {
                 foreach ($rows as $id => $row) {
                     $row1 = (object) $row;
-                    
-                    if (!empty($row1->{$name})) {
+
+                    if (!empty($row1->{$name}) && !((is_object($row1->{$name}) && $row1->{$name} instanceof core_ET && !strlen($row1->{$name}->getContent())))) {
                         $hide = false;
                         break;
                     }
@@ -154,8 +154,11 @@ class core_TableView extends core_BaseClass
             
             foreach ($fieldList as $place => $dummy) {
                 $colHeaders = $fields[$place];
-                
-                if ($colHeaders[0][0] != '@') {
+                $fieldObj = new stdClass();
+                if(isset($this->mvc->fields[$place])) {
+                    $fieldObj = $this->mvc->fields[$place];
+                }
+                if ($colHeaders[0][0] != '@' && !isset($fieldObj->singleRow)) {
                     
                     // Задаваме класа на колоната
                     $class = '';

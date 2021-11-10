@@ -34,7 +34,7 @@ class purchase_Purchases extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, purchase_Wrapper,purchase_plg_ExtractPurchasesData, acc_plg_Registry, plg_Sorting, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
 				        cond_plg_DefaultValues, recently_Plugin, doc_plg_HidePrices, doc_SharablePlg, plg_Clone,
-				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
+				        doc_EmailCreatePlg, bgerp_plg_Blank, acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, change_Plugin, plg_Search, doc_plg_Close, plg_LastUsedKeys,deals_plg_SaveValiorOnActivation';
     
     
     /**
@@ -47,8 +47,8 @@ class purchase_Purchases extends deals_DealMaster
      * Абревиатура
      */
     public $abbr = 'Pur';
-    
-    
+
+
     /**
      * Кой може да го активира?
      */
@@ -64,7 +64,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,purchase,acc';
+    public $canList = 'ceo,purchase,acc,purchaseAll';
     
     
     /**
@@ -113,8 +113,14 @@ class purchase_Purchases extends deals_DealMaster
      * Заглавие в единствено число
      */
     public $singleTitle = 'Покупка';
-    
-    
+
+
+    /**
+     * Клас на оферта
+     */
+    protected $quotationClass = 'purchase_Quotations';
+
+
     /**
      * Икона за единичния изглед
      */
@@ -168,6 +174,12 @@ class purchase_Purchases extends deals_DealMaster
 
 
     /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery';
+
+
+    /**
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
@@ -181,6 +193,7 @@ class purchase_Purchases extends deals_DealMaster
         'chargeVat' => 'lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
+        'oneTimeDelivery' => 'clientCondition'
     );
     
     
@@ -263,8 +276,14 @@ class purchase_Purchases extends deals_DealMaster
      * Кои които трябва да имат потребителите да се изберат като дилъри
      */
     public $dealerRolesList = 'purchase,ceo';
-    
-    
+
+
+    /**
+     * Кои роли може да променят активна покупка
+     */
+    public $canChangerec = 'ceo,purchaseMaster';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -276,6 +295,7 @@ class purchase_Purchases extends deals_DealMaster
         $this->setField('shipmentStoreId', 'caption=Доставка->В склад,notChangeableByContractor,salecondSysId=defaultStorePurchase');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
+        $this->setField('oneTimeDelivery', 'salecondSysId=purchaseOneTimeDelivery');
     }
     
     
@@ -402,15 +422,9 @@ class purchase_Purchases extends deals_DealMaster
         if ($rec->state == 'draft') {
             
             // Ако има въведена банкова сметка, която я няма в системата я вкарваме
-            if ($rec->bankAccountId && strlen($rec->bankAccountId)) {
-                if (!bank_Accounts::fetch(array("#iban = '[#1#]'", $rec->bankAccountId))) {
-                    $newAcc = new stdClass();
-                    $newAcc->currencyId = currency_Currencies::getIdByCode($rec->currencyId);
-                    $newAcc->iban = $rec->bankAccountId;
-                    $newAcc->contragentCls = $rec->contragentClassId;
-                    $newAcc->contragentId = $rec->contragentId;
-                    bank_Accounts::save($newAcc);
-                    core_Statuses::newStatus('Успешно е добавена нова банкова сметка на контрагента');
+            if (!empty($rec->bankAccountId)) {
+                if(bank_Accounts::add($rec->bankAccountId, currency_Currencies::getIdByCode($rec->currencyId), $rec->contragentClassId, $rec->contragentId)){
+                    core_Statuses::newStatus('Добавена е нова сметка на контрагента|*!');
                 }
             }
         }
@@ -430,13 +444,15 @@ class purchase_Purchases extends deals_DealMaster
             
             // Ако има метод за плащане и той няма авансова част, махаме авансовите операции
             if (!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)) {
-                unset($allowedPaymentOperations['case2supplierAdvance'],
-                    $allowedPaymentOperations['bank2supplierAdvance'],
-                    $allowedPaymentOperations['supplierAdvance2case'],
-                    $allowedPaymentOperations['supplierAdvance2bank'],
-                    $allowedPaymentOperations['supplierAdvance2caseRet'],
-                    $allowedPaymentOperations['supplierAdvance2bankRet']
-                );
+                if(!haveRole('accMaster,ceo')){
+                    unset($allowedPaymentOperations['case2supplierAdvance'],
+                        $allowedPaymentOperations['bank2supplierAdvance'],
+                        $allowedPaymentOperations['supplierAdvance2case'],
+                        $allowedPaymentOperations['supplierAdvance2bank'],
+                        $allowedPaymentOperations['supplierAdvance2caseRet'],
+                        $allowedPaymentOperations['supplierAdvance2bankRet']
+                    );
+                }
             }
         }
         
@@ -643,14 +659,14 @@ class purchase_Purchases extends deals_DealMaster
         // Проверка по крон дали покупката е просрочена
         $rec2 = new stdClass();
         $rec2->systemId = 'IsPurchaseOverdue';
-        $rec2->description = 'Проверява дали покупката е просрочена';
+        $rec2->description = 'Проверяване на плащанията по покупките';
         $rec2->controller = 'purchase_Purchases';
         $rec2->action = 'CheckPurchasePayments';
         $rec2->period = 60;
         $rec2->offset = mt_rand(0, 30);
         $rec2->isRandOffset = true;
         $rec2->delay = 0;
-        $rec2->timeLimit = 100;
+        $rec2->timeLimit = 300;
         $res .= core_Cron::addOnce($rec2);
     }
     
@@ -661,10 +677,12 @@ class purchase_Purchases extends deals_DealMaster
     public function cron_CheckPurchasePayments()
     {
         core_App::setTimeLimit(300);
-        $conf = core_Packs::getConfig('purchase');
-        $overdueDelay = $conf->PURCHASE_OVERDUE_CHECK_DELAY;
-        
+        $overdueDelay = purchase_Setup::get('OVERDUE_CHECK_DELAY');
         $this->checkPayments($overdueDelay);
+
+        // Изпращане на нотификации, за нефактурирани покупки
+        $lateTime = purchase_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');
+        $this->sendNotificationIfInvoiceIsTooLate($lateTime);
     }
     
     
@@ -727,15 +745,16 @@ class purchase_Purchases extends deals_DealMaster
             $row->title .= "  «  " . $row->folderId;
         }
     }
-    
-    
+
+
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id     - ид или запис
-     * @param mixed $forMvc - за кой мениджър
-     * 
-     * @return array $products        - масив с информация за артикули
+     * @param mixed $id          - ид или запис
+     * @param mixed $forMvc      - за кой мениджър
+     * @param string  $option    - опции
+     *
+     * @return array $products         - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
      *               o quantity        - к-во
@@ -744,12 +763,11 @@ class purchase_Purchases extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id, $forMvc)
+    public function getCorrectableProducts($id, $forMvc, $option = null)
     {
         $rec = $this->fetchRec($id);
-        $ForMvc = cls::get($forMvc);
-        $accounts = ($ForMvc instanceof acc_ValueCorrections) ? '321,60201' : '321';
-        
+        $accounts = ($option == 'storable') ? '321' : '321,60201';
+
         $products = array();
         $entries = purchase_transaction_Purchase::getEntries($rec->id);
         $shipped = purchase_transaction_Purchase::getShippedProducts($entries, $rec->id, $accounts, true, true, true);

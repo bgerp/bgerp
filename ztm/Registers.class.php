@@ -82,10 +82,10 @@ class ztm_Registers extends core_Master
      */
     protected function description()
     {
-        $this->FLD('name', 'varchar(32)', 'caption=Име');
+        $this->FLD('name', 'varchar(64)', 'caption=Име');
         $this->FLD('type', 'enum(int,bool,float,str,json)', 'caption=Тип');
         $this->FLD('range', 'text', 'caption=Диапазон');
-        $this->FLD('plugin', 'varchar(32)', 'caption=Модул');
+        $this->FLD('plugin', 'varchar(64)', 'caption=Модул');
         $this->FLD('scope', 'enum(system=Система, device=Устройство, global=Глобално, both=И двете)', 'caption=Обхват, oldFieldName=priority');
         $this->FLD('default', 'text', 'caption=Дефолтна стойност');
         $this->FLD('description', 'text', 'caption=Описание на регистъра');
@@ -101,18 +101,18 @@ class ztm_Registers extends core_Master
     {
         if (BGERP_GIT_BRANCH == 'dev') {
             $csv = @file_get_contents('https://raw.githubusercontent.com/bgerp/ztm/master/registers.csv');
-            
+
             if (trim($csv)) {
                 if ($fPath = getFullPath('ztm/csv/Registri.csv')) {
                     if (md5($csv) != md5(@file_get_contents($fPath))) {
                         @file_put_contents($fPath, $csv);
-                        
+
                         sleep(1);
                     }
                 }
             }
         }
-        
+
 //         $fields = array(
 //             0 => 'name',
 //             1 => 'type',
@@ -123,9 +123,9 @@ class ztm_Registers extends core_Master
 //             6 => 'description',
 //         );
         
-        $cntObj = csv_Lib::importOnce($this, 'ztm/csv/Registri.csv', array(), array(), array('escape' => '"'));
+        $cntObj = csv_Lib::importOnce($this, 'ztm/csv/Registri.csv');
         $res = $cntObj->html;
-        
+
         return $res;
     }
     
@@ -154,11 +154,14 @@ class ztm_Registers extends core_Master
             case 'str':
                 $ourType = 'varchar';
                 break;
+            case 'json':
+                $ourType = 'JSON';
+                break;
             default:
                 $ourType = 'text';
                 break;
         }
-        
+
         return core_Type::getByName($ourType);
     }
     

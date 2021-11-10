@@ -9,7 +9,7 @@
  * @package   eshop
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class eshop_Products extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id,code,name=Е-артикул,groupId=Група,saleState,dCount=Опции,state';
+    public $listFields = 'id,code,name=Е-артикул,groupId=Група,saleState,dCount=Опции,state,createdOn,createdBy';
     
     
     /**
@@ -142,7 +142,7 @@ class eshop_Products extends core_Master
     public function description()
     {
         $this->FLD('code', 'varchar(10)', 'caption=Код');
-        $this->FLD('name', 'varchar(128)', 'caption=Артикул, mandatory,width=100%');
+        $this->FLD('name', 'varchar(100)', 'caption=Артикул, mandatory,width=100%');
         
         $this->FLD('image', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация1');
         $this->FLD('image2', 'fileman_FileType(bucket=eshopImages)', 'caption=Илюстрация2,column=none');
@@ -156,8 +156,9 @@ class eshop_Products extends core_Master
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Кратко');
+        $this->FLD('showListParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри в списъка,optionsFunc=cat_Params::getPublic');
         $this->FLD('longInfo', 'richtext(bucket=Notes,rows=5)', 'caption=Описание->Разширено');
-        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри,optionsFunc=cat_Params::getPublic');
+        $this->FLD('showParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Описание->Параметри в изгледа,optionsFunc=cat_Params::getPublic');
         $this->FLD('showPacks', 'keylist(mvc=cat_UoM,select=name)', 'caption=Описание->Опаковки/Мерки');
         $this->FLD('nearProducts', 'blob(serialize)', 'caption=Описание->Виж също,input=none,single=none,column=none');
         
@@ -300,14 +301,40 @@ class eshop_Products extends core_Master
         
         return $moq;
     }
-    
-    
+
+
+    /**
+     * Връща заглавието на е-артикула
+     *
+     * @param stdClass $rec
+     * @return string $name
+     */
+    public static function getDisplayTitle($rec)
+    {
+        $name = static::getVerbal($rec, 'name');
+
+        $dQuery = eshop_ProductDetails::getQuery();
+        $dQuery->where("#eshopProductId = {$rec->id}");
+        if($dQuery->count() == 1){
+            $dRec = $dQuery->fetch();
+            if(!empty($dRec->title)){
+                $name = eshop_ProductDetails::getVerbal($dRec, 'title');
+            }
+        }
+
+        return $name;
+    }
+
+
     /**
      * След обработка на вербалните стойностти
      */
     protected static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
-        $row->name = tr($row->name);
+        if(Mode::is('wrapper', 'cms_page_External')){
+            $row->name = tr(static::getDisplayTitle($rec));
+        }
+        
         $uomId = self::getUomId($rec);
         $rec->coMoq = $mvc->getMoq($rec);
         
@@ -343,7 +370,7 @@ class eshop_Products extends core_Master
         if (isset($fields['-single'])) {
             $row->orderByParam = ($rec->orderByParam == '_code') ? tr('Код') : (($rec->orderByParam == '_title') ? tr('Заглавие') : (($rec->orderByParam == '_createdOn') ? tr('Създаване') : $row->orderByParam));
             
-            foreach (array('showPacks', 'showParams') as $fld) {
+            foreach (array('showPacks', 'showParams', 'showListParams') as $fld) {
                 $hint = null;
                 $showPacks = eshop_Products::getSettingField($rec->id, null, $fld, $hint);
                 if (countR($showPacks)) {
@@ -484,21 +511,46 @@ class eshop_Products extends core_Master
      * Подготвя информация за всички артикули от активните групи
      */
     public static function prepareAllProducts($data)
-    {
-        $groups = eshop_Groups::getByDomain();
-        if (!countR($groups)) {
-            return;
+    {   $query = eshop_Groups::getQuery();
+        $query->in('menuId', $data->menuId);
+        $query->orLikeKeylist('sharedMenus', $data->menuId);
+        $query->show('id,name,saoLevel');
+
+        $groups = array();
+        while($gRec = $query->fetch()){
+            $groups[$gRec->id] = cls::get('eshop_Groups')->saoGetTitle($gRec, $gRec->name);
         }
-            
+
+        if (!countR($groups)) return;
+
+        $cu = core_Users::getCurrent();
+        $products = eshop_Favourites::getProducts($cu);
+
         $data->groups = array();
+        if(countR($products)){
+            $data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID] = new stdClass();
+            $data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID]->groupId = eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID;
+            self::prepareGroupList($data->groups[eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID]);
+        }
+
         $gQuery = eshop_Groups::getQuery();
         $groupList = implode(',', array_keys($groups));
         $gQuery->where("#id IN ({$groupList})");
+
         while ($gRec = $gQuery->fetch("#state = 'active'")) {
             $data->groups[$gRec->id] = new stdClass();
             $data->groups[$gRec->id]->groupId = $gRec->id;
             $data->groups[$gRec->id]->groupRec = $gRec;
             self::prepareGroupList($data->groups[$gRec->id]);
+        }
+
+        if($cu){
+            $products = eshop_Carts::getLastOrderedProducts($cu);
+            if(countR($products)){
+                $data->groups[eshop_Carts::LAST_SALES_SYSTEM_ID] = new stdClass();
+                $data->groups[eshop_Carts::LAST_SALES_SYSTEM_ID]->groupId = eshop_Carts::LAST_SALES_SYSTEM_ID;
+                self::prepareGroupList($data->groups[eshop_Carts::LAST_SALES_SYSTEM_ID]);
+            }
         }
     }
     
@@ -542,22 +594,49 @@ class eshop_Products extends core_Master
      */
     public static function prepareGroupList($data)
     {
+        $data->lastOrderedData = array();
         $pQuery = self::getQuery();
-        $pQuery->where("#state = 'active' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
+        if($data->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
+            $pQuery->where("#state = 'active'");
+
+            // Добавяне само на Любимите артикули
+            $cu = core_Users::getCurrent();
+            $allFavourites = eshop_Favourites::getProducts($cu);
+            if(countR($allFavourites)){
+                $pQuery->in('id', $allFavourites);
+            } else {
+                $pQuery->where("1=2");
+            }
+
+            $perPage = eshop_Setup::get('PRODUCTS_PER_PAGE');
+        } elseif($data->groupId == eshop_Carts::LAST_SALES_SYSTEM_ID){
+            $cu = core_Users::getCurrent();
+            $data->lastOrderedData = eshop_Carts::getLastOrderedProducts($cu);
+            $lastOrderedProducts = arr::extractValuesFromArray($data->lastOrderedData, 'eshopProductId');
+            if(countR($lastOrderedProducts)){
+                $pQuery->in('id', $lastOrderedProducts);
+            } else {
+                $pQuery->where("1=2");
+            }
+        } else {
+            $pQuery->where("#state = 'active' AND #saleState != 'closed' AND (#groupId = {$data->groupId} OR LOCATE('|{$data->groupId}|', #sharedInGroups))");
+            $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
+            $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
+        }
+
         $pQuery->XPR('cOrder', 'double', "IF(#groupId = {$data->groupId}, #saoOrder, 999999999)");
         $pQuery->orderBy('cOrder,code');
-        $perPage = eshop_Groups::fetchField($data->groupId, 'perPage');
-        $perPage = !empty($perPage) ? $perPage : eshop_Setup::get('PRODUCTS_PER_PAGE');
-        
+
         $data->Pager = cls::get('core_Pager', array('itemsPerPage' => $perPage));
         $data->Pager->itemsCount = $pQuery->count();
         $data->Pager->setLimit($pQuery);
         $settings = cms_Domains::getSettings();
-        
+
         while ($pRec = $pQuery->fetch()) {
-            $data->recs[] = $pRec;
-            $pRow = $data->rows[] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
-            
+            $data->recs[$pRec->id] = $pRec;
+            $pRow = $data->rows[$pRec->id] = self::recToVerbal($pRec, 'name,info,image,code,coMoq');
+            $pRow->_id = $pRec->id;
+
             // Показване на тъмбнейл на артикула
             $thumb = static::getProductThumb($pRec);
             $pRow->image = $thumb->createImg(array('class' => 'eshop-product-image'));
@@ -646,10 +725,25 @@ class eshop_Products extends core_Master
                 $pRow->saleInfo = "<span class='option-not-in-stock'>" . mb_strtoupper(tr(('Спрян||Not available'))) . '</span>';
             }
             
-            $commonParams = self::getCommonParams($pRec->id);
+            $commonParams = self::getCommonParams($pRec->id, true);
             $pRow->commonParams = (countR($commonParams)) ? self::renderParams(self::getCommonParams($pRec->id)) : null;
         }
-        
+
+        if(countR($data->lastOrderedData) && countR($data->rows)){
+            $newRes = array();
+            arr::sortObjects($data->lastOrderedData, 'date', 'DESC');
+            foreach($data->lastOrderedData as $obj){
+                if(!array_key_exists($obj->date, $newRes)){
+                    $newRes[$obj->date] = array();
+                }
+
+                $newRes[$obj->date] += array_filter($data->rows, function($a) use ($obj) {return $a->_id == $obj->eshopProductId;});
+            }
+
+            $data->rows = $newRes;
+        }
+
+
         // URL за добавяне на продукт
         if (self::haveRightFor('add')) {
             $data->addUrl = array('eshop_Products', 'add', 'groupId' => $data->groupId, 'ret_url' => true);
@@ -663,16 +757,25 @@ class eshop_Products extends core_Master
     public static function renderAllProducts($data)
     {
         $layout = new ET();
-        
+
         if (is_array($data->groups)) {
             foreach ($data->groups as $gData) {
                 if (!countR($gData->recs)) {
                     continue;
                 }
-                
-                $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
+
+                if($gData->groupId == eshop_Favourites::FAVOURITE_SYSTEM_GROUP_ID){
+                    $settings = cms_Domains::getSettings();
+                    $groupName = str::mbUcfirst($settings->favouriteProductBtnCaption);
+                } elseif($gData->groupId == eshop_Carts::LAST_SALES_SYSTEM_ID){
+                    $settings = cms_Domains::getSettings();
+                    $groupName = str::mbUcfirst($settings->lastOrderedProductBtnCaption);
+                } else {
+                    $groupName = eshop_Groups::getVerbal($gData->groupRec, 'name');
+                }
+
                 $layout->append('<h2>' . $groupName . '</h2>');
-                
+
                 if (!empty($gData->groupRec->image)) {
                     $image = fancybox_Fancybox::getImage($gData->groupRec->image, array(1200,800), array(1600, 1000), $groupName);
                     $layout->append(new core_ET("<div class='eshop-group-image'>[#IMAGE#]</div>"));
@@ -684,8 +787,41 @@ class eshop_Products extends core_Master
         
         return $layout;
     }
-    
-    
+
+
+    /**
+     * Рендира показването на артикула във външната част
+     */
+    private function renderGroupListRow($data, $rec, $row)
+    {
+        $pTpl = getTplFromFile(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml');
+        if ($this->haveRightFor('single', $rec)) {
+            $row->singleLink = ht::createLink('', array('eshop_Products', 'single', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/globe.png,title=Разглеждане на Е-артикула');
+        }
+
+        if ($this->haveRightFor('edit', $rec)) {
+            $row->editLink = ht::createLink('', array('eshop_Products', 'edit', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на Е-артикула');
+        }
+
+        if ($data->groupId != $rec->groupId) {
+            $rec->altGroupId = $data->groupId;
+        }
+        $url = self::getUrl($rec);
+
+        $row->name = ht::createLink($row->name, $url);
+        if($url['groupId'] < 0){
+            unset($url['groupId']);
+        }
+
+        $row->image = ht::createLink($row->image, $url, false, 'class=eshopLink');
+
+        $pTpl->placeObject($row);
+        $pTpl->removeBlocksAndPlaces();
+
+        return $pTpl;
+    }
+
+
     /**
      * Рендира списъка с групите
      *
@@ -696,42 +832,40 @@ class eshop_Products extends core_Master
     public function renderGroupList_($data)
     {
         $layout = new ET("<div class='eshop-product-list-holder'>[#BLOCK#]</div>");
-        
+
         if (is_array($data->rows)) {
-            foreach ($data->rows as $id => $row) {
-                $rec = $data->recs[$id];
-                
-                $pTpl = getTplFromFile(Mode::is('screenMode', 'narrow') ? 'eshop/tpl/ProductListGroupNarrow.shtml' : 'eshop/tpl/ProductListGroup.shtml');
-                
-                if ($this->haveRightFor('single', $rec)) {
-                    $row->singleLink = ht::createLink('', array('eshop_Products', 'single', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/globe.png,title=Разглеждане на Е-артикула');
+            if(countR($data->lastOrderedData)){
+                $layout = new ET("[#BLOCK#]");
+
+                foreach ($data->rows as $date => $products) {
+                    $date = dt::mysql2verbal($date, 'd.m.Y');
+                    $block = new core_ET("<h2 class='lastOrderProductsDate' style='margin-bottom: 10px'>[#DATE#]</h2><div class='eshop-product-list-holder'>[#PRODUCTS#]</div>");
+                    $block->replace($date, 'DATE');
+
+                    foreach ($products as $id => $row){
+                        $row1 = clone $row;
+                        $rec = $data->recs[$id];
+                        $pTpl = static::renderGroupListRow($data, $rec, $row1);
+                        $block->append($pTpl, 'PRODUCTS');
+                    }
+                    $block->removeBlocksAndPlaces();
+                    $layout->append($block, 'BLOCK');
                 }
-                
-                if ($this->haveRightFor('edit', $rec)) {
-                    $row->editLink = ht::createLink('', array('eshop_Products', 'edit', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Редактиране на Е-артикула');
+            } else {
+                foreach ($data->rows as $id => $row) {
+                    $row1 = clone $row;
+                    $rec = $data->recs[$id];
+                    $pTpl = static::renderGroupListRow($data, $rec, $row1);
+                    $layout->append($pTpl, 'BLOCK');
                 }
-                
-                if ($data->groupId != $rec->groupId) {
-                    $rec->altGroupId = $data->groupId;
-                }
-                $url = self::getUrl($rec, $data->groupId);
-                
-                $row->name = ht::createLink($row->name, $url);
-                $row->image = ht::createLink($row->image, $url, false, 'class=eshopLink');
-                
-                $pTpl->placeObject($row);
-                $pTpl->removePlaces();
-                $pTpl->removeBlocks();
-                
-                $layout->append($pTpl, 'BLOCK');
             }
         }
         
         if ($data->Pager) {
             $layout->append($data->Pager->getHtml());
         }
-        
-        if ($data->addUrl) {
+
+        if ($data->addUrl && $data->groupId > 0) {
             $layout->append(ht::createBtn('Нов продукт', $data->addUrl, null, null, array('style' => 'margin-top:15px;', 'ef_icon' => 'img/16/star_2.png')));
         }
         
@@ -753,7 +887,7 @@ class eshop_Products extends core_Master
         
         $data = new stdClass();
         $data->productId = Request::get('id', 'int');
-        
+
         if (!$data->productId) {
             $domainId = cms_Domains::getPublicDomain('id');
             $opt = cms_Content::getMenuOpt('eshop_Groups', $domainId);
@@ -768,7 +902,7 @@ class eshop_Products extends core_Master
         if ($data->rec->state == 'closed') {
             $groupRec = eshop_Groups::fetch($data->rec->groupId);
             
-            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът в момента е спрян от продажба|*!', 'warning');
+            return new Redirect(eshop_Groups::getUrl($groupRec), 'Артикулът, който търсите вече не се предлага|*!', 'warning');
         }
         
         $data->groups = new stdClass();
@@ -781,7 +915,6 @@ class eshop_Products extends core_Master
         $data->groups->rec = eshop_Groups::fetch($data->groups->groupId);
         $data->groups->menuId = cms_Content::getMainMenuId($data->groups->rec->menuId, $data->groups->rec->sharedMenus);
         cms_Content::setCurrent($data->groups->menuId);
-        
         $this->prepareProduct($data);
         
         // Подготвяме SEO данните
@@ -791,6 +924,8 @@ class eshop_Products extends core_Master
         eshop_Groups::prepareNavigation($data->groups);
         
         $tpl = eshop_Groups::getLayout();
+        $tpl->append(eshop_Favourites::renderFavouritesBtnInNavigation(), 'NAVIGATION_FAV');
+        $tpl->append(eshop_Carts::renderLastOrderedProductsBtnInNavigation(), 'NAVIGATION_OTHER_BTNS');
         $tpl->append(cms_Articles::renderNavigation($data->groups), 'NAVIGATION');
         
         // Поставяме SEO данните
@@ -893,11 +1028,6 @@ class eshop_Products extends core_Master
             if (!empty($data->detailData->rows[0]->saleInfo)) {
                 $data->row->STATE_EXTERNAL = $data->detailData->rows[0]->saleInfo;
             }
-            
-            $defaultName = eshop_ProductDetails::getPublicProductTitle($data->rec->id, $data->detailData->recs[0]->productId);
-            if ($data->row->name != $defaultName) {
-                $data->row->ONLY_PRODUCT_NAME = $defaultName;
-            }
         }
     }
     
@@ -954,7 +1084,12 @@ class eshop_Products extends core_Master
             $tpl = getTplFromFile('eshop/tpl/ProductShowNarrow.shtml');
         }
         $tpl->placeObject($data->row);
-        
+
+        if(eshop_Favourites::haveRightFor('toggle', (object)array('eshopProductId' => $data->productId))){
+            $favouritesBtn = eshop_Favourites::renderToggleBtn($data->productId);
+            $tpl->replace($favouritesBtn, 'FAVOURITES_BTN');
+        }
+
         $tpl->push('css/no-sass.css', 'CSS');
         if (is_array($data->detailData->rows) && countR($data->detailData->rows)) {
             $tpl->replace(eshop_ProductDetails::renderExternal($data->detailData), 'PRODUCT_OPT');
@@ -981,6 +1116,7 @@ class eshop_Products extends core_Master
     {
         $rec = self::fetchRec($rec);
         $gRec = eshop_Groups::fetch($rec->groupId);
+
         if (empty($gRec->menuId)) {
             return array();
         }
@@ -1065,6 +1201,8 @@ class eshop_Products extends core_Master
         $form->FNC('packagings', 'keylist(mvc=cat_UoM,select=shortName)', 'caption=Опаковки,silent,after=image5');
         $form->input(null, 'hidden');
         $form->setSuggestions('showParams', cat_Params::getPublic());
+        $form->setSuggestions('showListParams', cat_Params::getPublic());
+
         if ($id = $form->rec->id) {
             $rec = self::fetch($id);
             $gRec = eshop_Groups::fetch($rec->groupId);
@@ -1338,17 +1476,37 @@ class eshop_Products extends core_Master
         
         return $tpl;
     }
-    
-    
+
+
+    /**
+     * Може ли артикула да се добави към онлайн магазина
+     *
+     * @param $productId
+     * @return false
+     */
+    public static function canProductBeAddedToEshop($productId)
+    {
+        $pRec = cat_Products::fetch($productId, 'isPublic,canSell,state');
+        if ($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes') {
+
+            return false;
+        }
+
+        return true;
+    }
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'linktoeshop' && isset($rec->productId)) {
-            $pRec = cat_Products::fetch($rec->productId, 'isPublic,canSell,state');
-            
-            if ($pRec->isPublic != 'yes' || !in_array($pRec->state, array('active', 'template')) || $pRec->canSell != 'yes') {
+            if(!static::canProductBeAddedToEshop($rec->productId)){
+                $requiredRoles = 'no_one';
+            }
+
+            if(eshop_ProductDetails::hasSaleEnded($rec->productId)){
                 $requiredRoles = 'no_one';
             }
         }
@@ -1469,15 +1627,16 @@ class eshop_Products extends core_Master
      *
      * @return array
      */
-    public static function getCommonParams($id)
+    public static function getCommonParams($id, $list = false)
     {
         $rec = self::fetchRec($id);
-        
+        $paramField = ($list) ? 'showListParams' : 'showParams';
+
         if (!isset(static::$cacheParams[$rec->id])) {
             $res = $rowParams = $totalParams = array();
             
             // Има ли параметри за показване
-            $displayParams = eshop_Products::getSettingField($id, null, 'showParams');
+            $displayParams = eshop_Products::getSettingField($id, null, $paramField);
             if (countR($displayParams)) {
                 
                 // Опциите към артикула

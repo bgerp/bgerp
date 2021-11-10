@@ -1468,7 +1468,7 @@ table.listTable {
   background: none !important; }
 
 .wide .singleView table.listTable > tbody > tr > td {
-  max-width: 70% !important; }
+  max-width: 400px; }
 
 .wide .singleView table.listTable {
   max-width: 915px !important; }
@@ -1668,8 +1668,11 @@ span.inputLackOfChoiceMandatory {
 .narrow .vertical .formFields {
   margin-bottom: 0; }
 
-.mandatoryMiddleCaption {
-  font-weight: bold; }
+.formMiddleCaption {
+  padding: 5px;
+  margin: 10px 0 10px;
+  border-radius: 3px; }
+
 
 .staticFormView .formFieldValue {
   border: solid 1px #9999ff;

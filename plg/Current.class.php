@@ -117,6 +117,7 @@ class plg_Current extends core_Plugin
         }
         
         if ($action == 'selectcurrent') {
+            $mvc->requireRightFor('select');
             $form = cls::get('core_Form');
             $form->FLD('choice', "key(mvc={$mvc->className},select=name)", "caption={$mvc->singleTitle},input");
             

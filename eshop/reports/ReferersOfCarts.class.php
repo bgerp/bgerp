@@ -127,12 +127,53 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         $recs = array();
 
-        $cartQuery = eshop_Carts::getQuery();
-        $vQuery = vislog_Referer::getQuery();
+        $cartQuery = eshop_CartDetails::getQuery();
+        $cartQuery->EXT('activatedOn', 'eshop_Carts', 'externalName=activatedOn,externalKey=cartId');
+        $cartQuery->EXT('createdOn', 'eshop_Carts', 'externalName=createdOn,externalKey=cartId');
+        $cartQuery->EXT('state', 'eshop_Carts', 'externalName=state,externalKey=cartId');
+        $cartQuery->EXT('totalNoVat', 'eshop_Carts', 'externalName=totalNoVat,externalKey=cartId');
+        $cartQuery->EXT('ip', 'eshop_Carts', 'externalName=ip,externalKey=cartId');
+        $cartQuery->EXT('brid', 'eshop_Carts', 'externalName=brid,externalKey=cartId');
 
+        $cartQuery->where("#state = 'active'");
+        $cartQuery->where(array("#activatedOn >= '[#1#]' AND #activatedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
 
-        bp($vQuery->fetch("#ip = '94.155.222.30'"),$cartQuery->fetchAll());
+        while ($cartRec = $cartQuery->fetch()) {
 
+            $id = $cartRec->cartId;
+            $date = date('d-m-Y', strtotime($cartRec->activatedOn));
+            $time = date(' H:i:s', strtotime($cartRec->activatedOn));
+
+            //Проферка за рефер
+            $chekTyme = dt::addSecs(-1 * 60 * 60 * 2, $cartRec->createdOn);
+            // $chekTyme =dt::addSecs(-1 * 60 * 60 * 2 , '2013-08-13 16:09:25');
+
+            if ($vRec = vislog_Referer::fetch("#ip = '{$cartRec->ip}' AND #createdOn >= '{$chekTyme}' AND #createdOn <= '{$cartRec->createdOn}'")) {
+
+                $referer = $vRec->id;
+            } else {
+                $referer = '';
+            }
+
+            if (!array_key_exists($id, $recs)) {
+                $recs[$id] = (object)array(
+
+                    'cartId' => $cartRec->cartId,
+                    'dt' => $cartRec->activatedOn,
+                    'date' => $date,
+                    'time' => $time,
+                    'products' => 1,
+                    'totalNoVat' => $cartRec->totalNoVat,
+                    'ip' => $cartRec->ip,
+                    'brid' => $cartRec->brid,
+                    'referer' => $referer,
+
+                );
+            } else {
+                $obj = &$recs[$id];
+                $obj->products++;
+            }
+        }
 
         return $recs;
     }
@@ -152,10 +193,12 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         if ($export === false) {
 
-            $fld->FLD('field1', 'varchar', 'caption=Група,tdClass=leftAlign');
-            $fld->FLD('field2', 'varchar', 'caption=Дисциплина,tdClass=leftAlign');
-
-
+            $fld->FLD('dt', 'datetime', 'caption=Дата/час,tdClass=leftAlign');
+            $fld->FLD('products', 'int', 'caption=Брой артикули,tdClass=leftAlign');
+            $fld->FLD('totalNoVat', 'double(decimals=2)', 'caption=Сума,smartCenter');
+            $fld->FLD('ip', 'ip(15,showNames)', 'caption=Ip,smartCenter');
+            $fld->FLD('brid', 'varchar(8)', 'caption=Браузър,smartCenter');
+            $fld->FLD('referer', 'varchar(8)', 'caption=Рефер,smartCenter');
 
         } else {
 
@@ -182,12 +225,25 @@ class eshop_reports_ReferersOfCarts extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->groupId = "fghf";
-        $row->subjectId ='sfvdvgd';
+        $row->dt = dt::mysql2verbal($dRec->dt);
+
+        $url = eshop_Carts::getSingleUrlArray_($dRec->cartId);
 
 
+        $row->products = ht::createLinkRef($dRec->products,$url);
 
+        $row->totalNoVat = $Double->toVerbal($dRec->totalNoVat);
 
+        $row->ip = type_Ip::decorateIp($dRec->ip, $dRec->dt, true, true);
+        $row->brid = log_Browsers::getLink($dRec->brid);
+
+        // row->userId .= type_Ip::decorateIp($rec->ip, $rec->createdOn)."</br>" .log_Browsers::getLink($rec->brid);
+
+        if (is_numeric($dRec->referer)) {
+            $row->referer = vislog_Referer::getVerbal_($dRec->referer, 'referer');
+        }else{
+            $row->referer ='';
+        }
         return $row;
     }
 

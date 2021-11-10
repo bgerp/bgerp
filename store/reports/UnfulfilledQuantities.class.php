@@ -19,7 +19,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,manager,store,planing,purchase';
+    public $canSelectDriver = 'ceo,manager,store,planning,purchase';
     
     
     /**
@@ -129,7 +129,8 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $saleDetRecs = array();
         $shipDetRecs = array();
         $recs = array();
-        
+
+        core_App::setTimeLimit(600);
         
         //Продажби
         $querySaleDetails = sales_SalesDetails::getQuery();

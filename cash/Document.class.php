@@ -34,7 +34,7 @@ abstract class cash_Document extends deals_PaymentDocument
      * Неща, подлежащи на начално зареждане
      */
     public $loadList = 'plg_RowTools2, cash_Wrapper, plg_Sorting,deals_plg_SaveValiorOnActivation, acc_plg_Contable,
-                     plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoice,acc_plg_DocumentSummary,
+                     plg_Clone,doc_DocumentPlg, plg_Printing,deals_plg_SelectInvoicesToDocument,acc_plg_DocumentSummary,
                      plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, cond_plg_DefaultValues,trans_plg_LinesPlugin, doc_SharablePlg,deals_plg_SetTermDate';
     
     
@@ -47,7 +47,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'termDate=Очаквано,valior=Вальор, title=Документ, reason, fromContainerId, folderId, currencyId=Валута, amount,state, createdOn, createdBy';
+    public $listFields = 'termDate=Очаквано,valior=Вальор, title=Документ, reason, folderId, currencyId=Валута, amount,state, createdOn, createdBy';
     
     
     /**
@@ -113,7 +113,7 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'valior, contragentName, reason';
+    public $searchFields = 'valior, contragentName, reason, operationSysId';
     
     
     /**
@@ -174,7 +174,7 @@ abstract class cash_Document extends deals_PaymentDocument
     protected function getFields(core_Mvc &$mvc)
     {
         $mvc->FLD('operationSysId', 'varchar', 'caption=Операция,mandatory');
-        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0)', 'caption=Платени,mandatory,silent');
+        $mvc->FLD('amountDeal', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Платени,mandatory,silent');
         $mvc->FLD('dealCurrencyId', 'key(mvc=currency_Currencies, select=code)', 'input=hidden');
         $mvc->FLD('reason', 'richtext(rows=2, bucket=Notes)', 'caption=Основание');
         $mvc->FLD('termDate', 'date(format=d.m.Y)', 'caption=Очаквано на,silent');
@@ -189,7 +189,7 @@ abstract class cash_Document extends deals_PaymentDocument
         $mvc->FLD('creditAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('debitAccount', 'customKey(mvc=acc_Accounts,key=systemId,select=systemId)', 'input=none');
         $mvc->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута (и сума) на плащането->Валута,silent,removeAndRefreshForm=rate|amount');
-        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0)', 'caption=Сума,summary=amount,input=hidden');
+        $mvc->FLD('amount', 'double(decimals=2,max=2000000000,min=0,maxAllowedDecimals=2)', 'caption=Валута (и сума) на плащането->Сума,summary=amount,input=hidden');
         $mvc->FLD('rate', 'double(decimals=5)', 'caption=Валута (и сума) на плащането->Курс,input=none');
         $mvc->FLD('valior', 'date(format=d.m.Y)', 'caption=Допълнително->Вальор,autohide');
         $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
@@ -220,7 +220,7 @@ abstract class cash_Document extends deals_PaymentDocument
             $amount = round($amount, 2);
         }
        
-        return $amount;
+        return abs($amount);
     }
     
     
@@ -258,9 +258,9 @@ abstract class cash_Document extends deals_PaymentDocument
         if(!isset($expectedPayment)){
             $expectedPayment = $dealInfo->get('expectedPayment');
         }
-        
-        if ($expectedPayment) {
-            $amount = core_Math::roundNumber($expectedPayment / $dealInfo->get('rate'));
+
+        if ($expectedPayment > 0) {
+            $amount = round($expectedPayment / $dealInfo->get('rate'), 2);
             
             if ($form->rec->currencyId == $form->rec->dealCurrencyId) {
                 $form->setDefault('amount', $amount);
@@ -278,7 +278,7 @@ abstract class cash_Document extends deals_PaymentDocument
         if ($mvc instanceof cash_Rko || (isset($defaultOperation) && array_key_exists($defaultOperation, $options))) {
             $form->setDefault('operationSysId', $defaultOperation);
            
-            $dAmount = currency_Currencies::round($amount, $dealInfo->get('currency'));
+            $dAmount = round($amount, 2);
             if ($dAmount != 0) {
                 $form->setDefault('amountDeal', $dAmount);
             }
@@ -320,7 +320,13 @@ abstract class cash_Document extends deals_PaymentDocument
             
             $origin = $mvc->getOrigin($form->rec);
             $dealInfo = $origin->getAggregateDealInfo();
-            
+
+            if(!cond_PaymentMethods::hasDownpayment($dealInfo->paymentMethodId)){
+                if(stripos($rec->operationSysId, 'advance')){
+                    $form->setWarning('operationSysId', 'По сделката не се очаква авансово плащане');
+                }
+            }
+
             $operation = $dealInfo->allowedPaymentOperations[$rec->operationSysId];
             $debitAcc = empty($operation['reverse']) ? $operation['debit'] : $operation['credit'];
             $creditAcc = empty($operation['reverse']) ? $operation['credit'] : $operation['debit'];
@@ -535,14 +541,14 @@ abstract class cash_Document extends deals_PaymentDocument
             $requiredRoles = 'no_one';
         }
     }
-    
-    
+
+
     /**
      * Информацията на документа, за показване в транспортната линия
      *
      * @param mixed $id
      * @param int $lineId
-     * 
+     *
      * @return array
      *               ['baseAmount']     double|NULL - сумата за инкасиране във базова валута
      *               ['amount']         double|NULL - сумата за инкасиране във валутата на документа
@@ -550,10 +556,18 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['currencyId']     string|NULL - валутата на документа
      *               ['notes']          string|NULL - забележки за транспортната линия
      *               ['stores']         array       - склад(ове) в документа
+     *               ['cases']          array       - каси в документа
+     *               ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *               ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
      *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
+     *               ['address']        double|NULL - адрес ба диставка
+     *               ['storeMovement']  string|NULL - посока на движението на склада
+     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
+     *               ['countryId']      string|NULL - ид на държава
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -566,15 +580,18 @@ abstract class cash_Document extends deals_PaymentDocument
         
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
-        
+        $info['cases'] = array($rec->peroCase);
+        $info['stores'] = array();
         if($this->haveRightFor('conto', $rec)){
             $contoUrl = $this->getContoUrl($rec->id);
             $warning = $this->getContoWarning($rec->id, $rec->isContable);
             
             // Сумата да е бутон за контиране
-            $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
-            $btn = ht::createBtn($info['amountVerbal'], $contoUrl, $warning, false, "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
-            $info['amountVerbal'] = $btn;
+            if(!Mode::is('printing')){
+                $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
+                $btn = ht::createBtn($info['amountVerbal'], $contoUrl, $warning, false, "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
+                $info['amountVerbal'] = $btn;
+            }
         } else {
             $info['amountVerbal'] = ht::styleNumber($info['amountVerbal'], $info['amount']);
         }
@@ -603,9 +620,10 @@ abstract class cash_Document extends deals_PaymentDocument
     /**
      * Коя е дефолтната каса на документа
      * 
-     * 1. Избраната в сесията, ако има
+     * 1. Ако документа е към транспортна линия с дефолтна каса и може да контира в нея - това е тя
+     * 2. Избраната в сесията, ако има (и може да контира с нея)
      * 2. Първата, която може да контира
-     * 3. Първата, която може да избира
+     * 3. Първата, която може да избира или текущата каса от сесията
      * 4. Не намира каса
      * 
      * @param stdClass $rec
@@ -614,13 +632,47 @@ abstract class cash_Document extends deals_PaymentDocument
      */
     public function getDefaultCase($rec, $userId = null)
     {
-        $userId = isset($userId) ? $userId : core_Users::getCurrent();
-        $caseId = cash_Cases::getCurrent('id', false);
-        
+        $caseId = null;
+
+        // Ако има транс. линия с дефолтна каса
+        $priorityCases = array();
+        if(!empty($rec->{$this->lineFieldName})){
+            if($lineDefaultCaseId = trans_Lines::fetchField($rec->{$this->lineFieldName}, 'defaultCaseId')){
+                $priorityCases[] = $lineDefaultCaseId;
+            }
+        }
+
+        // Текущата каса от сесията
+        $sessionCaseId = cash_Cases::getCurrent('id', false);
+        if(isset($sessionCaseId)){
+            $priorityCases[$sessionCaseId] = $sessionCaseId;
+        }
+
+        // Проверяват се първо касата от ТЛ и тази от сесията и се връща първата с която може да контира потребителя
+        foreach ($priorityCases as $defaultCaseId){
+            $clone = clone $rec;
+            $clone->peroCase = $defaultCaseId;
+            if(deals_Helper::canSelectObjectInDocument('conto', $clone, 'cash_Cases', 'peroCase')){
+                $caseId = $defaultCaseId;
+                break;
+            }
+        }
+
+        // Ако не може да контира с касата от тл или сесията
         if(!isset($caseId)){
+            $userId = isset($userId) ? $userId : core_Users::getCurrent();
+
+            // Ако няма търси се първата каса в която може да контира, след това първата, която може да избира
             foreach (array(true, false) as $exp){
                 $query = cash_Cases::getQuery();
                 $query->show('id');
+
+                // Ако не е намерена контираща каса, но има избрана каса в сесията - това е тя
+                if($exp === false && isset($sessionCaseId)){
+                    $caseId = $sessionCaseId;
+                    break;
+                }
+
                 bgerp_plg_FLB::addUserFilterToQuery('cash_Cases', $query, $userId, $exp);
                 if($firstRec = $query->fetch()){
                     $caseId = $firstRec->id;
@@ -628,7 +680,7 @@ abstract class cash_Document extends deals_PaymentDocument
                 }
             }
         }
-        
+
         return $caseId;
     }
     
@@ -639,7 +691,7 @@ abstract class cash_Document extends deals_PaymentDocument
     public static function getContoWarning_($id, $isContable)
     {
         $rec = static::fetchRec($id);
-        $currentCaseId = cash_Cases::getCurrent('id', false);
+        $currentCaseId = cls::get(get_called_class())->getDefaultCase($rec);
         
         if(!isset($rec->peroCase) && isset($currentCaseId)){
             $currentCaseName = cash_Cases::getTitleById($currentCaseId);

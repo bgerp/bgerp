@@ -166,12 +166,31 @@ class crm_Groups extends core_Master
         $this->FLD('companiesCnt', 'int', 'caption=Брой->Фирми,input=none,smartCenter');
         $this->FLD('personsCnt', 'int', 'caption=Брой->Лица,input=none,smartCenter');
         $this->FLD('info', 'richtext(bucket=Notes)', 'caption=Бележки');
-        
-        $this->setDbUnique('name');
+
         $this->setDbUnique('sysId');
     }
-    
-    
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    protected static function on_AfterInputEditForm($mvc, &$form)
+    {
+        $rec = $form->rec;
+        if ($form->isSubmitted()) {
+
+            // Проверка дали бащата и името са уникални
+            $where = ($rec->parentId) ? "#parentId = {$rec->parentId}" : "#parentId IS NULL";
+            if(static::fetchField("{$where} AND #name = '{$rec->name}' AND #id != '{$rec->id}'")){
+                $form->setError('parentId,name', 'Вече съществува запис със същите данни');
+            }
+        }
+    }
+
+
     /**
      * Обновява информацията за количеството на визитките в групите
      *
@@ -453,7 +472,14 @@ class crm_Groups extends core_Master
         }
     }
     
-    
+
+    function act_Test()
+    {
+        $supplierGroupId = crm_Groups::getIdFromSysId('suppliers');
+        $groupRec = (object)array('name' => 'Оферта', 'sysId' => 'quotationsSuppliers44447', 'parentId' => $supplierGroupId);
+        $groupId = crm_Groups::forceGroup($groupRec);
+bp($groupId);
+    }
     /**
      * Създава, ако не е групата с посочениете данни и връща id-то и
      * $rec->name
@@ -474,7 +500,11 @@ class crm_Groups extends core_Master
                 self::save($rec, 'name');
             }
         } else {
-            $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}')");
+            if(isset($gRec->parentId)){
+                $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}') AND #parentId = {$gRec->parentId}");
+            } else {
+                $rec = self::fetch("LOWER(#name) = LOWER('{$gRec->name}') AND #parentId IS NULL");
+            }
         }
         
         if (!$rec) {

@@ -71,10 +71,9 @@ abstract class bgerp_ProtoParam extends embed_Manager
         $mvc->FLD('suffix', 'varchar(16,ci)', 'caption=Суфикс');
         $mvc->FLD('sysId', 'varchar(32)', 'input=none');
         $mvc->FNC('typeExt', 'varchar', 'caption=Име');
-        $mvc->FLD('default', 'varchar(64)', 'caption=Конкретизиране->Дефолт');
         $mvc->FLD('isFeature', 'enum(no=Не,yes=Да)', 'caption=Счетоводен признак за групиране->Използване,notNull,value=no,maxRadio=2,value=no,hint=Използване като признак за групиране в счетоводните справки?');
         $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
-        $mvc->FLD('group', 'varchar(64,ci)', 'caption=Група,after=suffix,placeholder=В която да се показва параметъра в списъците');
+        $mvc->FLD('group', 'varchar(64,ci,nullIfEmpty)', 'caption=Група,after=suffix,placeholder=В която да се показва параметъра в списъците');
         $mvc->FLD('order', 'int', 'caption=Позиция,after=group');
         $mvc->FLD('roles', 'keylist(mvc=core_Roles,select=role,allowEmpty,groupBy=type)', 'caption=Роли,after=group');
         
@@ -126,8 +125,6 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (isset($data->form->rec->sysId)) {
             $data->form->setReadOnly('name');
             $data->form->setReadOnly('suffix');
-            $data->form->setReadOnly('default');
-            
             $data->form->setReadOnly('group');
         }
         
@@ -240,8 +237,30 @@ abstract class bgerp_ProtoParam extends embed_Manager
         
         return false;
     }
-    
-    
+
+
+    /**
+     * Връща дефолтната стойност на параметъра
+     *
+     * @param mixed $id          - ид или запис на параметър
+     * @param mixed $domainClass - клас на домейна на параметъра
+     * @param int   $domainId    - ид на домейна на параметъра
+     * @param mixed $value       - стойност
+     *
+     * @return null|mixed
+     */
+    public static function getDefaultValue($id, $domainClass, $domainId, $value = null)
+    {
+        $rec = static::fetchRec($id);
+        if ($Driver = static::getDriver($rec)) {
+
+            return $Driver->getDefaultValue($rec, $domainClass, $domainId, $value);
+        }
+
+        return null;
+    }
+
+
     /**
      * Изпълнява се преди импортирването на данните
      */

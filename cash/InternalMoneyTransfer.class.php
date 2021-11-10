@@ -8,7 +8,7 @@
  * @package   cash
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -123,7 +123,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'reason,creditCase,debitBank,debitCase';
+    public $searchFields = 'operationSysId,reason,creditCase,debitBank,debitCase';
     
     
     /**
@@ -157,15 +157,21 @@ class cash_InternalMoneyTransfer extends core_Master
      * @var int
      */
     public $defaultCopiesOnPrint = 2;
-    
-    
+
+
+    /**
+     * Опашка от свързване на документи
+     */
+    protected $addLinks = array();
+
+
     /**
      * Описание на модела
      */
     public function description()
     {
         $this->FLD('operationSysId', 'enum(case2case=Вътрешен касов трансфер,case2bank=Захранване на банкова сметка,nonecash2bank=Инкасиране на безналични плащания (Банка),nonecash2case=Инкасиране на безналични плащания (Каса),noncash2noncash=Вътрешна касова обмяна на безналични плащания)', 'caption=Операция,mandatory,silent');
-        $this->FLD('amount', 'double(decimals=2)', 'caption=Сума,mandatory,summary=amount,silent');
+        $this->FLD('amount', 'double(decimals=2,maxAllowedDecimals=2)', 'caption=Сума,mandatory,summary=amount,silent');
         $this->FLD('currencyId', 'key(mvc=currency_Currencies, select=code)', 'caption=Валута,silent');
         $this->FLD('valior', 'date(format=d.m.Y)', 'caption=Вальор');
         $this->FLD('reason', 'richtext(rows=3)', 'caption=Основание,input,mandatory');
@@ -217,7 +223,7 @@ class cash_InternalMoneyTransfer extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         // Добавяме към формата за търсене търсене по Каса
-        cash_Cases::prepareCaseFilter($data, array('creditCase', 'debitCase'));
+        cash_Cases::prepareCaseFilter($data, array('creditCase', 'debitCase'), 'operationSysId');
     }
     
     
@@ -503,5 +509,24 @@ class cash_InternalMoneyTransfer extends core_Master
         // Споделяме текущия потребител със нишката на заданието
         $cu = core_Users::getCurrent();
         doc_ThreadUsers::addShared($rec->threadId, $rec->containerId, $cu);
+
+        // Ако е създаден към друг документ да се добави като линк към него
+        if(!empty($rec->sourceId)){
+            $mvc->addLinks[$rec->id] = $rec;
+        }
+    }
+
+
+    /**
+     * Изпълнява се след края на изпълнението на скрипта
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(countR($mvc->addLinks)){
+            foreach($mvc->addLinks as $rec){
+                $linkComment = $mvc->getVerbal($rec, 'operationSysId');
+                doc_Linked::add($rec->containerId, $rec->sourceId, 'doc', 'doc', $linkComment);
+            }
+        }
     }
 }

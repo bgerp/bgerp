@@ -91,6 +91,11 @@ class darksky_Forecasts extends core_Manager
      */
     public function cron_Update()
     {
+        if (defined('DEV_SERVER') &&  (DEV_SERVER === true)) {
+
+            return ;
+        }
+
         $apiKey = darksky_Setup::get('API_KEY');
         
         if (!$apiKey) {

@@ -112,7 +112,7 @@ class store_TransfersDetails extends doc_Detail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'requestedQuantity,weight,volume';
+    public $fieldsNotToClone = 'requestedQuantity,weight,volume,transUnitId,transUnitQuantity';
     
     
     /**
@@ -121,7 +121,7 @@ class store_TransfersDetails extends doc_Detail
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'class=w100,caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
+        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
@@ -206,7 +206,7 @@ class store_TransfersDetails extends doc_Detail
             $rec = $data->recs[$id];
 
             $deliveryDate = !empty($data->masterData->rec->deliveryTime) ? $data->masterData->rec->deliveryTime : $data->masterData->rec->valior;
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->newProductId, $data->masterData->rec->fromStore, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
         }
     }
     
@@ -237,8 +237,9 @@ class store_TransfersDetails extends doc_Detail
         $rec = &$form->rec;
         
         if ($rec->newProductId) {
-            $fromStoreId = store_Transfers::fetchField($rec->transferId, 'fromStore');
-            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $fromStoreId);
+            $masterRec = store_Transfers::fetch($rec->transferId, 'fromStore,deliveryTime,valior');
+            $deliveryDate = !empty($masterRec->deliveryTime) ? $masterRec->deliveryTime : $masterRec->valior;
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->newProductId, $rec->packagingId, $rec->packQuantity, $masterRec->fromStore, $deliveryDate);
             $form->info = $storeInfo->formInfo;
             
             $packs = cat_Products::getPacks($rec->newProductId);

@@ -21,9 +21,6 @@ class auto_plg_QuotationFromInquiry extends core_Plugin
      */
     public static function on_AfterCreate($mvc, $rec)
     {
-        // Ако създателя е агент, се записва ивент за създаване на нова оферта
-        $Cover = doc_Folders::getCover($rec->folderId);
-        
         $Driver = $mvc->getDriver($rec);
         
         // Ако има драйвър
@@ -31,16 +28,15 @@ class auto_plg_QuotationFromInquiry extends core_Plugin
             
             if(isset($rec->proto)){
                 $protoState = cat_Products::fetchField($rec->proto, 'state');
-                if($protoState == 'active' && $rec->customizeProto == 'no'){
-                    
-                    return;
-                }
+                if($protoState == 'active' && $rec->customizeProto == 'no') return;
             }
             
             // И той може да върне цена за артикула, връща се
             $Cover = doc_Folders::getCover($rec->folderId);
             if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
                 if ($Driver->canAutoCalcPrimeCost($rec) === true) {
+
+                    $rec->_domainId = Mode::is('wrapper', 'cms_page_External') ? cms_Domains::getPublicDomain()->id : cms_Domains::getCurrent('id', false);
                     auto_Calls::setCall('createdInquiryByPartner', $rec, false, true);
                 }
             }

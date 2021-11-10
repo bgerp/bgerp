@@ -13,12 +13,15 @@
             <td>|Заверено по|* [#nextHandle#]</td>
             <td><span class='cCode'>[#currencyId#]</span> [#amountDeal#]</td>
         </tr>
-        <!--ET_BEGIN fromContainerId-->
+
+        <!--ET_BEGIN rate-->
         <tr>
-            <td>|Към|* [#fromContainerName#]</td>
-            <td>[#fromContainerId#]</td>
+            <td>|Ръчно въведен курс|*</td>
+            <td>[#rate#]</td>
         </tr>
-        <!--ET_END fromContainerId-->
+        <!--ET_END rate-->
+
+        [#InvoicesToDocuments#]
     </table>
     <div>
         [#description#]

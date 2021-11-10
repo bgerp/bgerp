@@ -84,7 +84,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=title,single=none');
+        $fieldset->FLD('type', 'enum(short=Кратка, long=Разширена)', 'notNull,caption=Тип на справката,after=title,removeAndRefreshForm,silent,single=none');
+
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=type,single=none');
+
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=date,single=none');
 
         $fieldset->FLD('selfPrices', 'enum(balance=По баланс, manager=Мениджърска)', 'notNull,caption=Филтри->Вид цени,after=storeId,single=none');
@@ -129,6 +132,13 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $form->setDefault('selfPrices', 'balance');
         $form->setDefault('availability', 'Всички');
         $form->setDefault('orderBy', 'name');
+        $form->setDefault('type', 'short');
+
+        if ($rec->type == 'long') {
+            $today = dt::today();
+            $rec->date = $today;
+            $form->setReadOnly('date');
+        }
 
         $sQuery = store_Stores::getQuery();
 
@@ -158,12 +168,11 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        $date = (is_null($rec->date)) ? dt::now() : $rec->date;
-
+        $date = (is_null($rec->date)) ? dt::today() : $rec->date;
 
         $recs = array();
 
-        $storeItemIdArr = null;
+        $storeItemIdArr = array();
 
         if ($rec->storeId) {
             $storeItemIdArr = array();
@@ -203,7 +212,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
 
             //Код на продукта
-            $productCode = $prodRec->code;
+            $productCode = cat_Products::getVerbal($prodRec->id,'code');
 
             //Продукт ID
             $productId = $iRec->objectId;
@@ -240,7 +249,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                 continue;
             }
 
-
             //Стойност в края на периода
             $blAmount = $item->blAmount;
 
@@ -267,6 +275,10 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
                     'blQuantity' => $blQuantity,
                     'blAmount' => $blAmount,
 
+                    'reservedQuantity' => 0,
+                    'expectedQuantity' => 0,
+                    'freeQuantity' => 0,
+
                 );
             } else {
                 $obj = &$recs[$id];
@@ -285,6 +297,86 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             }
         }
 
+        //Ако е избран разширен вариант на справката
+        if ($rec->type == 'long') {
+
+            //Извличанве на всички артикули със запазени количества
+            $prodQuery = store_Products::getQuery();
+            if ($rec->products) {
+                $prodQuery->where("#productId = $rec->products");
+            }
+
+            $prodQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
+
+            //Филтър по групи артикули
+            if (isset($rec->group)) {
+                $prodQuery->likeKeylist('groups', $rec->group);
+            }
+
+            //Филтър по склад
+            if (isset($rec->storeId)) {
+                $storeArr = keylist::toArray($rec->storeId);
+                $prodQuery->in('storeId', $storeArr);
+            }
+
+            $prodQuery->where("#reservedQuantity IS NOT NULL OR #expectedQuantity IS NOT NULL");
+            $reQuantitiesArr = array();
+            while ($prodRERec = $prodQuery->fetch()) {
+
+                if (!array_key_exists($prodRERec->productId, $reQuantitiesArr)) {
+                    $reQuantitiesArr[$prodRERec->productId] = (object)array('reservedQuantity' => $prodRERec->reservedQuantity,
+                        'expectedQuantity' => $prodRERec->expectedQuantity,
+                        'freeQuantity' => $prodRERec->quantity - $prodRERec->reservedQuantity + $prodRERec->expectedQuantity,
+
+                    );
+                }else{
+                    $obj = &$reQuantitiesArr[$prodRERec->productId];
+
+                    $obj->reservedQuantity += $prodRERec->reservedQuantity;
+                    $obj->expectedQuantity += $prodRERec->expectedQuantity;
+                    $obj->freeQuantity += $prodRERec->quantity - $prodRERec->reservedQuantity + $prodRERec->expectedQuantity;
+
+                }
+            }
+
+            //Добавяне на резервираните количества
+            foreach ($reQuantitiesArr as $key => $val) {
+                if ($recs[$key]) {
+                    $recs[$key]->reservedQuantity = $val->reservedQuantity;
+                    $recs[$key]->expectedQuantity = $val->expectedQuantity;
+                    $recs[$key]->freeQuantity = $val->freeQuantity;
+                } else {
+
+                    $prodToFillRec = cat_Products::fetch($key);
+
+
+                    $productRECode = cat_Products::getVerbal($prodToFillRec->id,'code');
+
+                    if (!array_key_exists($key, $recs)) {
+                        $recs[$key] = (object)array(
+
+                            'productId' => $key,
+                            'code' => $productRECode,
+                            'productName' => $prodToFillRec->name,
+
+
+                            'reservedQuantity' => $val->reservedQuantity,
+                            'expectedQuantity' => $val->expectedQuantity,
+                            'freeQuantity' => $val->freeQuantity,
+
+
+                        );
+                    }else{
+                        $obj = &$recs[$key];
+
+                        $obj->reservedQuantity += $val->reservedQuantity;
+                        $obj->expectedQuantity += $val->expectedQuantity;
+                        $obj->freeQuantity += $val->freeQuantity;
+                    }
+                }
+            }
+        }
+
         foreach ($recs as $key => $val) {
 
             //Себестойност на артикула
@@ -299,6 +391,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             } else {
                 $val->amount = $val->blAmount;
             }
+
         }
 
         if (!is_null($recs) && $rec->orderBy) {
@@ -328,9 +421,16 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
         $fld->FLD('productName', 'varchar', 'caption=Артикул');
         $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
 
-        $fld->FLD('quantyti', 'double(smartRound,decimals=2)', 'caption=Количество');
+        $fld->FLD('quantyti', 'double(smartRound,decimals=2)', 'caption=Налично');
         $fld->FLD('selfPrice', 'double(smartRound,decimals=2)', 'caption=Себестойност');
         $fld->FLD('amount', 'double(smartRound,decimals=2)', 'caption=Стойност');
+
+        //Ако е избран разширен вариант на справката
+        if ($rec->type == 'long') {
+            $fld->FLD('reservedQuantity', 'double(smartRound,decimals=2)', 'caption=Запазено');
+            $fld->FLD('expectedQuantity', 'double(smartRound,decimals=2)', 'caption=Очаквано');
+            $fld->FLD('freeQuantity', 'double(smartRound,decimals=2)', 'caption=Разполагаемо');
+        }
 
         return $fld;
     }
@@ -356,7 +456,6 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
             $row->code = $dRec->code;
         }
 
-
         if (isset($dRec->productName)) {
             $row->productName = cat_Products::getLinkToSingle($dRec->productId, 'name');
         }
@@ -376,6 +475,20 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
         $row->amount = $Double->toVerbal($dRec->amount);
         $row->amount = ht::styleNumber($row->amount, $dRec->amount);
+
+        //Ако е избран разширен вариант на справката
+        if ($rec->type == 'long') {
+
+            $row->reservedQuantity = $Double->toVerbal($dRec->reservedQuantity);
+            $row->reservedQuantity = ht::styleNumber($row->reservedQuantity, $dRec->reservedQuantity);
+
+            $row->expectedQuantity = $Double->toVerbal($dRec->expectedQuantity);
+            $row->expectedQuantity = ht::styleNumber($row->expectedQuantity, $dRec->expectedQuantity);
+
+            $row->freeQuantity = $Double->toVerbal($dRec->freeQuantity);
+            $row->freeQuantity = ht::styleNumber($row->freeQuantity, $dRec->freeQuantity);
+
+        }
 
         return $row;
     }
@@ -444,6 +557,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
 
 
         if (isset($data->rec->storeId)) {
+            $marker = 0;
             $storeIdVerb = '';
             foreach (type_Keylist::toArray($data->rec->storeId) as $store) {
                 $marker++;

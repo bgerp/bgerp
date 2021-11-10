@@ -50,7 +50,7 @@ class sales_Sales extends deals_DealMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
                     acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
-					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,deals_plg_SaveValiorOnActivation, bgerp_plg_Export';
+					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
     /**
@@ -62,7 +62,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dealerId,initiatorId';
+    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery';
     
     
     /**
@@ -87,8 +87,14 @@ class sales_Sales extends deals_DealMaster
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
     public $filterRolesForTeam = 'ceo,salesMaster,manager';
-    
-    
+
+
+    /**
+     * Клас на оферта
+     */
+    protected $quotationClass = 'sales_Quotations';
+
+
     /**
      * Кой може да принтира фискална бележка
      */
@@ -98,7 +104,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,sales,acc';
+    public $canList = 'ceo,sales,acc,saleAll';
     
     
     /**
@@ -226,6 +232,7 @@ class sales_Sales extends deals_DealMaster
         'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
+        'oneTimeDelivery' => 'clientCondition'
     );
     
     
@@ -325,12 +332,13 @@ class sales_Sales extends deals_DealMaster
         $this->FLD('bankAccountId', 'key(mvc=bank_Accounts,select=iban,allowEmpty)', 'caption=Плащане->Банкова с-ка,after=currencyRate,notChangeableByContractor');
         $this->FLD('expectedTransportCost', 'double', 'input=none,caption=Очакван транспорт');
         $this->FLD('priceListId', 'key(mvc=price_Lists,select=title,allowEmpty)', 'caption=Допълнително->Цени,notChangeableByContractor');
-        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=none,caption=Доставка->Начисляване,after=deliveryTermId');
+        $this->FLD('deliveryCalcTransport', 'enum(yes=Скрит транспорт,no=Явен транспорт)', 'input=hidden,caption=Доставка->Начисляване,after=deliveryTermId');
         $this->FLD('visiblePricesByAllInThread', 'enum(no=Видими от потребители с права,yes=Видими от всички)', 'input=none');
         $this->setField('shipmentStoreId', 'salecondSysId=defaultStoreSale');
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermSale');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodSale,silent,removeAndRefreshForm=caseId|paymentType');
         $this->setField('chargeVat', 'salecondSysId=saleChargeVat');
+        $this->setField('oneTimeDelivery', 'salecondSysId=salesOneTimeDelivery');
     }
     
     
@@ -531,7 +539,7 @@ class sales_Sales extends deals_DealMaster
                 $serviceUrl = array('sales_Services', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
                 $data->toolbar->addBtn('Пр. услуги', $serviceUrl, 'ef_icon = img/16/shipment.png,title=Продажба на услуги,order=9.22');
             }
-            
+
             // Ако ЕН може да се добавя към треда и не се експедира на момента
             if (store_ShipmentOrders::haveRightFor('add', (object) array('threadId' => $rec->threadId))) {
                 $shipUrl = array('store_ShipmentOrders', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
@@ -779,12 +787,14 @@ class sales_Sales extends deals_DealMaster
             
             // Ако има метод за плащане и той няма авансова част, махаме авансовите операции
             if (!cond_PaymentMethods::hasDownpayment($rec->paymentMethodId)) {
-                unset($allowedPaymentOperations['customer2caseAdvance'],
-                        $allowedPaymentOperations['customer2bankAdvance'],
-                        $allowedPaymentOperations['caseAdvance2customer'],
-                        $allowedPaymentOperations['bankAdvance2customer'],
-                        $allowedPaymentOperations['caseAdvance2customerRet'],
-                        $allowedPaymentOperations['bankAdvance2customerRet']);
+                if(!haveRole('accMaster,ceo')){
+                    unset($allowedPaymentOperations['customer2caseAdvance'],
+                         $allowedPaymentOperations['customer2bankAdvance'],
+                         $allowedPaymentOperations['caseAdvance2customer'],
+                         $allowedPaymentOperations['bankAdvance2customer'],
+                         $allowedPaymentOperations['caseAdvance2customerRet'],
+                         $allowedPaymentOperations['bankAdvance2customerRet']);
+                }
             }
         }
         
@@ -824,17 +834,17 @@ class sales_Sales extends deals_DealMaster
         $rec->timeLimit = 200;
         $res .= core_Cron::addOnce($rec);
         
-        // Проверка по крон дали продажбата е просрочена
+        // Проверка по крон на плащанията на продажбите
         $rec2 = new stdClass();
         $rec2->systemId = 'IsSaleOverdue';
-        $rec2->description = 'Проверяване за просрочени продажби';
+        $rec2->description = 'Проверяване на плащанията по продажбите';
         $rec2->controller = 'sales_Sales';
         $rec2->action = 'CheckSalesPayments';
         $rec2->period = 60;
         $rec2->offset = mt_rand(0, 30);
         $rec2->isRandOffset = true;
         $rec2->delay = 0;
-        $rec2->timeLimit = 200;
+        $rec2->timeLimit = 300;
         $res .= core_Cron::addOnce($rec2);
     }
     
@@ -864,10 +874,14 @@ class sales_Sales extends deals_DealMaster
     public function cron_CheckSalesPayments()
     {
         core_App::setTimeLimit(300);
-        $conf = core_Packs::getConfig('sales');
-        $overdueDelay = $conf->SALE_OVERDUE_CHECK_DELAY;
-        
+        $overdueDelay =sales_Setup::get('OVERDUE_CHECK_DELAY');
         $this->checkPayments($overdueDelay);
+
+        // Изпращане на нотификации, за нефактурирани продажби
+        $lateTime = sales_Setup::get('NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS');
+        if(!empty($lateTime)){
+            $this->sendNotificationIfInvoiceIsTooLate($lateTime);
+        }
     }
     
     
@@ -1419,10 +1433,11 @@ class sales_Sales extends deals_DealMaster
     /**
      * Списък с артикули върху, на които може да им се коригират стойностите
      *
-     * @param mixed $id     - ид или запис
-     * @param mixed $forMvc - за кой мениджър
+     * @param mixed $id          - ид или запис
+     * @param mixed $forMvc      - за кой мениджър
+     * @param string  $option    - опции
      *
-     * @return array $products        - масив с информация за артикули
+     * @return array $products         - масив с информация за артикули
      *               o productId       - ид на артикул
      *               o name            - име на артикула
      *               o quantity        - к-во
@@ -1431,7 +1446,7 @@ class sales_Sales extends deals_DealMaster
      *               o transportWeight - транспортно тегло на артикула
      *               o transportVolume - транспортен обем на артикула
      */
-    public function getCorrectableProducts($id, $forMvc)
+    public function getCorrectableProducts($id, $forMvc, $option = null)
     {
         $rec = $this->fetchRec($id);
         
@@ -1439,9 +1454,14 @@ class sales_Sales extends deals_DealMaster
         $products = array();
         $entries = sales_transaction_Sale::getEntries($rec->id);
         $shipped = sales_transaction_Sale::getShippedProducts($entries);
-        
+
         if (countR($shipped)) {
             foreach ($shipped as $ship) {
+                if($option == 'storable'){
+                    $canStore = cat_Products::fetchField($ship->productId, 'canStore');
+                    if($canStore != 'yes') continue;
+                }
+
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
                 
@@ -1939,5 +1959,26 @@ class sales_Sales extends deals_DealMaster
 
             return false;
         }
+    }
+
+
+    /**
+     * Каква е датата на доставка
+     *
+     * @param $rec
+     * @return date $deliveryDate
+     */
+    public function getDeliveryDate($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $deliveryDate = $rec->deliveryTime;
+        if(empty($deliveryDate)){
+            $deliveryDate = $rec->valior;
+            if(!empty($rec->deliveryTermTime)){
+                $deliveryDate = dt::addSecs($rec->deliveryTermTime, $deliveryDate);
+            }
+        }
+
+        return $deliveryDate;
     }
 }

@@ -49,6 +49,7 @@
 <p>Срок до: [#deliveryTime#]
 <!--ET_END deliveryTime-->
 <p>До адрес: [#deliveryTo#] [#deliveryLocationAddress#]
+<p>Особености: [#addressInfo#]
 <!--ET_BEGIN lineId-->
 <p>Транспорт: [#lineId#]
 <!--ET_END lineId-->

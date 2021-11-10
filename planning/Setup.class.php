@@ -80,6 +80,18 @@ defIfNot('PLANNING_JOB_AUTO_COMPLETION_DELAY', '21600');
 
 
 /**
+ * Приоритет при попълване на количеството в протокола за производство
+ */
+defIfNot('PLANNING_PRODUCTION_NOTE_PRIORITY', 'bom');
+
+
+/**
+ * Дефолтна производствена мярка на нормата
+ */
+defIfNot('PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE', '');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -140,6 +152,8 @@ class planning_Setup extends core_ProtoSetup
 
         'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на заданието->Изпълнени над,callOnChange=planning_Setup::setJobAutoClose'),
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на заданието->Без модификации от'),
+        'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Очаквано)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Избор'),
+        'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за брой,per1Min=Брой за минута,minPer10=Минути за 10 броя,minPer100=Минути за 100 броя,per1Hour=Броя за час,per8Hour=Брой за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за брой"->Избор'),
     );
     
     
@@ -168,7 +182,6 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',
-        'migrate::updateSecondMeasure',
     );
     
     
@@ -250,55 +263,6 @@ class planning_Setup extends core_ProtoSetup
 
                 core_Cron::addOnce($rec);
             }
-        }
-    }
-
-
-    /**
-     * Миграция на втората мярка на заданията
-     */
-    public function updateSecondMeasure()
-    {
-        $Jobs = cls::get('planning_Jobs');
-        if(!$Jobs->count()) return;
-
-        $cubMeasureId = cat_UoM::fetchBySinonim('cub.m')->id;
-        $litreId = cat_UoM::fetchBySinonim('l')->id;
-
-        // Обновяване на заданията, които имат втора мярка
-        $updateNoSecondMeasure = $updateLitre = array();
-        $query = $Jobs->getQuery();
-        $query->where("#state != 'closed' AND #state != 'rejected' AND (#allowSecondMeasure = '' OR #allowSecondMeasure IS NULL)");
-
-        // За всяко
-        while($rec = $query->fetch()){
-
-            // Ако няма втора мярка, значи ще е без
-            if(empty($rec->secondMeasureId)){
-                $rec->allowSecondMeasure = 'no';
-                $updateNoSecondMeasure[$rec->id] = $rec;
-            } else {
-                $rec->allowSecondMeasure = 'yes';
-
-                // Ако втората мярка е кубичен метър подменя се с литър
-                if($rec->secondMeasureId == $cubMeasureId){
-                    $rec->secondMeasureId = $litreId;
-                    if(!empty($rec->secondMeasureQuantity)){
-                        $rec->secondMeasureQuantity = cat_UoM::convertValue($rec->secondMeasureQuantity, $cubMeasureId, $litreId);
-                    }
-                    $updateLitre[$rec->id] = $rec;
-                } else {
-                    $updateNoSecondMeasure[$rec->id] = $rec;
-                }
-            }
-        }
-
-        if(countR($updateNoSecondMeasure)){
-            $Jobs->saveArray($updateNoSecondMeasure, 'id,allowSecondMeasure');
-        }
-
-        if(countR($updateLitre)){
-            $Jobs->saveArray($updateLitre, 'id,allowSecondMeasure,secondMeasureId,secondMeasureQuantity');
         }
     }
 }

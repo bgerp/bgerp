@@ -499,6 +499,8 @@ en,Добавете коментар,Add your comment
 en,Добавете линк,Add link
 en,Добави към пот_57ea5,Add to user
 en,Добави,Add
+en,Добави в любими,Add to favourites
+en,Добавено в любими,Added to favourites
 en,Добавки към публичната страница,Supplements public page
 en,Добавки,Additions
 en,Добавяне,Add
@@ -1268,7 +1270,7 @@ en,От начална дата,From start date
 en,От някого,By someone
 en,От обект,Object from
 en,От системата,By system
-en,От склад,From store
+en,От склад,Warehouse
 en,От,From
 en,Отваряне на нишката,Open thread
 en,Отваряне,Open
@@ -1542,8 +1544,10 @@ en,Прекалено дълг_7fa8,Too long time for relogin
 en,Прекалено крат_9f06,Too short time for relogin
 en,Прекъснато,Interrupted
 en,Премахване,Remove
+en,Премахване от любими,Remove from favourites
 en,Изчистване на всички артикули,Clear all items
 en,Добавяне на нов артикул,Add new item
+en,Добавяне в любими,Add to favourites
 en,Преместване в _56087,Move selected threads to a new Company folder
 en,Преместване в _8ff89,Moving in new Persons folder
 en,Преместване към,Move to
@@ -2307,7 +2311,11 @@ en,кубичен метър,cubic meter
 en,курс,rate
 en,къде,where
 en,към Фактура,to Invoice
+en,Kъм фактура,To Invoice
+en,Kъм дебитно известие,To Debit note
+en,Kъм кредитно известие,To Credit note
 en,към,to
+en,Към,To
 en,л,l
 en,лабораторен тест,laboratory test
 en,линк,link
@@ -2725,7 +2733,7 @@ en,Към магазина,To the eshop
 en,Връщане в онлайн магазина,Return to the eshop
 en,"Сигурни ли сте, че искате да изчистите артикулите?","Are you sure, that you want to clear all items?"
 en,Изчисти,Clear
-en,"Имате предишна активна поръчка, моля проверете си имейла","You have active order, please check your email"
+en,"Имате предишна активна поръчка, моля проверете си имейла","You already have an active order, please check your email"
 en,Прекратяване на действията,Cancel all actions
 en,Запис на данните за поръчката,Save order details
 en,Редактиране на данните на поръчката,Edit order details
@@ -2738,7 +2746,7 @@ en,Възложено,Assigned
 en,коментар към,comment to
 en,прогрес към,progress to
 en,Купи,Buy
-en,"Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се логнете","There seems to be a user with this email. Please login before you continue"
+en,"Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се","There seems to be a user with this email. Please"
 en,Ако вече имате потребител,If you already have a user
 en,Поръчано / Доставено,Ordered / Delivered
 en,Разполагаемо,Available
@@ -2929,3 +2937,16 @@ en,Започнато,Started
 en,За по-късно,For later
 en,Важно,Important
 en,В обработка,In processing
+en,логнете,login
+en,За адрес,To address
+en,"Отговаряме само на запитвания получени от представители на реални, регистрирани в България или чужбина фирми и други юридически организации","We accept only enquiries from real companies or organisations, registered in Bulgaria or abroad"
+en,"За контрагенти от България, трябва да премахнете двубуквения префикс. Или въведете номера в полето за ДДС №", "For contragents from Bulgaria, you must remove the two-letter prefix, or you can also place it in the field for Vat №"
+en,"Приемат се поръчки за минимално","Minimum order value of"
+en,"Контрагентът е от България, начислено е ДДС","The contragent is from Bulgaria, VAT is included"
+en,"Фактурането е за лице от ЕС, начислено е ДДС","Billing is for person from EU, VAT is included"
+en,"Контрагентът е от ЕС, но с невалиден ДДС №, начислено е ДДС","The contragent is from EU, but with invalid VAT ID, VAT is included"
+en,Невалиден ЕИК,Invalid TAX ID
+en,"Цената за транспорт ще ви бъде оферирана отделно за да я потвърдите или отхвърлите","The delivery cost will be offered later, for you to confirm or reject it"
+en,Неразпределени,Unallocated
+en,Спедитор,Forwarder
+en,МПС,Motor vehicle

@@ -14,7 +14,7 @@
  * @package   acc
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2014 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -43,7 +43,14 @@ class acc_ReportDetails extends core_Manager
         setIfNot($data->masterMvc->canAddacclimits, 'ceo,accLimits');
         setIfNot($data->masterMvc->balanceRefShowZeroRows, true);
         setIfNot($data->masterMvc->showAccReportsInTab, true);
-        
+
+        // Перото с което мастъра фигурира в счетоводството
+        $data->itemRec = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
+        if(empty($data->itemRec)) {
+            $data->renderReports = false;
+            return;
+        }
+
         $data->TabCaption = 'Счетоводство';
         
         $balanceRec = acc_Balances::getLastBalance();
@@ -65,15 +72,13 @@ class acc_ReportDetails extends core_Manager
         if (!$prepareTab || $prepareTab == 'AccReports') {
             $data->prepareTab = true;
         }
-        
+
         // Ако потребителя има достъп до репортите
         if (haveRole($data->masterMvc->canReports) && ($data->Tab == 'top' || $data->isCurrent)) {
             
             // Извличане на счетоводните записи
             $this->prepareBalanceReports($data);
             $data->renderReports = true;
-        
-        //$data->Order = 1;
         } else {
             $data->renderReports = false;
         }
@@ -111,9 +116,6 @@ class acc_ReportDetails extends core_Manager
      */
     private function prepareBalanceReports(&$data)
     {
-        // Перото с което мастъра фигурира в счетоводството
-        $data->itemRec = acc_Items::fetchItem($data->masterMvc->getClassId(), $data->masterId);
-        
         // Ако мастъра не е перо, няма какво да се показва
         if (empty($data->itemRec)) {
             $data->renderReports = false;
@@ -166,17 +168,33 @@ class acc_ReportDetails extends core_Manager
         
         // Извикване на евент в мастъра за след извличане на записите от БД
         $data->masterMvc->invoke('AfterPrepareAccReportRecs', array($data));
-        
+        $data->lastBalance = acc_Balances::getLastBalance();
+
         // Може ли потребителя да вижда хронологията на сметката
         $accounts = arr::make($accounts, true);
         if(is_array($accounts)){
             foreach ($accounts as $accSysId){
+                $dealPos = acc_Lists::getPosition($accSysId, 'deals_DealsAccRegIntf');
+
                 $accountId = acc_Accounts::fetchField("#systemId = '{$accSysId}'", 'id');
                 $recsWithAccount = array_filter($data->recs, function ($a) use ($accountId) {return $a->accountId == $accountId;});
-                
+
                 if(countR($recsWithAccount)){
                     foreach ($recsWithAccount as $dRec){
-                        
+
+                        // Ако в избраната сметка има сделка, и тя е затворена
+                        if(isset($dealPos)){
+                            if(isset($dRec->{"ent{$dealPos}Id"})){
+                                $iRec = acc_Items::fetch($dRec->{"ent{$dealPos}Id"});
+
+                                // И е затворена в различен от текущия период не се показва
+                                if($iRec->state == 'closed'){
+                                    $closedOnPeriodId = acc_Periods::fetchByDate($iRec->closedOn)->id;
+                                    if($closedOnPeriodId != $data->lastBalance->periodId)   continue;
+                                }
+                            }
+                        }
+
                         // Ако има вербализират се
                         if($row = $this->getVerbalBalanceRec($dRec, $groupBy, $data)){
                             $res[$accountId]['rows'][] = $row;
@@ -227,7 +245,7 @@ class acc_ReportDetails extends core_Manager
                 $res[$lRec->accountId]['limits'][$lRec->id] = $lRow;
             }
         }
-        
+
         $data->total = arr::sumValuesArray($data->recs, 'blAmount');
         $data->totalRow = core_Type::getByName('double(decimals=2)')->toVerbal($data->total);
         $data->totalRow = ($data->total < 0) ? "<span class='red'>{$data->totalRow}</span>" : $data->totalRow;

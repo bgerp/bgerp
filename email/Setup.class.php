@@ -200,6 +200,12 @@ defIfNot('EMAIL_STOP_SEND_TO', 'no-reply@*,noreply@*');
 
 
 /**
+ * Добавяне на наши файлове
+ */
+defIfNot('EMAIL_OUR_IMGS', '');
+
+
+/**
  * Хедъри, които ще се проверяват за спам скоре
  */
 defIfNot('EMAIL_CHECK_SPAM_SCORE_HEADERS', 'x-spam-status,x-spam-score');
@@ -305,6 +311,31 @@ class email_Setup extends core_ProtoSetup
      * Необходими пакети
      */
     public $depends = 'fileman=0.1,doc=0.1';
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'DeleteOldServiceMails',
+            'description' => 'Изтриване на стари сервизни имейли',
+            'controller' => 'email_ServiceEmails',
+            'action' => 'DeleteOldServiceMails',
+            'period' => 1440,
+            'offset' => 60,
+            'timeLimit' => 100
+        ),
+        array(
+            'systemId' => 'checkEmailsForState',
+            'description' => 'Проверка на имейли за промяна на състояние според потребителските правила',
+            'controller' => 'email_drivers_CheckEmails',
+            'action' => 'checkEmails',
+            'period' => 1440,
+            'offset' => 120,
+            'timeLimit' => 300
+        ),
+    );
     
     
     /**
@@ -380,7 +411,9 @@ class email_Setup extends core_ProtoSetup
         'EMAIL_FORWARDING_DEFAULT_EMAIL_BODY_FORWARDING_EN' => array('varchar', 'caption=Текст по подразбиране при препращане на имейл->На английски, customizeBy=powerUser'),
         
         'EMAIL_STOP_SEND_TO' => array('varchar', 'caption=Шаблон за имейли до които няма да се праща->Шаблон'),
-        
+
+        'EMAIL_OUR_IMGS' => array('fileman_type_Files(bucket=Email)', 'caption=Наши файлове|*&comma;| които ще се игнорират във входящите имейли->Файлове'),
+
         'EMAIL_CHECK_SPAM_SCORE_HEADERS' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Хедъри'),
         
         'EMAIL_HARD_SPAM_SCORE' => array('varchar', 'caption=Проверка на СПАМ рейтинг->Твърд спам'),
@@ -410,7 +443,6 @@ class email_Setup extends core_ProtoSetup
         'email_Router',
         'email_Addresses',
         'email_FaxSent',
-        'email_Filters',
         'email_Returned',
         'email_Receipts',
         'email_Spam',
@@ -424,13 +456,14 @@ class email_Setup extends core_ProtoSetup
         'email_ServiceRulesData',
         'email_AddressesInfo',
         'migrate::repairSpamScore1219',
+        'migrate::serviceRules2121',
     );
     
     
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'email_reports_Spam';
+    public $defClasses = 'email_reports_Spam, email_drivers_RouteByFirstEmail, email_drivers_RouteByFolder, email_drivers_CheckEmails';
     
     
     /**
@@ -497,7 +530,10 @@ class email_Setup extends core_ProtoSetup
         $res = parent::loadSetupData($itr);
         
         $res .= $this->addOurImgData();
-        
+
+        $res .= $this->callMigrate('filtersToServiceRules21212', 'email');
+        $res .= $this->callMigrate('repairServiceRules2127', 'email');
+
         return $res;
     }
     
@@ -555,7 +591,29 @@ class email_Setup extends core_ProtoSetup
         }
         
         Mode::pop('text');
-        
+
+        // Добавяме всички лога към нашите файлове
+        $logoArr = array();
+        $logoArr['BGERP_COMPANY_LOGO'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO');
+        $logoArr['BGERP_COMPANY_LOGO_EN'] = core_Settings::fetchUsers(crm_Profiles::getSettingsKey(), 'BGERP_COMPANY_LOGO_EN');
+        foreach ($logoArr as $lKey => $logoLgArr) {
+            foreach ((array) $logoLgArr as $lArr) {
+                if (!$lArr[$lKey]) {
+                    continue;
+                }
+
+                $dataId = fileman::fetchByFh($lArr[$lKey], 'dataId');
+                $oImgDataIdArr[$dataId] = $dataId;
+            }
+        }
+
+        // Добавяме файловете зададени в конфига
+        $fArr = type_Keylist::toArray($this->get('OUR_IMGS'));
+        foreach ((array) $fArr as $fId) {
+            $dataId = fileman::fetchField($fId, 'dataId');
+            $oImgDataIdArr[$dataId] = $dataId;
+        }
+
         core_Permanent::set('ourImgEmailArr', $oImgDataIdArr, 10000000);
     }
     
@@ -568,20 +626,104 @@ class email_Setup extends core_ProtoSetup
         core_CallOnTime::setCall('email_Spam', 'repairSpamScore', null, dt::addSecs(120));
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'email_Spam', dt::addSecs(180));
     }
-    
-    
+
+
     /**
-     * Настройки за Cron
+     * Поправка на записите за сервизните имейли
      */
-    public $cronSettings = array(
-            array(
-                    'systemId' => 'DeleteOldServiceMails',
-                    'description' => 'Изтриване на стари сервизни имейли',
-                    'controller' => 'email_ServiceEmails',
-                    'action' => 'DeleteOldServiceMails',
-                    'period' => 1440,
-                    'offset' => 60,
-                    'timeLimit' => 100
-            ),
-    );
+    public static function serviceRules2121()
+    {
+        $inst = cls::get('email_ServiceRules');
+
+        $inst->FLD('classId', 'class(interface=email_ServiceRulesIntf, select=title)', 'caption=Обработвач, mandatory', array('attr' => array('style' => 'width: 350px;')));
+
+        $query = $inst->getQuery();
+        while ($rec = $query->fetch()) {
+            if ($rec->classId && !$rec->driverClass) {
+                $rec->driverClass = $rec->classId;
+
+                $inst->save($rec, 'driverClass');
+            }
+        }
+    }
+
+
+
+
+    /**
+     * Прехвърляне на записите от email_Filters към сервизните имейли
+     */
+    public static function filtersToServiceRules21212()
+    {
+        $fInst = cls::get('email_Filters');
+        $fQuery = $fInst->getQuery();
+
+        while ($fRec = $fQuery->fetch()) {
+            $nRec = new stdClass();
+            $nRec->state = $fRec->state;
+            $nRec->email = $fRec->email;
+            $nRec->subject = $fRec->subject;
+            $nRec->body = $fRec->body;
+            $nRec->note = $fRec->note;
+            $nRec->createdOn = $fRec->createdOn;
+            $nRec->createdBy = $fRec->createdBy;
+
+            if ($fRec->action == 'email') {
+                $nRec->driverClass = email_drivers_RouteByFirstEmail::getClassId();
+            } elseif ($fRec->action == 'folder') {
+                $nRec->driverClass = email_drivers_RouteByFolder::getClassId();
+                $nRec->folderId = $fRec->folderId;
+            } else {
+                continue ;
+            }
+
+            expect($nRec->driverClass);
+
+            try {
+                email_ServiceRules::save($nRec, null, 'REPLACE');
+            } catch (core_exception_Expect $e) {
+
+                continue;
+            }
+        }
+    }
+
+
+    /**
+     * Поправя лошите записи и премахване на старите класове
+     */
+    public function repairServiceRules2127()
+    {
+        expect(cls::load('email_drivers_CheckEmails'));
+
+        $checkEmailsClsId = email_drivers_CheckEmails::getClassId();
+
+        expect($checkEmailsClsId);
+
+        foreach (array('email_drivers_DeleteEmails', 'email_drivers_RejectEmails') as $clsName) {
+            if (!cls::load($clsName, true)) {
+                continue;
+            }
+
+            $query = email_ServiceRules::getQuery();
+            $query->where(array("#driverClass = '[#1#]'", $clsName::getClassId()));
+
+            while ($rec = $query->fetch()) {
+                $rec->driverClass = $checkEmailsClsId;
+                if ($clsName == 'email_drivers_DeleteEmails') {
+                    $rec->deleteAfter = $rec->keepDays;
+                }
+
+                if ($clsName == 'email_drivers_RejectEmails') {
+                    $rec->rejectAfter = $rec->keepDays;
+                }
+
+                email_ServiceRules::save($rec);
+            }
+
+            core_Classes::delete(array("#name = '[#1#]'", $clsName));
+
+            core_Cron::delete(array("#controller = '[#1#]'", $clsName));
+        }
+    }
 }

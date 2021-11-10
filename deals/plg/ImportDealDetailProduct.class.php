@@ -229,40 +229,46 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             $pRec = cat_Products::getByCode($obj->code);
-            
+
             if (!$pRec) {
                 $err[$i][] = $obj->code . ' |Няма артикул с такъв код|*';
                 continue;
             }
-            
-            $state = cat_Products::fetchField($pRec->productId, 'state');
-            if ($state != 'active') {
-                $err[$i][] = $obj->code . ' |Артикулът е неактивен|*';
-                continue;
-            }
-            
-            $meta = (array) cat_Products::fetch($pRec->productId, $mvc->metaProducts);
-            unset($meta['id']);
-            
-            // Ако импорта е в Експедиционно или Складова разписка
-            if (!$mvc->metaProducts) {
-                $masterId = Request::get($mvc->masterKey, 'int');
-                
+
+            $masterId = Request::get($mvc->masterKey, 'int');
+            $metaArr = arr::make($mvc->metaProducts, true);
+            if(!countR($metaArr)){
                 $masterRec = $mvc->Master->fetch($masterId);
-                
-                //Първия документ в нишката
                 $Document = doc_Containers::getDocument($masterRec->originId);
-                
                 if ($Document->className == 'sales_Sales') {
-                    $meta = array('canSell' => cat_Products::fetch($pRec->productId)->canSell);
+                    $metaArr = array('canSell' => 'canSell');
                 } elseif ($Document->className == 'purchase_Purchases') {
-                    $meta = array('canBuy' => cat_Products::fetch($pRec->productId)->canBuy);
+                    $metaArr = array('canBuy' => 'canBuy');
                 }
             }
-            
+
+            $metaString = implode(',', $metaArr);
+            $productRec = cat_Products::fetch($pRec->productId, "state,isPublic,folderId,{$metaString}");
+            if ($productRec->state != 'active') {
+                $err[$i][] = $obj->code . ' - |Артикулът не е активен|*!';
+                continue;
+            }
+
+            $meta = (array) $productRec;
+            unset($meta['id'], $meta['state'], $meta['isPublic'], $meta['folderId']);
+
+            // Ако артикула е нестандартен, проверява се все пак може ли да се добави в папката на документа
+            if($productRec->isPublic != 'yes'){
+                $productSharedFolders = cat_products_SharedInFolders::getSharedFolders($productRec->id);
+                if(!in_array($folderId, $productSharedFolders)){
+                    $err[$i][] = $obj->code . ' - |Артикулът е частен и не е достъпен в папката на документа|*!';
+                    continue;
+                }
+            }
+
             foreach ($meta as $metaValue) {
                 if ($metaValue != 'yes') {
-                   $err[$i][] = $obj->code . ' |Артикулът няма вече нужните свойства|*';
+                   $err[$i][] = $obj->code . ' - |Артикулът няма вече нужните свойства|*!';
                 }
             }
             
@@ -292,7 +298,13 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if ($isPartner === false) {
                     $obj->price = cls::get('type_Double')->fromVerbal($obj->price);
                     if (!$obj->price) {
-                        $err[$i][] = $obj->code . '|Грешна цена|*';
+                        $err[$i][] = $obj->code . ' - |Грешна цена|*!';
+                    }
+                }
+            } else {
+                if($priceField = $mvc->getField('packPrice', false)){
+                    if($priceField->mandatory){
+                        $err[$i][] = $obj->code . ' - |Посочването на цена е задължително|*!';
                     }
                 }
             }
@@ -321,7 +333,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     $selfPrice = cat_Products::getPrimeCost($pRec->productId, null, null, null);
                    
                     if (!$selfPrice) {
-                        $err[$i][] = $obj->code . ' |Артикулът няма себестойност|*';
+                        $err[$i][] = $obj->code . ' - |Артикулът няма себестойност|*!';
                     }
                 }
             }
@@ -333,11 +345,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             
             if ($pRec && isset($obj->pack)) {
                 if (isset($pRec->packagingId) && $pRec->packagingId != $obj->pack) {
-                    $err[$i][] = $obj->code . '|Подадения баркод е за друга опаковка|*';
+                    $err[$i][] = $obj->code . ' - |Подадения баркод е за друга опаковка|*!';
                 }
                 
                 if (!array_key_exists($obj->pack, $packs)) {
-                    $err[$i][] = $obj->code . ' |Артикулът не поддържа подадената мярка/опаковка|* (' . implode(',', $packs) . ')';
+                    $err[$i][] = $obj->code . ' - |Артикулът не поддържа подадената мярка/опаковка|* (' . implode(',', $packs) . ')!';
                 }
             }
             
@@ -377,7 +389,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         continue;
                     }
                 } else {
-                    $err[$i][] = $obj->batch . ' |Продукта не поддържа партидност|*';
+                    $err[$i][] = $obj->batch . ' - |Продукта не поддържа партидност|*!';
                     continue;
                 }
             }
@@ -409,6 +421,10 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             } catch (core_exception_Expect $e) {
                 $failed++;
+                $mvc->logNotice('Грешка при импорт: ' . $e->getMessage());
+                if (haveRole('debug')) {
+                    status_Messages::newStatus('Грешка при импорт: ' . $e->getMessage());
+                }
             }
         }
         
@@ -528,7 +544,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         // Съответстващи колонки на полета
         $form->FLD('codecol', $type, "caption=Съответствие в данните->Код{$unit},mandatory");
         $form->FLD('quantitycol', $type, "caption=Съответствие в данните->Количество{$unit},mandatory");
-        $form->FLD('packcol', $type, "caption=Съответствие в данните->Мярка/Опаковка{$unit}");
+        $form->FLD('packcol', $type, "caption=Съответствие в данните->Мярка/Опаковка{$unit},mandatory");
         
         $fields = array('codecol', 'quantitycol', 'packcol');
         if (!core_Users::haveRole('partner')) {
@@ -578,6 +594,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         $form->setDefault('quantitycol', $caption);
                     }
 
+                    if (mb_stripos($form->fields['packcol']->caption, $caption) !== false) {
+                        $form->setDefault('packcol', $caption);
+                    }
                 }
 
                 $form->_cMap = $cMap;

@@ -97,12 +97,13 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кои колони да скриваме ако янма данни в тях
      */
-    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,quantityExtended,typeExtended,additional';
+    public $hideListFieldsIfEmpty = 'serial,weight,employees,fixedAsset,scrappedQuantity,quantityExtended,typeExtended,additional,batch';
     
     
     /**
      * Активен таб на менюто
      */
+
     public $currentTab = 'Операции->Прогрес';
     
     
@@ -151,7 +152,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки,autohide');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
-        $this->FLD('norm', 'time', 'caption=Време,input=none');
+        $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
         
         $this->setDbIndex('type');
         $this->setDbIndex('serial');
@@ -787,8 +788,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->listFilter->setOptions('employees', array('' => '') + $usedEmployeeIds);
             $data->listFilter->showFields .= ",employees";
         }
-        
-        $data->listFilter->toolbar->addSbBtn('', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+
+        $caption = isset($data->masterMvc) ? '' : 'Филтрирай';
+        $data->listFilter->toolbar->addSbBtn($caption, 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->listFilter->input();
         
         // Филтър по избраните стойности
@@ -920,14 +922,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
         $indicatorId = $iRec->id;
-        
+
         while ($rec = $query->fetch()) {
             
             // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
-            if (!countR($persons)) {
-                continue;
-            }
+            if (!countR($persons)) continue;
             
             $quantity = $rec->quantity;
             if($rec->type == 'production'){
@@ -940,9 +940,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                 
                 $quantity = round(($rec->quantity / $quantityInPack), 2);
             }
-            
+
             // Колко е заработката за 1 човек
-            $timePerson = ($rec->indTimeAllocation == 'individual') ? $quantity * $rec->norm : (($quantity * $rec->norm) / countR($persons));
+            $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
+            $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
             
             $date = dt::verbal2mysql($rec->createdOn, false);
             foreach ($persons as $personId) {
@@ -967,8 +968,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     /**
      * Интерфейсен метод на hr_IndicatorsSourceIntf
-     *
-     * @param datetime $date
      *
      * @return array $result
      */

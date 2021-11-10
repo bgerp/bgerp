@@ -225,7 +225,8 @@ class marketing_Router
         } catch (core_exception_Expect $e) {
             reportException($e);
         }
-        
+
+        crm_Persons::prepareBirthday($rec);
         $folderId = crm_Persons::forceCoverAndFolder($rec);
         crm_Persons::forceGroup($rec->id, 'customers');
         

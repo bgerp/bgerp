@@ -28,14 +28,22 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
     {
         // Извличане на мастър-записа
         expect($rec = $this->class->fetchRec($id));
-        
+
         $result = (object) array(
             'reason' => $rec->notes,
-            'valior' => $rec->valior,
+            'valior' => null,
             'totalAmount' => 0,
             'entries' => array()
         );
-        
+
+        if(Mode::get('saveTransaction')){
+            $rec->valior = $this->class->getDefaultValior($rec);
+            $result->valior = $rec->valior;
+            if(empty($rec->valior)){
+                acc_journal_RejectRedirect::expect(false, 'Едновременно могат да се коригират само артикули, които са експедирани/доставени едновременно - в рамките на един счетоводен период (месец). При необходимост създайте повече от един документ за корекция.', 'error');
+            }
+        }
+
         $entries = $this->getEntries($rec, $result->totalAmount);
         if (countR($entries)) {
             $result->entries = $entries;
@@ -118,7 +126,7 @@ class acc_transaction_ValueCorrection extends acc_DocumentTransactionSource
             // Ако е към покупка
         } elseif ($firstDoc->isInstanceOf('purchase_Purchases')) {
             $creditArr = array('401', array($contragentClassId, $contragentId),
-                array($correspondingDoc->getInstance()->getClassId(), $correspondingDoc->that),
+                array($correspondingDoc->getInstance()->className, $correspondingDoc->that),
                 array('currency_Currencies', $currencyId),
                 'quantity' => 0);
             $vatAmount = 0;

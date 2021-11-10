@@ -122,6 +122,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
         $resData->data->query->orWhere(array("#timeStart < '[#1#]'", $todayB));
         $resData->data->query->where('#timeEnd IS NULL');
         $resData->data->query->orWhere(array("#timeEnd < '[#1#]'", $todayB));
+        $resData->data->query->orWhere('#timeEnd IS NOT NULL AND #timeStart IS NULL AND #timeDuration IS NULL');
         $resData->data->query->where('#timeDuration IS NULL');
         $resData->data->query->orWhere(array("#expectationTimeEnd < '[#1#]'", $todayB));
         
@@ -134,14 +135,14 @@ class bgerp_drivers_Tasks extends core_BaseClass
         
         if (!$resData->tpl) {
             $resData->data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'active' THEN 1 WHEN 'wakeup' THEN 1 WHEN 'waiting' THEN 2 WHEN 'pending' THEN 3 WHEN 'stopped' THEN 4 ELSE 5 END)");
-            
+            $resData->data->query->XPR('orderTimeEnd', 'datetime', "if(((#state = 'active' || #state = 'wakeup' || #state = 'waiting' || #state = 'pending') && #timeEnd >= '{$todayB}'),-#timeEnd,NULL)");
+
+            $resData->data->query->orderBy('orderTimeEnd', 'DESC');
             $resData->data->query->orderBy('orderByState', 'ASC');
             $resData->data->query->orderBy('modifiedOn', 'DESC');
             $resData->data->query->orderBy('createdOn', 'DESC');
-            
+
             $Tasks->listItemsPerPage = $dRec->perPage ? $dRec->perPage : 15;
-            
-            $resData->data->usePortalArrange = false;
             
             // Подготвяме навигацията по страници
             $Tasks->prepareListPager($resData->data);
@@ -156,7 +157,7 @@ class bgerp_drivers_Tasks extends core_BaseClass
             
             // Подготвяме редовете на таблицата
             $Tasks->prepareListRows($resData->data);
-            
+
             if (is_array($resData->data->recs)) {
                 foreach ($resData->data->recs as $id => &$rec) {
                     $row = &$resData->data->rows[$id];

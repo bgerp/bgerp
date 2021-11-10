@@ -31,6 +31,7 @@ class cond_type_Date extends cond_type_abstract_Proto
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('time', 'enum(no=Без час, yes=С час)', 'caption=Конкретизиране->Дължина,before=default');
+        $fieldset->FLD('autoValue', 'enum(,today=Текуща дата,firstDayOfWeek=Начало на седмицата,lastDayOfWeek=Край на седмицата,firstDayOfMonth=Начало на месеца,lastDayOfMonth=Край на месеца)', 'caption=Конкретизиране->Автоматично,before=default');
     }
     
     
@@ -53,5 +54,52 @@ class cond_type_Date extends cond_type_abstract_Proto
         }
         
         return $Type;
+    }
+
+
+    /**
+     * Връща дефолтната стойност на параметъра
+     *
+     * @param stdClass    $rec         - запис на параметъра
+     * @param mixed       $domainClass - клас на домейна
+     * @param mixed       $domainId    - ид на домейна
+     * @param NULL|string $value       - стойност
+     *
+     * @return mixed    $default       - дефолтната стойност (ако има)
+     */
+    public function getDefaultValue($rec, $domainClass = null, $domainId = null, $value = null)
+    {
+        $default = null;
+        if(!empty($rec->autoValue)){
+            $default = ($rec->time == 'yes') ? dt::now() : dt::today();
+            switch($rec->autoValue){
+                case 'today':
+                    break;
+                case 'firstDayOfWeek':
+                    $date = new DateTime($default);
+                    $date->modify('last Monday');
+                    $default = $date->format('Y-m-d');
+                    break;
+                case 'lastDayOfWeek':
+                    $date = new DateTime($default);
+                    $date->modify('next Sunday');
+                    $default = $date->format('Y-m-d');
+                    if($rec->time == 'yes'){
+                        $default .= " 23:59";
+                    }
+                    break;
+                case 'firstDayOfMonth':
+                    $default = date('Y-m-d', strtotime('first day of this month'));
+                    break;
+                case 'lastDayOfMonth':
+                    $default = dt::getLastDayOfMonth();
+                    if($rec->time == 'yes'){
+                        $default .= " 23:59";
+                    }
+                    break;
+            }
+        }
+
+        return $default;
     }
 }

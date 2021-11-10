@@ -48,7 +48,21 @@
                 <td>[#round#]</td>
             </tr>
             <!--ET_END round-->
-            
+
+            <!--ET_BEGIN class-->
+            <tr>
+                <td class="title-style">|Клас|*</td>
+                <td>[#class#]</td>
+            </tr>
+            <!--ET_END class-->
+
+            <!--ET_BEGIN select-->
+            <tr>
+                <td class="title-style">|Поле на класа|*</td>
+                <td>[#select#]</td>
+            </tr>
+            <!--ET_END select-->
+
             <!--ET_BEGIN translate-->
             <tr>
                 <td class="title-style">|Превод|*</td>
@@ -104,10 +118,17 @@
                 <td>[#lenght#]</td>
             </tr>
             <!--ET_END lenght-->
-            
+
+            <!--ET_BEGIN autoValue-->
+            <tr>
+                <td class="title-style">|Автоматично|*</td>
+                <td>[#autoValue#]</td>
+            </tr>
+            <!--ET_END autoValue-->
+
             <!--ET_BEGIN default-->
             <tr>
-                <td class="title-style">|Дефолт|*</td>
+                <td class="title-style">|Стойност по подразбиране|*</td>
                 <td>[#default#]</td>
             </tr>
             <!--ET_END default-->

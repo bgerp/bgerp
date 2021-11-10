@@ -21,8 +21,14 @@ class cond_type_Varchar extends cond_type_abstract_Proto
      * Кой базов тип наследява
      */
     protected $baseType = 'type_Varchar';
-    
-    
+
+
+    /**
+     * Поле за дефолтна стойност
+     */
+    protected $defaultField = 'default';
+
+
     /**
      * Добавя полетата на драйвера към Fieldset
      *
@@ -30,8 +36,9 @@ class cond_type_Varchar extends cond_type_abstract_Proto
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('lenght', 'int', 'caption=Конкретизиране->Дължина,before=default');
+        $fieldset->FLD('lenght', 'int', 'caption=Конкретизиране->Дължина,before=order');
         $fieldset->FLD('translate', 'enum(no=Не,yes=Да)', 'caption=Конкретизиране->Превод,after=lenght');
+        $fieldset->FLD('default', 'varchar(nullIfEmpty)', 'caption=Конкретизиране->Стойност по подразбиране,after=translate');
     }
     
     
@@ -70,7 +77,7 @@ class cond_type_Varchar extends cond_type_abstract_Proto
     public function toVerbal($rec, $domainClass, $domainId, $value)
     {
         // Ако има тип, вербалното представяне според него
-        $Type = $this->getType($id, $domainClass, $domainId, $value);
+        $Type = $this->getType($rec, $domainClass, $domainId, $value);
         if ($Type) {
             $value = trim($value);
             if($this->driverRec->translate == 'yes' || (strpos($value, '||') != false)){

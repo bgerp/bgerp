@@ -39,6 +39,12 @@
                             <td>[#receiveEmail#]</td>
                         </tr>
                         <!--ET_END receiveEmail-->
+                        <!--ET_BEGIN clonedFromId-->
+                        <tr>
+                            <td class='dt'>|Клонирано от|*:</td>
+                            <td>[#clonedFromId#]</td>
+                        </tr>
+                        <!--ET_END clonedFromId-->
                     </table>
                 </div>
             </fieldset>

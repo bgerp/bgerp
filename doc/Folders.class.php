@@ -150,6 +150,8 @@ class doc_Folders extends core_Master
         $this->FLD('statistic', 'blob(serialize,compress)', 'caption=Статистика, input=none');
         
         $this->setDbUnique('coverId,coverClass');
+
+        $this->setDbIndex('last');
     }
     
     
@@ -452,7 +454,7 @@ class doc_Folders extends core_Master
     /**
      * След преобразуване към вербални данни на записа
      */
-    public static function on_AfterRecToVerbal($mvc, $row, $rec)
+    public static function on_AfterRecToVerbal($mvc, $row, $rec, $fields = array())
     {
         $openThreads = $mvc->getVerbal($rec, 'openThreadsCnt');
         
@@ -478,6 +480,16 @@ class doc_Folders extends core_Master
             } else {
                 $attr['style'] .= 'color:#777;';
                 $row->type = ht::createElement('span', $attr, $singleTitle);
+            }
+
+            if($fields['-list']){
+                if($rec->coverClass == doc_UnsortedFolders::getClassId()){
+                    $unsortedFolderContragentId = doc_UnsortedFolders::fetchField($rec->coverId, 'contragentFolderId');
+                    if(!empty($unsortedFolderContragentId)){
+                        $subTitle = doc_Folders::recToVerbal($unsortedFolderContragentId)->title;
+                        $row->title .= "<br><small style='padding-left:10px'>» {$subTitle}</small>";
+                    }
+                }
             }
         } else {
             $row->type = "<span class='red'>" . tr('Проблем при показването') . '</span>';
@@ -509,9 +521,10 @@ class doc_Folders extends core_Master
             $title = str::limitLen($title, $maxLenTitle);
             $title = $mvc->fields['title']->type->escape($title);
         }
-        
-        if (core_Packs::isInstalled('colab') && core_Users::haveRole('partner')) {
-            $haveRight = colab_Folders::haveRightFor('single', $rec);
+
+        $isPartner = core_Packs::isInstalled('colab') && core_Users::haveRole('partner');
+        if ($isPartner) {
+            $haveRight = colab_Threads::haveRightFor('list', (object)array('folderId' => $rec->id));
             $link = array('colab_Threads', 'list', 'folderId' => $rec->id);
         } else {
             $haveRight = $mvc->haveRightFor('single', $rec);
@@ -543,7 +556,7 @@ class doc_Folders extends core_Master
             }
 
             $title = ht::createLink($title, $link, null, $attr);
-        } else {
+        } elseif(!$isPartner) {
             $attr['style'] = 'color:#777;background-image:url(' . $img . ');';
             $title = ht::createElement('span', $attr, $title);
         }
@@ -804,7 +817,10 @@ class doc_Folders extends core_Master
         $oSharedArr = keylist::toArray($rec->shared);
         
         // Настройките на пакета
+        $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+        core_ObjectConfiguration::$stopInvoke = true;
         $notifySharedConf = doc_Setup::get('NOTIFY_FOLDERS_SHARED_USERS');
+        core_ObjectConfiguration::$stopInvoke = $stopInvoke;
         if ($notifySharedConf == 'no') {
             $sharedArr = array();
         } else {
@@ -924,6 +940,12 @@ class doc_Folders extends core_Master
             $rec->state = 'active';
             $mustSave = true;
         }
+
+        if (!$mustSave && $rec->id) {
+            if (cls::get('doc_Folders')->getSearchKeywords($rec) != $rec->searchKeywords) {
+                $mustSave = true;
+            }
+        }
         
         if ($mustSave) {
             if ($isRevert || !$rec->state) {
@@ -1023,7 +1045,9 @@ class doc_Folders extends core_Master
             //Контрагентните данни, взети от класа
             $contragentData = $className::getContragentData($folder->coverId);
         }
-        
+
+        setIfNot($contragentData, new stdClass());
+
         return $contragentData;
     }
     
@@ -1815,7 +1839,7 @@ class doc_Folders extends core_Master
                 $searchKeywords = drdata_Countries::addCountryInBothLg($countryId, $searchKeywords);
             }
         }
-        
+
         if ($rec->coverId) {
             $plugins = arr::make($class->loadList, true);
             if ($plugins['plg_Search'] || method_exists($class, 'getSearchKeywords')) {
@@ -2129,12 +2153,29 @@ class doc_Folders extends core_Master
             
             $query->in('coverClass', $skipCoverClasses);
         }
+
+        // Ако има филтър по документи в папката
+        if (isset($params['containingDocumentIds'])) {
+            $documentIds = arr::make($params['containingDocumentIds'], true);
+            if(countR($documentIds)){
+                $cQuery = doc_Containers::getQuery();
+                $cQuery->in('docClass', $documentIds);
+                $cQuery->show('folderId');
+                $cQuery->groupBy('folderId');
+                $folderIds = arr::extractValuesFromArray($cQuery->fetchAll(),'folderId');
+                if(countR($documentIds)) {
+                    $query->in('id', $folderIds);
+                } else {
+                    $query->where("1=2");
+                }
+            }
+        }
         
         $viewAccess = true;
         if ($params['restrictViewAccess'] == 'yes') {
             $viewAccess = false;
         }
-        
+
         $me = cls::get(get_called_class());
         
         $me->restrictAccess($query, null, $viewAccess);
@@ -2261,5 +2302,31 @@ class doc_Folders extends core_Master
         expect($rec = $mvc->fetch($coverId));
         
         return $rec->folderId;
+    }
+
+
+    /**
+     * Клониране на настройките от една папка на друга
+     *
+     * @param int $fromFolderId - ид на папка от, която да се клонират
+     * @param int $toFolderId   - ид на папка, на която да се копират
+     * @return void
+     */
+    public static function cloneFolderSettings($fromFolderId, $toFolderId)
+    {
+        expect($fromFolderId);
+        expect($toFolderId);
+
+        $oldSettingFolderKey = doc_Folders::getSettingsKey($fromFolderId);
+        $newSettingFolderKey = doc_Folders::getSettingsKey($toFolderId);
+
+        $oldKey = core_Settings::prepareKey($oldSettingFolderKey);
+        $settingQuery = core_Settings::getQuery();
+        $settingQuery->where("#key = '{$oldKey}' AND #objectId = {$fromFolderId}");
+        $settingQuery->orderBy('id', 'asc');
+
+        while($oldSettingRec = $settingQuery->fetch()){
+            core_Settings::setValues($newSettingFolderKey, $oldSettingRec->data, $oldSettingRec->userOrRole);
+        }
     }
 }

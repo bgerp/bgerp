@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -47,10 +47,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      */
     public function modifyDetailData(core_Mvc $detail, &$data)
     {
-        if(!countR($data->recs)) {
-            
-            return;
-        }
+        if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
         
         // Извлича се тарифния номер на артикулите
         $length = store_Setup::get('TARIFF_NUMBER_LENGTH');
@@ -74,47 +71,54 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
      */
     public function beforeRenderListTable(core_Mvc $detail, &$tpl, &$data)
     {
-        if(!countR($data->recs)) {
-            
-            return;
-        }
+        if(!countR($data->recs) || Mode::is('renderHtmlInLine')) return;
+
         $columns = countR($data->listFields);
         $masterRec = $data->masterData->rec;
 
         // Извличане на всички уникални тарифни номера и сумиране на данните им
-        $tarriffCodes = array();
+        $tariffCodes = array();
         foreach ($data->recs as $rec1) {
-            if(!array_key_exists($rec1->tariffNumber, $tarriffCodes)){
-                $tarriffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'transUnits' => array(), 'withoutWeightProducts' => array());
+            if(!array_key_exists($rec1->tariffNumber, $tariffCodes)){
+                $tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'transUnits' => array(), 'withoutWeightProducts' => array());
             }
-            
-            $transUnitId = (!empty($rec1->transUnitId)) ? $rec1->transUnitId : trans_TransportUnits::fetchIdByName('load');
-            $transUnitQuantity = (isset($rec1->transUnitQuantity)) ? $rec1->transUnitQuantity : 1;
+
+            $transUnitId = $transUnitQuantity = null;
+            if(!empty($rec1->transUnitId) && !empty($rec1->transUnitQuantity)){
+                $transUnitId = $rec1->transUnitId;
+                $transUnitQuantity = $rec1->transUnitQuantity;
+            } else {
+                if($bestPack = trans_TransportUnits::getBestUnit($rec1->productId, $rec1->quantity, $rec1->packagingId)){
+                    $transUnitId = $bestPack['unitId'];
+                    $transUnitQuantity = $bestPack['quantity'];
+                }
+            }
+
             if(!empty($transUnitQuantity)){
-                $tarriffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] += $transUnitQuantity;
+                $tariffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] += $transUnitQuantity;
             }
             
             $weight = $detail->getWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->weight);
             
             if(empty($weight)){
-                $tarriffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
+                $tariffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
             }
 
             $amountR = $rec1->amount * (1 - $rec1->discount);
-            if(in_array($masterRec->chargeVat, array('separate'))){
+            if($masterRec->chargeVat == 'separate'){
                 $vat = cat_Products::getVat($rec1->productId, $masterRec->valior);
                 $amountR += $amountR * $vat;
             }
 
-            $tarriffCodes[$rec1->tariffNumber]->amount += $amountR;
-            $tarriffCodes[$rec1->tariffNumber]->weight += $weight;
+            $tariffCodes[$rec1->tariffNumber]->amount += $amountR;
+            $tariffCodes[$rec1->tariffNumber]->weight += $weight;
         }
         
-        ksort($tarriffCodes, SORT_STRING);
+        ksort($tariffCodes, SORT_STRING);
         $rows = array();
 
         // За всяко поле за групиране
-        foreach ($tarriffCodes as $tariffNumber => $tariffObject) {
+        foreach ($tariffCodes as $tariffNumber => $tariffObject) {
             
             $weight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->weight);
             if(countR($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){

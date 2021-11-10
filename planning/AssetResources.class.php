@@ -140,7 +140,7 @@ class planning_AssetResources extends core_Master
         
         $this->FLD('assetFolderId', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Използване->Център на дейност, remember');
         $this->FLD('assetUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване->Отговорници, remember');
-        $this->FLD('simultaneity', 'int', 'caption=Използване->Едновременност,notNull,value=1, oldFieldName=quantity, remember');
+        $this->FLD('simultaneity', 'int(min=0)', 'caption=Използване->Едновременност,notNull,value=1, oldFieldName=quantity, remember');
         
         $this->FLD('systemFolderId', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Поддръжка->Система, remember');
         $this->FLD('systemUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Поддръжка->Отговорници, remember');
@@ -265,6 +265,10 @@ class planning_AssetResources extends core_Master
             
             if (!$form->rec->systemFolderId && $form->rec->systemUsers) {
                 $form->setError('systemFolderId', 'Не е избрана папка');
+            }
+
+            if(empty($form->rec->simultaneity)){
+                $form->setWarning('simultaneity', "Ако изберете '0'. Обектът няма да може да бъде избиран в производствени операции|*!");
             }
         }
     }
@@ -559,9 +563,8 @@ class planning_AssetResources extends core_Master
         
         while ($fRec = $fQuery->fetch()) {
             if ($rec = self::fetch($fRec->objectId)) {
-                if ($rec->state == 'rejected') {
-                    continue;
-                }
+                if ($rec->state == 'rejected' || $rec->state == 'closed' || $rec->simultaneity == 0) continue;
+
                 $options[$rec->id] = self::getRecTitle($rec, false);
             }
         }

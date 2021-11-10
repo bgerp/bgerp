@@ -126,7 +126,7 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         foreach ($data->rows as $id => &$row) {
             $rec = $data->recs[$id];
             $deliveryDate = (!empty($data->masterData->rec->deadline)) ? $data->masterData->rec->deadline : $data->masterData->rec->valior;
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $data->masterData->rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $data->masterData->rec->storeId, $rec->quantity, $data->masterData->rec->state, $deliveryDate);
         }
     }
     
@@ -139,12 +139,28 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
         $rec = &$form->rec;
         if (isset($rec->productId)) {
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
-            $storeId = planning_ConsumptionNotes::fetchField($rec->noteId, 'storeId');
+            $masterRec = planning_ConsumptionNotes::fetch($rec->noteId, 'storeId,deadline,valior');
             
-            if (isset($storeId) && $canStore == 'yes') {
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $storeId);
+            if (isset($masterRec->storeId) && $canStore == 'yes') {
+                $deliveryDate = (!empty($masterRec->deadline)) ? $masterRec->deadline : $masterRec->valior;
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->storeId, $deliveryDate);
                 $form->info = $storeInfo->formInfo;
             }
+        }
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    protected static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        if(empty($data->masterRec->storeId)){
+            unset($data->defaultMeta);
+            $data->form->setFieldTypeParams('productId', array('hasProperties' => 'canConvert', 'hasnotProperties' => 'canStore'));
         }
     }
 }

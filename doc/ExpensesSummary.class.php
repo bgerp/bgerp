@@ -66,14 +66,14 @@ class doc_ExpensesSummary extends core_Manager
     public static function getSummary($containerId)
     {
         $html = '';
-        
         $expenseCount = self::fetchField("#containerId = {$containerId}", 'count');
+
         if (isset($expenseCount)) {
             $count = cls::get('type_Int')->toVerbal($expenseCount);
             $actionVerbal = tr('разходи');
             $actionTitle = 'Показване на разходите към документа';
             $document = doc_Containers::getDocument($containerId);
-            
+            $linkArr = array();
             if (haveRole('ceo, acc, purchase, sales') && $document->haveRightFor('single')) {
                 $linkArr = array($document->getInstance(), 'single', $document->that, 'Sid' => $containerId);
             }
@@ -293,7 +293,7 @@ class doc_ExpensesSummary extends core_Manager
         $entries = acc_Journal::getEntries($itemRec);
         $accId = acc_Accounts::getRecBySystemId('60201')->id;
         
-        $sysIds = array('701', '703', '321');
+        $sysIds = array('701', '703', '321', '60201');
         foreach ($sysIds as &$sysId) {
             $sysId = acc_Accounts::fetchField("#systemId = {$sysId}");
         }
@@ -343,7 +343,7 @@ class doc_ExpensesSummary extends core_Manager
 
         arr::sortObjects($recs, 'valior', 'ASC');
 
-        $rec->count = countR($recs);
+        $rec->count =0;
         $notDistributed = $allocated;
         
         // За всички отнесени разходи
@@ -356,7 +356,7 @@ class doc_ExpensesSummary extends core_Manager
                 
                 return $e->index == $index;
             });
-            
+
             // Ако има и коригиращи записи, добавят се след тях
             if (countR($foundArr)) {
                 
@@ -364,8 +364,6 @@ class doc_ExpensesSummary extends core_Manager
                 foreach ($foundArr as &$f1) {
                     if ($rec1->quantity) {
                         $f1->amount = $rec1->amount * $f1->quantity / $rec1->quantity;
-                    } else {
-                        //$f1->amount = $rec1->amount;
                     }
                 }
                 
@@ -382,7 +380,14 @@ class doc_ExpensesSummary extends core_Manager
             }
             $res = array_merge($res, $notDistributed);
         }
-        
+
+        $rec->count = 0;
+        array_walk($recs, function($r) use (&$rec) {
+            if($r->type == 'allocated'){
+                $rec->count += ($r->quantity < 0) ? -1 : 1;
+            }
+        });
+
         if ($saveCount === true) {
             
             // Кеширане на данните и бройката за контейнера

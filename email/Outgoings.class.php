@@ -326,6 +326,7 @@ class email_Outgoings extends core_Master
             
             // Нулираме закъснението, за да не сработи при отложеното изпращане
             $options->delay = null;
+            $rec->state = 'pending';
             if (email_SendOnTime::add($className, $rec->id, array('rec' => $rec, 'options' => $options, 'lg' => $lg), $delay)) {
                 status_Messages::newStatus('|Добавено в списъка за отложено изпращане');
                 self::logWrite('Добавяне за отложено изпращане', $rec->id);
@@ -340,8 +341,6 @@ class email_Outgoings extends core_Master
                 }
                 
                 $saveStr .= ',state';
-                
-                $rec->state = 'pending';
                 
                 email_Outgoings::save($rec, $saveStr);
             } else {
@@ -369,7 +368,7 @@ class email_Outgoings extends core_Master
             
             return ;
         }
-        
+
         //Вземаме всички избрани файлове
         $rec->attachmentsFh = type_Set::toArray($options->attachmentsSet);
         
@@ -641,7 +640,7 @@ class email_Outgoings extends core_Master
                 $nRec->state = 'closed';
                 $saveArray['state'] = 'state';
             }
-            
+
             // Ако ще се изчаква
             if ($options->waiting) {
                 
@@ -651,17 +650,17 @@ class email_Outgoings extends core_Master
                 $saveArray['state'] = 'state';
                 $saveArray['waiting'] = 'waiting';
             }
-            
+
             // От кого и кога е изпратено последно
             $nRec->lastSendedOn = dt::now();
             $nRec->lastSendedBy = core_Users::getCurrent();
             $saveArray['lastSendedOn'] = 'lastSendedOn';
             $saveArray['lastSendedBy'] = 'lastSendedBy';
-            
+
             // Записваме
             $inst->save($nRec, $saveArray);
         }
-        
+
         // Добавя FROM правила за всички имейли, за които няма никакви правила
         if ($successEmailsStr) {
             $successArr = type_Emails::toArray($successEmailsStr);
@@ -1700,7 +1699,7 @@ class email_Outgoings extends core_Master
                 $contragentData->person = $contragentData->person ? $contragentData->person : $pContragentData->person;
             }
             self::setContragentDataToRec($contragentData, $rec);
-            
+
             if ($emailTo) {
                 $rec->email = $emailTo;
             }
@@ -1708,7 +1707,7 @@ class email_Outgoings extends core_Master
             if ($faxTo) {
                 $rec->fax = $faxTo;
             }
-            
+
             // Подготвяме тялото на имейла и преводите
             $bodyLangArr = array();
             $bCnt = 0;
@@ -1914,6 +1913,10 @@ class email_Outgoings extends core_Master
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
             }
 
+            if (!$contragentData) {
+                $contragentData = new stdClass();
+            }
+
             if ($rec->originId) {
                 $oDoc = doc_Containers::getDocument($rec->originId);
                 $oContragentData = $oDoc->getContragentData();
@@ -1955,7 +1958,7 @@ class email_Outgoings extends core_Master
             }
         }
 
-        if (!$contragentData) {
+        if (!(array) $contragentData) {
             $contragentData = doc_Folders::getContragentData($rec->folderId);
         } else {
             // Ако е в папка на котрагент, може да се използват името на фирмата, лицето и държавата от там
@@ -2024,7 +2027,7 @@ class email_Outgoings extends core_Master
             
             return ;
         }
-        
+
         crm_Companies::removeOwnCompanyData($contragentData);
         
         $rec->recipient = $contragentData->company;
@@ -2059,7 +2062,7 @@ class email_Outgoings extends core_Master
         
         //Данни необходими за създаване на хедър-а на съобщението
         $contragentDataHeader['name'] = $contragentData->person;
-        
+
         // Ако има обръщение
         if ($contragentData->salutationRec) {
             if ($contragentData->salutationRec == 'mrs' || $contragentData->salutationRec == 'miss') {
@@ -2840,15 +2843,15 @@ class email_Outgoings extends core_Master
         
         // Ако има папка
         if ($posting->folderId) {
-            
+
             // Вземаме корицата на папката
             $cover = doc_Folders::getCover($posting->folderId);
-            
+
             // Ако корицата има съответния интерфейс
             if (cls::haveInterface('doc_ContragentDataIntf', $cover->className)) {
-                
+
                 // Вземаме груповите имейли
-                $contrData->groupEmails = $cover->getContragentData($rec->docId)->groupEmails;
+                $contrData->groupEmails = $cover->getContragentData()->groupEmails;
             }
         }
         

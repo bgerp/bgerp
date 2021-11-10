@@ -132,8 +132,18 @@ function showTooltip() {
             if($(element).closest('.overflow-scroll').length && $(element).parent().offset().top - 150 < $(element).closest('.overflow-scroll').offset().top){
                 $(element).addClass('bottom');
             }
-            var iconLeftOffset = $(element).parent().offset().left - $(element).closest('table').offset().left;
-            var iconRightOffset = $(element).closest('table').width() - iconLeftOffset;
+
+            var tOffset = $(element).closest('table').offset();
+            var iconLeftOffset = $(element).parent().offset().left;
+            if (typeof tOffset != 'undefined') {
+                iconLeftOffset = $(element).parent().offset().left - tOffset.left;
+            }
+
+            var tWidth = $(element).closest('table').width()
+            var iconRightOffset = iconLeftOffset;
+            if (typeof tWidth != 'undefined') {
+                iconRightOffset = tWidth - iconLeftOffset;
+            }
 
             // ако е при скролиране и отляво от иконката има повече място отколкото вдясно, показваме попъпа напред
             if ($(element).closest('.scrolling-holder').length && iconLeftOffset > iconRightOffset) {
@@ -1198,6 +1208,20 @@ function toggleDisplay(id) {
     $("#" + id).fadeToggle("slow");
     elem.toggleClass('show-btn');
 }
+
+
+// Скриване на полета с определен клас при натискане на конкретен бутон
+function toggleDisplayByClass(btnId, toggleClass, toggleParent) {
+    var elem = $("#" + btnId);
+    if(toggleParent){
+        $("." + toggleClass).parent().fadeToggle("slow");
+    } else {
+        $("." + toggleClass).fadeToggle("slow");
+    }
+
+    elem.toggleClass('show-btn');
+}
+
 function saveChecked(ul){
     var text = "";
     $('#' + ul).find('input[type=checkbox]:checked').each(function () {
@@ -2610,7 +2634,7 @@ function prepareContextHtmlFromAjax() {
  * Подготовка за контекстно меню по ajax
  */
 function getContextMenuFromAjax() {
-    if($('body').hasClass('narrow')) {
+    if (isTouchDevice()) {
         document.body.addEventListener('touchstart', function () { });
     }
     prepareContextHtmlFromAjax();

@@ -85,7 +85,7 @@ class cat_Products extends embed_Manager
     /**
      * По кои сметки ще се правят справки
      */
-    public $balanceRefAccounts = '321,323,61101,60201';
+    public $balanceRefAccounts = '321,323,3231,3232,61101,60201';
     
     
     /**
@@ -279,15 +279,9 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Групи в които са добавени продукти
+     * Групи, които са засегнати и трябва да им се опресни броя
      */
-    public $addToGroups = array();
-    
-    
-    /**
-     * Групи от които са изключени продукти
-     */
-    public $removeFromGroups = array();
+    public $updateGroupsCount = array();
     
     
     /**
@@ -635,9 +629,9 @@ class cat_Products extends embed_Manager
         // Обновяване на групите
         if ($rec->id) {
             $exRec = self::fetch($rec->id);
-            if ($exRec->groups) {
-                $mvc->removeFromGroups[$exRec->id] = $exRec->groups;
-            }
+            $rec->_oldGroups = $exRec->groups;
+        } else {
+            $rec->_isCreated = true;
         }
         
         // Разпределяме свойствата в отделни полета за полесно търсене
@@ -1292,8 +1286,14 @@ class cat_Products extends embed_Manager
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = null, $mode = null)
     {
+        if(isset($rec->_oldGroups)){
+            $mvc->updateGroupsCount += keylist::toArray(keylist::diff($rec->_oldGroups, $rec->groups));
+            $mvc->updateGroupsCount += keylist::toArray(keylist::diff($rec->groups, $rec->_oldGroups));
+        } elseif($rec->_isCreated){
+            $mvc->updateGroupsCount += keylist::toArray($rec->groups);
+        }
+
         if ($rec->groups) {
-            $mvc->addToGroups[$rec->id] = $rec->groups;
             if ($rec->isPublic = 'yes') {
                 price_Cache::invalidateProduct($rec->id);
             }
@@ -1348,37 +1348,8 @@ class cat_Products extends embed_Manager
     public static function on_Shutdown($mvc)
     {
         // Обновяваме дефиринциално групите
-        $deltaGroups = array();
-        if (countR($mvc->removeFromGroups)) {
-            foreach ($mvc->removeFromGroups as $k) {
-                $kArr = keylist::toArray($k);
-                foreach ($kArr as $groupId) {
-                    --$deltaGroups[$groupId];
-                }
-            }
-        }
-        
-        if (countR($mvc->addToGroups)) {
-            foreach ($mvc->addToGroups as $k) {
-                $kArr = keylist::toArray($k);
-                foreach ($kArr as $i => $groupId) {
-                    ++$deltaGroups[$groupId];
-                    if ($deltaGroups[$groupId] == 0) {
-                        unset($deltaGroups[$i]);
-                    }
-                }
-            }
-        }
-        
-        // Записваме промяната в групите
-        if (countR($deltaGroups) < 10) {
-            foreach ($deltaGroups as $groupId => $delta) {
-                $gRec = cat_Groups::fetch($groupId);
-                $gRec->productCnt += $delta;
-                cat_Groups::save($gRec, 'productCnt');
-            }
-        } else {
-            self::updateGroupsCnt();
+        if (countR($mvc->updateGroupsCount)) {
+            cat_Groups::updateGroupsCnt($mvc->updateGroupsCount);
         }
         
         // За всеки от създадените артикули, създаваме му дефолтната рецепта ако можем
@@ -1407,34 +1378,6 @@ class cat_Products extends embed_Manager
     
     
     /**
-     * Обновява броячите на групите по cron
-     */
-    public function cron_UpdateGroupsCnt()
-    {
-        self::updateGroupsCnt();
-    }
-    
-    
-    /**
-     * Ъпдейтване на броя продукти на всички групи
-     */
-    private static function updateGroupsCnt()
-    {
-        $query = self::getQuery();
-        $gCntArr = $query->countKeylist('groups');
-        
-        $queryGroups = cat_Groups::getQuery();
-        
-        while ($rec = $queryGroups->fetch()) {
-            if ($gCntArr[$rec->id] != $rec->productCnt) {
-                $rec->productCnt = $gCntArr[$rec->id];
-                cat_Groups::save($rec, 'productCnt');
-            }
-        }
-    }
-    
-    
-    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public function loadSetupData()
@@ -1457,7 +1400,7 @@ class cat_Products extends embed_Manager
         
         return $res;
     }
-    
+
     
     /**
      * Връща достъпните продаваеми артикули
@@ -1484,9 +1427,9 @@ class cat_Products extends embed_Manager
             } else {
                 $query->where("#state = 'active'");
             }
-            
+
             $reverseOrder = false;
-            
+
             // Ако е зададен контрагент, оставяме само публичните + частните за него
             if (isset($params['customerClass'], $params['customerId'])) {
                 $reverseOrder = true;
@@ -1538,6 +1481,16 @@ class cat_Products extends embed_Manager
 
             if (isset($params['notIn'])) {
                 $query->notIn('id', $params['notIn']);
+            }
+
+            // Ако има посочени артикули, които винаги да се показват да се показват
+            if (isset($params['alwaysShow'])) {
+                $inArr = arr::make($params['alwaysShow'], true);
+                $inArr = implode(',', $inArr);
+                $wAndH = $query->getWhereAndHaving();
+                $newWhere = str_replace('WHERE', '', $wAndH->w);
+                $newWhere = "#id IN ({$inArr}) OR ({$newWhere})";
+                $query->where = array(0 => $newWhere);
             }
         }
 
@@ -2044,39 +1997,38 @@ class cat_Products extends embed_Manager
     public static function getTransportVolume($productId, $quantity)
     {
         // За нескладируемите не се изчислява транспортно тегло
-        if (cat_Products::fetchField($productId, 'canStore') != 'yes') {
-            return;
-        }
-        
-        // Ако драйвера връща транспортно тегло, то е с приоритет
+        if (cat_Products::fetchField($productId, 'canStore') != 'yes') return;
+
+        // Колко е транспортния обем от драйвера
+        $driverVolume = null;
         if ($Driver = static::getDriver($productId)) {
             $rec = self::fetchRec($productId);
             $volume = $Driver->getTransportVolume($rec, $quantity);
             if (!empty($volume) && !is_nan($volume)) {
-                return $volume;
+                $driverVolume = $volume;
             }
         }
-        
-        // Първо се гледа най-голямата опаковка за която има габаритни размери
-        $packQuery = cat_products_Packagings::getQuery();
-        $packQuery->where("#productId = '{$productId}'");
-        $packQuery->where('#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL');
-        $packQuery->orderBy('quantity', 'DESC');
-        $packQuery->limit(1);
-        $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
-        $packRec = $packQuery->fetch();
-        
-        if (is_object($packRec)) {
-            
-            // Ако има такава количеството се преизчислява в нея
-            $brutoVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
-            $quantity /= $packRec->quantity;
-            
-            // Връща се намереното тегло
-            $volume = $brutoVolume * $quantity;
-            
-            return round($volume, 3);
+
+        // Ако е посочено с приоритет да е теглото от драйвера
+        $strategy = cat_Setup::get('TRANSPORT_WEIGHT_STRATEGY');
+        if ($strategy == 'paramFirst') {
+
+            // Тогава ако има тегло от драйвера се връща той
+            if (!empty($driverVolume)) return $driverVolume;
+
+            // Ако няма се връща от най-голямата опаковка, ако има
+            $packVolume = cat_products_Packagings::getVolumeOfBiggestPack($productId, $quantity);
+
+            return $packVolume;
         }
+
+        // Ако не е избрано с приоритет да е от драйвера:
+        // Ако има обем от най-голямата опаковка, той е с предимство
+        $packVolume = cat_products_Packagings::getVolumeOfBiggestPack($productId, $quantity);
+        if (!empty($packVolume)) return $packVolume;
+
+        // Ако няма е този от драйвера (ако има)
+        return $driverVolume;
     }
     
     
@@ -2136,7 +2088,7 @@ class cat_Products extends embed_Manager
             }
 
             if (isset($rec->proto)) {
-                $row->proto = $mvc->getHyperlink($rec->proto);
+                $row->proto = core_Users::isContractor() ? $mvc->getTitleById($rec->proto) : $mvc->getHyperlink($rec->proto);
             }
             
             if ($mvc->haveRightFor('edit', $rec)) {
@@ -2159,7 +2111,7 @@ class cat_Products extends embed_Manager
             }
             
             if ($meta['canSell']) {
-                if ($rec->price = price_ListRules::getPrice(cat_Setup::get('DEFAULT_PRICELIST'), $rec->id)) {
+                if ($rec->price = price_ListRules::getPrice(cat_Setup::get('DEFAULT_PRICELIST'), $rec->id, null, dt::now())) {
                     $vat = self::getVat($rec->id);
                     $rec->price *= (1 + $vat);
                     $row->price = $mvc->getVerbal($rec, 'price');
@@ -2574,7 +2526,7 @@ class cat_Products extends embed_Manager
         }
         
         if (sales_Sales::haveRightFor('createsaleforproduct', (object) array('folderId' => $data->rec->folderId, 'productId' => $data->rec->id))) {
-            $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба');
+            $data->toolbar->addBtn('Продажба', array('sales_Sales', 'createsaleforproduct', 'folderId' => $data->rec->folderId, 'productId' => $data->rec->id, 'ret_url' => true), 'ef_icon = img/16/cart_go.png,title=Създаване на нова продажба,warning=Наистина ли искате да създадете нова продажба|*?');
         }
     }
     
@@ -3825,6 +3777,7 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
+                $recs[$dRec->id]->productId = cat_Products::getVerbal($dRec->productId, 'name');
 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {

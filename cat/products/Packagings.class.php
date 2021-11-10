@@ -105,12 +105,13 @@ class cat_products_Packagings extends core_Detail
         'store_ShipmentOrderDetails',
         'store_ReceiptDetails',
         'sales_QuotationsDetails',
+        'purchase_QuotationDetails',
         'sales_InvoiceDetails',
         'purchase_InvoiceDetails',
         'planning_DirectProductNoteDetails',
         'planning_ConsumptionNoteDetails',
+        'planning_ReturnNoteDetails',
         'cat_BomDetails',
-        'planning_Jobs',
         'planning_DirectProductionNote',
         'sales_ProformaDetails',
         'sales_ServicesDetails',
@@ -121,6 +122,7 @@ class cat_products_Packagings extends core_Detail
         'planning_ProductionTaskProducts',
         'store_ConsignmentProtocolDetailsReceived',
         'store_TransfersDetails',
+        'store_InventoryNoteDetails',
         'store_ConsignmentProtocolDetailsSend');
 
 
@@ -593,6 +595,11 @@ class cat_products_Packagings extends core_Detail
 
         if($fields['-list']) {
             $row->user = crm_Profiles::createLink($rec->createdBy) . ', ' . $mvc->getVerbal($rec, 'createdOn');
+
+            if($transUnitId = trans_TransportUnits::fetchField("#packagingId = {$rec->packagingId}", 'id')){
+                $transUnitName = trans_TransportUnits::getTitleById($transUnitId);
+                $row->packagingId = ht::createHint($row->packagingId, "Опаковката съответства на ЛЕ|*: {$transUnitName}", 'notice', false);
+            }
         }
     }
     
@@ -1475,5 +1482,37 @@ class cat_products_Packagings extends core_Detail
         }
         
         return $resArr;
+    }
+
+
+    /**
+     * Връща транспортния обем на най-голямата опаковка за посоченото количество
+     *
+     * @param $productId
+     * @param $quantity
+     * @return double|null
+     */
+    public static function getVolumeOfBiggestPack($productId, $quantity)
+    {
+        // Първо се гледа най-голямата опаковка за която има габаритни размери
+        $packQuery = cat_products_Packagings::getQuery();
+        $packQuery->where("#productId = '{$productId}'");
+        $packQuery->where('#sizeWidth IS NOT NULL AND #sizeHeight IS NOT NULL AND #sizeDepth IS NOT NULL');
+        $packQuery->orderBy('quantity', 'DESC');
+        $packQuery->limit(1);
+        $packQuery->show('sizeWidth,sizeHeight,sizeDepth,quantity');
+        $packRec = $packQuery->fetch();
+
+        // Ако няма опаковка с въведени габарити, няма да се изчислява нищо
+        if (!is_object($packRec)) return;
+
+        // Ако има такава количеството се преизчислява в нея
+        $brutoVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
+        $quantity /= $packRec->quantity;
+
+        // Връща се намереното тегло
+        $volume = $brutoVolume * $quantity;
+
+        return round($volume, 3);
     }
 }

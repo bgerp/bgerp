@@ -1,0 +1,5 @@
+<tr>
+    <td class="nowrap" style="border:0px">[#documentName#]: [#containerId#]</td>
+    <td class='amount' style = 'font-size:0.8em;border:0px'><!--ET_BEGIN currencyId--><span class="cCode">[#currencyId#]</span><!--ET_END currencyId--> <!--ET_BEGIN amount--><b>[#amount#]</b><!--ET_END amount--></td>
+    <td style="border:0px">[#invoiceBtn#]</td>
+</tr>

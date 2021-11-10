@@ -83,6 +83,17 @@ class eshop_plg_Users extends core_Plugin
                     $Carts->updateMaster($dCart);
                 }
             }
+
+            // Ако има любими артикули от същия брид но без потребител прехвърлят му се след логване
+            $favQuery = eshop_Favourites::getFavQuery(null, null, $brid);
+            while($favRec = $favQuery->fetch()){
+                if(!eshop_Favourites::isIn($favRec->eshopProductId, $userRec->id, $brid)){
+                    $favRec->userId = $userRec->id;
+                    eshop_Favourites::save($favRec, 'userId');
+                } else {
+                    eshop_Favourites::delete($favRec->id);
+                }
+            }
         }
     }
 }

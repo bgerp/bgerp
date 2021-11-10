@@ -72,6 +72,21 @@ class doc_Search extends core_Manager
         $this->fields = $DC->fields;
         $this->dbTableName = $DC->dbTableName;
         $this->dbIndexes = $DC->dbIndexes;
+
+        if (defined('SEARCH_DB_NAME') && defined('SEARCH_DB_USER') && defined('SEARCH_DB_PASS') && defined('SEARCH_DB_HOST')) {
+            $conn = mysqli_init();
+            $conn->options(MYSQLI_OPT_CONNECT_TIMEOUT, 1);
+            if (!@$conn->real_connect(SEARCH_DB_HOST, SEARCH_DB_USER, SEARCH_DB_PASS, SEARCH_DB_NAME)) {
+                if (rand(1, 100)%7 == 0) {
+                    $this->logWarning("Дефинирани, но не работещи константи за SEARCH");
+                }
+            } else {
+                    $this->db->dbName = SEARCH_DB_NAME;
+                    $this->db->dbPass = SEARCH_DB_PASS;
+                    $this->db->dbUser = SEARCH_DB_USER;
+                    $this->db->dbHost = SEARCH_DB_HOST;
+            }
+        }
     }
     
     
@@ -87,9 +102,9 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('toDate', 'date', 'input,silent,caption=До,width=140px, placeholder=Дата');
         $data->listFilter->FNC('author', 'type_Users(rolesForAll=user)', 'caption=Автор');
         $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
+        $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
         $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички');
-
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
         $data->listFilter->setField('search', 'caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
@@ -100,7 +115,11 @@ class doc_Search extends core_Manager
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
         $data->listFilter->input(null, 'silent');
-        
+
+        if($toDateHorizon = Request::get('toDateHorizon', 'time')){
+            $data->listFilter->setDefault('toDate', dt::addSecs(-1 * $toDateHorizon, dt::now(), false));
+        }
+
         $filterRec = $data->listFilter->rec;
 
         $tagsArr = tags_Tags::getTagsOptions();
@@ -182,7 +201,7 @@ class doc_Search extends core_Manager
         if ($isFiltered && !$data->listFilter->gotErrors()) {
             
             // Ако някой ще направи обработки преди вземането на резултата
-            $mvc->invoke('BeforePrepareSearhQuery', array($data, $filterRec));
+            $mvc->invoke('BeforePrepareSearchQuery', array($data, $filterRec));
             
             // Търсене на определен тип документи
             $SearchDocument = null;
@@ -375,7 +394,7 @@ class doc_Search extends core_Manager
                 // Изтриваме нотификацията, ако има такава, създадена от текущия потребител и със съответното състояние и за съответния документ
                 bgerp_Notifications::clear($url2);
 
-                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDate' => $filterRec->toDate);
+                $url3 = array('doc_Search', 'list', 'docClass' => $filterRec->docClass, 'author' => Request::get('author', 'varchar'), 'state' => $filterRec->state, 'toDateHorizon' => Request::get('toDateHorizon', 'time'));
                 bgerp_Notifications::clear($url3);
             }
         } else {
@@ -394,7 +413,7 @@ class doc_Search extends core_Manager
      * @param object     $data
      * @param object     $filtreRec
      */
-    public function on_BeforePrepareSearhQuery($mvc, $data, $filtreRec)
+    public function on_BeforePrepareSearchQuery($mvc, $data, $filtreRec)
     {
         // Тримваме търсенето
         $search = trim($filtreRec->search);

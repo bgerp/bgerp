@@ -114,6 +114,10 @@ class acc_plg_Contable extends core_Plugin
             $msg = ($success) ? 'Документът е реконтиран|*!' : 'Документът не е реконтиран|*!';
             $msgType = ($success) ? 'notice' : 'error';
             $mvc->logWrite('Ръчно реконтиране', $rec->id);
+            if($success){
+                $mvc->invoke('AfterDebugReconto', array($rec, $rec));
+            }
+
             doc_DocumentCache::cacheInvalidation($rec->containerId);
             
             followRetUrl(null, $msg, $msgType);
@@ -825,7 +829,10 @@ class acc_plg_Contable extends core_Plugin
         }
         
         // Ако глобално в настройките е зададено да се нотифицира или не
+        $stopInvoke = core_ObjectConfiguration::$stopInvoke;
+        core_ObjectConfiguration::$stopInvoke = true;
         $docSettings = doc_Setup::get('NOTIFY_FOR_CONTO');
+        core_ObjectConfiguration::$stopInvoke = $stopInvoke;
         if ($docSettings == 'no') {
             $userArr = array();
         } elseif ($docSettings == 'yes') {

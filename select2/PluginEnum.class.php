@@ -94,6 +94,6 @@ class select2_PluginEnum extends core_Plugin
         }
         
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen']);
     }
 }

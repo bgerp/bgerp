@@ -18,7 +18,7 @@ class doc_Files extends core_Manager
 
 
     /**
-     * @var Разширения, които да не се показват по подразбиране
+     * Разширения, които да не се показват по подразбиране
      */
     protected $exludeFilesExt = array('eml');
 
@@ -80,14 +80,13 @@ class doc_Files extends core_Manager
         $this->FLD('dataId', 'key(mvc=fileman_Data)', 'caption=Данни');
         $this->FLD('show', 'enum(yes,no)', 'caption=Показване');
         $this->FNC('date', 'datetime', 'caption=Дата,input=none');
-        
+
         $this->setDbUnique('containerId, fileHnd');
-        
+
         $this->setDbIndex('containerId');
         $this->setDbIndex('folderId');
-        $this->setDbIndex('dataId, folderId');
-        $this->setDbIndex('show');
-        $this->setDbIndex('show, fileHnd');
+        $this->setDbIndex('dataId');
+        $this->setDbIndex('fileHnd');
     }
     
     
@@ -169,7 +168,7 @@ class doc_Files extends core_Manager
         
         return $resArr;
     }
-    
+
     
     /**
      * Преизчислява дали да се показват файловете или не
@@ -345,7 +344,7 @@ class doc_Files extends core_Manager
             // Всички файлове от предишния запис
             $savedFh[$fRec->fileHnd] = $fRec->fileHnd;
         }
-        
+
         // Обхождаме всички линкнати файлове
         foreach ($linked as $fh => $name) {
             // Данните за файла
@@ -474,9 +473,18 @@ class doc_Files extends core_Manager
         
         // Последните разгледани папки на текущия потребител
         $lastFoldersArr = (array) bgerp_Recently::getLastFolderIds(5);
+
+        $lastFolderId = Mode::get('lastfolderId');
+
+        if ($lastFolderId && !$lastFoldersArr[$lastFolderId]) {
+            $lastFoldersArr[$lastFolderId] = $lastFolderId;
+        }
+
         foreach ($lastFoldersArr as $folderId) {
-            $fRec = doc_Folders::fetch($folderId);
-            $suggArr[$folderPrefix . $folderId] = $fRec->title;
+            if ($folderId) {
+                $fRec = doc_Folders::fetch($folderId);
+                $suggArr[$folderPrefix . $folderId] = $fRec->title;
+            }
         }
         
         // Показваме избор на потребители
@@ -504,7 +512,9 @@ class doc_Files extends core_Manager
         
         $usersArr = null;
         $filter = $data->listFilter->rec;
-        
+
+        $fSearch = '';
+
         if ($filter->range) {
             // Ако се филтрира по папките на текущия потребител или файловете му
             if (stripos($filter->range, $sPrefix) === 0) {
@@ -552,12 +562,17 @@ class doc_Files extends core_Manager
             }
         }
 
-        $fSearch = '';
+        $fSearchStr = '';
         foreach ($mvc->exludeFilesExt as $fExt) {
-            $fExt = preg_quote($fExt, '/');
-            if (!$filter->search || !preg_match("/(\.|\s|^|\-)+({$fExt})(\.|\s|$)+/i", $filter->search)) {
-                $fSearch .= " -.eml";
+            $fExtQ = preg_quote($fExt, '/');
+            if (!$filter->search || !preg_match("/(\.|\s|^|\-)+({$fExtQ})(\.|\s|$)+/i", $filter->search)) {
+                $fSearchStr .= " -.{$fExt}";
             }
+        }
+
+        // Скриваме html файловете
+        if (!$filter->search || !preg_match("/(\.|\s|^|\-)+(html)(\.|\s|$)+/i", $filter->search)) {
+            $data->query->where("#searchKeywords NOT REGEXP '([0-9]+ )+([a-f0-9]{6}) html'");
         }
 
         // Премахваме нашите файлове
@@ -567,10 +582,10 @@ class doc_Files extends core_Manager
         }
 
         // Налагане на условията за търсене
-        if (!empty($filter->search) || !empty($fSearch)) {
+        if (!empty($filter->search) || !empty($fSearchStr)) {
             $data->query->EXT('searchKeywords', 'fileman_Data', 'externalKey=dataId');
 
-            plg_Search::applySearch($filter->search . $fSearch, $data->query, 'searchKeywords');
+            plg_Search::applySearch($filter->search . $fSearchStr, $data->query, 'searchKeywords');
         }
     }
     
@@ -721,14 +736,14 @@ class doc_Files extends core_Manager
     public static function updateRec($cRec)
     {
         // Ако няма containerId не се прави нищо
-        if (!$cRec->containerId) {
+        if (!$cRec->id || !$cRec->folderId) {
             
             return ;
         }
         
         // Вземаем всички записи от модела от съответния контейнер
         $query = static::getQuery();
-        $query->where("#containerId = '{$cRec->containerId}'");
+        $query->where("#containerId = '{$cRec->id}'");
         
         // Обхождаме всички записи
         while ($rec = $query->fetch()) {
@@ -736,12 +751,9 @@ class doc_Files extends core_Manager
             // Ако се е променило id' то на папката
             if ($rec->folderId != $cRec->folderId) {
                 
-                // Обновяваме id' то
-                $nRec = new stdClass();
-                $nRec->id = $rec->id;
-                $nRec->folderId = $cRec->folderId;
+                $rec->folderId = $cRec->folderId;
                 
-                static::save($nRec);
+                static::save($rec, 'folderId');
             }
         }
     }

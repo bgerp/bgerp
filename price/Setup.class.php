@@ -104,39 +104,7 @@ class price_Setup extends core_ProtoSetup
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
-        'migrate::migrateUpdates',
-        'migrate::migrateCosts'
     );
-
-
-    /**
-     * Инсталиране на пакета
-     */
-    public function install()
-    {
-        $html = parent::install();
-
-        // Залагаме в cron
-        $rec = new stdClass();
-        $rec->systemId =  'Update primecosts';
-        $rec->description = 'Обновяване на себестойностите';
-        $rec->controller = 'price_Updates';
-        $rec->action = 'Updateprimecosts';
-        $rec->period = static::get('CRON_UPDATE_PRIME_COST');
-        $rec->timeLimit = 360;
-        $html .= core_Cron::addOnce($rec);
-
-        $rec = new stdClass();
-        $rec->systemId =  'Update bom costs';
-        $rec->description = 'Обновяване на кешираните цени по рецепти';
-        $rec->controller = 'price_interface_LastActiveBomCostPolicy';
-        $rec->action = 'updateCachedBoms';
-        $rec->period = static::get('CRON_UPDATE_BOM_COST');
-        $rec->timeLimit = 360;
-        $html .= core_Cron::addOnce($rec);
-
-        return $html;
-    }
 
 
     /**
@@ -172,74 +140,35 @@ class price_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_ListRulesImport,price_interface_AverageCostStorePricePolicyImpl';
+    public $defClasses = 'price_reports_PriceList,price_AutoDiscounts,price_interface_AverageCostPricePolicyImpl,price_interface_LastAccCostPolicyImpl,price_interface_LastActiveDeliveryCostPolicyImpl,price_interface_LastDeliveryCostPolicyImpl,price_interface_LastActiveBomCostPolicy,price_interface_ListRulesImport,price_interface_AverageCostStorePricePolicyImpl,price_interface_LastQuotationFromSupplier';
 
 
     /**
-     * Миграция на правилата за обновяване на себестойности
+     * Инсталиране на пакета
      */
-    public function migrateUpdates()
+    public function install()
     {
-        $Updates = cls::get('price_Updates');
+        $html = parent::install();
 
-        $Costs = cls::get('price_ProductCosts');
-        $Costs->setupMvc();
-        $Costs->truncate();
+        // Залагаме в cron
+        $rec = new stdClass();
+        $rec->systemId =  'Update primecosts';
+        $rec->description = 'Обновяване на себестойностите';
+        $rec->controller = 'price_Updates';
+        $rec->action = 'Updateprimecosts';
+        $rec->period = static::get('CRON_UPDATE_PRIME_COST');
+        $rec->timeLimit = 360;
+        $html .= core_Cron::addOnce($rec);
 
-        if(!$Updates->count()){
+        $rec = new stdClass();
+        $rec->systemId =  'Update bom costs';
+        $rec->description = 'Обновяване на кешираните цени по рецепти';
+        $rec->controller = 'price_interface_LastActiveBomCostPolicy';
+        $rec->action = 'updateCachedBoms';
+        $rec->period = static::get('CRON_UPDATE_BOM_COST');
+        $rec->timeLimit = 360;
+        $html .= core_Cron::addOnce($rec);
 
-            return;
-        }
-
-        core_Classes::add('price_interface_LastAccCostPolicyImpl');
-        core_Classes::add('price_interface_LastActiveDeliveryCostPolicyImpl');
-        core_Classes::add('price_interface_AverageCostPricePolicyImpl');
-        core_Classes::add('price_interface_LastActiveBomCostPolicy');
-        core_Classes::add('price_interface_LastDeliveryCostPolicyImpl');
-
-        $map = array('accCost' => price_interface_LastAccCostPolicyImpl::getClassId(),
-            'activeDelivery' => price_interface_LastActiveDeliveryCostPolicyImpl::getClassId(),
-            'average' => price_interface_AverageCostPricePolicyImpl::getClassId(),
-            'bom' => price_interface_LastActiveBomCostPolicy::getClassId(),
-            'lastQuote' => null,
-            'lastDelivery' => price_interface_LastDeliveryCostPolicyImpl::getClassId());
-
-        $res = array();
-        $query = $Updates->getQuery();
-        $query->FLD('costSource1', 'enum(,accCost,lastDelivery,activeDelivery,lastQuote,bom,average)');
-        $query->FLD('costSource2', 'enum(,accCost,lastDelivery,activeDelivery,lastQuote,bom,average)');
-        $query->FLD('costSource3', 'enum(,accCost,lastDelivery,activeDelivery,lastQuote,bom,average)');
-        $query->show('costSource1,costSource2,costSource3');
-
-        while($rec = $query->fetch()){
-            $rec->sourceClass1 = (!empty($rec->costSource1)) ? $map[$rec->costSource1] : null;
-            $rec->sourceClass2 = (!empty($rec->costSource2)) ? $map[$rec->costSource2] : null;
-            $rec->sourceClass3 = (!empty($rec->costSource3)) ? $map[$rec->costSource3] : null;
-            $res[$rec->id] = $rec;
-        }
-
-        if(countR($res)){
-            $Updates->saveArray($res, 'id,sourceClass1,sourceClass2,sourceClass3');
-        }
-
-        $datetime = dt::addMonths(-1 * 12);
-        price_ProductCosts::saveCalcedCosts($datetime);
-    }
-
-
-    /**
-     * Обновяване на себестойностите
-     */
-    public function migrateCosts()
-    {
-        $key = "migration_price_migrateUpdates";
-
-        if (core_Packs::getConfigKey('core', $key)) {
-            $datetime = dt::addMonths(-1 * 12);
-            price_ProductCosts::saveCalcedCosts($datetime);
-
-            $Type = $oldValue = $newValue = null;
-            price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices($Type, $oldValue, $newValue);
-        }
+        return $html;
     }
 }

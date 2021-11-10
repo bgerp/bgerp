@@ -29,7 +29,6 @@
 }
 
 .rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) a {
-    color: #aaa !important;
 }
 
 .rack_Zones  .listTable > tbody > tr:not(zonesCommonRow) .iw-contextMenu a {

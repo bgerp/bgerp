@@ -116,7 +116,8 @@ class price_reports_PriceList extends frame2_driver_TableData
         $form->setDefault('showEan', 'yes');
         $form->setDefault('showMeasureId', 'yes');
         $form->setDefault('displayDetailed', 'no');
-        
+        $form->setDefault('packType', 'yes');
+
         $suggestions = cat_UoM::getPackagingOptions();
         $form->setSuggestions('packagings', $suggestions);
         
@@ -135,9 +136,9 @@ class price_reports_PriceList extends frame2_driver_TableData
         
         $form->setOptions('policyId', $listOptions);
         $form->setDefault('policyId', $defaultListId);
-        
+
         // Ако е в папка с контрагентски данни
-        if ($Cover->haveInterface('doc_ContragentDataIntf')) {
+        if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
             $cData = doc_Folders::getContragentData($form->rec->folderId);
             $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
             $lang = (!empty($cData->countryId) && $cData->countryId != $bgId) ? 'en' : 'bg';
@@ -148,17 +149,31 @@ class price_reports_PriceList extends frame2_driver_TableData
             $form->setField('packagings', 'input=none');
         }
 
-        // Ако политиката е частна позволява се потребителя да избере само листваните артикули за клиента
+        // Ако има посочена ценова политика
         if(isset($rec->policyId)){
-            $listRec = price_Lists::fetch($rec->policyId);
-            if($listRec->isPublic = 'no'){
-                if($foundRec = price_ListToCustomers::fetch("#listId = {$rec->policyId}")){
-                    if($listingId = cond_Parameters::getParameter($foundRec->cClass, $foundRec->cId, 'salesList')){
-                        $form->setField('listingId', 'input');
-                        $form->setOptions('listingId', array('' => '') + array("{$listingId}" => cat_Listings::getTitleById($listingId, false)));
+            $listingId = null;
+
+            if ($Cover->haveInterface('crm_ContragentAccRegIntf')) {
+
+                // Ако справката е в папка на клиент взима се списъка му листвани артикули
+                $listingId = cond_Parameters::getParameter($Cover->className, $Cover->that, 'salesList');
+            } else {
+
+                // Ако справката не е в папка на клиент, проверява се дали политиката е частна
+                // ако е частна, взима се списъка от листваните артикули на клиента
+                $listRec = price_Lists::fetch($rec->policyId);
+                if($listRec->isPublic = 'no'){
+                    if($foundRec = price_ListToCustomers::fetch("#listId = {$rec->policyId}")){
+                        $listingId = cond_Parameters::getParameter($foundRec->cClass, $foundRec->cId, 'salesList');
                     }
                 }
             }
+
+            // Ако има намерен списък с листвани артикули, показва се като възможност за избор
+            if(isset($listingId)){
+                $form->setField('listingId', 'input');
+                $form->setOptions('listingId', array('' => '') + array("{$listingId}" => cat_Listings::getTitleById($listingId, false)));
+             }
         }
     }
     
@@ -232,7 +247,9 @@ class price_reports_PriceList extends frame2_driver_TableData
                 if (isset($dateBefore)) {
                     $oldPrice = price_ListRules::getPrice($rec->policyId, $productRec->id, null, $dateBefore);
                     $oldPrice = round($oldPrice, $round);
-                    
+                    $priceByPolicy = round($priceByPolicy, $round);
+                    $differenceHint = null;
+
                     // Колко процента е промяната спрямо старата цена
                     if (empty($oldPrice)) {
                         $obj->type = 'new';
@@ -241,14 +258,17 @@ class price_reports_PriceList extends frame2_driver_TableData
                         $obj->type = 'removed';
                         $difference = -1;
                     } else {
-                        $difference = (round(trim($priceByPolicy), $round) - trim($oldPrice)) / $oldPrice;
+                        $difference = (trim($priceByPolicy) - trim($oldPrice)) / $oldPrice;
                         $difference = round($difference, 4);
+                        $differenceHint = "Стара цена|*: {$oldPrice}; |Нова цена|*: {$priceByPolicy}";
                     }
                     
                     // Ако няма промяна, артикулът не се показва
                     if ($difference == 0) {
                         continue;
                     }
+
+                    $obj->differenceHint = $differenceHint;
                     $obj->difference = $difference;
                 }
                 
@@ -308,7 +328,7 @@ class price_reports_PriceList extends frame2_driver_TableData
                 core_Lg::pop();
             }
         }
-        
+
         return $recs;
     }
     
@@ -350,11 +370,15 @@ class price_reports_PriceList extends frame2_driver_TableData
             } elseif ($dRec->type == 'removed') {
                 $row->difference = "<span class='price-list-removed-item'>" . tr('Премахнат') . '</span>';
             } else {
-                $row->difference = core_Type::getByName('percent')->toVerbal($dRec->difference);
+                $row->difference = core_Type::getByName('percent(decimals=2)')->toVerbal($dRec->difference);
                 if ($dRec->difference > 0) {
                     $row->difference = "<span class='green'>+{$row->difference}</span>";
                 } else {
                     $row->difference = "<span class='red'>{$row->difference}</span>";
+                }
+
+                if(!empty($dRec->differenceHint) && !Mode::isReadOnly()){
+                    $row->difference = ht::createHint($row->difference, $dRec->differenceHint);
                 }
             }
         }

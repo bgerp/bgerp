@@ -474,7 +474,7 @@ class crm_Profiles extends core_Master
             core_Settings::addBtn($data->toolbar, $key, 'crm_Profiles', $data->rec->userId, 'Персонализиране');
         }
         
-        if (($currUser == $data->User->rec->id) && bgerp_Portal::haveRightFor('list') && bgerp_Setup::get('PORTAL_VIEW', false, $currUser) == 'customized') {
+        if (($currUser == $data->User->rec->id) && bgerp_Portal::haveRightFor('list')) {
             $data->toolbar->addBtn('Портал', array('bgerp_Portal', 'list'), 'ef_icon=img/16/application_home.png');
         }
     }
@@ -1004,7 +1004,9 @@ class crm_Profiles extends core_Master
             if (core_Packs::isInstalled('colab') && core_Users::isContractor($user)) {
                 $privateFolderId = crm_Persons::forceCoverAndFolder($person->id);
                 if (!colab_FolderToPartners::fetch("#folderId = {$privateFolderId} AND #contractorId = {$user->id}")) {
-                    colab_FolderToPartners::save((object) array('folderId' => $privateFolderId, 'contractorId' => $user->id));
+                    $fRec = (object) array('folderId' => $privateFolderId, 'contractorId' => $user->id);
+                    colab_FolderToPartners::save($fRec);
+                    crm_Persons::logWrite('Споделяне на личната папка на партньор', $person->id);
                 }
             }
             Mode::pop('preventNotifications');

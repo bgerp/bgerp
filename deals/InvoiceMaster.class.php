@@ -548,6 +548,10 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        if(isset($rec->threadId)){
+            doc_DocumentCache::threadCacheInvalidation($rec->threadId);
+        }
+
         $Source = $mvc->getSourceOrigin($rec);
         if (!$Source) {
             return;
@@ -599,8 +603,10 @@ abstract class deals_InvoiceMaster extends core_Master
 
         if ($Source && $Source->haveInterface('deals_InvoiceSourceIntf')) {
             $detailsToSave = $Source->getDetailsFromSource($mvc, $rec->importProducts);
+
             if (is_array($detailsToSave)) {
                 foreach ($detailsToSave as $det) {
+                    $det->_importBatches = $rec->importBatches;
                     $det->{$Detail->masterKey} = $rec->id;
                     $Detail->save($det);
                 }
@@ -623,9 +629,10 @@ abstract class deals_InvoiceMaster extends core_Master
                 $this->_total->amount = $rec->dealValue / $rec->rate;
                 $this->_total->vat = $rec->vatAmount / $rec->rate;
                 @$percent = round($this->_total->vat / $this->_total->amount, 2);
+                $percent = is_nan($percent) ? 0 : $percent;
                 $this->_total->vats["{$percent}"] = (object) array('amount' => $this->_total->vat, 'sum' => $this->_total->amount);
             }
-            
+
             $this->invoke('BeforePrepareSummary', array($this->_total));
             
             $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
@@ -791,6 +798,11 @@ abstract class deals_InvoiceMaster extends core_Master
             }
 
             $data->form->FNC('importProducts', "enum(" . arr::fromArray($types) . ")", 'caption=Допълнително->Артикули, input,after=additionalInfo');
+            if(core_Packs::isInstalled('batch') && $mvc instanceof sales_Invoices){
+                $data->form->FNC('importBatches', "enum(yes=Да,no=Не)", 'caption=Допълнително->Партиди, input,after=importProducts');
+                $data->form->setDefault('importBatches', batch_Setup::get('SHOW_IN_INVOICES'));
+            }
+
             if(isset($rec->sourceContainerId)){
                 $form->setDefault('importProducts', 'fromSource');
             }
@@ -843,12 +855,10 @@ abstract class deals_InvoiceMaster extends core_Master
                     $form->setError('contragentVatNo', 'Лоши символи в номера');
                 }
             }
-            
+
             // Проверка дали националния номер е валиден за държавата
             if ($rec->contragentClassId == crm_Companies::getClassId() && !empty($rec->uicNo)) {
-                if(!empty($rec->uicId)){
-                    drdata_type_Uic::check($form, $rec->uicNo, $rec->contragentCountryId, 'uicNo');
-                }
+                drdata_type_Uic::check($form, $rec->uicNo, $rec->contragentCountryId, 'uicNo');
             }
 
             // Ако е ДИ или КИ
@@ -946,28 +956,37 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public static function getDefaultPlace($rec)
     {
+        $place = $countryId = null;
         $inCharge = doc_Folders::fetchField($rec->folderId, 'inCharge');
         $inChargeRec = crm_Profiles::getProfile($inCharge);
-        
-        $place = null;
-        if (!empty($inChargeRec->buzLocationId)) {
-            $locationRec = crm_Locations::fetch($inChargeRec->buzLocationId, 'place,countryId');
+
+        // 1. От локацията на "Моята Фирма", избрана в Служебните данни на визитката на Отговорника на папката
+        // 2. От избраното за екипа на отговорника на папката в "Персонализиране" на профила
+        $locationId = !empty($inChargeRec->buzLocationId) ? $inChargeRec->buzLocationId : sales_Setup::get('DEFAULT_LOCATION_FOR_INVOICE');
+        if (!empty($locationId)) {
+            $locationRec = crm_Locations::fetch($locationId, 'place,countryId');
             $place = $locationRec->place;
             $countryId = $locationRec->countryId;
         }
-        
-        if (empty($place)) {
+
+        $contragentCountryId = doc_Folders::getContragentData($rec->folderId)->countryId;
+        if(!empty($place)){
+            if ($contragentCountryId != $countryId) {
+                $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
+                $place .= ", {$cCountry}";
+            }
+        }
+
+        // 3. От адреса на "Моята фирма"
+        if(empty($place)){
             $myCompany = crm_Companies::fetchOwnCompany();
             $place = $myCompany->place;
-            $countryId = $myCompany->countryId;
+            if ($contragentCountryId != $myCompany->countryId) {
+                $cCountry = drdata_Countries::fetchField($myCompany->countryId, 'commonNameBg');
+                $place .= ", {$cCountry}";
+            }
         }
-        
-        $contragentCountryId = doc_Folders::getContragentData($rec->folderId)->countryId;
-        if (!empty($place) && $contragentCountryId != $countryId) {
-            $cCountry = drdata_Countries::fetchField($countryId, 'commonNameBg');
-            $place .= ", {$cCountry}";
-        }
-        
+
         return $place;
     }
     
@@ -1142,6 +1161,13 @@ abstract class deals_InvoiceMaster extends core_Master
                 $originRec = $mvc->getSourceOrigin($rec)->fetch();
                 $originRow = $mvc->recToVerbal($originRec);
                 $row->originInv = $originRow->number;
+                if(!Mode::isReadOnly()){
+                    $singleUrlArray = $mvc->getSingleUrlArray($originRec->id);
+                    if(countR($singleUrlArray)){
+                        $row->originInv = ht::createLink($originRow->number, $singleUrlArray);
+                    }
+                }
+
                 $row->originInvDate = $originRow->date;
             }
             
@@ -1376,6 +1402,8 @@ abstract class deals_InvoiceMaster extends core_Master
             
             $count = 0;
             $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
+            $query->orderBy('id', 'ASC');
+
             while ($dRec = $query->fetch()) {
                 $cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
                 $count++;

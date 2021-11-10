@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2015 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -88,7 +88,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 // Всеки дефолтен параметър го добавяме към формата
                 $paramRec = cat_Params::fetch($id);
                 $name = cat_Params::getVerbal($paramRec, 'name');
-                if (isset($paramRec->group)) {
+                if (!empty($paramRec->group)) {
                     $group = cat_Params::getVerbal($paramRec, 'group');
                     $caption = "Параметри: {$group}->{$name}";
                 } else {
@@ -97,7 +97,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 
                 $form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,before=meta");
                 $form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id, $Embedder, $rec->id));
-                
+
                 // Ако параметъра има суфикс, добавяме го след полето
                 if (!empty($paramRec->suffix)) {
                     $suffix = cat_Params::getVerbal($paramRec, 'suffix');
@@ -108,6 +108,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 if (isset($value)) {
                     $form->setDefault("paramcat{$id}", $value);
                 }
+                $form->setDefault("paramcat{$id}", cat_Params::getDefaultValue($id, $Embedder, $rec->id));
             }
             
             $refreshFields = implode('|', $refreshFields);
@@ -161,7 +162,10 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             
             // Ако артикула е прототипен, взимаме неговите параметри с техните стойностти
             $paramQuery = cat_products_Params::getQuery();
-            $paramQuery->where("#classId = {$classId} AND #productId = {$originRecId}");
+            $paramQuery->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
+            $paramQuery->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
+            $paramQuery->where("#productId = {$originRecId} AND #classId = {$classId}");
+            $paramQuery->orderBy('group,order,id', 'ASC');
             while ($pRec = $paramQuery->fetch()) {
                 $res[$pRec->paramId] = $pRec->paramValue;
             }

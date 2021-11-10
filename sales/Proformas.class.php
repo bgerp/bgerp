@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -150,7 +150,7 @@ class sales_Proformas extends deals_InvoiceMaster
      * Стратегии за дефолт стойностти
      */
     public static $defaultStrategies = array(
-        'place' => 'lastDocUser|lastDoc|defMethod',
+        'place' => 'defMethod',
         'responsible' => 'lastDocUser|lastDoc',
         'contragentCountryId' => 'clientData|lastDocUser|lastDoc',
         'contragentVatNo' => 'clientData|lastDocUser|lastDoc',
@@ -432,7 +432,7 @@ class sales_Proformas extends deals_InvoiceMaster
         $rec = $data->rec;
         
         if (deals_Helper::showInvoiceBtn($rec->threadId) && sales_Invoices::haveRightFor('add', (object) array('originId' => $rec->originId, 'sourceContainerId' => $rec->containerId))) {
-            $data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => true), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png,row=2');
+            $data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'threadId' => $rec->threadId, 'ret_url' => true), 'title=Създаване на фактура от проформа фактура,ef_icon=img/16/invoice.png,row=2');
         }
         
         if ($rec->state == 'active') {

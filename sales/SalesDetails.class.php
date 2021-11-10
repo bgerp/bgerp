@@ -180,7 +180,8 @@ class sales_SalesDetails extends deals_DealDetail
             $pInfo = cat_Products::getProductInfo($rec->productId);
             
             if (isset($pInfo->meta['canStore'])) {
-                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->shipmentStoreId);
+                $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
+                $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->shipmentStoreId, $deliveryDate);
                 $form->info = $storeInfo->formInfo;
             }
         }
@@ -194,8 +195,8 @@ class sales_SalesDetails extends deals_DealDetail
             sales_TransportValues::prepareFee($rec, $form, $masterRec);
         }
     }
-    
-    
+
+
     /**
      * След преобразуване на записа в четим за хора вид.
      */
@@ -219,17 +220,12 @@ class sales_SalesDetails extends deals_DealDetail
             }
             
             if (isset($pInfo->meta['canStore'])) {
-                $deliveryDate = $masterRec->deliveryTime;
-                if(empty($deliveryDate)){
-                    $deliveryDate = $masterRec->valior;
-                    if(!empty($masterRec->deliveryTermTime)){
-                        $deliveryDate = dt::addSecs($masterRec->deliveryTermTime, $deliveryDate);
-                    }
-                }
-                deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
+                $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
+                deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $masterRec->shipmentStoreId, $rec->quantity, $masterRec->state, $deliveryDate);
             }
             
             if (core_Users::haveRole('ceo,seePrice') && isset($row->packPrice)) {
+               $hintField = isset($data->listFields['packPrice']) ? 'packPrice' : 'amount';
                $priceDate = ($masterRec == 'draft') ? null : $masterRec->valior;
                
                // Предупреждение дали цената е под себестойност
@@ -238,18 +234,20 @@ class sales_SalesDetails extends deals_DealDetail
 
                    $warning = 'Цената е под себестойността';
                    if(isset($foundPrimeCost)){
+                       $foundPrimeCost /= $masterRec->currencyRate;
                        $primeCostVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
-                       $warning = "{$warning}|*: {$primeCostVerbal} |без ДДС|*";
+                       $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                    }
                    
-                   $row->packPrice = ht::createHint($row->packPrice, $warning, 'warning', false);
+                   $row->{$hintField} = ht::createHint($row->{$hintField}, $warning, 'warning', false);
                } elseif(in_array($masterRec->state, array('pending', 'draft'))){
                    
                    // Предупреждение дали цената е под очакваната за клиента
                    $useQuotationPrice = isset($masterRec->originId);
                    $discount = isset($rec->discount) ? $rec->discount : $rec->autoDiscount;
-                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice)){
-                       $row->packPrice = ht::createHint($row->packPrice, $checkedObject['hint'], $checkedObject['hintType'], false);
+                   $transportFeeRec = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
+                   if($checkedObject = deals_Helper::checkPriceWithContragentPrice($rec->productId, $rec->price, $discount, $rec->quantity, $rec->quantityInPack, $masterRec->contragentClassId, $masterRec->contragentId, $priceDate, $masterRec->priceListId, $useQuotationPrice, $mvc, $masterRec->threadId, $masterRec->currencyRate, $masterRec->currencyId, $transportFeeRec)){
+                        $row->{$hintField} = ht::createHint($row->{$hintField}, $checkedObject['hint'], $checkedObject['hintType'], false);
                    }
                }
             }

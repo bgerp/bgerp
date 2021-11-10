@@ -25,8 +25,16 @@ abstract class store_InternalDocumentDetail extends doc_Detail
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
     public $hideListFieldsIfEmpty = 'transUnitId';
-    
-    
+
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'transUnitId,transUnitQuantity';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -75,7 +83,6 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $chargeVat = ($rec->chargeVat == 'yes') ? 'с ДДС' : 'без ДДС';
         
         $data->form->setField('packPrice', "unit={$masterRec->currencyId} {$chargeVat}");
-        $data->form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties4' => 'generic'));
     }
     
     
@@ -178,7 +185,11 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         
         foreach ($data->rows as $i => &$row) {
             $rec = &$data->recs[$i];
-            $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+            if($data->showCodeColumn){
+                $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+            } else {
+                $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+            }
             deals_Helper::addNotesToProductRow($row->productId, $rec->notes);
             
             // Показваме подробната информация за опаковката при нужда
@@ -271,5 +282,17 @@ abstract class store_InternalDocumentDetail extends doc_Detail
         $dRec = (object)array('protocolId' => $masterId, 'productId' => $pRec->productId, 'packagingId' => $pRec->packagingId, 'packPrice' => $price, 'packQuantity' => $row->quantity, 'quantityInPack' => $quantityInPack);
         
         return self::save($dRec);
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        if (!empty($data->toolbar->buttons['btnAdd'])) {
+            $data->toolbar->removeBtn('btnAdd');
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterData->rec->id, 'ret_url' => true), "id=btnAdd-{$data->masterData->rec->containerId},order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
+        }
     }
 }

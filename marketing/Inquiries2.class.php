@@ -291,11 +291,10 @@ class marketing_Inquiries2 extends embed_Manager
         if (!core_Users::isContractor($cu)) {
             $form->setField('deliveryAdress', 'input=none');
         }
-        
-        $Driver = $this->getDriver($form->rec);
-        
+
         // Ако има избран прототип, зареждаме му данните в река
-        if (isset($form->rec->proto)) {
+        $Driver = $this->getDriver($form->rec);
+        if (isset($form->rec->proto) && $data->action != 'clone') {
             if ($pRec = cat_Products::fetch($form->rec->proto)) {
                 
                 if (is_array($pRec->driverRec)) {
@@ -550,12 +549,15 @@ class marketing_Inquiries2 extends embed_Manager
         $row->time = core_DateTime::mysql2verbal($rec->createdOn);
         
         if (isset($rec->proto)) {
-            $row->proto = cat_Products::getHyperlink($rec->proto);
+            $row->proto = core_Users::isContractor() ? cat_Products::getTitleById($rec->proto) : cat_Products::getHyperlink($rec->proto);
             $protoRec = cat_Products::fetch($rec->proto, 'state');
             $row->protoCaption = ($protoRec->state != 'template') ? 'Запитване за' : 'Базирано на';
         }
         
         $row->innerClass = core_Classes::translateClassName($row->innerClass);
+        if(strpos($row->title, '||') !== false){
+            $row->title = tr($row->title);
+        }
     }
     
     
@@ -1118,7 +1120,13 @@ class marketing_Inquiries2 extends embed_Manager
             if ($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)) {
                 $form->setError('email', $error);
             }
-            
+
+            if(!empty($rec->company)){
+                if ($error = cms_Helper::getErrorIfCompanyNameIsInvalid($rec->company)) {
+                    $form->setError('company', $error);
+                }
+            }
+
             if (!$form->gotErrors()) {
                 $rec->state = 'active';
                 $rec->ip = core_Users::getRealIpAddr();
@@ -1217,7 +1225,7 @@ class marketing_Inquiries2 extends embed_Manager
             // Ако няма въведени количества
             if (empty($rec->quantity1) && empty($rec->quantity2) && empty($rec->quantity3)) {
                 
-                // Ако има МОК, потребителя трябва да въведе количество, иначе се приема за еденица
+                // Ако има МОК, потребителя трябва да въведе количество, иначе се приема за единица
                 if ($rec->moq > 0) {
                     $form->setError('quantity1,quantity2,quantity3', "Очаква се поне едно от количествата да е над||It is expected that at least one quantity is over|* <b>{$moqVerbal}</b>");
                 } else {

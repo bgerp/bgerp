@@ -151,8 +151,9 @@ class crm_Setup extends core_ProtoSetup
         'crm_Formatter',
         'crm_ext_ContragentInfo',
         'crm_ext_Cards',
-        'migrate::updateUics',
-        'migrate::updateGroupsCountry2106',
+        'migrate::updateGroupsCountry2123',
+        'migrate::fixCountryGroupsInput21233',
+        'migrate::companiesRepairSerchKeywords2124',
     );
     
     
@@ -233,65 +234,9 @@ class crm_Setup extends core_ProtoSetup
 
 
     /**
-     * Обновява националните номера
-     */
-    public function updateUics()
-    {
-        $Canonized = cls::get('drdata_CanonizedStrings');
-        $Canonized->setupMvc();
-
-        // Всички фирми с национални номера
-        $Companies = cls::get('crm_Companies');
-        $query = $Companies->getQuery();
-        $query->where("#uicId IS NOT NULL AND #uicId != ''");
-        $query->show('id,uicId');
-        $count =  $query->count();
-        core_App::setTimeLimit($count * 0.6, false,300);
-
-        // Нормализиране на националния номер според държавата на контрагента
-        $save = $update = array();
-        while($rec = $query->fetch()){
-
-            // Канонизиране на номера
-            $canonized = drdata_CanonizedStrings::canonize($rec->uicId, 'uic', false);
-
-            // Подмяна на нац. номер с канонизирания
-            if(!empty($canonized)){
-                if(!array_key_exists($rec->uicId, $save)){
-                    $save[$rec->uicId] = (object)array('string' => $rec->uicId, 'canonized' => $canonized, 'type' => 'uic');
-                }
-
-                $rec->uicId = $canonized;
-                $update[$rec->id] = $rec;
-            }
-        }
-
-        // Канонизация на номерата
-        if(countR($save)) {
-            $eQuery = $Canonized->getQuery();
-            $all = $eQuery->fetchAll();
-
-            $res = arr::syncArrays($save, $all, 'string,type', 'string,canonized');
-            if(countR($res['insert'])){
-                $Canonized->saveArray($res['insert']);
-            }
-
-            if(countR($res['update'])){
-                $Canonized->saveArray($res['update'], 'id,string,canonized');
-            }
-        }
-
-        // Ъпдейт на фирмите
-        if(countR($update)) {
-            $Companies->saveArray($update, 'id,uicId');
-        }
-    }
-
-
-    /**
      * Миграция за добавяне на групи за държави
      */
-    public function updateGroupsCountry2106()
+    public function updateGroupsCountry2123()
     {
         $gIdArr = crm_ContragentGroupsPlg::getGroupsId();
 
@@ -328,5 +273,40 @@ class crm_Setup extends core_ProtoSetup
 
         crm_Groups::updateGroupsCnt('crm_Companies', 'companiesCnt');
         crm_Groups::updateGroupsCnt('crm_Persons', 'personsCnt');
+    }
+
+
+    /**
+     * Миграция за поправка на groupsInput полето на фирмите и лицата
+     */
+    function fixCountryGroupsInput21233()
+    {
+        $gArr = crm_ContragentGroupsPlg::getGroupsId(true);
+
+        foreach (array('crm_Companies', 'crm_Persons') as $clsName) {
+            $clsInst = cls::get($clsName);
+
+            $query = $clsInst->getQuery();
+            while ($rec = $query->fetch()) {
+                $prevVal = $rec->{$clsInst->groupFieldName};
+
+                foreach ($gArr as $gId) {
+                    $rec->{$clsInst->groupFieldName} = type_Keylist::removeKey($rec->{$clsInst->groupFieldName}, $gId);
+                }
+
+                if ($prevVal != $rec->{$clsInst->groupFieldName}) {
+                    $clsInst->save_($rec, $clsInst->groupFieldName);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
+     */
+    public static function companiesRepairSerchKeywords2124()
+    {
+        core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'crm_Companies', dt::addSecs(180));
     }
 }

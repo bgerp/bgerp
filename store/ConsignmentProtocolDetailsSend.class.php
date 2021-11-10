@@ -103,8 +103,26 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         parent::setFields($this);
         $this->setDbUnique('protocolId,productId,packagingId');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param core_Manager $mvc
+     * @param stdClass     $data
+     */
+    public static function on_AfterPrepareEditForm(core_Mvc $mvc, &$data)
+    {
+        $masterRec = $data->masterRec;
+        $params = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic');
+        if($masterRec->productType == 'other'){
+            $params['isPublic'] = 'no';
+        }
+
+        $data->form->setFieldTypeParams('productId', $params);
+    }
+
+
     /**
      * След инпутване на формата
      */
@@ -113,8 +131,8 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
         $rec = &$form->rec;
         
         if (isset($rec->productId)) {
-            $masterStore = $mvc->Master->fetch($rec->{$mvc->masterKey})->storeId;
-            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterStore);
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->storeId, $masterRec->valior);
             $form->info = $storeInfo->formInfo;
         }
     }
@@ -123,17 +141,14 @@ class store_ConsignmentProtocolDetailsSend extends store_InternalDocumentDetail
     /**
      * След преобразуване на записа в четим за хора вид.
      */
-    public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
-        if (!countR($data->recs)) {
-            
-            return;
-        }
+        if (!countR($data->recs)) return;
 
         $storeId = $data->masterData->rec->storeId;
         foreach ($data->rows as $id => $row) {
             $rec = $data->recs[$id];
-            deals_Helper::getQuantityHint($row->packQuantity, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state, $data->masterData->rec->valior);
+            deals_Helper::getQuantityHint($row->packQuantity, $mvc, $rec->productId, $storeId, $rec->quantity, $data->masterData->rec->state, $data->masterData->rec->valior);
         }
     }
 }

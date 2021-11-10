@@ -179,26 +179,26 @@ class doc_Setup extends core_ProtoSetup
      * Версията на пакета
      */
     public $version = '0.1';
-    
-    
+
+
     /**
      * Мениджър - входна точка в пакета
      */
     public $startCtr = 'doc_Folders';
-    
-    
+
+
     /**
      * Екшън - входна точка в пакета
      */
     public $startAct = 'default';
-    
-    
+
+
     /**
      * Описание на модула
      */
     public $info = 'Документи и папки';
-    
-    
+
+
     /**
      * Описание на системните действия
      */
@@ -206,30 +206,30 @@ class doc_Setup extends core_ProtoSetup
         array('title' => 'Ключови думи', 'url' => array('doc_Containers', 'repairKeywords', 'ret_url' => true), 'params' => array('title' => 'Ре-индексиране на документите')),
         array('title' => 'Поправки', 'url' => array('doc_Containers', 'repair', 'ret_url' => true), 'params' => array('title' => 'Поправка на развалени документи'))
     );
-    
-    
+
+
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        
+
         // Кой пакет да използваме за генериране на PDF от HTML ?
         'BGERP_PDF_GENERATOR' => array('class(interface=doc_ConvertToPdfIntf,select=title)', 'mandatory, caption=Кой пакет да се използва за генериране на PDF?->Пакет'),
         'DOC_CHART_ADAPTER' => array('class(interface=doc_chartAdapterIntf,select=title, allowEmpty)', 'caption=Кой пакет да се използва за показване на графики?->Пакет, placeholder=Автоматично'),
         'DOC_NOTIFY_FOR_INCOMPLETE_FROM' => array('time', 'caption=Период за откриване на незавършени действия с документи->Начало,unit=преди проверката'),
         'DOC_NOTIFY_FOR_INCOMPLETE_TO' => array('time', 'caption=Период за откриване на незавършени действия с документи->Край,unit=преди проверката'),
         'DOC_NOTIFY_FOR_INCOMPLETE_BUSINESS_DOC' => array('time', 'caption=Период за откриване на неконтирани бизнес документи->Край,unit=преди проверката'),
-        
+
         'DOC_REPAIR_ALL' => array('enum(yes=Да (бавно), no=Не)', 'caption=Дали да се проверяват всички документи за поправка->Избор'),
         'DOC_SEARCH_LIMIT' => array('int(Min=0)', 'caption=Колко документ/нишки да се показват при търсене->Брой'),
-        
+
         'DOC_NOTIFY_FOR_NEW_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за добавен документ в нишка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_NEW_DOC_TYPE' => array('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Задължително, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_STOP_NOTIFY_NEW_DOC_TYPE' => array('keylist(mvc=core_Classes, select=title)', 'caption=Известяване при нов документ->Никога, customizeBy=powerUser, optionsFunc=doc_Setup::getAllDocClassOptions'),
         'DOC_NOTIFY_FOR_CONTO' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване при контиране->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_FOLDERS_SHARED_USERS' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване на споделените потребители на папка->Избор, customizeBy=powerUser'),
         'DOC_NOTIFY_PENDING_DOC' => array('enum(default=Автоматично, yes=Винаги, no=Никога)', 'caption=Известяване за създадени документи->Заявки, customizeBy=powerUser'),
-        
+
         'DOC_SHOW_DOCUMENTS_BEGIN' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В началото, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_END' => array('int(Min=0)', 'caption=Задължително показване на документи в нишка->В края, customizeBy=user'),
         'DOC_SHOW_DOCUMENTS_LAST_ON' => array('time(suggestions=1 ден|3 дни|5 дни|1 седмица)', 'caption=Задължително показване на документи в нишка->По-нови от, customizeBy=user'),
@@ -241,8 +241,8 @@ class doc_Setup extends core_ProtoSetup
         'DOC_LIST_FIELDS_EXTRA_LINE' => array('enum(yes=Да,no=Не)', 'caption=Допълнителен ред в листовия изглед->Избор, customizeBy=powerUser'),
         'DOC_MOVE_LAST_DOCUMENT' => array('enum(yes=Да,no=Не)', 'caption=Възможност за преместване на последния документ в нишката->Избор'),
     );
-    
-    
+
+
     // Инсталиране на мениджърите
     public $managers = array(
         'doc_UnsortedFolders',
@@ -267,12 +267,12 @@ class doc_Setup extends core_ProtoSetup
         'doc_LinkedTemplates',
         'doc_FolderResources',
         'doc_LinkedLast',
-        'migrate::showDocumentsAsButtons0419',
-        'migrate::updateHiddenDocCreated0120',
-        'migrate::foldersRepairSerchKeywords3120',
+        'migrate::foldersRepairSerchKeywords2124',
+        'migrate::showFiles2126',
+        'migrate::updateOldShipmentTemplate'
     );
-    
-    
+
+
     /**
      * Нагласяне на крон
      */
@@ -313,70 +313,70 @@ class doc_Setup extends core_ProtoSetup
             'timeLimit' => 100
         )
     );
-    
-    
+
+
     /**
      * Дефинирани класове, които имат интерфейси
      */
     public $defClasses = 'doc_reports_Docs,doc_reports_SearchInFolder,doc_reports_DocsByRols,doc_reports_ActivatedDocumentsByTime, doc_ExpandComments, doc_drivers_FolderPortal, doc_drivers_LatestDocPortal';
-    
-    
+
+
     /**
      * Инсталиране на пакета
      */
     public function install()
     {
-        $html .= core_Roles::addOnce('powerUser', null, 'system');
-        
+        $html = core_Roles::addOnce('powerUser', null, 'system');
+
         // Добавяне на ролите за Ранг
         $rangRoles = array(
-            
+
             // Изпълнителен член на екип. Достъпни са му само папките,
             // които са споделени или на които е собственик
             'executive',
-            
+
             // Старши член на екип. Достъпни са му всички общи и всички екипни папки,
             // в допълнение към тези, на които е собственик или са му споделени
             'officer',
-            
+
             // Ръководител на екип. Достъп до всички папки на екипа, без тези на 'ceo'
             'manager',
-            
+
             // Ръководител на организацията. Достъпни са му всички папки и документите в тях
             'ceo',
         );
-        
+
         foreach ($rangRoles as $role) {
             $inherit = trim('powerUser,' . $lastRole, ',');
             $lastRole = $role;
             $html .= core_Roles::addOnce($role, $inherit, 'rang');
         }
-        
+
         // Роля за външен член на екип. Достъпни са му само папките,
         // които са споделени или на които е собственик
         $html .= core_Roles::addOnce('partner', null, 'rang');
         $html .= core_Roles::addOnce('powerPartner', 'partner', 'rang');
-        
+
         $html = parent::install();
-        
+
         // Ако няма нито една роля за екип, добавяме екип за главна квартира
         $newTeam = false;
-        
+
         if (!core_Roles::fetch("#type = 'team'")) {
             $html .= core_Roles::addOnce(BGERP_ROLE_HEADQUARTER, null, 'team');
             $newTeam = true;
         }
-        
+
         // Ако няма потребител с роля 'ceo', добавяме я към всички администратори
         if (!countR(core_Users::getByRole('ceo'))) {
             $admins = core_Users::getByRole('admin');
-            
+
             if (countR($admins)) {
                 foreach ($admins as $userId) {
                     $uTitle = core_Users::getTitleById($userId);
                     core_Users::addRole($userId, 'ceo');
                     $html .= "<li style='color:green'>На потребителя <b>{$uTitle}</b> e добавен ранг <b>ceo</b></li>";
-                    
+
                     if ($newTeam) {
                         core_Users::addRole($userId, BGERP_ROLE_HEADQUARTER);
                         $html .= "<li class=\"green\">Потребителя <b>{$uTitle}</b> e добавен в екипа <b>Headquarter</b></li>";
@@ -384,42 +384,42 @@ class doc_Setup extends core_ProtoSetup
                 }
             }
         }
-        
+
         // Зареждаме мениджъра на плъгините
         $Plugins = cls::get('core_Plugins');
-        
+
         // Инсталираме плъгина за работа с документи от системата
         // Замества handle' ите на документите с линк към документа
         $html .= $Plugins->installPlugin('Документи в RichEdit', 'doc_RichTextPlg', 'type_Richtext', 'private');
-        
+
         // Закачане на плъгина за прехвърляне на собственотст на системни папки към core_Users
         $html .= $Plugins->installPlugin('Прехвърляне на собственост на папки', 'doc_plg_TransferOwnership', 'core_Users', 'private');
-        
+
         // Замества абсолютните линкове с титлата на документа
         $html .= $Plugins->installPlugin('Вътрешни линкове в RichText', 'bgerp_plg_InternalLinkReplacement', 'type_Richtext', 'private');
-        
+
         // Променя линка за сваляне на файла
         $html .= $Plugins->installPlugin('Линкове на файлове след изпращане', 'bgerp_plg_File', 'fileman_Files', 'private');
-        
+
         // Променя линка към картинките в plain режим
         $html .= $Plugins->installPlugin('FancyBox линкове', 'bgerp_plg_Fancybox', 'fancybox_Fancybox', 'private');
-        
+
         // Плъгин за работа с файлове в документите
         $html .= $Plugins->installPlugin('Файлове в документи', 'doc_FilesPlg', 'fileman_Files', 'private');
-        
+
         // Добавяме елемент в менюто
         $html .= bgerp_Menu::addOnce(1.22, 'Документи', 'Всички', 'doc_Folders', 'default', 'powerUser');
-        
+
         return $html;
     }
-    
-    
+
+
     /**
      * Роли за достъп до модула
      */
     public $roles = 'currency';
-    
-    
+
+
     /**
      *
      * @param type_Keylist $type
@@ -431,117 +431,76 @@ class doc_Setup extends core_ProtoSetup
     {
         return core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
     }
-    
-    
-    /**
-     * Дефолтните бутони за нишки да не е само за несортираните, а да важи за всички папки
-     */
-    public static function showDocumentsAsButtons0419()
-    {
-        $Unsorted = cls::get('doc_UnsortedFolders');
-        
-        $Unsorted->db->connect();
-        
-        $docBtnField = str::phpToMysqlName('showDocumentsAsButtons');
-        
-        if (!$Unsorted->db->isFieldExists($Unsorted->dbTableName, $docBtnField)) {
-            
-            return ;
-        }
-        
-        $Unsorted->FLD('showDocumentsAsButtons', 'keylist(mvc=core_Classes,select=title)', 'caption=Документи|*&#44; |които да се показват като бързи бутони в папката->Документи');
-        
-        $query = $Unsorted->getQuery();
-        
-        $query->where('#showDocumentsAsButtons IS NOT NULL');
-        
-        $allSysTeamId = type_UserOrRole::getAllSysTeamId();
-        
-        while ($rec = $query->fetch()) {
-            if (!$rec->folderId) {
-                continue ;
-            }
-            
-            if (!$rec->showDocumentsAsButtons) {
-                continue;
-            }
-            
-            $fKey = doc_Folders::getSettingsKey($rec->folderId);
-            
-            $valArr = array();
-            $valArr['showDocumentsAsButtons'] = $rec->showDocumentsAsButtons;
-            
-            core_Settings::setValues($fKey, $valArr, $allSysTeamId, true);
-        }
-    }
-    
-    
+
+
     /**
      * Зареждане на данни
      */
     public function loadSetupData($itr = '')
     {
         $res = parent::loadSetupData($itr);
-        
+
         // За да може да мине миграцията при нова инсталация
         $dbUpdate = core_ProtoSetup::$dbInit;
         core_ProtoSetup::$dbInit = 'update';
-        
+
         $res .= cls::get('bgerp_Setup')->loadSetupData();
-        
+
         $res .= $this->callMigrate('addBlockToPortal46194', 'doc');
-        
+
         core_ProtoSetup::$dbInit = $dbUpdate;
-        
+
         return $res;
     }
-    
-    
+
+
     /**
      * Добавя блок в портала за всеки powerUser с пощенската му кутия
+     * Тази миграция се пуска и при нова инсталация. Не трябва да се трие.
+     * Трябва да се вика в loadSetupData
      */
     public function addBlockToPortal46194()
     {
         $Portal = cls::get('bgerp_Portal');
-        
+
         $data = core_Packs::getConfig('core')->_data;
-        
+
         $force = false;
         if (!$data['migration_doc_addBlockToPortal46193']) {
             $force = true;
         }
-        
+
         if (!$force) {
             if (!bgerp_Portal::fetch("#createdBy > 0")) {
                 $force = true;
             }
         }
-        
+
         if (!$force) {
-            
+
             return ;
         }
-        
+
         $uArr = core_Users::getByRole('powerUser');
-        
+
         foreach ($uArr as $uId) {
             $uEmail = email_Inboxes::getUserEmail($uId);
             if (!$uEmail) {
                 continue;
             }
-            
+
             $iRec = email_Inboxes::fetch(array("#email = '[#1#]'", $uEmail));
-            
+
             if (!$iRec) {
                 continue;
             }
-            
+
             $fId = email_Inboxes::forceCoverAndFolder($iRec);
-            
+
             if (!$fId) {
                 continue;
             }
-            
+
             $rec = new stdClass();
             $rec->{$Portal->driverClassField} = doc_drivers_FolderPortal::getClassId();
             $rec->column = 'right';
@@ -552,32 +511,101 @@ class doc_Setup extends core_ProtoSetup
             $rec->fOrder = 'open';
             $rec->color = 'lightgreen';
             $rec->state = 'yes';
-            
+
             $Portal->save($rec);
         }
     }
-    
-    
-    /**
-     * Миграция за добавяне на поле за дата в doc_HiddenContainers
-     */
-    public function updateHiddenDocCreated0120()
-    {
-        core_App::setTimeLimit('300');
-        
-        $cInst = cls::get('doc_HiddenContainers');
-        
-        $now = dt::now();
-        
-        $cInst->db->query("UPDATE `{$cInst->dbTableName}` SET `date` = '{$now}'");
-    }
-    
-    
+
+
     /**
      * Форсира регенерирането на ключовите думи за всички мениджъри, които използват `plg_Search`
      */
-    public static function foldersRepairSerchKeywords3120()
+    public static function foldersRepairSerchKeywords2124()
     {
         core_CallOnTime::setCall('plg_Search', 'repairSerchKeywords', 'doc_Folders', dt::addSecs(120));
+    }
+
+
+    /**
+     * Миграция, за показване/скирване на файловете в документите
+     */
+    public function showFiles2126()
+    {
+        $callOn = dt::addSecs(120);
+        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2126', NULL, $callOn);
+    }
+
+
+    /**
+     * Постепенна миграция, която се вика от showFiles2126 и се самонавива
+     */
+    public static function callback_migrateShowFiles2126()
+    {
+        core_App::setTimeLimit(100);
+        $query = doc_Files::getQuery();
+
+        $query->orderBy('id', 'ASC');
+        $query->show('containerId, dataId');
+
+        if ($lastId = core_Permanent::get('docFilesLastId')) {
+            $query->where(array("#id >= [#1#]", $lastId));
+        }
+
+        $cnt = $query->count();
+
+        $query->limit(1000);
+
+        if ($cnt) {
+            $callOn = dt::addSecs(120);
+            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2126', NULL, $callOn);
+        } else {
+            doc_Files::logDebug("Няма повече файлове за миграция в документите");
+
+            return ;
+        }
+
+        doc_Files::logDebug("Файлове за миграция в документите - " . $cnt);
+
+        $deadline = time() + 45;
+
+        while ($rec = $query->fetch()) {
+            try {
+                doc_Files::recalcFiles($rec->containerId);
+            } catch (Exception $e) {
+                doc_Files::logDebug("Грешна на запис с cId = '{$rec->containerId}'", $rec->id);
+            } catch (Throwable $t) {
+                doc_Files::logDebug("Грешна на запис с cId = '{$rec->containerId}'", $rec->id);
+            }
+
+            $lastId = $rec->id;
+
+            if (time() > $deadline) {
+
+                break;
+            }
+        }
+
+        $lastId++;
+
+        core_Permanent::set('docFilesLastId', $lastId, 1000);
+    }
+
+
+    /**
+     * Обновяване ан стар шаблон за ЕН
+     */
+    public static function updateOldShipmentTemplate()
+    {
+        $rec = doc_TplManager::fetch("#name = 'Експедиционно нареждане с цени (Онлайн поръчка)'");
+        if(is_object($rec)){
+            $rec->state = 'closed';
+            $rec->path = null;
+            $contentTpl = new core_ET($rec->content);
+            $contentTpl->removeBlock('fromContainerId');
+            $rec->content = $contentTpl->content;
+            $rec->content = str_replace("<!--ET_END lineId-->", "<!--ET_END lineId-->[#InvoicesToDocuments#]", $rec->content);
+
+            doc_TplManager::save($rec);
+        }
     }
 }

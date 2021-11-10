@@ -55,7 +55,7 @@ class rack_OldMovements extends rack_MovementAbstract
     /**
      * Полета за листовия изглед
      */
-    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,createdOn,createdBy,modifiedOn,modifiedBy,documents';
+    public $listFields = 'productId,movement=Движение,workerId=Изпълнител,documents,createdOn,createdBy,modifiedOn,modifiedBy';
 
 
     /**
@@ -102,5 +102,20 @@ class rack_OldMovements extends rack_MovementAbstract
 
         $me = cls::get(get_called_class());
         $me->save_($clone);
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(rack_Logs::haveRightFor('list')){
+            $row->_rowTools->addLink('История', array('rack_Logs', 'list', "movementId" => $rec->movementId), 'ef_icon=img/16/clock_history.png,title=Хронология на движението');
+        }
     }
 }

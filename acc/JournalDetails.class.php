@@ -113,7 +113,6 @@ class acc_JournalDetails extends core_Detail
         $this->FLD('amount', 'double(minDecimals=2)', 'caption=Сума');
         
         // Поставяне на индекси
-        $this->setDbIndex('debitAccId, creditAccId');
         $this->setDbIndex('debitAccId');
         $this->setDbIndex('creditAccId');
         $this->setDbIndex('debitItem1');

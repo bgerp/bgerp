@@ -181,15 +181,15 @@
              
              $Document = doc_Containers::getDocument($tRec->containerId);
              $transInfo = $Document->getTransportLineInfo($tRec->lineId);
-             
+
              //Адокумента е експедиционен
              if (in_array($tRec->classId, $shipDocsArr)) {
                  $isShipmentDoc = 1;
+
+                 $weight = $transInfo['weight'];
                  
-                 $weight = $transInfo[weight];
-                 
-                 if (is_array($transInfo[transportUnits])) {
-                     $transportUnits = array_sum($transInfo[transportUnits]);
+                 if (is_array($transInfo['transportUnits'])) {
+                     $transportUnits = array_sum($transInfo['transportUnits']);
                  }
              }
              
@@ -198,28 +198,22 @@
                  $isPaymentDoc = 1;
                  
                  if (($tRec->classId == cash_Pko::getClassId())) {
-                     $cashAmount = $transInfo[baseAmount];
+                     $cashAmount = $transInfo['baseAmount'];
                  }
              }
              
              // Запис в масива
              if (!array_key_exists($id, $recs)) {
                  $recs[$id] = (object) array(
-                     
                      'forwarderPersonId' => $tRec->forwarderPersonId,
                      'lineId' => array($tRec->lineId),
                      'documents' => array($tRec->classId),
                      'numberOfDocuments' => 1,
-                     
                      'shipmentDocs' => $isShipmentDoc,
                      'paymentDocs' => $isPaymentDoc,
-                     
                      'weight' => $weight,
                      'transportUnits' => $transportUnits,
-                     
                      'cashAmount' => $cashAmount,
-                 
-                 
                  );
              } else {
                  $obj = &$recs[$id];

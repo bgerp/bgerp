@@ -84,10 +84,11 @@ class drdata_CanonizedStrings extends core_Manager
     public static function getString($canonized, $type)
     {
         $query = static::getQuery();
-        $query->where(array('#canonized = "[#1#]"', $canonized));
+        $query->where(array("#canonized = '[#1#]'", $canonized));
         $query->where("#type = '{$type}'");
         $query->orderBy('id=DESC');
         $query->limit(1);
+
         $rec = $query->fetch();
 
         if(is_object($rec)) return $rec->string;

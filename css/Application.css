@@ -1602,6 +1602,14 @@ a.tUnsighted {
   .bgerp_drivers_Tasks .tagsHolder {
     margin-right: -45px; }
 
+.noteBomCol {
+  color: green;
+  font-size: 0.9em; }
+
+.noteExpectedCol {
+  color: blue;
+  font-size: 0.9em; }
+
   .narrow .document span.state {
     padding: 2px 5px;
     border-radius: 3px;
@@ -1987,6 +1995,22 @@ a.tUnsighted {
   .bottom-antetka > div {
     margin: 1px 0; }
 
+.info-transport {
+  color: #00529b;
+  background-color: #bde5f8;
+  border: 1px dotted #35a0ff;
+  display: inline-block;
+  font-size: 1em;
+  font-weight: bold;
+  position: relative;
+  z-index: 100;
+  top: 50px;
+  transform: rotate(16deg);
+  margin-top: 15px;
+  margin-bottom: 15px;
+  padding: 8px 8px 8px 8px !important;
+  border-radius: 3px; }
+
 .stamp {
   color: #bb0000;
   border: 1px dotted #bb0000;
@@ -2326,17 +2350,35 @@ pre.document {
     background-color: red; }
 
 .document-block {
-  font-size: 0.9em; }
-  .document-block .block-instock {
-    background-color: blue;
-    border: solid 1px white;
-    color: white;
-    font-size: 0.9em; }
-  .document-block .block-readiness {
-    background-color: red;
-    border: solid 1px white;
-    color: white;
-    font-size: 0.9em; }
+  font-size: 0.9em;
+  width: 100%; }
+
+.block-instock {
+  background-color: rgba(14, 114, 196, 0.8);
+  color: white;
+  border-radius: 3px;
+  border: solid 1px #bbbbbb;
+  display: inline-block;
+  padding: 1px 3px 1px 3px;
+  font-weight: bold;
+  font-size: 0.8em; }
+
+.block-instock .quiet {
+  color: white !important; }
+
+.block-readiness {
+  background-color: rgba(173, 62, 42, 0.8);
+  color: white;
+  border-radius: 3px;
+  border: solid 1px #bbbbbb;
+  display: inline-block;
+  padding: 1px 3px 1px 3px;
+  font-weight: bold;
+  font-size: 0.8em; }
+  .block-readiness.lineShow {
+    padding: 3px 3px 3px 3px; }
+  .block-readiness.quiet {
+    color: white; }
 
 .tags {
   margin-left: 2px; }
@@ -3555,6 +3597,9 @@ span.sharing-history-title {
   top: -2px; }
   .option-not-in-stock.waitingDelivery {
     background-color: rgba(41, 86, 222, 0.8) !important; }
+  .option-not-in-stock.saleSoon {
+    background-color: rgba(241, 223, 11, 0.9) !important;
+    color: black !important; }
 
 .eshop-product-list-param {
   font-size: 0.85em;
@@ -3714,7 +3759,9 @@ table .eshop-btn {
     background-color: #eeeeee !important; }
   .eshop-btn:disabled {
     background-color: #bbbbbb !important;
-    color: #666666 !important; }
+    color: #737373 !important;
+    padding: 10px 20px !important;
+    font-size: 1.2em !important; }
 
 .productBtn {
   padding: 4px 8px 5px 25px !important;
@@ -4192,10 +4239,10 @@ table .eshop-btn {
     text-align: center;
     position: absolute;
     margin: 0px;
-    display: block;
+    display: inline-block !important;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: auto !important;
     padding: 0; }
   .newsbar.topContentNewsbar {
     clear: both;
@@ -5253,11 +5300,11 @@ div.location.public {
 /*
  * край на стилове за състояния на SMS' ите в колцентъра
  */
-.doc-negative-quantiy {
+.doc-negative-quantity {
   color: red;
   font-weight: bold; }
 
-.doc-warning-quantiy {
+.doc-warning-quantity {
   color: #d66737;
   font-weight: bold; }
 
@@ -5470,6 +5517,21 @@ div.location.public {
     text-align: right;
     padding-right: 10px; }
 
+  #cmsNavigation .navWithIcon.favouriteNavigationLink .linkWithIcon {
+    color: #a00505; }
+  #cmsNavigation .navWithIcon .linkWithIcon {
+    background-position: 5px 3px !important;
+    margin-left: 0 !important;
+    margin-bottom: 5px !important; }
+  #cmsNavigation .navWithIcon.favouriteNavigationLink.sel_page .linkWithIcon,
+  #cmsNavigation .navWithIcon.favouriteNavigationLink:hover .linkWithIcon {
+    background-color: #fdc3c3 !important;
+    border-color: #fb9292 !important;
+    color: #a00505 !important; }
+
+.favouritesBtn.linkWithIcon:hover {
+  cursor: pointer; }
+
 .narrow .externalPage #maincontent.hasLogoutBlock {
   padding-top: 29px !important; }
 
@@ -5513,7 +5575,6 @@ div.location.public {
   font-size: 0.8em;
   background-color: #e6e6e6;
   border: solid 1px #d8d8d8;
-  text-shadow: 1px 1px 1px #cccccc;
   display: inline-block;
   margin-bottom: 5px; }
   .eshop-product-labels .info:last-child {
@@ -6504,6 +6565,9 @@ only screen and (max-width: 320px) {
   page-break-inside: avoid;
   margin-bottom: 10mm; }
 
+.labelBreak:last-child {
+  margin-bottom: 0mm; }
+
 /*
  * стилове за принтиране
  */
@@ -7229,7 +7293,7 @@ only screen and (max-width: 320px) {
     height: 16px; }
 
 .narrow .elem-holder .endTooltip {
-  float: right; }
+  float: right !important; }
 
 .textHint {
   display: inline-block;
@@ -7268,3 +7332,29 @@ only screen and (max-width: 320px) {
     to {
     opacity: 0; }
  }
+.zoneMovement.darkText {
+  color: #2e3440;
+  border-radius: 3px;
+  border: solid 1px #bbbbbb;
+  padding: 2px;
+  display: inline-block; }
+
+.zoneMovement.lightText {
+  color: #eceff4;
+  border-radius: 3px;
+  border: solid 1px #bbbbbb;
+  padding: 2px;
+  display: inline-block; }
+
+.document .details .safeKeepingDetail {
+  border-top: 1px solid #bbbbbb;
+  border-left: 1px solid #bbbbbb;
+  border-right: 1px solid #bbbbbb;
+  background-color: #eeeeee;
+  padding: 2px;
+  text-indent: 5px;
+  font-weight: bold; }
+
+.rackRevisionRow {
+  background-color: #ff6b4b; }
+

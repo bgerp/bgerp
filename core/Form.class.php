@@ -290,7 +290,13 @@ class core_Form extends core_FieldSet
                 $this->rec->{$name} = $value;
             }
         }
-        
+
+        if ($this->gotErrors() || $this->isSubmitted() || Request::get('ajax_mode')) {
+            foreach ((array) $this->fields as &$fObj) {
+                unset($fObj->type->params['forceOpen']);
+            }
+        }
+
         return $this->rec;
     }
     
@@ -523,9 +529,11 @@ class core_Form extends core_FieldSet
                     "\n</div>" .
                     "\n</form>\n"
                 );
-                
+
                 jquery_Jquery::run($this->layout, 'setFormElementsWidth();');
                 jquery_Jquery::runAfterAjax($this->layout, 'setFormElementsWidth');
+                jquery_Jquery::runAfterAjax($this->layout, 'markSelectedChecboxes');
+                jquery_Jquery::run($this->layout, 'markSelectedChecboxes();');
                 jquery_Jquery::run($this->layout, 'markElementsForRefresh();');
                 jquery_Jquery::run($this->layout, '$(window).resize(function(){setFormElementsWidth();});');
             }
@@ -1273,7 +1281,7 @@ class core_Form extends core_FieldSet
         foreach ($res->css as $key => $file) {
             $res->css[$key] = sbf($file, '');
         }
-        
+
         $res->js = array_keys(array_flip($tpl->getArray('JS')));
         
         foreach ($res->js as $key => $file) {
@@ -1284,7 +1292,7 @@ class core_Form extends core_FieldSet
         $res->html = str_replace('</form>', '', $ajaxPage->getContent()) . '</form>';
         $res->html = substr($res->html, strpos($res->html, '<form'));
         $fields = $this->selectFields("#silent == 'silent'");
-        
+
         $sf = array();
         foreach ($fields as $name => $field) {
             $sf[$name] = $this->rec->{$name};

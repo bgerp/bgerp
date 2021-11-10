@@ -183,9 +183,13 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
         
         // Местим дебитното салдо на '4531' в '4532'
         $amount4531 = ($amount4531) ? $amount4531 : 0;
-        
-        // Приспадане на ДДС по покупки
-        $entries[] = array('amount' => abs($amount4531), 'debit' => array('4532'), 'credit' => array('4531'), 'reason' => 'Приспадане на ДДС по покупки');
+
+        if($amount4531 >= 0){
+            $entries[] = array('amount' => $amount4531, 'debit' => array('4532'), 'credit' => array('4531'), 'reason' => 'Приспадане на ДДС по покупки');
+        } else {
+            $entries[] = array('amount' => abs($amount4531), 'credit' => array('4532'), 'debit' => array('4531'), 'reason' => 'Приспадане на ДДС по покупки');
+        }
+
         $total += abs($amount4531);
         
         $amount = $amount4532 - $diffAmount + abs($amount4531);
@@ -729,22 +733,14 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
                 // Ако разходния обект е ПО - пропуска се
                 continue;
             } else {
-                
-                // Ако разхода не е към продажба, отива към Общите разходи
-                if ($dRec->blQuantity > 0) {
-                    $entry = array('amount' => round($dRec->blAmount, 7),
-                        'debit' => array('61102'),
-                        'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
-                } elseif ($dRec->blQuantity <= 0) {
-                    $entry = array('amount' => round(abs($dRec->blAmount), 7),
-                        'debit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => abs($dRec->blQuantity)),
-                        'credit' => array('61102'), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
-                }
-                
-                $amount602 += abs($dRec->blAmount);
+
+                $entry = array('amount' => round($dRec->blAmount, 7),
+                            'debit' => array('61102'),
+                            'credit' => array('60201', $dRec->ent1Id, $dRec->ent2Id, 'quantity' => $dRec->blQuantity), 'reason' => 'Отчитане на отнесени разходи от друга сделка');
+                $amount602 += $dRec->blAmount;
             }
             
-            $total += abs($dRec->blAmount);
+            $total += $dRec->blAmount;
             $entries[] = $entry;
         }
         

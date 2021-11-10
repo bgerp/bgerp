@@ -57,7 +57,19 @@ class purchase_transaction_Invoice extends acc_DocumentTransactionSource
         }
         
         $origin = $this->class->getOrigin($rec);
-        
+        if (Mode::get('saveTransaction')) {
+            if ($rec->type != 'invoice' && empty($rec->changeAmount)) {
+                $this->class->updateMaster_($cloneRec, false);
+                if(round($rec->dealValue, 4) != round($cloneRec->dealValue, 4) || round($rec->vatAmount, 4) != round($cloneRec->vatAmount, 4) || round($rec->discountAmount, 4) != round($cloneRec->discountAmount, 4)){
+                    wp('Оправяне на грешна сума във входяща фактура', $rec, $cloneRec);
+                    $rec->dealValue = $cloneRec->dealValue;
+                    $rec->vatAmount = $cloneRec->vatAmount;
+                    $rec->discountAmount = $cloneRec->discountAmount;
+                    $this->class->save_($rec, 'dealValue,vatAmount,discountAmount');
+                }
+            }
+        }
+
         // Ако е ДИ или КИ се посочва към коя фактура е то
         if ($rec->type != 'invoice') {
             $type = ($rec->dealValue > 0) ? 'Дебитно известие' : 'Кредитно известие';

@@ -47,8 +47,7 @@ class colab_Setup extends core_ProtoSetup
     public $managers = array(
         'colab_FolderToPartners',
         'colab_DocumentLog',
-        'migrate::addAgentToPartners',
-        'migrate::creatableDocuments',
+        'migrate::fixPowerPartnerRoles',
     );
     
     
@@ -202,60 +201,36 @@ class colab_Setup extends core_ProtoSetup
         if (strlen($config->COLAB_CREATABLE_DOCUMENTS_LIST) === 0) {
             $res = self::forceCreatableDocuments();
         }
-        
-        $res .= $this->callMigrate('addPowerPartnerToPartners5', 'colab');
-        
+
         return $res;
     }
-    
-    
+
+
     /**
-     * Миграция за добавяне на допълнителна роля на партньори
+     * Оправя ролите на powerPartners
      */
-    public function addAgentToPartners()
+    public function fixPowerPartnerRoles()
     {
-        if(core_Users::count()){
-            $partners = core_Users::getByRole('partner');
-            if(is_array($partners)){
-                foreach ($partners as $userId){
-                    if(!haveRole('agent,distributor', $userId)){
-                        core_Users::addRole($userId, 'agent');
-                    }
-                }
+        $Users = cls::get('core_Users');
+        $powerPartnerRoleId = core_Roles::fetchByName('powerPartner');
+        $partnerRoleId = core_Roles::fetchByName('partner');
+
+        $recs = array();
+        $query = $Users->getQuery();
+        $query->where("LOCATE('|{$powerPartnerRoleId}|', #rolesInput)");
+
+        // Тези, които имат изрично и partner и powerPartner роли ще им се махне излишната partner
+        while($rec = $query->fetch()){
+            if(keylist::isIn($partnerRoleId, $rec->rolesInput)){
+                $rec->rolesInput = keylist::removeKey($rec->rolesInput, $partnerRoleId);
+                $recs[$rec->id] = $rec;
             }
         }
-    }
-    
-    
-    /**
-     * Миграция за добавяне на допълнителна роля на партньори
-     */
-    public function addPowerPartnerToPartners5()
-    {
-        if(core_Users::count()){
-            $partners = core_Users::getByRole('partner');
-            if(is_array($partners)){
-                core_Roles::addOnce('powerPartner', 'partner', 'rang');
-                
-                $powerPartnerId = core_Roles::fetchByName('powerPartner');
-                $partnerId = core_Roles::fetchByName('partner');
-                foreach ($partners as $userId){
-                    
-                    $userRec = core_Users::fetch($userId);
-                    $userRec->rolesInput = keylist::addKey($userRec->rolesInput, $powerPartnerId);
-                    $userRec->rolesInput = keylist::removeKey($userRec->rolesInput, $partnerId);
-                    core_Users::save($userRec, 'rolesInput,roles');
-                }
+
+        if(countR($recs)){
+            foreach ($recs as $rec){
+                $Users->save_($rec, 'rolesInput');
             }
         }
-    }
-    
-    
-    /**
-     * Миграция на кои документи, могат да се създават
-     */
-    public function creatableDocuments()
-    {
-        self::forceCreatableDocuments();
     }
 }

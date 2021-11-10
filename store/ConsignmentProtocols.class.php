@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -184,18 +184,15 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
         
-        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Плащане->Валута');
+        $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
-        
+        $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
+
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
-        $this->FLD(
-            'state',
-                'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)',
-                'caption=Статус, input=none'
-        );
+        $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
         $this->FLD('snapshot', 'blob(serialize, compress)', 'caption=Данни,input=none');
-        $this->FLD('responsible', 'varchar', 'caption=Получил');
+        $this->FLD('responsible', 'varchar', 'caption=Допълнително->Получил');
     }
     
     
@@ -232,13 +229,18 @@ class store_ConsignmentProtocols extends core_Master
             $row->contragentId = cls::get($rec->contragentClassId)->getHyperlink($rec->contragentId, true);
             $row->title = $mvc->getLink($rec->id, 0);
         }
-        
+
         $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
         $row = (object) ((array) $row + (array) $headerInfo);
         
         if (isset($fields['-single'])) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
             $row->username = core_Users::getVerbal($rec->createdBy, 'names');
+
+            $mvc->pushTemplateLg($rec->template);
+            $row->contragentCaption = ($rec->productType == 'ours') ? tr('Довереник') : tr('Доверител');
+            $row->ourCompanyCaption = ($rec->productType == 'ours') ? tr('Доверител') : tr('Довереник');
+            core_Lg::pop();
         }
     }
     
@@ -276,24 +278,18 @@ class store_ConsignmentProtocols extends core_Master
     {
         // Ако потребителя няма достъп към визитката на лицето, или не може да види сч. справки то визитката, той не може да види справката
         $Contragent = cls::get($data->rec->contragentClassId);
-        if (!$Contragent->haveRightFor('single', $data->rec->contragentId)) {
-            
-            return;
-        }
-        if (!haveRole($Contragent->canReports)) {
-            
-            return;
-        }
+        if (!$Contragent->haveRightFor('single', $data->rec->contragentId)) return;
+
+        if (!haveRole($Contragent->canReports)) return;
         
         $snapshot = $data->rec->snapshot;
-        
         $mvcTable = new core_Mvc;
         $mvcTable->FLD('blQuantity', 'int', 'tdClass=accCell');
-        
+
+        $productCaption = ($data->rec->productType == 'ours') ? 'Наш артикул' : 'Чужд артикул';
         $table = cls::get('core_TableView', array('mvc' => $mvcTable));
-        $details = $table->get($snapshot->rows, 'count=№,productId=Артикул,blQuantity=Количество');
-        
-        
+        $details = $table->get($snapshot->rows, "count=№,productId={$productCaption},blQuantity=Количество");
+
         $tpl->replace($details, 'SNAPSHOT');
         $tpl->replace($snapshot->date, 'SNAPSHOT_DATE');
     }
@@ -305,7 +301,8 @@ class store_ConsignmentProtocols extends core_Master
     private function prepareSnapshot($rec, $date)
     {
         $rows = array();
-        
+        $accId = ($rec->productType == 'ours') ? '3231' : '3232';
+
         // Кое е перото на контрагента ?
         $contragentItem = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId);
         
@@ -316,22 +313,22 @@ class store_ConsignmentProtocols extends core_Master
             $to = dt::addDays(1, $date);
             $Balance = new acc_ActiveShortBalance(array('from' => $to,
                 'to' => $to,
-                'accs' => '323',
+                'accs' => $accId,
                 'item1' => $contragentItem->id,
                 'strict' => true,
                 'keepUnique' => true,
                 'cacheBalance' => false));
-            
+
             // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
-            $Balance = $Balance->getBalanceBefore('323');
+            $Balance = $Balance->getBalanceBefore($accId);
             
             $Double = cls::get('type_Double');
             $Double->params['smartRound'] = true;
             $Int = cls::get('type_Int');
             
-            $accId = acc_Accounts::getRecBySystemId('323')->id;
+            $accId = acc_Accounts::getRecBySystemId($accId)->id;
             $count = 1;
-            
+
             // Подготвяме записите за показване
             foreach ($Balance as $b) {
                 if ($b['accountId'] != $accId) {
@@ -364,7 +361,13 @@ class store_ConsignmentProtocols extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
+        // При нов протокол, потребителя ще бъде принуден да избере типа на предаваните/получаваните артикули
+        if(empty($rec->id)){
+            $form->setOptions('productType', array('' => '', 'ours' => 'Наши артикули', 'other' => 'Чужди артикули'));
+            $form->setDefault('productType', '');
+        }
+
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
@@ -393,7 +396,7 @@ class store_ConsignmentProtocols extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if($form->isSubmitted()){
-            
+
             // Задаване на дефолтния склад, ако потребителя е партньор
             if(core_Packs::isInstalled('colab') && haveRole('partner')){
                 $form->rec->storeId = cond_Parameters::getParameter($form->rec->contragentClassId, $form->rec->contragentId, 'defaultStoreSale');
@@ -523,8 +526,8 @@ class store_ConsignmentProtocols extends core_Master
         
         return $this->save($rec);
     }
-    
-    
+
+
     /**
      * Информацията на документа, за показване в транспортната линия
      *
@@ -538,10 +541,18 @@ class store_ConsignmentProtocols extends core_Master
      *               ['currencyId']     string|NULL - валутата на документа
      *               ['notes']          string|NULL - забележки за транспортната линия
      *               ['stores']         array       - склад(ове) в документа
+     *               ['cases']          array       - каси в документа
+     *               ['zoneId']         array       - ид на зона, в която е нагласен документа
+     *               ['zoneReadiness']  int         - готовност в зоната в която е нагласен документа
      *               ['weight']         double|NULL - общо тегло на стоките в документа
      *               ['volume']         double|NULL - общ обем на стоките в документа
-     *               ['transportUnits'] array   - използваните ЛЕ в документа, в формата ле -> к-во
+     *               ['transportUnits'] array       - използваните ЛЕ в документа, в формата ле -> к-во
      *               ['contragentName'] double|NULL - име на контрагента
+     *               ['address']        double|NULL - адрес ба диставка
+     *               ['storeMovement']  string|NULL - посока на движението на склада
+     *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
+     *               ['addressInfo']    string|NULL - информация за адреса
+     *               ['countryId']      string|NULL - ид на държава
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -551,7 +562,8 @@ class store_ConsignmentProtocols extends core_Master
         $res['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
         $res['stores'] = array($rec->storeId);
         $res['address'] = str_replace('<br>', '', $row->contragentAddress);
-        
+        $res['cases'] = array();
+
         return $res;
     }
     

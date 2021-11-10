@@ -154,7 +154,7 @@ class acc_Items extends core_Manager
         $this->FLD('lastUseOn', 'datetime(format=smartTime)', 'caption=Последно,input=none');
         
         $this->FLD('closedOn', 'date', 'caption=Затваряне,input=none');
-        $this->FLD('earliestUsedOn', 'date', 'caption=Най-ранно използване,input=none');
+        $this->FLD('earliestUsedOn', 'date', 'caption=Първо използване,input=none');
         
         // Титла - хипервръзка
         $this->FNC('titleLink', 'html', 'column=none,sortingLike=title');
@@ -1145,5 +1145,18 @@ class acc_Items extends core_Manager
         
         $clsInst->logDebug('Синхронизиране на перата до id=' . $maxId);
         core_Permanent::set($pKey, $maxId, 100000);
+    }
+
+
+    /**
+     * След промяна на състоянието на перото
+     */
+    protected function on_AfterChangeState($mvc, $rec, $state)
+    {
+        // Ако перото е ръчно активирано/затворено да се запише в историята на източника
+        $msg = ($state == 'active') ? 'активиране' : 'затваряне';
+        if(isset($rec->classId) && isset($rec->objectId)){
+            cls::get($rec->classId)->logWrite("Ръчно {$msg} на перото", $rec->objectId);
+        }
     }
 }

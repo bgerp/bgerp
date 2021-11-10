@@ -91,7 +91,7 @@ class acc_BalanceHistory extends core_Manager
         $data->rec->ent2Id = $ent2;
         $data->rec->ent3Id = $ent3;
         $data->rec->accountNum = $accNum;
-        
+
         acc_BalanceDetails::requireRightFor('history', $data->rec);
         
         $data->balanceRec = $balanceRec;
@@ -130,8 +130,6 @@ class acc_BalanceHistory extends core_Manager
     public function prepareRows(&$data)
     {
         // Преизчисляваме пейджъра с новия брой на записите
-        $conf = core_Packs::getConfig('acc');
-        
         if (!Mode::is('printing')) {
             $Pager = cls::get('core_Pager', array('itemsPerPage' => $this->listHistoryItemsPerPage));
             $Pager->itemsCount = countR($data->recs);
@@ -207,7 +205,7 @@ class acc_BalanceHistory extends core_Manager
         $data->allRecs = $combined1;
         
         $this->prepareMiddleBalance($data);
-        
+
         // За всеки запис, обръщаме го във вербален вид
         if (countR($data->recs)) {
             foreach ($data->recs as $jRec) {
@@ -459,13 +457,23 @@ class acc_BalanceHistory extends core_Manager
         
         $rec->baseAmount = $balHistory['summary']['baseAmount'];
         $rec->baseQuantity = $balHistory['summary']['baseQuantity'];
-        $row->baseAmount = $Double->toVerbal($rec->baseAmount);
-        $row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
-        
+
+        if(is_null($rec->baseQuantity)){
+            $row->baseQuantity = '<span class="quiet">n/a</span>';
+        } else {
+            $row->baseQuantity = $Double->toVerbal($rec->baseQuantity);
+        }
+
+        if(is_null($rec->baseAmount)){
+            $row->baseAmount = '<span class="quiet">n/a</span>';
+        } else {
+            $row->baseAmount = $Double->toVerbal($rec->baseAmount);
+        }
+
         if (round($rec->baseAmount, 4) < 0) {
             $row->baseAmount = "<span style='color:red'>{$row->baseAmount}</span>";
         }
-        
+
         if (round($rec->baseQuantity, 4) < 0) {
             $row->baseQuantity = "<span style='color:red'>{$row->baseQuantity}</span>";
         }
@@ -532,7 +540,7 @@ class acc_BalanceHistory extends core_Manager
                 $arr[$fld] = "<span style='color:red'>{$arr[$fld]}</span>";
             }
         }
-        
+
         try {
             $Class = cls::get($rec['docType']);
             $arr['docId'] = (!Mode::isReadOnly()) ? $Class->getShortHyperLink($rec['docId']) : '#' . $Class->getHandle($rec['docId']);
@@ -548,7 +556,11 @@ class acc_BalanceHistory extends core_Manager
         if ($rec['ROW_ATTR']) {
             $arr['ROW_ATTR'] = $rec['ROW_ATTR'];
         }
-        
+
+        if(acc_Periods::isClosed($rec['valior'])){
+            $arr['ROW_ATTR'] = array('style' => 'background-color:#eee;');
+        }
+
         return (object) $arr;
     }
     
@@ -621,7 +633,7 @@ class acc_BalanceHistory extends core_Manager
         // Средното салдо е събраната сума върху дните в периода
         $data->rec->midQuantity = $quantity / $daysInPeriod;
         $data->rec->midAmount = $amount / $daysInPeriod;
-        
+
         // Вербално представяне на средното салдо
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;

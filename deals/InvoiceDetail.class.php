@@ -78,6 +78,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
+
+         $mvc->setDbIndex('productId,packagingId');
     }
     
     
@@ -180,7 +182,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $this->delete("#{$this->masterKey} = {$id}");
         $firstDoc = doc_Threads::getFirstDocument($invoiceRec->threadId);
         $dealInfo = $firstDoc->getAggregateDealInfo();
-        
+        $importBatches = batch_Setup::get('SHOW_IN_INVOICES');
+
         // За всеки артикул от договора, копира се 1:1
         if (is_array($dealInfo->dealProducts)) {
             
@@ -192,7 +195,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     $det->_batches = array_keys($det->batches);
                 }
                 unset($det->batches);
-                
+                $det->_importBatches = $importBatches;
                 $this->save($det);
             }
         }
@@ -242,11 +245,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
     public static function modifyDcDetails(&$recs, $rec, $mvc)
     {
         expect($rec->type != 'invoice');
-        
+        arr::sortObjects($recs, 'id', 'ASC');
+
         if (countR($recs)) {
             // Намираме оригиналните к-ва и цени
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId);
-            
+
             // За всеки запис ако е променен от оригиналния показваме промяната
             $count = 0;
             foreach ($recs as &$dRec) {
@@ -257,7 +261,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $diffPrice = $dRec->packPrice - $originPrice;
 
                 $priceIsChanged = false;
-                $diffPrice =round($diffPrice, 5);
+                $diffPrice = round($diffPrice, 5);
                 if(abs($diffPrice) > 0.0001){
                     $priceIsChanged = true;
                 }

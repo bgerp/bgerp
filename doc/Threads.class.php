@@ -2672,7 +2672,9 @@ class doc_Threads extends core_Manager
             
             return $bestContragentData->{$field};
         }
-        
+
+        setIfNot($bestContragentData, new stdClass());
+
         return $bestContragentData;
     }
     

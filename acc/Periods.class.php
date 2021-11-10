@@ -164,9 +164,12 @@ class acc_Periods extends core_Manager
                         // Ако има, периода може да се приключи
                         $row->close = ht::createBtn('Приключване', array($mvc, 'Close', $rec->id, 'ret_url' => true), 'Наистина ли желаете да приключите периода?', null, 'ef_icon=img/16/lock.png,title=Приключване на периода');
                     } else {
-                        
-                        // Ако няма не може докато не бъде контиран такъв
-                        $row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
+                        if(acc_ClosePeriods::haveRightFor('add')){
+                            $row->close = ht::createBtn('Приключване', array('acc_ClosePeriods', 'add', 'periodId' => $rec->id), false,false,'ef_icon=img/16/add.png,title=Създаване на нов приключващ документ за периода');
+                        } else {
+                            // Ако няма не може докато не бъде контиран такъв
+                            $row->close = ht::createErrBtn('Приключване', 'Не може да се приключи, докато не се контира документ за приключване на периода');
+                        }
                     }
                 } else {
                     
@@ -185,11 +188,9 @@ class acc_Periods extends core_Manager
         if ($rec->end == $curPerEnd) {
             $row->id = ht::createElement('img', array('src' => sbf('img/16/control_play.png', ''), 'style' => 'display:inline-block; float: left; margin-right:5px', 'title' => 'Текущ период')) . $row->id;
         }
-        
-        if ($rec->state == 'closed') {
-            if ($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')) {
-                $row->close = acc_ClosePeriods::getLink($docId, 0);
-            }
+
+        if ($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')) {
+            $row->close .= acc_ClosePeriods::getLink($docId, 0);
         }
     }
     
@@ -221,6 +222,15 @@ class acc_Periods extends core_Manager
     {
         // Форсираме перо за месеца и годината на периода
         static::forceYearItem($rec->end);
+
+        if($rec->state == 'active'){
+            $query = static::getQuery();
+            $query->where("#id != {$rec->id} AND #state = 'active' AND #end > '{$rec->end}'");
+            while($rec = $query->fetch()){
+                $rec->state = 'pending';
+                static::save($rec, 'state');
+            }
+        }
     }
     
     
@@ -535,7 +545,7 @@ class acc_Periods extends core_Manager
         // Могат ръчно да се добавят периоди, само, ако няма нито един приключил
         if ($action == 'add') {
             if (self::fetch("#state = 'closed'")) {
-                $requiredRoles = 'no_one';
+                //$requiredRoles = 'no_one';
             }
         }
     }
@@ -577,22 +587,6 @@ class acc_Periods extends core_Manager
         $this->logWrite('Затваряне на период', $id);
         
         return followRetUrl(null, $res);
-    }
-    
-    
-    /**
-     * Инициализира начални счетоводни периоди при инсталиране
-     * Ако няма дефинирани периоди дефинира период, чийто край е последния ден от предходния
-     * месец със state='closed' и период, който е за текущия месец и е със state='active'
-     */
-    public function loadSetupData2()
-    {
-        // Форсира създаването на периоди от текущия месец до ACC_FIRST_PERIOD_START
-        $this->forcePeriod(dt::verbal2mysql());
-        
-        $this->updateExistingPeriodsState();
-        
-        return $this->actLog;
     }
     
     
@@ -830,7 +824,7 @@ class acc_Periods extends core_Manager
 
 
     /**
-     * Връща първата свободна дата, ако периода на датата е затворен
+     * Връща датата, ако е в незатворен период, или ако е връща датата на първия незатворен период след нея
      *
      * @param $date
      * @return date
@@ -843,12 +837,11 @@ class acc_Periods extends core_Manager
             // Кой е първия свободен период
             $pQuery = acc_Periods::getQuery();
             $pQuery->where("#state = 'active' OR #state = 'pending'");
-            $pQuery->where("#id > {$pRec->id}");
-            $pQuery->orderBy('start', 'DESC');
-            if ($pRec2 = $pQuery->fetch()) {
+            $pQuery->where("#end > {$date}");
+            $pQuery->orderBy('end', 'ASC');
+            $pQuery->limit(1);
 
-                return $pRec2->start;
-            }
+            if ($pRec2 = $pQuery->fetch()) return $pRec2->start;
         }
 
         return $date;

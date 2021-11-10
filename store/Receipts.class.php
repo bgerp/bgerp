@@ -188,6 +188,16 @@ class store_Receipts extends store_DocumentMaster
         parent::setDocFields($this);
         $this->setField('storeId', 'caption=В склад');
         $this->setField('deliveryTime', 'caption=Разтоварване');
+
+        $this->setField('prevShipment', 'caption=Адрес за натоварване->Избор');
+        $this->setField('company', 'caption=Адрес за натоварване->Фирма');
+        $this->setField('person', 'caption=Адрес за натоварване->Име');
+        $this->setField('tel', 'caption=Адрес за натоварване->Тел');
+        $this->setField('country', 'caption=Адрес за натоварване->Държава');
+        $this->setField('pCode', 'caption=Адрес за натоварване->П. код');
+        $this->setField('place', 'caption=Адрес за натоварване->Град/с');
+        $this->setField('address', 'caption=Адрес за натоварване->Адрес');
+        $this->setField('addressInfo', 'caption=Адрес за натоварване->Особености');
     }
     
     
@@ -214,7 +224,8 @@ class store_Receipts extends store_DocumentMaster
      */
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
-        $data->form->setField('locationId', 'caption=Обект от');
+        $form = &$data->form;
+        $form->setField('locationId', 'caption=Обект от');
     }
     
     
@@ -309,25 +320,44 @@ class store_Receipts extends store_DocumentMaster
     
     
     /**
-     * Трябва ли ръчно да се подготвя документа в Транспортната линия
-     *
-     * @param mixed $id - ид или запис на документа
-     *
-     * @return bool - TRUE или FALSE
-     */
-    public function requireManualCheckInTransportLine($id)
-    {
-        return false;
-    }
-    
-    
-    /**
      * Извиква се преди подготовката на колоните
      */
     public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $data->listFields = 'deliveryTime,valior, title=Документ, amountDelivered, weight, volume,lineId';
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if(in_array($action, array('add', 'pending', 'conto', 'clonerec')) && isset($rec) && $requiredRoles != 'no_one'){
+
+            // Ако има финална доставка и СР не е коригираща - не може да се пускат нови
+            $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+            if($firstDoc->isInstanceOf('purchase_Purchases')){
+                $ignoreContainerId =  ($action != 'clonerec') ? $rec->containerId : null;
+                if(!deals_Helper::canHaveMoreDeliveries($rec->threadId, $ignoreContainerId)){
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
+    }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($fields['-single'])){
+            core_Lg::push($rec->tplLang);
+            $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
+            core_Lg::pop();
         }
     }
 }

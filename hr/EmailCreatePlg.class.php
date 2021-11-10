@@ -26,7 +26,6 @@ class hr_EmailCreatePlg extends core_Plugin
         // Добавя интерфейс за генериране на имейл
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['email_DocumentIntf'], 'email_DocumentIntf');
-        setIfNot($mvc->forceFirstEmail, true);
         setIfNot($mvc->useOriginContragentData, true);
     }
 

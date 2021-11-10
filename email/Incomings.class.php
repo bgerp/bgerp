@@ -281,7 +281,7 @@ class email_Incomings extends core_Master
         $accQuery = email_Accounts::getQuery();
         $accQuery->XPR('order', 'double', 'RAND()');
         $accQuery->orderBy('#order');
-        
+
         while (($accRec = $accQuery->fetch("#state = 'active'")) && ($deadline > time())) {
             if (Request::get('forced') != 'yes' && $time > 0) {
                 if (!$accRec->fetchingPeriod) {
@@ -314,7 +314,7 @@ class email_Incomings extends core_Master
         
         // Връзка по IMAP към сървъра на посочената сметка
         $imapConn = cls::get('email_Imap', array('accRec' => $accRec));
-        
+
         // Логването и генериране на съобщение при грешка е винаги в контролерната част
         if ($imapConn->connect() === false) {
             $imapLastErr = $imapConn->getLastError();
@@ -326,17 +326,21 @@ class email_Incomings extends core_Master
         
         // Получаваме броя на писмата в INBOX папката
         $numMsg = $imapConn->getStatistic('messages');
-        
+
         // Масив за броячите за различните получени писма
         $statusSum = array('Total' => $numMsg);
         
         // Номер на първото не-свалено писмо
         $firstUnreadMsgNo = $this->getFirstUnreadMsgNo($imapConn, $numMsg);
-        
+
+        if (!isset($firstUnreadMsgNo) && $imapConn->accRec->protocol == 'pop3') {
+            $firstUnreadMsgNo = $this->getFirstUnreadMsgNo($imapConn, 1);
+        }
+
         $startTime = time();
         
         $doExpunge = false;
-        
+
         if ($firstUnreadMsgNo > 0) {
             $statusSum['first'] = $firstUnreadMsgNo;
             
@@ -529,7 +533,7 @@ class email_Incomings extends core_Master
                     $clsInstArr[$clsName] = cls::getInterface('email_AutomaticIntf', $clsName);
                     $arrWeight[$clsName] = (int)$clsInstArr[$clsName]->class->weight;
                 }
-                
+
                 if (!empty($arrWeight)) {
                     arsort($arrWeight);
 
@@ -546,9 +550,9 @@ class email_Incomings extends core_Master
                         }
                     }
                 }
-                
-                if (!isset($status)) {
-                    $this->process($mime, $accId, $uid);
+
+                if (!isset($status) || is_array($status)) {
+                    $this->process($mime, $accId, $uid, $status['preroute']);
                     $status = 'incoming';
                 }
             }
@@ -565,7 +569,7 @@ class email_Incomings extends core_Master
             // Записваме статуса на сваленото писмо (service, misformatted, normal);
             email_Fingerprints::setStatus($headers, $status, $accId, $uid);
         }
-        
+
         return $status;
     }
     
@@ -573,7 +577,7 @@ class email_Incomings extends core_Master
     /**
      * Подготвя, записва и рутира зададеното писмо
      */
-    public function process($mime, $accId, $uid)
+    public function process($mime, $accId, $uid, $prerouteRecArr = array())
     {
         $mime->saveFiles();
         
@@ -632,7 +636,11 @@ class email_Incomings extends core_Master
         $rec->headers = $mime->parseHeaders($headersStr);
         
         $rec->spamScore = email_Spam::getSpamScore($rec->headers, true, $mime, $rec);
-        
+
+        if ($prerouteRecArr) {
+            $rec->_prerouteRecArr = $prerouteRecArr;
+        }
+
         // Записваме (и автоматично рутираме) писмото
         $saved = $this->save($rec);
         
@@ -670,14 +678,14 @@ class email_Incomings extends core_Master
         if ($maxReadMsgNo === 0) {
             // Горен указател
             $t = $maxMsgNo;
-            
+
             $i = 1;
             
             // Долен указател
             $b = max(1, $maxMsgNo - $i);
             
             $isDownT = $this->isDownloaded($imapConn, $t);
-            
+
             // Дали всички съобщения са прочетени?
             if ($isDownT) {
                 
@@ -749,7 +757,7 @@ class email_Incomings extends core_Master
         
         if (!isset($isDown[$accId][$msgNum])) {
             $headers = $imapConn->getHeaders($msgNum);
-            
+
             // Ако няма хедъри, значи има грешка
             if (!$headers) {
                 email_Accounts::logWarning("[{$msgNum}] - missing headers", $accId, 7);
@@ -1478,6 +1486,11 @@ class email_Incomings extends core_Master
      */
     public function cron_DownloadEmails()
     {
+        if (defined('DEV_SERVER') &&  (DEV_SERVER === true)) {
+
+            return 'Спряно сваляне на имейли';
+        }
+
         // Закръгляме текущите секунди към най-близкото делящо се на 30 число
         $time = round(time() / 30) * 30;
         
@@ -1909,16 +1922,23 @@ class email_Incomings extends core_Master
                 return ;
             }
         }
-        
+
         // Първо рутираме по ръчно зададените правила
-        if (email_Filters::preroute($rec)) {
-            
+        if ($rec->_prerouteRecArr) {
+
+            foreach ($rec->_prerouteRecArr as $fName => $fVal) {
+                $rec->{$fName} = $fVal;
+            }
+
             // Добавяме начина на рутиране
             $rec->routeBy = 'preroute';
-            
-            return;
+
+            if ($rec->_prerouteRecArr['folderId']) {
+
+                return ;
+            }
         }
-        
+
         if ($rec->accId) {
             // Извличаме записа на сметката, от която е изтеглено това писмо
             $accRec = email_Accounts::fetch($rec->accId);
@@ -2823,6 +2843,13 @@ class email_Incomings extends core_Master
                 }
             }
         }
+
+        if (email_ServiceRules::haveRightFor('add')) {
+
+            $url = array('email_ServiceRules', 'add', 'email' => $rec->fromEml, 'subject' => $rec->subject, 'ret_url' => true);
+
+            $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=2, order=19');
+        }
     }
     
     
@@ -2976,18 +3003,24 @@ class email_Incomings extends core_Master
             // Вземаме записите за файла
             $rec = $this->fetch($rec);
         }
-        
+
+        if (!property_exists($rec, 'files') && $rec->id) {
+            $cRec = $this->fetch($rec->id);
+        } else {
+            $cRec = clone $rec;
+        }
+
         // Превръщаме в масив
-        $filesArr = keylist::toArray($rec->files);
+        $filesArr = keylist::toArray($cRec->files);
         
         // Ако има HTML файл, добавяме го към файловете
-        if ($rec->htmlFile) {
-            $filesArr[$rec->htmlFile] = $rec->htmlFile;
+        if ($cRec->htmlFile) {
+            $filesArr[$cRec->htmlFile] = $cRec->htmlFile;
         }
         
         // Ако има, добавяме EML файла, към файловете
-        if ($rec->emlFile) {
-            $filesArr[$rec->emlFile] = $rec->emlFile;
+        if ($cRec->emlFile) {
+            $filesArr[$cRec->emlFile] = $cRec->emlFile;
         }
         
         $fhArr = array();
@@ -3001,7 +3034,7 @@ class email_Incomings extends core_Master
             // Създаваме масив с прикачените файлове
             $fhArr[$fRec->fileHnd] = $fRec->name;
         }
-        
+
         return $fhArr;
     }
     

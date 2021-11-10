@@ -36,6 +36,32 @@ class plg_ExpandInput extends core_Plugin
         $mvc->setParams($mvc->expandFieldName, array('input' => 'none'));
       
         $mvc->setExpandInputField($mvc, $mvc->expandInputFieldName, $mvc->expandFieldName);
+
+        setIfNot($mvc->forceExpandInputFieldOnExport, true);
+        setIfNot($mvc->useExpandInputTypeOnExport, false);
+    }
+
+
+    /**
+     * След като е готово вербалното представяне
+     */
+    public static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        if ($mvc->forceExpandInputFieldOnExport) {
+            if (isset($fieldset->fields[$mvc->expandFieldName]) && !isset($fieldset->fields[$mvc->expandInputFieldName])) {
+                $fNameCaption = $fieldset->fields[$mvc->expandFieldName]->caption;
+                if (!$mvc->useExpandInputTypeOnExport) {
+                    $fieldset->fields[$mvc->expandInputFieldName] = $fieldset->fields[$mvc->expandFieldName];
+                } else {
+                    $fieldset->fields[$mvc->expandInputFieldName] = $mvc->getField($mvc->expandInputFieldName, false);
+                }
+
+                unset($fieldset->fields[$mvc->expandFieldName]);
+                if (isset($fieldset->fields[$mvc->expandInputFieldName])) {
+                    $fieldset->fields[$mvc->expandInputFieldName]->caption = $fNameCaption;
+                }
+            }
+        }
     }
 
 
@@ -145,32 +171,40 @@ class plg_ExpandInput extends core_Plugin
             }
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след създаването на модела
      */
     public static function on_AfterSetupMVC($mvc, &$res)
     {
+        if ($mvc->fixExpandFieldOnSetup === false) {
+
+            return ;
+        }
+
         $query = $mvc->getQuery();
         $query->where(array("#{$mvc->expandFieldName} IS NOT NULL"));
         $query->where(array("#{$mvc->expandFieldName} != ''"));
-        
+
         $query->where(array("#{$mvc->expandInputFieldName} IS NULL"));
         $query->orWhere(array("#{$mvc->expandInputFieldName} = ''"));
-        
+
         $cnt = 0;
         while ($rec = $query->fetch()) {
             $rec->{$mvc->expandInputFieldName} = $rec->{$mvc->expandFieldName};
-            
+
             try {
                 $mvc->save($rec, "{$mvc->expandInputFieldName}, {$mvc->expandFieldName}");
+
+                $mvc->logNotice('Поправка на полетата групите', $rec->id);
+
                 $cnt++;
             } catch (Exception $e) {
                 reportException($e);
             }
         }
-        
+
         if ($cnt) {
             $res .= '<li>Мигрирани данни: ' . $cnt;
         }

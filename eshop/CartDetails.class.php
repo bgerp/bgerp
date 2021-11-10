@@ -93,15 +93,16 @@ class eshop_CartDetails extends core_Detail
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,input=none,mandatory,smartCenter,removeAndRefreshForm=quantity|quantityInPack|displayPrice');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double', 'input=none');
-        $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input=none');
-        
-        $this->FLD('oldPrice', 'double(decimals=2)', 'caption=Стара цена,input=none');
-        $this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,input=none');
-        $this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %,input=none');
+        $this->FNC('packQuantity', 'double(Min=0)', 'caption=Количество,input,mandatory');
+
+        $this->FLD('finalPrice', 'double(decimals=2)', 'caption=Цена,mandatory');
+        $this->FLD('oldPrice', 'double(decimals=2)', 'caption=Стара цена');
+
+        $this->FLD('vat', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=ДДС %');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'input=none');
-        $this->FLD('haveVat', 'enum(yes=Да, separate=Не)', 'input=none');
+        $this->FLD('haveVat', 'enum(yes=Да, separate=Отделно, no=Без)', 'caption=ДДС режим');
         
-        $this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка,input=none');
+        $this->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %)', 'caption=Отстъпка');
         $this->FNC('amount', 'double(decimals=2)', 'caption=Сума');
         $this->FNC('external', 'int', 'input=hidden,silent');
         
@@ -117,10 +118,7 @@ class eshop_CartDetails extends core_Detail
      */
     protected static function on_CalcPackQuantity(core_Mvc $mvc, $rec)
     {
-        if (empty($rec->quantity) || empty($rec->quantityInPack)) {
-            
-            return;
-        }
+        if (empty($rec->quantity) || empty($rec->quantityInPack)) return;
         
         $rec->packQuantity = $rec->quantity / $rec->quantityInPack;
     }
@@ -136,44 +134,23 @@ class eshop_CartDetails extends core_Detail
     {
         $form = &$data->form;
         $rec = $form->rec;
-        
-        $form->FNC('displayPrice', 'double', 'caption=Цена, input=none');
-        $productOptions = eshop_ProductDetails::getAvailableProducts();
-        
-        $alreadyIn = array();
-        if (isset($rec->external)) {
-            // От наличните опции се махат тези вече в количката
-            $query = self::getQuery();
-            $query->where("#cartId = {$rec->cartId}");
-            $query->show('productId');
-            $alreadyIn = arr::extractValuesFromArray($query->fetchAll(), 'id');
-        }
-        
-        $productOptions = array_diff_key($productOptions, $alreadyIn);
-        $form->FLD('eProductId', 'key(mvc=eshop_ProductDetails)', 'caption=Е-артикул,before=productId,silent,removeAndRefreshForm=packagingId|quantity|quantityInPack');
-        $form->setOptions('eProductId', array('' => '') + $productOptions);
-        $form->setField('eshopProductId', 'input=none');
-        $form->setField('productId', 'input=none');
-        
-        if (countR($productOptions) == 1) {
-            $form->setDefault('eProductId', key($productOptions));
-        }
-        
-        $form->input('eProductId', 'silent');
-        if (isset($rec->eProductId)) {
-            $dRec = eshop_ProductDetails::fetch($rec->eProductId);
-            
+
+        $form->setReadOnly('eshopProductId');
+        $form->setReadOnly('productId');
+
+        if (isset($rec->eshopProductId)) {
+            $dRec = eshop_ProductDetails::fetch("#eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId}");
+
             $form->setField('packagingId', 'input');
             $form->setField('packQuantity', 'input');
-            
-            $packs = cat_Products::getPacks($dRec->productId);
-            $form->setDefault('eshopProductId', $dRec->eshopProductId);
-            $form->setDefault('productId', $dRec->productId);
-            $packsSelected = keylist::toArray($dRec->packagings);
-            $packs = array_intersect_key($packs, $packsSelected);
-            $form->setOptions('packagingId', $packs);
-            $form->setDefault('packagingId', key($packs));
-            $form->setField('displayPrice', 'input');
+
+            if(isset($dRec->productId)){
+                $packs = cat_Products::getPacks($dRec->productId);
+                $packsSelected = keylist::toArray($dRec->packagings);
+                $packs = array_intersect_key($packs, $packsSelected);
+                $form->setOptions('packagingId', $packs);
+                $form->setDefault('packagingId', key($packs));
+            }
         }
     }
     
@@ -198,54 +175,11 @@ class eshop_CartDetails extends core_Detail
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = $form->rec;
-        
-        if (isset($rec->packagingId)) {
-            $rec->defaultQuantity = $rec->packQuantity;
-            if(empty($rec->packQuantity)){
-                $moq = cat_Products::getMoq();
-                $rec->defaultQuantity = (!empty($moq)) ? $moq : 1;
-                $form->setField('packQuantity', "placeholder={$rec->defaultQuantity}");
-            }
-            
+
+        if ($form->isSubmitted()) {
             $productInfo = cat_Products::getProductInfo($rec->productId);
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
-            $rec->quantity = $rec->defaultQuantity * $rec->quantityInPack;
-            
-            $settings = cms_Domains::getSettings();
-            if ($price = eshop_ProductDetails::getPublicDisplayPrice($rec->productId, $rec->packagingId, $rec->quantityInPack)) {
-                $price->price = round($price->price, 2);
-                $form->setReadOnly('displayPrice', $price->price);
-                $unit = $settings->currencyId . ' ' . (($settings->chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС'));
-                $form->setField('displayPrice', "unit={$unit}");
-                $form->rec->haveVat = $settings->chargeVat;
-                $form->rec->vat = cat_Products::getVat($rec->productId);
-            }
-        }
-        
-        if ($form->isSubmitted()) {
-            
-            // Проверка на к-то
-            $warning = null;
-            if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {
-                $form->setWarning('packQuantity', $warning);
-            }
-            
-            // Проверка достигнато ли е максималното количество
-            $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : $rec->defaultQuantity;
-            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack, $rec->eshopProductId);
-            
-            
-            if (isset($maxQuantity) && $maxQuantity < $packQuantity) {
-                $form->setError('packQuantity', 'Избраното количество не е налично');
-            }
-            
-            if (!$form->gotErrors()) {
-                if ($id = eshop_CartDetails::fetchField("#cartId = {$rec->cartId} AND #eshopProductId = {$rec->eshopProductId} AND #productId = {$rec->productId} AND #packagingId = {$rec->packagingId}")) {
-                    $exRec = self::fetch($id);
-                    $rec->packQuantity += ($exRec->quantity / $exRec->quantityInPack);
-                    $rec->id = $id;
-                }
-            }
+            $rec->quantity = $rec->packQuantity * $rec->quantityInPack;
         }
     }
     
@@ -295,28 +229,29 @@ class eshop_CartDetails extends core_Detail
         }
         
         $settings = eshop_Settings::getSettings('cms_Domains', $cartRec->domainId);
-        $vat = cat_Products::getVat($productId);
+
         $quantity = $packQuantity * $quantityInPack;
         $currencyId = isset($currencyId) ? $currencyId : (isset($settings->currencyId) ? $settings->currencyId : acc_Periods::getBaseCurrencyCode());
-        
+
         $dRec = (object) array('cartId' => $cartId,
             'eshopProductId' => $eshopProductId,
             'productId' => $productId,
             'packagingId' => $packagingId,
+            'vat' => cat_Products::getVat($productId),
             'quantityInPack' => $quantityInPack,
-            'vat' => $vat,
             'quantity' => $quantity,
             'currencyId' => $currencyId,
         );
-        
+
         if (!empty($packPrice)) {
             $dRec->finalPrice = $packPrice;
-            $dRec->haveVat = ($hasVat) ? (($hasVat === true) ? 'yes' : 'no') : (($settings->chargeVat) ? $settings->chargeVat : 'yes');
+            $calcChargeVat = eshop_Carts::calcChargeVat($cartRec);
+            $dRec->haveVat = ($hasVat) ? (($hasVat === true) ? 'yes' : 'no') : (($calcChargeVat) ? $calcChargeVat : 'yes');
             $dRec->_updatePrice = false;
         } else {
-            $dRec->haveVat = ($settings->chargeVat) ? $settings->chargeVat : 'yes';
+            $dRec->haveVat = eshop_Carts::calcChargeVat($cartRec);
         }
-        
+
         if ($exRec = self::fetch("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId} AND #packagingId = {$packagingId}")) {
             $exRec->quantity += $dRec->quantity;
             self::save($exRec, 'quantity,finalPrice,oldPrice,discount');
@@ -348,12 +283,12 @@ class eshop_CartDetails extends core_Detail
      * Колко е максималното допустимо количество. Ако не е избран склад
      * или артикула не е складируем то няма максимално количество
      *
-     * @param int   $productId      - ид на артикул
-     * @param float $quantityInPack - кво в опаковка
-     *
+     * @param int   $productId         - ид на артикул
+     * @param int $eshopProductId      - кво в опаковка
+     * @param int|null $cartId - ид на количка
      * @return NULL|float $maxQuantity - максималното к-во, NULL за без ограничение
      */
-    public static function getMaxQuantity($productId, $quantityInPack, $eshopProductId)
+    public static function getAvailableQuantity($productId, $eshopProductId, $cartId = null, $ignoreId = null)
     {
         $maxQuantity = null;
         
@@ -363,11 +298,25 @@ class eshop_CartDetails extends core_Detail
             $deliveryTime = eshop_ProductDetails::fetchField("#eshopProductId = {$eshopProductId} AND #productId = {$productId}", 'deliveryTime');
             $quantityInStore = store_Products::getQuantities($productId, $settings->storeId)->free;
             
-            if(isset($deliveryTime) && $quantityInStore <= 0) return $maxQuantity;
-            
-            $maxQuantity = round($quantityInStore / $quantityInPack, 2);
+            if(isset($deliveryTime) && $quantityInStore <= 0) return null;
+            $maxQuantity = $quantityInStore;
         }
-        
+
+        if(!empty($maxQuantity)){
+
+            // Проверка колко общо има от избрания артикул в количката без значение от опаковката
+            $cartId = isset($cartId) ? $cartId : eshop_Carts::force(null, null, false);
+            if($cartId){
+                $dQuery = eshop_CartDetails::getQuery();
+                $dQuery->where("#cartId = {$cartId} AND #eshopProductId = {$eshopProductId} AND #productId = {$productId}");
+                $dQuery->XPR('sum', 'double', 'SUM(#quantity)');
+                if(isset($ignoreId)){
+                    $dQuery->where("#id != {$ignoreId}");
+                }
+                $maxQuantity -= $dQuery->fetch()->sum;
+            }
+        }
+
         return $maxQuantity;
     }
     
@@ -398,12 +347,14 @@ class eshop_CartDetails extends core_Detail
             $dataUrl = toUrl(array('eshop_CartDetails', 'updateCart', $rec->id, 'cartId' => $rec->cartId), 'local');
             
             // Колко е максималното допустимо количество
-            $maxQuantity = self::getMaxQuantity($rec->productId, $rec->quantityInPack, $rec->eshopProductId);
+            $maxQuantity = self::getAvailableQuantity($rec->productId, $rec->eshopProductId, $rec->cartId, $rec->id);
             $maxReachedTex = '';
             if(isset($maxQuantity)){
                 $maxReachedTex = tr("Избраното количество не е налично");
+                $maxQuantity /= $rec->quantityInPack;
+                $maxQuantity = round($maxQuantity);
             }
-            
+
             $minus = ht::createElement('span', array('class' => 'btnDown', 'title' => 'Намаляване на количеството'), '-');
             $plus = ht::createElement('span', array('class' => 'btnUp', 'title' => 'Увеличаване на количеството'), '+');
             $row->quantity = '<span>' . $minus . ht::createTextInput("product{$rec->productId}", $quantity, "class=option-quantity-input autoUpdate,data-quantity={$quantity},data-url='{$dataUrl}',data-maxquantity={$maxQuantity},data-maxquantity-reached-text={$maxReachedTex}") . $plus . '</span>';
@@ -588,20 +539,34 @@ class eshop_CartDetails extends core_Detail
         $quantity = rtrim($quantity, '.');
         $quantity = rtrim($quantity, ',');
         expect($quantity && $quantity > 0, 'Количеството трябва да е положително');
-        
+
         $rec = self::fetch($id);
-        $rec->quantity = $quantity * $rec->quantityInPack;
-        self::save($rec, 'quantity');
-        vislog_History::add("Обновяване на количество в количка");
-        
-        Mode::set('currentExternalTab', 'eshop_Carts');
-        
-        // Ако заявката е по ajax
-        if (Request::get('ajax_mode')) {
-            
-            return self::getUpdateCartResponse($cartId);
+        if(is_object($rec)){
+            $rec->quantity = $quantity * $rec->quantityInPack;
+            $maxQuantity = self::getAvailableQuantity($rec->productId, $rec->eshopProductId, $rec->cartId, $rec->id);
+
+            $skip = false;
+            if(isset($maxQuantity)){
+                if($maxQuantity < $rec->quantity){
+                    core_Statuses::newStatus("Избраното количество не е налично", 'error');
+                    $skip = true;
+                }
+            }
+
+            if($skip === false){
+                self::save($rec, 'quantity');
+                vislog_History::add("Обновяване на количество в количка");
+            }
+
+            Mode::set('currentExternalTab', 'eshop_Carts');
+
+            // Ако заявката е по ajax
+            if (Request::get('ajax_mode')) {
+
+                return self::getUpdateCartResponse($cartId);
+            }
         }
-        
+
         return followRetUrl();
     }
     
@@ -680,7 +645,7 @@ class eshop_CartDetails extends core_Detail
             $Cover = doc_Folders::getCover($lastActiveFolder);
             $listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
         }
-        
+
         // Ако има взема се цената от нея
         if (isset($listId)) {
             $price = price_ListRules::getPrice($listId, $rec->productId, $rec->packagingId);
@@ -690,7 +655,7 @@ class eshop_CartDetails extends core_Detail
                 
                 // И старата цена е по-евтина, то се взима тя
                 $priceOld = price_ListRules::getPrice($oldListId, $rec->productId, $rec->packagingId);
-                if(!empty($priceOld) && trim(round($priceOld, 5)) < trim(round($price))){
+                if(!empty($priceOld) && trim(round($priceOld, 5)) < trim(round($price, 5))){
                     $price = $priceOld;
                     $listId = $oldListId;
                 }
