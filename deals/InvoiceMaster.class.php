@@ -1388,7 +1388,7 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Кешира информация за оригиналните стойностти на детайлите на известието
      */
-    public function getInvoiceDetailedInfo($containerId)
+    public function getInvoiceDetailedInfo($containerId, $applyDiscount = false)
     {
         expect($document = doc_Containers::getDocument($containerId));
         expect($document->isInstanceOf($this));
@@ -1405,7 +1405,12 @@ abstract class deals_InvoiceMaster extends core_Master
             $query->orderBy('id', 'ASC');
 
             while ($dRec = $query->fetch()) {
-                $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
+                if($applyDiscount){
+                    $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
+                } else {
+                    $price = $dRec->packPrice;
+                }
+
                 $cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $price);
                 $count++;
                 
