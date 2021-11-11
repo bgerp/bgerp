@@ -1388,7 +1388,7 @@ abstract class deals_InvoiceMaster extends core_Master
     /**
      * Кешира информация за оригиналните стойностти на детайлите на известието
      */
-    public function getInvoiceDetailedInfo($containerId)
+    public function getInvoiceDetailedInfo($containerId, $applyDiscount = false)
     {
         expect($document = doc_Containers::getDocument($containerId));
         expect($document->isInstanceOf($this));
@@ -1405,7 +1405,13 @@ abstract class deals_InvoiceMaster extends core_Master
             $query->orderBy('id', 'ASC');
 
             while ($dRec = $query->fetch()) {
-                $cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $dRec->packPrice);
+                if($applyDiscount){
+                    $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
+                } else {
+                    $price = $dRec->packPrice;
+                }
+
+                $cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $price);
                 $count++;
                 
                 if ($vatRate != 'no' && $vatRate != 'exempt') {
@@ -1586,15 +1592,22 @@ abstract class deals_InvoiceMaster extends core_Master
         $Detail = cls::get($this->mainDetail);
         $query = $Detail->getQuery();
         $query->where("#{$Detail->masterKey} = '{$rec->id}'");
-        
+        $query->orderBy('id', 'ASC');
+
         while ($dRec = $query->fetch()) {
+            if(!empty($dRec->discount)){
+                $dRec->price = $dRec->price * (1 - $dRec->discount);
+                $dRec->amount = $dRec->price * $dRec->quantity;
+                $dRec->packPrice = $dRec->price * $dRec->quantityInPack;
+                unset($dRec->discount);
+            }
             unset($dRec->id);
             unset($dRec->{$Detail->masterKey});
             unset($dRec->createdOn);
             unset($dRec->createdBy);
             $details[] = $dRec;
         }
-        
+
         return $details;
     }
     
