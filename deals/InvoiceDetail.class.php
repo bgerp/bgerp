@@ -262,6 +262,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
                 $priceKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
 
+                if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
+
                 if(array_key_exists($quantityKey, $cached->recs)){
                     $originPrice = deals_Helper::getDisplayPrice($cached->recs[$quantityKey]['price'], 0, 1, 'no', 5);
                     $diffPrice = $dRec->packPrice - $originPrice;
