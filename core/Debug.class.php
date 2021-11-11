@@ -706,7 +706,12 @@ class core_Debug
         if (isset($state['header'])) {
             $data['header'] = $state['header'];
         } else {
-            $data['header'] = $state['errType'];
+            if (!is_object($state['errType'])) {
+                $data['header'] = $state['errType'];
+            } else {
+                $data['header'] = 'stdClass';
+            }
+
             if ($breakLine && !strpos($fileHtml, "eval()'d code")) {
                 $data['header'] .= " на линия <i>{$lineHtml}</i>";
             }

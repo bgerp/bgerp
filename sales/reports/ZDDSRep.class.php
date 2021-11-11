@@ -20,7 +20,7 @@ class sales_reports_ZDDSRep extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, store, sales, admin, purchase';
+    public $canSelectDriver = 'no_one';
     
     
     /**
