@@ -78,8 +78,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
-
-         $mvc->setDbIndex('productId,packagingId');
+        $mvc->FLD('clonedFromDetailId', "key(mvc={$mvc->className},select=id)", 'caption=От кое поле е клонирано,input=hidden');
+        $mvc->setDbIndex('productId,packagingId');
     }
     
     
@@ -142,16 +142,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $error = "error=Няма {$text} артикули,";
             }
             
-            $data->toolbar->addBtn(
-                
-                'Артикул',
-                
-                array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => true),
-                    "id=btnAdd,{$error} order=10,title=Добавяне на артикул",
-                
-                'ef_icon = img/16/shopping.png'
-            
-            );
+            $data->toolbar->addBtn('Артикул', array($mvc, 'add', "{$mvc->masterKey}" => $data->masterId, 'ret_url' => true), "id=btnAdd,{$error} order=10,title=Добавяне на артикул", 'ef_icon = img/16/shopping.png');
         }
         
         // Добавяне на бутон за импортиране на артикулите директно от договора
@@ -264,8 +255,9 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
                 if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
 
-                if(array_key_exists($quantityKey, $cached->recs)){
-                    $originPrice = deals_Helper::getDisplayPrice($cached->recs[$quantityKey]['price'], 0, 1, 'no', 5);
+                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($quantityKey, $cached->recs)){
+                    $quantityArr = is_array($cached->recWithIds[$dRec->clonedFromDetailId]) ? $cached->recWithIds[$dRec->clonedFromDetailId] : $cached->recs[$quantityKey];
+                    $originPrice = deals_Helper::getDisplayPrice($quantityArr['price'], 0, 1, 'no', 5);
                     $diffPrice = $dRec->packPrice - $originPrice;
 
                     $priceIsChanged = false;
@@ -280,8 +272,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
                     }
                 }
 
-                if(array_key_exists($priceKey, $cached->recs)){
-                    $diffQuantity = $dRec->quantity - $cached->recs[$priceKey]['quantity'];
+                if(array_key_exists($dRec->clonedFromDetailId, $cached->recWithIds) || array_key_exists($priceKey, $cached->recs)){
+                    $priceArr = is_array($cached->recWithIds[$dRec->clonedFromDetailId]) ? $cached->recWithIds[$dRec->clonedFromDetailId] : $cached->recs[$priceKey];
+
+                    $diffQuantity = $dRec->quantity - $priceArr['quantity'];
                     if (round($diffQuantity, 5) != 0) {
                         $dRec->quantity = $diffQuantity;
                         $dRec->changedQuantity = true;
@@ -668,10 +662,18 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 if ($masterRec->type === 'dc_note') {
                     $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
 
-                    $quantityKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|Q{$rec->quantity}";
-                    $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$rec->packPrice}";
+                    if(isset($rec->clonedFromDetailId)){
+                        $changedPriceAndQuantity = false;
+                        if(round($rec->quantity, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['quantity'], 5) && round($rec->packPrice, 5) != round($cache->recWithIds[$rec->clonedFromDetailId]['price'], 5)){
+                            $changedPriceAndQuantity = true;
+                        }
+                    } else {
+                        $quantityKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|Q{$rec->quantity}";
+                        $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$rec->packPrice}";
+                        $changedPriceAndQuantity = !array_key_exists($quantityKey, $cache->recs) && !array_key_exists($priceKey, $cache->recs);
+                    }
 
-                    if(!array_key_exists($quantityKey, $cache->recs) && !array_key_exists($priceKey, $cache->recs)) {
+                    if($changedPriceAndQuantity) {
                         $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
                     }
                 }
