@@ -742,14 +742,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 //Проверка за подгрупи
                 $q = cat_Groups::getQuery()->where("#parentId = $val");
 
-                if(!empty($q->fetchAll())) {
+                if (!empty($q->fetchAll())) {
                     foreach ($q->fetchAll() as $subGr) {
 
-                            $subGrArr = self::getGroupsSubLevels($subGr->id);
+                        $subGrArr = self::getGroupsSubLevels($subGr->id);
 
-                            foreach ($subGrArr as $v) {
-                                $groupsSuggestionsArr[$v] = cat_Groups::fetch($v)->name;
-                            }
+                        foreach ($subGrArr as $v) {
+                            $groupsSuggestionsArr[$v] = cat_Groups::fetch($v)->name;
+                        }
 
                     }
 
@@ -804,13 +804,13 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->title = "Филтър по артикул";
 
-            foreach (array_keys($rec->data->recs) as $val) {
+        foreach (array_keys($rec->data->recs) as $val) {
 
-                $pRec = cat_Products::fetch($val);
-                $code = $pRec->code?:'Art'.$pRec->productId;
-                $artSuggestionsArr[$val] = $code.'|'.$pRec->name;
+            $pRec = cat_Products::fetch($val);
+            $code = $pRec->code ?: 'Art' . $pRec->productId;
+            $artSuggestionsArr[$val] = $code . '|' . $pRec->name;
 
-            }
+        }
 
         $form->FLD('artFilter', 'key(mvc=cat_Products, select=name)', 'caption=Артикул,silent');
 
@@ -850,19 +850,19 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $groupsQuery->where("#parentId = $groupId");
 
-        while ($gRec = $groupsQuery->fetch()){
+        while ($gRec = $groupsQuery->fetch()) {
 
             $groupsQuery1 = cat_Groups::getQuery();
 
-            if (!$groupsQuery1->fetchAll()){
+            if (!$groupsQuery1->fetchAll()) {
                 self::getGroupsSubLevels($gRec->id);
-            }else{
+            } else {
                 $subGrArr[$gRec->id] = $gRec->id;
             }
 
         }
 
-     return $subGrArr;
+        return $subGrArr;
 
     }
 }

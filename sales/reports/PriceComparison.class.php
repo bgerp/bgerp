@@ -34,7 +34,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields  ;
+    protected $summaryListFields;
 
 
     /**
@@ -43,7 +43,6 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
      * @var int
      */
     protected $summaryRowCaption = 'ОБЩО';
-
 
 
     /**
@@ -165,7 +164,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $pQuery->where("#isPublic = 'yes'");
 
         //Филтър по групи артикули
-        if($rec->groups){
+        if ($rec->groups) {
             $pQuery->likeKeylist('groups', $rec->groups);
         }
 
@@ -188,17 +187,17 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
 
             //Изчисляване на разликата в стойност
             $diffPrice = $hiPrice - $lowPrice;
-            if (!$hiPrice && !$lowPrice){
+            if (!$hiPrice && !$lowPrice) {
                 $diffPrice = '';
             }
 
             //Изчисляване на разликата в процент
 
-            $d = ($rec->typePercent == 'up') ? $lowPrice: $hiPrice;
+            $d = ($rec->typePercent == 'up') ? $lowPrice : $hiPrice;
 
             if ($hiPrice && $lowPrice) {
                 $diffPercent = $diffPrice / $d;
-            }else{
+            } else {
                 $diffPercent = '';
             }
 
@@ -251,10 +250,9 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         $fld->FLD('lowPrice', 'double', 'caption=Цена -> Ниска');
         $fld->FLD('hiPrice', 'double', 'caption=Цена -> Висока');
         $fld->FLD('diffPrice', 'double', 'caption=Разлика -> Стойност');
-        if ($rec->typePercent != 'none'){
+        if ($rec->typePercent != 'none') {
             $fld->FLD('diffPercent', 'double', 'caption=Разлика -> Процент');
         }
-
 
 
         return $fld;
@@ -348,7 +346,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
         }
 
         if (isset($data->rec->policyClassId)) {
-            $fieldTpl->append('<b>' .core_Classes::fetch($data->rec->policyClassId)->title . '</b>', 'policyClassId');
+            $fieldTpl->append('<b>' . core_Classes::fetch($data->rec->policyClassId)->title . '</b>', 'policyClassId');
         }
 
         if ((isset($data->rec->priceListHigh))) {
