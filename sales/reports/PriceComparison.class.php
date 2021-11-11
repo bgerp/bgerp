@@ -19,7 +19,7 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'debug';
+    public $canSelectDriver = 'ceo,priceMaster';
 
     /**
      * Кои полета от листовия изглед да може да се сортират
