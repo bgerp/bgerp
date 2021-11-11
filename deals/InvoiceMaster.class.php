@@ -1392,56 +1392,50 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         expect($document = doc_Containers::getDocument($containerId));
         expect($document->isInstanceOf($this));
-        
-        if (!isset($this->cache[$containerId])) {
-            $cache = $vats = array();
-            $Detail = $this->mainDetail;
-            $query = $Detail::getQuery();
-            $vatRate = $document->fetchField('vatRate');
-            $dpAmount = $document->fetch('dpAmount');
 
-            $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
-            $query->orderBy('id', 'ASC');
+        $cache = $vats = $cacheIds = array();
+        $Detail = $this->mainDetail;
+        $query = $Detail::getQuery();
+        $vatRate = $document->fetchField('vatRate');
+        $dpAmount = $document->fetch('dpAmount');
 
-            while ($dRec = $query->fetch()) {
+        $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
+        $query->orderBy('id', 'ASC');
 
-                if($applyDiscount){
-                    $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
-                } else {
-                    $price = $dRec->packPrice;
-                }
-                $price = round($price, 5);
-                $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
-                $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
-
-                $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price, 'id' => $dRec->id);
-                $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price, 'id' => $dRec->id);
-
-
-                if ($vatRate != 'no' && $vatRate != 'exempt') {
-                    $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
-                }
-                $vats[$v] = $v;
+        while ($dRec = $query->fetch()) {
+            if($applyDiscount){
+                $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
+            } else {
+                $price = $dRec->packPrice;
             }
 
+            $price = round($price, 5);
+            $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
+            $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
 
-            if (!countR($cache)) {
-                if (isset($dpAmount)) {
-                    $v = ($vatRate == 'yes' || $vatRate == 'separate') ? 0.2 : 0;
-                    $vats["{$v}"] = $v;
-                }
+            $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price);
+            $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price);
+            $cacheIds[$dRec->id] = array('quantity' => $dRec->quantity, 'price' => $price);
+            if ($vatRate != 'no' && $vatRate != 'exempt') {
+                $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
             }
 
-
-
-
-            $this->cache[$containerId] = (object) array('recs' => $cache, 'vats' => $vats);
+            $vats[$v] = $v;
         }
 
-        return $this->cache[$containerId];
+        if (!countR($cache)) {
+            if (isset($dpAmount)) {
+                $v = ($vatRate == 'yes' || $vatRate == 'separate') ? 0.2 : 0;
+                $vats["{$v}"] = $v;
+            }
+        }
+
+        $res = (object) array('recs' => $cache, 'vats' => $vats, 'recWithIds' => $cacheIds);
+
+        return $res;
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -1454,13 +1448,13 @@ abstract class deals_InvoiceMaster extends core_Master
                     $res = 'no_one';
                 }
             }
-            
+
             if ($rec->state == 'active' && !($mvc instanceof sales_Proformas)) {
                 $dayForInvoice = acc_Setup::get('DATE_FOR_INVOICE_DATE');
                 $monthValior = dt::mysql2verbal($rec->date, 'm.y');
                 $monthNow = dt::mysql2verbal(dt::today(), 'm.y');
                 $dateNow = dt::mysql2verbal(dt::today(), 'd');
-                
+
                 // вальорът на фактурата не от текущия месец
                 // в текущия месец текущата дата е >= на датата от константата "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" в пакета асс
                 if($monthValior != $monthNow && $dateNow >= $dayForInvoice){
@@ -1470,7 +1464,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
-        
+
         // Ако възстановяваме известие и оригиналът му е оттеглен, не можем да го възстановим
         if ($action == 'restore' && isset($rec)) {
             if (isset($rec->type) && $rec->type != 'invoice') {
@@ -1479,12 +1473,12 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
-        
+
         // Към ф-ра не можем да правим корекция, трябва да направим КИ или ДИ
         if ($action == 'correction' && isset($rec)) {
             $res = 'no_one';
         }
-        
+
         // Може да се генерира фактура само в нишка с начало сделка, или от друга фактура
         if ($action == 'add' && isset($rec->originId)) {
             $origin = doc_Containers::getDocument($rec->originId);
@@ -1497,7 +1491,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
-        
+
         if ($action == 'add' && isset($rec->sourceContainerId)) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if (!$Source->haveInterface('deals_InvoiceSourceIntf')) {
@@ -1509,13 +1503,13 @@ abstract class deals_InvoiceMaster extends core_Master
                 } else {
                     $boolRes = $sourceState != 'active' && $sourceState != 'draft' && $sourceState != 'pending';
                 }
-                
+
                 if ($boolRes) {
                     $res = 'no_one';
                 }
             }
         }
-        
+
         // Не може да се контира КИ и ДИ, ако оригиналната фактура е оттеглена
         if ($action == 'conto' && isset($rec)) {
             if ($res != 'no_one') {
@@ -1527,7 +1521,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
-        
+
         // Не може да се променя в затворен период
         if ($action == 'changerec' && isset($rec) && $res != 'no_one') {
             $periodState = acc_Periods::fetchByDate($mvc->getValiorValue($rec))->state;
@@ -1536,8 +1530,8 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Намира ориджина на фактурата (ако има)
      */
@@ -1545,18 +1539,18 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $origin = null;
         $rec = static::fetchRec($rec);
-        
+
         if ($rec->originId) {
             return doc_Containers::getDocument($rec->originId);
         }
         if ($rec->threadId) {
             return doc_Threads::getFirstDocument($rec->threadId);
         }
-        
+
         return $origin;
     }
-    
-    
+
+
     /**
      * Кой е източника на фактурата
      */
@@ -1566,7 +1560,7 @@ abstract class deals_InvoiceMaster extends core_Master
         if ($rec->sourceContainerId) {
             return doc_Containers::getDocument($rec->sourceContainerId);
         }
-        
+
         return static::getOrigin($rec);
     }
 
@@ -1591,12 +1585,12 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         $details = array();
         $rec = static::fetchRec($id);
-        
+
         // Ако начисляваме аванс или има въведена нова стойност не се копират детайлите
         if ($rec->dpOperation == 'accrued') {
             return $details;
         }
-        
+
         $Detail = cls::get($this->mainDetail);
         $query = $Detail->getQuery();
         $query->where("#{$Detail->masterKey} = '{$rec->id}'");
@@ -1609,6 +1603,7 @@ abstract class deals_InvoiceMaster extends core_Master
                 $dRec->packPrice = $dRec->price * $dRec->quantityInPack;
                 unset($dRec->discount);
             }
+            $dRec->clonedFromDetailId = $dRec->id;
             unset($dRec->id);
             unset($dRec->{$Detail->masterKey});
             unset($dRec->createdOn);
