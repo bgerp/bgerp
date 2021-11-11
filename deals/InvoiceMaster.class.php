@@ -1399,37 +1399,45 @@ abstract class deals_InvoiceMaster extends core_Master
             $query = $Detail::getQuery();
             $vatRate = $document->fetchField('vatRate');
             $dpAmount = $document->fetch('dpAmount');
-            
-            $count = 0;
+
             $query->where("#{$this->{$Detail}->masterKey} = '{$document->that}'");
             $query->orderBy('id', 'ASC');
 
             while ($dRec = $query->fetch()) {
+
                 if($applyDiscount){
                     $price = empty($dRec->discount) ? $dRec->packPrice : ($dRec->packPrice * (1 - $dRec->discount));
                 } else {
                     $price = $dRec->packPrice;
                 }
+                $price = round($price, 5);
+                $key1 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
+                $key2 = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
 
-                $cache[$count][$dRec->productId] = array('quantity' => $dRec->quantity, 'price' => $price);
-                $count++;
-                
+                $cache[$key1] = array('quantity' => $dRec->quantity, 'price' => $price, 'id' => $dRec->id);
+                $cache[$key2] = array('quantity' => $dRec->quantity, 'price' => $price, 'id' => $dRec->id);
+
+
                 if ($vatRate != 'no' && $vatRate != 'exempt') {
                     $v = cat_Products::getVat($dRec->productId, $document->fetchField('date'));
                 }
                 $vats[$v] = $v;
             }
-            
+
+
             if (!countR($cache)) {
                 if (isset($dpAmount)) {
                     $v = ($vatRate == 'yes' || $vatRate == 'separate') ? 0.2 : 0;
                     $vats["{$v}"] = $v;
                 }
             }
-            
+
+
+
+
             $this->cache[$containerId] = (object) array('recs' => $cache, 'vats' => $vats);
         }
-        
+
         return $this->cache[$containerId];
     }
     
