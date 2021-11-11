@@ -713,7 +713,11 @@ class log_Debug extends core_Manager
         if (isset($state['header'])) {
             $data['header'] = $state['header'];
         } else {
-            $data['header'] = $state['errType'];
+            if (!is_object($state['errType'])) {
+                $data['header'] = $state['errType'];
+            } else {
+                $data['header'] = 'stdClass';
+            }
             if ($state['_breakLine'] && !strpos($fileHtml, "eval()'d code")) {
                 $data['header'] .= " на линия <i>{$lineHtml}</i>";
             }
