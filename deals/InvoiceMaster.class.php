@@ -1586,7 +1586,8 @@ abstract class deals_InvoiceMaster extends core_Master
         $Detail = cls::get($this->mainDetail);
         $query = $Detail->getQuery();
         $query->where("#{$Detail->masterKey} = '{$rec->id}'");
-        
+        $query->orderBy('id', 'ASC');
+
         while ($dRec = $query->fetch()) {
             unset($dRec->id);
             unset($dRec->{$Detail->masterKey});
@@ -1594,7 +1595,7 @@ abstract class deals_InvoiceMaster extends core_Master
             unset($dRec->createdBy);
             $details[] = $dRec;
         }
-        
+
         return $details;
     }
     
