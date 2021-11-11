@@ -486,12 +486,13 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         } else {
             $grFilterName = 'Не е избрана';
         }
-        $url = array('store_reports_ProductAvailableQuantity1', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
+        $grUrl = array('store_reports_ProductAvailableQuantity1', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
+        $artUrl = array('store_reports_ProductAvailableQuantity1', 'artfilter', 'recId' => $data->rec->id, 'ret_url' => true);
 
         $toolbar = cls::get('core_Toolbar');
 
-        $toolbar->addBtn('Избери група', toUrl($url));
-        $toolbar->addBtn('Избери артикул', toUrl($url));
+        $toolbar->addBtn('Избери група', toUrl($grUrl));
+        $toolbar->addBtn('Избери артикул', toUrl($artUrl));
 
         $fieldTpl->append('<b>' . "$grFilterName" . $toolbar->renderHtml() . '</b>', 'button');
 
@@ -787,6 +788,57 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     }
 
     /**
+     * Филтриране на артикул
+     */
+    public static function act_ArtFilter()
+    {
+
+
+        expect($recId = Request::get('recId', 'int'));
+
+        $rec = frame2_Reports::fetch($recId);
+
+        frame2_Reports::refresh($rec);
+
+        $form = cls::get('core_Form');
+
+        $form->title = "Филтър по артикул";
+
+            foreach (array_keys($rec->data->recs) as $val) {
+
+                $pRec = cat_Products::fetch($val);
+                $code = $pRec->code?:'Art'.$pRec->productId;
+                $artSuggestionsArr[$val] = $code.'|'.$pRec->name;
+
+            }
+
+        $form->FLD('artFilter', 'key(mvc=cat_Products, select=name)', 'caption=Артикул,silent');
+
+        $form->setOptions('artFilter', $artSuggestionsArr);
+
+        $mRec = $form->input();
+
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        if ($form->isSubmitted()) {
+
+            foreach ($rec->data->recs as $pRec) {
+                if ($form->rec->artFilter != $pRec->productId) {
+                    unset($rec->data->recs[$pRec->productId]);
+                }
+            }
+
+            frame2_Reports::save($rec);
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'artFilter' => $form->rec->artFilter, 'ret_url' => true));
+
+        }
+
+        return $form->renderHtml();
+    }
+
+    /**
      * Вземане на поднивата на групите
      */
     public static function getGroupsSubLevels($groupId)
@@ -811,7 +863,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
 
      return $subGrArr;
-
 
     }
 }
