@@ -256,30 +256,36 @@ abstract class deals_InvoiceDetail extends doc_Detail
             $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId, $applyDiscount);
 
             // За всеки запис ако е променен от оригиналния показваме промяната
-            $count = 0;
             foreach ($recs as &$dRec) {
-                $originRef = $cached->recs[$count][$dRec->productId];
-                $diffQuantity = $dRec->quantity - $originRef['quantity'];
-                
-                $originPrice = deals_Helper::getDisplayPrice($originRef['price'], 0, 1, 'no', 5);
-                $diffPrice = $dRec->packPrice - $originPrice;
+                $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
+                $priceKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$dRec->packPrice}";
 
-                $priceIsChanged = false;
-                $diffPrice = round($diffPrice, 5);
-                if(abs($diffPrice) > 0.0001){
-                    $priceIsChanged = true;
+                if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
+
+                if(array_key_exists($quantityKey, $cached->recs)){
+
+                    $originPrice = deals_Helper::getDisplayPrice($cached->recs[$quantityKey]['price'], 0, 1, 'no', 5);
+                    $diffPrice = $dRec->packPrice - $originPrice;
+
+                    $priceIsChanged = false;
+                    $diffPrice = round($diffPrice, 5);
+                    if(abs($diffPrice) > 0.0001){
+                        $priceIsChanged = true;
+                    }
+
+                    if ($priceIsChanged) {
+                        $dRec->packPrice = $diffPrice;
+                        $dRec->changedPrice = true;
+                    }
                 }
-                
-                if (round($diffQuantity, 5) != 0) {
-                    $dRec->quantity = $diffQuantity;
-                    $dRec->changedQuantity = true;
+
+                if(array_key_exists($priceKey, $cached->recs)){
+                    $diffQuantity = $dRec->quantity - $cached->recs[$priceKey]['quantity'];
+                    if (round($diffQuantity, 5) != 0) {
+                        $dRec->quantity = $diffQuantity;
+                        $dRec->changedQuantity = true;
+                    }
                 }
-                
-                if ($priceIsChanged) {
-                    $dRec->packPrice = $diffPrice;
-                    $dRec->changedPrice = true;
-                }
-                $count++;
             }
         }
     }
@@ -645,47 +651,28 @@ abstract class deals_InvoiceDetail extends doc_Detail
                 $form->setError('productId,packagingId,packPrice,discount,notes', 'Вече съществува запис със същите данни');
                 unset($rec->packPrice, $rec->price, $rec->quantityInPack);
             }
-            
-            // Записваме основната мярка на продукта
-            $rec->amount = $rec->packPrice * $rec->quantity;
-            
-            // При редакция, ако е променена опаковката слагаме преудпреждение
-            if ($rec->id) {
-                $oldRec = $mvc->fetch($rec->id);
-                if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && trim($rec->packPrice) == trim($oldRec->packPrice)) {
-                    $form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на новата опаковка|*?');
-                }
-            }
-            
-            if ($masterRec->type === 'dc_note') {
-                $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId);
-                
-                // За да проверим дали има променено и количество и цена
-                // намираме този запис кой пдоред детайл е на нареждането
-                // и намираме от кешираните стойности оригиналните количества за сравняване
-                $recs = array();
-                $query = $mvc->getQuery();
-                $query->where("#invoiceId = {$masterRec->id}");
-                $query->orderBy('id', 'ASC');
-                $query->show('id');
-                while ($dRec = $query->fetch()) {
-                    $recs[] = $dRec->id;
-                }
-                $index = array_search($rec->id, $recs);
-                $cache = $cache->recs[$index][$rec->productId];
-                $pPrice = isset($packPrice)? $packPrice : $rec->packPrice;
-                
-                $priceIsChanged = false;
-                $originPrice = deals_Helper::getDisplayPrice($cache['price'], 0, 1, 'no', 5);
-                $diffPrice = abs($pPrice - $originPrice);
-                $diffPrice = round($diffPrice, 5);
 
-                if($diffPrice > 0.0001){
-                    $priceIsChanged = true;
+            if(!$form->gotErrors()){
+                // Записваме основната мярка на продукта
+                $rec->amount = $rec->packPrice * $rec->quantity;
+
+                // При редакция, ако е променена опаковката слагаме преудпреждение
+                if ($rec->id) {
+                    $oldRec = $mvc->fetch($rec->id);
+                    if ($oldRec && $rec->packagingId != $oldRec->packagingId && !empty($rec->packPrice) && trim($rec->packPrice) == trim($oldRec->packPrice)) {
+                        $form->setWarning('packPrice,packagingId', 'Опаковката е променена без да е променена цената|*.<br />|Сигурни ли сте, че зададената цена отговаря на новата опаковка|*?');
+                    }
                 }
-                
-                if (round($cache['quantity'], 5) != round($rec->quantity, 5) && (isset($rec->packPrice) && $priceIsChanged)) {
-                    $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
+
+                if ($masterRec->type === 'dc_note') {
+                    $cache = $mvc->Master->getInvoiceDetailedInfo($masterRec->originId, true);
+
+                    $quantityKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|Q{$rec->quantity}";
+                    $priceKey = "{$rec->productId}|{$rec->packagingId}|{$rec->quantityInPack}|{$rec->batches}|{$rec->notes}|P{$rec->packPrice}";
+
+                    if(!array_key_exists($quantityKey, $cache->recs) && !array_key_exists($priceKey, $cache->recs)) {
+                        $form->setError('quantity,packPrice', 'Не може да е променена и цената и количеството');
+                    }
                 }
             }
         }
