@@ -248,6 +248,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         arr::sortObjects($recs, 'id', 'ASC');
 
         if (countR($recs)) {
+
             $hasDiscount = false;
             array_walk($recs, function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
             $applyDiscount = !($hasDiscount);
@@ -257,13 +258,11 @@ abstract class deals_InvoiceDetail extends doc_Detail
 
             // За всеки запис ако е променен от оригиналния показваме промяната
             foreach ($recs as &$dRec) {
+                $price = round($dRec->packPrice, 5);
                 $quantityKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|Q{$dRec->quantity}";
-                $priceKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$dRec->packPrice}";
-
-                if(array_key_exists($quantityKey, $cached->recs) && array_key_exists($priceKey, $cached->recs)) continue;
+                $priceKey = "{$dRec->productId}|{$dRec->packagingId}|{$dRec->quantityInPack}|{$dRec->batches}|{$dRec->notes}|P{$price}";
 
                 if(array_key_exists($quantityKey, $cached->recs)){
-
                     $originPrice = deals_Helper::getDisplayPrice($cached->recs[$quantityKey]['price'], 0, 1, 'no', 5);
                     $diffPrice = $dRec->packPrice - $originPrice;
 
