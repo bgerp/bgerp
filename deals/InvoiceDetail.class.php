@@ -248,8 +248,12 @@ abstract class deals_InvoiceDetail extends doc_Detail
         arr::sortObjects($recs, 'id', 'ASC');
 
         if (countR($recs)) {
+            $hasDiscount = false;
+            array_walk($recs, function($a) use (&$hasDiscount) {if(!empty($a->discount)) {$hasDiscount = true;}});
+            $applyDiscount = !($hasDiscount);
+
             // Намираме оригиналните к-ва и цени
-            $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId);
+            $cached = $mvc->Master->getInvoiceDetailedInfo($rec->originId, $applyDiscount);
 
             // За всеки запис ако е променен от оригиналния показваме промяната
             $count = 0;
