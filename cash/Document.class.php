@@ -589,10 +589,11 @@ abstract class cash_Document extends deals_PaymentDocument
             // Сумата да е бутон за контиране
             if(!Mode::is('printing')){
                 $info['amountVerbal'] = str_replace('&nbsp;', ' ', $info['amountVerbal']);
-                $btn = ht::createBtn($info['amountVerbal'], $contoUrl, $warning, false, "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
+                $btn = ht::createBtn($info['amountVerbal'], $contoUrl, $warning, false, "ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа,id={$this->getHandle($rec->id)}");
                 $info['amountVerbal'] = $btn;
             }
         } else {
+            $info['amountVerbal'] = "<span id={$this->getHandle($rec->id)}>{$info['amountVerbal']}</span>";
             $info['amountVerbal'] = ht::styleNumber($info['amountVerbal'], $info['amount']);
         }
         

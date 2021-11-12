@@ -113,15 +113,17 @@ class rack_plg_Shipments extends core_Plugin
             $res = array();
             if(isset($mvc->detailToPlaceInZones)){
                 $Detail = cls::get($mvc->detailToPlaceInZones);
+
+
                 $dQuery = $Detail->getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
-                
+
                 while($dRec = $dQuery->fetch()){
                     
                     $key = "{$dRec->{$Detail->productFld}}|{$dRec->packagingId}";
                     $rest = $dRec->{$Detail->quantityFld};
-                    
+
                     $Def = batch_Defs::getBatchDef($dRec->productId);
                     if (is_object($Def)) {
                         
@@ -141,8 +143,8 @@ class rack_plg_Shipments extends core_Plugin
                             }
                         }
                     }
-                    
-                    if(round($rest, 2) > 0){
+
+                    if(round($rest, 5) > 0){
                         $key3 = "{$key}|{$k}||";
                         if(!array_key_exists($key3, $res)){
                             $res[$key3] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => '');
@@ -166,9 +168,36 @@ class rack_plg_Shipments extends core_Plugin
         if ($zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'id')){
             rack_ZoneDetails::syncWithDoc($zoneId, $rec->containerId);
         }
+
+        // Ако документа е изполван в зона да се синхронизира
+        if($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}", 'id,defaultUserId,storeId')){
+            $mvc->syncWithZone[$rec->containerId] = $zoneRec;
+        }
     }
-    
-    
+
+
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(is_array($mvc->syncWithZone)){
+            foreach ($mvc->syncWithZone as $containerId => $zoneRec){
+
+                // Синхронизиране на документа със зоната
+                rack_ZoneDetails::syncWithDoc($zoneRec->id, $containerId);
+
+                // Ще се регенерират движенията само за артикулите в тази зона
+                $zdQuery = rack_ZoneDetails::getQuery();
+                $zdQuery->where("#zoneId = {$zoneRec->id}");
+                $zdQuery->show('productId');
+                $productIdsInZone = arr::extractValuesFromArray($zdQuery->fetchAll(), 'productId');
+                rack_Zones::pickupAll($zoneRec->storeId, $zoneRec->defaultUserId, $productIdsInZone);
+            }
+        }
+    }
+
+
     /**
      * Изпълнява се преди контиране на документа
      */
