@@ -433,7 +433,10 @@ class rack_Movements extends rack_MovementAbstract
             
             if ($availableQuantity > 0) {
                 $availableQuantity /= $rec->quantityInPack;
-                $form->setField('packQuantity', "placeholder={$availableQuantity}");
+                Mode::push('text', 'plain');
+                $placeholderPackQuantity = core_Type::getByName('double(smartRound)')->toVerbal($availableQuantity);
+                Mode::pop('text');
+                $form->setField('packQuantity', "placeholder={$placeholderPackQuantity}");
                 $form->rec->defaultPackQuantity = $availableQuantity;
             }
             

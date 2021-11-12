@@ -964,7 +964,7 @@ class rack_Zones extends core_Master
      * @param int $storeId - ид на склад
      * @param void
      */
-    public static function pickupAll($storeId)
+    public static function pickupAll($storeId, $defaultUserId = null, $productIds = null)
     {
         // Групиране по групи на зоните
         $gQuery = rack_ZoneGroups::getQuery();
@@ -974,14 +974,14 @@ class rack_Zones extends core_Master
             $groupableZones = self::getZones($storeId, false, true, $gRec->id);
             if (countR($groupableZones)) {
                 $groupableZones = arr::make(array_keys($groupableZones), true);
-                self::pickupOrder($storeId, $groupableZones);
+                self::pickupOrder($storeId, $groupableZones, $defaultUserId, $productIds);
             }
         }
 
         // Всички зони, които са без групиране
         $nonGroupableZones = array_keys(self::getZones($storeId, false, false));
         foreach ($nonGroupableZones as $zoneId) {
-            self::pickupOrder($storeId, $zoneId);
+            self::pickupOrder($storeId, $zoneId, $defaultUserId, $productIds);
         }
     }
 
@@ -996,12 +996,17 @@ class rack_Zones extends core_Master
      * @param int $storeId - ид на склад
      * @param array|null $zoneIds - ид-та само на избраните зони
      * @param null $workerId - ид на дефолтен товарач
+     * @param array|null $productIds - ид-та на артикули
      */
-    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null)
+    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null)
     {
+        $productIds = arr::make($productIds, true);
         $systemUserId = core_Users::SYSTEM_USER;
         $mQuery = rack_Movements::getQuery();
         $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId}");
+        if(countR($productIds)){
+            $mQuery->in('productId', $productIds);
+        }
 
         if (isset($zoneIds)) {
             $zoneIds = arr::make($zoneIds, true);
@@ -1024,7 +1029,7 @@ class rack_Zones extends core_Master
         }
 
         // Какви са очакваните количества
-        $expected = self::getExpectedProducts($storeId, $zoneIds);
+        $expected = self::getExpectedProducts($storeId, $zoneIds, $productIds);
 
         $floor = rack_PositionType::FLOOR;
         foreach ($expected->products as $pRec) {
@@ -1127,18 +1132,22 @@ class rack_Zones extends core_Master
      *
      * @param int $storeId
      * @param array|null $zoneIds - ид-та само на избраните зони
-     * @param array|null $productArr - ид-та само на избраните артикули или null за всички
+     * @param array|null $productIds - ид-та само на избраните артикули или null за всички
      *
      * @return stdClass $res
      */
-    private static function getExpectedProducts($storeId, $zoneIds)
+    private static function getExpectedProducts($storeId, $zoneIds, $productIds = null)
     {
+        $productIds = arr::make($productIds, true);
         $res = (object)array('products' => array());
         $res->zones = (is_numeric($zoneIds)) ? array($zoneIds => $zoneIds) : ((is_array($zoneIds)) ? $zoneIds : array());
 
         $dQuery = rack_ZoneDetails::getQuery();
         $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
         $dQuery->where("#documentQuantity IS NOT NULL AND #storeId = {$storeId}");
+        if(countR($productIds)){
+            $dQuery->in('productId', $productIds);
+        }
 
         $zoneMovements = array();
         if (isset($zoneIds)) {
@@ -1149,6 +1158,10 @@ class rack_Zones extends core_Master
             $mQuery->where("#state = 'pending' || #state = 'waiting'");
             $zoneIds = arr::make($zoneIds, true);
             $mQuery->likeKeylist('zoneList', keylist::fromArray($zoneIds));
+            if(countR($productIds)){
+                $mQuery->in('productId', $productIds);
+            }
+
             $zoneMovements = $mQuery->fetchAll();
         }
 

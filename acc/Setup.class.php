@@ -190,7 +190,6 @@ class acc_Setup extends core_ProtoSetup
         'acc_ValueCorrections',
         'acc_FeatureTitles',
         'acc_CostAllocations',
-        'migrate::roundClosedBalanceAccounts'
     );
     
     
@@ -538,72 +537,5 @@ class acc_Setup extends core_ProtoSetup
         $options = core_Classes::getOptionsByInterface('doc_DocumentIntf', 'title');
         
         return $options;
-    }
-
-
-    /**
-     * Закръгля приключените периоди ако има
-     */
-    public function roundClosedBalanceAccounts()
-    {
-        $bDetails = cls::get('acc_BalanceDetails');
-        $lastClosed = acc_Periods::getLastClosed();
-        if(!$lastClosed) return;
-
-        $diffAmount = 0;
-        $res = array();
-        $activePeriod = acc_Periods::getFirstActive();
-        if(!is_object($activePeriod)) return;
-
-        $lastClosedBalanceId = acc_Balances::fetchField("#periodId = {$lastClosed->id}");
-
-        $bQuery = acc_BalanceDetails::getQuery();
-        $bQuery->where("#balanceId = {$lastClosedBalanceId}");
-        $bQuery->where("#accountNum IN ('501', '502', '503')");
-        $bQuery->XPR("blQuantityLength", 'double', '(LENGTH(SUBSTR(#blQuantity, INSTR(#blQuantity,".")))-1)');
-        $bQuery->XPR("blAmountLength", 'double', '(LENGTH(SUBSTR(#blAmount, INSTR(#blAmount,".")))-1)');
-        $bQuery->where("#blQuantityLength > 2 OR #blAmountLength > 2");
-        $bQuery->XPR("blQuantityDiff", 'double', '(#blQuantity - ROUND(#blQuantity, 2))');
-        $bQuery->XPR("blAmountDiff", 'double', '(#blAmount - ROUND(#blAmount, 2))');
-        $bQuery->where("#ent1Id IS NOT NULL OR #ent2Id IS NOT NULL OR #ent3Id IS NOT NULL");
-
-        $count = $bQuery->count();
-        if(!$count) return;
-
-        core_App::setTimeLimit($count * 0.6, false, 300);
-
-        while($bRec = $bQuery->fetch()){
-            $bRec->blQuantity = round($bRec->blQuantity, 2);
-            $bRec->blAmount = round($bRec->blAmount, 2);
-            $diffAmount += $bRec->blAmountDiff;
-            $res[] = $bRec;
-        }
-
-        $bDetails->saveArray($res, 'id,blQuantity,blAmount');
-        acc_Balances::alternate($activePeriod->start, null, null);
-
-        if($diffAmount < -0.1 || $diffAmount >= 0.1){
-            core_Users::forceSystemUser();
-            $accRec = (object)array('valior' => $activePeriod->start, 'reason' => 'Автоматично закръгляне', 'folderId' => acc_Articles::getDefaultFolder(), 'state' => 'draft');
-            acc_Articles::save($accRec);
-
-            acc_Articles::logWrite('Автоматично създаване на коригиращ документ');
-            core_Users::cancelSystemUser();
-            doc_Threads::doUpdateThread($accRec->threadId);
-
-            $acc1Id = acc_Accounts::getRecBySystemId('488')->id;
-            $acc2Id = acc_Accounts::getRecBySystemId('900')->id;
-            if($diffAmount >= 0){
-                $dRec = (object)array('debitAccId' => $acc2Id, 'creditAccId' => $acc1Id, 'amount' => abs($diffAmount));
-            } else {
-                $dRec = (object)array('debitAccId' => $acc1Id, 'creditAccId' => $acc2Id, 'amount' => abs($diffAmount));
-            }
-
-            $dRec->articleId = $accRec->id;
-            acc_ArticleDetails::save($dRec);
-
-            acc_Articles::conto($accRec);
-            acc_Articles::logWrite('Контиране на коригиращ документ');
-        }
     }
 }
