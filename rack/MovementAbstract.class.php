@@ -189,7 +189,7 @@ abstract class rack_MovementAbstract extends core_Manager
         if ($skipZones === false) {
             $quantityInZones = array();
             $zones = self::getZoneArr($rec, $quantityInZones);
-            $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
+            $restQuantity = round($packQuantity, 9) - round($quantityInZones, 9);
 
             foreach ($zones as $zoneRec) {
                 $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
@@ -239,7 +239,6 @@ abstract class rack_MovementAbstract extends core_Manager
             $zoneArr = type_Table::toArray($rec->zones);
             if (countR($zoneArr)) {
                 foreach ($zoneArr as &$obj) {
-                    $obj->quantity = core_Type::getByName('double')->fromVerbal($obj->quantity);
                     $quantityInZones += $obj->quantity;
                 }
             }
