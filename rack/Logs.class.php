@@ -119,7 +119,9 @@ class rack_Logs extends core_Manager
             if(is_object($movementRec)){
                 $rec->movementId = $movementRec->id;
                 $Movements = cls::get('rack_Movements');
+                Mode::push('text', 'plain');
                 $description = strip_tags($Movements->getMovementDescription($movementRec, false, false));
+                Mode::pop('text');
                 $rec->message .= " / {$description}";
             }
         }
