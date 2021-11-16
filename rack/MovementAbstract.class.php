@@ -174,7 +174,7 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         $movementArr = $quantities = array();
-        $quantities['from'] = (object)array('quantity' => round($rec->quantity, 9), 'position' => $position, 'class' => $class);
+        $quantities['from'] = (object)array('quantity' => round($rec->quantity, 6), 'position' => $position, 'class' => $class);
 
         if ($skipZones === false) {
             $quantityInZones = 0;
@@ -193,10 +193,10 @@ abstract class rack_MovementAbstract extends core_Manager
                 } else {
                     $zoneTitle = ht::createHint($zoneRec->zone, 'Зоната вече не съществува', 'warning');
                 }
-                $quantities[$zoneRec->zone] = (object)array('quantity' => $zoneRec->quantity * $rec->quantityInPack, 'position' => $zoneTitle, 'class' => $class);
+                $quantities[$zoneRec->zone] = (object)array('quantity' => round($zoneRec->quantity * $rec->quantityInPack, 6), 'position' => $zoneTitle, 'class' => $class);
             }
 
-            if (!empty($positionTo) && $restQuantity) {
+            if (!empty($positionTo) && round($restQuantity, 6)) {
                 $quantities['to'] = (object)array('quantity' => $restQuantity, 'position' => $positionTo, 'class' => $class);
             }
         }
@@ -432,10 +432,9 @@ abstract class rack_MovementAbstract extends core_Manager
 
         do {
             $first = $packs[key($packs)];
-            $packsByNow[] = array('packagingId' => $first['packagingId'], 'quantity' => floor(round($quantity / $first['quantity'], 2)));
-
-            $remaining = ($quantity * 1000) % ($first['quantity'] * 1000);
-            $remaining /= 1000;
+            $inPack = floor($quantity / $first['quantity']);
+            $packsByNow[] = array('packagingId' => $first['packagingId'], 'quantity' => $inPack);
+            $remaining = round($quantity - ($inPack * $first['quantity']), 6);
             unset($packs[key($packs)]);
             $quantity = $remaining;
 
@@ -443,7 +442,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         // Ако има остатък се пропуска всичко
         if($remaining) {
-            $remaining = round($remaining, 4);
+            $remaining = round($remaining, 6);
             $packsByNow[] = array('packagingId' => cat_Products::fetchField($productId, 'measureId'), 'quantity' => $remaining);
         }
 
@@ -458,6 +457,8 @@ abstract class rack_MovementAbstract extends core_Manager
             $plus = ($sign < 0) ? "&nbsp;" : "&nbsp;+&nbsp;";
             $string .= (!empty($string) ? $plus : "") . "{$quantityVerbal} {$packDisplay}";
         }
+
+        //bp($productId, $packagingArr, $quantity, $string);
 
         return $string;
     }
