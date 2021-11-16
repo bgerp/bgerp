@@ -30,7 +30,7 @@ class rack_Zones extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2,plg_RefreshRows';
+    public $loadList = 'rack_Wrapper,plg_Sorting,plg_Created,plg_State2,plg_RowTools2,plg_RefreshRows,plg_Printing';
 
 
     /**
