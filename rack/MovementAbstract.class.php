@@ -453,6 +453,7 @@ abstract class rack_MovementAbstract extends core_Manager
             $p['quantity'] = $sign * $p['quantity'];
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($p['quantity']);
             $quantityVerbal = ht::styleIfNegative($quantityVerbal, $p['quantity']);
+
             $packDisplay = tr(cat_UoM::getSmartName($p['packagingId'], $p['quantity']));
             $plus = ($sign < 0) ? "&nbsp;" : "&nbsp;+&nbsp;";
             $string .= (!empty($string) ? $plus : "") . "{$quantityVerbal} {$packDisplay}";
