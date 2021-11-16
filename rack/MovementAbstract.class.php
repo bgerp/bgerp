@@ -398,6 +398,24 @@ abstract class rack_MovementAbstract extends core_Manager
     }
 
 
+    function act_Test()
+    {
+        $productId = 4;
+        $packagingArr = array();
+        $packagingArr[] = array('id' => 55, 'packagingId' => 46, 'quantity' => 20);
+        $packagingArr[] = array('id' => 10, 'packagingId' => 44, 'quantity' => 80);
+        $packagingArr[] = array('id' => 82, 'packagingId' => 46, 'quantity' => 80);
+
+        $quantity = 90;
+
+        //bp($packagingArr, cat_Products::);
+
+        $r = $this->getSmartPackagings($productId, $packagingArr, $quantity);
+        bp($r);
+
+
+    }
+
     /**
      * Връща умно показване на опаковките
      *
@@ -411,6 +429,14 @@ abstract class rack_MovementAbstract extends core_Manager
         // Кои опаковки са с по-малко количество от нужното
         $packs = array_filter($packagingArr, function($a) use ($quantity) {return $a['quantity'] <= $quantity;});
         if(!countR($packs)) return null;
+
+        // Подобрено сортиране
+        uasort($packs, function ($a, $b)  {
+            if ($a['quantity'] == $b['quantity']) { return $a['id'] > $b['id'] ? 1 : -1;}
+
+            return ($a['quantity'] > $b['quantity']) ? -1 : 1;
+        });
+
         arr::sortObjects($packs, 'quantity', 'DESC');
         $packs = array_values($packs);
 
