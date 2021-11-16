@@ -281,16 +281,23 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             $prodRec->storesQuatity = $temp[$productId];
 
-            $prodRec->conditionQuantity = '3|ок';
+            $prodRec->conditionQuantity = '4|ок';
             $prodRec->conditionColor = 'green';
             if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0 && $prodRec->minQuantity != '0') {
-                continue;
+              //  continue;
             }
+
+
+
             if ($prodRec->quantity > $prodRec->maxQuantity && ($prodRec->maxQuantity != 0)) {
-                $prodRec->conditionQuantity = '2|над Макс.';
+                $prodRec->conditionQuantity = '3|над Макс.';
                 $prodRec->conditionColor = 'blue';
             } elseif ($prodRec->quantity < $prodRec->minQuantity) {
                 $prodRec->conditionQuantity = '1|под Мин.';
+                $prodRec->conditionColor = 'blue';
+            }
+            if ($prodRec->quantity < 0) {
+                $prodRec->conditionQuantity = '2|Отр.';
                 $prodRec->conditionColor = 'red';
             }
         }
@@ -514,96 +521,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $res->code = (!empty($code)) ? $code : "Art{$dRec->productId}";
     }
 
-
-    /**
-     * Изчиства повтарящи се стойности във формата
-     *
-     * @param
-     *            $arr
-     *
-     * @return array
-     */
-    public static function removeRpeadValues($arr)
-    {
-        $tempArr = (array)$arr;
-
-        $tempProducts = array();
-        if (is_array($tempArr['code'])) {
-            foreach ($tempArr['code'] as $k => $v) {
-                if (in_array($v, $tempProducts)) {
-                    unset($tempArr['minQuantity'][$k]);
-                    unset($tempArr['maxQuantity'][$k]);
-                    unset($tempArr['name'][$k]);
-                    unset($tempArr['code'][$k]);
-                    continue;
-                }
-
-                $tempProducts[$k] = $v;
-            }
-        }
-
-        $groupNamerr = $tempArr;
-
-        return $arr;
-    }
-
-    /**
-     * Валидира таблицата
-     *
-     * @param mixed $tableData
-     * @param core_Type $Type
-     * @return void|string|array
-     */
-    public static function validateTable($tableData, $Type)
-    {
-
-        $tableData = (array)$tableData;
-        if (empty($tableData)) {
-
-            return;
-        }
-
-        $res = $error = $errorFields = array();
-
-        foreach ($tableData['minQuantity'] as $key => $minQuantity) {
-
-            if (!empty($minQuantity)) {
-                $Double = core_Type::getByName('double');
-                $q2 = $Double->fromVerbal($minQuantity);
-                if (!$q2) {
-                    $error[] = 'Невалидна стойност';
-                    $errorFields['minQuantity'][$key] = 'Невалидна стойност';
-                }
-
-            }
-        }
-
-        foreach ($tableData['maxQuantity'] as $key => $maxQuantity) {
-
-            if (!empty($maxQuantity)) {
-                $Double = core_Type::getByName('double');
-                $q2 = $Double->fromVerbal($maxQuantity);
-                if (!$q2) {
-                    $error[] = 'Невалидна стойност';
-                    $errorFields['maxQuantity'][$key] = 'Невалидна стойност';
-                }
-
-            }
-        }
-
-        if (countR($error)) {
-            $error = implode('|*<li>|', $error);
-            $res['error'] = $error;
-        }
-
-        if (countR($errorFields)) {
-            $res['errorFields'] = $errorFields;
-        }
-
-        return $res;
-    }
-
-
     /**
      * Кои полета да се следят при обновяване, за да се бие нотификация
      *
@@ -663,6 +580,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         expect($recId = Request::get('recId', 'int'));
         expect($productId = Request::get('productId', 'int'));
         expect($code = Request::get('code'));
+
         $rec = frame2_Reports::fetch($recId);
 
         $details = $rec->artLimits;
@@ -679,11 +597,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $volOldMin = $minVal;
         $volOldMax = $maxVal;
-
-        //   $form->FLD('volOldMin', 'varchar', 'caption=Стойност min,silent');
-        //  $form->setReadOnly('volOldMin', "$volOldMin");
-        //   $form->FLD('volOldMax', 'varchar', 'caption=Стойност max,silent');
-        //  $form->setReadOnly('volOldMax', "$volOldMax");
 
         $form->FLD('volNewMin', 'varchar', 'caption=Въведи min,input');
 
@@ -707,7 +620,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             frame2_Reports::save($rec);
 
-            frame2_Reports::refresh($rec);
+            // frame2_Reports::refresh($rec);
 
             return new Redirect(getRetUrl());
         }
@@ -754,7 +667,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     }
 
                 }
-
 
             }
 
