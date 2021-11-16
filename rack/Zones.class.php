@@ -458,7 +458,6 @@ class rack_Zones extends core_Master
                 $dQuery = rack_ZoneDetails::getQuery();
                 $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
                 $dQuery->where("#productId={$filter->productId} AND #storeId = {$storeId}");
-                $dQuery->where("#movementQuantity != 0 OR #documentQuantity != 0");
 
                 $zoneIdsWithProduct = arr::extractValuesFromArray($dQuery->fetchAll(), 'zoneId');
                 if (countR($zoneIdsWithProduct)) {
