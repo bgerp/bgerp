@@ -95,6 +95,12 @@ class rack_Movements extends rack_MovementAbstract
 
 
     /**
+     * Кеш на продуктовите опаковки
+     */
+    public $packCache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -182,8 +188,39 @@ class rack_Movements extends rack_MovementAbstract
             }
         }
     }
-    
-    
+
+
+    /**
+     * Връща кешираните продуктови опаковки към момента на викане
+     *
+     * @param int $productId
+     * @return array
+     */
+    private function getCurrentPackagings($productId)
+    {
+        if(!array_key_exists($productId, $this->packCache)){
+            $measureId = cat_Products::fetchField($productId, 'measureId');
+            $pcsId = cat_UoM::fetchBySysId('pcs')->id;
+            $thPcsId = cat_UoM::fetchBySysId('K pcs')->id;
+
+            $packagings = array();
+            if($measureId == $pcsId || $measureId == $thPcsId){
+                $pQuery = cat_products_Packagings::getQuery();
+                $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
+                $pQuery->show('quantity,packagingId');
+                while($pRec = $pQuery->fetch()){
+                    $packagings[] = array('packagingId' => $pRec->packagingId, 'quantity' => $pRec->quantity);
+                }
+            }
+
+            $this->packCache[$productId] = $packagings;
+        }
+
+        return $this->packCache[$productId];
+    }
+
+
     /**
      * Извиква се преди запис в модела
      *
@@ -234,6 +271,9 @@ class rack_Movements extends rack_MovementAbstract
         if(empty($rec->id)){
             $rec->_isCreated = true;
         }
+
+        $currentPacks = $mvc->getCurrentPackagings($rec->productId);
+        $rec->packagings = countR($currentPacks) ? $currentPacks : null;
     }
     
     
@@ -704,7 +744,7 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             // Записва се служителя и се обновява движението
-            $this->save($rec, 'state,brState,workerId,modifiedOn,modifiedBy,documents,canceledOn,canceledBy');
+            $this->save($rec, 'state,brState,workerId,modifiedOn,modifiedBy,documents,canceledOn,canceledBy,packagings');
 
             $msg = (countR($transaction->warnings)) ? implode(', ', $transaction->warnings) : null;
             $type = (countR($transaction->warnings)) ? 'warning' : 'notice';
@@ -785,7 +825,7 @@ class rack_Movements extends rack_MovementAbstract
         
         $rec->state = 'closed';
         $rec->brState = 'active';
-        $this->save($rec, 'state,brState,modifiedOn,modifiedBy');
+        $this->save($rec, 'state,brState,packagings,modifiedOn,modifiedBy');
         
         core_Locks::release("movement{$rec->id}");
         

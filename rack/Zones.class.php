@@ -876,27 +876,13 @@ class rack_Zones extends core_Master
 
             while ($mRec = $mQuery->fetch()) {
                 if (!empty($mRec->zones)) {
-                    $zones = type_Table::toArray($mRec->zones);
-                    $quantity = null;
-                    foreach ($zones as $zObject) {
-                        if ($zObject->zone == $zoneId) {
-                            $quantity = $zObject->quantity;
-                            break;
-                        }
-                    }
-
                     $clone = clone $mRec;
-                    $clone->_originalPackQuantity = $mRec->packQuantity;
-                    $clone->quantity = $quantity;
-                    $clone->packQuantity = $clone->quantity;
                     self::$movementCache[$zoneId][$mRec->id] = $clone;
                 }
             }
         }
 
-        $nonClosedRecs = array_filter(self::$movementCache[$zoneId], function ($a) {
-            return $a->state != 'closed';
-        });
+        $nonClosedRecs = array_filter(self::$movementCache[$zoneId], function ($a) { return $a->state != 'closed';});
 
         if (!countR($nonClosedRecs)) {
             self::$movementCache[$zoneId] = array();
