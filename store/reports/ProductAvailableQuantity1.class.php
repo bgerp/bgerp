@@ -333,7 +333,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,smartCenter');
+        $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
 
 
         if ($rec->limits == 'yes') {
@@ -360,18 +360,19 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Int = cls::get('type_Int');
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 3;
 
         $row = new stdClass();
-        $t = core_Type::getByName('double(smartRound,decimals=3)');
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
         if ($rec->seeByStores != 'yes') {
             if (isset($dRec->quantity)) {
-                $row->quantity = $t->fromVerbal($dRec->quantity);
+                $row->quantity = $Double->toVerbal($dRec->quantity);
                 $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
             }
         } else {
 
-            $row->quantity = '<b>' . 'Общо: ' . $t->fromVerbal($dRec->quantity) . '</b>' . "</br>";
+            $row->quantity = '<b>' . 'Общо: ' . $Double->toVerbal($dRec->quantity) . '</b>' . "</br>";
 
             foreach ($dRec->storesQuatity as $val) {
 
