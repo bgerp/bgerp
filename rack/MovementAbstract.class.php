@@ -163,7 +163,6 @@ abstract class rack_MovementAbstract extends core_Manager
         $positionTo = $this->getFieldType('positionTo')->toVerbal($rec->positionTo);
 
         $Double = core_Type::getByName('double(smartRound)');
-        $packagingRow = cat_UoM::getShortName($rec->packagingId);
 
         $class = '';
         if ($palletId = cat_UoM::fetchBySinonim('pallet')->id) {
@@ -198,8 +197,7 @@ abstract class rack_MovementAbstract extends core_Manager
             }
 
             if (!empty($positionTo) && $restQuantity) {
-                $resQuantity = $Double->toVerbal($restQuantity);
-                $quantities['to'] = (object)array('quantity' => $resQuantity, 'position' => $positionTo, 'class' => $class);
+                $quantities['to'] = (object)array('quantity' => $restQuantity, 'position' => $positionTo, 'class' => $class);
             }
         }
 
@@ -215,7 +213,7 @@ abstract class rack_MovementAbstract extends core_Manager
             if(!array_key_exists($k, $movementArr)){
                 $packQuantity = $a->quantity / $rec->quantityInPack;
                 $packQuantityVerbal = $Double->toVerbal($packQuantity);
-                $packDisplay = tr(str::getPlural($packQuantity, $packagingRow, true));
+                $packDisplay = tr(cat_UoM::getSmartName($rec->packagingId, $packQuantity));
                 $packQuantityVerbal = "{$packQuantityVerbal} {$packDisplay}";
 
                 $movementArr[$k] = "{$a->position} (<span {$a->class}>{$packQuantityVerbal}</span>)";
@@ -449,9 +447,8 @@ abstract class rack_MovementAbstract extends core_Manager
         $string = '';
         foreach ($packsByNow as $p){
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($p['quantity']);
-            $packName = cat_UoM::getShortName($p['packagingId']);
-            $packName = tr(str::getPlural($p['quantity'], $packName, true));
-            $string .= (!empty($string) ? "&nbsp;+&nbsp;" : "") . "{$quantityVerbal} {$packName}";
+            $packDisplay = tr(cat_UoM::getSmartName($p['packagingId'], $p['quantity']));
+            $string .= (!empty($string) ? "&nbsp;+&nbsp;" : "") . "{$quantityVerbal} {$packDisplay}";
         }
 
         return $string;
