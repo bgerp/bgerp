@@ -54,6 +54,11 @@
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow span {
     color: #000 !important;
 }
+
+.rack_Zones  .listTable > tbody > tr.zonesCommonRow span.red {
+    color: red !important;
+}
+
 .rack_Zones  .listTable > tbody > tr.zonesCommonRow .quiet, .rack_Zones  .listTable > tbody > tr.zonesCommonRow .rack-zone-batch span {
     color: #eee !important;
 }
