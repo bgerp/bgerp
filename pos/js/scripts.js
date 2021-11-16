@@ -1412,7 +1412,7 @@ function triggerSearchInput(element, timeoutTime, keyupTriggered)
 		console.log('MICROFORMAT waiting');
 		return;
 	}
-	console.log('trigger SEARCH');
+	console.log('trigger SEARCH:' + operation + ' - ' + inpVal);
 
 	var selectedElement = $(".highlighted.productRow");
 	var selectedRecId = selectedElement.attr("data-id");

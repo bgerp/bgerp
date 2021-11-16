@@ -100,7 +100,7 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
         $this->FNC('status', 'varchar', 'tdClass=zone-product-status,smartCenter');
-        
+
         $this->setDbIndex('zoneId,productId,packagingId,batch');
     }
     
@@ -171,6 +171,9 @@ class rack_ZoneDetails extends core_Detail
         setIfNot($data->inlineDetail, false);
         setIfNot($data->masterData->rec->_isSingle, !$data->inlineDetail);
         $requestedProductId = Request::get('productId', 'int');
+        if(Mode::is('printing')){
+            $data->filter = 'notClosed';
+        }
 
         // Допълнително обикаляне на записите
         foreach ($data->rows as $id => &$row){

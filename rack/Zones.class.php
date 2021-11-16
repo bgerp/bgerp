@@ -191,9 +191,16 @@ class rack_Zones extends core_Master
                 $singleUrl = $Document->getSingleUrlArray();
                 $row->containerId = ht::createLink("#{$Document->abbr}{$Document->that}", $singleUrl);
             } else {
-                $row->containerId = $Document->getLink(0);
+                if(!Mode::is('printing')) {
+                    $row->containerId = $Document->getLink(0);
+                } else {
+                    $row->containerId = $Document->getHandle();
+                }
             }
-            $row->containerId = "<span class='document-handler state-{$Document->fetchField('state')}'>{$row->containerId}</span>";
+
+            if(!Mode::is('printing')){
+                $row->containerId = "<span class='document-handler state-{$Document->fetchField('state')}'>{$row->containerId}</span>";
+            }
         }
 
         if($isTerminal) {
@@ -451,7 +458,6 @@ class rack_Zones extends core_Master
                 $dQuery = rack_ZoneDetails::getQuery();
                 $dQuery->EXT('storeId', 'rack_Zones', 'externalName=storeId,externalKey=zoneId');
                 $dQuery->where("#productId={$filter->productId} AND #storeId = {$storeId}");
-                $dQuery->where("#movementQuantity != 0 OR #documentQuantity != 0");
 
                 $zoneIdsWithProduct = arr::extractValuesFromArray($dQuery->fetchAll(), 'zoneId');
                 if (countR($zoneIdsWithProduct)) {
@@ -868,6 +874,8 @@ class rack_Zones extends core_Master
                 $mQuery->where("#workerId =" . core_Users::getCurrent());
             } elseif($filter == 'pending'){
                 $mQuery->where("#state = 'pending'");
+            } elseif($filter == 'notClosed'){
+                $mQuery->where("#state != 'closed'");
             }
             $mQuery->orderBy('id', 'DESC');
 
@@ -1031,7 +1039,10 @@ class rack_Zones extends core_Master
             if ($quantityOnPallets < $requiredQuantityOnZones) {
                 $floorQuantity = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
                 $floorWaitingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'waiting');
+                $floorPendingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'pending');
+
                 $floorQuantity -= $floorWaitingQuantity;
+                $floorQuantity -= $floorPendingQuantity;
                 if ($floorQuantity > 0) {
                     $pallets[$floor] = (object)array('quantity' => $floorQuantity, 'position' => $floor);
                 }
