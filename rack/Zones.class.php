@@ -1039,7 +1039,10 @@ class rack_Zones extends core_Master
             if ($quantityOnPallets < $requiredQuantityOnZones) {
                 $floorQuantity = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
                 $floorWaitingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'waiting');
+                $floorPendingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'pending');
+
                 $floorQuantity -= $floorWaitingQuantity;
+                $floorQuantity -= $floorPendingQuantity;
                 if ($floorQuantity > 0) {
                     $pallets[$floor] = (object)array('quantity' => $floorQuantity, 'position' => $floor);
                 }
