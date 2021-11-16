@@ -433,6 +433,7 @@ abstract class rack_MovementAbstract extends core_Manager
         do {
             $first = $packs[key($packs)];
             $inPack = floor($quantity / $first['quantity']);
+
             $packsByNow[] = array('packagingId' => $first['packagingId'], 'quantity' => $inPack);
             $remaining = round($quantity - ($inPack * $first['quantity']), 6);
             unset($packs[key($packs)]);
@@ -449,16 +450,16 @@ abstract class rack_MovementAbstract extends core_Manager
         // Показване на опаковките
         $string = '';
         foreach ($packsByNow as $p){
-            $p['quantity'] = $sign * $p['quantity'];
-            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($p['quantity']);
-            $quantityVerbal = ht::styleIfNegative($quantityVerbal, $p['quantity']);
+            if($p['quantity']){
+                $p['quantity'] = $sign * $p['quantity'];
+                $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($p['quantity']);
+                $quantityVerbal = ht::styleIfNegative($quantityVerbal, $p['quantity']);
 
-            $packDisplay = tr(cat_UoM::getSmartName($p['packagingId'], $p['quantity']));
-            $plus = ($sign < 0) ? "&nbsp;" : "&nbsp;+&nbsp;";
-            $string .= (!empty($string) ? $plus : "") . "{$quantityVerbal} {$packDisplay}";
+                $packDisplay = tr(cat_UoM::getSmartName($p['packagingId'], $p['quantity']));
+                $plus = ($sign < 0) ? "&nbsp;" : "&nbsp;+&nbsp;";
+                $string .= (!empty($string) ? $plus : "") . "{$quantityVerbal} {$packDisplay}";
+            }
         }
-
-        //bp($productId, $packagingArr, $quantity, $string);
 
         return $string;
     }
