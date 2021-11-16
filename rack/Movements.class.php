@@ -210,7 +210,7 @@ class rack_Movements extends rack_MovementAbstract
                 $pQuery->where("#productId = {$productId} AND #type = 'packaging'");
                 $pQuery->show('quantity,packagingId');
                 while($pRec = $pQuery->fetch()){
-                    $packagings[] = array('packagingId' => $pRec->packagingId, 'quantity' => $pRec->quantity);
+                    $packagings[] = array('id' => $pRec->id, 'packagingId' => $pRec->packagingId, 'quantity' => $pRec->quantity);
                 }
             }
 
