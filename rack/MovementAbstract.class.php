@@ -174,7 +174,7 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         $movementArr = $quantities = array();
-        $quantities['from'] = (object)array('quantity' => $rec->quantity, 'position' => $position, 'class' => $class);
+        $quantities['from'] = (object)array('quantity' => round($rec->quantity, 9), 'position' => $position, 'class' => $class);
 
         if ($skipZones === false) {
             $quantityInZones = 0;
@@ -202,6 +202,7 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         foreach ($quantities as $k => $a){
+            if(empty($a->quantity) && $k == 'from') continue;
 
             if(is_array($rec->packagings)){
                 $convertedQuantity = static::getSmartPackagings($rec->productId, $rec->packagings, $a->quantity);
@@ -213,9 +214,9 @@ abstract class rack_MovementAbstract extends core_Manager
             if(!array_key_exists($k, $movementArr)){
                 $packQuantity = $a->quantity / $rec->quantityInPack;
                 $packQuantityVerbal = $Double->toVerbal($packQuantity);
+                $packQuantityVerbal = ht::styleIfNegative($packQuantityVerbal, $packQuantity);
                 $packDisplay = tr(cat_UoM::getSmartName($rec->packagingId, $packQuantity));
                 $packQuantityVerbal = "{$packQuantityVerbal} {$packDisplay}";
-
                 $movementArr[$k] = "{$a->position} (<span {$a->class}>{$packQuantityVerbal}</span>)";
             }
         }
@@ -404,8 +405,11 @@ abstract class rack_MovementAbstract extends core_Manager
      * @param int $quantity
      * @return string|null $string
      */
-    public static function getSmartPackagings($productId, $packagingArr, $quantity)
+    protected static function getSmartPackagings($productId, $packagingArr, $quantity)
     {
+        $sign = ($quantity < 0) ? -1 : 1;
+        $quantity = abs($quantity);
+
         // Кои опаковки са с по-малко количество от нужното
         $packs = array_filter($packagingArr, function($a) use ($quantity) {return $a['quantity'] <= $quantity;});
         if(!countR($packs)) return null;
@@ -417,7 +421,6 @@ abstract class rack_MovementAbstract extends core_Manager
             return ($a['quantity'] > $b['quantity']) ? -1 : 1;
         });
 
-        arr::sortObjects($packs, 'quantity', 'DESC');
         $packs = array_values($packs);
 
         // Коя е най-малката опаковка
@@ -429,7 +432,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         do {
             $first = $packs[key($packs)];
-            $packsByNow[] = array('packagingId' => $first['packagingId'], 'quantity' => floor($quantity / $first['quantity']));
+            $packsByNow[] = array('packagingId' => $first['packagingId'], 'quantity' => floor(round($quantity / $first['quantity'], 2)));
 
             $remaining = ($quantity * 1000) % ($first['quantity'] * 1000);
             $remaining /= 1000;
@@ -440,15 +443,19 @@ abstract class rack_MovementAbstract extends core_Manager
 
         // Ако има остатък се пропуска всичко
         if($remaining) {
+            $remaining = round($remaining, 4);
             $packsByNow[] = array('packagingId' => cat_Products::fetchField($productId, 'measureId'), 'quantity' => $remaining);
         }
 
         // Показване на опаковките
         $string = '';
         foreach ($packsByNow as $p){
+            $p['quantity'] = $sign * $p['quantity'];
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($p['quantity']);
+            $quantityVerbal = ht::styleIfNegative($quantityVerbal, $p['quantity']);
             $packDisplay = tr(cat_UoM::getSmartName($p['packagingId'], $p['quantity']));
-            $string .= (!empty($string) ? "&nbsp;+&nbsp;" : "") . "{$quantityVerbal} {$packDisplay}";
+            $plus = ($sign < 0) ? "&nbsp;" : "&nbsp;+&nbsp;";
+            $string .= (!empty($string) ? $plus : "") . "{$quantityVerbal} {$packDisplay}";
         }
 
         return $string;
