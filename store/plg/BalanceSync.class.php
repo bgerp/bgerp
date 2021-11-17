@@ -79,6 +79,7 @@ class store_plg_BalanceSync extends core_Plugin
         }
         
         // За всеки запис от баланса
+        $now = dt::now();
         foreach ($recs as $rec) {
             if ($rec->ent1Id) {
                 
@@ -99,6 +100,7 @@ class store_plg_BalanceSync extends core_Plugin
                     $all[$index]->storeId = $storeItem->objectId;
                     $all[$index]->quantity = $rec->blQuantity;
                     $all[$index]->state = 'active';
+                    $all[$index]->lastUpdated = $now;
                 } else {
                     
                     // Ако го има добавяме количеството на записа
