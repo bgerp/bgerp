@@ -89,7 +89,7 @@ abstract class bank_Document extends deals_PaymentDocument
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'reason';
+    public $hideListFieldsIfEmpty = 'reason,invoices';
 
 
     /**
