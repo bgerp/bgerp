@@ -94,6 +94,7 @@ class store_Setup extends core_ProtoSetup
         'store_InventoryNoteDetails',
         'store_StockPlanning',
         'migrate::reconto3231v1',
+        'migrate::updateProductsLastUsedOn'
     );
     
     
@@ -279,5 +280,19 @@ class store_Setup extends core_ProtoSetup
                 }
             }
         }
+    }
+
+
+    /**
+     * Първоначално обновяване на датата на последна промяна
+     */
+    function updateProductsLastUsedOn()
+    {
+        $Products = cls::get('store_Products');
+        $Products->setupMvc();
+
+        $lastUpdatedColName = str::phpToMysqlName('lastUpdated');
+        $query = "UPDATE {$Products->dbTableName} SET {$lastUpdatedColName} = NOW() WHERE {$lastUpdatedColName} IS NULL";
+        $Products->db->query($query);
     }
 }

@@ -84,8 +84,14 @@ abstract class bank_Document extends deals_PaymentDocument
      * Кой може да го прави документа чакащ/чернова?
      */
     public $canPending = 'bank, ceo, purchase, sales';
-    
-    
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'reason,invoices';
+
+
     /**
      * Кой може да редактира?
      */

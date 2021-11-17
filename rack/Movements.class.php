@@ -1061,18 +1061,21 @@ class rack_Movements extends rack_MovementAbstract
         }
         
         // Ако се палетира от пода проверява се дали е налично количеството
-        if($transaction->from == rack_PositionType::FLOOR && isset($transaction->batch)){
-            $bMsg = isset($transaction->batch) ? 'на партидата' : 'без партида';
+        if($transaction->from == rack_PositionType::FLOOR){
             $availableQuantity = rack_Products::getFloorQuantity($transaction->productId, $transaction->batch, $transaction->storeId);
+
             if($availableQuantity < $transaction->quantity){
+                $bMsg = isset($transaction->batch) ? 'на партидата' : 'без партида';
                 $availableQuantityV = core_Type::getByName('double(smartRound)')->toVerbal($availableQuantity);
                 $res->errors = "Количеството {$bMsg} е над наличното|*: <b>{$availableQuantityV}</b>";
-                $res->errorFields[] = 'batch';
                 $res->errorFields[] = 'packQuantity';
+
+                if(isset($transaction->batch)){
+                    $res->errorFields[] = 'batch';
+                }
             }
         }
-        
-        
+
         return $res;
     }
     

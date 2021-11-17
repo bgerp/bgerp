@@ -117,4 +117,22 @@ abstract class deals_PaymentDocument extends core_Master
 
         return (object)array('amount' => $rec->amount, 'currencyId' => $rec->currencyId, 'amountDeal' => $rec->amountDeal, 'dealCurrencyId' => $rec->dealCurrencyId);
     }
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($fields['-list'])){
+            $invoicesArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            if(countR($invoicesArr)){
+                $invLinkArr = array();
+                foreach ($invoicesArr as $iArr){
+                    $invLinkArr[] = doc_Containers::getDocument($iArr->containerId)->getLink(0)->getContent();
+                }
+                $row->invoices = implode(',', $invLinkArr);
+            }
+        }
+    }
 }
