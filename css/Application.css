@@ -7358,3 +7358,6 @@ only screen and (max-width: 320px) {
 .rackRevisionRow {
   background-color: #ff6b4b; }
 
+.rack_ZoneDetails .listTable {
+  width: 100%; }
+
