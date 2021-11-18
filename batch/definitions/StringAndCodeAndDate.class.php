@@ -76,7 +76,7 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
             $productTime = cat_Products::getParams($this->rec->productId, 'expiryTime');
             $time = !empty($productTime) ? $productTime : $this->rec->time;
 
-            $date = dt::today();
+            $date = isset($date) ? $date : dt::today();
             if (isset($time)) {
                 $date = dt::addSecs($time, $date);
                 $date = dt::verbal2mysql($date, false);
