@@ -160,3 +160,17 @@
         height: 13px;
     }
 }
+
+.terminalWorkerCol {
+    width:100px !important;
+}
+
+.terminalRightBtnsCol {
+    text-align:right;
+    width:1% !important;
+}
+
+.terminalLeftBtnsCol {
+    text-align:right;
+    width:1% !important;
+}

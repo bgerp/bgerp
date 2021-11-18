@@ -459,13 +459,11 @@ class rack_Movements extends rack_MovementAbstract
                             $form->setReadOnly('batch');
                         }
                     }
-                    
+
                     $form->setOptions('batch', array('' => '') + $batches);
-                    
                     $fieldCaption = $BatchClass->getFieldCaption();
-                    if (!empty($fieldCaption)) {
-                        $form->setField('batch', "caption=Движение->{$fieldCaption}");
-                    }
+                    $fieldCaption = ($fieldCaption) ? $fieldCaption : 'Партида';
+                    $form->setField('batch', "caption=Движение->{$fieldCaption}");
                 }
             } else {
                 $form->setField('batch', 'input=none');

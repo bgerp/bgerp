@@ -120,19 +120,19 @@ class rack_plg_Shipments extends core_Plugin
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
 
                 while($dRec = $dQuery->fetch()){
-                    
+
                     $key = "{$dRec->{$Detail->productFld}}|{$dRec->packagingId}";
                     $rest = $dRec->{$Detail->quantityFld};
+                    $Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
 
-                    $Def = batch_Defs::getBatchDef($dRec->productId);
                     if (is_object($Def)) {
-                        
                         $bQuery = batch_BatchesInDocuments::getQuery();
-                        $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
+                        $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}} AND #operation = 'out'");
+
                         while($bRec = $bQuery->fetch()){
-                            $batches = batch_Defs::getBatchArray($bRec->productId, $bRec->batch);
+                            $batches = batch_Defs::getBatchArray($dRec->{$Detail->productFld}, $bRec->batch);
                             $quantity = (countR($batches) == 1) ? $bRec->quantity : $bRec->quantity / countR($batches);
-                            
+
                             foreach ($batches as $k => $b) {
                                 $key2 = "{$key}|{$k}";
                                 if(!array_key_exists($key2, $res)){
@@ -145,7 +145,7 @@ class rack_plg_Shipments extends core_Plugin
                     }
 
                     if(round($rest, 5) > 0){
-                        $key3 = "{$key}|{$k}||";
+                        $key3 = "{$key}|||";
                         if(!array_key_exists($key3, $res)){
                             $res[$key3] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => '');
                         }
