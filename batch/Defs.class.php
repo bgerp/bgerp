@@ -217,6 +217,10 @@ class batch_Defs extends core_Manager
             if (cls::load($template->driverClass, true)) {
                 $BatchClass = cls::get($template->driverClass);
                 $template->productId = $productId;
+                $template->templateId = $rec->templateId;
+                $code = cat_Products::fetchField($productId, 'code');
+                $template->productCode = !empty($productId) ? $code : "Art{$productId}";
+
                 $template->batchCaption = $rec->batchCaption;
                 if($rec->alwaysRequire != 'auto'){
                     $template->alwaysRequire = $rec->alwaysRequire;
@@ -234,7 +238,14 @@ class batch_Defs extends core_Manager
         return self::$cache[$productId];
     }
     
-    
+
+    function act_Test()
+    {
+        $B = batch_Defs::getBatchDef(4610);
+        $msg = null;
+
+        bp($B->isValid('ivelin171121', 1000, $msg));
+    }
     /**
      * Разбира партидата на масив от партиди
      */

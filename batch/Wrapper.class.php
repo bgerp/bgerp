@@ -11,7 +11,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -34,7 +34,7 @@ class batch_Wrapper extends plg_ProtoWrapper
         
         $this->TAB('batch_Defs', 'Партиди->Артикули', 'ceo, batchMaster');
         $this->TAB('batch_Templates', 'Партиди->Видове', 'ceo, batchMaster');
-        $this->TAB('batch_Features', 'Свойства', 'debug');
+        $this->TAB('batch_Features', 'Дебъг->Свойства', 'debug');
         
         $this->title = 'Партиди';
     }
