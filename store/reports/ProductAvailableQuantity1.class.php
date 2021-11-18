@@ -297,7 +297,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $prodRec->conditionColor = 'blue';
             }
             if ($prodRec->quantity < 0) {
-                $prodRec->conditionQuantity = '2|Отр.';
+                $prodRec->conditionQuantity = '2|Отриц.';
                 $prodRec->conditionColor = 'red';
             }
         }

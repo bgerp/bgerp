@@ -144,6 +144,12 @@ class rack_Zones extends core_Master
 
 
     /**
+     * Кои линии да се обновят на шътдаун
+     */
+    protected $syncLinesOnShutdown = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -802,6 +808,14 @@ class rack_Zones extends core_Master
     }
 
 
+    function act_Test()
+    {
+        requireRole('debug');
+
+        $this->updateMaster_(54);
+    }
+
+
     /**
      * Обновява данни в мастъра
      *
@@ -826,8 +840,39 @@ class rack_Zones extends core_Master
             }
         }
 
+        // Запомняне на старата готовност и изчисляване на новата
+        $oldReadiness = $rec->readiness;
         $rec->readiness = ($count) ? $ready / $count : null;
         $this->save($rec, 'readiness');
+
+        // Ако готовността е току що станала на 100% или от 100% е паднала
+        if(isset($rec->containerId)){
+            $Document = doc_Containers::getDocument($rec->containerId);
+            if(($oldReadiness == 1 && $rec->readiness != 1) || ($rec->readiness == 1 && $oldReadiness != 1)){
+
+                // Ако документа в зоната е закачен към транспортна линия - тя се маркира да се обнови
+                if($Document->getInstance()->hasPlugin('trans_plg_LinesPlugin')){
+                    if($documentLineId = $Document->fetchField($Document->lineFieldName)){
+                        $this->syncLinesOnShutdown[] = $documentLineId;
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Рутинни действия, които трябва да се изпълнят в момента преди терминиране на скрипта
+     */
+    public static function on_AfterSessionClose($mvc)
+    {
+        // Заопашените за обновяване линии да се обновят след терминиране на скрипта
+        if (is_array($mvc->syncLinesOnShutdown)) {
+            $Lines = cls::get('trans_Lines');
+            foreach ($mvc->syncLinesOnShutdown as $lineId) {
+                $Lines->updateMaster($lineId);
+            }
+        }
     }
 
 
