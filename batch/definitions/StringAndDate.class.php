@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title Номер + Срок на годност
+ * @title Номер+Срок на годност
  */
 class batch_definitions_StringAndDate extends batch_definitions_Varchar
 {
