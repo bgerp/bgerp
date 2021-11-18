@@ -445,10 +445,12 @@ abstract class rack_MovementAbstract extends core_Manager
             $packsByNow[] = array('packagingId' => $first['packagingId'], 'quantity' => $inPack, 'similarPacks' => $similarArr);
         } while($remaining > $lastElement['quantity'] && countR($packs));
 
-        // Ако има остатък се пропуска всичко
+        // Ако има остатък се показва и тях в основна мярка
         if($remaining) {
             $remaining = round($remaining, 6);
-            $packsByNow[] = array('packagingId' => cat_Products::fetchField($productId, 'measureId'), 'quantity' => $remaining, 'similarPacks' => array());
+            $productMeasureId = cat_Products::fetchField($productId, 'measureId');
+            $remaining = cat_Uom::round($productMeasureId, $remaining);
+            $packsByNow[] = array('packagingId' => $productMeasureId, 'quantity' => $remaining, 'similarPacks' => array());
         }
 
         // Показване на опаковките
