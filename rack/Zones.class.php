@@ -1262,7 +1262,7 @@ class rack_Zones extends core_Master
     {
         if(Mode::is('printing') || Mode::is('text', 'xhtml')) return null;
         $zoneTitle = ($showGroup) ? rack_Zones::getRecTitle($zoneId) : rack_Zones::getVerbal($zoneId, 'num');
-        $warning = null;
+        $warning = $hint = null;
 
         // Линк към зоната
         $zoneRec = rack_Zones::fetchRec($zoneId); 
@@ -1293,10 +1293,9 @@ class rack_Zones extends core_Master
             }
             
             if (!empty($zoneRec->description)) {
-                $description = rack_Zones::getVerbal($zoneRec, 'description');
-                $hint = ht::createHint($hint, $description, 'notice', false,'style=background-color:#fff !important;margin-left:3px;border-radius:8px;');
+                $hint = rack_Zones::getVerbal($zoneRec, 'description');
             }
-            
+
             if(countR($url)){
                 $backgroundColor = !empty($zoneRec->color) ? $zoneRec->color : rack_Setup::get('DEFAULT_ZONE_COLORS');
                 $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
@@ -1310,10 +1309,12 @@ class rack_Zones extends core_Master
         if(isset($class)){
             $backgroundColor = !empty($zoneRec->color) ? $zoneRec->color : rack_Setup::get('DEFAULT_ZONE_COLORS');
             $additionalClass = phpcolor_Adapter::checkColor($backgroundColor, 'dark') ? 'lightText' : 'darkText';
-            $res = new core_ET("<div class='{$class} {$additionalClass}' style='background-color:{$backgroundColor};'>[#element#]</div>[#hint#]");
+            $res = new core_ET("<div class='{$class} {$additionalClass}' style='background-color:{$backgroundColor};'>[#element#]</div>");
             $res->replace($zoneTitle, 'element');
-            $res->replace($hint, 'hint');
             $zoneTitle = $res->getContent();
+            if(isset($hint)){
+                $zoneTitle = ht::createHint($zoneTitle, $hint, 'notice', true,'style=background-color:#fff !important;margin-left:3px;border-radius:8px;');
+            }
         }
 
         if($warning){

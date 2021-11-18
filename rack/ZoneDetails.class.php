@@ -99,7 +99,7 @@ class rack_ZoneDetails extends core_Detail
         $this->FLD('batch', 'varchar', 'caption=Партида,tdClass=rack-zone-batch,notNull');
         $this->FLD('documentQuantity', 'double(smartRound)', 'caption=Очаквано,mandatory');
         $this->FLD('movementQuantity', 'double(smartRound)', 'caption=Нагласено,mandatory');
-        $this->FNC('status', 'varchar', 'tdClass=zone-product-status,smartCenter');
+        $this->FNC('status', 'varchar', 'tdClass=zone-product-status');
 
         $this->setDbIndex('zoneId,productId,packagingId,batch');
     }
