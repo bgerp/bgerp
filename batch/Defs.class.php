@@ -237,15 +237,8 @@ class batch_Defs extends core_Manager
         
         return self::$cache[$productId];
     }
-    
 
-    function act_Test()
-    {
-        $B = batch_Defs::getBatchDef(4610);
-        $msg = null;
 
-        bp($B->isValid('ivelin171121', 1000, $msg));
-    }
     /**
      * Разбира партидата на масив от партиди
      */
