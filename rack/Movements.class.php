@@ -1064,15 +1064,11 @@ class rack_Movements extends rack_MovementAbstract
         if($transaction->from == rack_PositionType::FLOOR){
             $availableQuantity = rack_Products::getFloorQuantity($transaction->productId, $transaction->batch, $transaction->storeId);
 
-            if($availableQuantity < $transaction->quantity){
-                $bMsg = isset($transaction->batch) ? 'на партидата' : 'без партида';
+            if($availableQuantity < $transaction->quantity && isset($transaction->batch)){
                 $availableQuantityV = core_Type::getByName('double(smartRound)')->toVerbal($availableQuantity);
-
-                if(isset($transaction->batch)){
-                    $res->errors = "Количеството {$bMsg} е над наличното|*: <b>{$availableQuantityV}</b>";
-                    $res->errorFields[] = 'packQuantity';
-                    $res->errorFields[] = 'batch';
-                }
+                $res->errors = "Количеството на партидата е над наличното|*: <b>{$availableQuantityV}</b>";
+                $res->errorFields[] = 'packQuantity';
+                $res->errorFields[] = 'batch';
             }
         }
 

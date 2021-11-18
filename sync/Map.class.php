@@ -547,8 +547,23 @@ class sync_Map extends core_Manager
             $rec->id = $rec->__id;
             unset($rec->__id);
         }
-        
-        $lId = $mvc->save($exRec);
+
+        try {
+            $lId = $mvc->save($exRec);
+        } catch (core_exception_Expect $e) {
+            $mvc->logError("Грешка при синхронизиране на данните", $exRec);
+            reportException($e);
+            $lId = 0;
+        } catch (Exception $e) {
+            $mvc->logError("Грешка при синхронизиране на данните", $exRec);
+            reportException($e);
+            $lId = 0;
+        } catch (Throwable $t) {
+            $mvc->logError("Грешка при синхронизиране на данните", $exRec);
+            reportException($t);
+            $lId = 0;
+        }
+
         //log_System::add('sync_Map', "Записахме {$class} {$lId}");
 
         if (!$haveRec) {

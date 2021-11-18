@@ -72,7 +72,7 @@ class store_Products extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'history,code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin';
+    public $listFields = 'history,code=Код,productId=Артикул,measureId=Мярка,storeId,quantity,reservedQuantity,expectedQuantity,freeQuantity,reservedQuantityMin,expectedQuantityMin,freeQuantityMin,lastUpdated';
     
     
     /**
@@ -109,6 +109,7 @@ class store_Products extends core_Detail
         $this->FLD('expectedQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Очаквано,tdClass=horizonCol green');
         $this->FNC('freeQuantityMin', 'double(maxDecimals=3)', 'caption=Минимално->Разполагаемо,tdClass=horizonCol');
         $this->FLD('dateMin', 'date', 'caption=Минимално->Дата');
+        $this->FLD('lastUpdated', 'datetime(format=smartTime)', 'caption=Промяна на');
 
         $this->FLD('state', 'enum(active=Активирано,closed=Изчерпано)', 'caption=Състояние,input=none');
         
@@ -418,9 +419,9 @@ class store_Products extends core_Detail
             
             return;
         }
-        
+
         $self->saveArray($arrRes['insert']);
-        $self->saveArray($arrRes['update'], 'id,quantity');
+        $self->saveArray($arrRes['update'], 'id,quantity,lastUpdated');
         
         // Ъпдейт на к-та на продуктите, имащи запис но липсващи в счетоводството
         self::updateMissingProducts($arrRes['delete']);
@@ -671,7 +672,9 @@ class store_Products extends core_Detail
         }
 
         // Отново се обхождат всички изчислени записи
+        $now = dt::now();
         foreach ($result as  $key => &$newObj) {
+            $newObj->lastUpdated = $now;
 
             // Намират се старите им записи
             $exRecs = array_filter($oldRecs, function($a) use ($newObj) { return $a->storeId == $newObj->storeId && $a->productId == $newObj->productId;});
@@ -700,10 +703,10 @@ class store_Products extends core_Detail
 
         // Добавяне и ъпдейт на резервираното количество на новите
         $this->saveArray($res['insert']);
-        $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
+        $this->saveArray($res['update'], 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin,lastUpdated');
 
         // Намиране на тези записи, от старите които са имали резервирано к-во, но вече нямат
-        $unsetArr = array_filter($oldRecs, function (&$r) use ($reservedMax, $reserved) {
+        $unsetArr = array_filter($oldRecs, function (&$r) use ($reservedMax, $reserved, $now) {
             $unset = false;
 
             // Ако е имало запазено/очаквано за днеска, но вече няма ще се ънсетнат
@@ -711,6 +714,7 @@ class store_Products extends core_Detail
                 if(!isset($reserved[$r->storeId][$r->productId])){
                     $r->reservedQuantity = null;
                     $r->expectedQuantity = null;
+                    $r->lastUpdated = $now;
                     $unset = true;
                 }
             }
@@ -721,6 +725,7 @@ class store_Products extends core_Detail
                     $r->reservedQuantityMin = null;
                     $r->expectedQuantityMin = null;
                     $r->dateMin = null;
+                    $r->lastUpdated = $now;
                     $unset = true;
                 }
             }
@@ -730,7 +735,7 @@ class store_Products extends core_Detail
 
         // Техните резервирани количества се изтриват
         if (countR($unsetArr)) {
-            $this->saveArray($unsetArr, 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin');
+            $this->saveArray($unsetArr, 'id,reservedQuantity,expectedQuantity,reservedQuantityMin,expectedQuantityMin,dateMin,lastUpdated');
         }
         
         // Освобождаване на процеса
