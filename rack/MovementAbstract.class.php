@@ -205,7 +205,7 @@ abstract class rack_MovementAbstract extends core_Manager
             if(empty($a->quantity) && $k == 'from') continue;
 
             if(is_array($rec->packagings)){
-                $convertedQuantity = static::getSmartPackagings($rec->productId, $rec->packagings, $a->quantity);
+                $convertedQuantity = static::getSmartPackagings($rec->productId, $rec->packagings, $a->quantity, $rec->packagingId);
                 if(isset($convertedQuantity)){
                     $movementArr[$k] = "{$a->position} (<span {$a->class}>{$convertedQuantity}</span>)";
                 }
@@ -403,9 +403,10 @@ abstract class rack_MovementAbstract extends core_Manager
      * @param int $productId
      * @param array $packagingArr
      * @param int $quantity
+     * @param int|null $preferPackagingIdIFThereAreSimilar
      * @return string|null $string
      */
-    protected static function getSmartPackagings($productId, $packagingArr, $quantity)
+    protected static function getSmartPackagings($productId, $packagingArr, $quantity, $preferPackagingIdIFThereAreSimilar = null)
     {
         $sign = ($quantity < 0) ? -1 : 1;
         $quantity = abs($quantity);
@@ -457,8 +458,13 @@ abstract class rack_MovementAbstract extends core_Manager
             $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($p['quantity']);
             $quantityVerbal = ht::styleIfNegative($quantityVerbal, $p['quantity']);
 
+            // Ако има опаковки със същото к-во ще се показват и тях освен ако не се предпочита конкретна
             $displayPackNamesArr = array($p['packagingId'] => $p['packagingId']);
             $displayPackNamesArr += $p['similarPacks'];
+            if(isset($preferPackagingIdIFThereAreSimilar) && array_key_exists($preferPackagingIdIFThereAreSimilar, $displayPackNamesArr)){
+                $displayPackNamesArr = array($preferPackagingIdIFThereAreSimilar => $displayPackNamesArr[$preferPackagingIdIFThereAreSimilar]);
+            }
+
             $displayStringArr = array();
             foreach ($displayPackNamesArr as $packId){
                 $displayStringArr[] = tr(cat_UoM::getSmartName($packId, $p['quantity']));
