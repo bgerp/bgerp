@@ -527,11 +527,15 @@ class batch_BatchesInDocuments extends core_Manager
             }
             
             if (!$form->gotErrors()) {
+                $dRec = cls::get($detailClassId)->fetch($detailRecId);
+                $logMsg = 'Ръчна промяна на партидите на детайл';
+
                 if ($form->cmd == 'auto') {
                     $old = (countR($foundBatches)) ? $foundBatches : array();
                     $saveBatches = $Def->allocateQuantityToBatches($recInfo->quantity, $storeId, $Detail, $detailRecId, $recInfo->date);
                     $intersect = array_diff_key($old, $saveBatches);
                     $delete = (countR($intersect)) ? array_keys($intersect) : array();
+                    $logMsg = 'Ръчно преразпределяне на партидите';
                 }
                 
                 // Ъпдейт/добавяне на записите, които трябва
@@ -546,20 +550,20 @@ class batch_BatchesInDocuments extends core_Manager
                         self::delete("#detailClassId = {$recInfo->detailClassId} AND #detailRecId = {$recInfo->detailRecId} AND #productId = {$recInfo->productId} AND #batch = '{$b}'");
                     }
                 }
-                
-                // Предизвиква се обновяване на документа
-                $dRec = cls::get($detailClassId)->fetch($detailRecId);
-                
+
                 if ($form->cmd == 'updateQuantity' && !empty($total)) {
+                    $logMsg = 'Ръчна промяна на партидите и задаване на ново общо количество на детайл';
                     if($Detail instanceof store_InternalDocumentDetail){
                         $dRec->packQuantity = $total / $recInfo->quantityInPack;
                     } else {
                         $dRec->quantity = $total * $recInfo->quantityInPack;
                     }
                 }
-                
+
+                // Предизвиква се обновяване на документа
                 cls::get($detailClassId)->save($dRec);
-                
+                $Detail->Master->logWrite($logMsg, $dRec->{$Detail->masterKey});
+
                 return followRetUrl();
             }
         }
