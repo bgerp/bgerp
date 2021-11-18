@@ -808,14 +808,6 @@ class rack_Zones extends core_Master
     }
 
 
-    function act_Test()
-    {
-        requireRole('debug');
-
-        $this->updateMaster_(54);
-    }
-
-
     /**
      * Обновява данни в мастъра
      *
