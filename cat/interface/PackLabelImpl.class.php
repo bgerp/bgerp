@@ -77,7 +77,7 @@ class cat_interface_PackLabelImpl
             // Проверка има ли продуктови параметри, които не могат да се редактират от формата
             $productClassId = cat_Products::getClassId();
             $rec = $this->class->fetch($objId);
-            $notEdittableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
+            $notEditableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
 
             $labelData = $this->getLabelData($objId, 1, true);
             if (isset($labelData[0])) {
@@ -86,6 +86,10 @@ class cat_interface_PackLabelImpl
                         $placeholders[$key] = (object) array('type' => 'text');
                     }
                     $placeholders[$key]->example = $val;
+
+                    if(array_key_exists($key, $notEditableParamNames)){
+                        $placeholders[$key]->hidden = true;
+                    }
                 }
             }
         }
