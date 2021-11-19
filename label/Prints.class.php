@@ -331,7 +331,7 @@ class label_Prints extends core_Master
                     $labelDataArr = $intfInst->getLabelPlaceholders($objId);
                 }
             }
-            
+
             // При редакция да се попълват стойностите
             if ($rec->id) {
                 foreach ((array) $rec->params as $fieldName => $val) {
@@ -346,14 +346,16 @@ class label_Prints extends core_Master
             }
             
             core_Lg::pop();
-            
+
             // Добавяме полетата от детайла на шаблона
             label_TemplateFormats::addFieldForTemplate($form, $rec->templateId);
 
             // Обхождаме масива
             foreach ((array) $labelDataArr as $fieldName => $v) {
                 $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-
+                if(is_array($v->suggestions) && countR($v->suggestions)){
+                    $form->setSuggestions($fieldName, $v->suggestions);
+                }
 
                 if (!$form->fields[$fieldName]) {
                     continue;
