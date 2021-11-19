@@ -349,15 +349,16 @@ class label_Prints extends core_Master
             
             // Добавяме полетата от детайла на шаблона
             label_TemplateFormats::addFieldForTemplate($form, $rec->templateId);
-            
+
             // Обхождаме масива
             foreach ((array) $labelDataArr as $fieldName => $v) {
                 $fieldName = label_TemplateFormats::getPlaceholderFieldName($fieldName);
-                
+
+
                 if (!$form->fields[$fieldName]) {
                     continue;
                 }
-                
+                $form->setSuggestions($fieldName, array('A' => 'A', 'B' => 'B', 'C' => 'C'));
                 if (!$form->cmd || $form->cmd == 'refresh') {
                     // Добавяме данните от записите
                     $rec->{$fieldName} = $v->example;
@@ -373,7 +374,7 @@ class label_Prints extends core_Master
             
             $form->input(null, true);
         }
-        
+
         if ($rec->templateId) {
             // Трябва да има зададена медия за шаблона
             $mediaArr = label_Templates::getMediaForTemplate($rec->templateId);
