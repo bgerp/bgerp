@@ -358,7 +358,7 @@ class label_Prints extends core_Master
                 if (!$form->fields[$fieldName]) {
                     continue;
                 }
-                $form->setSuggestions($fieldName, array('A' => 'A', 'B' => 'B', 'C' => 'C'));
+
                 if (!$form->cmd || $form->cmd == 'refresh') {
                     // Добавяме данните от записите
                     $rec->{$fieldName} = $v->example;
