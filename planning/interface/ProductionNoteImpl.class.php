@@ -215,9 +215,8 @@ class planning_interface_ProductionNoteImpl
 
         // Ако има само една партида, показвасе и тя
         $batchesArr = $this->getBatchesOptions($rec);
-        $batch = (countR($batchesArr) == 1) ? $batchesArr[key($batchesArr)] : null;
-        
-        $grossWeight = null;
+        $batch = (countR($batchesArr)) ? $batchesArr[key($batchesArr)] : null;
+
         $kgId = cat_Uom::fetchBySysId('kg')->id;
         $kgDerivities = cat_UoM::getSameTypeMeasures($kgId);
         unset($kgDerivities['']);
