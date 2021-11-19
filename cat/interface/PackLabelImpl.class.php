@@ -78,8 +78,7 @@ class cat_interface_PackLabelImpl
             $productClassId = cat_Products::getClassId();
             $rec = $this->class->fetch($objId);
             $notEdittableParamNames = cat_products_Params::getNotEditableLabelParamNames($productClassId, $rec->productId);
-            
-            $labelData = $this->getLabelData($objId, 1, true);
+
             $labelData = $this->getLabelData($objId, 1, true);
             if (isset($labelData[0])) {
                 foreach ($labelData[0] as $key => $val) {
