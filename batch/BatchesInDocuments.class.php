@@ -562,7 +562,11 @@ class batch_BatchesInDocuments extends core_Manager
 
                 // Предизвиква се обновяване на документа
                 cls::get($detailClassId)->save($dRec);
-                $Detail->Master->logWrite($logMsg, $dRec->{$Detail->masterKey});
+                if($Detail instanceof core_Detail){
+                    $Detail->Master->logWrite($logMsg, $dRec->{$Detail->masterKey});
+                } else {
+                    $Detail->logWrite($logMsg, $dRec->id);
+                }
 
                 return followRetUrl();
             }
