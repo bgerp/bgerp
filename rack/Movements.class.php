@@ -1298,5 +1298,16 @@ class rack_Movements extends rack_MovementAbstract
         if(rack_Logs::haveRightFor('list')){
             $row->_rowTools->addLink('Логове', array('rack_Logs', 'list', "movementId" => $rec->id), 'ef_icon=img/16/clock_history.png,title=Логове на потребителските действия с движението');
         }
+
+        if($rec->state == 'closed' && rack_Movements::haveRightFor('add')){
+            $zonesArr = @json_decode($rec->zones, true);
+            if(is_array($zonesArr)){
+                array_walk($zonesArr['quantity'], function(&$a) {$a *= -1;});
+                $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
+                $zonesDefault = $ZoneType->fromVerbal($zonesArr);
+                $correctUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'batch' => $rec->batch, 'packagingId' => $rec->packagingId, 'defaultZones' => $zonesDefault, 'ret_url' => true);
+                $row->_rowTools->addLink('Корекция', $correctUrl, 'ef_icon=img/16/minus.png,title=Създаване на обратно движение');
+            }
+        }
     }
 }
