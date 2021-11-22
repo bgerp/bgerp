@@ -1306,7 +1306,7 @@ class rack_Movements extends rack_MovementAbstract
                 $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
                 $zonesDefault = $ZoneType->fromVerbal($zonesArr);
                 $correctUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'batch' => $rec->batch, 'packagingId' => $rec->packagingId, 'defaultZones' => $zonesDefault, 'ret_url' => true);
-                $row->_rowTools->addLink('Корекция', $correctUrl, 'ef_icon=img/16/minus.png,title=Създаване на обратно движение');
+                $row->_rowTools->addLink('Корекция', $correctUrl, 'ef_icon=img/16/red-back.png,title=Създаване на обратно движение');
             }
         }
     }
