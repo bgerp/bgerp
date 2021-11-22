@@ -9,7 +9,7 @@
  * @package   batch
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -25,9 +25,9 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
     public function addFields(core_Fieldset &$fieldset)
     {
         $fieldset->FLD('prefix', 'varchar(3)', 'caption=Префикс,mandatory');
-        $fieldset->FLD('format', "enum(dmy=|*221199,m.Y=|*11.1999,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)'", 'caption=Маска');
+        $fieldset->FLD('format', "enum(dmy=|*221199,dmY=|*22111999,m.Y=|*11.1999,d.m.Y=|*22.11.1999, d-m-Y=|*22-11-1999, d/m/Y=|*22/11/1999, m.d.Y=|*11.22.1999, m-d-Y=|*11-22-1999, m/d/Y=|*11/22/1999, d.m.y=|*22.11.99, d-m-y=|*22-11-99, d/m/y=|*22/11/99, m.d.y=|*11.22.99, m-d-y=|*11-22-99, m/d/y=|*11/22/99)'", 'caption=Маска');
         $fieldset->FLD('autoValue', 'enum(yes=Автоматично,no=Без)', 'caption=Генериране');
-        $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец,nullIfEmpty)', 'caption=Срок по подразбиране,unit=след текущата дата');
+        $fieldset->FLD('time', 'time(suggestions=1 ден|2 дена|1 седмица|1 месец|1 година|2 години,nullIfEmpty)', 'caption=Срок по подразбиране,unit=след текущата дата');
     }
 
 
