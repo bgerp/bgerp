@@ -196,8 +196,12 @@ class price_Updates extends core_Manager
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         // Показваме името на правилото
-        $row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, true) : cat_Products::getHyperlink($rec->objectId, true);
-        
+        try{
+            $row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, true) : cat_Products::getHyperlink($rec->objectId, true);
+        } catch(core_exception_Expect $e){
+            $row->name = tr("Проблем при показването");
+        }
+
         if ($rec->type == 'product') {
             if (isset($fields['-list'])) {
                 if ($rec->updateMode == 'manual') {
