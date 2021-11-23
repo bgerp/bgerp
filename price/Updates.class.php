@@ -199,7 +199,8 @@ class price_Updates extends core_Manager
         try{
             $row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, true) : cat_Products::getHyperlink($rec->objectId, true);
         } catch(core_exception_Expect $e){
-            $row->name = tr("Проблем при показването");
+            wp($rec);
+            $row->name = "<span class='red'>" . tr("Проблем при показването") . "</span>";
         }
 
         if ($rec->type == 'product') {
