@@ -802,7 +802,7 @@ class rack_Zones extends core_Master
 
         rack_Products::recalcQuantityOnZones($productArr, $zoneRec->storeId);
 
-        $zoneRec->defaultWorkerId = null;
+        $zoneRec->defaultUserId = null;
         $zoneRec->containerId = null;
         self::save($zoneRec);
     }
