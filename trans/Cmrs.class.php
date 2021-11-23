@@ -658,4 +658,57 @@ class trans_Cmrs extends core_Master
 
         return $tpl;
     }
+
+
+    /**
+     * Изпълнява се преди възстановяването на документа
+     */
+    public static function on_BeforeRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if($rec->brState == 'active'){
+            $stopMsg = null;
+            if($mvc->hasOtherActivated($rec, $stopMsg)){
+                core_Statuses::newStatus($stopMsg, 'error');
+
+                return false;
+            }
+        }
+    }
+
+
+    /**
+     * Функция, която се извиква преди активирането на документа
+     */
+    protected static function on_BeforeActivation($mvc, $res)
+    {
+        $rec = $mvc->fetchRec($res);
+        $stopMsg = null;
+        if($mvc->hasOtherActivated($rec, $stopMsg)){
+            core_Statuses::newStatus($stopMsg, 'error');
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Има ли друго активно ЧМР за въпросното експедиционно
+     *
+     * @param int $id
+     * @param null|string $msg
+     * @return bool
+     */
+    private function hasOtherActivated($id, &$msg)
+    {
+        $rec = $this->fetchRec($id);
+        $originId = isset($rec->originId) ? $rec->originId : $this->fetchField($rec->id, 'originId', '*');
+        if($exCmrId = $this->fetchField("#originId = {$originId} AND #state = 'active' AND #id != '{$rec->id}'")){
+            $msg = "Вече има друго активирано ЧМР към документа|*: " . $this->getLink($exCmrId, 0);
+
+            return true;
+        }
+
+        return false;
+    }
 }
