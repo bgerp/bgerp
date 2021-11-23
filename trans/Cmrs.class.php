@@ -162,11 +162,11 @@ class trans_Cmrs extends core_Master
         
         $this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
         $this->FLD('cariersData', 'text(rows=5)', 'caption=Допълнително->16. Превозвач');
-        $this->FLD('vehicleReg', 'varchar', 'caption=МПС рег. №');
+        $this->FLD('vehicleReg', 'varchar', 'caption=Допълнително->МПС рег. №');
         $this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
         $this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
-        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=21. Изготвена в');
-        $this->FLD('establishedDate', 'date', 'caption=21. Изготвена на');
+        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=Допълнително->21. Изготвена в');
+        $this->FLD('establishedDate', 'date', 'caption=Допълнително->21. Изготвена на');
         
         $this->setDbUnique('cmrNumber');
     }
