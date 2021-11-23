@@ -401,7 +401,7 @@ class trans_Cmrs extends core_Master
         $contragentAddress .= ($verbal->place) ? (' ' . transliterate(tr($verbal->place))) : '';
         
         $contragentCountry = $Contragent->getVerbal($contragentId, 'country');
-        $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
+        $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->fetchField($contragentId, 'name');
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
 
         $contragentNumbers = '';
