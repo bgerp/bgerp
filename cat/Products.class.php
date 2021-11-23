@@ -584,8 +584,14 @@ class cat_Products extends embed_Manager
             }
             
             if (!empty($rec->code)) {
-                if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
-                    $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
+
+                // Ако тепърва се задава нов код, проверява се дали е допустим от настройките
+                $checkCode = empty($rec->id) || (isset($rec->id) && $mvc->fetchField($rec->id, 'code', false) != $rec->code);
+                if($checkCode){
+                    $codeError = null;
+                    if(!cat_Setup::checkProductCode($rec->code, $codeError)){
+                        $form->setError('code', $codeError);
+                    }
                 }
             }
             

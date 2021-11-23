@@ -213,6 +213,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
             if(!array_key_exists($k, $movementArr)){
                 $packQuantity = $a->quantity / $rec->quantityInPack;
+                $packQuantity = core_Math::roundNumber($packQuantity);
                 $packQuantityVerbal = $Double->toVerbal($packQuantity);
                 $packQuantityVerbal = ht::styleIfNegative($packQuantityVerbal, $packQuantity);
                 $packDisplay = tr(cat_UoM::getSmartName($rec->packagingId, $packQuantity));

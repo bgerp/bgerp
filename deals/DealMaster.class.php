@@ -2558,10 +2558,21 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
+        $rec = $mvc->fetchRec($id);
+        if(isset($mvc->closeDealDoc)){
+            $CloseDoc = cls::get($mvc->closeDealDoc);
+            $closedDocRec = $CloseDoc->fetch("#docClassId = {$mvc->getClassId()} AND #docId = {$rec->id} AND #state = 'active'");
+            if($closedDocRec){
+                core_Statuses::newStatus( "Документа не може да се оттегли, докато е контиран |* <b>#{$CloseDoc->getHandle($rec->id)}</b>", 'error');
+
+                return false;
+            }
+        }
+
         if(!core_Packs::isInstalled('rack')) return;
 
         // Ако има, се спира оттеглянето
-        $rec = $mvc->fetchRec($id);
+
 
         $errorDocuments = array();
         $descendants = $mvc->getDescendants($rec->id);
