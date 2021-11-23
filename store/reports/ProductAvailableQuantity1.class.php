@@ -337,8 +337,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
 
         if ($rec->limits == 'yes') {
-            $fld->FLD('minQuantity', 'double(smartRound,decimals=2)', 'caption=Лимит->Мин.,smartCenter');
-            $fld->FLD('maxQuantity', 'double(smartRound,decimals=2)', 'caption=Лимит->Макс.,smartCenter');
+            $fld->FLD('minQuantity', 'double(smartRound,decimals=3)', 'caption=Лимит->Мин.,smartCenter');
+            $fld->FLD('maxQuantity', 'double(smartRound,decimals=3)', 'caption=Лимит->Макс.,smartCenter');
             $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
             $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
         }
@@ -367,6 +367,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
         if ($rec->seeByStores != 'yes') {
             if (isset($dRec->quantity)) {
+
                 $row->quantity = $Double->toVerbal($dRec->quantity);
                 $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
             }
@@ -388,14 +389,13 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         if (isset($dRec->minQuantity)) {
             $t = core_Type::getByName('double(smartRound,decimals=3)');
-            $row->minQuantity = $t->fromVerbal($dRec->minQuantity);
-            $row->minQuantity = $t->toVerbal($row->minQuantity);
+            $row->minQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->minQuantity);
+
         }
 
         if (isset($dRec->maxQuantity)) {
-            $t = core_Type::getByName('double(smartRound,decimals=3)');
-            $row->maxQuantity = $t->fromVerbal($dRec->maxQuantity);
-            $row->maxQuantity = $t->toVerbal($row->maxQuantity);
+
+            $row->maxQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->maxQuantity);
         }
 
         if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
@@ -599,9 +599,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $volOldMin = $minVal;
         $volOldMax = $maxVal;
 
-        $form->FLD('volNewMin', 'varchar', 'caption=Въведи min,input');
+        $form->FLD('volNewMin', 'double', 'caption=Въведи min,input');
 
-        $form->FLD('volNewMax', 'varchar', 'caption=Въведи max,input');
+        $form->FLD('volNewMax', 'double', 'caption=Въведи max,input');
 
         $form->setDefault('volNewMax', $volOldMax);
         $form->setDefault('volNewMin', $volOldMin);
