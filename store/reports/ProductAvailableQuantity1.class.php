@@ -377,8 +377,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
-           // $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
+           // $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
+            $fld->FLD('suggQuantity', 'varchar', 'caption=Количество->За поръчка,smartCenter');
 
         }
         return $fld;
@@ -534,11 +534,13 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
         $grUrl = array('store_reports_ProductAvailableQuantity1', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
         $artUrl = array('store_reports_ProductAvailableQuantity1', 'artfilter', 'recId' => $data->rec->id, 'ret_url' => true);
+        $exportUrl = array('store_reports_ProductAvailableQuantity1', 'exportfilter', 'recId' => $data->rec->id, 'ret_url' => true);
 
         $toolbar = cls::get('core_Toolbar');
 
         $toolbar->addBtn('Избери група', toUrl($grUrl));
         $toolbar->addBtn('Избери артикул', toUrl($artUrl));
+        $toolbar->addBtn('Филтър за експорт', toUrl($exportUrl));
 
         $fieldTpl->append('<b>' . "$grFilterName" . $toolbar->renderHtml() . '</b>', 'button');
 
@@ -588,6 +590,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $res->productId = $pRec->name;
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->productId}";
+
+        if ($dRec->maxQuantity > 0){
+            $suggQuantity = $dRec->maxQuantity*80/100 - $dRec-> quantity;
+        }
+
+        $res->suggQuantity = $Double->toVerbal($suggQuantity);
+
+
 
 
 
@@ -806,6 +816,58 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $mRec = $form->input();
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        if ($form->isSubmitted()) {
+
+            foreach ($rec->data->recs as $pRec) {
+                if ($form->rec->artFilter != $pRec->productId) {
+                    unset($rec->data->recs[$pRec->productId]);
+                }
+            }
+
+            frame2_Reports::save($rec);
+            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'artFilter' => $form->rec->artFilter, 'ret_url' => true));
+
+        }
+
+        return $form->renderHtml();
+    }
+
+
+    /**
+     * Филтриране на артикул
+     */
+    public static function act_ExportFilter()
+    {
+
+
+        expect($recId = Request::get('recId', 'int'));
+
+        $rec = frame2_Reports::fetch($recId);
+
+        frame2_Reports::refresh($rec);
+
+        $form = cls::get('core_Form');
+
+        $form->title = "Филтър за експорт";
+
+        foreach (array_keys($rec->data->recs) as $val) {
+
+            $pRec = cat_Products::fetch($val);
+            $code = $pRec->code ?: 'Art' . $pRec->productId;
+            $artSuggestionsArr[$val] = $code . '|' . $pRec->name;
+
+        }
+
+       // $form->FLD('exportFilter', 'key(mvc=cat_Products, select=name)', 'caption=Артикул,silent');
+        $form->FLD('exportFilter','set(1|под Мин.=Под минимум,3|над Макс.=Над максимум, 2|Отриц.=Отрицателни, 4|ок=ОК)', 'caption=Артикули с количества,columns=4,silent');
+
+
+        $mRec = $form->input();
+
+        //$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
