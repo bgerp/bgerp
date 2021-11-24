@@ -76,15 +76,9 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
 
 
     /**
-     * Кой е тетущият таб от менюто
-     */
-    //public $currentTab = 'Декларации';
-
-
-    /**
      * Абревиатура
      */
-    public $abbr = 'Ics';
+    public $abbr = 'ICS';
 
 
     /**
@@ -113,9 +107,9 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Дата, mandatory');
         $this->FLD('senderName', 'varchar(128)', 'caption=Доставка->Предал');
 
-        $this->FLD('invoiceDocument', 'varchar(255)', 'caption=По документ->Фактура № / Дата');
-        $this->FLD('shipmentDocument', 'varchar(128)', 'caption=По документ->ЕН № / Дата, mandatory');
-        $this->FLD('transportDocument', 'varchar(128)', 'caption=По документ->ЧМР № / Дата');
+        $this->FLD('shipmentDocument', 'varchar(128)', 'caption=Документи->ЕН № / Дата, mandatory');
+        $this->FLD('invoiceDocument', 'varchar(255)', 'caption=Документи->Фактура № / Дата');
+        $this->FLD('transportDocument', 'varchar(128)', 'caption=Документи->ЧМР № / Дата');
 
         $this->FLD('forwarderName', 'varchar(255)', 'caption=Превозвач->Фирма, mandatory');
         $this->FLD('forwarderVehicle', 'varchar(128)', 'caption=Превозвач->МПС №, mandatory');

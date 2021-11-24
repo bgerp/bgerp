@@ -186,18 +186,9 @@ abstract class trans_abstract_ShipmentDocument extends core_Master
                         $firstDocument = doc_Threads::getFirstDocument($origin->fetchField('threadId'));
                         if($deliveryTermId = $firstDocument->fetchField('deliveryTermId')){
 
-                            // Ако в условието е разрешено да се изисква ВОД за ЕС
+                            // Ако не е разрешено да се скрие
                             $deliveryProperties = type_Set::toArray(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'));
-                            if(isset($deliveryProperties['vodeu'])){
-
-                                // Ако доставката не е до чужбина ЕС да не може да се прави документа
-                                $logisticData = $origin->getLogisticData();
-                                $countryId = drdata_Countries::getIdByName($logisticData['toCountry']);
-                                $bgId = drdata_Countries::getIdByName('Bulgaria');
-                                if($countryId == $bgId || !drdata_Countries::isEu($countryId)){
-                                    $requiredRoles = 'no_one';
-                                }
-                            } else {
+                            if(!isset($deliveryProperties['vodeu'])){
                                 $requiredRoles = 'no_one';
                             }
                         }

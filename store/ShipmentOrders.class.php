@@ -515,6 +515,10 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         // Бутони за редакция и добавяне на ЧМР-та
         if (in_array($rec->state, array('active', 'pending'))) {
+            $logisticData = $mvc->getLogisticData($rec->id);
+            $countryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+            $bgId = drdata_Countries::getIdByName('Bulgaria');
+
             if (trans_Cmrs::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
 
                 // Само ако условието на доставка позволява ЧМР да се добавя към документа
@@ -522,12 +526,17 @@ class store_ShipmentOrders extends store_DocumentMaster
                 $cmrRow = 2;
                 if($firstDoc->isInstanceOf('deals_DealMaster')){
                     $deliveryTermId = $firstDoc->fetchField('deliveryTermId');
-                    if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes') {
+                    if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes' || $countryId != $bgId) {
                         $cmrRow = 1;
                     }
                 }
 
                 $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/passage.png,row={$cmrRow}");
+            }
+
+            if(trans_IntraCommunitySupplyConfirmations::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+                $vodRowBtn = ($countryId == $bgId || !drdata_Countries::isEu($countryId)) ? 2 : 1;
+                $data->toolbar->addBtn('ВОД', array('trans_IntraCommunitySupplyConfirmations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/document_prepare.png,title=Създаване на ново потвърждение за ВОД,row={$vodRowBtn}");
             }
         }
 
@@ -535,10 +544,6 @@ class store_ShipmentOrders extends store_DocumentMaster
             if (cash_Pko::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
             }
-        }
-
-        if(trans_IntraCommunitySupplyConfirmations::haveRightFor('add', (object)array('originId' => $rec->containerId))){
-            $data->toolbar->addBtn('ВОД', array('trans_IntraCommunitySupplyConfirmations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/document_prepare.png,title=Създаване на ново потвърждение за ВОД');
         }
     }
 
