@@ -515,12 +515,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         // Бутони за редакция и добавяне на ЧМР-та
         if (in_array($rec->state, array('active', 'pending'))) {
-            if ($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")) {
-                if (trans_Cmrs::haveRightFor('single', $cmrId)) {
-                    $arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-                    $data->toolbar->addBtn("ЧМР|* {$arrow}", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => true), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/passage.png");
-                }
-            } elseif (trans_Cmrs::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
+            if (trans_Cmrs::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
 
                 // Само ако условието на доставка позволява ЧМР да се добавя към документа
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
@@ -540,6 +535,10 @@ class store_ShipmentOrders extends store_DocumentMaster
             if (cash_Pko::haveRightFor('add', (object) array('originId' => $rec->containerId, 'threadId' => $rec->threadId))) {
                 $data->toolbar->addBtn('ПКО', array('cash_Pko', 'add', 'originId' => $data->rec->containerId, 'ret_url' => true), 'ef_icon=img/16/money_add.png,title=Създаване на нов приходен касов документ');
             }
+        }
+
+        if(trans_IntraCommunitySupplyConfirmations::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+            $data->toolbar->addBtn('ВОД', array('trans_IntraCommunitySupplyConfirmations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/document_prepare.png,title=Създаване на ново потвърждения за вътрешнообщностна доставка');
         }
     }
 
