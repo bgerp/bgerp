@@ -32,6 +32,12 @@ defIfNot('TRANS_LINES_PENDING_AFTER', '604800');
 
 
 /**
+ * Показване на бутон за ВОД към ЕН
+ */
+defIfNot('TRANS_SHOW_VOD_BTN', 'auto');
+
+
+/**
  * Транспорт
  *
  *
@@ -86,6 +92,7 @@ class trans_Setup extends core_ProtoSetup
         'trans_TransportModes',
         'trans_TransportUnits',
         'trans_LineDetails',
+        'trans_IntraCommunitySupplyConfirmations',
     );
     
     
@@ -133,6 +140,7 @@ class trans_Setup extends core_ProtoSetup
         'TRANS_CMR_SENDER_INSTRUCTIONS' => array('text(rows=2)','caption=ЧМР->13. Инструкции на изпращача'),
         'TRANS_CMR_SHOW_BTN' => array('enum(yes=Включено,no=Изключено)','caption=При липса на условие на доставка. Да се показва ли бутона за ЧМР->Избор'),
         'TRANS_DATE_FOR_TRANS_INDICATORS' => array('date', 'caption=От коя дата да се изчисляват индикатори транспортни линии->Дата'),
+        'TRANS_SHOW_VOD_BTN' => array('enum(always=Винаги,auto=Условието на доставка + Чужбина ЕС,never=Никога)','caption=Показване на бутон за ВОД към ЕН->Избор'),
     );
     
     

@@ -307,7 +307,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $prodRec->conditionColor = 'blue';
             } elseif ($prodRec->quantity < $prodRec->minQuantity) {
                 $prodRec->conditionQuantity = '1|под Мин.';
-                $prodRec->conditionColor = 'blue';
+                $prodRec->conditionColor = 'red';
             }
             if ($prodRec->quantity < 0) {
                 $prodRec->conditionQuantity = '2|Отриц.';
