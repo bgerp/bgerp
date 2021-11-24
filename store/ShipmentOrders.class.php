@@ -538,7 +538,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         }
 
         if(trans_IntraCommunitySupplyConfirmations::haveRightFor('add', (object)array('originId' => $rec->containerId))){
-            $data->toolbar->addBtn('ВОД', array('trans_IntraCommunitySupplyConfirmations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/document_prepare.png,title=Създаване на ново потвърждения за вътрешнообщностна доставка');
+            $data->toolbar->addBtn('ВОД', array('trans_IntraCommunitySupplyConfirmations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), 'ef_icon=img/16/document_prepare.png,title=Създаване на ново потвърждение за ВОД');
         }
     }
 

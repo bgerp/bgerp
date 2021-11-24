@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Документ  за Потвърждение за Вътрешнообщностна доставка
+ * Документ  за Потвърждение за вътрешнообщностна доставка
  *
  *
  * @category  bgerp
@@ -24,13 +24,13 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     /**
      * Заглавие
      */
-    public $title = 'Потвърждения за Вътрешнообщностна доставка';
+    public $title = 'Потвърждения за ВОД';
 
 
     /**
      * Заглавие в единствено число
      */
-    public $singleTitle = 'Потвърждение за Вътрешнообщностна доставка';
+    public $singleTitle = 'Потвърждение за ВОД';
 
 
     /**
@@ -113,9 +113,9 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Дата, mandatory');
         $this->FLD('senderName', 'varchar(128)', 'caption=Доставка->Предал');
 
-        $this->FLD('invoiceDocument', 'varchar(255)', 'caption=По документ->Фактура №/Дата');
-        $this->FLD('shipmentDocument', 'varchar(128)', 'caption=По документ->ЕН №/Дата, mandatory');
-        $this->FLD('transportDocument', 'varchar(128)', 'caption=По документ->ЧМР №/Дата');
+        $this->FLD('invoiceDocument', 'varchar(255)', 'caption=По документ->Фактура № / Дата');
+        $this->FLD('shipmentDocument', 'varchar(128)', 'caption=По документ->ЕН № / Дата, mandatory');
+        $this->FLD('transportDocument', 'varchar(128)', 'caption=По документ->ЧМР № / Дата');
 
         $this->FLD('forwarderName', 'varchar(255)', 'caption=Превозвач->Фирма, mandatory');
         $this->FLD('forwarderVehicle', 'varchar(128)', 'caption=Превозвач->МПС №, mandatory');
@@ -182,7 +182,10 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
 
             // Данните за контрагента
             $contragentData = cls::get($documentRec->contragentClassId)->getContragentData($documentRec->contragentId);
-            $form->setDefault('contragentName', cls::get($documentRec->contragentClassId)->fetchField($documentRec->contragentId, 'name'));
+            core_Lg::push('en');
+            $contragentName = transliterate(tr(cls::get($documentRec->contragentClassId)->fetchField($documentRec->contragentId, 'name')));
+            $form->setDefault('contragentName', $contragentName);
+            core_Lg::pop();
             $form->setDefault('contragentVatNo', $contragentData->vatNo);
             $form->setDefault('contragentAddress', $mvc->getContragentAddress($documentRec->contragentClassId, $documentRec->contragentId));
 

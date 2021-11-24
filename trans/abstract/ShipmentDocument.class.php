@@ -121,10 +121,10 @@ abstract class trans_abstract_ShipmentDocument extends core_Master
         $title = $this->getRecTitle($rec);
 
         $row = (object) array('title' => $title,
-            'authorId' => $rec->createdBy,
-            'author' => $this->getVerbal($rec, 'createdBy'),
-            'state' => $rec->state,
-            'recTitle' => $title
+                              'authorId' => $rec->createdBy,
+                              'author' => $this->getVerbal($rec, 'createdBy'),
+                              'state' => $rec->state,
+                              'recTitle' => $title
         );
 
         return $row;
@@ -225,5 +225,25 @@ abstract class trans_abstract_ShipmentDocument extends core_Master
 
             return true;
         }
+    }
+
+
+    /**
+     * Оттегляне на документ
+     */
+    public static function on_AfterReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        doc_DocumentCache::invalidateByOriginId($rec->containerId);
+    }
+
+
+    /**
+     * Възстановяване на документ
+     */
+    public static function on_AfterRestore(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        doc_DocumentCache::invalidateByOriginId($rec->containerId);
     }
 }

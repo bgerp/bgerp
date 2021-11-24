@@ -62,15 +62,15 @@
     <br>
     <li>
         <div>
-            <p>(Carrier and) Registration number of the vehicle with which the transport was made/<i>(Превозвач и) Регистрационен номер на  превозното средство, с което е направен транспорта</i></p>
+            <p>(Carrier and) Registration number of the vehicle with which the transport was made / <i>(Превозвач и) Регистрационен номер на  превозното средство, с което е направен транспорта</i></p>
             <p>[#forwarderName#], [#forwarderVehicle#]</p>
         </div>
     </li>
 </ul>
 <br>
-<table style="width:100%">
+<table style="width:100%;">
     <tr>
-        <td style="width:50%">
+        <td style="width:50%;">
             <div>
                 <p>For / За: <i><b>[#ourCompanyNameEn#]</b></i></p>
                 <p>Goods handed over / <i>Стоките предадени</i>:</p>
@@ -78,18 +78,18 @@
             </div>
             <div>
                 <p>...............................................................</p>
-                <p>Signature and stamp/Подпис и печат</p>
+                <p>Signature and stamp / Подпис и печат</p>
             </div>
         </td>
-        <td style="width:50%">
+        <td style="width:50%;">
             <div>
-                <p>For/За: <i><b>[#contragentName#]</b></i></p>
+                <p>For / За: <i><b>[#contragentName#]</b></i></p>
                 <p>Goods accepted / <i>Стоките приети</i>:</p>
-                <p>Name/Име: ............................</p>
+                <p>Name / Име: ............................</p>
             </div>
             <div>
                 <p>...............................................................</p>
-                <p> Signature and stamp/Подпис и печат</p>
+                <p> Signature and stamp / Подпис и печат</p>
             </div>
         </td>
     </tr>
