@@ -94,7 +94,7 @@
         </td>
     </tr>
 </table>
-<div>
+<div style="margin-top:15px;">
     This document must be filled in and sent back to the following email address / <i>Този документ трябва да бъде попълнен и изпратен на следния имейл адрес</i>: <b>[#sendBackEmail#]</b>
 </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
