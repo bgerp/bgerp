@@ -16,10 +16,6 @@
  */
 class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 {
-    const NUMBER_OF_ITEMS_TO_ADD = 250;
-
-    const MAX_POST_ART = 50;
-
 
     /**
      * Кои полета от листовия изглед да може да се сортират
@@ -84,7 +80,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('typeOfQuantity', 'enum(available=Налично,free=Разполагаемо)', 'caption=Количество,removeAndRefreshForm,single=none,silent,after=limits');
 
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,input=hidden,silent,single=none');
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,input=none,silent,single=none');
 
         $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=date');
 
@@ -92,11 +88,16 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('orderBy', 'enum(conditionQuantity=Състояние,code=Код)', 'caption=Подреди по,maxRadio=2,columns=2,after=groups,silent');
 
-        $fieldset->FLD('artLimits', 'blob(serialize)', 'after=date,input=none,single=none');
+        $fieldset->FLD('filters', 'enum(condQuantity=Състояние, no=Без филтри)', 'caption=Филтър->Филтри,removeAndRefreshForm,after=orderBy,silent');
 
-        $fieldset->FLD('seeByStores', 'set(yes = )', 'caption=Детайлно,after=orderBy,single=none');
+        $fieldset->FLD('condFilter', 'set(1|под Мин.=Под минимум,3|над Макс.=Над максимум, 2|Отриц.=Отрицателни, 4|ок=ОК)', 'caption=Филтър->По състояние,columns=4,after=filters,input=none,silent');
 
-        $fieldset->FNC('button', 'varchar', 'caption=Бутон,after=groupsChecked,input=hidden,single=none');
+        $fieldset->FLD('seeByStores', 'set(yes = )', 'caption=Показване->Детайлно,after=condFilter,single=none');
+
+        $fieldset->FLD('artLimits', 'blob(serialize)', 'after=seeByStores,input=none,single=none');
+
+        $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
+
 
     }
 
@@ -115,10 +116,16 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $rec = $form->rec;
         $rec->flag = true;
 
-
         $form->setDefault('orderBy', 'conditionQuantity');
 
         $form->setDefault('typeOfQuantity', 'free');
+
+        $form->setDefault('filters', 'no');
+
+        //$form->setDefault('condFilter', '1|под Мин.,3|над Макс.,2|Отриц.,4|ок');
+        $form->setDefault('condFilter', '');
+
+
 
         if ($rec->limits == 'no') {
 
@@ -130,6 +137,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if ($rec->typeOfQuantity == 'free') {
             $form->setField('date', 'input');
         }
+
+        if ($rec->filters == 'condQuantity'){
+            $form->setField('condFilter', 'input');
+        }
+
+
 
     }
 
@@ -302,6 +315,23 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             }
         }
 
+        //Филтри за показване
+        //Филтър по състояние
+        if ($rec->filters == 'condQuantity'){
+
+            $condFilter = $rec->condFilter;
+            foreach ($recs as $key => $oneRec){
+                if (!in_array($oneRec->conditionQuantity,explode(',',$condFilter))){
+                    unset($recs[$key]);
+                }
+
+            }
+
+
+        }
+
+
+
         if (!is_null($recs)) {
             if ($rec->orderBy) {
                 arr::sortObjects($recs, $rec->orderBy, 'asc');
@@ -309,6 +339,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 arr::sortObjects($recs, 'quantity', 'desc');
             }
         }
+
+
 
         return $recs;
     }
@@ -328,9 +360,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
 
-        if ($export !== false) {
-            $fld->FLD('code', 'varchar', 'caption=Код');
-        }
+        if ($export === false) {
+
         $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
         $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
         $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
@@ -342,7 +373,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
             $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
         }
+    }else{
+            $fld->FLD('code', 'varchar', 'caption=Код');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
+           // $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
 
+        }
         return $fld;
     }
 
@@ -507,6 +545,31 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
 
+    /**
+     * Връща редовете на CSV файл-а
+     *
+     * @param stdClass       $rec         - запис
+     * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
+     *
+     * @return array $recs                - записите за експорт
+     */
+    public function getExportRecs($rec, $ExportClass)
+    {
+
+        expect(cls::haveInterface('export_ExportTypeIntf', $ExportClass));
+        $recsToExport = $this->getRecsForExport($rec, $ExportClass);
+
+        $recs = array();
+        if (is_array($recsToExport)) {
+            foreach ($recsToExport as $dRec) {
+                 $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
+
+            }
+        }
+
+        return $recs;
+    }
+
 
     /**
      * След подготовка на реда за експорт
@@ -516,10 +579,18 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      * @param stdClass $rec
      * @param stdClass $dRec
      */
-    protected static function on_AfterGetCsvRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec)
+    protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $code = cat_Products::fetchField($dRec->productId, 'code');
-        $res->code = (!empty($code)) ? $code : "Art{$dRec->productId}";
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+
+        $pRec = (cat_Products::fetch($dRec->productId));
+
+        $res->productId = $pRec->name;
+        $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->productId}";
+
+
+
     }
 
     /**
@@ -621,7 +692,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             frame2_Reports::save($rec);
 
-            // frame2_Reports::refresh($rec);
+            frame2_Reports::refresh($rec);
 
             return new Redirect(getRetUrl());
         }
@@ -685,14 +756,17 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         if ($form->isSubmitted()) {
 
-            foreach ($rec->data->recs as $pRec) {
-                $groupsArr = keylist::toArray($pRec->groups);
-                if (!in_array($form->rec->groupFilter, $groupsArr)) {
-                    unset($rec->data->recs[$pRec->productId]);
-                }
-            }
+            $rec->groups = '|'.$form->rec->groupFilter.'|';
+
+//            foreach ($rec->data->recs as $pRec) {
+//                $groupsArr = keylist::toArray($pRec->groups);
+//                if (!in_array($form->rec->groupFilter, $groupsArr)) {
+//                    unset($rec->data->recs[$pRec->productId]);
+//                }
+//            }
 
             frame2_Reports::save($rec);
+            frame2_Reports::refresh($rec);
             return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'grFilter' => $form->rec->groupFilter, 'ret_url' => true));
 
         }
