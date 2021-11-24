@@ -104,7 +104,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
 
         $this->FLD('deliveryCountryId', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Доставка->Държава, mandatory');
         $this->FLD('deliveryAddress', 'varchar(255)', 'caption=Доставка->Място, mandatory');
-        $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Дата, mandatory');
+        $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Дата');
         $this->FLD('senderName', 'varchar(128)', 'caption=Доставка->Предал');
 
         $this->FLD('shipmentDocument', 'varchar(128)', 'caption=Документи->ЕН № / Дата, mandatory');
@@ -294,6 +294,12 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
         if(isset($fields['-list'])){
             $row->title = $mvc->getLink($rec->id, 0);
             $row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
+        }
+
+        foreach (array('deliveryTime', 'shipmentDocument', 'invoiceDocument', 'transportDocument') as $fld){
+            if(empty($rec->{$fld})){
+                $row->{$fld} = "<span style='font-weight:normal'>.................................</span>";
+            }
         }
     }
 
