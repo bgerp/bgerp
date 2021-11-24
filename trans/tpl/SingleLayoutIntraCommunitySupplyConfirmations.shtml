@@ -63,7 +63,7 @@
     <li>
         <div>
             <p>(Carrier and) Registration number of the vehicle with which the transport was made / <i>(Превозвач и) Регистрационен номер на  превозното средство, с което е направен транспорта</i></p>
-            <p>[#forwarderName#], [#forwarderVehicle#]</p>
+            <p><b>[#forwarderName#], [#forwarderVehicle#]</b></p>
         </div>
     </li>
 </ul>

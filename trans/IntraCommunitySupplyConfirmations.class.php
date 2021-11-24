@@ -128,7 +128,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
      */
     private function getInlineAddress($countryId, $pCode, $place, $address)
     {
-        $addressArr['countryId'] = is_numeric($countryId) ? drdata_Countries::getTitleById($countryId) : $countryId;
+        $addressArr['countryId'] = is_numeric($countryId) ? drdata_Countries::getCountryName($countryId, core_Lg::getCurrent()) : $countryId;
         if(!empty($pCode)){
             $addressArr['place'] = $pCode;
         }
