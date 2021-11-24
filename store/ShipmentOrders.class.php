@@ -515,24 +515,28 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         // Бутони за редакция и добавяне на ЧМР-та
         if (in_array($rec->state, array('active', 'pending'))) {
-            if ($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")) {
-                if (trans_Cmrs::haveRightFor('single', $cmrId)) {
-                    $arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-                    $data->toolbar->addBtn("ЧМР|* {$arrow}", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => true), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/passage.png");
-                }
-            } elseif (trans_Cmrs::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
+            $logisticData = $mvc->getLogisticData($rec->id);
+            $countryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+            $bgId = drdata_Countries::getIdByName('Bulgaria');
+
+            if (trans_Cmrs::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
 
                 // Само ако условието на доставка позволява ЧМР да се добавя към документа
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
                 $cmrRow = 2;
                 if($firstDoc->isInstanceOf('deals_DealMaster')){
                     $deliveryTermId = $firstDoc->fetchField('deliveryTermId');
-                    if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes') {
+                    if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes' || $countryId != $bgId) {
                         $cmrRow = 1;
                     }
                 }
 
                 $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/passage.png,row={$cmrRow}");
+            }
+
+            if(trans_IntraCommunitySupplyConfirmations::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+                $vodRowBtn = ($countryId == $bgId || !drdata_Countries::isEu($countryId)) ? 2 : 1;
+                $data->toolbar->addBtn('ВОД', array('trans_IntraCommunitySupplyConfirmations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/document_prepare.png,title=Създаване на ново потвърждение за ВОД,row={$vodRowBtn}");
             }
         }
 

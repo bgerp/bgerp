@@ -16,7 +16,7 @@
  *
  * @since     v 0.1
  */
-class trans_Cmrs extends core_Master
+class trans_Cmrs extends trans_abstract_ShipmentDocument
 {
     /**
      * Заглавие
@@ -100,14 +100,8 @@ class trans_Cmrs extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'cmrNumber,consigneeData,deliveryPlace,loadingDate,cariersData,vehicleReg,natureofGoods,successiveCarriers,documentsAttached';
-    
-    
-    /**
-     * Дали в листовия изглед да се показва бутона за добавяне
-     */
-    public $listAddBtn = false;
-    
-    
+
+
     /**
      * Кои редове да са компресирани
      */
@@ -128,12 +122,6 @@ class trans_Cmrs extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'cmrNumber,loadingDate';
-    
-    
-    /**
-     * Може ли да се редактират активирани документи
-     */
-    public $canEditActivated = true;
     
     
     /**
@@ -162,11 +150,11 @@ class trans_Cmrs extends core_Master
         
         $this->FLD('cashOnDelivery', 'varchar', 'caption=Допълнително->15. Наложен платеж');
         $this->FLD('cariersData', 'text(rows=5)', 'caption=Допълнително->16. Превозвач');
-        $this->FLD('vehicleReg', 'varchar', 'caption=МПС рег. №');
+        $this->FLD('vehicleReg', 'varchar', 'caption=Допълнително->МПС рег. №');
         $this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
         $this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
-        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=21. Изготвена в');
-        $this->FLD('establishedDate', 'date', 'caption=21. Изготвена на');
+        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=Допълнително->21. Изготвена в');
+        $this->FLD('establishedDate', 'date', 'caption=Допълнително->21. Изготвена на');
         
         $this->setDbUnique('cmrNumber');
     }
@@ -362,7 +350,9 @@ class trans_Cmrs extends core_Master
         if (isset($sRec->lineId)) {
             $lineRec = trans_Lines::fetch($sRec->lineId);
             if (isset($lineRec->forwarderId)) {
+                core_Lg::push('en');
                 $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId, true, true);
+                core_Lg::pop();
                 $form->setDefault('cariersData', $carrierData);
             }
             
@@ -375,9 +365,9 @@ class trans_Cmrs extends core_Master
         
         // Има ли общ брой палети
         if (!empty($sRec->palletCountInput)) {
-            $collets = core_Type::getByName('int')->toVerbal($sRec->palletCountInput);
-            $collets .= ' PALLETS';
-            $form->setDefault('numOfPacks1', $collets);
+            $packs = core_Type::getByName('int')->toVerbal($sRec->palletCountInput);
+            $packs .= ' PALLETS';
+            $form->setDefault('numOfPacks1', $packs);
         }
     }
     
@@ -401,7 +391,7 @@ class trans_Cmrs extends core_Master
         $contragentAddress .= ($verbal->place) ? (' ' . transliterate(tr($verbal->place))) : '';
         
         $contragentCountry = $Contragent->getVerbal($contragentId, 'country');
-        $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->getVerbal($contragentId, 'name');
+        $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->fetchField($contragentId, 'name');
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
 
         $contragentNumbers = '';
@@ -464,26 +454,6 @@ class trans_Cmrs extends core_Master
     
     
     /**
-     * Изпълнява се след подготвянето на формата за филтриране
-     */
-    protected static function on_AfterPrepareListFilter($mvc, &$res, $data)
-    {
-        $data->listFilter->view = 'horizontal';
-        $data->listFilter->showFields = 'search';
-        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
-    }
-    
-    
-    /**
-     * Документа не може да бъде начало на нишка; може да се създава само в съществуващи нишки
-     */
-    public static function canAddToFolder($folderId)
-    {
-        return false;
-    }
-    
-    
-    /**
      * Проверка дали нов документ може да бъде добавен в посочената нишка
      */
     public static function canAddToThread($threadId)
@@ -498,25 +468,6 @@ class trans_Cmrs extends core_Master
         }
         
         return false;
-    }
-    
-    
-    /**
-     * @see doc_DocumentIntf::getDocumentRow()
-     */
-    public function getDocumentRow_($id)
-    {
-        expect($rec = $this->fetch($id));
-        $title = $this->getRecTitle($rec);
-        
-        $row = (object) array('title' => $title,
-            'authorId' => $rec->createdBy,
-            'author' => $this->getVerbal($rec, 'createdBy'),
-            'state' => $rec->state,
-            'recTitle' => $title
-        );
-        
-        return $row;
     }
     
     
@@ -541,25 +492,6 @@ class trans_Cmrs extends core_Master
     
     
     /**
-     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
-     */
-    public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
-    {
-        if ($action == 'add' && isset($rec->originId)) {
-            $origin = doc_Containers::getDocument($rec->originId);
-            if (!$origin->isInstanceOf('store_ShipmentOrders')) {
-                $requiredRoles = 'no_one';
-            } else {
-                $state = $origin->fetchField('state');
-                if (!in_array($state, array('active', 'pending'))) {
-                    $requiredRoles = 'no_one';
-                }
-            }
-        }
-    }
-    
-    
-    /**
      * Добавя ключови думи за пълнотекстово търсене
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
@@ -573,26 +505,6 @@ class trans_Cmrs extends core_Master
                     $res .= ' ' . plg_Search::normalizeText($rec->{$fld});
                 }
             }
-        }
-    }
-    
-    
-    /**
-     * Метод по подразбиране, за връщане на състоянието на документа в зависимот от класа/записа
-     *
-     * @param core_Master $mvc
-     * @param NULL|string $res
-     * @param NULL|int    $id
-     * @param NULL|bool   $hStatus
-     *
-     * @see doc_HiddenContainers
-     */
-    public function getDocHiddenStatus($id, $hStatus)
-    {
-        $cid = $this->fetchField($id, 'containerId');
-        if (doclog_Documents::fetchByCid($cid, doclog_Documents::ACTION_PRINT)) {
-            
-            return true;
         }
     }
     
