@@ -260,6 +260,10 @@ class rack_Movements extends rack_MovementAbstract
                 
                 $documents = (countR($documents)) ? keylist::fromArray($documents) : null;
                 $rec->documents = keylist::merge($rec->documents, $documents);
+
+                if($rec->_isCreatedClosed === true){
+                    $rec->workerId = core_Users::getCurrent();
+                }
             }
         }
 
@@ -820,10 +824,11 @@ class rack_Movements extends rack_MovementAbstract
         } else {
             $this->requireRightFor('done', $rec);
         }
-        
+
+        $rec->workerId = core_Users::getCurrent();
         $rec->state = 'closed';
         $rec->brState = 'active';
-        $this->save($rec, 'state,brState,packagings,modifiedOn,modifiedBy');
+        $this->save($rec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy');
         
         core_Locks::release("movement{$rec->id}");
         
@@ -1297,6 +1302,17 @@ class rack_Movements extends rack_MovementAbstract
 
         if(rack_Logs::haveRightFor('list')){
             $row->_rowTools->addLink('Логове', array('rack_Logs', 'list', "movementId" => $rec->id), 'ef_icon=img/16/clock_history.png,title=Логове на потребителските действия с движението');
+        }
+
+        if($rec->state == 'closed' && rack_Movements::haveRightFor('add')){
+            $zonesArr = @json_decode($rec->zones, true);
+            if(is_array($zonesArr)){
+                array_walk($zonesArr['quantity'], function(&$a) {$a *= -1;});
+                $ZoneType = core_Type::getByName('table(columns=zone|quantity,captions=Зона|Количество)');
+                $zonesDefault = $ZoneType->fromVerbal($zonesArr);
+                $correctUrl = array('rack_Movements', 'add', 'productId' => $rec->productId, 'batch' => $rec->batch, 'packagingId' => $rec->packagingId, 'defaultZones' => $zonesDefault, 'ret_url' => true);
+                $row->_rowTools->addLink('Корекция', $correctUrl, 'ef_icon=img/16/red-back.png,title=Създаване на обратно движение');
+            }
         }
     }
 }

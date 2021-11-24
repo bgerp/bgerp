@@ -155,7 +155,7 @@ class dec_Declarations extends core_Master
         $this->FLD('inv', 'int', 'caption=Фактура, input=none');
         
         // на какви твърдения отговарят
-        $this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory');
+        $this->FLD('statements', 'keylist(mvc=dec_Statements,select=title)', 'caption=Твърдения->Отговарят на, mandatory,recently,remember');
         
         // от какви материали е
         $this->FLD('materials', 'keylist(mvc=dec_Materials,select=title)', 'caption=Материали->Изработени от, mandatory,remember');

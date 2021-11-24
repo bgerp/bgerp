@@ -802,7 +802,7 @@ class rack_Zones extends core_Master
 
         rack_Products::recalcQuantityOnZones($productArr, $zoneRec->storeId);
 
-        $zoneRec->defaultWorkerId = null;
+        $zoneRec->defaultUserId = null;
         $zoneRec->containerId = null;
         self::save($zoneRec);
     }
@@ -997,6 +997,12 @@ class rack_Zones extends core_Master
      */
     public static function pickupAll($storeId, $defaultUserId = null, $productIds = null)
     {
+        // Изтриване на всички чакащи движения в склада преди да се регенерират наново
+        $zQuery = rack_Zones::getQuery("#storeId = {$storeId}");
+        $zQuery->show("id");
+        $zoneIds = arr::extractValuesFromArray($zQuery->fetchAll(), 'id');
+        static::deletePendingZoneMovements($zoneIds, core_Users::SYSTEM_USER, $productIds);
+
         // Групиране по групи на зоните
         $gQuery = rack_ZoneGroups::getQuery();
         $gQuery->orderBy('order', 'ASC');
@@ -1005,32 +1011,32 @@ class rack_Zones extends core_Master
             $groupableZones = self::getZones($storeId, false, true, $gRec->id);
             if (countR($groupableZones)) {
                 $groupableZones = arr::make(array_keys($groupableZones), true);
-                self::pickupOrder($storeId, $groupableZones, $defaultUserId, $productIds);
+                self::pickupOrder($storeId, $groupableZones, $defaultUserId, $productIds, false);
             }
         }
 
         // Всички зони, които са без групиране
         $nonGroupableZones = array_keys(self::getZones($storeId, false, false));
         foreach ($nonGroupableZones as $zoneId) {
-            self::pickupOrder($storeId, $zoneId, $defaultUserId, $productIds);
+            self::pickupOrder($storeId, $zoneId, $defaultUserId, $productIds, false);
         }
     }
 
 
     /**
-     * Генерира очакваните движения за зоните в склада
+     * Изтриване на чакащите движения към зоната
      *
-     * @param int $storeId - ид на склад
-     * @param array|null $zoneIds - ид-та само на избраните зони
-     * @param null $workerId - ид на дефолтен товарач
-     * @param array|null $productIds - ид-та на артикули
+     * @param mixed $zoneIds
+     * @param int $userId
+     * @param null|array $productIds
+     * @return void
      */
-    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null)
+    private static function deletePendingZoneMovements($zoneIds, $userId, $productIds = null)
     {
         $productIds = arr::make($productIds, true);
-        $systemUserId = core_Users::SYSTEM_USER;
+
         $mQuery = rack_Movements::getQuery();
-        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$systemUserId}");
+        $mQuery->where("#state = 'pending' AND #zoneList IS NOT NULL AND #createdBy = {$userId}");
         if(countR($productIds)){
             $mQuery->in('productId', $productIds);
         }
@@ -1041,7 +1047,6 @@ class rack_Zones extends core_Master
         }
 
         $mQuery->show('id');
-
         $isOriginalSystemUser = core_Users::isSystemUser();
         if(!$isOriginalSystemUser){
             core_Users::forceSystemUser();
@@ -1053,6 +1058,24 @@ class rack_Zones extends core_Master
 
         if(!$isOriginalSystemUser) {
             core_Users::cancelSystemUser();
+        }
+    }
+
+
+    /**
+     * Генерира очакваните движения за зоните в склада
+     *
+     * @param int $storeId - ид на склад
+     * @param array|null $zoneIds - ид-та само на избраните зони
+     * @param null $workerId - ид на дефолтен товарач
+     * @param array|null $productIds - ид-та на артикули
+     * @param boolean $deletePendingSystemMovementsInZoneFirst - да се изтрият ли първи системните движения
+     */
+    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true)
+    {
+        // Ако се иска да се изтрият движенията към зоната
+        if($deletePendingSystemMovementsInZoneFirst){
+            static::deletePendingZoneMovements($zoneIds, core_Users::SYSTEM_USER, $productIds);
         }
 
         // Какви са очакваните количества
@@ -1099,6 +1122,7 @@ class rack_Zones extends core_Master
             $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId);
 
             // Движенията се създават от името на системата
+            $isOriginalSystemUser = core_Users::isSystemUser();
             if(!$isOriginalSystemUser) {
                 core_Users::forceSystemUser();
             }

@@ -109,9 +109,17 @@ defIfNot('CAT_DEFAULT_BOM_IS_COMPLETE', 'no');
 
 
 /**
- * стратегия за изчисляване на транспортния обем
+ * Стратегия за изчисляване на транспортния обем
  */
 defIfNot('CAT_TRANSPORT_WEIGHT_STRATEGY', 'paramFirst');
+
+
+/**
+ * Код на артикула позволени символи
+ */
+defIfNot('CAT_PRODUCT_CODE_TYPE', 'default');
+
+
 
 
 /**
@@ -217,6 +225,7 @@ class cat_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
+        'CAT_PRODUCT_CODE_TYPE' => array('enum(default=Латински букви цифри тирета интервали и долна черта,all=Латински или кирилски букви цифри тирета интервали и долна черта,alphanumeric=Цифри и латински букви,numbers=Само цифри)', 'caption=Код на артикула позволени символи->Разрешаване'),
         'CAT_BOM_REMEMBERED_RESOURCES' => array('int', 'caption=Колко от последно изпозлваните ресурси да се показват в рецептите->Брой'),
         'CAT_DEFAULT_META_IN_CONTRAGENT_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На клиент,columns=2'),
         'CAT_DEFAULT_META_IN_SUPPLIER_FOLDER' => array('set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим)', 'caption=Свойства по подразбиране в папка->На доставчик,columns=2'),
@@ -302,5 +311,48 @@ class cat_Setup extends core_ProtoSetup
     {
         $suggestions = doc_Folders::getOptionsByCoverInterface('cat_ProductFolderCoverIntf');
         $configForm->setSuggestions('CAT_CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS', $suggestions);
+    }
+
+
+    /**
+     * Проверка дали кода на артикула е допустим
+     *
+     * @param string $code     - код за проверка
+     * @param null|string $msg - съобщение за грешка
+     * @return boolean $res    - валиден ли е кода или не
+     */
+    public static function checkProductCode($code, &$msg)
+    {
+        $productCodeType = static::get('PRODUCT_CODE_TYPE');
+
+        $res = true;
+        switch($productCodeType) {
+            case 'default':
+                if (preg_match('/[^0-9a-z\- _]/iu', $code)) {
+                    $msg = 'Полето може да съдържа само латински букви, цифри, тирета, интервали и долна черта|*!';
+                    $res = false;
+                }
+                break;
+            case 'all':
+                if (preg_match('/[^0-9a-zа-я\- _]/iu', $code)) {
+                    $msg = 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта|*!';
+                    $res = false;
+                }
+                break;
+            case 'alphanumeric':
+                if (preg_match('/[^a-z_\-0-9]/i', $code)) {
+                    $msg = 'Полето може да съдържа само латински букви и цифри|*!';
+                    $res = false;
+                }
+                break;
+            case 'numbers':
+                if (preg_match('/[^0-9]/i', $code)) {
+                    $msg = 'Полето може да съдържа само цифри|*!';
+                    $res = false;
+                }
+                break;
+        }
+
+        return $res;
     }
 }
