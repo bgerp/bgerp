@@ -1127,7 +1127,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         if ($fields['-single']) {
-            if (empty($rec->vatReason)) {
+            if (empty($rec->vatReason) && !in_array($rec->vatRate, array('yes', 'separate'))) {
                 if (!drdata_Countries::isEu($rec->contragentCountryId)) {
                     $row->vatReason = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
                 } elseif (!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')) {
