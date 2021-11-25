@@ -3,12 +3,12 @@
 <h3 class="centered" style="text-transform:uppercase"><b>confirmation of the entry into another member state of the goods subject to an intra-community supply</b></h3>
 <p class="centered upper" style="text-transform:uppercase">потвърждение за влизане в друга държава-членка на стоки, които са предмет на вътрешнообщностна доставка</p>
 
-<p class='indent'>We / Ние: <b>[#contragentName#], [#contragentAddress#], [#contragentVatNo#]</b></p>
+<p class='indent'>We / <i>Ние</i>: <b>[#contragentName#], [#contragentAddress#], [#contragentVatNo#]</b></p>
 <br>
 <p class='indent'>as the customer of an intra-Community supply from: <b>[#ourCompanyNameEn#], [#ourCompanyAddressEn#]; VAT [#ourCompanyVatId#]</b></p>
 <br>
-<p class='indent'>в качеството на клиент при вътреобщностна доставка на стоки от: <b>[#ourCompanyName#], [#ourCompanyAddress#]; ДДС №: [#ourCompanyVatId#]</b></p>
-<p class="centered"><b>confirm the following / потвърждаваме следното:</b></p>
+<p class='indent'><i>в качеството на клиент при вътреобщностна доставка на стоки от: <b>[#ourCompanyName#], [#ourCompanyAddress#]; ДДС №: [#ourCompanyVatId#]</b></i></p>
+<p class="centered"><b>confirm the following / <i>потвърждаваме следното</i>:</b></p>
 
 <p class="indent">
 <p>
@@ -72,24 +72,24 @@
     <tr>
         <td style="width:50%;">
             <div>
-                <p>For / За: <i><b>[#ourCompanyNameEn#]</b></i></p>
+                <p>For / <i>За</i>: <b>[#ourCompanyNameEn#]</b></p>
                 <p>Goods handed over / <i>Стоките предадени</i>:</p>
                 <p>Name / <i>Име</i>: [#senderName#]</p>
             </div>
             <div>
                 <p>...............................................................</p>
-                <p>Signature and stamp / Подпис и печат</p>
+                <p>Signature and stamp / <i>Подпис и печат</i></p>
             </div>
         </td>
         <td style="width:50%;">
             <div>
-                <p>For / За: <i><b>[#contragentName#]</b></i></p>
+                <p>For / <i>За</i>: <b>[#contragentName#]</b></p>
                 <p>Goods accepted / <i>Стоките приети</i>:</p>
-                <p>Name / Име: ............................</p>
+                <p>Name / <i>Име</i>: ............................</p>
             </div>
             <div>
                 <p>...............................................................</p>
-                <p> Signature and stamp / Подпис и печат</p>
+                <p> Signature and stamp / <i>Подпис и печат</i></p>
             </div>
         </td>
     </tr>
