@@ -348,4 +348,20 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
 
         return $tpl->getContent();
     }
+
+
+    /**
+     * Проверка след изпращането на формата
+     */
+    protected static function on_AfterInputEditForm($mvc, $form)
+    {
+        $rec = &$form->rec;
+
+        if($form->isSubmitted()){
+            $bgId = drdata_Countries::getIdByName('Bulgaria');
+            if($rec->deliveryCountryId == $bgId || !drdata_Countries::isEu($rec->deliveryCountryId)){
+                $form->setError('deliveryCountryId', "Държавата за доставка трябва да е в Чужбина ЕС");
+            }
+        }
+    }
 }
