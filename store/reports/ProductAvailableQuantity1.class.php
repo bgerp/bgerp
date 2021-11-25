@@ -542,7 +542,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
 
         //Филтър по група
-        // $grFilter = Request::get('grFilter', 'int');
         $grFilter = $data->rec->grFilter;
 
         if ($grFilter) {
@@ -553,8 +552,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $fieldTpl->append('<b>' . "$grFilterName" . '</b>', 'grFilter');
 
         //Експорт филтър
-        // $expFilter = Request::get('expFilter');
-        $expFilter = $data->rec->exportFilter;//bp($data->rec->exportFilter);
+        $expFilter = $data->rec->exportFilter;
 
         if ($expFilter) {
             $expFilterName = '';
@@ -609,9 +607,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                if ($exportFilterArr && in_array($dRec->conditionQuantity, $exportFilterArr)) {
+                if ( $rec->exportFilter && in_array($dRec->conditionQuantity, $exportFilterArr)) {
                     $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
-                } elseif (!$exportFilterArr) {
+                } elseif (! $rec->exportFilter) {
                     $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
                 }
 
@@ -888,7 +886,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
 
     /**
-     * Филтриране на артикул
+     * Филтрър за експорт
      */
     public static function act_ExportFilter()
     {
