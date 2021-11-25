@@ -673,6 +673,7 @@ abstract class deals_DealMaster extends deals_DealBase
     private function getSubTitle($rec)
     {
         $fields = arr::make('amountDelivered,amountToDeliver,amountPaid,amountToPay,amountInvoiced,amountToInvoice', true);
+        $fields['-subTitle'] = true;
         $row = $this->recToVerbal($rec, $fields);
         
         $subTitle = tr('Дост:') . " {$row->amountDelivered} ({$row->amountToDeliver})";
@@ -1001,7 +1002,8 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $amountType = $mvc->getField('amountDeal')->type;
-        if ($rec->state == 'active') {
+
+        if ($rec->state == 'active' || isset($fields['-subTitle'])) {
             $rec->amountToDeliver = round($rec->amountDeal - $rec->amountDelivered, 2);
             $rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
             $rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
