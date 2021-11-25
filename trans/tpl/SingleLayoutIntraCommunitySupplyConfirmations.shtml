@@ -1,44 +1,51 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
 
-<h3 class="centered" style="text-transform:uppercase"><b>confirmation of the entry into another member state of the goods subject to an intra-community supply</b></h3>
-<p class="centered upper" style="text-transform:uppercase">потвърждение за влизане в друга държава-членка на стоки, които са предмет на вътрешнообщностна доставка</p>
+<h3 class="centered" style="text-transform:uppercase"><b>потвърждение за влизане в друга държава-членка на стоки, които са предмет на вътрешнообщностна доставка</b></h3>
+<p class="centered upper" style="text-transform:uppercase">confirmation of the entry into another member state of the goods subject to an intra-community supply</p>
 
-<p class='indent'>We / Ние: <b>[#contragentName#], [#contragentAddress#], [#contragentVatNo#]</b></p>
-<br>
-<p class='indent'>as the customer of an intra-Community supply from: <b>[#ourCompanyNameEn#], [#ourCompanyAddressEn#]; VAT [#ourCompanyVatId#]</b></p>
+<p class='indent'>Ние / <i>We</i>: <b>[#contragentName#], [#contragentAddress#], [#contragentVatNo#]</b></p>
 <br>
 <p class='indent'>в качеството на клиент при вътреобщностна доставка на стоки от: <b>[#ourCompanyName#], [#ourCompanyAddress#]; ДДС №: [#ourCompanyVatId#]</b></p>
-<p class="centered"><b>confirm the following / потвърждаваме следното:</b></p>
+<br>
+<p class='indent'><i>as the customer of an intra-Community supply from: <b>[#ourCompanyNameEn#], [#ourCompanyAddressEn#]; VAT [#ourCompanyVatId#]</b></i></p>
+<p class="centered"><b>потвърждаваме следното / <i>confirm the following</i>:</b></p>
 
 <p class="indent">
+<!--ET_BEGIN OUR_TRANSPORT-->
+    [#OUR_TRANSPORT#]
 <p>
-☐ The goods have been dispatched or transported by us, using our own means / <i>Стоките са доставени или транспортирани от нас, използвайки наши собствени средства</i></p>
-<small>or / или</small>
-<p>
-☐ The goods have been dispatched or transported by a third party on our behalf / <i>Стоките са доставени или транспортирани от трето лице от наше име</i>
+☐ Стоките са доставени или транспортирани от нас, използвайки наши собствени средства / <i>The goods have been dispatched or transported by us, using our own means</i>
 </p>
+<!--ET_END OUR_TRANSPORT-->
+<!--ET_BEGIN THIRD_PARTY_TRANSPORT-->
+[#THIRD_PARTY_TRANSPORT#]
+<p>
+☐ Стоките са доставени или транспортирани от трето лице от наше име / <i>The goods have been dispatched or transported by a third party on our behalf</i>
+</p>
+<!--ET_END THIRD_PARTY_TRANSPORT-->
 </p>
 <ul>
     <li>
-        <p>Member State of destination of the goods: <b>[#deliveryCountryEn#]</b></p>
-        <p><i>Държава-членка, в която са доставени стоките</i>: <b>[#deliveryCountry#]</b><p>
+        <p>Държава-членка, в която са доставени стоките: <b>[#deliveryCountry#]</b><p>
+        <p><i>Member State of destination of the goods<i>: <b>[#deliveryCountryEn#]</b></p>
+
     </li>
     <br>
     <li>
         <div>
-            <p>Quantity and Type of the goods - According to the supply documents /</p>
-            <p><i>Количество и Вид на стоките – съгласно документите за доставка</i>:</p>
+            <p>Количество и Вид на стоките – съгласно документите за доставка /</p>
+            <p><i>Quantity and Type of the goods - according to the supply documents</i>:</p>
         </div>
         <div>
             <ul>
                 <li>
-                    <p>Invoice / <i>Фактура №</i>: <b>[#invoiceDocument#]</b></p>
+                    <p>Фактура № / <i>Invoice</i>: <b>[#invoiceDocument#]</b></p>
                 </li>
                 <li>
-                    <p>Packing list / <i>ЕН №</i>: <b>[#shipmentDocument#]</b></p>
+                    <p>ЕН № / <i>Packing list</i>: <b>[#shipmentDocument#]</b></p>
                 </li>
                 <li>
-                    <p>CMR / <i>ЧМР</i>: <b>[#transportDocument#]</b></p>
+                    <p>ЧМР / <i>CMR</i>: <b>[#transportDocument#]</b></p>
                 </li>
             </ul>
         </div>
@@ -46,7 +53,7 @@
     <br>
     <li>
         <div>
-            <p>Arrival of the goods / <i>Пристигане на стоките</i></p>
+            <p>Пристигане на стоките / <i>Arrival of the goods</i></p>
         </div>
         <div>
             <ul>
@@ -62,7 +69,7 @@
     <br>
     <li>
         <div>
-            <p>(Carrier and) Registration number of the vehicle with which the transport was made / <i>(Превозвач и) Регистрационен номер на  превозното средство, с което е направен транспорта</i></p>
+            <p>(Превозвач и) Регистрационен номер на  превозното средство, с което е направен транспорта / <i>(Carrier and) Registration number of the vehicle with which the transport was made</i></p>
             <p><b>[#forwarderName#], [#forwarderVehicle#]</b></p>
         </div>
     </li>
@@ -72,29 +79,29 @@
     <tr>
         <td style="width:50%;">
             <div>
-                <p>For / За: <i><b>[#ourCompanyNameEn#]</b></i></p>
-                <p>Goods handed over / <i>Стоките предадени</i>:</p>
-                <p>Name / <i>Име</i>: [#senderName#]</p>
+                <p>За / <i>For</i>: <b>[#ourCompanyNameEn#]</b></p>
+                <p>Стоките предадени / <i>Goods handed over</i>:</p>
+                <p>Име / <i>Name</i>: [#senderName#]</p>
             </div>
             <div>
                 <p>...............................................................</p>
-                <p>Signature and stamp / Подпис и печат</p>
+                <p>Подпис и печат / <i>Signature and stamp</i></p>
             </div>
         </td>
         <td style="width:50%;">
             <div>
-                <p>For / За: <i><b>[#contragentName#]</b></i></p>
-                <p>Goods accepted / <i>Стоките приети</i>:</p>
-                <p>Name / Име: ............................</p>
+                <p>За / <i>For</i>: <b>[#contragentName#]</b></p>
+                <p>Стоките приети / <i>Goods accepted</i>:</p>
+                <p>Име / <i>Name</i>: ............................</p>
             </div>
             <div>
                 <p>...............................................................</p>
-                <p> Signature and stamp / Подпис и печат</p>
+                <p>Подпис и печат / <i>Signature and stamp</i></p>
             </div>
         </td>
     </tr>
 </table>
 <div style="margin-top:15px;">
-    This document must be filled in and sent back to the following email address / <i>Този документ трябва да бъде попълнен и изпратен на следния имейл адрес</i>: <b>[#sendBackEmail#]</b>
+    Този документ трябва да бъде попълнен и изпратен на следния имейл адрес / <i>This document must be filled in and sent back to the following email address</i>: <b>[#sendBackEmail#]</b>
 </div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
