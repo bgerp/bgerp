@@ -910,12 +910,20 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+//        $classId = core_Classes::getId('frame2_Reports');
+//
+//        Request::setProtected(array('classId', 'docId'));
+//
+//        $exportUrl = array('export_Export', 'export', 'classId' => $classId, 'docId' => $rec->id, 'ret_url' => true);
+//
+//        $form->toolbar->addBtn('Експорт', toUrl($exportUrl));
 
         if ($form->isSubmitted()) {
 
             $rec->exportFilter = $form->rec->exportFilter;
 
             frame2_Reports::save($rec);
+
             return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'expFilter' => $form->rec->exportFilter, 'ret_url' => true));
 
         }
