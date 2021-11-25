@@ -106,7 +106,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
         $this->FLD('deliveryAddress', 'varchar(255)', 'caption=Доставка->Място, mandatory');
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Дата');
         $this->FLD('senderName', 'varchar(128)', 'caption=Доставка->Предал');
-        $this->FLD('transportType', 'varchar(255)', 'caption=Доставка->Транспорт');
+        $this->FLD('transportType', 'varchar(255)', 'caption=Доставка->Вид транспорт');
 
         $this->FLD('shipmentDocument', 'varchar(128)', 'caption=Документи->ЕН № / Дата, mandatory');
         $this->FLD('invoiceDocument', 'varchar(255)', 'caption=Документи->Фактура № / Дата');
@@ -311,7 +311,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
         } elseif($rec->transportType == 'our'){
             $row->OUR_TRANSPORT = ' ';
         } else {
-            $row->THIRD_PARTY_TRANSPORT = '<small>or / или</small>';
+            $row->THIRD_PARTY_TRANSPORT = '<small>или / <i>or</i></small>';
             $row->OUR_TRANSPORT = ' ';
         }
     }
