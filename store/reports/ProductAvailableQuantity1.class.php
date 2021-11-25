@@ -98,6 +98,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('arhGroups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,input=none,silent,single=none');
 
+        $fieldset->FLD('orderLimit', 'double', 'caption=Други настройки->Лимит за поръчка, unit=% от максималното количество');
+
 
         $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
         $fieldset->FNC('exportFilter', 'varchar', 'caption=Експорт филтър,input=none,single=none');
@@ -129,6 +131,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->setDefault('condFilter', '');
 
+        $form->setDefault('orderLimit', 80);
+
         if ($rec->arhGroups) {
             $rec->groups = $rec->arhGroups;
         }
@@ -147,6 +151,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if ($rec->filters == 'condQuantity') {
             $form->setField('condFilter', 'input');
         }
+
+
+        $suggestions = array(''=>'','50'=>50, '60'=>60, '70'=>70, '80'=>80);
+
+
+        $form->setSuggestions('orderLimit', $suggestions);
 
 
     }
@@ -532,7 +542,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
 
         //Филтър по група
-        // $grFilter = Request::get('grFilter', 'int');
         $grFilter = $data->rec->grFilter;
 
         if ($grFilter) {
@@ -543,8 +552,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $fieldTpl->append('<b>' . "$grFilterName" . '</b>', 'grFilter');
 
         //Експорт филтър
-        // $expFilter = Request::get('expFilter');
-        $expFilter = $data->rec->exportFilter;//bp($data->rec->exportFilter);
+        $expFilter = $data->rec->exportFilter;
 
         if ($expFilter) {
             $expFilterName = '';
@@ -599,9 +607,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                if ($exportFilterArr && in_array($dRec->conditionQuantity, $exportFilterArr)) {
+                if ( $rec->exportFilter && in_array($dRec->conditionQuantity, $exportFilterArr)) {
                     $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
-                } elseif (!$exportFilterArr) {
+                } elseif (! $rec->exportFilter) {
                     $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
                 }
 
@@ -631,7 +639,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->productId}";
 
         if ($dRec->maxQuantity > 0) {
-            $suggQuantity = $dRec->maxQuantity * 80 / 100 - $dRec->quantity;
+            $suggQuantity = $dRec->maxQuantity * $rec->orderLimit / 100 - $dRec->quantity;
         }
 
         $res->suggQuantity = $Double->toVerbal($suggQuantity);
@@ -878,7 +886,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
 
     /**
-     * Филтриране на артикул
+     * Филтрър за експорт
      */
     public static function act_ExportFilter()
     {
@@ -900,12 +908,20 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+//        $classId = core_Classes::getId('frame2_Reports');
+//
+//        Request::setProtected(array('classId', 'docId'));
+//
+//        $exportUrl = array('export_Export', 'export', 'classId' => $classId, 'docId' => $rec->id, 'ret_url' => true);
+//
+//        $form->toolbar->addBtn('Експорт', toUrl($exportUrl));
 
         if ($form->isSubmitted()) {
 
             $rec->exportFilter = $form->rec->exportFilter;
 
             frame2_Reports::save($rec);
+
             return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'expFilter' => $form->rec->exportFilter, 'ret_url' => true));
 
         }
