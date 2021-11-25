@@ -160,7 +160,7 @@ class export_Xls extends core_Mvc
         // Отключваме предишния процес
         core_Locks::release($params['lockId']);
         
-        // Да не се изтрива директрояита, след като качим файла
+        // Да не се изтрива директорията, след като качим файла
         return false;
     }
     
