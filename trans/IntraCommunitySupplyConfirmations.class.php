@@ -106,6 +106,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
         $this->FLD('deliveryAddress', 'varchar(255)', 'caption=Доставка->Място, mandatory');
         $this->FLD('deliveryTime', 'datetime', 'caption=Доставка->Дата');
         $this->FLD('senderName', 'varchar(128)', 'caption=Доставка->Предал');
+        $this->FLD('transportType', 'varchar(255)', 'caption=Доставка->Вид транспорт');
 
         $this->FLD('shipmentDocument', 'varchar(128)', 'caption=Документи->ЕН № / Дата, mandatory');
         $this->FLD('invoiceDocument', 'varchar(255)', 'caption=Документи->Фактура № / Дата');
@@ -209,7 +210,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
 
                 $cmrDateField = ($cmrRec->establishedDate) ? 'establishedDate' : 'createdOn';
                 Mode::push('text', 'plain');
-                $transportDocument = "{$cmrRec->id} / " . trans_Cmrs::getVerbal($cmrRec, $cmrDateField);
+                $transportDocument = "{$cmrRec->cmrNumber} / " . trans_Cmrs::getVerbal($cmrRec, $cmrDateField);
                 Mode::pop('text');
                 $form->setDefault('transportDocument', $transportDocument);
 
@@ -266,6 +267,9 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
                 $form->setSuggestions('sendBackEmail', array('' => '') + $emailOptions);
                 $form->setDefault('sendBackEmail', key($emailOptions));
             }
+
+            $transportTypes = array('our' => 'Стоките са доставени или транспортирани от нас, използвайки наши собствени средства', 'thirdParty' => 'Стоките са доставени или транспортирани от трето лице от наше име');
+            $form->setOptions('transportType', array('' => '') + $transportTypes);
         }
     }
 
@@ -300,6 +304,15 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
             if(empty($rec->{$fld})){
                 $row->{$fld} = "<span style='font-weight:normal'>.................................</span>";
             }
+        }
+
+        if($rec->transportType == 'thirdParty'){
+            $row->THIRD_PARTY_TRANSPORT = ' ';
+        } elseif($rec->transportType == 'our'){
+            $row->OUR_TRANSPORT = ' ';
+        } else {
+            $row->THIRD_PARTY_TRANSPORT = '<small>или / <i>or</i></small>';
+            $row->OUR_TRANSPORT = ' ';
         }
     }
 
@@ -347,5 +360,21 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
         $tpl->append($handle, 'handle');
 
         return $tpl->getContent();
+    }
+
+
+    /**
+     * Проверка след изпращането на формата
+     */
+    protected static function on_AfterInputEditForm($mvc, $form)
+    {
+        $rec = &$form->rec;
+
+        if($form->isSubmitted()){
+            $bgId = drdata_Countries::getIdByName('Bulgaria');
+            if($rec->deliveryCountryId == $bgId || !drdata_Countries::isEu($rec->deliveryCountryId)){
+                $form->setError('deliveryCountryId', "Държавата за доставка трябва да е в Чужбина ЕС");
+            }
+        }
     }
 }

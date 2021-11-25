@@ -44,7 +44,7 @@ class email_ServiceRules extends embed_Manager
     /**
      * @see email_AutomaticIntf
      */
-    public $weight = -1;
+    public $weight = 150;
     
     
     /**
@@ -158,33 +158,63 @@ class email_ServiceRules extends embed_Manager
             
             return ;
         }
-        
+
         $pRes = null;
-        
+
+        $haveMatch = false;
+
         foreach ($allFilters as $filterRec) {
+
             $classIdFld = $this->driverClassField;
 
             if (email_ServiceRules::match($sDataArr, $filterRec)) {
-                
+
                 if (!$filterRec->{$classIdFld}) {
                     
                     $this->logDebug("Липсва {$classIdFld}", null, 3);
                     
                     continue;
                 }
-                
+
+                if (!cls::load($filterRec->{$classIdFld}, true)) {
+
+                    continue;
+                }
+
                 $sInst = cls::getInterface('email_ServiceRulesIntf', $filterRec->$classIdFld);
-                
-                $pRes = $sInst->process($mime, $filterRec);
+
+                try {
+                    $pRes = $sInst->process($mime, $filterRec);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                    continue;
+                } catch (Exception $e) {
+                    reportException($e);
+                    continue;
+                } catch (Throwable $e) {
+                    reportException($e);
+                    continue;
+                }
+
+                $haveMatch = true;
 
                 if (isset($pRes)) {
-
                     if (!is_array($pRes)) {
                         email_ServiceRulesData::add($mime, $accId, $uid, $filterRec->id);
                     }
 
                     break;
                 }
+            }
+        }
+
+        if ($haveMatch) {
+            if (!isset($pRes)) {
+                $pRes = array();
+            }
+
+            if (is_array($pRes)) {
+                $pRes['spam']['checkSpam'] = false;
             }
         }
         

@@ -96,7 +96,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('artLimits', 'blob(serialize)', 'after=seeByStores,input=none,single=none');
 
+        $fieldset->FLD('arhGroups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,input=none,silent,single=none');
+
+        $fieldset->FLD('orderLimit', 'double', 'caption=Други настройки->Лимит за поръчка, unit=% от максималното количество');
+
+
         $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
+        $fieldset->FNC('exportFilter', 'varchar', 'caption=Експорт филтър,input=none,single=none');
+        $fieldset->FNC('grFilter', 'varchar', 'caption=Филтър по група,input=none,single=none');
 
 
     }
@@ -122,10 +129,13 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->setDefault('filters', 'no');
 
-        //$form->setDefault('condFilter', '1|под Мин.,3|над Макс.,2|Отриц.,4|ок');
         $form->setDefault('condFilter', '');
 
+        $form->setDefault('orderLimit', 80);
 
+        if ($rec->arhGroups) {
+            $rec->groups = $rec->arhGroups;
+        }
 
         if ($rec->limits == 'no') {
 
@@ -138,10 +148,15 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $form->setField('date', 'input');
         }
 
-        if ($rec->filters == 'condQuantity'){
+        if ($rec->filters == 'condQuantity') {
             $form->setField('condFilter', 'input');
         }
 
+
+        $suggestions = array(''=>'','50'=>50, '60'=>60, '70'=>70, '80'=>80);
+
+
+        $form->setSuggestions('orderLimit', $suggestions);
 
 
     }
@@ -161,9 +176,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $rec = $form->rec;
         if ($form->isSubmitted()) {
 
-            if ($form->cmd == 'save' && $rec->id && $rec->limits == 'yes') {
-                frame2_Reports::refresh($rec);
-            }
+            $rec->arhGroups = $rec->groups;
+            unset($rec->grFilter);
+
+//            if ($form->cmd == 'save' && $rec->id && $rec->limits == 'yes') {
+//                frame2_Reports::refresh($rec);
+//            }
 
         }
     }
@@ -190,14 +208,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-
-
         $recs = $storesQuatity = $artLimitsArr = array();
 
-
         $tempArrRec = frame2_Reports::fetch($rec->id);
-        $tempArr = $tempArrRec->artLimits;
 
+        $tempArr = $tempArrRec->artLimits;
 
         if (is_array($tempArr) && !empty($tempArr)) {
             $artLimitsArr = frame2_Reports::fetch($rec->id)->artLimits;
@@ -297,9 +312,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $prodRec->conditionQuantity = '4|ок';
             $prodRec->conditionColor = 'green';
             if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0 && $prodRec->minQuantity != '0') {
-              //  continue;
+                //  continue;
             }
-
 
 
             if ($prodRec->quantity > $prodRec->maxQuantity && ($prodRec->maxQuantity != 0)) {
@@ -317,11 +331,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         //Филтри за показване
         //Филтър по състояние
-        if ($rec->filters == 'condQuantity'){
+        if ($rec->filters == 'condQuantity') {
 
             $condFilter = $rec->condFilter;
-            foreach ($recs as $key => $oneRec){
-                if (!in_array($oneRec->conditionQuantity,explode(',',$condFilter))){
+            foreach ($recs as $key => $oneRec) {
+                if (!in_array($oneRec->conditionQuantity, explode(',', $condFilter))) {
                     unset($recs[$key]);
                 }
 
@@ -331,7 +345,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
 
 
-
         if (!is_null($recs)) {
             if ($rec->orderBy) {
                 arr::sortObjects($recs, $rec->orderBy, 'asc');
@@ -339,7 +352,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 arr::sortObjects($recs, 'quantity', 'desc');
             }
         }
-
 
 
         return $recs;
@@ -362,22 +374,22 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         if ($export === false) {
 
-        $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
-        $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-        $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
+            $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
+            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
 
 
-        if ($rec->limits == 'yes') {
-            $fld->FLD('minQuantity', 'double(smartRound,decimals=3)', 'caption=Лимит->Мин.,smartCenter');
-            $fld->FLD('maxQuantity', 'double(smartRound,decimals=3)', 'caption=Лимит->Макс.,smartCenter');
-            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
-            $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
-        }
-    }else{
+            if ($rec->limits == 'yes') {
+                $fld->FLD('minQuantity', 'double(smartRound,decimals=3)', 'caption=Лимит->Мин.,smartCenter');
+                $fld->FLD('maxQuantity', 'double(smartRound,decimals=3)', 'caption=Лимит->Макс.,smartCenter');
+                $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
+                $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
+            }
+        } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-           // $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
+            // $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
             $fld->FLD('suggQuantity', 'varchar', 'caption=Количество->За поръчка,smartCenter');
 
         }
@@ -465,29 +477,30 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN groups--><div>|Наблюдавани групи|*: [#groups#]</div><!--ET_END groups-->
+                                        <!--ET_BEGIN arhGroups--><div>|Наблюдавани групи|*: [#arhGroups#]</div><!--ET_END arhGroups-->
                                         <!--ET_BEGIN ariculsData--><div>|Брой артикули|*: [#ariculsData#]</div><!--ET_END ariculsData-->
                                         <!--ET_BEGIN storeId--><div>|Складове|*: [#storeId#]</div><!--ET_END storeId-->
                                         <!--ET_BEGIN typeOfQuantity--><div>|Количество|*: [#typeOfQuantity#]</div><!--ET_END typeOfQuantity-->
-                                        <!--ET_BEGIN button--><div>|Филтър по група |*: [#button#]</div><!--ET_END button-->
+                                        <!--ET_BEGIN grFilter--><div>|Филтър по група |*: [#grFilter#]</div><!--ET_END grFilter-->
+                                        <!--ET_BEGIN button--><div>|Филтри |*: [#button#]</div><!--ET_END button-->
                                     </div>
                                 
                                  </fieldset><!--ET_END BLOCK-->"));
 
 
-        if (isset($data->rec->groups)) {
+        if (isset($data->rec->arhGroups)) {
             $marker = 0;
-            foreach (keylist::toArray($data->rec->groups) as $group) {
+            foreach (keylist::toArray($data->rec->arhGroups) as $group) {
                 $marker++;
 
                 $groupVerb .= cat_Groups::fetch($group)->name;
 
-                if ((countR(keylist::toArray($data->rec->groups))) - $marker != 0) {
+                if ((countR(keylist::toArray($data->rec->arhGroups))) - $marker != 0) {
                     $groupVerb .= ', ';
                 }
             }
 
-            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'arhGroups');
         }
 
         if (isset($data->rec->storeId)) {
@@ -526,12 +539,17 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fieldTpl->append('<b>' . 'Налично към ' . $dateVerb . '</b>', 'typeOfQuantity');
 
         }
-        $grFilter = Request::get('grFilter', 'int');
+
+        //Филтър по група
+        $grFilter = $data->rec->grFilter;
+
         if ($grFilter) {
             $grFilterName = cat_Groups::fetch($grFilter)->name;
         } else {
             $grFilterName = 'Не е избрана';
         }
+        $fieldTpl->append('<b>' . "$grFilterName" . '</b>', 'grFilter');
+
         $grUrl = array('store_reports_ProductAvailableQuantity1', 'groupfilter', 'recId' => $data->rec->id, 'ret_url' => true);
         $artUrl = array('store_reports_ProductAvailableQuantity1', 'artfilter', 'recId' => $data->rec->id, 'ret_url' => true);
         $exportUrl = array('store_reports_ProductAvailableQuantity1', 'exportfilter', 'recId' => $data->rec->id, 'ret_url' => true);
@@ -542,7 +560,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $toolbar->addBtn('Избери артикул', toUrl($artUrl));
         $toolbar->addBtn('Филтър за експорт', toUrl($exportUrl));
 
-        $fieldTpl->append('<b>' . "$grFilterName" . $toolbar->renderHtml() . '</b>', 'button');
+        $fieldTpl->append('<b>' . $toolbar->renderHtml() . '</b>', 'button');
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
@@ -550,7 +568,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     /**
      * Връща редовете на CSV файл-а
      *
-     * @param stdClass       $rec         - запис
+     * @param stdClass $rec - запис
      * @param core_BaseClass $ExportClass - клас за експорт (@see export_ExportTypeIntf)
      *
      * @return array $recs                - записите за експорт
@@ -558,17 +576,24 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     public function getExportRecs($rec, $ExportClass)
     {
 
+        $exportFilterArr = explode(',', $rec->exportFilter);
+
         expect(cls::haveInterface('export_ExportTypeIntf', $ExportClass));
         $recsToExport = $this->getRecsForExport($rec, $ExportClass);
 
         $recs = array();
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
-                 $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
+
+                if ( $rec->exportFilter && in_array($dRec->conditionQuantity, $exportFilterArr)) {
+                    $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
+                } elseif (! $rec->exportFilter) {
+                    $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
+                }
 
             }
         }
-
+        //unset($rec->exportFilter);
         return $recs;
     }
 
@@ -591,15 +616,22 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $res->productId = $pRec->name;
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->productId}";
 
-        if ($dRec->maxQuantity > 0){
-            $suggQuantity = $dRec->maxQuantity*80/100 - $dRec-> quantity;
+        if($dRec->maxQuantity){
+            $suggQuantity = $dRec->maxQuantity * $rec->orderLimit / 100 - $dRec->quantity;
+        }else{
+            if ($dRec->minQuantity){
+                $suggQuantity = $dRec->minQuantity * 3 - $dRec->quantity;
+            }else{
+                if ($dRec->quantity < 0){
+
+                    $suggQuantity = $dRec->quantity * (-1);
+
+                }
+            }
+
         }
 
         $res->suggQuantity = $Double->toVerbal($suggQuantity);
-
-
-
-
 
     }
 
@@ -627,37 +659,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
     }
 
-    /**
-     * Изтриване на ред
-     */
-    public static function act_DelRow()
-    {
-        expect($recId = Request::get('recId', 'int'));
-        expect($productId = Request::get('productId', 'int'));
-        expect($code = Request::get('code'));
-        $rec = frame2_Reports::fetch($recId);
-
-        $details = $rec->artLimits;
-
-        unset($details[$productId]);
-
-        $rec->artLimits = $details;
-
-        unset($rec->data->recs[$productId]);
-
-        frame2_Reports::save($rec);
-
-        return new Redirect(getRetUrl());
-    }
 
     /**
      * Промяна на стойностите min и max
      */
     public function act_EditMinMax()
     {
-        /**
-         * Установява необходима роля за да се стартира екшъна
-         */
 
         expect($recId = Request::get('recId', 'int'));
         expect($productId = Request::get('productId', 'int'));
@@ -680,9 +687,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $volOldMin = $minVal;
         $volOldMax = $maxVal;
 
-        $form->FLD('volNewMin', 'double', 'caption=Въведи min,input');
+        $form->FLD('volNewMin', 'double', 'caption=Въведи min,input,silent');
 
-        $form->FLD('volNewMax', 'double', 'caption=Въведи max,input');
+        $form->FLD('volNewMax', 'double', 'caption=Въведи max,input,silent');
 
         $form->setDefault('volNewMax', $volOldMax);
         $form->setDefault('volNewMin', $volOldMin);
@@ -693,6 +700,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
+        if ($form->rec->volNewMax < $form->rec->volNewMin) {
+
+            $form->setError('volNewMin, volNewMax', ' Максималното количество не може да бъде по-малко от минималното ');
+        }
         if ($form->isSubmitted()) {
 
             $details[$productId]['minQuantity'] = $mRec->volNewMin;
@@ -728,9 +739,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->title = "Филтър за група ";
 
+        if ($rec->arhGroups) {
 
-        if ($rec->groups) {
-            foreach (keylist::toArray($rec->groups) as $val) {
+            foreach (keylist::toArray($rec->arhGroups) as $val) {
 
                 $groupsSuggestionsArr[$val] = cat_Groups::fetch($val)->name;
 
@@ -754,7 +765,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         }
 
-        $form->FLD('groupFilter', 'key(mvc=cat_Groups, select=name)', 'caption=Покажи група,silent');
+        $form->FLD('groupFilter', 'key(mvc=cat_Groups,allowEmpty, select=name)', 'caption=Покажи група,placeholder=Изчисти филтъра,silent');
 
         $form->setOptions('groupFilter', $groupsSuggestionsArr);
 
@@ -766,14 +777,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         if ($form->isSubmitted()) {
 
-            $rec->groups = '|'.$form->rec->groupFilter.'|';
-
-//            foreach ($rec->data->recs as $pRec) {
-//                $groupsArr = keylist::toArray($pRec->groups);
-//                if (!in_array($form->rec->groupFilter, $groupsArr)) {
-//                    unset($rec->data->recs[$pRec->productId]);
-//                }
-//            }
+            if (!$form->rec->groupFilter) {
+                $rec->groups = $rec->arhGroups;
+            } else {
+                $rec->groups = '|' . $form->rec->groupFilter . '|';
+            }
+            $rec->grFilter = $form->rec->groupFilter;
 
             frame2_Reports::save($rec);
             frame2_Reports::refresh($rec);
@@ -837,11 +846,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
 
     /**
-     * Филтриране на артикул
+     * Филтрър за експорт
      */
     public static function act_ExportFilter()
     {
-
 
         expect($recId = Request::get('recId', 'int'));
 
@@ -853,34 +861,26 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->title = "Филтър за експорт";
 
-        foreach (array_keys($rec->data->recs) as $val) {
-
-            $pRec = cat_Products::fetch($val);
-            $code = $pRec->code ?: 'Art' . $pRec->productId;
-            $artSuggestionsArr[$val] = $code . '|' . $pRec->name;
-
-        }
-
-       // $form->FLD('exportFilter', 'key(mvc=cat_Products, select=name)', 'caption=Артикул,silent');
-        $form->FLD('exportFilter','set(1|под Мин.=Под минимум,3|над Макс.=Над максимум, 2|Отриц.=Отрицателни, 4|ок=ОК)', 'caption=Артикули с количества,columns=4,silent');
-
+        $form->FLD('exportFilter', 'set(1|под Мин.=Под минимум,3|над Макс.=Над максимум, 2|Отриц.=Отрицателни, 4|ок=ОК)', 'caption=Артикули с количества,columns=4,silent');
 
         $mRec = $form->input();
 
-        //$form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
+        $form->toolbar->addSbBtn('Експорт', 'save', 'ef_icon = img/16/disk.png');
 
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
         if ($form->isSubmitted()) {
 
-            foreach ($rec->data->recs as $pRec) {
-                if ($form->rec->artFilter != $pRec->productId) {
-                    unset($rec->data->recs[$pRec->productId]);
-                }
-            }
+            $rec->exportFilter = $form->rec->exportFilter;
 
             frame2_Reports::save($rec);
-            return new Redirect(array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId, 'artFilter' => $form->rec->artFilter, 'ret_url' => true));
+
+            $classId = core_Classes::getId('frame2_Reports');
+            Request::setProtected(array('classId', 'docId'));
+            $retUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, 'docId' => $recId);
+            $exportUrl = array('export_Export', 'export', 'classId' => $classId, 'docId' => $rec->id, 'ret_url' => $retUrl);
+
+            return new Redirect(toUrl($exportUrl));
 
         }
 
