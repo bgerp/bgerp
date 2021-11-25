@@ -98,6 +98,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('arhGroups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,input=none,silent,single=none');
 
+        $fieldset->FLD('orderLimit', 'double', 'caption=Други настройки->Лимит за поръчка, unit=% от максималното количество');
+
 
         $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
         $fieldset->FNC('exportFilter', 'varchar', 'caption=Експорт филтър,input=none,single=none');
@@ -129,6 +131,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->setDefault('condFilter', '');
 
+        $form->setDefault('orderLimit', 80);
+
         if ($rec->arhGroups) {
             $rec->groups = $rec->arhGroups;
         }
@@ -147,6 +151,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if ($rec->filters == 'condQuantity') {
             $form->setField('condFilter', 'input');
         }
+
+
+        $suggestions = array(''=>'','50'=>50, '60'=>60, '70'=>70, '80'=>80);
+
+
+        $form->setSuggestions('orderLimit', $suggestions);
 
 
     }
@@ -631,7 +641,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->productId}";
 
         if ($dRec->maxQuantity > 0) {
-            $suggQuantity = $dRec->maxQuantity * 80 / 100 - $dRec->quantity;
+            $suggQuantity = $dRec->maxQuantity * $rec->orderLimit / 100 - $dRec->quantity;
         }
 
         $res->suggQuantity = $Double->toVerbal($suggQuantity);
