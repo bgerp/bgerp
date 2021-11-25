@@ -210,7 +210,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
 
                 $cmrDateField = ($cmrRec->establishedDate) ? 'establishedDate' : 'createdOn';
                 Mode::push('text', 'plain');
-                $transportDocument = "{$cmrRec->id} / " . trans_Cmrs::getVerbal($cmrRec, $cmrDateField);
+                $transportDocument = "{$cmrRec->cmrNumber} / " . trans_Cmrs::getVerbal($cmrRec, $cmrDateField);
                 Mode::pop('text');
                 $form->setDefault('transportDocument', $transportDocument);
 
