@@ -814,7 +814,7 @@ abstract class store_DocumentMaster extends core_Master
             }
         }
         
-        $res['deliveryTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
+        $res['deliveryTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY'));
         $res['ourReff'] = '#' . $this->getHandle($rec);
 
         $totalInfo = $this->getTotalTransportInfo($rec);
