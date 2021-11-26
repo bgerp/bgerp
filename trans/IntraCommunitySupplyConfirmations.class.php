@@ -307,16 +307,16 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
         }
 
         if($rec->transportType == 'thirdParty'){
-            $row->THIRD_PARTY_TRANSPORT_CHECK_BOX = html_entity_decode("&#128505;", ENT_COMPAT, 'UTF-8');
+            $row->TRANSPORT_CHECK = html_entity_decode("&#128505;", ENT_COMPAT, 'UTF-8');
             $row->THIRD_PARTY_TRANSPORT = ' ';
         } elseif($rec->transportType == 'our'){
-            $row->OUR_TRANSPORT_CHECK_CHECK_BOX = html_entity_decode("&#128505;", ENT_COMPAT, 'UTF-8');
+            $row->TRANSPORT_CHECK = html_entity_decode("&#128505;", ENT_COMPAT, 'UTF-8');
             $row->OUR_TRANSPORT = ' ';
         } else {
             $checkboxEmpty = html_entity_decode("&#9744;", ENT_COMPAT, 'UTF-8');
             $row->THIRD_PARTY_TRANSPORT = '<small>или / <i>or</i></small>';
             $row->OUR_TRANSPORT = ' ';
-            $row->OUR_TRANSPORT_CHECK_CHECK_BOX = $row->THIRD_PARTY_TRANSPORT_CHECK_BOX = $checkboxEmpty;
+            $row->OUR_TRANSPORT_CHECK = $row->THIRD_PARTY_TRANSPORT_CHECK = $checkboxEmpty;
         }
     }
 
