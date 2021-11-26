@@ -15,9 +15,9 @@
         <p>Стоките са доставени или транспортирани<i class="quiet"> (The goods have been dispatched or transported)</i>:</p>
 		<p class="indent">
 		<!--ET_BEGIN OUR_TRANSPORT-->
-		    [#OUR_TRANSPORT#]
+		[#OUR_TRANSPORT#]
 		<p>
-		[#OUR_TRANSPORT_CHECK_CHECK_BOX#] от нас, използвайки наши собствени средства<i class="quiet"> (by us, using our own means)</i>
+		[#OUR_TRANSPORT_CHECK_BOX#] от нас, използвайки наши собствени средства<i class="quiet"> (by us, using our own means)</i>
 		</p>
 		<!--ET_END OUR_TRANSPORT-->
 		<!--ET_BEGIN THIRD_PARTY_TRANSPORT-->
