@@ -353,6 +353,8 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
                 core_Lg::push('en');
                 $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId, true, true);
                 core_Lg::pop();
+
+
                 $form->setDefault('cariersData', $carrierData);
             }
             
@@ -389,9 +391,10 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         $contragentAddress = ($verbal->address) ? (transliterate(tr($verbal->address)) . "\n") : '';
         $contragentAddress .= ($verbal->pCode) ? $verbal->pCode : '';
         $contragentAddress .= ($verbal->place) ? (' ' . transliterate(tr($verbal->place))) : '';
-        
+
         $contragentCountry = $Contragent->getVerbal($contragentId, 'country');
-        $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->fetchField($contragentId, 'name');
+        $contragentName = ($translate === true) ? transliterate($Contragent->fetchField($contragentId, 'name')) : $Contragent->fetchField($contragentId, 'name');
+
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
 
         $contragentNumbers = '';
