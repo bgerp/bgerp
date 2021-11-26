@@ -340,7 +340,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             }
         }
 
-
         return $recs;
     }
 
@@ -441,11 +440,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             list($a, $conditionQuantity) = explode('|', $dRec->conditionQuantity);
 
             $row->conditionQuantity = "<span style='color: $dRec->conditionColor'>$conditionQuantity</span>";
-
+        }
             $row->delrow = '';
             //$row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'delRow', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/delete.png");
             $row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
-        }
 
 
         return $row;
@@ -710,19 +708,21 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $volOldMin = $minVal;
         $volOldMax = $maxVal;
+        $orderMeasureOld = $orderMeasure;
+        $minOrderOld = $minOrder;
 
         $form->FLD('volNewMin', 'double', 'caption=Въведи min,input,silent');
 
         $form->FLD('volNewMax', 'double', 'caption=Въведи max,input,silent');
 
-        $form->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=Опаковка за поръчка,input,silent');
+        $form->FLD('orderMeasureNew', 'key(mvc=cat_UoM,select=name)', 'caption=Опаковка за поръчка,input,silent');
 
-        $form->FLD('minOrder', 'double', 'caption=Минимална поръчка,input,silent');
-
+        $form->FLD('minOrderNew', 'double', 'caption=Минимална поръчка,input,silent');
+    ;
         $form->setDefault('volNewMax', $volOldMax);
         $form->setDefault('volNewMin', $volOldMin);
-        $form->setDefault('orderMeasure', $orderMeasure);
-        $form->setDefault('minOrder', $minOrder);
+        $form->setDefault('orderMeasureNew', $orderMeasureOld);
+        $form->setDefault('minOrderNew', $minOrderOld);
 
         $mRec = $form->input();
 
@@ -742,18 +742,20 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $options[$qRec->id] = $qRec->name;
         }
 
-        $form->setOptions('orderMeasure', $options);
+        $form->setOptions('orderMeasureNew', $options);
 
         if ($form->rec->volNewMax < $form->rec->volNewMin) {
 
             $form->setError('volNewMin, volNewMax', ' Максималното количество не може да бъде по-малко от минималното ');
         }
+
+
         if ($form->isSubmitted()) {
 
             $details[$productId]['minQuantity'] = $mRec->volNewMin;
             $details[$productId]['maxQuantity'] = $mRec->volNewMax;
-            $details[$productId]['orderMeasure'] = $mRec->orderMeasure;
-            $details[$productId]['minOrder'] = $mRec->minOrder;
+            $details[$productId]['orderMeasure'] = $mRec->orderMeasureNew;
+            $details[$productId]['minOrder'] = $mRec->minOrderNew;
 
             $rec->artLimits = $details;
 
