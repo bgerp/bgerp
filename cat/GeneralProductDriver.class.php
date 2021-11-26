@@ -164,8 +164,9 @@ class cat_GeneralProductDriver extends cat_ProductDriver
             $paramQuery = cat_products_Params::getQuery();
             $paramQuery->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
             $paramQuery->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
+            $paramQuery->XPR('orderEx', 'varchar', 'COALESCE(#order, 999999)');
             $paramQuery->where("#productId = {$originRecId} AND #classId = {$classId}");
-            $paramQuery->orderBy('group,order,id', 'ASC');
+            $paramQuery->orderBy('group,orderEx,id', 'ASC');
             while ($pRec = $paramQuery->fetch()) {
                 $res[$pRec->paramId] = $pRec->paramValue;
             }
