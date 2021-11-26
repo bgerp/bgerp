@@ -152,12 +152,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $form->setField('condFilter', 'input');
         }
 
-
-        $suggestions = array(''=>'','50'=>50, '60'=>60, '70'=>70, '80'=>80);
-
-
+        $suggestions = array('' => '', '50' => 50, '60' => 60, '70' => 70, '80' => 80);
         $form->setSuggestions('orderLimit', $suggestions);
-
 
     }
 
@@ -179,24 +175,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $rec->arhGroups = $rec->groups;
             unset($rec->grFilter);
 
-//            if ($form->cmd == 'save' && $rec->id && $rec->limits == 'yes') {
-//                frame2_Reports::refresh($rec);
-//            }
-
         }
     }
-
-    public static function on_AfterSave($d, $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-
-
-    }
-
-    public static function on_BeforeSave($d, $mvc, &$id, $rec, &$fields = null, $mode = null)
-    {
-
-    }
-
 
     /**
      * Кои записи ще се показват в таблицата
@@ -264,13 +244,17 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             } else {
 
                 if (!in_array($productId, array_keys($artLimitsArr))) {
-                    $artLimitsArr[$productId] = array('minQuantity' => '', 'maxQuantity' => '');
+                    $artLimitsArr[$productId] = array('minQuantity' => '', 'maxQuantity' => '', 'orderMeasure' => '', 'minOrder' => '');
                     $minQuantity = '';
                     $maxQuantity = '';
+                    $orderMeasure = '';
+                    $minOrder = '';
 
                 } else {
                     $minQuantity = $artLimitsArr[$productId]['minQuantity'];
                     $maxQuantity = $artLimitsArr[$productId]['maxQuantity'];
+                    $orderMeasure = $artLimitsArr[$productId]['orderMeasure'];
+                    $minOrder = $artLimitsArr[$productId]['minOrder'];
                 }
 
                 $code = ($recProduct->code) ?: 'Art' . $productId;
@@ -281,6 +265,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     'quantity' => $quantity,
                     'minQuantity' => $minQuantity,
                     'maxQuantity' => $maxQuantity,
+                    'orderMeasure' => $orderMeasure,
+                    'minOrder' => $minOrder,
                     'code' => $code,
                     'groups' => $recProduct->groups,
                 );
@@ -291,6 +277,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if (!is_null($recs)) {
             arr::sortObjects($recs, 'code', 'asc');
         }
+
         $temp = array();
         foreach ($storesQuatity as $key => $val) {
 
@@ -391,7 +378,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             // $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
             $fld->FLD('suggQuantity', 'varchar', 'caption=Количество->За поръчка,smartCenter');
-
+            if (core_Users::haveRole('debug')) {
+                $fld->FLD('packOrder', 'varchar', 'caption=Опаковки->За поръчка,smartCenter');
+            }
         }
         return $fld;
     }
@@ -585,9 +574,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                if ( $rec->exportFilter && in_array($dRec->conditionQuantity, $exportFilterArr)) {
+                if ($rec->exportFilter && in_array($dRec->conditionQuantity, $exportFilterArr)) {
                     $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
-                } elseif (! $rec->exportFilter) {
+                } elseif (!$rec->exportFilter) {
                     $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
                 }
 
@@ -614,17 +603,50 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $pRec = (cat_Products::fetch($dRec->productId));
 
         $res->productId = $pRec->name;
-        $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->productId}";
+        $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
 
-        if($dRec->maxQuantity){
+        if ($dRec->maxQuantity) {
+
             $suggQuantity = $dRec->maxQuantity * $rec->orderLimit / 100 - $dRec->quantity;
-        }else{
-            if ($dRec->minQuantity){
+
+            //Пакети за поръчка
+            $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+
+            if ($quantityInPack) {
+                $packOrder = ceil($suggQuantity / $quantityInPack);
+                $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
+            } else {
+                $packOrder = 0;
+            }
+
+        } else {
+            if ($dRec->minQuantity) {
+
                 $suggQuantity = $dRec->minQuantity * 3 - $dRec->quantity;
-            }else{
-                if ($dRec->quantity < 0){
+
+                //Пакети за поръчка
+                $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+                if ($quantityInPack) {
+                    $packOrder = ceil($suggQuantity / $quantityInPack);
+                    $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
+                } else {
+                    $packOrder = 0;
+                }
+
+
+            } else {
+                if ($dRec->quantity < 0) {
 
                     $suggQuantity = $dRec->quantity * (-1);
+
+                    //Пакети за поръчка
+                    $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+                    if ($quantityInPack) {
+                        $packOrder = ceil($suggQuantity / $quantityInPack);
+                        $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
+                    } else {
+                        $packOrder = 0;
+                    }
 
                 }
             }
@@ -632,6 +654,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         }
 
         $res->suggQuantity = $Double->toVerbal($suggQuantity);
+        $res->packOrder = $Double->toVerbal($packOrder);
 
     }
 
@@ -676,13 +699,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $minVal = $details[$productId]['minQuantity'];
         $maxVal = $details[$productId]['maxQuantity'];
-        $keyVal = $productId;
+        $orderMeasure = $details[$productId]['orderMeasure'];
+        $minOrder = $details[$productId]['minOrder'];
 
-        $nameVal = "Продукт $productId";
+        $keyVal = $productId;
 
         $form = cls::get('core_Form');
 
-        $form->title = "Промяна на min и max за |* ' " . ' ' . cat_Products::getHyperlink($productId) . "' ||*";
+        $form->title = "Редктиране на  |* ' " . ' ' . cat_Products::getHyperlink($productId) . "' ||*";
 
         $volOldMin = $minVal;
         $volOldMax = $maxVal;
@@ -691,14 +715,34 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->FLD('volNewMax', 'double', 'caption=Въведи max,input,silent');
 
+        $form->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=Опаковка за поръчка,input,silent');
+
+        $form->FLD('minOrder', 'double', 'caption=Минимална поръчка,input,silent');
+
         $form->setDefault('volNewMax', $volOldMax);
         $form->setDefault('volNewMin', $volOldMin);
+        $form->setDefault('orderMeasure', $orderMeasure);
+        $form->setDefault('minOrder', $minOrder);
 
         $mRec = $form->input();
 
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
 
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
+
+        //Пакетажите на артикула
+        $prodPackArr = arr::extractValuesFromArray(cat_Products::getProductInfo($productId)->packagings, 'packagingId');
+
+        $q = cat_UoM::getQuery();
+        $q->where("#type = 'packaging'");
+        $q->in('id', $prodPackArr);
+
+        while ($qRec = $q->fetch()) {
+
+            $options[$qRec->id] = $qRec->name;
+        }
+
+        $form->setOptions('orderMeasure', $options);
 
         if ($form->rec->volNewMax < $form->rec->volNewMin) {
 
@@ -708,6 +752,8 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             $details[$productId]['minQuantity'] = $mRec->volNewMin;
             $details[$productId]['maxQuantity'] = $mRec->volNewMax;
+            $details[$productId]['orderMeasure'] = $mRec->orderMeasure;
+            $details[$productId]['minOrder'] = $mRec->minOrder;
 
             $rec->artLimits = $details;
 
@@ -798,7 +844,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     public static function act_ArtFilter()
     {
-
 
         expect($recId = Request::get('recId', 'int'));
 
