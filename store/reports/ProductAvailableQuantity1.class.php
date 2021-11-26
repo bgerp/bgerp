@@ -436,7 +436,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $row->maxQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->maxQuantity);
         }
 
-        if ((isset($dRec->conditionQuantity) && ((isset($dRec->minQuantity)) || (isset($dRec->maxQuantity))))) {
+        if ((isset($dRec->conditionQuantity))) {
             list($a, $conditionQuantity) = explode('|', $dRec->conditionQuantity);
 
             $row->conditionQuantity = "<span style='color: $dRec->conditionColor'>$conditionQuantity</span>";
