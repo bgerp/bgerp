@@ -153,8 +153,8 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         $this->FLD('vehicleReg', 'varchar', 'caption=Допълнително->МПС рег. №');
         $this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
         $this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
-        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=Допълнително->21. Изготвена в');
-        $this->FLD('establishedDate', 'date', 'caption=Допълнително->21. Изготвена на');
+        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=Допълнително->21. Изготвен в');
+        $this->FLD('establishedDate', 'date', 'caption=Допълнително->21. Изготвен на');
         
         $this->setDbUnique('cmrNumber');
     }
@@ -353,6 +353,8 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
                 core_Lg::push('en');
                 $carrierData = $this->getDefaultContragentData('crm_Companies', $lineRec->forwarderId, true, true);
                 core_Lg::pop();
+
+
                 $form->setDefault('cariersData', $carrierData);
             }
             
@@ -389,9 +391,10 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         $contragentAddress = ($verbal->address) ? (transliterate(tr($verbal->address)) . "\n") : '';
         $contragentAddress .= ($verbal->pCode) ? $verbal->pCode : '';
         $contragentAddress .= ($verbal->place) ? (' ' . transliterate(tr($verbal->place))) : '';
-        
+
         $contragentCountry = $Contragent->getVerbal($contragentId, 'country');
-        $contragentName = ($translate === true) ? transliterate(tr($Contragent->fetchField($contragentId, 'name'))) : $Contragent->fetchField($contragentId, 'name');
+        $contragentName = ($translate === true) ? transliterate($Contragent->fetchField($contragentId, 'name')) : $Contragent->fetchField($contragentId, 'name');
+
         $cData = cls::get($contragentClassId)->getContragentData($contragentId);
 
         $contragentNumbers = '';
