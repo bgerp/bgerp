@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Артикули наличности и лимити 1
+ * @title     Склад » Артикули наличности и лимити
  */
 class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 {
