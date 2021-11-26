@@ -98,7 +98,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('arhGroups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,input=none,silent,single=none');
 
-        $fieldset->FLD('orderLimit', 'double', 'caption=Настройки->% от Макс. за поръчка');
+        $fieldset->FLD('orderLimit', 'double', 'caption=Настройки->% за поръчка, unit=%-а от максималното количество');
 
 
         $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
