@@ -153,8 +153,8 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
         $this->FLD('vehicleReg', 'varchar', 'caption=Допълнително->МПС рег. №');
         $this->FLD('successiveCarriers', 'text(rows=2)', 'caption=Допълнително->17. Посл. превозвачи');
         $this->FLD('specialagreements', 'text(rows=2)', 'caption=Допълнително->19. Спец. споразумения');
-        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=Допълнително->21. Изготвена в');
-        $this->FLD('establishedDate', 'date', 'caption=Допълнително->21. Изготвена на');
+        $this->FLD('establishedPlace', 'text(rows=2)', 'caption=Допълнително->21. Изготвен в');
+        $this->FLD('establishedDate', 'date', 'caption=Допълнително->21. Изготвен на');
         
         $this->setDbUnique('cmrNumber');
     }

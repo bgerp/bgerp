@@ -360,8 +360,9 @@ class cat_products_Params extends doc_Detail
         $query = self::getQuery();
         $query->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
         $query->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
+        $query->XPR('orderEx', 'varchar', 'COALESCE(#order, 999999)');
         $query->where("#productId = {$data->masterId} AND #classId = {$data->masterClassId}");
-        $query->orderBy('group,order,id', 'ASC');
+        $query->orderBy('group,orderEx,id', 'ASC');
 
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
         if ($data->documentType == 'public' || $data->documentType == 'invoice') {
