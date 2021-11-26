@@ -238,7 +238,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
                 // Ако няма превозвач от ЧМР-то взима се този от линията, ако има
                 if(empty($rec->forwarderName) && !empty($lineRec->forwarderId)){
                     core_Lg::push('en');
-                    $forwarderNameInLine = transliterate(tr(crm_Companies::fetchField($lineRec->forwarderId, 'name')));
+                    $forwarderNameInLine = transliterate(crm_Companies::fetchField($lineRec->forwarderId, 'name'));
                     core_Lg::pop();
                     $form->setDefault('forwarderName', $forwarderNameInLine);
                 }
