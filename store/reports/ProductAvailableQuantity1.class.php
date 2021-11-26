@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Артикули наличности и лимити 1
+ * @title     Склад » Артикули наличности и лимити
  */
 class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 {
@@ -92,13 +92,13 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('condFilter', 'set(1|под Мин.=Под минимум,3|над Макс.=Над максимум, 2|Отриц.=Отрицателни, 4|ок=ОК)', 'caption=Филтър->По състояние,columns=4,after=filters,input=none,silent');
 
-        $fieldset->FLD('seeByStores', 'set(yes = )', 'caption=Показване->Детайлно,after=condFilter,single=none');
+        $fieldset->FLD('seeByStores', 'set(yes = )', 'caption=Настройки->Детайли по склад,after=condFilter,single=none');
 
         $fieldset->FLD('artLimits', 'blob(serialize)', 'after=seeByStores,input=none,single=none');
 
         $fieldset->FLD('arhGroups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,input=none,silent,single=none');
 
-        $fieldset->FLD('orderLimit', 'double', 'caption=Други настройки->Лимит за поръчка, unit=% от максималното количество');
+        $fieldset->FLD('orderLimit', 'double', 'caption=Настройки->% за поръчка, unit=%-а от максималното количество');
 
 
         $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
