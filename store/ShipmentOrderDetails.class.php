@@ -59,8 +59,14 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
      * Да се показва ли кода като в отделна колона
      */
     public $showCodeColumn = true;
-    
-    
+
+
+    /**
+     * Да се показва ли вашия номер
+     */
+    public $showReffCode = true;
+
+
     /**
      * Активен таб на менюто
      *
@@ -260,17 +266,6 @@ class store_ShipmentOrderDetails extends deals_DeliveryDocumentDetail
                     }
                 }
             }
-        }
-    }
-    
-    
-    /**
-     * Преди подготовката на полетата за листовия изглед
-     */
-    public static function on_AfterPrepareListFields($mvc, &$res, &$data)
-    {
-        if (!empty($data->masterData->rec->deliveryTime)) {
-            $data->showReffCode = true;
         }
     }
     
