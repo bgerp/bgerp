@@ -35,7 +35,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, export_XmlExportIntf=store_iface_ShipmentOrderToXmlImpl,
                           acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf=store_iface_ShipmentLabelImpl,deals_InvoiceSourceIntf, doc_ContragentDataIntf';
 
 
@@ -441,7 +441,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $res = parent::getLogisticData($rec);
 
         unset($res['deliveryTime']);
-        $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
+        $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY'));
 
         return $res;
     }
