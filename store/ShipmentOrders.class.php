@@ -542,7 +542,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
             if(trans_IntraCommunitySupplyConfirmations::haveRightFor('add', (object)array('originId' => $rec->containerId))){
                 $vodRowBtn = ($countryId == $bgId || !drdata_Countries::isEu($countryId)) ? 2 : 1;
-                $data->toolbar->addBtn('ВОД', array('trans_IntraCommunitySupplyConfirmations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/document_prepare.png,title=Създаване на ново потвърждение за ВОД,row={$vodRowBtn}");
+                $data->toolbar->addBtn('ВОД', array('trans_IntraCommunitySupplyConfirmations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/document_accept.png,title=Създаване на ново потвърждение за ВОД,row={$vodRowBtn}");
             }
         }
 
