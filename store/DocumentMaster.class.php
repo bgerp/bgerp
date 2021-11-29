@@ -129,12 +129,12 @@ abstract class store_DocumentMaster extends core_Master
 
         $mvc->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address,placeholder=От предишна доставка,autohide');
         $mvc->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма,autohide');
-        $mvc->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, changable, class=contactData,autohide');
-        $mvc->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., changable, class=contactData,autohide');
+        $mvc->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, class=contactData,autohide');
+        $mvc->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., class=contactData,autohide');
         $mvc->FLD('country', 'key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg,allowEmpty)', 'caption=Адрес за доставка->Държава, class=contactData,autohide');
-        $mvc->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, changable, class=contactData,autohide');
-        $mvc->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, changable, class=contactData,autohide');
-        $mvc->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, changable, class=contactData,autohide');
+        $mvc->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, class=contactData,autohide');
+        $mvc->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, class=contactData,autohide');
+        $mvc->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, class=contactData,autohide');
         $mvc->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Особености,autohide');
 
         $mvc->setDbIndex('valior');
