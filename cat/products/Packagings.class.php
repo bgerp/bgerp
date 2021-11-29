@@ -823,10 +823,6 @@ class cat_products_Packagings extends core_Detail
             return ;
         }
 
-        if (!$detArr[$inClsName]) {
-            wp('Пропуснат клас за използван пакет', $detArr, $inClsName);
-        }
-
         $productIdFld = 'productId';
         $packagingIdFld = 'packagingId';
 

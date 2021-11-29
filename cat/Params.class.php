@@ -221,7 +221,7 @@ class cat_Params extends bgerp_ProtoParam
     
     
     /**
-     * Форсира параметър
+     * Форсира параметър (ако има такъв го връща, ако няма създава)
      *
      * @param string      $sysId       - систем ид на параметър
      * @param string      $name        - име на параметъра
@@ -229,16 +229,28 @@ class cat_Params extends bgerp_ProtoParam
      * @param NULL|string   $options     - опции на параметъра само за типовете enum и set
      * @param NULL|string $suffix      - наставка
      * @param NULL|bool   $showInTasks - може ли да се показва в производствена операция
+     * @param NULL|bool   $groupName   - група
      *
      * @return int - ид на параметъра
      */
-    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true)
+    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true, $groupName = null)
     {
         // Ако има параметър с това систем ид,връща се
-        $id = self::fetchIdBySysId($sysId);
-        if (!empty($id)) {
-            
-            return $id;
+        if($sysId){
+            $id = self::fetchIdBySysId($sysId);
+            if (!empty($id)) {
+
+                return $id;
+            }
+        } else {
+
+            // Ако няма сис ид все пак се проверява дали няма такъв параметър
+            $where = "#name = '{$name}' AND #suffix = '{$suffix}' AND ";
+            $where .= ($groupName) ? "#group = '{$groupName}'" : "#group IS NULL";
+            if($exId = static::fetchField($where)){
+
+                 return $exId;
+            }
         }
         
         $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix);
