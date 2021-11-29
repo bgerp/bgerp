@@ -564,17 +564,19 @@ class cat_products_Params extends doc_Detail
     /**
      * Форсира стойност на продуктов параметър
      *
-     * @param $objectId                    - ид на обект
-     * @param $classId                     - ид на клас
-     * @param $paramName                   - име на параметъра
-     * @param $paramSuffix                 - наставка на параметъра
-     * @param $paramType                   - тип на параметъра
-     * @param $paramValue                  - стойност на параметъра
-     * @param null|array $paramTypeOptions - опции на типа
-     * @return mixed|object|void           - $rec
+     * @param $objectId              - ид на обект
+     * @param $paramName             - име на параметър
+     * @param $paramSuffix           - суфикс на параметър
+     * @param $paramValue            - стойност на параметър
+     * @param string $classId        - домейн на обекта
+     * @param string $paramType      - тип на параметъра
+     * @param null $paramTypeOptions - опции на параметъра
+     * @return mixed|object|void $rec
+     * @throws core_exception_Expect
      */
-    public static function forceParam($objectId, $classId, $paramName, $paramSuffix, $paramType, $paramValue, $paramTypeOptions = null)
+    public static function forceParam($objectId, $paramName, $paramSuffix, $paramValue, $classId = 'cat_Products', $paramType = 'cond_type_varchar', $paramTypeOptions = null)
     {
+        $classId = cls::get($classId)->getClassId();
         expect($paramId = cat_Params::force(null, $paramName, $paramType, $paramTypeOptions, $paramSuffix));
 
         $rec = self::fetch("#productId = {$objectId} AND #paramId = {$paramId} AND #classId = {$classId}");
