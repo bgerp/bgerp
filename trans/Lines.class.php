@@ -103,7 +103,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'start, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy';
+    public $listFields = 'start, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy, searchKeywords';
 
 
     /**
@@ -808,6 +808,16 @@ class trans_Lines extends core_Master
             $res = plg_Search::getKeywords($mvc, $rec);
         }
 
+        // Добавяне и на номера на МПС-то в ключовите думи
+        if(!empty($rec->vehicle)){
+            if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $rec->vehicle))) {
+                $normalizedNumber = plg_Search::normalizeText($vehicleRec->number);
+                $res .= ' ' . $normalizedNumber . " " . str::removeWhiteSpace($normalizedNumber);
+            } else {
+                $res .= " " . str::removeWhiteSpace(plg_Search::normalizeText($rec->vehicle));
+            }
+        }
+
         if (isset($rec->id)) {
             $dQuery = trans_LineDetails::getQuery();
             $dQuery->where("#lineId = {$rec->id}");
@@ -828,14 +838,6 @@ class trans_Lines extends core_Master
                     if (!empty($tInfo[$fld])) {
                         $res .= ' ' . plg_Search::normalizeText($tInfo[$fld]);
                     }
-                }
-            }
-
-            // Добавяне и на номера на МПС-то в ключовите думи
-            if(!empty($rec->vehicle)){
-                if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $rec->vehicle))) {
-                    $normalizedNumber = plg_Search::normalizeText($vehicleRec->number);
-                    $res .= ' ' . $normalizedNumber . " " . str::removeWhiteSpace($normalizedNumber);
                 }
             }
         }
