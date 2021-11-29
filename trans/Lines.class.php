@@ -103,7 +103,7 @@ class trans_Lines extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'start, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy, searchKeywords';
+    public $listFields = 'start, handler=Документ,readiness=Готовност, transUnitsTotal=Лог. единици, folderId, state, createdOn, createdBy';
 
 
     /**
