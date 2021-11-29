@@ -90,7 +90,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     /**
      * Икона на документа
      */
-    public $singleIcon = 'img/16/document_prepare.png';
+    public $singleIcon = 'img/16/document_accept.png';
 
 
     /**
@@ -300,9 +300,9 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
             $row->originId = doc_Containers::getDocument($rec->originId)->getLink(0);
         }
 
-        foreach (array('deliveryTime', 'shipmentDocument', 'invoiceDocument', 'transportDocument') as $fld){
+        foreach (array('deliveryTime', 'shipmentDocument', 'invoiceDocument', 'transportDocument', 'senderName') as $fld){
             if(empty($rec->{$fld})){
-                $row->{$fld} = "<span style='font-weight:normal'>.................................</span>";
+                $row->{$fld} = "<span style='font-weight:normal'>.........................................</span>";
             }
         }
 
