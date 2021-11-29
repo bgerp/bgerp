@@ -559,4 +559,33 @@ class cat_products_Params extends doc_Detail
         
         return $notEdittableParamNames;
     }
+
+
+    /**
+     * Форсира стойност на продуктов параметър
+     *
+     * @param $objectId                    - ид на обект
+     * @param $classId                     - ид на клас
+     * @param $paramName                   - име на параметъра
+     * @param $paramSuffix                 - наставка на параметъра
+     * @param $paramType                   - тип на параметъра
+     * @param $paramValue                  - стойност на параметъра
+     * @param null|array $paramTypeOptions - опции на типа
+     * @return mixed|object|void           - $rec
+     */
+    public static function forceParam($objectId, $classId, $paramName, $paramSuffix, $paramType, $paramValue, $paramTypeOptions = null)
+    {
+        expect($paramId = cat_Params::force(null, $paramName, $paramType, $paramTypeOptions, $paramSuffix));
+
+        $rec = self::fetch("#productId = {$objectId} AND #paramId = {$paramId} AND #classId = {$classId}");
+
+        if(empty($rec)){
+            $rec = (object)array('productId' => $objectId, 'classId' => $classId, 'paramId' => $paramId, 'paramValue' => $paramValue);
+            cls::get(get_called_class())->save_($rec);
+        }
+
+        return $rec;
+    }
 }
+
+
