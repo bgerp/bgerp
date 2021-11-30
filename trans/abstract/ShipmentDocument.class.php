@@ -163,8 +163,7 @@ abstract class trans_abstract_ShipmentDocument extends core_Master
                 $requiredRoles = 'no_one';
             } else {
                 $state = $origin->fetchField('state');
-                $allowedStates = ($mvc instanceof trans_Cmrs) ? array('active', 'pending') : array('active');
-                if (!in_array($state, $allowedStates)) {
+                if (!in_array($state, array('active', 'pending'))) {
                     $requiredRoles = 'no_one';
                 }
             }
