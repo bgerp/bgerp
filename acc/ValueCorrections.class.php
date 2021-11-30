@@ -150,7 +150,7 @@ class acc_ValueCorrections extends core_Master
                 $row->valior = ht::createHint('', 'Не може да се определи, защото има артикули с експедиции в различни сч. периоди', 'error');
             } else {
                 $row->valior = $mvc->getFieldType('valior')->toVerbal($valior);
-                $row->valior = ht::createHint("<span style='color:blue'>{$row->valior}</span>", 'Вальорът е изчислен на база най-голямата дата на експедиция от общия сч. период на избраните артикули. След активиране ще бъде записан');
+                $row->valior = ht::createHint("<span style='color:blue'>{$row->valior}</span>", 'Вальорът е изчислен на база най-голямата дата на експедиция от общия сч. период на избраните артикули. След активиране ще бъде записан|*!');
             }
         }
 
@@ -807,23 +807,28 @@ class acc_ValueCorrections extends core_Master
             }
         }
 
+
         foreach ($productIds as $productId){
             foreach ($storeDocs as $docName => $detailName){
+                $states = array('active');
                 $Doc = cls::get($docName);
                 $Detail = cls::get($detailName);
                 $shQuery = $Detail->getQuery();
                 $shQuery->EXT('valior', $docName, "externalKey={$Detail->masterKey}");
                 $shQuery->EXT('state', $docName, "externalKey={$Detail->masterKey}");
                 $shQuery->EXT('threadId', $docName, "externalKey={$Detail->masterKey}");
-                $shQuery->where("#state = 'active' AND #productId = {$productId}");
+                $shQuery->where("#productId = {$productId}");
                 $shQuery->in('threadId', $threads);
 
                 $shQuery->show('valior');
                 $shQuery->groupBy('valior');
+
                 if($Doc->getField('contoActions', false)){
                     $shQuery->EXT('contoActions', $docName, "externalKey={$Detail->masterKey}");
                     $shQuery->where(array("#contoActions LIKE '%ship%'"));
+                    $states[] = 'closed';
                 }
+                $shQuery->in('state', $states);
 
                 while($sRec = $shQuery->fetch()){
                     $periodId = acc_Periods::fetchByDate($sRec->valior)->id;

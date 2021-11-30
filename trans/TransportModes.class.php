@@ -19,12 +19,6 @@
 class trans_TransportModes extends core_Manager
 {
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'transsrv_TransportModes';
-    
-    
-    /**
      * Заглавие
      */
     public $title = 'Видове транспорт';
