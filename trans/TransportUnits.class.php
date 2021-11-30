@@ -19,12 +19,6 @@
 class trans_TransportUnits extends core_Manager
 {
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'transsrv_TransportUnits';
-    
-    
-    /**
      * Заглавие
      */
     public $title = 'Логистични единици';
