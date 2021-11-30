@@ -141,7 +141,7 @@ class dec_Declarations extends core_Master
         $this->FLD('date', 'date', 'caption=Дата');
         
         // декларатор
-        $this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, mandatory,recently,remember,');
+        $this->FLD('declaratorName', 'varchar', 'caption=Представлявана от->Име, mandatory');
 
         // позицията на декларатора
         $this->FLD('declaratorPosition', 'varchar', 'caption=Представлявана от->Позиция, mandatory,recently,remember');
