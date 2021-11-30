@@ -19,7 +19,7 @@ use SPFLib\Check\Environment;
 class spflib_Checker
 {
     /**
-     * Конвертира sass в css файл
+     * Проверява SPF запис
      *
      * @param string $ip  - IP адрес на изпращача
      * @param string $heloDomain - домейн от helo командата
