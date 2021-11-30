@@ -15,9 +15,6 @@
  */
 class planning_AssetResourceFolders extends core_Manager
 {
-    public $oldClassName = 'planning_AssetResourcesFolders';
-    
-    
     /**
      * Заглавие
      */

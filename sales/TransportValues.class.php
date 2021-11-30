@@ -17,12 +17,6 @@
 class sales_TransportValues extends core_Manager
 {
     /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'tcost_Calcs';
-    
-    
-    /**
      * Масив за мапване на стойностите от мениджърите
      */
     private static $map = array(

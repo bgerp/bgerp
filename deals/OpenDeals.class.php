@@ -27,14 +27,8 @@ class deals_OpenDeals extends core_Manager
      * Заглавие
      */
     public $title = 'Чакащи сделки';
-    
-    
-    /**
-     * За конвертиране на съществуващи MySQL таблици от предишни версии
-     */
-    public $oldClassName = 'acc_OpenDeals';
-    
-    
+
+
     /**
      * Наименование на единичния обект
      */
