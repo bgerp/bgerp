@@ -123,7 +123,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
 
-        $mvc->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address,placeholder=От предишна доставка,autohide');
+        $mvc->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address|features|addressInfo,placeholder=От предишна доставка,autohide');
         $mvc->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма,autohide');
         $mvc->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, class=contactData,autohide');
         $mvc->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., class=contactData,autohide');
