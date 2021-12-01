@@ -39,19 +39,19 @@ class trans_Features extends core_Manager
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'trans,ceo';
+    public $canEdit = 'transMaster,ceo';
 
 
     /**
-     * Кой може да добавя транспортни единици
+     * Кой може да добавя
      */
-    public $canAdd = 'trans,ceo';
+    public $canAdd = 'transMaster,ceo';
 
 
     /**
-     * Кой може да изтрива транспортни единици
+     * Кой може да изтрива
      */
-    public $canDelete = 'trans,ceo';
+    public $canDelete = 'transMaster,ceo';
 
 
     /**

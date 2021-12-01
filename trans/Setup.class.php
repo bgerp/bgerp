@@ -95,14 +95,16 @@ class trans_Setup extends core_ProtoSetup
         'trans_LineDetails',
         'trans_IntraCommunitySupplyConfirmations',
     );
-    
-    
+
+
     /**
      * Роли за достъп до модула
      */
-    public $roles = 'trans';
-    
-    
+    public $roles = array('trans',
+                    array('transMaster', 'trans')
+                    );
+
+
     /**
      * Дефинирани класове, които имат интерфейси
      */
