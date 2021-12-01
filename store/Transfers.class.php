@@ -732,4 +732,60 @@ class store_Transfers extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * АПИ метод за добавяне на детайл към МСТ
+     *
+     * @param int $id
+     * @param int $productId
+     * @param int $packagingId
+     * @param double $packQuantity
+     * @param int $quantityInPack
+     * @param null|string $batch
+     * @return int
+     * @throws core_exception_Expect
+     */
+    public static function addRow($id, $productId, $packagingId, $packQuantity, $quantityInPack, $batch = null)
+    {
+        // Проверки на параметрите
+        expect($noteRec = self::fetch($id), "Няма МСТ с ид {$id}");
+        expect($noteRec->state == 'draft', 'МСТ трябва да е чернова');
+
+        expect($productRec = cat_Products::fetch($productId, 'canStore'), "Няма артикул с ид {$productId}");
+        expect($productRec->canStore == 'yes', 'Артикулът трябва да е складируем');
+
+        expect($packagingId, 'Няма мярка/опаковка');
+        expect(cat_UoM::fetch($packagingId), "Няма опаковка/мярка с ид {$packagingId}");
+
+        $packs = cat_Products::getPacks($productId);
+        expect(isset($packs[$packagingId]), "Артикулът не поддържа мярка/опаковка с ид {$packagingId}");
+
+        $Double = cls::get('type_Double');
+        expect($quantityInPack = $Double->fromVerbal($quantityInPack), "Невалидно к-во {$quantityInPack}");
+        expect($packQuantity = $Double->fromVerbal($packQuantity), "Невалидно к-во {$packQuantity}");
+        $quantity = $quantityInPack * $packQuantity;
+
+        $Detail = cls::get('store_TransfersDetails');
+        $nRec = (object)array('transferId' => $id, 'newProductId' => $productId, 'packagingId' => $packagingId, 'quantity' => $quantity, 'quantityInPack' => $quantityInPack, 'batch' => $batch);
+        $nRec->autoAllocate = !empty($row->batch);
+
+        if(!empty($batch)) {
+            expect($Def = batch_Defs::getBatchDef($productId), 'Опит за задаване на партида на артикул без партида');
+            $msg = null;
+            $Def->isValid($batch, $quantity, $msg);
+            if ($msg) {
+                expect(false, tr($msg));
+            }
+            $batch = $Def->normalize($batch);
+        }
+
+        $Detail->save($nRec);
+
+        if(!empty($batch)){
+            batch_BatchesInDocuments::saveBatches($Detail, $nRec->id, array($nRec->batch => $nRec->quantity), true);
+        }
+
+        return $nRec->id;
+    }
 }
