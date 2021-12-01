@@ -3684,7 +3684,9 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id] = new stdClass();
                 }
 
-                foreach (array('productId' => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
+                setIfNot($dInst->productFld, 'productId');
+
+                foreach (array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
 
                     if (!isset($dInst->fields[$fName]) && !isset($dRec->{$fName}) && !array_key_exists($fName, (array) $dRec)) {
 
@@ -3784,7 +3786,7 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
-                $recs[$dRec->id]->productId = cat_Products::getVerbal($dRec->productId, 'name');
+                $recs[$dRec->id]->{$dInst->productFld} = cat_Products::getVerbal($dRec->{$dInst->productFld}, 'name');
 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
@@ -3815,8 +3817,8 @@ class cat_Products extends embed_Manager
                             $bQuery->where(array("#packagingId = '[#1#]'", $dRec->packagingId));
                         }
 
-                        if (isset($dRec->productId)) {
-                            $bQuery->where(array("#productId = '[#1#]'", $dRec->productId));
+                        if (isset($dRec->{$dInst->productFld})) {
+                            $bQuery->where(array("#productId = '[#1#]'", $dRec->{$dInst->productFld}));
                         }
 
                         $bQuery->where(array("#detailRecId = '[#1#]'", $dRec->id));
