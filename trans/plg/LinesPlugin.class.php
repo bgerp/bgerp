@@ -28,7 +28,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         setIfNot($mvc->lineFieldName, 'lineId');
         setIfNot($mvc->lineNoteFieldName, 'lineNotes');
-        
+
         // Създаваме поле за избор на линия, ако няма такова
         if (!$mvc->getField($mvc->lineFieldName, false)) {
             $mvc->FLD($mvc->lineFieldName, 'key(mvc=trans_Lines,select=title,allowEmpty)', 'input=none');
@@ -598,7 +598,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     {
         $unsetFields = array($mvc->lineFieldName, $mvc->lineNoteFieldName);
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $unsetFields = array_merge(array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName));
+            $unsetFields = array_merge($unsetFields, array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName));
         }
 
         foreach ($unsetFields as $fld){
