@@ -320,7 +320,7 @@ class store_TransfersDetails extends doc_Detail
     {
         $pRec = cat_Products::getByCode($row->code);
         $pRec->packagingId = (isset($row->pack)) ? $row->pack : $pRec->packagingId;
-        $packRec = cat_Products::getPacks($pRec->productId, $pRec->packagingId);
+        $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
         $quantityInPack  = is_object($packRec) ? $packRec->quantity : 1;
 
         return store_Transfers::addRow($masterId, $pRec->productId, $pRec->packagingId, $row->quantity, $quantityInPack, $row->batch);
