@@ -123,7 +123,7 @@ class dec_Declarations extends core_Master
      */
     public static $defaultStrategies = array(
         'materials' => 'lastDocUser|lastDoc|lastDocSameCountry',
-        'statements' => 'lastDocUser|lastDoc|lastDocSameCountry',
+        'statements' => 'lastDocUser|lastDoc|lastDocSameCountry|sessionValue',
     );
     
     
