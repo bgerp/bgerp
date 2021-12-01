@@ -3580,9 +3580,11 @@ class cat_Products extends embed_Manager
      *
      * @return string
      */
-    public function getExportMasterFieldName()
+    public function getExportMasterFieldName($class)
     {
-        return 'productId';
+        setIfNot($productFldName, cls::get($class)->productFld, 'productId');
+
+        return $productFldName;
     }
     
     
@@ -3623,8 +3625,6 @@ class cat_Products extends embed_Manager
         expect(!empty($detArr));
 
         $recs = array();
-
-        $exportFStr = $this->getExportMasterFieldName();
         $exportFCls = cls::get(get_called_class());
         $fFieldsArr = array();
 
@@ -3633,6 +3633,7 @@ class cat_Products extends embed_Manager
                 continue;
             }
 
+            $exportFStr = $this->getExportMasterFieldName($dName);
             $dInst = cls::get($dName);
 
             $detClsId = $dInst->getClassId();
