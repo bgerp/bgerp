@@ -470,7 +470,7 @@ abstract class store_DocumentMaster extends core_Master
                 $row->deliveryTo .= ' ' . core_Lg::transliterate($row->place);
             }
 
-            foreach (array('address', 'company', 'person', 'tel', 'addressInfo') as $fld) {
+            foreach (array('address', 'company', 'person', 'tel', 'features', 'addressInfo') as $fld) {
                 if (!empty($rec->{$fld})) {
                     if ($fld == 'address') {
                         $row->{$fld} = core_Lg::transliterate($row->{$fld});
