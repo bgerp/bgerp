@@ -207,7 +207,7 @@ class export_Csv extends core_Mvc
                 $inst = cls::getInterface('export_DetailExportCsvIntf', $clsName);
                 $csvFields = new core_FieldSet();
                 $recs = $inst->getRecsForExportInDetails($clsInst, $cRec, $csvFields, $userId);
-                
+
                 if (!empty($recs)) {
                     break;
                 }
