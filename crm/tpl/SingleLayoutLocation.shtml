@@ -28,7 +28,7 @@
          <!--ET_END ADDRESS_SECTION-->
         <!--ET_BEGIN specifics-->
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Особености|*</legend>
+            <legend class="groupTitle">|Други|*</legend>
             <div class="groupList">
                 [#specifics#]
             </div>
@@ -64,6 +64,11 @@
                         <span class="gray-title">GLN |код|*:</span> [#gln#]
                     </li>
                     <!--ET_END gln-->
+                    <!--ET_BEGIN features-->
+                    <li class="info">
+                        <span class="gray-title">|Особености|*:</span> [#features#]
+                    </li>
+                    <!--ET_END features-->
                 </ul>
             </div>
         </fieldset>

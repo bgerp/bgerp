@@ -29,6 +29,7 @@ class transsrv_plg_CreateAuction extends core_Plugin
             if ($mvc->haveRightFor('createauction', $rec)) {
 
                 $d = $mvc->getAuctionData($rec);
+
                 $selfUrl = core_App::getSelfURL();
                 $selfUrl = str_replace($_SERVER['REQUEST_URI'], '', $selfUrl);
                 $d['ourReffDomainUrl'] = $selfUrl;
@@ -52,6 +53,10 @@ class transsrv_plg_CreateAuction extends core_Plugin
             $d['maxVolume'] = $d['totalVolume'];
 
             $res = $d;
+        }
+
+        if(!empty($res['toAddressFeatures'])){
+            $res['toAddressFeatures'] = strip_tags(core_Type::getByName('keylist(mvc=trans_Features,select=name)')->toVerbal($res['toAddressFeatures']));
         }
     }
 
