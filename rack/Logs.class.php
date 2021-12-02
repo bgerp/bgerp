@@ -142,17 +142,14 @@ class rack_Logs extends core_Manager
 
         $newOptions = array();
         $actionOptions = $data->listFilter->getFieldType('action')->options;
-        unset($actionOptions['']);
+
         foreach ($actionOptions as $action => $actionCaption){
             $actionOptionRec = new stdClass();
             $actionOptionRec->attr = array('class' => static::$actionClasses[$action]);
             $actionOptionRec->title = $actionCaption;
             $newOptions[$action] = $actionOptionRec;
         }
-        $data->listFilter->setOptions('action', $newOptions);
-
-
-
+        $data->listFilter->setOptions('action', array('' => '') + $newOptions);
         if($movementId = Request::get('movementId', 'int')){
             $data->query->where("#movementId = {$movementId}");
         }
