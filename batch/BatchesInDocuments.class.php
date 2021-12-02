@@ -690,7 +690,7 @@ class batch_BatchesInDocuments extends core_Manager
         if (!empty($batch)) {
             $where .= " AND #batch = '{$batch}'";
         }
-        
+
         return self::fetchField($where);
     }
     
@@ -714,7 +714,7 @@ class batch_BatchesInDocuments extends core_Manager
         $recInfo = cls::get($detailClassId)->getRowInfo($detailRecId);
         $recInfo->detailClassId = cls::get($detailClassId)->getClassId();
         $recInfo->detailRecId = $detailRecId;
-        
+
         // Подготвяне на редовете за обновяване
         $update = array();
         foreach ($batchesArr as $b => $q) {
@@ -724,16 +724,16 @@ class batch_BatchesInDocuments extends core_Manager
                 $obj->storeId = $storeId;
                 $obj->quantity = $q;
                 $obj->batch = $b;
-                
-                $b = ($sync === true) ? null : $obj->batch;
-                if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b, $operation)) {
+
+                $b1 = ($sync === true) ? null : $obj->batch;
+                if ($id = self::getId($obj->detailClassId, $obj->detailRecId, $obj->productId, $b1, $operation)) {
                     $obj->id = $id;
                 }
                 
                 $update[] = $obj;
             }
         }
-        
+
         // Запис
         if (countR($update)) {
             cls::get(get_called_class())->saveArray($update);

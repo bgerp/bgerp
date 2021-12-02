@@ -3823,7 +3823,7 @@ class cat_Products extends embed_Manager
 
                         $bQuery->where(array("#detailRecId = '[#1#]'", $dRec->id));
                         $bQuery->where(array("#detailClassId = '[#1#]'", $detClsId));
-
+                        $bQuery->groupBy('batch');
                         $bQuery->orderBy('id', 'ASC');
 
                         $haveBatch = false;

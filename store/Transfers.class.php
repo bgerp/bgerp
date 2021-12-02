@@ -778,12 +778,13 @@ class store_Transfers extends core_Master
                 expect(false, tr($msg));
             }
             $batch = $Def->normalize($batch);
+            $nRec->_clonedWithBatches = true;
         }
 
         $Detail->save($nRec);
 
         if(!empty($batch)){
-            batch_BatchesInDocuments::saveBatches($Detail, $nRec->id, array($nRec->batch => $nRec->quantity), true);
+            batch_BatchesInDocuments::saveBatches($Detail, $nRec->id, array($batch => $nRec->quantity), true);
         }
 
         return $nRec->id;
