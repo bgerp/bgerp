@@ -49,9 +49,9 @@ class phpsignal_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'SIGNAL_PATH' => array('varchar', 'mandatory, caption=Настройки->Път'),
-        'SIGNAL_VERSION' => array('varchar', 'mandatory, caption=Настройки->Версия'),
-        'SIGNAL_NUMBER' => array('varchar(18)', 'mandatory, caption=Настройки->Номер')
+        'PHPSIGNAL_SIGNAL_PATH' => array('varchar', 'mandatory, caption=Настройки->Път'),
+        'PHPSIGNAL_SIGNAL_VERSION' => array('varchar', 'mandatory, caption=Настройки->Версия'),
+        'PHPSIGNAL_SIGNAL_NUMBER' => array('varchar(18)', 'mandatory, caption=Настройки->Номер')
     );
     
     /**
