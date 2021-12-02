@@ -908,11 +908,13 @@ class cat_Products extends embed_Manager
      */
     public static function expandFilter(&$listFilter)
     {
-        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
+        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%,withBatches=С партидност,withoutBatches=Без партидност');
         if (!core_Packs::isInstalled('eshop')) {
             unset($orderOptions['eproduct']);
         }
-        
+        if (!core_Packs::isInstalled('batch')) {
+            unset($orderOptions['withBatches'], $orderOptions['withoutBatches']);
+        }
         $orderOptions = arr::fromArray($orderOptions);
         $listFilter->FNC('order', "enum({$orderOptions})", 'caption=Подредба,input,silent,remember,autoFilter');
         $listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
@@ -1004,6 +1006,20 @@ class cat_Products extends embed_Manager
                     $data->query->in('id', $products);
                 } else {
                     $data->query->where('1=2');
+                }
+                break;
+            case 'withBatches':
+                $productsWithBatches = batch_Items::getProductsWithDefs();
+                if(countR($productsWithBatches)){
+                    $data->query->where("#canStore = 'yes'");
+                    $data->query->in('id', array_keys($productsWithBatches));
+                }
+                break;
+            case 'withoutBatches':
+                $productsWithBatches = batch_Items::getProductsWithDefs();
+                if(countR($productsWithBatches)){
+                    $data->query->where("#canStore = 'yes'");
+                    $data->query->notIn('id', array_keys($productsWithBatches));
                 }
                 break;
             default:
