@@ -782,9 +782,10 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$contrPart}PCode"] = !empty($rec->pCode) ? $rec->pCode : null;
             $res["{$contrPart}Place"] = !empty($rec->place) ? $rec->place : null;
             $res["{$contrPart}Address"] = !empty($rec->address) ? $rec->address : null;
-
             $res["{$contrPart}Company"] = !empty($rec->company) ? $rec->company : $contragentData->company;
             $res["{$contrPart}Person"] = !empty($rec->person) ? $rec->person : $contragentData->person;
+            $res["{$contrPart}AddressInfo"] = !empty($rec->addressInfo) ? $rec->addressInfo : null;
+            $res["{$contrPart}AddressFeatures"] = !empty($rec->features) ? $rec->features : null;
         } elseif (isset($rec->locationId)) {
             $res["{$contrPart}Country"] = !empty($contragentLocation->countryId) ? drdata_Countries::fetchField($contragentLocation->countryId, 'commonName') : null;
             $res["{$contrPart}PCode"] = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : null;
