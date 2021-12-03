@@ -195,7 +195,7 @@ class rack_plg_Shipments extends core_Plugin
                 $zdQuery->show('productId');
 
                 $productIdsInZone = arr::extractValuesFromArray($zdQuery->fetchAll(), 'productId');
-                rack_Movements::logDebug("RACK ZONE UPDATE '" . implode('|', $productIdsInZone) . "'");
+                rack_Movements::logDebug("RACK ZONE ({$zoneRec->id}) UPDATE '" . implode('|', $productIdsInZone) . "'");
                 rack_Zones::pickupAll($zoneRec->storeId, $zoneRec->defaultUserId, $productIdsInZone);
             }
         }
