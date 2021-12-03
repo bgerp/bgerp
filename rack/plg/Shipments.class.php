@@ -191,7 +191,7 @@ class rack_plg_Shipments extends core_Plugin
                 $zdQuery = rack_ZoneDetails::getQuery();
                 $zdQuery->XPR('documentQuantityRound', 'double', 'ROUND(COALESCE(#documentQuantity, 0), 2)');
                 $zdQuery->XPR('movementQuantityRound', 'double', 'ROUND(COALESCE(#movementQuantity, 0), 2)');
-                $zdQuery->where("#zoneId = {$zoneRec->id} AND #documentQuantityRound != #movementQuantityRound");
+                $zdQuery->where("#zoneId = {$zoneRec->id} AND (#documentQuantityRound != #movementQuantityRound OR #documentQuantityRound = 0)");
                 $zdQuery->show('productId');
 
                 $productIdsInZone = arr::extractValuesFromArray($zdQuery->fetchAll(), 'productId');
