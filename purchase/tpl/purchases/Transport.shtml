@@ -108,6 +108,9 @@
             </table>
         </td>
     </tr>
+    <tr>
+        <td colspan=2><div class="attentionIcon">Моля, вписвайте в доставните си документи номера на нашата заявка <b>#Pur[#id#]</b>!</div></td>
+    </tr>
     <tr class='footerDocInfo'>
         <td colspan="2">
             [#/doc/tpl/Copyright.shtml#]

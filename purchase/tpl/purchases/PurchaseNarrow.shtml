@@ -130,6 +130,9 @@
                 <!--ET_END username-->
             </td>
         </tr>
+        <tr>
+            <td><div class="attentionIcon"> Моля, вписвайте в доставните си документи номера на нашата заявка <b>#Pur[#id#]</b>!</div></td>
+        </tr>
         <tr class='footerDocInfo'>
             <td>
                 [#/doc/tpl/Copyright.shtml#]
