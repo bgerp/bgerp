@@ -91,7 +91,7 @@ class rack_Logs extends core_Manager
         $this->FLD('movementId', 'key(mvc=rack_Movements,select=id)', 'caption=Движение');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад');
-        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty)', 'caption=Артикул');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)', 'caption=Артикул');
         $this->FLD('message', 'text', 'caption=Текст');
         $this->FLD('action', 'enum(,create=Създаване,edit=Редактиране,waiting=Запазване,start=Започване,close=Приключване,return=Връщане,reject=Отказване,revision=Ревизия)', 'caption=Действие,after=to,placeholder=Всички');
 
