@@ -998,6 +998,11 @@ class rack_Zones extends core_Master
      */
     public static function pickupAll($storeId, $defaultUserId = null, $productIds = null)
     {
+        if (!core_Locks::get("PICKED_UP{$storeId}", 21, 20)) {
+            wp('RACK_PICK_UP_ALL_TIMEOUT', $storeId, $defaultUserId, $productIds);
+            return;
+        }
+
         $productIdLogString = implode(',', arr::make($productIds, true));
         rack_Movements::logDebug("RACK PICKUP ALL - {$storeId} - '{$productIdLogString}'");
 
@@ -1025,6 +1030,8 @@ class rack_Zones extends core_Master
         foreach ($nonGroupableZones as $zoneId) {
             self::pickupOrder($storeId, $zoneId, $defaultUserId, $productIds, false);
         }
+
+        core_Locks::release("PICKED_UP{$storeId}");
     }
 
 
