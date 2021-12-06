@@ -908,11 +908,13 @@ class cat_Products extends embed_Manager
      */
     public static function expandFilter(&$listFilter)
     {
-        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
+        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%,withBatches=С партидност,withoutBatches=Без партидност');
         if (!core_Packs::isInstalled('eshop')) {
             unset($orderOptions['eproduct']);
         }
-        
+        if (!core_Packs::isInstalled('batch')) {
+            unset($orderOptions['withBatches'], $orderOptions['withoutBatches']);
+        }
         $orderOptions = arr::fromArray($orderOptions);
         $listFilter->FNC('order', "enum({$orderOptions})", 'caption=Подредба,input,silent,remember,autoFilter');
         $listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
@@ -1004,6 +1006,20 @@ class cat_Products extends embed_Manager
                     $data->query->in('id', $products);
                 } else {
                     $data->query->where('1=2');
+                }
+                break;
+            case 'withBatches':
+                $productsWithBatches = batch_Items::getProductsWithDefs();
+                if(countR($productsWithBatches)){
+                    $data->query->where("#canStore = 'yes'");
+                    $data->query->in('id', array_keys($productsWithBatches));
+                }
+                break;
+            case 'withoutBatches':
+                $productsWithBatches = batch_Items::getProductsWithDefs();
+                if(countR($productsWithBatches)){
+                    $data->query->where("#canStore = 'yes'");
+                    $data->query->notIn('id', array_keys($productsWithBatches));
                 }
                 break;
             default:
@@ -3580,9 +3596,11 @@ class cat_Products extends embed_Manager
      *
      * @return string
      */
-    public function getExportMasterFieldName()
+    public function getExportMasterFieldName($class)
     {
-        return 'productId';
+        setIfNot($productFldName, cls::get($class)->productFld, 'productId');
+
+        return $productFldName;
     }
     
     
@@ -3623,8 +3641,6 @@ class cat_Products extends embed_Manager
         expect(!empty($detArr));
 
         $recs = array();
-
-        $exportFStr = $this->getExportMasterFieldName();
         $exportFCls = cls::get(get_called_class());
         $fFieldsArr = array();
 
@@ -3633,6 +3649,7 @@ class cat_Products extends embed_Manager
                 continue;
             }
 
+            $exportFStr = $this->getExportMasterFieldName($dName);
             $dInst = cls::get($dName);
 
             $detClsId = $dInst->getClassId();
@@ -3683,7 +3700,9 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id] = new stdClass();
                 }
 
-                foreach (array('productId' => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
+                setIfNot($dInst->productFld, 'productId');
+
+                foreach (array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
 
                     if (!isset($dInst->fields[$fName]) && !isset($dRec->{$fName}) && !array_key_exists($fName, (array) $dRec)) {
 
@@ -3783,7 +3802,7 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
-                $recs[$dRec->id]->productId = cat_Products::getVerbal($dRec->productId, 'name');
+                $recs[$dRec->id]->{$dInst->productFld} = cat_Products::getVerbal($dRec->{$dInst->productFld}, 'name');
 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
@@ -3814,13 +3833,13 @@ class cat_Products extends embed_Manager
                             $bQuery->where(array("#packagingId = '[#1#]'", $dRec->packagingId));
                         }
 
-                        if (isset($dRec->productId)) {
-                            $bQuery->where(array("#productId = '[#1#]'", $dRec->productId));
+                        if (isset($dRec->{$dInst->productFld})) {
+                            $bQuery->where(array("#productId = '[#1#]'", $dRec->{$dInst->productFld}));
                         }
 
                         $bQuery->where(array("#detailRecId = '[#1#]'", $dRec->id));
                         $bQuery->where(array("#detailClassId = '[#1#]'", $detClsId));
-
+                        $bQuery->groupBy('batch');
                         $bQuery->orderBy('id', 'ASC');
 
                         $haveBatch = false;

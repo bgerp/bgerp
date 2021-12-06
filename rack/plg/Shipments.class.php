@@ -189,9 +189,13 @@ class rack_plg_Shipments extends core_Plugin
 
                 // Ще се регенерират движенията само за артикулите в тази зона
                 $zdQuery = rack_ZoneDetails::getQuery();
-                $zdQuery->where("#zoneId = {$zoneRec->id}");
+                $zdQuery->XPR('documentQuantityRound', 'double', 'ROUND(COALESCE(#documentQuantity, 0), 2)');
+                $zdQuery->XPR('movementQuantityRound', 'double', 'ROUND(COALESCE(#movementQuantity, 0), 2)');
+                $zdQuery->where("#zoneId = {$zoneRec->id} AND (#documentQuantityRound != #movementQuantityRound OR #documentQuantityRound = 0)");
                 $zdQuery->show('productId');
+
                 $productIdsInZone = arr::extractValuesFromArray($zdQuery->fetchAll(), 'productId');
+                rack_Movements::logDebug("RACK ZONE ({$zoneRec->id}) UPDATE '" . implode('|', $productIdsInZone) . "'");
                 rack_Zones::pickupAll($zoneRec->storeId, $zoneRec->defaultUserId, $productIdsInZone);
             }
         }

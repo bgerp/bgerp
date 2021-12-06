@@ -31,9 +31,15 @@ class crm_Locations extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_Sorting, plg_Search';
-    
-    
+    public $loadList = 'plg_Created, plg_RowTools2, crm_Wrapper, plg_Rejected, plg_Sorting, plg_Search,plg_LastUsedKeys';
+
+
+    /**
+     * Кои ключове да се тракват, кога за последно са използвани
+     */
+    public $lastUsedKeys = 'features';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -125,7 +131,8 @@ class crm_Locations extends core_Master
         $this->FLD('place', 'varchar(64)', 'caption=Град,oldFieldName=city,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
-        $this->FLD('specifics', 'richtext(bucket=Notes, rows=2)', 'caption=@Особености');
+        $this->FLD('features', 'keylist(mvc=trans_Features,select=name)', 'caption=Особености');
+        $this->FLD('specifics', 'richtext(bucket=Notes, rows=2)', 'caption=@Други');
         $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=@Информация');
         $this->FLD('mol', 'varchar(64)', 'caption=Отговорник');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
@@ -685,6 +692,11 @@ class crm_Locations extends core_Master
         
         $string .= "{$row->pCode} {$row->place}, {$row->address}";
         $string = trim($string, ',  ');
+
+        if(!empty($rec->features)){
+            $features = core_Type::getByName('keylist(mvc=trans_Features,select=name)')->toVerbal($rec->features);
+            $string .= "; {$features}";
+        }
 
         if(!empty($rec->specifics)){
             $specifics = core_Type::getByName('richtext')->toVerbal($rec->specifics);

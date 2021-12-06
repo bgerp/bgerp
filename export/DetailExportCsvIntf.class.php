@@ -28,9 +28,9 @@ class export_DetailExportCsvIntf
      *
      * @return string
      */
-    public function getExportMasterFieldName()
+    public function getExportMasterFieldName($class)
     {
-        return $this->class->getExportMasterFieldName();
+        return $this->class->getExportMasterFieldName($class);
     }
     
     

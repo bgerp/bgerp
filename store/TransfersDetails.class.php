@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,13 +38,13 @@ class store_TransfersDetails extends doc_Detail
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, store_plg_RequestDetail, plg_RowNumbering, plg_AlignDecimals2, plg_PrevAndNext,plg_SaveAndNew,cat_plg_ShowCodes,store_plg_TransportDataDetail';
-    
-    
+    public $loadList = 'plg_RowTools2, plg_Created, plg_Sorting, store_Wrapper, store_plg_RequestDetail, deals_plg_ImportDealDetailProduct, plg_RowNumbering, plg_AlignDecimals2, plg_PrevAndNext,plg_SaveAndNew,cat_plg_ShowCodes,store_plg_TransportDataDetail';
+
+
     /**
-     * Кой има право да чете?
+     * Кой има право да импортира?
      */
-    public $canRead = 'ceo, store';
+    public $canImport = 'ceo, store';
     
     
     /**
@@ -113,15 +113,27 @@ class store_TransfersDetails extends doc_Detail
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'requestedQuantity,weight,volume,transUnitId,transUnitQuantity';
-    
-    
+
+
+    /**
+     * Може ли да се импортират цени
+     */
+    public $allowPriceImport = false;
+
+
+    /**
+     * Полета, които се експортват
+     */
+    public $exportToMaster = 'quantity, newProductId=code';
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('transferId', 'key(mvc=store_Transfers)', 'column=none,notNull,silent,hidden,mandatory');
-        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Продукт,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
+        $this->FLD('newProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name,forceOpen)', 'class=w100,caption=Артикул,mandatory,silent,refreshForm,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=name)', 'caption=Мярка,mandatory,smartCenter,input=hidden,tdClass=small-field nowrap');
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=none,column=none');
@@ -160,7 +172,7 @@ class store_TransfersDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'import') && isset($rec)) {
             if ($mvc->Master->fetchField($rec->transferId, 'state') != 'draft') {
                 $requiredRoles = 'no_one';
             }
@@ -288,5 +300,29 @@ class store_TransfersDetails extends doc_Detail
         $rec = $mvc->fetchRec($rec);
         $toStoreId = store_Transfers::fetchField($rec->transferId, 'toStore');
         $res->operation['in'] = $toStoreId;
+    }
+
+
+    /**
+     * Импортиране на артикул генериран от ред на csv файл
+     *
+     * @param int   $masterId - ид на мастъра на детайла
+     * @param array $row      - Обект представляващ артикула за импортиране
+     *                        ->code - код/баркод на артикула
+     *                        ->quantity - К-во на опаковката или в основна мярка
+     *                        ->price - цената във валутата на мастъра, ако няма се изчислява директно
+     *                        ->pack - Опаковката
+     *                        ->batch - Партида ако има
+     *
+     * @return mixed - резултата от експорта
+     */
+    public function import($masterId, $row)
+    {
+        $pRec = cat_Products::getByCode($row->code);
+        $pRec->packagingId = (isset($row->pack)) ? $row->pack : $pRec->packagingId;
+        $packRec = cat_products_Packagings::getPack($pRec->productId, $pRec->packagingId);
+        $quantityInPack  = is_object($packRec) ? $packRec->quantity : 1;
+
+        return store_Transfers::addRow($masterId, $pRec->productId, $pRec->packagingId, $row->quantity, $quantityInPack, $row->batch);
     }
 }

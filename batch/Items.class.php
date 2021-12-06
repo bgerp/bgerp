@@ -536,7 +536,7 @@ class batch_Items extends core_Master
         }
         
         $fieldSet = cls::get('core_FieldSet');
-        $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol,smartCenter');
+        $fieldSet->FLD('batch', 'varchar', 'tdClass=leftCol');
         $fieldSet->FLD('storeId', 'varchar', 'tdClass=leftCol');
         $fieldSet->FLD('quantity', 'double');
         

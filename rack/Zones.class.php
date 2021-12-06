@@ -705,6 +705,7 @@ class rack_Zones extends core_Master
 
             // Ако документа се премахва от зоната, изтриват се чакащите движения към тях
             rack_Movements::delete("LOCATE('|{$zoneId}|', #zoneList) AND #state = 'pending'");
+            rack_Movements::logDebug("RACK DELETE PENDING '{$zoneId}'");
         }
 
         // Обновяване на информацията в зоната
@@ -997,8 +998,17 @@ class rack_Zones extends core_Master
      */
     public static function pickupAll($storeId, $defaultUserId = null, $productIds = null)
     {
+        if (!core_Locks::get("PICKED_UP{$storeId}", 21, 20)) {
+            wp('RACK_PICK_UP_ALL_TIMEOUT', $storeId, $defaultUserId, $productIds);
+            return;
+        }
+
+        $productIdLogString = implode(',', arr::make($productIds, true));
+        rack_Movements::logDebug("RACK PICKUP ALL - {$storeId} - '{$productIdLogString}'");
+
         // Изтриване на всички чакащи движения в склада преди да се регенерират наново
-        $zQuery = rack_Zones::getQuery("#storeId = {$storeId}");
+        $zQuery = rack_Zones::getQuery();
+        $zQuery->where("#storeId = {$storeId}");
         $zQuery->show("id");
         $zoneIds = arr::extractValuesFromArray($zQuery->fetchAll(), 'id');
         static::deletePendingZoneMovements($zoneIds, core_Users::SYSTEM_USER, $productIds);
@@ -1020,6 +1030,8 @@ class rack_Zones extends core_Master
         foreach ($nonGroupableZones as $zoneId) {
             self::pickupOrder($storeId, $zoneId, $defaultUserId, $productIds, false);
         }
+
+        core_Locks::release("PICKED_UP{$storeId}");
     }
 
 
@@ -1052,13 +1064,19 @@ class rack_Zones extends core_Master
             core_Users::forceSystemUser();
         }
 
+        $deleted = 0;
         while ($mRec = $mQuery->fetch()) {
             rack_Movements::delete($mRec->id);
+            $deleted++;
         }
 
         if(!$isOriginalSystemUser) {
             core_Users::cancelSystemUser();
         }
+
+        $zoneStringLog = implode('|', $zoneIds);
+        $productStringLog = implode('|', $productIds);
+        rack_Movements::logDebug("RACK DELETE PENDING COUNT ({$deleted}) - '{$zoneStringLog}'- PROD -'{$productStringLog}'");
     }
 
 

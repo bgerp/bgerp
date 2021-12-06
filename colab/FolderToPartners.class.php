@@ -731,7 +731,7 @@ class colab_FolderToPartners extends core_Manager
         } else {
             vislog_History::add("Форма за регистрация на партньор в «{$contragentName}»");
         }
-        //core_Users::
+
         $form = $Users->getForm();
         $form->title = "Регистриране на нов акаунт на партньор";
         $form->FLD('contragentName', 'varchar', "caption=Папка,after=passRe");
@@ -741,6 +741,7 @@ class colab_FolderToPartners extends core_Manager
         // Ако има готово име, попълва се
         if ($userNames = Request::get('userNames', 'varchar')) {
             $form->setDefault('names', $userNames);
+            $form->setReadonly('names');
         }
         
         // Ако имаме хора от crm_Persons, които принадлежат на тази компания, и нямат свързани профили,

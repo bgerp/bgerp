@@ -39,19 +39,19 @@ class trans_TransportUnits extends core_Manager
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'trans,ceo';
+    public $canEdit = 'transMaster,ceo';
     
     
     /**
      * Кой има право да променя системните данни?
      */
-    public $canEditsysdata = 'trans,ceo';
+    public $canEditsysdata = 'transMaster,ceo';
     
     
     /**
      * Никой не може да добавя директно през модела нови фирми
      */
-    public $canAdd = 'trans,ceo';
+    public $canAdd = 'transMaster,ceo';
     
     
     /**

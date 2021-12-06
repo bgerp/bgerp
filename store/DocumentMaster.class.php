@@ -119,15 +119,11 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
         
         $mvc->FLD('note', 'richtext(bucket=Notes,passage,rows=6)', 'caption=Допълнително->Бележки');
-        $mvc->FLD(
-            'state',
-                'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
-                'caption=Статус, input=none'
-        );
+        $mvc->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)', 'caption=Статус, input=none');
         $mvc->FLD('isReverse', 'enum(no,yes)', 'input=none,notNull,value=no');
         $mvc->FLD('accountId', 'customKey(mvc=acc_Accounts,key=systemId,select=id)', 'input=none,notNull,value=411');
 
-        $mvc->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address,placeholder=От предишна доставка,autohide');
+        $mvc->FLD('prevShipment', 'key(mvc=store_ShipmentOrders)', 'caption=Адрес за доставка->Избор,silent,removeAndRefreshForm=company|person|tel|country|pCode|place|address|features|addressInfo,placeholder=От предишна доставка,autohide');
         $mvc->FLD('company', 'varchar', 'caption=Адрес за доставка->Фирма,autohide');
         $mvc->FLD('person', 'varchar', 'caption=Адрес за доставка->Име, class=contactData,autohide');
         $mvc->FLD('tel', 'varchar', 'caption=Адрес за доставка->Тел., class=contactData,autohide');
@@ -135,7 +131,8 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('pCode', 'varchar', 'caption=Адрес за доставка->П. код, class=contactData,autohide');
         $mvc->FLD('place', 'varchar', 'caption=Адрес за доставка->Град/с, class=contactData,autohide');
         $mvc->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, class=contactData,autohide');
-        $mvc->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Особености,autohide');
+        $mvc->FLD('features', 'keylist(mvc=trans_Features,select=name)', 'caption=Адрес за доставка->Особености');
+        $mvc->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Други,autohide');
 
         $mvc->setDbIndex('valior');
     }
@@ -234,7 +231,7 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             if (isset($rec->locationId)) {
-                foreach (array('company','person','tel','country','pCode','place','address', 'addressInfo') as $del) {
+                foreach (array('company','person','tel','country','pCode','place','address', 'features', 'addressInfo') as $del) {
                     if ($rec->{$del}) {
                         $form->setError("locationId,{$del}", 'Не може да има избрана локация и въведени адресни данни');
                         break;
@@ -473,7 +470,7 @@ abstract class store_DocumentMaster extends core_Master
                 $row->deliveryTo .= ' ' . core_Lg::transliterate($row->place);
             }
 
-            foreach (array('address', 'company', 'person', 'tel', 'addressInfo') as $fld) {
+            foreach (array('address', 'company', 'person', 'tel', 'features', 'addressInfo') as $fld) {
                 if (!empty($rec->{$fld})) {
                     if ($fld == 'address') {
                         $row->{$fld} = core_Lg::transliterate($row->{$fld});
@@ -486,7 +483,6 @@ abstract class store_DocumentMaster extends core_Master
                     $row->deliveryTo .= ", {$row->{$fld}}";
                 }
             }
-
 
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);
@@ -502,23 +498,24 @@ abstract class store_DocumentMaster extends core_Master
                 if ($contLocationAddress != '') {
                     $row->deliveryLocationAddress = core_Lg::transliterate($contLocationAddress);
                 }
-                
-                if ($gln = crm_Locations::fetchField($rec->locationId, 'gln')) {
-                    $row->deliveryLocationAddress = $gln . ', ' . $row->deliveryLocationAddress;
+
+                $locationRec = crm_Locations::fetch($rec->locationId, 'gln,tel,mol');
+                if ($locationRec->gln) {
+                    $row->deliveryLocationAddress = $locationRec->gln . ', ' . $row->deliveryLocationAddress;
                     $row->deliveryLocationAddress = trim($row->deliveryLocationAddress, ', ');
                 }
                 
-                if ($locTel = crm_Locations::fetchField($rec->locationId, 'tel')) {
-                    $locTel = core_Type::getByName('varchar')->toVerbal($locTel);
+                if ($locationRec->tel) {
+                    $locTel = core_Type::getByName('varchar')->toVerbal($locationRec->tel);
                     $row->deliveryLocationAddress .= ", {$locTel}";
                 }
                 
-                if ($locMol = crm_Locations::fetchField($rec->locationId, 'mol')) {
-                    $locMol = core_Type::getByName('varchar')->toVerbal($locMol);
+                if ($locationRec->mol) {
+                    $locMol = core_Type::getByName('varchar')->toVerbal($locationRec->mol);
                     $row->deliveryLocationAddress .= ", {$locMol}";
                 }
             }
-            
+
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
             core_Lg::pop();
             
@@ -701,30 +698,32 @@ abstract class store_DocumentMaster extends core_Master
      * @param mixed $rec - ид или запис на документ
      * @return array      - логистичните данни
      *
-     *		string(2)     ['fromCountry']     - международното име на английски на държавата за натоварване
-     * 		string|NULL   ['fromPCode']       - пощенски код на мястото за натоварване
-     * 		string|NULL   ['fromPlace']       - град за натоварване
-     * 		string|NULL   ['fromAddress']     - адрес за натоварване
-     *  	string|NULL   ['fromCompany']     - фирма
-     *   	string|NULL   ['fromPerson']      - лице
-     *      string|NULL   ['fromLocationId']  - лице
-     *      string|NULL   ['fromAddressInfo']   - особености
-     * 		datetime|NULL ['loadingTime']     - дата на натоварване
-     * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
-     * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
-     * 		string|NULL   ['toPlace']         - град за разтоварване
-     *  	string|NULL   ['toAddress']       - адрес за разтоварване
-     *   	string|NULL   ['toCompany']       - фирма
-     *   	string|NULL   ['toPerson']        - лице
-     *      string|NULL   ['toLocationId']    - лице
-     *      string|NULL   ['toPersonPhones']  - телефон на лицето
-     *      string|NULL   ['toAddressInfo']   - особености
-     *      string|NULL   ['instructions']    - инструкции
-     * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
-     * 		text|NULL 	  ['conditions']      - други условия
-     *		varchar|NULL  ['ourReff']         - наш реф
-     * 		double|NULL   ['totalWeight']     - общо тегло
-     * 		double|NULL   ['totalVolume']     - общ обем
+     *		string(2)     ['fromCountry']         - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']           - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']           - град за натоварване
+     * 		string|NULL   ['fromAddress']         - адрес за натоварване
+     *  	string|NULL   ['fromCompany']         - фирма
+     *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromLocationId']      - лице
+     *      string|NULL   ['fromAddressInfo']     - особености
+     *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
+     * 		datetime|NULL ['loadingTime']         - дата на натоварване
+     * 		string(2)     ['toCountry']           - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']             - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']             - град за разтоварване
+     *  	string|NULL   ['toAddress']           - адрес за разтоварване
+     *   	string|NULL   ['toCompany']           - фирма
+     *   	string|NULL   ['toPerson']            - лице
+     *      string|NULL   ['toLocationId']        - лице
+     *      string|NULL   ['toPersonPhones']      - телефон на лицето
+     *      string|NULL   ['toAddressInfo']       - особености
+     *      string|NULL   ['toAddressFeatures']   - особености на транспорта
+     *      string|NULL   ['instructions']        - инструкции
+     * 		datetime|NULL ['deliveryTime']        - дата на разтоварване
+     * 		text|NULL 	  ['conditions']          - други условия
+     *		varchar|NULL  ['ourReff']             - наш реф
+     * 		double|NULL   ['totalWeight']         - общо тегло
+     * 		double|NULL   ['totalVolume']         - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -759,6 +758,7 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$ownPart}Person"] = !empty($storeLocation->mol) ? $storeLocation->mol : null;
             $res["{$ownPart}LocationId"] = $storeLocation->id;
             $res["{$ownPart}AddressInfo"] = $storeLocation->specifics;
+            $res["{$ownPart}AddressFeatures"] = $storeLocation->features;
         } else {
             $res["{$ownPart}PCode"] = !empty($ownCompany->pCode) ? $ownCompany->pCode : null;
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
@@ -782,9 +782,10 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$contrPart}PCode"] = !empty($rec->pCode) ? $rec->pCode : null;
             $res["{$contrPart}Place"] = !empty($rec->place) ? $rec->place : null;
             $res["{$contrPart}Address"] = !empty($rec->address) ? $rec->address : null;
-
             $res["{$contrPart}Company"] = !empty($rec->company) ? $rec->company : $contragentData->company;
             $res["{$contrPart}Person"] = !empty($rec->person) ? $rec->person : $contragentData->person;
+            $res["{$contrPart}AddressInfo"] = !empty($rec->addressInfo) ? $rec->addressInfo : null;
+            $res["{$contrPart}AddressFeatures"] = !empty($rec->features) ? $rec->features : null;
         } elseif (isset($rec->locationId)) {
             $res["{$contrPart}Country"] = !empty($contragentLocation->countryId) ? drdata_Countries::fetchField($contragentLocation->countryId, 'commonName') : null;
             $res["{$contrPart}PCode"] = !empty($contragentLocation->pCode) ? $contragentLocation->pCode : null;
@@ -794,6 +795,8 @@ abstract class store_DocumentMaster extends core_Master
             $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;
             $res["{$contrPart}LocationId"] = $contragentLocation->id;
             $res["{$contrPart}AddressInfo"] = $contragentLocation->specifics;
+            $res["{$contrPart}AddressFeatures"] = $contragentLocation->features;
+
         } elseif($rec->isReverse == 'no') {
             if ($firstDocument = doc_Threads::getFirstDocument($rec->threadId)) {
                 if($firstDocument->haveInterface('trans_LogisticDataIntf')){
@@ -809,6 +812,7 @@ abstract class store_DocumentMaster extends core_Master
                         $res["{$contrPart}PersonPhones"] = $firstDocumentLogisticData["{$contrPart}PersonPhones"];
                         $res["{$contrPart}LocationId"] = $firstDocumentLogisticData["{$contrPart}LocationId"];
                         $res["{$contrPart}AddressInfo"] = $firstDocumentLogisticData["{$contrPart}AddressInfo"];
+                        $res["{$contrPart}AddressFeatures"] = $firstDocumentLogisticData["{$contrPart}AddressFeatures"];
                     }
                 }
             }
