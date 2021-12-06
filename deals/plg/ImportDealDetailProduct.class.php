@@ -33,7 +33,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
     public static function on_AfterDescription(core_Mvc $mvc)
     {
         $mvc->declareInterface('deals_DealImportProductIntf');
-        
+        setIfNot($mvc->allowPriceImport, true);
     }
     
     
@@ -239,11 +239,15 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $metaArr = arr::make($mvc->metaProducts, true);
             if(!countR($metaArr)){
                 $masterRec = $mvc->Master->fetch($masterId);
-                $Document = doc_Containers::getDocument($masterRec->originId);
-                if ($Document->className == 'sales_Sales') {
-                    $metaArr = array('canSell' => 'canSell');
-                } elseif ($Document->className == 'purchase_Purchases') {
-                    $metaArr = array('canBuy' => 'canBuy');
+                if(isset($masterRec->originId)){
+                    $Document = doc_Containers::getDocument($masterRec->originId);
+                    if ($Document->className == 'sales_Sales') {
+                        $metaArr = array('canSell' => 'canSell');
+                    } elseif ($Document->className == 'purchase_Purchases') {
+                        $metaArr = array('canBuy' => 'canBuy');
+                    }
+                } elseif($mvc instanceof store_TransfersDetails){
+                    $metaArr = array('canStore' => 'canStore');
                 }
             }
 
@@ -423,7 +427,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 $failed++;
                 $mvc->logNotice('Грешка при импорт: ' . $e->getMessage());
                 if (haveRole('debug')) {
-                    status_Messages::newStatus('Грешка при импорт: ' . $e->getMessage());
+                    status_Messages::newStatus('Грешка при импорт: ' . $e->getMessage(), 'error');
                 }
             }
         }
@@ -517,8 +521,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         if ($form->rec->fromClipboard) {
             $isFromClipboard = true;
         }
-//
-
 
         $unit = '';
         $type = 'enum()';
@@ -535,7 +537,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $form->setDefault('enclosure', '"');
 
             $unit = ",unit=колона";
-
             $type = 'int';
         }
 
@@ -547,7 +548,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $form->FLD('packcol', $type, "caption=Съответствие в данните->Мярка/Опаковка{$unit},mandatory");
         
         $fields = array('codecol', 'quantitycol', 'packcol');
-        if (!core_Users::haveRole('partner')) {
+        if (!core_Users::haveRole('partner') && $mvc->allowPriceImport) {
             $form->FLD('pricecol', $type, "caption=Съответствие в данните->Цена{$unit}");
             $fields[] = 'pricecol';
         }
@@ -564,8 +565,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
         } else {
             list($clsId, $objId) = explode('_', $form->rec->fromClipboard);
-
-            $clsInst = cls::get($clsId);
 
             $fElemKey = key($clipboardValsArr[$clsId][$objId]->recs);
             $fElemArr = $clipboardValsArr[$clsId][$objId]->recs[$fElemKey];
@@ -584,7 +583,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                         $fArr[$fName] = $fName;
                         $cMap[$fName] = $fName;
                     }
-
 
                     if (mb_stripos($form->fields['codecol']->caption, $caption) !== false) {
                         $form->setDefault('codecol', $caption);

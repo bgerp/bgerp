@@ -503,7 +503,7 @@ class doc_Containers extends core_Manager
             $docTitle = str::limitLenAndHyphen($docRow->title, 70);
             $title->replace($docTitle, 'threadTitle');
             
-            $mvc->title = '|*' . str::limitLen($docRow->title, 20) . ' « ' . doc_Folders::getTitleById($folderRec->id) .'|';
+            $mvc->title = '|*' . str::limitLen($docRow->title, 25) . ' « ' . doc_Folders::getTitleById($folderRec->id) .'|';
             
             $data->title = $title;
         } catch (ErrorException $e) {

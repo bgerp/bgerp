@@ -39,19 +39,19 @@ class trans_TransportModes extends core_Manager
     /**
      * Кой може да редактира
      */
-    public $canEdit = 'trans,ceo';
+    public $canEdit = 'transMaster,ceo';
     
     
     /**
      * Кой може да добавя транспортни единици
      */
-    public $canAdd = 'trans,ceo';
+    public $canAdd = 'transMaster,ceo';
     
     
     /**
      * Кой може да изтрива транспортни единици
      */
-    public $canDelete = 'trans,ceo';
+    public $canDelete = 'transMaster,ceo';
     
     
     /**
