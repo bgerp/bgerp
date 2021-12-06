@@ -473,8 +473,11 @@ abstract class rack_MovementAbstract extends core_Manager
                 $displayStringArr[] = tr(cat_UoM::getSmartName($packId, $p['quantity']));
             }
             $displayString = implode('/', $displayStringArr);
-
             $plus = ($sign < 0) ? "&nbsp;" : "&nbsp;+&nbsp;";
+            if(Mode::is('text', 'plain')){
+                $plus = ($sign < 0) ? " " : " + ";
+            }
+
             $string .= (!empty($string) ? $plus : "") . "{$quantityVerbal} {$displayString}";
         }
 
