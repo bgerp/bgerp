@@ -371,15 +371,19 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
                 $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
             }
+            if (haveRole('debug')){
+                $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
+                $fld->FLD('minOrder', 'varchar', 'caption=За поръчка->Мин опаковки,smartCenter');
+                $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
+            }
         } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             // $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
             $fld->FLD('suggQuantity', 'varchar', 'caption=Количество->За поръчка,smartCenter');
-            if (core_Users::haveRole('debug')) {
-                $fld->FLD('packOrder', 'varchar', 'caption=Опаковки->За поръчка,smartCenter');
-            }
+            $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
+            $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
         }
         return $fld;
     }
@@ -424,6 +428,19 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         if (isset($dRec->measure)) {
             $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
+
+        if (isset($dRec->orderMeasure)) {
+            $row->orderMeasure = cat_UoM::fetchField($dRec->orderMeasure, 'shortName');
+        }
+
+        if (isset($dRec->minOrder)) {
+            $row->minOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->minOrder);
+
+        }
+
+        $orderArr = self::getPacksForOrder($dRec,$rec);
+
+        $row->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->packOrder);
 
         if (isset($dRec->minQuantity)) {
             $t = core_Type::getByName('double(smartRound,decimals=3)');
@@ -603,56 +620,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $res->productId = $pRec->name;
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
 
-        if ($dRec->maxQuantity) {
-
-            $suggQuantity = $dRec->maxQuantity * $rec->orderLimit / 100 - $dRec->quantity;
-
-            //Пакети за поръчка
-            $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
-
-            if ($quantityInPack) {
-                $packOrder = ceil($suggQuantity / $quantityInPack);
-                $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
-            } else {
-                $packOrder = 0;
-            }
-
-        } else {
-            if ($dRec->minQuantity) {
-
-                $suggQuantity = $dRec->minQuantity * 3 - $dRec->quantity;
-
-                //Пакети за поръчка
-                $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
-                if ($quantityInPack) {
-                    $packOrder = ceil($suggQuantity / $quantityInPack);
-                    $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
-                } else {
-                    $packOrder = 0;
-                }
+        $orderArr = self::getPacksForOrder($dRec,$rec);
 
 
-            } else {
-                if ($dRec->quantity < 0) {
-
-                    $suggQuantity = $dRec->quantity * (-1);
-
-                    //Пакети за поръчка
-                    $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
-                    if ($quantityInPack) {
-                        $packOrder = ceil($suggQuantity / $quantityInPack);
-                        $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
-                    } else {
-                        $packOrder = 0;
-                    }
-
-                }
-            }
-
-        }
-
-        $res->suggQuantity = $Double->toVerbal($suggQuantity);
-        $res->packOrder = $Double->toVerbal($packOrder);
+        $res->suggQuantity = $Double->toVerbal($orderArr->suggQuantity);
+        $res->packOrder = $Double->toVerbal($orderArr->packOrder);
 
     }
 
@@ -961,4 +933,77 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         return $subGrArr;
 
     }
+
+    /**
+     * Определяне на опаковки за поръчка
+     */
+    public static function getPacksForOrder($dRec, $rec)
+    {
+        $orderArr = array();
+
+        $pRec = (cat_Products::fetch($dRec->productId));
+
+        if ($dRec->maxQuantity) {
+
+            //Предложено количество за поръчка
+            $suggQuantity = $dRec->maxQuantity * $rec->orderLimit / 100 - $dRec->quantity;
+
+            //Пакети за поръчка
+            $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+
+            if ($quantityInPack) {
+                $packOrder = ceil($suggQuantity / $quantityInPack);
+                $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
+            } else {
+                $packOrder = 0;
+            }
+
+            $orderArr = (object)array('packOrder' => $packOrder,
+                                      'suggQuantity'=>$suggQuantity);
+
+        } else {
+            if ($dRec->minQuantity) {
+
+                $suggQuantity = $dRec->minQuantity * 3 - $dRec->quantity;
+
+                //Пакети за поръчка
+                $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+                if ($quantityInPack) {
+                    $packOrder = ceil($suggQuantity / $quantityInPack);
+                    $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
+                } else {
+                    $packOrder = 0;
+                }
+
+                $orderArr = (object)array('packOrder' => $packOrder,
+                                          'suggQuantity'=>$suggQuantity);
+
+
+            } else {
+                if ($dRec->quantity < 0) {
+
+                    $suggQuantity = $dRec->quantity * (-1);
+
+                    //Пакети за поръчка
+                    $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+                    if ($quantityInPack) {
+                        $packOrder = ceil($suggQuantity / $quantityInPack);
+                        $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
+                    } else {
+                        $packOrder = 0;
+                    }
+                    $orderArr = (object)array('packOrder' => $packOrder,
+                                              'suggQuantity'=>$suggQuantity);
+
+                }
+            }
+
+        }
+
+
+        return $orderArr;
+
+    }
+
+
 }
