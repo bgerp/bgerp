@@ -841,8 +841,7 @@ abstract class deals_Helper
             $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
 
             //  Показване на хоризонта при нужда
-            $productName = cat_Products::getVerbal($productId, 'name');
-            $url = array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName);
+            $url = array('store_Products', 'list', 'storeId' => $storeId, 'productId' => $productId);
             if(isset($date)){
                 $diff = dt::secsBetween(dt::verbal2mysql($date, false), dt::today());
                 $url['horizon'] = $diff;
