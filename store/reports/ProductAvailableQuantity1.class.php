@@ -656,6 +656,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
     /**
      * Промяна на стойностите min и max
+     *
      */
     public function act_EditMinMax()
     {
@@ -713,7 +714,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             $options[$qRec->id] = $qRec->name;
         }
-
+        if (empty($options)) {
+            $options[cat_Products::fetch($productId)->measureId] = cat_UoM::fetch(cat_Products::fetch($productId)->measureId)->name;
+        }
         $form->setOptions('orderMeasureNew', $options);
 
         if ($form->rec->volNewMax < $form->rec->volNewMin) {
@@ -745,6 +748,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
     /**
      * Филтриране на група
+     *
      */
     public static function act_GroupFilter()
     {
