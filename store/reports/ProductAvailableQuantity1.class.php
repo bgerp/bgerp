@@ -961,7 +961,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $packOrder = ceil($suggQuantity / $quantityInPack);
                 $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
             } else {
-                $packOrder = 0;
+                $packOrder = $suggQuantity;
             }
 
             $orderArr = (object)array('packOrder' => $packOrder,
@@ -992,11 +992,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
                     //Пакети за поръчка
                     $quantityInPack = cat_Products::getProductInfo($pRec->id)->packagings[$dRec->orderMeasure]->quantity;
+
                     if ($quantityInPack) {
                         $packOrder = ceil($suggQuantity / $quantityInPack);
                         $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
                     } else {
-                        $packOrder = 0;
+                        $packOrder = $suggQuantity;
                     }
                     $orderArr = (object)array('packOrder' => $packOrder,
                         'suggQuantity' => $suggQuantity);
