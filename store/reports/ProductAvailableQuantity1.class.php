@@ -614,14 +614,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-
+        $orderArr = self::getPacksForOrder($dRec,$rec);
         $pRec = (cat_Products::fetch($dRec->productId));
 
         $res->productId = $pRec->name;
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
-
-        $orderArr = self::getPacksForOrder($dRec,$rec);
-
 
         $res->suggQuantity = $Double->toVerbal($orderArr->suggQuantity);
         $res->packOrder = $Double->toVerbal($orderArr->packOrder);

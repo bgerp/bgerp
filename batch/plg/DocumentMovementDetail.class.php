@@ -398,7 +398,7 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
     /**
      * Кои роли могат да променят групово партидите на изходящите документи
      */
-    public static function on_AfterGetRolesToModfifyBatches($mvc, &$res, $rec)
+    public static function on_AfterGetRolesToModifyBatches($mvc, &$res, $rec)
     {
         $rec = $mvc->fetchRec($rec);
         if (!batch_Defs::getBatchDef($rec->{$mvc->productFieldName})) {
