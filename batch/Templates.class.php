@@ -50,8 +50,8 @@ class batch_Templates extends embed_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'batchMaster,ceo';
-    
-    
+
+
     /**
      * Кой има право да променя системните данни?
      */
@@ -265,6 +265,12 @@ class batch_Templates extends embed_Manager
     {
         if($action == 'add' && isset($rec->productId)){
             if(!batch_Defs::haveRightFor('add', (object)array('productId' => $rec->productId))){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'delete' && isset($rec)){
+            if(batch_Defs::fetchField("#templateId = {$rec->id}")){
                 $requiredRoles = 'no_one';
             }
         }
