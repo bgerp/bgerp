@@ -227,7 +227,7 @@ class batch_Templates extends embed_Manager
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако се иска директно контиране редирект към екшъна за контиране
-        if ($data->form->isSubmitted()) {
+        if (isset($data->form) && $data->form->isSubmitted()) {
             if(isset($data->form->rec->productId)){
                 $data->retUrl = cat_Products::getSingleUrlArray($data->form->rec->productId);
             }
