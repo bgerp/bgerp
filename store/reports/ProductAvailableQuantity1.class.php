@@ -371,7 +371,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
                 $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
             }
-            if (haveRole('debug')){
+            if (haveRole('debug')) {
                 $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
                 $fld->FLD('minOrder', 'varchar', 'caption=За поръчка->Мин опаковки,smartCenter');
                 $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
@@ -438,7 +438,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         }
 
-        $orderArr = self::getPacksForOrder($dRec,$rec);
+        $orderArr = self::getPacksForOrder($dRec, $rec);
 
         $row->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->packOrder);
 
@@ -458,9 +458,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             $row->conditionQuantity = "<span style='color: $dRec->conditionColor'>$conditionQuantity</span>";
         }
-            $row->delrow = '';
-            //$row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'delRow', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/delete.png");
-            $row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
+        $row->delrow = '';
+        //$row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'delRow', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/delete.png");
+        $row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
 
 
         return $row;
@@ -614,13 +614,17 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     {
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
-        $orderArr = self::getPacksForOrder($dRec,$rec);
+
+        $orderArr = self::getPacksForOrder($dRec, $rec);
+
         $pRec = (cat_Products::fetch($dRec->productId));
 
         $res->productId = $pRec->name;
+
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
 
         $res->suggQuantity = $Double->toVerbal($orderArr->suggQuantity);
+
         $res->packOrder = $Double->toVerbal($orderArr->packOrder);
 
     }
@@ -686,8 +690,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->FLD('orderMeasureNew', 'key(mvc=cat_UoM,select=name)', 'caption=Опаковка за поръчка,input,silent');
 
-        $form->FLD('minOrderNew', 'double', 'caption=Минимална поръчка,input,silent');
-    ;
+        $form->FLD('minOrderNew', 'double', 'caption=Минимална поръчка,input,silent');;
         $form->setDefault('volNewMax', $volOldMax);
         $form->setDefault('volNewMin', $volOldMin);
         $form->setDefault('orderMeasureNew', $orderMeasureOld);
@@ -956,7 +959,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             }
 
             $orderArr = (object)array('packOrder' => $packOrder,
-                                      'suggQuantity'=>$suggQuantity);
+                'suggQuantity' => $suggQuantity);
 
         } else {
             if ($dRec->minQuantity) {
@@ -973,7 +976,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 }
 
                 $orderArr = (object)array('packOrder' => $packOrder,
-                                          'suggQuantity'=>$suggQuantity);
+                    'suggQuantity' => $suggQuantity);
 
 
             } else {
@@ -990,7 +993,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                         $packOrder = 0;
                     }
                     $orderArr = (object)array('packOrder' => $packOrder,
-                                              'suggQuantity'=>$suggQuantity);
+                        'suggQuantity' => $suggQuantity);
 
                 }
             }
