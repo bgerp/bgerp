@@ -50,8 +50,8 @@ class batch_Templates extends embed_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'batchMaster,ceo';
-    
-    
+
+
     /**
      * Кой има право да променя системните данни?
      */
@@ -227,7 +227,7 @@ class batch_Templates extends embed_Manager
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако се иска директно контиране редирект към екшъна за контиране
-        if ($data->form->isSubmitted()) {
+        if (isset($data->form) && $data->form->isSubmitted()) {
             if(isset($data->form->rec->productId)){
                 $data->retUrl = cat_Products::getSingleUrlArray($data->form->rec->productId);
             }
@@ -265,6 +265,12 @@ class batch_Templates extends embed_Manager
     {
         if($action == 'add' && isset($rec->productId)){
             if(!batch_Defs::haveRightFor('add', (object)array('productId' => $rec->productId))){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'delete' && isset($rec)){
+            if(batch_Defs::fetchField("#templateId = {$rec->id}")){
                 $requiredRoles = 'no_one';
             }
         }

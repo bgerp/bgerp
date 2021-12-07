@@ -98,7 +98,7 @@ class store_Products extends core_Detail
      */
     public function description()
     {
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул,tdClass=nameCell');
+        $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canStore,hasnotProperties=generic,maxSuggestions=100,forceAjax,titleFld=name)', 'caption=Артикул,tdClass=nameCell,silent');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,tdClass=storeCol leftAlign');
         $this->FLD('quantity', 'double(maxDecimals=3)', 'caption=Налично,tdClass=stockCol');
         $this->FLD('reservedQuantity', 'double(maxDecimals=3)', 'caption=Днес->Запазено,tdClass=horizonCol red');
@@ -219,7 +219,6 @@ class store_Products extends core_Detail
         if(!core_Packs::isInstalled('eshop')){
             unset($orderOptions['eproduct']);
         }
-        
         $data->listFilter->setOptions('order', $orderOptions);
         $data->listFilter->FNC('horizon', 'time(suggestions=1 ден|1 седмица|2 седмици|1 месец|3 месеца)', 'placeholder=Хоризонт,caption=Хоризонт,input,class=w30');
         $data->listFilter->FNC('search', 'varchar', 'placeholder=Търсене,caption=Търсене,input,silent,recently');
@@ -266,7 +265,7 @@ class store_Products extends core_Detail
         } else {
             $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
             $data->listFilter->setDefault('order', 'active');
-            $data->listFilter->showFields = 'search,storeId,order,groupId,horizon,setting';
+            $data->listFilter->showFields = 'search,productId,storeId,order,groupId,horizon,setting';
             unset($data->listFilter->view);
 
             $sKey = "stockSettingFilter" . core_Users::getCurrent();
@@ -275,11 +274,14 @@ class store_Products extends core_Detail
             }
         }
         $data->listFilter->setDefault('setting', 'productMeasureId');
-        $data->listFilter->input('horizon,storeId,order,groupId,search,setting', 'silent');
+        $data->listFilter->input('horizon,productId,storeId,order,groupId,search,setting', 'silent');
 
         // Ако има филтър
         if ($rec = $data->listFilter->rec) {
-            
+            if(isset($rec->productId)){
+                $data->query->where("#productId = {$rec->productId}");
+            }
+
             // И е избран склад, търсим склад
             if (!isset($data->masterMvc)) {
                 if (isset($rec->storeId)) {
