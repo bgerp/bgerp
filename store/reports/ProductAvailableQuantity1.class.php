@@ -711,12 +711,14 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $q->in('id', $prodPackArr);
 
         while ($qRec = $q->fetch()) {
-
             $options[$qRec->id] = $qRec->name;
         }
-        if (empty($options)) {
+
+        if (empty($prodPackArr)) {
+            $options = array();
             $options[cat_Products::fetch($productId)->measureId] = cat_UoM::fetch(cat_Products::fetch($productId)->measureId)->name;
         }
+
         $form->setOptions('orderMeasureNew', $options);
 
         if ($form->rec->volNewMax < $form->rec->volNewMin) {
