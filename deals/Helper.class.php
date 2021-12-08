@@ -809,6 +809,11 @@ abstract class deals_Helper
         $freeQuantityOriginal = $stRec->free;
         $Double = core_Type::getByName('double(smartRound)');
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
+
+        $exRec = store_Products::fetch("#storeId = {$storeId} AND #productId = {$productId}");
+        $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
+        $freeQuantityMin = is_object($exRec) ? ($exRec->quantity - $exRec->reservedQuantityMin + $exRec->expectedQuantityMin) : null;
+
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $inStockVerbal = $Double->toVerbal($stRec->quantity);
@@ -819,7 +824,21 @@ abstract class deals_Helper
             $showNegativeWarning = cat_Products::fetchField($productId, 'isPublic') == 'yes';
         }
 
-        if ($futureQuantity < 0 && $freeQuantity < 0) {
+        // Проверка дали има минимално разполагаемо
+        if(isset($minQuantityDate) && $date <= $minQuantityDate && $quantity > $freeQuantityMin){
+            if($showNegativeWarning){
+                if(isset($date) && $date != dt::today()){
+                    $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
+                    $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
+                    $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
+                } else {
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                }
+
+                $class = 'doc-negative-quantity';
+                $makeLink = false;
+            }
+        } elseif ($futureQuantity < 0 && $freeQuantity < 0) {
             if($showNegativeWarning){
                 $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                 $class = 'doc-negative-quantity';
