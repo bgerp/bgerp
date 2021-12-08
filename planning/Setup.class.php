@@ -152,7 +152,7 @@ class planning_Setup extends core_ProtoSetup
 
         'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на заданието->Изпълнени над,callOnChange=planning_Setup::setJobAutoClose'),
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на заданието->Без модификации от'),
-        'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Очаквано)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Избор'),
+        'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
         'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за брой,per1Min=Брой за минута,minPer10=Минути за 10 броя,minPer100=Минути за 100 броя,per1Hour=Броя за час,per8Hour=Брой за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за брой"->Избор'),
     );
     
