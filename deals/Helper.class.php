@@ -834,9 +834,6 @@ abstract class deals_Helper
                 } else {
                     $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
                 }
-
-                $class = 'doc-negative-quantity';
-                $makeLink = false;
             }
         } elseif ($futureQuantity < 0 && $freeQuantity < 0) {
             if($showNegativeWarning){
