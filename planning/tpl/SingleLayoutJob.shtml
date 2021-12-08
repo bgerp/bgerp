@@ -112,6 +112,12 @@
                     </tr>
                     <!--ET_END pBomId-->
                     <!--ET_END RECEIPTS-->
+                    <!--ET_BEGIN BATCHES-->
+                    <tr style='padding-bottom:80px;padding-top:80px'>
+                        <td class='quiet' style='text-align: left'>|Партиди|* [#addBatchBtn#]:</td>
+                        <td>[#BATCHES#]</td>
+                    </tr>
+                    <!--ET_END BATCHES-->
                     <!--ET_BEGIN oldJobId-->
                     <tr>
                         <td class='quiet' style='text-align: left;white-space: nowrap;'>|Предходно задание|*:</td>
@@ -210,12 +216,6 @@
                         <td>[#deliveryDate#]</td>
                     </tr>
                     <!--ET_END deliveryDate-->
-                    <!--ET_BEGIN batches-->
-                    <tr>
-                        <td class='quiet'>|Партиди|*</td>
-                        <td class='small'>[#batches#]</td>
-                    </tr>
-                    <!--ET_END batches-->
                 </table>
             </td>
         </tr>
