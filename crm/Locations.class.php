@@ -133,13 +133,13 @@ class crm_Locations extends core_Master
         $this->FLD('address', 'varchar(255)', 'caption=Адрес,class=contactData');
         $this->FLD('features', 'keylist(mvc=trans_Features,select=name)', 'caption=Особености');
         $this->FLD('specifics', 'richtext(bucket=Notes, rows=2)', 'caption=@Други');
-        $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=@Информация');
         $this->FLD('mol', 'varchar(64)', 'caption=Отговорник');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Имейли,class=contactData');
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=GLN код');
         $this->FLD('gpsCoords', 'location_Type(geolocation=mobile)', 'caption=Координати');
         $this->FLD('image', 'fileman_FileType(bucket=location_Images)', 'caption=Снимка');
+		$this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=За вътрешно (служебно) ползване - не се показва в документи->@Информация');
 
         $this->setDbUnique('gln');
         $this->setDbIndex('contragentCls,contragentId');
