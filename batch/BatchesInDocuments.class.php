@@ -77,6 +77,7 @@ class batch_BatchesInDocuments extends core_Manager
         
         $this->setDbIndex('detailClassId,detailRecId');
         $this->setDbIndex('productId');
+        $this->setDbIndex('detailClassId,detailRecId,productId,storeId');
     }
     
     
@@ -107,10 +108,17 @@ class batch_BatchesInDocuments extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if ($action == 'modify' && isset($rec)) {
+            $requiredRoles = cls::get($rec->detailClassId)->getRolesToModifyBatches($rec->detailRecId);
+
             if (!isset($rec->detailClassId) || !isset($rec->detailRecId)) {
                 $requiredRoles = 'no_one';
             } else {
-                $requiredRoles = cls::get($rec->detailClassId)->getRolesToModifyBatches($rec->detailRecId);
+                $recInfo = cls::get($rec->detailClassId)->getRowInfo($rec->detailRecId);
+                if(cat_Products::fetchField($recInfo->productId, 'canStore') != 'yes'){
+                    $requiredRoles = 'no_one';
+                } elseif(!batch_Defs::getBatchDef($recInfo->productId)){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -372,10 +380,17 @@ class batch_BatchesInDocuments extends core_Manager
         $form->info->replace(store_Stores::getHyperlink($storeId, true), 'storeId');
         $form->info->replace($packName, 'packName');
         $form->info->append(cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($recInfo->quantity / $recInfo->quantityInPack), 'quantity');
-        
+
         $Def = batch_Defs::getBatchDef($recInfo->productId);
         $suggestions = array();
-        
+
+        $type = $Detail->getBatchMovementDocument($detailRecId);
+
+        $bOptions = null;
+        if($type == 'in'){
+            $bOptions = $Detail->getAllowedInBatches($detailRecId);
+        }
+
         if ($Def instanceof batch_definitions_Serial) {
             
             // Полетата излизат като списък
@@ -429,7 +444,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $tableRec = $exTableRec;
             }
         }
-        
+
         // Добавяне на поле за нова партида
         $btnoff = ($Detail->cantCreateNewBatch === true) ? 'btnOff' : '';
         $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
@@ -437,10 +452,14 @@ class batch_BatchesInDocuments extends core_Manager
         $captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
-        
+
         if($hideTable === false){
             $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
             $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
+            if(is_array($bOptions)){
+                $form->setFieldTypeParams('newArray', array('batch_opt' => array('' => '') + $bOptions));
+            }
+
             $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
             $form->setDefault('newArray', $tableRec);
         } else {
@@ -456,7 +475,6 @@ class batch_BatchesInDocuments extends core_Manager
         // След събмит
         if ($form->isSubmitted()) {
             $r = $form->rec;
-            
             $delete = array();
             $total = 0;
             

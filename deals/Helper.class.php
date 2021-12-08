@@ -1646,6 +1646,23 @@ abstract class deals_Helper
             }
         }
 
+        // Ако в нишките има активни или приключени сделки с плащане да участват и те
+        foreach(array('sales_Sales', 'purchase_Purchases') as $dealDoc){
+            $DealDoc = cls::get($dealDoc);
+            $dQuery = $DealDoc->getQuery();
+            $dQuery->in('threadId', $threads);
+            $dQuery->where("#state = 'active' || #state = 'closed'");
+            $dQuery->where(array("#contoActions LIKE '%pay%'"));
+            if (isset($valior)) {
+                $dQuery->where("#valior <= '{$valior}'");
+            }
+
+            while ($dRec = $dQuery->fetch()) {
+                $amount = $dRec->amountDeal;
+                $payArr[$dRec->containerId] = (object) array('containerId' => $dRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => null, 'paymentType' => 'cash', 'isReverse' => false);
+            }
+        }
+
         self::allocationOfPayments($newInvoiceArr, $payArr);
 
         return $newInvoiceArr;
