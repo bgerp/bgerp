@@ -451,7 +451,7 @@ abstract class deals_Helper
         $verbalQuantityInStock = $Double->toVerbal($quantityInStock);
         $foundQuantity = $quantity;
 
-        $exRec = store_Products::fetch("#storeId = {$storeId} AND #productId = {$productId}");
+        $exRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = {$productId}");
         $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
         $freeQuantityMin = is_object($exRec) ? ($exRec->quantity - $exRec->reservedQuantityMin + $exRec->expectedQuantityMin) : null;
 
@@ -822,7 +822,7 @@ abstract class deals_Helper
         $Double = core_Type::getByName('double(smartRound)');
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
 
-        $exRec = store_Products::fetch("#storeId = {$storeId} AND #productId = {$productId}");
+        $exRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = {$productId}");
         $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
         $freeQuantityMin = is_object($exRec) ? ($exRec->quantity - $exRec->reservedQuantityMin + $exRec->expectedQuantityMin) : null;
 
