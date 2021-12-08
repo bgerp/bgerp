@@ -914,20 +914,6 @@ class planning_Jobs extends core_Master
                 $row->department = planning_Centers::getHyperlink($rec->department, true);
             }
             
-            // Ако има сделка и пакета за партиди е инсталиран показваме ги
-            if (isset($rec->saleId) && core_Packs::isInstalled('batch')) {
-                $query = batch_BatchesInDocuments::getQuery();
-                $saleContainerId = sales_Sales::fetchField($rec->saleId, 'containerId');
-                $query->where("#containerId = {$saleContainerId} AND #productId = {$rec->productId}");
-                $query->show('batch,productId');
-                
-                $batchArr = array();
-                while ($bRec = $query->fetch()) {
-                    $batchArr = $batchArr + batch_Movements::getLinkArr($bRec->productId, $bRec->batch);
-                }
-                $row->batches = implode(', ', $batchArr);
-            }
-            
             if (isset($rec->storeId)) {
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
