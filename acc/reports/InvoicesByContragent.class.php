@@ -58,6 +58,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото');
         $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate,mandatory');
 
+        $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit=лв. ,after=checkDate,single=none');
+
         $fieldset->FNC('totalInvoiceValueAll', 'double', 'input=none,single=none');
         $fieldset->FNC('totalInvoicePayoutAll', 'double', 'input=none,single=none');
         $fieldset->FNC('totalInvoiceNotPaydAll', 'double', 'input=none,single=none');
@@ -291,6 +293,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 //Масив от нишки в които има фактури
                 $threadsId[$salesInvoice->threadId] = $salesInvoice->threadId;
 
+
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
 
@@ -390,10 +393,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             //Когато се коригира функцията за разпределение на плащанията това да се премахне !!!
                             $invDiff = in_array($firstDocumentArr[$thread], array_keys($fastSales)) ? 0 : $invDiff;
 
-                            // Ако са избрани само неплатените фактури пропускаме тези с отклонение под 0.01
+                            // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
                             if ($rec->unpaid == 'unpaid') {
-                                if (($invDiff >= -0.01) &&
-                                    ($invDiff <= +0.01)) {
+                                if (($invDiff >= (-1) * $rec->sill) &&
+                                    ($invDiff <= $rec->sill)) {
                                     continue;
                                 }
                             }
@@ -1012,12 +1015,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             $paidDatesList .= ',' . $payDocClass::fetch($pDocumnt->that)->valior;
                             break;
                         }
-
                     }
-
                 }
             }
         }
+
         if ($verbal === true) {
             $amountsValiors = explode(',', trim($paidDatesList, ','));
 
