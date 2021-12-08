@@ -678,7 +678,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form = cls::get('core_Form');
 
-        $form->title = "Редктиране на  |* ' " . ' ' . cat_Products::getHyperlink($productId) . "' ||*";
+        $form->title = "Редактиране на  |* ' " . ' ' . cat_Products::getHyperlink($productId) . "' ||*";
 
         $volOldMin = $minVal;
         $volOldMax = $maxVal;
@@ -714,7 +714,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $options[$qRec->id] = $qRec->name;
         }
 
-        if (empty($prodPackArr)) {
+        if (empty($prodPackArr) || empty($options)) {
             $options = array();
             $options[cat_Products::fetch($productId)->measureId] = cat_UoM::fetch(cat_Products::fetch($productId)->measureId)->name;
         }
@@ -1007,6 +1007,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         }
 
+        //Ако предложението за поръчка е отрицателно, то се нулира
+        if ($orderArr->packOrder < 0 || $orderArr->suggQuantity < 0) {
+            $orderArr->packOrder = $orderArr->suggQuantity = 0;
+        }
 
         return $orderArr;
 
