@@ -68,7 +68,7 @@ abstract class batch_definitions_Date extends batch_definitions_Proto
         $matches = array();
         if (!preg_match("/^{$expr}$/", $value, $matches)) {
             $exampleDate = dt::mysql2verbal(null, $this->rec->format);
-            $msg = "|Партидата трябва да е във формат=|* <b>{$exampleDate}</b>";
+            $msg = "|Партидата трябва да е във формат|* <b>{$exampleDate}</b>";
             
             return false;
         }
