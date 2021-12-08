@@ -385,7 +385,6 @@ class batch_BatchesInDocuments extends core_Manager
         $suggestions = array();
 
         $type = $Detail->getBatchMovementDocument($detailRecId);
-
         $bOptions = null;
         if($type == 'in'){
             $bOptions = $Detail->getAllowedInBatches($detailRecId);
@@ -455,11 +454,19 @@ class batch_BatchesInDocuments extends core_Manager
 
         if($hideTable === false){
             $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
-            $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
+
             if(is_array($bOptions)){
                 $form->setFieldTypeParams('newArray', array('batch_opt' => array('' => '') + $bOptions));
             }
 
+            // Ако има опции от типа добавят се с възможност за избор
+            $BatchType = $Def->getBatchClassType();
+            if($BatchType instanceof type_Enum){
+                $bOptions = $BatchType->options;
+                $suggestions = array_combine(array_values($bOptions), array_values($bOptions)) + $suggestions;
+            }
+
+            $form->setFieldTypeParams('newArray', array('batch_sgt' => $suggestions));
             $form->setFieldTypeParams('newArray', array('batchDefinition' => $Def));
             $form->setDefault('newArray', $tableRec);
         } else {
