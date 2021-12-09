@@ -23,6 +23,11 @@
                 <!--ET_BEGIN address-->
                 <div>[#address#]</div>
                 <!--ET_END address-->
+
+                <!--ET_BEGIN WORKING_TIME-->
+                [#WORKING_TIME#]
+                <div><span class="quiet">|Работно време|*</span>:<!--ET_BEGIN workingTimeStart--> |от|* [#workingTimeStart#]<!--ET_END workingTimeStart--> <!--ET_BEGIN workingTimeEnd-->|до|* [#workingTimeEnd#]<!--ET_END workingTimeEnd--></div>
+                <!--ET_END WORKING_TIME-->
             </div>
         </fieldset>
          <!--ET_END ADDRESS_SECTION-->
@@ -75,7 +80,7 @@
         <!--ET_END type-->
         <!--ET_BEGIN comment-->
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Информация|*</legend>
+            <legend class="groupTitle">|Информация (за вътрешно/служебно ползване - не се показва в документи)|*</legend>
             <div class="groupList">
                 [#comment#]
             </div>
