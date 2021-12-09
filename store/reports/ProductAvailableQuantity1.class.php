@@ -234,10 +234,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             }
 
-
-            $stKey = $productId . '|' . $recProduct->storeId;
-            $storesQuatity[$stKey] += $quantity;
-
+            if ($recProduct->storeId && $productId) {
+                $stKey = $productId . '|' . $recProduct->storeId;
+                $storesQuatity[$stKey] += $quantity;
+            }
 
             if ($obj = &$recs[$productId]) {
                 $obj->quantity += $quantity;
@@ -278,6 +278,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             arr::sortObjects($recs, 'code', 'asc');
         }
 
+        //Разпределяне по складове
         $temp = array();
         foreach ($storesQuatity as $key => $val) {
 
@@ -288,7 +289,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 array_push($temp[$newKey], $stId . '|' . $val);
 
             }
-
         }
 
         // Определяне на индикаторите за "свръх наличност" и "под минимум";
@@ -380,7 +380,6 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            // $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
             $fld->FLD('suggQuantity', 'varchar', 'caption=Количество->За поръчка,smartCenter');
             $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
             $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
