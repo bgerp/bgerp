@@ -789,6 +789,9 @@ abstract class deals_Helper
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
         $stRec = store_Products::getQuantities($productId, $storeId, $date);
 
+        $exRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = {$productId}");
+        $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
+
         // Ако има посочена нишка, чийто първи документ да се игнорира от хоризонтите,
         if(isset($ignoreFirstDocumentPlannedInThread)){
             if($firstDocument = doc_Threads::getFirstDocument($ignoreFirstDocumentPlannedInThread)){
@@ -807,12 +810,22 @@ abstract class deals_Helper
                     $iRec = $iQuery->fetch();
 
                     // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
-                    if(is_object($iRec) && is_object($stRec)){
-                        $stRec->reserved -= $iRec->quantityOut;
-                        $stRec->reserved = abs($stRec->reserved);
-                        $stRec->expected -= $iRec->quantityIn;
-                        $stRec->expected = abs($stRec->expected);
-                        $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                    if(is_object($iRec)){
+
+                        if(is_object($stRec)){
+                            $stRec->reserved -= $iRec->quantityOut;
+                            $stRec->reserved = abs($stRec->reserved);
+                            $stRec->expected -= $iRec->quantityIn;
+                            $stRec->expected = abs($stRec->expected);
+                            $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                        }
+
+                        if(is_object($exRec)) {
+                            $exRec->reservedQuantityMin -= $iRec->quantityOut;
+                            $exRec->reservedQuantityMin = abs($exRec->reservedQuantityMin);
+                            $exRec->expectedQuantityMin -= $iRec->quantityIn;
+                            $exRec->expectedQuantityMin = abs($exRec->expectedQuantityMin);
+                        }
                     }
                 }
             }
@@ -821,9 +834,6 @@ abstract class deals_Helper
         $freeQuantityOriginal = $stRec->free;
         $Double = core_Type::getByName('double(smartRound)');
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
-
-        $exRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = {$productId}");
-        $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
         $freeQuantityMin = is_object($exRec) ? ($exRec->quantity - $exRec->reservedQuantityMin + $exRec->expectedQuantityMin) : null;
 
         $futureQuantity = $stRec->quantity - $quantity;
