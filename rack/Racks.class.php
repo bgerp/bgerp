@@ -771,4 +771,27 @@ class rack_Racks extends core_Master
             }
         }
     }
+
+
+    /**
+     * Връща стелажите в подадения склад
+     *
+     * @param int|null $storeId - ид на склад
+     * @return array $options - масив с опциите
+     */
+    public static function getOptionsByStoreId($storeId = null)
+    {
+        $options = array();
+        $storeId = isset($storeId) ? $storeId : store_Stores::getCurrent('id', false);
+        $query = static::getQuery();
+        if(isset($storeId)){
+            $query->where("#storeId = {$storeId}");
+        }
+
+        while($rec = $query->fetch()){
+            $options[$rec->id] = static::recToVerbal($rec)->num;
+        }
+
+        return $options;
+    }
 }

@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Milen Georgiev <milen@experta.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,9 +31,21 @@ class rack_Pallets extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper,recently_Plugin,plg_Sorting, plg_Search';
-    
-    
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper,recently_Plugin,plg_Sorting, plg_Search, bgerp_plg_Export';
+
+
+    /**
+     * Полета, които могат да бъдат експортирани
+     */
+    public $exportableCsvFields = 'position,code,productId,batch,quantity,measureId';
+
+
+    /**
+     * Права за плъгин-а bgerp_plg_Export
+     */
+    public $canExport = 'ceo,rack';
+
+
     /**
      * Кой има право да променя?
      */
@@ -67,7 +79,7 @@ class rack_Pallets extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'label,position,productId,batch=Партида,uom=Мярка,quantity,closedOn';
+    public $listFields = 'label,position,productId,batch=Партида,quantity,uom=Мярка,closedOn';
     
     
     /**
@@ -103,7 +115,7 @@ class rack_Pallets extends core_Manager
         $this->FLD('rackId', 'key(mvc=rack_Racks,select=num)', 'caption=Стелаж,input=none');
         $this->FLD('position', 'rack_PositionType', 'caption=Позиция,smartCenter');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts,forceAjax)', 'caption=Артикул,mandatory,tdClass=productCell,silent');
-        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,smartCenter,silent');
+        $this->FLD('quantity', 'double(smartRound,decimals=3)', 'caption=Количество,mandatory,silent');
         $this->FLD('batch', 'text', 'smartCenter,caption=Партида');
         $this->FLD('label', 'varchar(32)', 'caption=Етикет,tdClass=rightCol,smartCenter');
         $this->FLD('comment', 'varchar', 'caption=Коментар,column=none');
@@ -526,12 +538,17 @@ class rack_Pallets extends core_Manager
         $data->title = 'Палетизирани наличности в склад|* <b style="color:green">' . store_Stores::getHyperlink($storeId, true) . '</b>';
         $data->query->where("#storeId = {$storeId}");
         $data->query->orderBy('state', 'ASC');
-        
+
+        Mode::push('text', 'plain');
+        $rackOptions = rack_Racks::getOptionsByStoreId($storeId);
+        Mode::pop('text', 'plain');
+        $data->listFilter->setOptions('rackId', array('' => '') + $rackOptions);
+
         $data->listFilter->setFieldType('productId', 'key2(mvc=cat_Products,select=name,allowEmpty,selectSourceArr=rack_Products::getStorableProducts)');
         $data->listFilter->FLD('stateFilter', 'enum(,active=Активни,closed=Затворено)', 'caption=Всички,silent');
         $data->listFilter->setDefault('stateFilter', 'active');
         
-        $data->listFilter->showFields = 'productId,search,stateFilter';
+        $data->listFilter->showFields = 'productId,search,rackId,stateFilter';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         
@@ -547,7 +564,11 @@ class rack_Pallets extends core_Manager
                 $order = true;
             }
         }
-        
+
+        if (!empty($rec->rackId)) {
+            $data->query->where("#rackId = '{$rec->rackId}'");
+        }
+
         if (!empty($rec->stateFilter)) {
             $data->query->where("#state = '{$rec->stateFilter}'");
         }
@@ -791,7 +812,7 @@ class rack_Pallets extends core_Manager
             if ($Definition = batch_Defs::getBatchDef($rec->productId)) {
                 if(!empty($rec->batch)){
                     $row->batch = $Definition->toVerbal($rec->batch);
-                    
+
                     if (batch_Movements::haveRightFor('list')) {
                         $link = array('batch_Movements', 'list', 'batch' => $rec->batch);
                         if (isset($fields['-list'])) {
@@ -974,7 +995,7 @@ class rack_Pallets extends core_Manager
         }
 
         if ($mvc->haveRightFor('movealltofloor')) {
-            $data->toolbar->addBtn('Изтриване', array($mvc, 'movealltofloor', 'ret_url' => true), 'ef_icon=img/16/delete.png,title=Изтриване на палети,warning=Наистина ли желаете да изтриете всички палети в склада');
+            $data->toolbar->addBtn('Изтриване', array($mvc, 'movealltofloor', 'ret_url' => true), 'ef_icon=img/16/bug.png,title=Изтриване на палети,warning=Наистина ли желаете да изтриете всички палети в склада');
         }
     }
     
@@ -982,7 +1003,7 @@ class rack_Pallets extends core_Manager
     /**
      * Преди рендиране на таблицата
      */
-    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    protected static function on_BeforeRenderListTable1($mvc, &$tpl, $data)
     {
         $data->listTableMvc->FLD('uom', 'varchar', 'smartCenter');
         if (Mode::is('screenMode', 'narrow')) {
@@ -1002,12 +1023,10 @@ class rack_Pallets extends core_Manager
      */
     public static function getByPosition($position, $storeId, $productId = null)
     {
-        if (empty($position) || $position == rack_PositionType::FLOOR) {
-            
-            return;
-        }
-        
-        if($productId) {
+        if (empty($position) || $position == rack_PositionType::FLOOR) return;
+
+        $rec = null;
+        if(isset($productId)) {
             $rec = self::fetch(array("#productId = {$productId} AND #position = '{$position}' AND #state != 'closed' AND #storeId = {$storeId}"));
         }
 
@@ -1042,7 +1061,6 @@ class rack_Pallets extends core_Manager
      * Търси по подадения баркод
      *
      * @param string $str
-     *
      * @return array
      *               ->title - заглавие на резултата
      *               ->url - линк за хипервръзка
@@ -1192,5 +1210,46 @@ class rack_Pallets extends core_Manager
 
         // Рендираме опаковката
         return $this->renderWrapping($form->renderHtml());
+    }
+
+
+    /**
+     * След взимане на полетата за експорт в csv
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_AfterGetCsvFieldSetForExport($mvc, &$fieldset)
+    {
+        $fieldset->setFieldType('batch', 'varchar');
+        $fieldset->setFieldType('productId', 'key(mvc=cat_Products,select=name)');
+        $fieldset->FNC('code', 'varchar', 'caption=Код,after=position');
+        $fieldset->FNC('measureId', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,after=batch');
+    }
+
+
+    /**
+     * Преди експортиране като CSV
+     *
+     * @see bgerp_plg_CsvExport
+     */
+    protected static function on_BeforeExportCsv($mvc, &$recs)
+    {
+        if(is_array($recs)){
+            foreach ($recs as &$rec){
+                $pRec = cat_Products::fetch($rec->productId, 'code,name,nameEn,measureId');
+                $rec->code = cat_Products::getVerbal($pRec, 'code');
+                $rec->measureId = $pRec->measureId;
+
+                if($Def = batch_Defs::getBatchDef($rec->productId)){
+                    if(!empty($rec->batch)){
+                        Mode::push('text', 'plain');
+                        $rec->batch = strip_tags($Def->toVerbal($rec->batch));
+                        Mode::pop('text');
+                    }
+                }
+            }
+
+            arr::sortObjects($recs, 'position', 'ASC', 'natural');
+        }
     }
 }
