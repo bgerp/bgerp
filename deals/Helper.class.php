@@ -449,22 +449,33 @@ abstract class deals_Helper
         $storeName = isset($storeId) ? (" |в|* " . store_Stores::getTitleById($storeId)) : '';
         $verbalQuantity = $Double->toVerbal($quantity);
         $verbalQuantityInStock = $Double->toVerbal($quantityInStock);
-
-        $verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
         $foundQuantity = $quantity;
 
-        $string = "Минимално разполагаемо";
-        $verbalDate = $date;
-        if(!empty($date)){
-            if(strpos($date, ' 00:00:00') !== false){
-                $verbalDate = dt::mysql2verbal($date, 'd.m.Y');
-            } else {
-                $verbalDate = dt::mysql2verbal($date, 'd.m.Y H:i');
-            }
-            $string = "|Разполагаемо към|*";
+        $exRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = {$productId}");
+        $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
+        $freeQuantityMin = is_object($exRec) ? ($exRec->quantity - $exRec->reservedQuantityMin + $exRec->expectedQuantityMin) : null;
+
+        $date = (!empty($date)) ? $date : dt::today();
+        if(isset($minQuantityDate) && $date <= $minQuantityDate){
+            $displayDate = dt::verbal2mysql($minQuantityDate);
+            $displayText = "Минимално разполагаемо към|*";
+            $verbalQuantity = $Double->toVerbal($freeQuantityMin);
+
+        } else {
+            $displayDate = $date;
+            $displayText = "Разполагаемо към|*";
         }
 
-        $text = "|Налично|* <b>{$storeName}</b> : {$verbalQuantityInStock} {$shortUom}<br> {$string} <b class='small'>{$verbalDate}</b>: {$verbalQuantity} {$shortUom}";
+        if(!empty($displayDate)){
+            if(strpos($displayDate, ' 00:00:00') !== false){
+                $displayDate = dt::mysql2verbal($displayDate, 'd.m.Y');
+            } else {
+                $displayDate = dt::mysql2verbal($displayDate, 'd.m.Y H:i');
+            }
+        }
+
+        $verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
+        $text = "|Налично|* <b>{$storeName}</b> : {$verbalQuantityInStock} {$shortUom}<br> {$displayText} <b class='small'>{$displayDate}</b>: {$verbalQuantity} {$shortUom}";
         if (!empty($stRec->reserved)) {
             $verbalReserved = $Double->toVerbal($stRec->reserved);
             $text .= ' ' . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
@@ -478,7 +489,8 @@ abstract class deals_Helper
         if ($packQuantity > ($quantity / $quantityInPack)) {
             $obj->warning = "Въведеното количество е по-голямо от разполагаемо|* <b>{$verbalQuantity}</b> |в склада|*";
         }
-        
+
+
         return $obj;
     }
     
@@ -777,6 +789,9 @@ abstract class deals_Helper
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
         $stRec = store_Products::getQuantities($productId, $storeId, $date);
 
+        $exRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = {$productId}");
+        $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
+
         // Ако има посочена нишка, чийто първи документ да се игнорира от хоризонтите,
         if(isset($ignoreFirstDocumentPlannedInThread)){
             if($firstDocument = doc_Threads::getFirstDocument($ignoreFirstDocumentPlannedInThread)){
@@ -795,12 +810,22 @@ abstract class deals_Helper
                     $iRec = $iQuery->fetch();
 
                     // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
-                    if(is_object($iRec) && is_object($stRec)){
-                        $stRec->reserved -= $iRec->quantityOut;
-                        $stRec->reserved = abs($stRec->reserved);
-                        $stRec->expected -= $iRec->quantityIn;
-                        $stRec->expected = abs($stRec->expected);
-                        $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                    if(is_object($iRec)){
+
+                        if(is_object($stRec)){
+                            $stRec->reserved -= $iRec->quantityOut;
+                            $stRec->reserved = abs($stRec->reserved);
+                            $stRec->expected -= $iRec->quantityIn;
+                            $stRec->expected = abs($stRec->expected);
+                            $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                        }
+
+                        if(is_object($exRec)) {
+                            $exRec->reservedQuantityMin -= $iRec->quantityOut;
+                            $exRec->reservedQuantityMin = abs($exRec->reservedQuantityMin);
+                            $exRec->expectedQuantityMin -= $iRec->quantityIn;
+                            $exRec->expectedQuantityMin = abs($exRec->expectedQuantityMin);
+                        }
                     }
                 }
             }
@@ -809,9 +834,6 @@ abstract class deals_Helper
         $freeQuantityOriginal = $stRec->free;
         $Double = core_Type::getByName('double(smartRound)');
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
-
-        $exRec = store_Products::fetch("#storeId = {$storeId} AND #productId = {$productId}");
-        $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
         $freeQuantityMin = is_object($exRec) ? ($exRec->quantity - $exRec->reservedQuantityMin + $exRec->expectedQuantityMin) : null;
 
         $futureQuantity = $stRec->quantity - $quantity;
