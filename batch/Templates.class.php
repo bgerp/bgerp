@@ -197,6 +197,10 @@ class batch_Templates extends embed_Manager
         $form = &$data->form;
         $rec = &$form->rec;
 
+        // При смяна на драйвера да се рефрешват допълнителни полета
+        $remFields = $form->getFieldParam('driverClass', 'removeAndRefreshForm') . "|autoAllocate";
+        $form->setField('driverClass', "removeAndRefreshForm={$remFields}");
+
         if(isset($rec->productId)){
             $form->setField('productId', 'input');
             $form->setOptions('productId', array($rec->productId => cat_Products::getTitleById($rec->productId, false)));
@@ -216,6 +220,9 @@ class batch_Templates extends embed_Manager
                 if ($Driver->canChangeBatchUniquePerProduct() !== true) {
                     $form->setField('uniqueProduct', 'input=none');
                 }
+
+                $defaultAutoAllocate = ($Driver->canAutoAllocate()) ? 'yes' : 'no';
+                $form->setDefault('autoAllocate', $defaultAutoAllocate);
             }
         }
     }

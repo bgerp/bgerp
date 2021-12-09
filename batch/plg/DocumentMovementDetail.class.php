@@ -250,8 +250,12 @@ class batch_plg_DocumentMovementDetail extends core_Plugin
         
         // Ако записа е редактиран и к-то е променено
         if ($rec->isEdited === true && isset($rec->id)) {
-            if ($rec->quantity != $mvc->fetchField($rec->id, 'quantity') && batch_Defs::getBatchDef($rec->productId)) {
-                $rec->autoAllocate = true;
+            if ($rec->quantity != $mvc->fetchField($rec->id, 'quantity')) {
+                if($BatchClass = batch_Defs::getBatchDef($rec->{$mvc->productFieldName})){
+                    if ($BatchClass->canAutoAllocate()) {
+                        $rec->autoAllocate = true;
+                    }
+                }
             }
         }
     }

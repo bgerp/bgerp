@@ -811,20 +811,12 @@ abstract class deals_Helper
 
                     // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
                     if(is_object($iRec)){
-
                         if(is_object($stRec)){
                             $stRec->reserved -= $iRec->quantityOut;
                             $stRec->reserved = abs($stRec->reserved);
                             $stRec->expected -= $iRec->quantityIn;
                             $stRec->expected = abs($stRec->expected);
                             $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
-                        }
-
-                        if(is_object($exRec)) {
-                            $exRec->reservedQuantityMin -= $iRec->quantityOut;
-                            $exRec->reservedQuantityMin = abs($exRec->reservedQuantityMin);
-                            $exRec->expectedQuantityMin -= $iRec->quantityIn;
-                            $exRec->expectedQuantityMin = abs($exRec->expectedQuantityMin);
                         }
                     }
                 }
@@ -847,31 +839,40 @@ abstract class deals_Helper
         }
 
         // Проверка дали има минимално разполагаемо
-        if(isset($minQuantityDate) && $date <= $minQuantityDate && $quantity > $freeQuantityMin){
-            if($showNegativeWarning){
-                if(isset($date) && $date != dt::today()){
-                    $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
-                    $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
-                    $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
-                } else {
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+        $firstCheck = false;
+        if(isset($minQuantityDate) && $date <= $minQuantityDate){
+            if(($state == 'pending' && $freeQuantityMin < 0) || ($state == 'draft' && $quantity > $freeQuantityMin)){
+                if($showNegativeWarning){
+                    if(isset($date) && $date != dt::today()){
+                        $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
+                        $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
+                        $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
+                    } else {
+                        $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    }
                 }
+
+                $firstCheck = true;
             }
-        } elseif ($futureQuantity < 0 && $freeQuantity < 0) {
-            if($showNegativeWarning){
-                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
-                $class = 'doc-negative-quantity';
-                $makeLink = false;
-            }
-        } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
-            if($showNegativeWarning) {
-                $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
-            }
-        } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
-            if($showNegativeWarning) {
-                $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+        }
+
+        if(!$firstCheck){
+            if ($futureQuantity < 0 && $freeQuantity < 0) {
+                if($showNegativeWarning){
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $class = 'doc-negative-quantity';
+                    $makeLink = false;
+                }
+            } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
+                if($showNegativeWarning) {
+                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                }
+            } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
+                if($showNegativeWarning) {
+                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+                }
             }
         }
         
@@ -1581,12 +1582,13 @@ abstract class deals_Helper
     /**
      * Помощен метод връщащ разпределението на плащанията по фактури
      *
-     * @param int           $threadId - ид на тред
-     * @param datetime|NULL $valior   - към коя дата
+     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
+     * @param datetime|NULL $valior            - към коя дата
+     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
      *
      * @return array $paid      - масив с разпределените плащания
      */
-    public static function getInvoicePayments($threadId, $valior = null)
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
     {
         expect($threadId);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
@@ -1699,6 +1701,13 @@ abstract class deals_Helper
                 $amount = $dRec->amountDeal;
                 $payArr[$dRec->containerId] = (object) array('containerId' => $dRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => null, 'paymentType' => 'cash', 'isReverse' => false);
             }
+        }
+
+        if($onlyExactPayments){
+
+            // Ако се изискват само конкретните платежни документи към ф-те - оставят се само те
+            // плащанията, които не са към конкретна фактура не се показват
+            $payArr = array_filter($payArr, function ($a) {return isset($a->to);});
         }
 
         self::allocationOfPayments($newInvoiceArr, $payArr);
