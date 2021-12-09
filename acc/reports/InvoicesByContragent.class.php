@@ -58,7 +58,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото');
         $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate,mandatory');
 
-        $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit=лв. ,after=checkDate,single=none');
+        $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit=лв.,input=hidden,after=checkDate,silent,single=none');
 
         $fieldset->FNC('totalInvoiceValueAll', 'double', 'input=none,single=none');
         $fieldset->FNC('totalInvoicePayoutAll', 'double', 'input=none,single=none');
@@ -84,6 +84,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($rec->unpaid == 'unpaid') {
             unset($rec->fromDate);
             $form->setField('fromDate', 'input=none');
+            $form->setField('sill', 'input');
         }
 
         if ($rec->unpaid == 'all') {
