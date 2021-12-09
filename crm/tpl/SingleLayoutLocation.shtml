@@ -75,7 +75,7 @@
         <!--ET_END type-->
         <!--ET_BEGIN comment-->
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Информация|*</legend>
+            <legend class="groupTitle">|Информация (за вътрешно/служебно ползване - не се показва в документи)|*</legend>
             <div class="groupList">
                 [#comment#]
             </div>
