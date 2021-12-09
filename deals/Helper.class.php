@@ -811,20 +811,12 @@ abstract class deals_Helper
 
                     // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
                     if(is_object($iRec)){
-
                         if(is_object($stRec)){
                             $stRec->reserved -= $iRec->quantityOut;
                             $stRec->reserved = abs($stRec->reserved);
                             $stRec->expected -= $iRec->quantityIn;
                             $stRec->expected = abs($stRec->expected);
                             $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
-                        }
-
-                        if(is_object($exRec)) {
-                            $exRec->reservedQuantityMin -= $iRec->quantityOut;
-                            $exRec->reservedQuantityMin = abs($exRec->reservedQuantityMin);
-                            $exRec->expectedQuantityMin -= $iRec->quantityIn;
-                            $exRec->expectedQuantityMin = abs($exRec->expectedQuantityMin);
                         }
                     }
                 }
@@ -847,7 +839,7 @@ abstract class deals_Helper
         }
 
         // Проверка дали има минимално разполагаемо
-        if(isset($minQuantityDate) && $date <= $minQuantityDate && $quantity > $freeQuantityMin){
+        if(isset($minQuantityDate) && $date <= $minQuantityDate && $freeQuantityMin <= 0 && $state == 'pending'){
             if($showNegativeWarning){
                 if(isset($date) && $date != dt::today()){
                     $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
