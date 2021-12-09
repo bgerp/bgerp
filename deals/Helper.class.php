@@ -839,31 +839,40 @@ abstract class deals_Helper
         }
 
         // Проверка дали има минимално разполагаемо
-        if(isset($minQuantityDate) && $date <= $minQuantityDate && $freeQuantityMin < 0 && $state == 'pending'){
-            if($showNegativeWarning){
-                if(isset($date) && $date != dt::today()){
-                    $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
-                    $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
-                    $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
-                } else {
-                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+        $firstCheck = false;
+        if(isset($minQuantityDate) && $date <= $minQuantityDate){
+            if(($state == 'pending' && $freeQuantityMin < 0) || ($state == 'draft' && $quantity > $freeQuantityMin)){
+                if($showNegativeWarning){
+                    if(isset($date) && $date != dt::today()){
+                        $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
+                        $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
+                        $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
+                    } else {
+                        $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    }
                 }
+
+                $firstCheck = true;
             }
-        } elseif ($futureQuantity < 0 && $freeQuantity < 0) {
-            if($showNegativeWarning){
-                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
-                $class = 'doc-negative-quantity';
-                $makeLink = false;
-            }
-        } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
-            if($showNegativeWarning) {
-                $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
-            }
-        } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
-            if($showNegativeWarning) {
-                $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+        }
+
+        if(!$firstCheck){
+            if ($futureQuantity < 0 && $freeQuantity < 0) {
+                if($showNegativeWarning){
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $class = 'doc-negative-quantity';
+                    $makeLink = false;
+                }
+            } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
+                if($showNegativeWarning) {
+                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                }
+            } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
+                if($showNegativeWarning) {
+                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+                }
             }
         }
         
