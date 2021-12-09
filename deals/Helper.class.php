@@ -1581,12 +1581,13 @@ abstract class deals_Helper
     /**
      * Помощен метод връщащ разпределението на плащанията по фактури
      *
-     * @param int           $threadId - ид на тред
-     * @param datetime|NULL $valior   - към коя дата
+     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
+     * @param datetime|NULL $valior            - към коя дата
+     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
      *
      * @return array $paid      - масив с разпределените плащания
      */
-    public static function getInvoicePayments($threadId, $valior = null)
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
     {
         expect($threadId);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
@@ -1699,6 +1700,13 @@ abstract class deals_Helper
                 $amount = $dRec->amountDeal;
                 $payArr[$dRec->containerId] = (object) array('containerId' => $dRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => null, 'paymentType' => 'cash', 'isReverse' => false);
             }
+        }
+
+        if($onlyExactPayments){
+
+            // Ако се изискват само конкретните платежни документи към ф-те - оставят се само те
+            // плащанията, които не са към конкретна фактура не се показват
+            $payArr = array_filter($payArr, function ($a) {return isset($a->to);});
         }
 
         self::allocationOfPayments($newInvoiceArr, $payArr);
