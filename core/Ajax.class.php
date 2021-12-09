@@ -178,6 +178,11 @@ class core_Ajax extends core_Mvc
      */
     public static function subscribe(&$tpl, $urlArr, $name, $interval = 5000)
     {
+        // На нерегистираните потребители, по-рядко да се вика AJAX
+        if (!core_Users::getCurrent()) {
+            $interval *= 10;
+        }
+
         // Масив с всички използвани имена
         static $nameArr = array();
         
