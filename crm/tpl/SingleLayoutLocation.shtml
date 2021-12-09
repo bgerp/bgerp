@@ -31,14 +31,6 @@
             </div>
         </fieldset>
          <!--ET_END ADDRESS_SECTION-->
-        <!--ET_BEGIN specifics-->
-        <fieldset class="detail-info">
-            <legend class="groupTitle">|Други|*</legend>
-            <div class="groupList">
-                [#specifics#]
-            </div>
-        </fieldset>
-        <!--ET_END specifics-->
         <!--ET_BEGIN type-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Описание|*</legend>
@@ -78,6 +70,14 @@
             </div>
         </fieldset>
         <!--ET_END type-->
+        <!--ET_BEGIN specifics-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Други|*</legend>
+            <div class="groupList">
+                [#specifics#]
+            </div>
+        </fieldset>
+        <!--ET_END specifics-->
         <!--ET_BEGIN comment-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Информация (за вътрешно/служебно ползване - не се показва в документи)|*</legend>
