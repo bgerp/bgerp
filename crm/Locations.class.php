@@ -324,6 +324,14 @@ class crm_Locations extends core_Master
                 $rec->gpsCoords = $gps['lat'] . ', ' . $gps['lon'];
             }
         }
+
+        if($form->isSubmitted()){
+            foreach (array('workingTimeStart' => 'workingTimeEnd', 'workingTimeStartSat' => 'workingTimeEndSat', 'workingTimeStartSun' => 'workingTimeEndSun') as $fldStart => $fldEnd){
+                if(!empty($rec->{$fldStart}) && !empty($rec->{$fldEnd}) && $rec->{$fldStart} >= $rec->{$fldEnd}){
+                    $form->setError("{$fldStart},{$fldEnd}", "Началото трябва да е преди края");
+                }
+            }
+        }
     }
     
     
