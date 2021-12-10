@@ -296,7 +296,7 @@ class trans_LineDetails extends doc_Detail
 
         // Бутон за създаване на коментар
         $masterRec = trans_Lines::fetch($rec->lineId);
-        if ($mvc->haveRightFor('doc_Comments', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
+        if (doc_Comments::haveRightFor('add', (object) array('originId' => $masterRec->containerId)) && $masterRec->state != 'rejected') {
             $commentUrl = array('doc_Comments', 'add', 'originId' => $masterRec->containerId, 'detId' => $rec->id, 'ret_url' => true);
             $row->_rowTools->addLink('Известяване', $commentUrl, array('ef_icon' => 'img/16/comment_add.png', 'alwaysShow' => true, 'title' => 'Известяване на отговорниците на документа'));
         }
