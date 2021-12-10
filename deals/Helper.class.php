@@ -2370,9 +2370,10 @@ abstract class deals_Helper
      *
      * @param $threadId                - ид на нишка
      * @param null $ignoreContainerId  - игнориране на документ
+     * @param bool $ignoreDrafts       - игнориране на черновите документи
      * @return bool                    - има ли финална експедиция или не
      */
-    public static function canHaveMoreDeliveries($threadId, $ignoreContainerId = null)
+    public static function canHaveMoreDeliveries($threadId, $ignoreContainerId = null, $ignoreDrafts = false)
     {
         $firstDocument = doc_Threads::getFirstDocument($threadId);
         $firstDocRec = $firstDocument->fetch('oneTimeDelivery,contoActions');
@@ -2390,6 +2391,11 @@ abstract class deals_Helper
         if(isset($ignoreContainerId)){
             $cQuery->where("#id != {$ignoreContainerId}");
         }
+
+        if($ignoreDrafts){
+            $cQuery->where("#state != 'draft'");
+        }
+
         $cQuery->show('id');
         $count = $cQuery->count();
 

@@ -2472,8 +2472,10 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec = $mvc->fetchRec($rec);
 
             // Ако документа не е заявка/активен или има финална експедиция - няма да запазва нищо
-            if(($rec->state != 'pending' && $rec->state != 'active') || !deals_Helper::canHaveMoreDeliveries($rec->threadId, $rec->containerId)) {
+            if(($rec->state != 'pending' && $rec->state != 'active') || !deals_Helper::canHaveMoreDeliveries($rec->threadId, $rec->containerId, true)) {
                 $res = array();
+                core_Statuses::newStatus('aaaaa');
+
                 return;
             }
 
