@@ -404,7 +404,7 @@ class fileman_Get extends core_Manager
         // Ако сървърът ни дава име на файл - вземаме него
         foreach ($headersArr as $h) {
             if ($h['Response Code'] == '200' && $h['Content-Disposition']) {
-                $fileName = str::cut($h['Content-Disposition'], 'filename=');
+                $filename = str::cut($h['Content-Disposition'], 'filename=');
                 
                 if ($filename) {
                     $filename = str_replace('"', '', $filename);
@@ -483,7 +483,7 @@ class fileman_Get extends core_Manager
         
         $score = 0;
         
-        $extPart = mb_substr($filename, mb_strrpos($fname, '.'));
+        $extPart = mb_substr($filename, mb_strrpos($filename, '.'));
         
         if (strtolower($extPart) == strtolower($ext)) {
             $score = 100;
