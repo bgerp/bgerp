@@ -23,14 +23,37 @@
                 <!--ET_BEGIN address-->
                 <div>[#address#]</div>
                 <!--ET_END address-->
-
-                <!--ET_BEGIN WORKING_TIME-->
-                [#WORKING_TIME#]
-                <div><span class="quiet">|Работно време|*</span>:<!--ET_BEGIN workingTimeStart--> |от|* [#workingTimeStart#]<!--ET_END workingTimeStart--> <!--ET_BEGIN workingTimeEnd-->|до|* [#workingTimeEnd#]<!--ET_END workingTimeEnd--></div>
-                <!--ET_END WORKING_TIME-->
             </div>
         </fieldset>
          <!--ET_END ADDRESS_SECTION-->
+        <!--ET_BEGIN WORKING_TIME_SECTION-->
+        [#WORKING_TIME_SECTION#]
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Работно време|*</legend>
+            <div class="groupList">
+                <ul>
+                    <!--ET_BEGIN WORKING_TIME_WEEKDAY-->
+                    [#WORKING_TIME_WEEKDAY#]
+                    <li class="info">
+                        <span class="gray-title">|Пон-Пет|*:</span> <!--ET_BEGIN workingTimeStart-->|от|* <i>[#workingTimeStart#]</i><!--ET_END workingTimeStart--> <!--ET_BEGIN workingTimeEnd-->|до|* <i>[#workingTimeEnd#]</i><!--ET_END workingTimeEnd-->
+                    </li>
+                    <!--ET_END WORKING_TIME_WEEKDAY-->
+                    <!--ET_BEGIN WORKING_TIME_SATURDAY-->
+                    [#WORKING_TIME_SATURDAY#]
+                    <li class="info">
+                        <span class="gray-title">|Събота|*:</span> <!--ET_BEGIN workingTimeStartSat-->|от|* <i>[#workingTimeStartSat#]</i><!--ET_END workingTimeStartSat--> <!--ET_BEGIN workingTimeEndSat-->|до|* <i>[#workingTimeEndSat#]</i><!--ET_END workingTimeEndSat-->
+                    </li>
+                    <!--ET_END WORKING_TIME_SATURDAY-->
+                    <!--ET_BEGIN WORKING_TIME_SUNDAY-->
+                    [#WORKING_TIME_SUNDAY#]
+                    <li class="info">
+                        <span class="gray-title">|Неделя|*:</span> <!--ET_BEGIN workingTimeStartSun-->|от|* <i>[#workingTimeStartSun#]</i><!--ET_END workingTimeStartSun--> <!--ET_BEGIN workingTimeEndSun-->|до|* <i>[#workingTimeEndSun#]</i><!--ET_END workingTimeEndSun-->
+                    </li>
+                    <!--ET_END WORKING_TIME_SUNDAY-->
+                </ul>
+            </div>
+        </fieldset>
+        <!--ET_END WORKING_TIME_SECTION-->
         <!--ET_BEGIN type-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Описание|*</legend>
@@ -41,6 +64,7 @@
                         <span class="gray-title">|Тип|*:</span> [#type#]
                     </li>
                     <!--ET_END type-->
+
                     <!--ET_BEGIN mol-->
                     <li class="info">
                         <span class="gray-title">|Отговорник|*:</span> [#mol#]

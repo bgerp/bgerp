@@ -131,8 +131,6 @@ class crm_Locations extends core_Master
         $this->FLD('place', 'varchar(64)', 'caption=Адресни данни->Град,oldFieldName=city,class=contactData');
         $this->FLD('pCode', 'varchar(16)', 'caption=Адресни данни->П. код,class=contactData');
         $this->FLD('address', 'varchar(255)', 'caption=Адресни данни->Адрес,class=contactData');
-        $this->FLD('workingTimeStart', 'hour', 'caption=Адресни данни->Работно време');
-        $this->FLD('workingTimeEnd', 'hour', 'caption=Адресни данни->-,inlineTo=workingTimeStart');
         $this->FLD('features', 'keylist(mvc=trans_Features,select=name)', 'caption=Адресни данни->Особености');
         $this->FLD('specifics', 'richtext(bucket=Notes, rows=2)', 'caption=Адресни данни->@Други');
         $this->FLD('gln', 'gs1_TypeEan(gln)', 'caption=Адресни данни->GLN код');
@@ -141,6 +139,12 @@ class crm_Locations extends core_Master
         $this->FLD('mol', 'varchar(64)', 'caption=Контактни данни->Отговорник');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Контактни данни->Имейли,class=contactData');
+        $this->FLD('workingTimeStart', 'hour', 'caption=Работно време->Пон-Пет');
+        $this->FLD('workingTimeEnd', 'hour', 'caption=Работно време->-,inlineTo=workingTimeStart');
+        $this->FLD('workingTimeStartSat', 'hour', 'caption=Работно време->Събота');
+        $this->FLD('workingTimeEndSat', 'hour', 'caption=Работно време->-,inlineTo=workingTimeStartSat');
+        $this->FLD('workingTimeStartSun', 'hour', 'caption=Работно време->Неделя');
+        $this->FLD('workingTimeEndSun', 'hour', 'caption=Работно време->-,inlineTo=workingTimeStartSun');
         $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=За вътрешно (служебно) ползване - не се показва в документи->@Информация');
 
         $this->setDbUnique('gln');
