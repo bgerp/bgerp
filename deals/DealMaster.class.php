@@ -255,7 +255,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
-        
+
         $mvc->FLD(
             'state',
                 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка,stopped=Спряно)',
@@ -1096,7 +1096,7 @@ abstract class deals_DealMaster extends deals_DealBase
                     $row->notes .= "<li>{$note}</li>";
                 }
             }
-            
+
             // Показване на допълнителните условия от артикулите
             $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
             if (is_array($additionalConditions)) {
@@ -2474,7 +2474,6 @@ abstract class deals_DealMaster extends deals_DealBase
             // Ако документа не е заявка/активен или има финална експедиция - няма да запазва нищо
             if(($rec->state != 'pending' && $rec->state != 'active') || !deals_Helper::canHaveMoreDeliveries($rec->threadId, $rec->containerId, true)) {
                 $res = array();
-                core_Statuses::newStatus('aaaaa');
 
                 return;
             }
