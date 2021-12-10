@@ -109,7 +109,7 @@ class pami_Logs extends core_Manager
             $this->logInfo("Изтрити изтекли записи: {$numRows}");
         }
         
-        return $info;
+        return "Изтрити изтекли записи: {$numRows}";
     }
     
     
