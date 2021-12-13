@@ -139,12 +139,7 @@ class crm_Locations extends core_Master
         $this->FLD('mol', 'varchar(64)', 'caption=Контактни данни->Отговорник');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Контактни данни->Имейли,class=contactData');
-        $this->FLD('workingTimeStart', 'hour', 'caption=Работно време->Пон-Пет');
-        $this->FLD('workingTimeEnd', 'hour', 'caption=Работно време->-,inlineTo=workingTimeStart');
-        $this->FLD('workingTimeStartSat', 'hour', 'caption=Работно време->Събота');
-        $this->FLD('workingTimeEndSat', 'hour', 'caption=Работно време->-,inlineTo=workingTimeStartSat');
-        $this->FLD('workingTimeStartSun', 'hour', 'caption=Работно време->Неделя');
-        $this->FLD('workingTimeEndSun', 'hour', 'caption=Работно време->-,inlineTo=workingTimeStartSun');
+        $this->FLD('workingTime', "table(columns=day|start|end,captions=Ден|Начало|Край,validate=crm_Locations::validateWorkingTime,singleClass=w10)", "caption=Контактни данни->Работно време");
         $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=За вътрешно (служебно) ползване - не се показва в документи->@Информация');
 
         $this->setDbUnique('gln');
@@ -295,9 +290,16 @@ class crm_Locations extends core_Master
         $data->form->setDefault('countryId', $contragentRec->country);
         $data->form->setDefault('place', $contragentRec->place);
         $data->form->setDefault('pCode', $contragentRec->pCode);
-        
-        $contragentTitle = $Contragents->getTitleById($contragentRec->id);
         $data->form->setSuggestions('type', self::getTypeSuggestions());
+
+        $workingDayOptions = arr::make('Понеделник,Вторник,Сряда,Четвъртък,Петък,Събота,Неделя', true);
+        $hourOptions = array();
+        foreach (range(1, 23) as $h){
+            $h = str_pad($h, 2, '0', STR_PAD_LEFT) . ":00";
+            $hourOptions[$h] = $h;
+        }
+        $data->form->setFieldTypeParams('workingTime', array('day_opt' => array('' => '') + $workingDayOptions, 'start_sgt' => $hourOptions, 'end_sgt' => $hourOptions));
+
     }
     
     
@@ -322,14 +324,6 @@ class crm_Locations extends core_Master
                 
                 // Ако има GPS коодинати в снимката ги извличаме
                 $rec->gpsCoords = $gps['lat'] . ', ' . $gps['lon'];
-            }
-        }
-
-        if($form->isSubmitted()){
-            foreach (array('workingTimeStart' => 'workingTimeEnd', 'workingTimeStartSat' => 'workingTimeEndSat', 'workingTimeStartSun' => 'workingTimeEndSun') as $fldStart => $fldEnd){
-                if(!empty($rec->{$fldStart}) && !empty($rec->{$fldEnd}) && $rec->{$fldStart} >= $rec->{$fldEnd}){
-                    $form->setError("{$fldStart},{$fldEnd}", "Началото трябва да е преди края");
-                }
             }
         }
     }
@@ -928,5 +922,60 @@ class crm_Locations extends core_Master
         }
         
         return $suggArr;
+    }
+
+
+    /**
+     * Валидира работните дни
+     */
+    public static function validateWorkingTime($tableData, $Type)
+    {
+        $res = array();
+
+        $tableData = (array) $tableData;
+        $error = $days = $errorFields = array();
+        if (empty($tableData)) return;
+
+        foreach ($tableData['day'] as $key => $day) {
+            if (array_key_exists($day, $days)) {
+                $error[] = 'Повтарящ се ден';
+                $errorFields['day'][$key] = 'Повтарящ се ден';
+            } else {
+                $days[$day] = $day;
+            }
+
+            if (empty($tableData['start'][$key]) && empty($tableData['end'][$key])) {
+                $error[] = 'Избран ден, без да е посочено време';
+                $errorFields['start'][$key] = 'Избран ден, без да е посочено време';
+                $errorFields['end'][$key] = 'Избран ден, без да е посочено време';
+            }
+        }
+
+        foreach (array('start', 'end') as $column){
+            foreach ($tableData[$column] as $key => $time) {
+                if(!empty($tableData[$column][$key])){
+                    if(!preg_match("/^(?:2[0-4]|[01][1-9]|10):([0-5][0-9])$/", $tableData[$column][$key])) {
+                        $error[] = 'Невалиден формат за час';
+                        $errorFields[$column][$key] = 'Невалиден формат за час';
+                    }
+
+                    if(empty($tableData['day'][$key])){
+                        $error[] = 'Въведен час без да е въведен ден';
+                        $errorFields[$column][$key] = 'Въведен час без да е въведен ден';
+                    }
+                }
+            }
+        }
+
+        if (countR($error)) {
+            $error = implode('|*<li>|', $error);
+            $res['error'] = $error;
+        }
+
+        if (countR($errorFields)) {
+            $res['errorFields'] = $errorFields;
+        }
+
+        return $res;
     }
 }
