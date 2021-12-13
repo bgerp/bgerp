@@ -98,7 +98,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $fieldset->FLD('arhGroups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,input=none,silent,single=none');
 
-        $fieldset->FLD('orderLimit', 'double', 'caption=Настройки->% за поръчка, unit=%-а от максималното количество');
+        $fieldset->FLD('orderLimit', 'double', 'caption=Настройки->% за поръчка, unit=%-а от максималното количество,input,single=none');
 
 
         $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
@@ -142,6 +142,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             unset($rec->orderBy);
             unset($rec->groupsChecked);
             $form->setField('orderBy', 'input=none');
+            $form->setField('orderLimit', 'input=hidden');
         }
 
         if ($rec->typeOfQuantity == 'free') {
@@ -372,9 +373,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
             }
             if (haveRole('debug')) {
-                $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
-                $fld->FLD('minOrder', 'varchar', 'caption=За поръчка->Мин опаковки,smartCenter');
-                $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
+//                $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
+//                $fld->FLD('minOrder', 'varchar', 'caption=За поръчка->Мин опаковки,smartCenter');
+//                $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
             }
         } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
