@@ -139,7 +139,8 @@ class crm_Locations extends core_Master
         $this->FLD('mol', 'varchar(64)', 'caption=Контактни данни->Отговорник');
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Контактни данни->Имейли,class=contactData');
-        $this->FLD('workingTime', "table(columns=day|start|end,captions=Ден|Начало|Край,validate=crm_Locations::validateWorkingTime,singleClass=w10)", "caption=Контактни данни->Работно време");
+
+        $this->FLD('workingTime', "table(columns=day|start|end,captions=Ден|Начало|Край,validate=crm_Locations::validateWorkingTime)", "caption=Контактни данни->Работно време");
         $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=За вътрешно (служебно) ползване - не се показва в документи->@Информация');
 
         $this->setDbUnique('gln');
@@ -292,7 +293,7 @@ class crm_Locations extends core_Master
         $data->form->setDefault('pCode', $contragentRec->pCode);
         $data->form->setSuggestions('type', self::getTypeSuggestions());
 
-        $workingDayOptions = arr::make('Понеделник,Вторник,Сряда,Четвъртък,Петък,Събота,Неделя', true);
+        $workingDayOptions = arr::make('monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя', true);
         $hourOptions = array();
         foreach (range(1, 23) as $h){
             $h = str_pad($h, 2, '0', STR_PAD_LEFT) . ":00";
@@ -374,6 +375,12 @@ class crm_Locations extends core_Master
             
             if (!$rec->gpsCoords) {
                 unset($row->gpsCoords);
+            }
+
+            if(!empty($rec->workingTime)){
+                $Type = core_Type::getByName("table(columns=day|start|end,captions=Ден|Начало|Край)");
+                $Type->params['day_opt'] = arr::make('monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя', true);
+                $row->workingTime = $Type->toVerbal($rec->workingTime);
             }
         }
         
@@ -948,6 +955,13 @@ class crm_Locations extends core_Master
                 $error[] = 'Избран ден, без да е посочено време';
                 $errorFields['start'][$key] = 'Избран ден, без да е посочено време';
                 $errorFields['end'][$key] = 'Избран ден, без да е посочено време';
+            }
+
+            if (!empty($tableData['start'][$key]) && !empty($tableData['end'][$key])) {
+                if($tableData['start'][$key] >= $tableData['end'][$key]){
+                    $error[] = 'Началото трябва да е преди края';
+                    $errorFields['start'][$key] = 'Началото трябва да е преди края';
+                }
             }
         }
 
