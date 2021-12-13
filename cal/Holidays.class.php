@@ -558,6 +558,9 @@ class cal_Holidays extends core_Master
                 }
                 
                 if ($info != $oRec->info) {
+                    if (BGERP_GIT_BRANCH == 'dev') {
+                        bp($rec, $oRec);
+                    }
                     wp($rec, $oRec);
                 }
             }
