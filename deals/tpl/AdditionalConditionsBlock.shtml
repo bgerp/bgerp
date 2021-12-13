@@ -28,18 +28,18 @@
                 <td style="padding:2px 0px;">[#conditionPurchaseEn#]</td>
             </tr>
             <!--ET_END conditionPurchaseEn-->
-            <!--ET_BEGIN conditionFinDealBg-->
+            <!--ET_BEGIN conditionExpBg-->
             <tr>
-                <td class='quiet' style="padding:2px 0px;">|Фин. сделка (BG)|*:</td>
-                <td style="padding:2px 0px;">[#conditionFinDealBg#]</td>
+                <td class='quiet' style="padding:2px 0px;">|Експедиционно нареждане (BG)|*:</td>
+                <td style="padding:2px 0px;">[#conditionExpBg#]</td>
             </tr>
-            <!--ET_END conditionFinDealBg-->
-            <!--ET_BEGIN conditionFinDealEn-->
+            <!--ET_END conditionExpBg-->
+            <!--ET_BEGIN conditionExpEn-->
             <tr>
-                <td class='quiet' style="padding:2px 0px;">|Фин. сделка (EN)|*:</td>
-                <td style="padding:2px 0px;">[#conditionFinDealEn#]</td>
+                <td class='quiet' style="padding:2px 0px;">|Експедиционно нареждане (EN)|*:</td>
+                <td style="padding:2px 0px;">[#conditionExpEn#]</td>
             </tr>
-            <!--ET_END conditionFinDealEn-->
+            <!--ET_END conditionExpEn-->
         </table>
     </div>
 </fieldset>
