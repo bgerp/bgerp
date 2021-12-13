@@ -224,6 +224,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryTime');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
+        $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
         $this->setField('deliveryTime', 'caption=Натоварване');
         $this->setDbIndex('createdOn');
     }
@@ -279,6 +280,24 @@ class store_ShipmentOrders extends store_DocumentMaster
 
             if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
                 unset($row->storeReadiness);
+            }
+
+            $conditions = $rec->additionalConditions;
+            if(empty($conditions)){
+                if(in_array($rec->state, array('pending', 'draft'))){
+                    $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $rec->tplLang);
+                    if(!Mode::isReadOnly()){
+                        $condition = "<span style='color:blue'>{$condition}</span>";
+                    }
+                    $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
+                    $conditions = array($condition);
+                }
+            }
+
+            if(is_array($conditions)){
+                foreach ($conditions as $cond){
+                    $row->note .= "\n" . $cond;
+                }
             }
         }
 
@@ -672,6 +691,23 @@ class store_ShipmentOrders extends store_DocumentMaster
         $hiddenTransport = round($hiddenTransport, 2);
         if(!empty($hiddenTransport)){
             $res['hiddenTransport'] = $hiddenTransport;
+        }
+    }
+
+
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        // Ако потребителя не е в група доставчици го включваме
+        $rec = $mvc->fetchRec($rec);
+
+        if(empty($rec->additionalConditions)){
+            $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+            $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $lang);
+            $rec->additionalConditions = array($condition);
+            $mvc->save_($rec, 'additionalConditions');
         }
     }
 }

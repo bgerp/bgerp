@@ -65,7 +65,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
     
     
     /**
@@ -255,6 +255,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
+        $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
 
         $mvc->FLD(
             'state',
@@ -989,9 +990,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 $update = true;
             }
         }
-        
+
+        if(empty($rec->additionalConditions)){
+            $rec->additionalConditions = $mvc->getConditionArr($rec);
+            $update = true;
+        }
+
         if ($update === true) {
-            $mvc->save_($rec, 'deliveryTermTime,deliveryAdress');
+            $mvc->save_($rec, 'deliveryTermTime,deliveryAdress,additionalConditions');
         }
     }
     
@@ -1097,14 +1103,24 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
 
-            // Показване на допълнителните условия от артикулите
-            $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
-            if (is_array($additionalConditions)) {
-                foreach ($additionalConditions as $cond) {
-                    $row->notes .= "<li>{$cond}</li>";
+            // Допълнителните условия
+            $conditions = $rec->additionalConditions;
+            if(empty($rec->additionalConditions)){
+                $conditions = $mvc->getConditionArr($rec, true);
+                if(in_array($rec->state, array('pending', 'draft'))){
+                    foreach($conditions as &$cArr){
+                        if(!Mode::isReadOnly()){
+                            $cArr = "<span style='color:blue'>{$cArr}</span>";
+                        }
+                        $cArr = ht::createHint($cArr, 'Условието, ще бъде записано при активиране');
+                    }
                 }
             }
-            
+
+            foreach ($conditions as $aCond) {
+                $row->notes .= "<li>{$aCond}</li>";
+            }
+
             // Взависимост начислява ли се ддс-то се показва подходящия текст
             switch ($rec->chargeVat) {
                 case 'yes':
@@ -1193,13 +1209,50 @@ abstract class deals_DealMaster extends deals_DealBase
             core_Lg::pop();
         }
     }
-    
-    
+
+
+    /**
+     * Връща масив с услочията
+     *
+     * @param $rec
+     * @param bool $auto
+     * @return array $conditions
+     */
+    protected function getConditionArr($rec, $auto = false)
+    {
+        $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+
+        $conditions = array();
+        $calc = ($auto === false) ? true : in_array($rec->state, array('pending', 'draft'));
+
+        foreach (array('bank_Accounts' => 'bankAccountId', 'cash_Cases' => 'caseId', 'store_Stores' => 'shipmentStoreId') as  $fldMaster => $fld){
+            if(!empty($rec->{$fld}) && $calc){
+                $objectId = $rec->{$fld};
+                if($fld == 'bankAccountId' && !is_numeric($rec->{$fld})){
+                    $objectId = bank_Accounts::fetchField("#iban = '{$rec->{$fld}}'");
+                }
+
+
+                $aCondition = $fldMaster::getDocumentConditionFor($objectId, $this, $lang);
+                if(!empty($aCondition)){
+                    $key = md5(strtolower(str::utf2ascii(trim($aCondition))));
+                    $aCondition = preg_replace('!\s+!', ' ', str::mbUcfirst($aCondition));
+                    $conditions[$key] = $aCondition;
+                }
+            }
+        }
+
+        $additionalConditions = deals_Helper::getConditionsFromProducts($this->mainDetail, $this, $rec->id, $lang);
+        $additionalConditions = $conditions + $additionalConditions;
+
+        return array_values($additionalConditions);
+    }
+
+
     /**
      * Най-големия срок на доставка
      *
      * @param int $id
-     *
      * @return int|NULL
      */
     public function getMaxDeliveryTime($id)
