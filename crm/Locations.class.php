@@ -293,7 +293,7 @@ class crm_Locations extends core_Master
         $data->form->setDefault('pCode', $contragentRec->pCode);
         $data->form->setSuggestions('type', self::getTypeSuggestions());
 
-        $workingDayOptions = arr::make('monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя', true);
+        $workingDayOptions = arr::make('weekdays=Понеделник - Петък,weekends=Събота / Неделя,monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя', true);
         $hourOptions = array();
         foreach (range(1, 23) as $h){
             $h = str_pad($h, 2, '0', STR_PAD_LEFT) . ":00";
@@ -379,7 +379,7 @@ class crm_Locations extends core_Master
 
             if(!empty($rec->workingTime)){
                 $Type = core_Type::getByName("table(columns=day|start|end,captions=Ден|Начало|Край)");
-                $Type->params['day_opt'] = arr::make('monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя', true);
+                $Type->params['day_opt'] = arr::make('weekdays=Понеделник - Петък,weekends=Събота / Неделя,monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя', true);
                 $row->workingTime = $Type->toVerbal($rec->workingTime);
             }
         }
