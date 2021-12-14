@@ -387,8 +387,9 @@ class batch_BatchesInDocuments extends core_Manager
         $type = $Detail->getBatchMovementDocument($detailRecId);
         $bOptions = null;
         if($type == 'in'){
-            $bOptions = $Detail->getAllowedInBatches($detailRecId);
-            $bOptions = array_combine($bOptions, $bOptions);
+            if($bOptions = $Detail->getAllowedInBatches($detailRecId)){
+                $bOptions = array_combine($bOptions, $bOptions);
+            }
         }
 
         if ($Def instanceof batch_definitions_Serial) {
