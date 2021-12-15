@@ -1282,7 +1282,7 @@ class email_Outgoings extends core_Master
                         
                         // Ако няма въведен факс номер
                         if (!trim($form->rec->fax)) {
-                            if (stripos($rec->email, '@fax.man')) {
+                            if (stripos($form->rec->email, '@fax.man')) {
                                 //Ако изпращаме имейла и полето за имейл е празно, показва съобщение за грешка
                                 $form->setError('fax', 'За да изпратите факс, трябва да попълните полето|* <b>|Адресат|*->|Факс|*</b>.');
                             }
