@@ -764,7 +764,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Ако създаваме нов документ и ...
         if (!$rec->id) {
-            if($rec->originId && $mvc->addLinkedDocumentToOriginId){
+            if($rec->originId && $mvc->canAddDocumentToOriginAsLink($rec)){
                 $mvc->addDocumentLinks[$rec->id] = $rec;
             }
 
@@ -4833,6 +4833,17 @@ class doc_DocumentPlg extends core_Plugin
             $res = '(#' . $mvc->getHandle($id) . ') ' . $docRow->title;
         } else {
             $res = $comment;
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране може ли документа да се добавя като свързан документ към оридижина си
+     */
+    public static function on_AfterCanAddDocumentToOriginAsLink($mvc, &$res, $rec)
+    {
+        if(!$res){
+           $res = $mvc->canAddDocumentToOriginAsLink;
         }
     }
 }
