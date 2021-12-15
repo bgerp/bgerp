@@ -140,7 +140,7 @@ class crm_Locations extends core_Master
         $this->FLD('tel', 'drdata_PhoneType', 'caption=Контактни данни->Телефони,class=contactData');
         $this->FLD('email', 'emails', 'caption=Контактни данни->Имейли,class=contactData');
 
-        $this->FLD('workingTime', "table(columns=day|start|end,captions=Ден|Начало|Край,validate=crm_Locations::validateWorkingTime)", "caption=Контактни данни->Работно време");
+        $this->FLD('workingTime', "table(columns=day|start|end,captions=Ден|От|До,validate=crm_Locations::validateWorkingTime)", "caption=Контактни данни->Работно време");
         $this->FLD('comment', 'richtext(bucket=Notes, rows=2)', 'caption=За вътрешно (служебно) ползване - не се показва в документи->@Информация');
 
         $this->setDbUnique('gln');
@@ -378,7 +378,7 @@ class crm_Locations extends core_Master
             }
 
             if(!empty($rec->workingTime)){
-                $Type = core_Type::getByName("table(columns=day|start|end,captions=Ден|Начало|Край)");
+                $Type = core_Type::getByName("table(columns=day|start|end,captions=Ден|От|До)");
                 $Type->params['day_opt'] = arr::make('weekdays=Понеделник - Петък,weekends=Събота / Неделя,monday=Понеделник,tuesday=Вторник,wednesday=Сряда,thursday=Четвъртък,friday=Петък,saturday=Събота,sunday=Неделя', true);
                 $row->workingTime = $Type->toVerbal($rec->workingTime);
             }
