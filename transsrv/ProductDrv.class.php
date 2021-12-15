@@ -302,8 +302,22 @@ class transsrv_ProductDrv extends cat_ProductDriver
     {
         return haveRole('powerUser', $userId) || (transsrv_Setup::get('AVIABLE_FOR_PARTNERS') == 'yes' && haveRole('partner', $userId));
     }
-    
-    
+
+
+    /**
+     * След преобразуване на записа в четим за хора вид.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $row Това ще се покаже
+     * @param stdClass $rec Това е записа в машинно представяне
+     */
+    public static function on_AfterRecToVerbal(cat_ProductDriver $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
+    {
+        $row->fromCountry = drdata_Countries::getTitleById($rec->fromCountry);
+        $row->toCountry = drdata_Countries::getTitleById($rec->toCountry);
+    }
+
+
     /**
      * Рендиране на описанието на драйвера
      *
