@@ -168,7 +168,7 @@ class cash_InternalMoneyTransfer extends core_Master
     /**
      * Дали да се добави документа като линк към оридижина си
      */
-    public $canAddDocumentToOriginAsLink = true;
+    public $addLinkedDocumentToOriginId = true;
 
 
     /**

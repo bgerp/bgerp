@@ -4845,7 +4845,7 @@ class doc_DocumentPlg extends core_Plugin
     public static function on_AfterCanAddDocumentToOriginAsLink($mvc, &$res, $rec)
     {
         if(!$res){
-           $res = $mvc->canAddDocumentToOriginAsLink;
+           $res = $mvc->addLinkedDocumentToOriginId;
         }
     }
 
