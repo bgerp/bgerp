@@ -80,6 +80,7 @@ class doc_DocumentPlg extends core_Plugin
 
         setIfNot($mvc->addDocumentLinks, array());
         setIfNot($mvc->addLinkedDocumentToOriginId, false);
+        setIfNot($mvc->addLinkedOriginFieldName, 'originId');
 
         // Добавя поле за последно използване
         if (!isset($mvc->fields['lastUsedOn'])) {
@@ -764,7 +765,7 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Ако създаваме нов документ и ...
         if (!$rec->id) {
-            if($rec->originId && $mvc->canAddDocumentToOriginAsLink($rec)){
+            if($rec->{$mvc->addLinkedOriginFieldName} && $mvc->canAddDocumentToOriginAsLink($rec)){
                 $mvc->addDocumentLinks[$rec->id] = $rec;
             }
 
@@ -930,8 +931,9 @@ class doc_DocumentPlg extends core_Plugin
         // Ако има заопашени документи за добавяне като връзки да се добавят
         if(countR($mvc->addDocumentLinks)){
             foreach ($mvc->addDocumentLinks as $r){
-                if(isset($r->containerId) && isset($r->originId)){
-                    doc_Linked::add($r->containerId, $r->originId, 'doc');
+                if(isset($r->containerId) && isset($r->{$mvc->addLinkedOriginFieldName})){
+                    $comment = $mvc->getLinkedDocCommentToOrigin($r);
+                    doc_Linked::add($r->containerId, $r->{$mvc->addLinkedOriginFieldName}, 'doc', 'doc', $comment);
                 }
             }
         }
@@ -4845,5 +4847,14 @@ class doc_DocumentPlg extends core_Plugin
         if(!$res){
            $res = $mvc->canAddDocumentToOriginAsLink;
         }
+    }
+
+
+    /**
+     * Метод по подразбиране за коментара с който да се добави свързания документ към оридижина си
+     */
+    public static function on_AfterGetLinkedDocCommentToOrigin($mvc, &$res, $rec)
+    {
+
     }
 }
