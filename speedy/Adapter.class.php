@@ -106,6 +106,9 @@ class speedy_Adapter {
             
             $result->success = false;
             $result->errorMsg = tr("Проблем при логване");
+            if(haveRole('debug')){
+                $result->errorMsg = $e->getMessage();
+            }
         }
        
         return $result;
