@@ -508,7 +508,7 @@ class sales_Proformas extends deals_InvoiceMaster
         $rec = $self->fetch($id);
         
         if (!$rec->number) {
-            $hnd = $self->abbr . $rec->id;
+            $hnd = $self->abbr . $rec->id . doc_RichTextPlg::$identEnd;
         } else {
             $number = $self->getVerbal($rec, 'number');
             $hnd = $self->abbr . $number;
@@ -523,15 +523,27 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function fetchByHandle($parsedHandle)
     {
-        if ($parsedHandle['endDs'] && (strlen($parsedHandle['id']) != 10)) {
-            $rec = static::fetch($parsedHandle['id']);
+        $pId = $parsedHandle['id'];
+        $pLen = strlen($pId);
+
+        $rec = null;
+
+        if ($pLen != 10) {
+            if (!$parsedHandle['endDs']) {
+
+                return null;
+            }
+        }
+
+        if (trim($parsedHandle['endDs']) && ($pLen != 10)) {
+            $rec = static::fetch($pId);
         } else {
-            $number = ltrim($parsedHandle['id'], '0');
+            $number = ltrim($pId, '0');
             if ($number) {
                 $rec = static::fetch("#number = '{$number}'");
             }
         }
-        
+
         return $rec;
     }
 }
