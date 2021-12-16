@@ -137,7 +137,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
             //Обем за единица продукт
             if ($packRec->quantity){
-                $prodVol = ($packVolume / $packRec->quantity);
+                $prodVol = ($packVolume / $packRec->quantity)*1000;
             }
 
             $id = $pRec->id;
