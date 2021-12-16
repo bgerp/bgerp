@@ -56,6 +56,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $fieldset->FLD('minVolWeight', 'double', 'notNull,caption=Тегло на куб. дециметър->Мин.,after=typeOfProduckts,single=none');
         $fieldset->FLD('maxVolWeight', 'double', 'notNull,caption=Тегло на куб. дециметър->Макс.,after=minVolWeight,single=none');
 
+        $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година|5 години|10 години)', 'caption=Период, after=maxVolWeight,mandatory,single=none,removeAndRefreshForm');
+
     }
 
 
@@ -87,6 +89,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $rec = $form->rec;
 
         $form->setDefault('typeOfProducts', 'public');
+        $form->setDefault('period', '1 месец');
 
     }
 
@@ -106,8 +109,11 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $pQuery = cat_Products::getQuery();
 
+        $startDate = dt::addSecs(-$rec->period, dt::now());
+
+        $pQuery->where("#createdOn > '$startDate'");
+
         $pQuery->where("#state = 'active' AND #canStore = 'yes'");
-        //$pQuery -> in('id',array(95,546));
 
         if ($rec->typeOfProducts == 'public') {
             $pQuery->where("#isPublic = 'yes'");
@@ -258,9 +264,10 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     //    $recs = $recs + $zeroProd;
 
         $recs = $prodVolumeDeviation;
-        arr::sortObjects($recs, 'deviation', 'desc');
-        $recs = $recs + $zeroProd;
-
+        if (!empty($recs)){
+            arr::sortObjects($recs, 'deviation', 'desc');
+            $recs = $recs + $zeroProd;
+        }
 
         return $recs;
     }
