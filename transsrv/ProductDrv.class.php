@@ -2,14 +2,14 @@
 
 
 /**
- * Драйвър за продукт на ЕП
+ * Драйвър за артикул "транспортна услуга"
  *
  *
  * @category  bgerp
  * @package   transsrv
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -305,16 +305,20 @@ class transsrv_ProductDrv extends cat_ProductDriver
 
 
     /**
-     * След преобразуване на записа в четим за хора вид.
+     * След преобразуване на записа в четим за хора вид
      *
-     * @param core_Mvc $mvc
-     * @param stdClass $row Това ще се покаже
-     * @param stdClass $rec Това е записа в машинно представяне
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param $row
+     * @param $rec
+     * @param $fields
+     * @return void
      */
     public static function on_AfterRecToVerbal(cat_ProductDriver $Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        $row->fromCountry = drdata_Countries::getTitleById($rec->fromCountry);
-        $row->toCountry = drdata_Countries::getTitleById($rec->toCountry);
+        $CountryType = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)');
+        $row->fromCountry = $CountryType->toVerbal($rec->fromCountry);
+        $row->toCountry = $CountryType->toVerbal($rec->toCountry);
     }
 
 
