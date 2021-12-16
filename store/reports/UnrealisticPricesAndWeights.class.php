@@ -53,8 +53,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $fieldset->FLD('typeOfProducts', 'enum(public=Стандартни,npublic=Нестандартни)', 'caption=Тип артикули,maxRadio=2,columns=2,after=title,mandatory,single=none');
 
-        $fieldset->FLD('minVolWeight', 'double', 'notNull,caption=Минималнo тегло на куб. дециметър,after=typeOfProduckts,single=none');
-        $fieldset->FLD('maxVolWeight', 'double', 'notNull,caption=Максималнo тегло на куб. дециметър,after=minVolWeight,single=none');
+        $fieldset->FLD('minVolWeight', 'double', 'notNull,caption=Тегло на куб. дециметър->Мин.,after=typeOfProduckts,single=none');
+        $fieldset->FLD('maxVolWeight', 'double', 'notNull,caption=Тегло на куб. дециметър->Макс.,after=minVolWeight,single=none');
 
     }
 
@@ -115,7 +115,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         }
 
         // Синхронизира таймлимита с броя записи
-        $timeLimit = $pQuery->count() * 0.05;
+        $timeLimit = $pQuery->count() * 0.2;
 
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
@@ -125,25 +125,54 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         while ($pRec = $pQuery->fetch()) {
 
-            $prodTransWeight = $prodTransVolume = $volumeWeight = 0;
+            $prodTransWeight = $prodTransVolume = $volumeWeight = $prodVol= $deviation = 0;
+
+            //Обема на кашона
+            $uomRec = cat_UoM::fetchBySinonim('кашон');
+            $packRec = cat_products_Packagings::getPack($pRec->id,$uomRec->id);
+
+            //Обем на кашона в куб.м.
+            $packVolume = $packRec->sizeWidth*$packRec->sizeHeight*$packRec->sizeDepth;
+
+            //Обем за единица продукт
+            if ($packRec->quantity){
+                $prodVol = ($packVolume / $packRec->quantity)*1000;
+            }
 
             $id = $pRec->id;
             try {
                 $prodTransVolume = cat_Products::getTransportVolume($pRec->id, 1000); //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
                 $prodTransWeight = cat_Products::getTransportWeight($pRec->id, 1);
             } catch (Exception $e) {
-                ;
+
             }
 
+            if ($prodVol != 0 && $prodTransVolume != 0 ){
+
+                $deviation = abs(round(($prodVol - $prodTransVolume) / (($prodVol + $prodTransVolume) / 2), 2));
+            }
+
+
+            if ($deviation){
+                $prodVolumeDeviation[$id] = (object)array(
+                    'productId' => $pRec->id,                                      // Артикул
+                    'deviation' => $deviation,                                     // Отклонение
+                    'prodVolume' => $prodTransVolume,                              // Транспортен обем
+                    'prodWeight' => $prodTransWeight,                              // Транспортно тегло
+                );
+            }
+
+
+            //bp($prodTransVolume,$prodVol,$deviation);
 
             if (!$prodTransVolume || !$prodTransWeight) {
 
                 $zeroProd[$id] = (object)array(
                     'productId' => $pRec->id,                                      // Артикул
-                    'prodVolume' => $prodTransVolume * 1000,                         // Транспортен обем
+                    'prodVolume' => $prodTransVolume * 1000,                       // Транспортен обем
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
-
-
+                    'packVolume' => $packVolume,                                   // Обем на кашона
+                    'deviation' => $deviation,                                     // Отклонение
                 );
 
                 continue;
@@ -160,13 +189,20 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                     'prodVolume' => $prodTransVolume,                              // Транспортен обем
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
                     'volumeWeight' => $volumeWeight,                               // Обемно тегло
+                    'deviation' => $deviation,                                     // Отклонение
 
                 );
             }
 
 
         }
-        $recs = $recs + $zeroProd;
+
+
+    //    $recs = $recs + $zeroProd;
+
+        $recs = $prodVolumeDeviation;
+        arr::sortObjects($recs, 'deviation', 'desc');
+
 
         return $recs;
     }
@@ -185,9 +221,10 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
-        $fld->FLD('prodVolume', 'varchar', 'caption=Тр. обем');
-        $fld->FLD('prodWeight', 'varchar', 'caption=Тр. тегло');
+        $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Тр. обем');
+        $fld->FLD('prodWeight', 'double(smartRound,decimals=2)', 'caption=Тр. тегло');
         $fld->FLD('volumeWeight', 'varchar', 'caption=Обемно тегло');
+        $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Отклонение');
 
 
         return $fld;
@@ -207,22 +244,22 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 3;
+        $Double->params['decimals'] = 2;
 
         $row = new stdClass();
 
         if (isset($dRec->productId)) {
-            // $row->productId = cat_Products::getLinkToSingle($dRec->productId, 'name');
             $row->productId = cat_Products::getHyperlink($dRec->productId);
         }
 
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
         $row->prodWeight = $Double->toVerbal($dRec->prodWeight);
         $row->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
+        $row->deviation = $Double->toVerbal($dRec->deviation);
 
         if (!$dRec->volumeWeight) {
 
-            $row->ROW_ATTR['class'] = 'state-closed';
+         //   $row->ROW_ATTR['class'] = 'state-closed';
         }
 
 
