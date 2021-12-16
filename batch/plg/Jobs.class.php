@@ -164,7 +164,7 @@ class batch_plg_Jobs extends core_Plugin
         if($form->isSubmitted()){
             if(isset($rec->id)){
                 if(empty($rec->storeId) && batch_BatchesInDocuments::fetchField("#containerId = {$rec->containerId}")){
-                    $form->setWarning('storeId', 'Не е посочен склад, разпределените партиди ще бъдат изтритиЮ*!');
+                    $form->setWarning('storeId', 'Не е посочен склад, разпределените партиди ще бъдат изтрити|*!');
                 }
             }
         }
