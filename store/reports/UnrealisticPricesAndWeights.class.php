@@ -101,7 +101,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-
+//bp(cat_Params::getQuery()->fetchAll());
         $recs = array();
 
         $pQuery = cat_Products::getQuery();
@@ -135,19 +135,25 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             //Обема на кашона
             $uomRec = cat_UoM::fetchBySinonim('кашон');
             $packRec = cat_products_Packagings::getPack($pRec->id,$uomRec->id);
-
+//bp($packRec);
             //Обем на кашона в куб.м.
             $packVolume = $packRec->sizeWidth*$packRec->sizeHeight*$packRec->sizeDepth;
 
             //Обем за единица продукт
             if ($packRec->quantity){
-                $realProdVol = ($packVolume / $packRec->quantity)*1000;
-                $realPackTara = $packRec->tareWeight/$packRec->quantity*1000;
 
+                //Обем на артикула в куб.м за 1000 бр.
+                $realProdVol = ($packVolume / $packRec->quantity)*1000;
+
+                //Тегло на тарата в кг за 1 артикул
+                $realPackTara = $packRec->tareWeight/$packRec->quantity;
+
+                //Тегло на артикула от параметъра в кг
                 $prodWeight = cat_Products::getParams($pRec->id)[$prodWeightParamId]/1000 ?? cat_Products::getParams($pRec->id)[$prodWeightKgParamId];
                 $prodWeight = $prodWeight ?? 0;
 
-                $realProdWeight = $prodWeight + $realPackTara;
+                //Реално тегло на артикула в кг за 1000 бройки
+                $realProdWeight = ($prodWeight + $realPackTara)*1000;
 
             }
 
@@ -157,9 +163,11 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 //$prodTransWeight = cat_Products::getTransportWeight($pRec->id, 1);
 
 
-                $prodTransVolume = cat_Products::getParams($pRec->id)[$transportVolumeParamId]; //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
+                // Транспортен обем на продукта в куб.м за 1000 бр.
+                $prodTransVolume = cat_Products::getParams($pRec->id)[$transportVolumeParamId];
 
-                $prodTransWeight = cat_Products::getParams($pRec->id)[$transportWeightParamId];
+                //Транспортно тегло от параметър Транспортно тегло в кг за 1000 бр
+                $prodTransWeight = cat_Products::getParams($pRec->id)[$transportWeightParamId]*1000;
 
 
             } catch (Exception $e) {
@@ -202,6 +210,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
                 );
             }
+
+
+            //bp($prodTransVolume,$prodVol,$deviation,$prodVolumeDeviation);
 
             if (!$realProdVol) {
 
@@ -268,13 +279,13 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
-        $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Обем->Транс.');
-        $fld->FLD('realProdVol', 'double(smartRound,decimals=3)', 'caption=Обем->Реален');
-        $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Обем->Отклонение');
+        $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Обем[m3]->Транс.');
+        $fld->FLD('realProdVol', 'double(smartRound,decimals=3)', 'caption=Обем[m3]->Реален');
+        $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Обем[m3]->Отклонение');
 
 
-        $fld->FLD('prodWeight', 'double(smartRound,decimals=2)', 'caption=Тегло->Транс.');
-        $fld->FLD('realProdWeight', 'double(smartRound,decimals=3)', 'caption=Тегло->Реално');
+        $fld->FLD('prodWeight', 'double(smartRound,decimals=2)', 'caption=Тегло[кг]->Транс.');
+        $fld->FLD('realProdWeight', 'double(smartRound,decimals=3)', 'caption=Тегло[кг]->Реално');
 
         $fld->FLD('transDensity', 'double(smartRound,decimals=3)', 'caption=Плътност->Транс.');
         $fld->FLD('realDensity', 'double(smartRound,decimals=3)', 'caption=Плътност->Реално');
