@@ -107,7 +107,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $pQuery = cat_Products::getQuery();
 
         $pQuery->where("#state = 'active' AND #canStore = 'yes'");
-        //$pQuery -> in('id',array(95,546));
+        $pQuery -> in('id',array(95,546));
 
         if ($rec->typeOfProducts == 'public') {
             $pQuery->where("#isPublic = 'yes'");
@@ -137,12 +137,15 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
             //Обем за единица продукт
             if ($packRec->quantity){
-                $prodVol = ($packVolume / $packRec->quantity)*1000;
+                $prodVol = ($packVolume / $packRec->quantity);
             }
 
             $id = $pRec->id;
             try {
-                $prodTransVolume = cat_Products::getTransportVolume($pRec->id, 1000); //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
+                $transportVolume = cat_Params::force('transportVolume', 'transportVolume', 'varchar', null, '');
+                $prodTransVolume = cat_Products::getParams($pRec->id)[$transportVolume]*1000; //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
+                //$prodTransVolume = cat_Products::getTransportVolume($pRec->id, 1000); //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
+
                 $prodTransWeight = cat_Products::getTransportWeight($pRec->id, 1);
             } catch (Exception $e) {
 
@@ -182,7 +185,10 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 continue;
             }
 
-            $volumeWeight = $prodTransWeight / ($prodTransVolume);
+            if ($prodTransVolume){
+                $volumeWeight = $prodTransWeight / ($prodTransVolume);
+            }
+
 
             if ($volumeWeight > $rec->minVolWeight && $volumeWeight < $rec->maxVolWeight) continue;
 
@@ -231,8 +237,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Тр. обем');
         $fld->FLD('prodWeight', 'double(smartRound,decimals=2)', 'caption=Тр. тегло');
         $fld->FLD('volumeWeight', 'varchar', 'caption=Обемно тегло');
-        $fld->FLD('packVolume', 'double(smartRound,decimals=2)', 'caption=Обем->На каш.');
-        $fld->FLD('prodVol', 'double(smartRound,decimals=2)', 'caption=Обем->Реален(арт)');
+        //$fld->FLD('packVolume', 'double(smartRound,decimals=2)', 'caption=Обем->На каш.');
+        $fld->FLD('prodVol', 'double(smartRound,decimals=3)', 'caption=Обем->Реален(арт)');
         $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Отклонение');
 
         return $fld;
@@ -252,7 +258,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
+        $Double->params['decimals'] = 3;
 
         $row = new stdClass();
 
@@ -263,7 +269,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
         $row->prodWeight = $Double->toVerbal($dRec->prodWeight);
         $row->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
-        $row->packVolume = $Double->toVerbal($dRec->packVolume);
+       // $row->packVolume = $Double->toVerbal($dRec->packVolume);
         $row->prodVol = $Double->toVerbal($dRec->prodVol);
         $row->deviation = $Double->toVerbal($dRec->deviation);
 
