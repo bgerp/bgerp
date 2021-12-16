@@ -143,7 +143,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             $id = $pRec->id;
             try {
                 $transportVolume = cat_Params::force('transportVolume', 'transportVolume', 'varchar', null, '');
-                $prodTransVolume = cat_Products::getParams($pRec->id)[$transportVolume]*1000; //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
+                $prodTransVolume = cat_Products::getParams($pRec->id)[$transportVolume]; //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
                 //$prodTransVolume = cat_Products::getTransportVolume($pRec->id, 1000); //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
 
                 $prodTransWeight = cat_Products::getTransportWeight($pRec->id, 1);
