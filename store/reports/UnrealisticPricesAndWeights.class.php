@@ -123,10 +123,14 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         }
 
         $zeroProd = array();
+        $transportVolumeParamId = cat_Params::force('transportVolume', 'transportVolume', 'varchar', null, '');
+        $transportWeightParamId = cat_Params::force('transportWeight', 'transportWeight', 'varchar', null, '');
+        $prodWeightParamId = cat_Params::force('weight', 'weight', 'varchar', null, '');
+        $prodWeightKgParamId = cat_Params::force('weightKg', 'weight', 'varchar', null, '');
 
         while ($pRec = $pQuery->fetch()) {
 
-            $prodTransWeight = $prodTransVolume = $volumeWeight = $prodVol= $deviation = 0;
+            $prodTransWeight = $prodTransVolume = $volumeWeight = $realProdVol= $realProdWeight = $deviation = 0;
 
             //Обема на кашона
             $uomRec = cat_UoM::fetchBySinonim('кашон');
@@ -137,56 +141,85 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
             //Обем за единица продукт
             if ($packRec->quantity){
-                $prodVol = ($packVolume / $packRec->quantity)*1000;
+                $realProdVol = ($packVolume / $packRec->quantity)*1000;
+                $realPackTara = $packRec->tareWeight/$packRec->quantity*1000;
+
+                $prodWeight = cat_Products::getParams($pRec->id)[$prodWeightParamId]/1000 ?? cat_Products::getParams($pRec->id)[$prodWeightKgParamId];
+                $prodWeight = $prodWeight ?? 0;
+
+                $realProdWeight = $prodWeight + $realPackTara;
+
             }
 
             $id = $pRec->id;
             try {
-                $transportVolumeId = cat_Params::force('transportVolume', 'transportVolume', 'varchar', null, '');
-                $prodTransVolume = cat_Products::getParams($pRec->id)[$transportVolumeId]; //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
                 //$prodTransVolume = cat_Products::getTransportVolume($pRec->id, 1000); //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
+                //$prodTransWeight = cat_Products::getTransportWeight($pRec->id, 1);
 
-                $prodTransWeight = cat_Products::getTransportWeight($pRec->id, 1);
+
+                $prodTransVolume = cat_Products::getParams($pRec->id)[$transportVolumeParamId]; //Вземаме количество 1000 понеже функцията го връща в куб.метри, и така става в литри
+
+                $prodTransWeight = cat_Products::getParams($pRec->id)[$transportWeightParamId];
+
+
             } catch (Exception $e) {
 
             }
 
-            if ($prodVol != 0 && $prodTransVolume != 0 ){
+            //Плътност
+            if ($prodTransVolume){
+                $transDensity = round($prodTransWeight / $prodTransVolume, 3) ;
+            }
+            if ($realProdVol){
+                $realDensity = round($realProdWeight / $realProdVol, 3) ;
+            }
 
-                $deviation = abs(round(($prodVol - $prodTransVolume) / (($prodVol + $prodTransVolume) / 2), 2));
+            if ($realProdVol != 0 && $prodTransVolume != 0 ){
+
+                $deviation = abs(round(($realProdVol - $prodTransVolume) / (($realProdVol + $prodTransVolume) / 2), 2));
+            }
+            if ($realDensity != 0 && $transDensity != 0 ){
+
+                $deviationDensity = abs(round(($realDensity - $transDensity) / (($realDensity + $transDensity) / 2), 2));
             }
 
 
             if ($deviation){
                 $prodVolumeDeviation[$id] = (object)array(
                     'productId' => $pRec->id,                                      // Артикул
-                    'deviation' => $deviation,                                     // Отклонение
+
                     'prodVolume' => $prodTransVolume,                              // Транспортен обем
+                    'realProdVol' => $realProdVol,                                 // Реален обем на артикула за 1000 бр
+                    'deviation' => $deviation,                                     // Отклонение обем
+
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
-                    'packVolume' => $packVolume,                                   // Обем на кашона
-                    'prodVol' => $prodVol,                                         // Реален обем на артикула за 1000 бр
+                    'realProdWeight' => $realProdWeight,                           // Реално тело на артикула за 1000 бр
+
+                    'transDensity' => $transDensity,                                // Транспортна плътност
+                    'realDensity' => $realDensity,                                 // Реална плътност
+                    'deviationDensity' => $deviationDensity,                       // Отклонение плътност
+
+
                 );
             }
 
-
-            //bp($prodTransVolume,$prodVol,$deviation,$prodVolumeDeviation);
-
-            if (!$prodVol) {
+            if (!$realProdVol) {
 
                 $zeroProd[$id] = (object)array(
                     'productId' => $pRec->id,                                      // Артикул
                     'prodVolume' => $prodTransVolume * 1000,                       // Транспортен обем
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
                     'packVolume' => $packVolume,                                   // Обем на кашона
-                    'prodVol' => $prodVol,                                         // Реален обем на артикула за 1000 бр
-                    'deviation' => $deviation,                                     // Отклонение
+                    'realProdVol' => $realProdVol,                                 // Реален обем на артикула за 1000 бр
+                    'realProdWeight' => $realProdWeight,                           // Реално тело на артикула за 1000 бр
+                    'deviationDensity' => $deviationDensity,                       // Отклонение плътност
                 );
 
                 continue;
             }
 
             if ($prodTransVolume){
-                $volumeWeight = $prodTransWeight / ($prodTransVolume);
+               // $volumeWeight = $prodTransWeight / ($prodTransVolume);
             }
 
 
@@ -200,7 +233,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 //                    'prodWeight' => $prodTransWeight,                              // Транспортно тегло
 //                    'volumeWeight' => $volumeWeight,                               // Обемно тегло
 //                    'packVolume' => $packVolume,                                   // Обем на кашона
-//                    'prodVol' => $prodVol,                                         // Реален обем на артикула за 1000 бр
+//                    'realProdVol' => $realProdVol,                                 // Реален обем на артикула за 1000 бр
+ //                   'realProdWeight' => $realProdWeight,                           // Реално тело на артикула за 1000 бр
 //                    'deviation' => $deviation,                                     // Отклонение
 //
 //                );
@@ -234,12 +268,21 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
-        $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Тр. обем');
-        $fld->FLD('prodWeight', 'double(smartRound,decimals=2)', 'caption=Тр. тегло');
-        $fld->FLD('volumeWeight', 'varchar', 'caption=Обемно тегло');
-        //$fld->FLD('packVolume', 'double(smartRound,decimals=2)', 'caption=Обем->На каш.');
-        $fld->FLD('prodVol', 'double(smartRound,decimals=3)', 'caption=Обем->Реален(арт)');
-        $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Отклонение');
+        $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Обем->Транс.');
+        $fld->FLD('realProdVol', 'double(smartRound,decimals=3)', 'caption=Обем->Реален');
+        $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Обем->Отклонение');
+
+
+        $fld->FLD('prodWeight', 'double(smartRound,decimals=2)', 'caption=Тегло->Транс.');
+        $fld->FLD('realProdWeight', 'double(smartRound,decimals=3)', 'caption=Тегло->Реално');
+
+        $fld->FLD('transDensity', 'double(smartRound,decimals=3)', 'caption=Плътност->Транс.');
+        $fld->FLD('realDensity', 'double(smartRound,decimals=3)', 'caption=Плътност->Реално');
+        $fld->FLD('deviationDensity', 'double(smartRound,decimals=3)', 'caption=Плътност->Отклонение');
+       // $fld->FLD('volumeWeight', 'varchar', 'caption=Обемно тегло');
+
+
+
 
         return $fld;
     }
@@ -269,9 +312,15 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
         $row->prodWeight = $Double->toVerbal($dRec->prodWeight);
         $row->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
-       // $row->packVolume = $Double->toVerbal($dRec->packVolume);
-        $row->prodVol = $Double->toVerbal($dRec->prodVol);
+        $row->realProdVol = $Double->toVerbal($dRec->realProdVol);
+        $row->realProdWeight = $Double->toVerbal($dRec->realProdWeight);
+
+        $row->transDensity = $Double->toVerbal($dRec->transDensity);
+        $row->realDensity = $Double->toVerbal($dRec->realDensity);
+
+
         $row->deviation = core_Type::getByName('double(smartRound,decimals=2)')->toVerbal($dRec->deviation);
+        $row->deviationDensity = core_Type::getByName('double(smartRound,decimals=2)')->toVerbal($dRec->deviationDensity);
 
         if (!$dRec->deviation) {
 
