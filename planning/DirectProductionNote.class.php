@@ -1444,9 +1444,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $options = array();
                 $bQuery = batch_BatchesInDocuments::getQuery();
                 $bQuery->where("#detailClassId = {$jobDoc->getClassId()} AND #detailRecId = {$jobDoc->that} AND #productId = {$rec->productId} AND #storeId = {$rec->storeId}");
+
+                Mode::push('text', 'plain');
                 while ($bRec = $bQuery->fetch()) {
                     $options[$bRec->batch] = $BatchClass->toVerbal($bRec->batch);
                 }
+                Mode::pop('text');
 
                 // Ако няма взимат се тези от типа на партидността (ако има такива)
                 if(!countR($options)){
