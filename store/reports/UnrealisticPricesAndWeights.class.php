@@ -271,7 +271,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
        // $row->packVolume = $Double->toVerbal($dRec->packVolume);
         $row->prodVol = $Double->toVerbal($dRec->prodVol);
-        $row->deviation = $Double->toVerbal($dRec->deviation);
+        $row->deviation = core_Type::getByName('double(smartRound,decimals=2)')->toVerbal($dRec->deviation);
 
         if (!$dRec->deviation) {
 
