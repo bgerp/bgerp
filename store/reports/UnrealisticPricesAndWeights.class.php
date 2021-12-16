@@ -107,6 +107,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $pQuery = cat_Products::getQuery();
 
         $pQuery->where("#state = 'active' AND #canStore = 'yes'");
+        //$pQuery -> in('id',array(95,546));
 
         if ($rec->typeOfProducts == 'public') {
             $pQuery->where("#isPublic = 'yes'");
@@ -159,19 +160,22 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                     'deviation' => $deviation,                                     // Отклонение
                     'prodVolume' => $prodTransVolume,                              // Транспортен обем
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
+                    'packVolume' => $packVolume,                                   // Обем на кашона
+                    'prodVol' => $prodVol,                                         // Реален обем на артикула за 1000 бр
                 );
             }
 
 
-            //bp($prodTransVolume,$prodVol,$deviation);
+            //bp($prodTransVolume,$prodVol,$deviation,$prodVolumeDeviation);
 
-            if (!$prodTransVolume || !$prodTransWeight) {
+            if (!$prodVol) {
 
                 $zeroProd[$id] = (object)array(
                     'productId' => $pRec->id,                                      // Артикул
                     'prodVolume' => $prodTransVolume * 1000,                       // Транспортен обем
                     'prodWeight' => $prodTransWeight,                              // Транспортно тегло
                     'packVolume' => $packVolume,                                   // Обем на кашона
+                    'prodVol' => $prodVol,                                         // Реален обем на артикула за 1000 бр
                     'deviation' => $deviation,                                     // Отклонение
                 );
 
@@ -183,16 +187,18 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             if ($volumeWeight > $rec->minVolWeight && $volumeWeight < $rec->maxVolWeight) continue;
 
             // Запис в масива
-            if (!array_key_exists($id, $recs)) {
-                $recs[$id] = (object)array(
-                    'productId' => $pRec->id,                                      // Артикул
-                    'prodVolume' => $prodTransVolume,                              // Транспортен обем
-                    'prodWeight' => $prodTransWeight,                              // Транспортно тегло
-                    'volumeWeight' => $volumeWeight,                               // Обемно тегло
-                    'deviation' => $deviation,                                     // Отклонение
-
-                );
-            }
+//            if (!array_key_exists($id, $recs)) {
+//                $recs[$id] = (object)array(
+//                    'productId' => $pRec->id,                                      // Артикул
+//                    'prodVolume' => $prodTransVolume,                              // Транспортен обем
+//                    'prodWeight' => $prodTransWeight,                              // Транспортно тегло
+//                    'volumeWeight' => $volumeWeight,                               // Обемно тегло
+//                    'packVolume' => $packVolume,                                   // Обем на кашона
+//                    'prodVol' => $prodVol,                                         // Реален обем на артикула за 1000 бр
+//                    'deviation' => $deviation,                                     // Отклонение
+//
+//                );
+//            }
 
 
         }
@@ -202,6 +208,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $recs = $prodVolumeDeviation;
         arr::sortObjects($recs, 'deviation', 'desc');
+        $recs = $recs + $zeroProd;
 
 
         return $recs;
@@ -224,8 +231,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Тр. обем');
         $fld->FLD('prodWeight', 'double(smartRound,decimals=2)', 'caption=Тр. тегло');
         $fld->FLD('volumeWeight', 'varchar', 'caption=Обемно тегло');
+        $fld->FLD('packVolume', 'double(smartRound,decimals=2)', 'caption=Обем->На каш.');
+        $fld->FLD('prodVol', 'double(smartRound,decimals=2)', 'caption=Обем->Реален(арт)');
         $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Отклонение');
-
 
         return $fld;
     }
@@ -255,11 +263,13 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
         $row->prodWeight = $Double->toVerbal($dRec->prodWeight);
         $row->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
+        $row->packVolume = $Double->toVerbal($dRec->packVolume);
+        $row->prodVol = $Double->toVerbal($dRec->prodVol);
         $row->deviation = $Double->toVerbal($dRec->deviation);
 
-        if (!$dRec->volumeWeight) {
+        if (!$dRec->deviation) {
 
-         //   $row->ROW_ATTR['class'] = 'state-closed';
+            $row->ROW_ATTR['class'] = 'state-closed';
         }
 
 
