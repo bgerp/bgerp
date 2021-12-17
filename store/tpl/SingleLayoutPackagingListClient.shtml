@@ -110,7 +110,7 @@
                         </tr>
                         <!--ET_END deliveryTime-->
                         <!--ET_BEGIN lineId-->
-                        <tr>
+                        <tr class="no-print">
                             <td class='nowrap quiet aright'>Transport: </td>
                             <td>[#lineId#]</td>
                         </tr>
