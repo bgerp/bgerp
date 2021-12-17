@@ -117,7 +117,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         } else {
             $pQuery->where("#isPublic = 'no'");
         }
-
+bp($pQuery->count(),$startDate);
         // Синхронизира таймлимита с броя записи
         $timeLimit = $pQuery->count() * 0.2;
 
