@@ -137,7 +137,7 @@ class acc_VatGroups extends core_Manager
         $query = self::getQuery();
         $options = array();
         while ($rec = $query->fetch($where)) {
-            $title = self::getVerbal($rec->id, 'title') . ' - ' . self::getVerbal($rec, 'vat');
+            $title = self::getVerbal($rec->id, 'title') . ' (' . self::getVerbal($rec, 'vat') . ")";
             $title = str_replace('&nbsp;', ' ', $title);
             
             $options[$rec->{$index}] = $title;
