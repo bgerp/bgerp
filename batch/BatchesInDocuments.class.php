@@ -452,12 +452,12 @@ class batch_BatchesInDocuments extends core_Manager
         $btnoff = ($Detail->cantCreateNewBatch === true) ? 'btnOff' : '';
         $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
-        $captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
+        $captions = ($Def instanceof batch_definitions_Serial) ? 'Партида' : 'Партида|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
 
         if($hideTable === false){
-            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди->{$caption},placeholder={$Def->placeholder}");
 
             if(is_array($bOptions)){
                 $form->setFieldTypeParams('newArray', array('batch_opt' => $bOptions));
