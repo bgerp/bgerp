@@ -426,8 +426,10 @@ class batch_BatchesInDocuments extends core_Manager
             $tableRec = $exTableRec = array();
             $batchesCount = countR($batches);
             foreach ($batches as $batch => $quantityInStore) {
+                Mode::push('text', 'plain');
                 $vBatch = $Def->toVerbal($batch);
-                $suggestions[] = strip_tags($vBatch);
+                Mode::pop('text');
+                $suggestions[] = $vBatch;
                 $tableRec['batch'][$i] = $vBatch;
                 if (array_key_exists($batch, $foundBatches)) {
                     $tableRec['quantity'][$i] = $foundBatches[$batch] / $recInfo->quantityInPack;
@@ -440,7 +442,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $i++;
             }
             Mode::pop('htmlEntity');
-            
+
             if ($batchesCount > batch_Setup::get('COUNT_IN_EDIT_WINDOW')) {
                 $tableRec = $exTableRec;
             }

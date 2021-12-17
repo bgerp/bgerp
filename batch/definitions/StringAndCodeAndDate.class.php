@@ -137,7 +137,8 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
 
         $string = core_Type::getByName('varchar')->toVerbal($string);
         $value = "{$string}{$date}";
-        if(!Mode::is('text', 'plain')){
+
+        if(!Mode::is('text', 'plain') && $value != strip_tags($value)) {
             $value = "<span>{$value}</span>";
         }
 
