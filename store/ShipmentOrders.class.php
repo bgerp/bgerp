@@ -286,11 +286,13 @@ class store_ShipmentOrders extends store_DocumentMaster
             if(empty($conditions)){
                 if(in_array($rec->state, array('pending', 'draft'))){
                     $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $rec->tplLang);
-                    if(!Mode::isReadOnly()){
-                        $condition = "<span style='color:blue'>{$condition}</span>";
+                    if(!empty($condition)){
+                        if(!Mode::isReadOnly()){
+                            $condition = "<span style='color:blue'>{$condition}</span>";
+                        }
+                        $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
+                        $conditions = array($condition);
                     }
-                    $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
-                    $conditions = array($condition);
                 }
             }
 
