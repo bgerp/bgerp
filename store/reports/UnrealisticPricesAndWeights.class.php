@@ -104,7 +104,10 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $recs = array();
 
-        $pQuery = cat_Products::getQuery();
+        $pQuery = store_Products::getQuery();
+        $pQuery->EXT('createdOnProd', 'cat_Products', 'externalName=createdOn,externalKey=productId');
+        $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
 
         $startDate = dt::addSecs(-$rec->period, dt::now());
 
