@@ -212,8 +212,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                     'realDensity' => $realDensity,                                 // Реална плътност
                     'deviationDensity' => $deviationDensity,                       // Отклонение плътност
 
-                    'driverName' => $material,                       // Отклонение плътност
-                    'material' => $driverName,                       // Отклонение плътност
+                    'driverName' => $driverName,                      // Отклонение плътност
+                    'material' => $material,                       // Отклонение плътност
 
                 );
             }
