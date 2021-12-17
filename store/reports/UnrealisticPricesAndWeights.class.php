@@ -117,9 +117,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         } else {
             $pQuery->where("#isPublic = 'no'");
         }
-bp($pQuery->count(),$startDate);
+
         // Синхронизира таймлимита с броя записи
-        $timeLimit = $pQuery->count() * 0.2;
+        $timeLimit = $pQuery->count() * 0.5;
 
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
@@ -248,14 +248,14 @@ bp($pQuery->count(),$startDate);
         $fld = cls::get('core_FieldSet');
 
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
-        $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Обем[m3]->Транс.');
+        $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Обем[m3]->По парам.');
         $fld->FLD('realProdVol', 'double(smartRound,decimals=3)', 'caption=Обем[m3]->Реален');
         $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Обем[m3]->Отклонение');
 
-        $fld->FLD('prodWeight', 'double(smartRound,decimals=2)', 'caption=Тегло[кг]->Транс.');
+        $fld->FLD('prodWeight', 'double(smartRound,decimals=2)', 'caption=Тегло[кг]->По парам.');
         $fld->FLD('realProdWeight', 'double(smartRound,decimals=3)', 'caption=Тегло[кг]->Реално');
 
-        $fld->FLD('transDensity', 'double(smartRound,decimals=3)', 'caption=Плътност->Транс.');
+        $fld->FLD('transDensity', 'double(smartRound,decimals=3)', 'caption=Плътност->По парам.');
         $fld->FLD('realDensity', 'double(smartRound,decimals=3)', 'caption=Плътност->Реално');
         $fld->FLD('deviationDensity', 'double(smartRound,decimals=3)', 'caption=Плътност->Отклонение');
 
@@ -371,4 +371,5 @@ bp($pQuery->count(),$startDate);
         $res->prodWeight = $Double->toVerbal($dRec->prodWeight);
         $res->volumeWeight = $Double->toVerbal($dRec->volumeWeight);
     }
+
 }
