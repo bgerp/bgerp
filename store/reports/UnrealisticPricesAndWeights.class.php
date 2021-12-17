@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на отчети за стоки с нереални цени и тегла
+ * Мениджър на отчети за Артикули с отклонения в опаковката
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Стоки с нереални цени и тегла
+ * @title     Склад » Артикули с отклонения в опаковката
  */
 class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 {
@@ -134,6 +134,13 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         while ($pRec = $pQuery->fetch()) {
 
+           $Driver =  cat_Products::getDriver($pRec->id);
+            if($Driver instanceof eprod_proto_Product){
+                $productRec = cat_Products::fetch($pRec->id);
+                $material = $Driver->getLabelProduct($productRec);
+                list($driverName) = explode('|', $Driver->singleTitle);
+            }
+
             $prodTransWeight = $prodTransVolume = $realProdVol = $realProdWeight = $deviation = $deviationDensity = 0;
 
             //Обема на кашона
@@ -205,6 +212,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                     'realDensity' => $realDensity,                                 // Реална плътност
                     'deviationDensity' => $deviationDensity,                       // Отклонение плътност
 
+                    'driverName' => $material,                       // Отклонение плътност
+                    'material' => $driverName,                       // Отклонение плътност
+
                 );
             }
 
@@ -248,6 +258,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
+        $fld->FLD('material', 'varchar', 'caption=Материал');
+        $fld->FLD('driverName', 'varchar', 'caption=Драйвер');
+
         $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Обем[m3]->По парам.');
         $fld->FLD('realProdVol', 'double(smartRound,decimals=3)', 'caption=Обем[m3]->Реален');
         $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Обем[m3]->Отклонение');
@@ -281,9 +294,10 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getHyperlink($dRec->productId);
-        }
+        $row->productId = cat_Products::getHyperlink($dRec->productId);
+        $row->material = $dRec->material;
+        $row->driverName = $dRec->driverName;
+
 
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
         $row->prodWeight = $Double->toVerbal($dRec->prodWeight);
