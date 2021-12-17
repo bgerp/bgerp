@@ -126,6 +126,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         }
 
         $zeroProd = array();
+
         $transportVolumeParamId = cat_Params::force('transportVolume', 'transportVolume', 'varchar', null, '');
         $transportWeightParamId = cat_Params::force('transportWeight', 'transportWeight', 'varchar', null, '');
         $prodWeightParamId = cat_Params::force('weight', 'weight', 'varchar', null, '');
@@ -133,7 +134,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         while ($pRec = $pQuery->fetch()) {
 
-            $prodTransWeight = $prodTransVolume = $volumeWeight = $realProdVol= $realProdWeight = $deviation = 0;
+            $prodTransWeight = $prodTransVolume = $realProdVol= $realProdWeight = $deviation = $deviationDensity = 0;
 
             //Обема на кашона
             $uomRec = cat_UoM::fetchBySinonim('кашон');
@@ -168,7 +169,6 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 //Транспортно тегло от параметър "Транспортно тегло" в кг за 1000 бр
                 $prodTransWeight = cat_Products::getParams($pRec->id)[$transportWeightParamId]*1000;
 
-
             } catch (Exception $e) {
 
             }
@@ -191,7 +191,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             }
 
             if ($deviation){
-                $prodVolumeDeviation[$id] = (object)array(
+                $recs[$id] = (object)array(
                     'productId' => $pRec->id,                                      // Артикул
 
                     'prodVolume' => $prodTransVolume,                              // Транспортен обем
@@ -208,29 +208,27 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 );
             }
 
-            if (!$realProdVol) {
-
-                $zeroProd[$id] = (object)array(
-                    'productId' => $pRec->id,                                      // Артикул
-                    'prodVolume' => $prodTransVolume,                              // Транспортен обем
-                    'prodWeight' => $prodTransWeight,                              // Транспортно тегло
-                    'packVolume' => $packVolume,                                   // Обем на кашона
-                    'realProdVol' => $realProdVol,                                 // Реален обем на артикула за 1000 бр
-                    'realProdWeight' => $realProdWeight,                           // Реално тело на артикула за 1000 бр
-                    'deviationDensity' => $deviationDensity,                       // Отклонение плътност
-                );
-
-            }
+//            if (!$realProdVol) {
+//
+//                $zeroProd[$id] = (object)array(
+//                    'productId' => $pRec->id,                                      // Артикул
+//                    'prodVolume' => $prodTransVolume,                              // Транспортен обем
+//                    'prodWeight' => $prodTransWeight,                              // Транспортно тегло
+//                    'packVolume' => $packVolume,                                   // Обем на кашона
+//                    'realProdVol' => $realProdVol,                                 // Реален обем на артикула за 1000 бр
+//                    'realProdWeight' => $realProdWeight,                           // Реално тело на артикула за 1000 бр
+//                    'deviationDensity' => $deviationDensity,                       // Отклонение плътност
+//                );
+//
+//            }
 
         }
-
-        $recs = $prodVolumeDeviation;
 
         if (!empty($recs)){
 
             arr::sortObjects($recs, 'deviation', 'desc');
 
-            $recs = $recs + $zeroProd;
+          //  $recs = $recs + $zeroProd;
         }
 
         return $recs;
