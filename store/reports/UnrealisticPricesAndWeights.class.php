@@ -2,7 +2,7 @@
 
 
 /**
- * Мениджър на отчети за стоки с нереални цени и тегла
+ * Мениджър на отчети за Артикули с отклонения в опаковката
  *
  *
  * @category  bgerp
@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Стоки с нереални цени и тегла
+ * @title     Склад » Артикули с отклонения в опаковката
  */
 class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 {
@@ -51,7 +51,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('typeOfProducts', 'enum(public=Стандартни,npublic=Нестандартни)', 'caption=Тип артикули,maxRadio=2,columns=2,after=title,mandatory,single=none');
+        $fieldset->FLD('storeOrCreatProducts', 'enum(storeProds=Произвеждани,createdProds=Създадени)', 'caption=Създадени или произвеждани,maxRadio=2,columns=2,after=title,mandatory,single=none');
+
+        $fieldset->FLD('typeOfProducts', 'enum(public=Стандартни,npublic=Нестандартни)', 'caption=Тип артикули,maxRadio=2,columns=2,after=storeOrCreatProducts,mandatory,single=none');
 
         $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година|5 години|10 години)', 'caption=Период, after=typeOfProducts,mandatory');
 
@@ -87,6 +89,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $form->setDefault('typeOfProducts', 'npublic');
         $form->setDefault('period', '1 месец');
+        $form->setDefault('storeOrCreatProducts', 'storeProds');
 
     }
 
@@ -104,11 +107,24 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $recs = array();
 
-        $pQuery = cat_Products::getQuery();
+        if ($rec->storeOrCreatProducts == 'storeProds'){
+            $pQuery = store_Products::getQuery();
+            $pQuery->EXT('createdOnProd', 'cat_Products', 'externalName=createdOn,externalKey=productId');
+            $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+            $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+
+        }else{
+            $pQuery = cat_Products::getQuery();
+        }
 
         $startDate = dt::addSecs(-$rec->period, dt::now());
+        if ($rec->storeOrCreatProducts == 'storeProds'){
 
-        $pQuery->where("#createdOn >= '{$startDate}'");
+            $pQuery->where("#createdOnProd >= '{$startDate}'");
+        }else{
+            $pQuery->where("#createdOn >= '{$startDate}'");
+        }
+
 
         $pQuery->where("#state = 'active' AND #canStore = 'yes'");
 
@@ -133,6 +149,13 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $prodWeightKgParamId = cat_Params::force('weightKg', 'weight', 'varchar', null, '');
 
         while ($pRec = $pQuery->fetch()) {
+
+           $Driver =  cat_Products::getDriver($pRec->id);
+            if($Driver instanceof eprod_proto_Product){
+                $productRec = cat_Products::fetch($pRec->id);
+                $material = $Driver->getLabelProduct($productRec);
+                list($driverName) = explode('|', $Driver->singleTitle);
+            }
 
             $prodTransWeight = $prodTransVolume = $realProdVol = $realProdWeight = $deviation = $deviationDensity = 0;
 
@@ -205,6 +228,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                     'realDensity' => $realDensity,                                 // Реална плътност
                     'deviationDensity' => $deviationDensity,                       // Отклонение плътност
 
+                    'driverName' => $driverName,                      // Отклонение плътност
+                    'material' => $material,                       // Отклонение плътност
+
                 );
             }
 
@@ -248,6 +274,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $fld = cls::get('core_FieldSet');
 
         $fld->FLD('productId', 'varchar', 'caption=Артикул');
+        $fld->FLD('material', 'varchar', 'caption=Материал');
+        $fld->FLD('driverName', 'varchar', 'caption=Драйвер');
+
         $fld->FLD('prodVolume', 'double(smartRound,decimals=2)', 'caption=Обем[m3]->По парам.');
         $fld->FLD('realProdVol', 'double(smartRound,decimals=3)', 'caption=Обем[m3]->Реален');
         $fld->FLD('deviation', 'double(smartRound,decimals=2)', 'caption=Обем[m3]->Отклонение');
@@ -281,9 +310,10 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        if (isset($dRec->productId)) {
-            $row->productId = cat_Products::getHyperlink($dRec->productId);
-        }
+        $row->productId = cat_Products::getHyperlink($dRec->productId);
+        $row->material = $dRec->material;
+        $row->driverName = $dRec->driverName;
+
 
         $row->prodVolume = $Double->toVerbal($dRec->prodVolume);
         $row->prodWeight = $Double->toVerbal($dRec->prodWeight);
