@@ -118,8 +118,13 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         }
 
         $startDate = dt::addSecs(-$rec->period, dt::now());
+        if ($rec->storeOrCreatProducts == 'storeProds'){
 
-        $pQuery->where("#createdOn >= '{$startDate}'");
+            $pQuery->where("#createdOnProd >= '{$startDate}'");
+        }else{
+            $pQuery->where("#createdOn >= '{$startDate}'");
+        }
+
 
         $pQuery->where("#state = 'active' AND #canStore = 'yes'");
 
