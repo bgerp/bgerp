@@ -246,17 +246,15 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
             }
 
-            if(!Mode::is('printing')){
-                if(!empty($lineRec->forwarderId)){
-                    $row->lineForwarderId = crm_Companies::getHyperlink($lineRec->forwarderId);
-                }
+            if(!empty($lineRec->forwarderId)){
+                $row->lineForwarderId = crm_Companies::getHyperlink($lineRec->forwarderId);
+            }
 
-                if(!empty($lineRec->vehicle)){
-                    $row->lineVehicleId = core_Type::getByName('varchar')->toVerbal($lineRec->vehicle);
-                    if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))) {
-                        if(!empty($vehicleRec->number)){
-                            $row->lineVehicleId = trans_Vehicles::getVerbal($vehicleRec, 'number');
-                        }
+            if(!empty($lineRec->vehicle)){
+                $row->lineVehicleId = core_Type::getByName('varchar')->toVerbal($lineRec->vehicle);
+                if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))) {
+                    if(!empty($vehicleRec->number)){
+                        $row->lineVehicleId = trans_Vehicles::getVerbal($vehicleRec, 'number');
                     }
                 }
             }
