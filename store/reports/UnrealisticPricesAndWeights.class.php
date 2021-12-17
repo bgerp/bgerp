@@ -51,7 +51,9 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
     public function addFields(core_Fieldset &$fieldset)
     {
 
-        $fieldset->FLD('typeOfProducts', 'enum(public=Стандартни,npublic=Нестандартни)', 'caption=Тип артикули,maxRadio=2,columns=2,after=title,mandatory,single=none');
+        $fieldset->FLD('storeOrCreatProducts', 'enum(storeProds=Произвеждани,createdProds=Създадени)', 'caption=Създадени или произвеждани,maxRadio=2,columns=2,after=title,mandatory,single=none');
+
+        $fieldset->FLD('typeOfProducts', 'enum(public=Стандартни,npublic=Нестандартни)', 'caption=Тип артикули,maxRadio=2,columns=2,after=storeOrCreatProducts,mandatory,single=none');
 
         $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година|5 години|10 години)', 'caption=Период, after=typeOfProducts,mandatory');
 
@@ -87,6 +89,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $form->setDefault('typeOfProducts', 'npublic');
         $form->setDefault('period', '1 месец');
+        $form->setDefault('storeOrCreatProducts', 'storeProds');
 
     }
 
@@ -104,10 +107,15 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $recs = array();
 
-        $pQuery = store_Products::getQuery();
-        $pQuery->EXT('createdOnProd', 'cat_Products', 'externalName=createdOn,externalKey=productId');
-        $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+        if ($rec->storeOrCreatProducts == 'storeProds'){
+            $pQuery = store_Products::getQuery();
+            $pQuery->EXT('createdOnProd', 'cat_Products', 'externalName=createdOn,externalKey=productId');
+            $pQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+            $pQuery->EXT('canStore', 'cat_Products', 'externalName=canStore,externalKey=productId');
+
+        }else{
+            $pQuery = cat_Products::getQuery();
+        }
 
         $startDate = dt::addSecs(-$rec->period, dt::now());
 
