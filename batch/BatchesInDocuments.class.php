@@ -460,7 +460,7 @@ class batch_BatchesInDocuments extends core_Manager
             $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
 
             if(is_array($bOptions)){
-                $form->setFieldTypeParams('newArray', array('batch_opt' => array('' => '') + $bOptions));
+                $form->setFieldTypeParams('newArray', array('batch_opt' => $bOptions));
             }
 
             // Ако има опции от типа добавят се с възможност за избор
