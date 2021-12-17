@@ -53,7 +53,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         $fieldset->FLD('typeOfProducts', 'enum(public=Стандартни,npublic=Нестандартни)', 'caption=Тип артикули,maxRadio=2,columns=2,after=title,mandatory,single=none');
 
-        $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година|5 години|10 години)', 'caption=Период, after=typeOfProducts,mandatory,single=none,removeAndRefreshForm');
+        $fieldset->FLD('period', 'time(suggestions=1 месец|3 месеца|6 месеца|1 година|5 години|10 години)', 'caption=Период, after=typeOfProducts,mandatory');
 
     }
 
@@ -353,15 +353,6 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         if ((isset($data->rec->typeOfProducts))) {
             $fieldTpl->append('<b>' . $Enum->toVerbal($data->rec->typeOfProducts) . '</b>', 'typeOfProducts');
         }
-
-        if ((isset($data->rec->minVolWeight))) {
-            $fieldTpl->append('<b>' . $Double->toverbal($data->rec->minVolWeight) . '</b>', 'minVolWeight');
-        }
-
-        if ((isset($data->rec->maxVolWeight))) {
-            $fieldTpl->append('<b>' . $Double->toverbal($data->rec->maxVolWeight) . '</b>', 'maxVolWeight');
-        }
-
 
         $tpl->append($fieldTpl, 'DRIVER_FIELDS');
     }
