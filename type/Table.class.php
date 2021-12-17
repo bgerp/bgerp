@@ -86,8 +86,8 @@ class type_Table extends type_Blob
                 } else {
                     $opt[$field] = $this->params[$selOpt];
                 }
-                
-                $tpl .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $opt[$field], null, $attr[$field]) . '</td>';
+
+                $tpl .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], array('' => '') + $opt[$field], null, $attr[$field]) . '</td>';
                 $row1 .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . '</td>';
             } elseif ($this->params[$suggestOpt]) {
                 if (!is_array($this->params[$suggestOpt])) {
@@ -121,7 +121,7 @@ class type_Table extends type_Blob
                 }
             }
         }
-        
+
         $i = 1;
         $rows = '';
         do {
