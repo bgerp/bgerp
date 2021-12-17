@@ -238,7 +238,7 @@ class trans_Lines extends core_Master
         if ($escaped) {
             $recTitle = type_Varchar::escape($recTitle);
         }
-
+        
         return $recTitle;
     }
 

@@ -99,7 +99,7 @@
 
                         <!--ET_END locationData-->
                         <!--ET_BEGIN lineId-->
-                        <tr class="no-print">
+                        <tr>
                             <td class='nowrap quiet aright'>Transport: </td>
                             <td>[#lineId#]</td>
                         </tr>

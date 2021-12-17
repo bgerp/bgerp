@@ -86,7 +86,7 @@
                   </tr>
                   <!--ET_END deliveryAddressBlock-->
                   <!--ET_BEGIN lineId-->
-                  <tr class="no-print">
+                  <tr>
                      <td class='quiet'  style='width:1%'>|Транспорт|*: </td>
                      <td>[#lineId#]</td>
                   </tr>
