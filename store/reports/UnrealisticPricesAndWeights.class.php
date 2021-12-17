@@ -295,8 +295,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
         $row->realDensity = $Double->toVerbal($dRec->realDensity);
 
 
-        $row->deviation = core_Type::getByName('double(smartRound,decimals=2)')->toVerbal($dRec->deviation);
-        $row->deviationDensity = core_Type::getByName('double(smartRound,decimals=2)')->toVerbal($dRec->deviationDensity);
+        $row->deviation = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deviation);
+        $row->deviationDensity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->deviationDensity);
 
         if (!$dRec->deviation) {
 
