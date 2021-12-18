@@ -388,7 +388,6 @@ class batch_BatchesInDocuments extends core_Manager
         $bOptions = null;
         if($type == 'in'){
             $bOptions = $Detail->getAllowedInBatches($detailRecId);
-            $bOptions = array_combine($bOptions, $bOptions);
         }
 
         if ($Def instanceof batch_definitions_Serial) {
@@ -425,8 +424,10 @@ class batch_BatchesInDocuments extends core_Manager
             $tableRec = $exTableRec = array();
             $batchesCount = countR($batches);
             foreach ($batches as $batch => $quantityInStore) {
+                Mode::push('text', 'plain');
                 $vBatch = $Def->toVerbal($batch);
-                $suggestions[] = strip_tags($vBatch);
+                Mode::pop('text');
+                $suggestions[] = $vBatch;
                 $tableRec['batch'][$i] = $vBatch;
                 if (array_key_exists($batch, $foundBatches)) {
                     $tableRec['quantity'][$i] = $foundBatches[$batch] / $recInfo->quantityInPack;
@@ -439,7 +440,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $i++;
             }
             Mode::pop('htmlEntity');
-            
+
             if ($batchesCount > batch_Setup::get('COUNT_IN_EDIT_WINDOW')) {
                 $tableRec = $exTableRec;
             }
@@ -449,15 +450,15 @@ class batch_BatchesInDocuments extends core_Manager
         $btnoff = ($Detail->cantCreateNewBatch === true) ? 'btnOff' : '';
         $caption = ($Def->getFieldCaption()) ? $Def->getFieldCaption() : 'Партида';
         $columns = ($Def instanceof batch_definitions_Serial) ? 'batch' : 'batch|quantity';
-        $captions = ($Def instanceof batch_definitions_Serial) ? 'Номер' : 'Номер|Количество';
+        $captions = ($Def instanceof batch_definitions_Serial) ? 'Партида' : 'Партида|Количество';
         $noCaptions = ($Def instanceof batch_definitions_Serial) ? 'noCaptions' : '';
         $hideTable = (($Def instanceof batch_definitions_Serial) && !empty($btnoff)) || (!empty($btnoff) && !countR($suggestions) && !($Def instanceof batch_definitions_Serial));
 
         if($hideTable === false){
-            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Нови партиди->{$caption},placeholder={$Def->placeholder}");
+            $form->FLD('newArray', "table({$btnoff},columns={$columns},batch_class=batchNameTd,batch_ro=readonly,captions={$captions},{$noCaptions},validate=batch_BatchesInDocuments::validateNewBatches)", "caption=Партиди->{$caption},placeholder={$Def->placeholder}");
 
             if(is_array($bOptions)){
-                $form->setFieldTypeParams('newArray', array('batch_opt' => array('' => '') + $bOptions));
+                $form->setFieldTypeParams('newArray', array('batch_opt' => $bOptions));
             }
 
             // Ако има опции от типа добавят се с възможност за избор

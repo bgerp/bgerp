@@ -86,9 +86,14 @@ class type_Table extends type_Blob
                 } else {
                     $opt[$field] = $this->params[$selOpt];
                 }
-                
-                $tpl .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $opt[$field], null, $attr[$field]) . '</td>';
-                $row1 .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][0]), $attr[$field]) . '</td>';
+
+                $rowOpt = $opt[$field];
+                if(isset($value[$field][0]) && !array_key_exists($value[$field][0], $rowOpt)){
+                    $rowOpt[$value[$field][0]] = $value[$field][0];
+                }
+
+                $tpl .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], array('' => '') + $rowOpt, null, $attr[$field]) . '</td>';
+                $row1 .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $rowOpt, strip_tags($value[$field][0]), $attr[$field]) . '</td>';
             } elseif ($this->params[$suggestOpt]) {
                 if (!is_array($this->params[$suggestOpt])) {
                     $sgt = (strpos($this->params[$suggestOpt], '=') !== false) ? arr::make($this->params[$suggestOpt]) : explode('|', $this->params[$suggestOpt]);
@@ -121,7 +126,7 @@ class type_Table extends type_Blob
                 }
             }
         }
-        
+
         $i = 1;
         $rows = '';
         do {
@@ -134,7 +139,12 @@ class type_Table extends type_Blob
                 $tdClass = ($this->params[$classFld]) ? "class={$this->params[$classFld]}" : '';
                 
                 if (isset($opt[$field])) {
-                    $row .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $opt[$field], strip_tags($value[$field][$i]), $attr[$field]) . '</td>';
+                    $rowOpt = $opt[$field];
+                    if(isset($value[$field][$i]) && !array_key_exists($value[$field][$i], $rowOpt)){
+                        $rowOpt[$value[$field][$i]] = $value[$field][$i];
+                    }
+
+                    $row .= "<td {$tdClass}>" . ht::createSelect($attr[$field]['name'], $rowOpt, strip_tags($value[$field][$i]), $attr[$field]) . '</td>';
                 } else {
                     $readOnlyFld = $field . '_ro';
                     if ($this->params[$readOnlyFld] == 'readonly' && isset($value[$field][$i]) && empty($this->errorFields[$field][$i])) {

@@ -94,7 +94,7 @@
                   </tr>
                   <!--ET_END deliveryAddressBlock-->
                   <!--ET_BEGIN lineId-->
-                  <tr class="no-print">
+                  <tr>
                      <td class='nowrap quiet aright'>|Транспорт|*: </td>
                      <td>[#lineId#]</td>
                   </tr>

@@ -55,6 +55,13 @@ class batch_plg_TaskDetails extends core_Plugin
             $form->setField('batch', "placeholder={$BatchClass->fieldPlaceholder}");
         }
 
+        // Ако има само позволени опции само тях
+        $rec->_jobProductId = $jobProductId;
+        $allowedOptions = $mvc->getAllowedInBatches($rec);
+        if(is_array($allowedOptions)){
+            $form->setOptions('batch', array('' => '') + $allowedOptions);
+        }
+
         // Ако има налични партиди в склада да се показват като предложения
         $exBatches = batch_Items::getBatchQuantitiesInStore($jobProductId, $taskRec->storeId);
         if (countR($exBatches)) {
@@ -146,6 +153,19 @@ class batch_plg_TaskDetails extends core_Plugin
 
             $batch = batch_Movements::getLinkArr($jobProductId, $rec->batch);
             $row->batch = implode(', ', $batch);
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране за позволени партиди за заприхождаване
+     */
+    public static function on_AfterGetAllowedInBatches($mvc, &$res, $rec)
+    {
+        if(!$res){
+            $taskRec = planning_Tasks::fetch($rec->taskId);
+            $jobDoc = doc_Containers::getDocument($taskRec->originId);
+            $res = $jobDoc->getInstance()->getAllowedBatchesForJob($taskRec->originId);
         }
     }
 }

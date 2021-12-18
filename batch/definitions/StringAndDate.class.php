@@ -213,9 +213,12 @@ class batch_definitions_StringAndDate extends batch_definitions_Varchar
         
         $date = batch_definitions_ExpirationDate::displayExpiryDate($date, $this->rec->format, $this->rec->time);
         $string = core_Type::getByName('varchar')->toVerbal($string);
-        
-        $value = "<span>{$string}{$delimiter}{$date}</span>";
-        
+        $value = "{$string}{$delimiter}{$date}";
+
+        if(!Mode::is('text', 'plain') && $value != strip_tags($value)) {
+            $value = "<span>{$value}</span>";
+        }
+
         return $value;
     }
     
