@@ -1906,7 +1906,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
      * @param string $term         - срок (не е задължителен)
      * @param string $notes        - забележки
-     *@param  string $batch        - партида
+     * @param  string $batch        - партида
      *
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
