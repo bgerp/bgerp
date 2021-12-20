@@ -4051,6 +4051,11 @@ class cat_Products extends embed_Manager
             
             // Връща се отношението и за 1-ца към $toUomId
             if ($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)) {
+                if(empty($pRec->quantity)) {
+                    wp($pRec);
+                    continue;
+                }
+
                 $res = $res / $pRec->quantity;
                 
                 return $res;
