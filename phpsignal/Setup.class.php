@@ -10,7 +10,6 @@ defIfNot('PHPSIGNAL_SIGNAL_VERSION', '0.9.2');
 defIfNot('PHPSIGNAL_SIGNAL_NUMBER', '+359');
 defIfNot('PHPSIGNAL_SIGNAL_CAPTCHA','');
 defIfNot('PHPSIGNAL_SIGNAL_VALIDATION_METHOD','');
-defIfNot('PHPSIGNAL_SIGNAL_VALIDATION_CODE','');
 defIfNot('PHPSIGNAL_SIGNAL_TEST_NUMBER','');
 
 
@@ -51,6 +50,15 @@ class phpsignal_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Wrapper за CLI клиент за signal';
+
+    
+/**
+     * Описание на системните действия
+     */
+    public $systemActions = array(
+        array('title' => 'Валидиране ключ', 'url' => array('phpsignal_Client', 'ValidateCode', 'ret_url' => true), 'params' => array('title' => 'Валидиране код')),
+        array('title' => 'Отписване', 'url' => array('phpsignal_Client', 'UnRegister', 'ret_url' => true), 'params' => array('title' => 'Отрегистриране клиент'))
+    );
     
     /**
      * Описание на конфигурационните константи
@@ -61,7 +69,6 @@ class phpsignal_Setup extends core_ProtoSetup
         'PHPSIGNAL_SIGNAL_NUMBER' => array('varchar(20)', 'mandatory, caption=Настройки клиент->Номер'),
         'PHPSIGNAL_SIGNAL_CAPTCHA' => array('varchar(512)', 'caption=Кептча за регистриране->стойност'), // от https://signalcaptchas.org/staging/challenge/generate.html
         'PHPSIGNAL_SIGNAL_VALIDATION_METHOD' => array('enum(voice,sms)', 'caption=Получаване на код валидиране->SMS/VOICE'),
-        'PHPSIGNAL_SIGNAL_VALIDATION_CODE' => array('varchar(6)', 'caption=Код валидиране->стойност'),
         'PHPSIGNAL_SIGNAL_TEST_NUMBER' => array('varchar(20)', 'caption=Номер за тестово съобщение->стойност'),
     );
     
