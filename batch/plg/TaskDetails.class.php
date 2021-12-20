@@ -25,7 +25,7 @@ class batch_plg_TaskDetails extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
+        $mvc->FLD('batch', 'text', 'caption=Партида,after=productId,input=none');
     }
 
 
@@ -44,8 +44,8 @@ class batch_plg_TaskDetails extends core_Plugin
         $Job = doc_Containers::getDocument($taskRec->originId);
         $jobProductId = $Job->fetchField('productId');
         $BatchClass = batch_Defs::getBatchDef($jobProductId);
-
-        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct == 'no' || !$BatchClass) return;
+       
+        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct != 'yes' || !$BatchClass) return;
 
         $form->setField('batch', 'input,unit=|*<small>|на|* ' . cat_Products::getTitleById($jobProductId) . "</small>");
         $batchClassType = $BatchClass->getBatchClassType();
@@ -99,7 +99,7 @@ class batch_plg_TaskDetails extends core_Plugin
         $Job = doc_Containers::getDocument($taskRec->originId);
 
         $jobProductId = $Job->fetchField('productId');
-        if($rec->type != 'production' || empty($taskRec->storeId)) return;
+        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct != 'yes') return;
 
         if (isset($jobProductId)) {
             $BatchClass = batch_Defs::getBatchDef($jobProductId);
