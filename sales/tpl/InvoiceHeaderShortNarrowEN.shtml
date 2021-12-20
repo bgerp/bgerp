@@ -17,7 +17,7 @@
                 <div>
                     <div class='original'>[#INV_STATUS#]</div>
                     <!--ET_BEGIN originInv-->
-                    <div id='origin-title'>at Invoice <b>[#originInv#]</b> от [#originInvDate#]</div>
+                    <div id='origin-title'>to Invoice <b>[#originInv#]</b> from [#originInvDate#]</div>
                     <!--ET_END originInv-->
                 </div>
             </td>
