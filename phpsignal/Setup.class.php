@@ -8,6 +8,12 @@ use jigarakatidus\Signal;
 defIfNot('PHPSIGNAL_SIGNAL_PATH', EF_ROOT_PATH);
 defIfNot('PHPSIGNAL_SIGNAL_VERSION', '0.9.2');
 defIfNot('PHPSIGNAL_SIGNAL_NUMBER', '+359');
+defIfNot('PHPSIGNAL_SIGNAL_CAPTCHA','');
+defIfNot('PHPSIGNAL_SIGNAL_VALIDATION_METHOD','');
+defIfNot('PHPSIGNAL_SIGNAL_VALIDATION_CODE','');
+defIfNot('PHPSIGNAL_SIGNAL_TEST_NUMBER','');
+
+
 
 /**
  * Wrapper за php-signal CLI
