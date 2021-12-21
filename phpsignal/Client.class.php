@@ -58,9 +58,17 @@ class phpsignal_Client extends core_Manager
         if ($form->isSubmitted()) {
             $retUrl = getRetUrl();
             
+            if (core_Composer::isInUse()) {
+                $signalNumber = phpsignal_Setup::get('SIGNAL_NUMBER');
+                // Инстанция на класа
+                $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+                $client = new Signal($binPath, $signalNumber, Signal::FORMAT_JSON);
+            }
+            $msg = "Неуспешна валидация";
+            if ($client->verify($form->rec->key)) {
+                $msg = 'Валидиран код за signal-cli|*';
+            }
             
-            
-            $msg = 'Валидиран код за signal-cli|*';
             
             return new Redirect($retUrl, $msg);
             
@@ -131,7 +139,7 @@ class phpsignal_Client extends core_Manager
             
             $validationMethod = ($form->rec->validationMethod == 'voice') ? true : false;
             $msg = "Неуспешна регистрация";
-            if ($x = $client->Register($validationMethod, $form->rec->captcha)) {
+            if ($client->Register($validationMethod, $form->rec->captcha)) {
                 $msg = "Успешно регистриран номер.";
             }
             
