@@ -69,9 +69,7 @@ class phpsignal_Client extends core_Manager
                 $msg = 'Валидиран код за signal-cli|*';
             }
             
-            
             return new Redirect($retUrl, $msg);
-            
         }
         $form->toolbar->addSbBtn('Валидирай', 'save', 'ef_icon = img/16/disk.png, title = Валидация');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
