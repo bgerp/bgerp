@@ -830,9 +830,8 @@ class rack_Movements extends rack_MovementAbstract
 
         // Ако в урл-то има текуща зона
         $currentZoneId = Request::get('currentZoneId', 'int');
-        if(!empty($rec->zones)){
+        if($currentZoneId && !empty($rec->zones)){
             $zoneArr = @json_decode($rec->zones, true);
-
 
             // И движението е към повече от една зона
             if(is_array($zoneArr) && countR($zoneArr['zone']) > 1){
