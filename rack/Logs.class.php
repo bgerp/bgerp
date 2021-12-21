@@ -61,7 +61,7 @@ class rack_Logs extends core_Manager
     /**
      * Кои полета ще се виждат в листовия изглед
      */
-    public $listFields = 'createdOn=На,createdBy=От,message,productId';
+    public $listFields = 'message,createdOn=На,createdBy=От,productId';
 
 
     /**
