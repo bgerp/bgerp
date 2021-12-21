@@ -140,7 +140,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $rec->tplLang = $mvc->pushTemplateLg($rec->template);
             $rec->dpReason = self::getReasonText($rec, $rec->dpOperation);
             $mvc->save_($rec, 'dpReason');
-            core_Lg::pop($rec->tplLang);
+            core_Lg::pop();
         }
     }
     
@@ -435,8 +435,10 @@ class deals_plg_DpInvoice extends core_Plugin
         if (empty($data->rows)) {
             $tpl->removeBlock('NO_ROWS');
         }
-        
-        $reason = (!empty($data->masterData->rec->dpReason)) ? core_Type::getByName('richtext')->toVerbal($data->masterData->rec->dpReason) : ht::createHint(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation), 'Основанието ще бъде записано при контиране');
+
+        $RichText = core_Type::getByName('richtext');
+        $dpReason = (!empty($data->masterData->rec->dpReason)) ? $RichText->toVerbal($data->masterData->rec->dpReason) : $RichText->toVerbal(self::getReasonText($data->masterData->rec, $data->dpInfo->dpOperation));
+        $reason = (!empty($data->masterData->rec->dpReason)) ? $dpReason : ht::createHint($dpReason, 'Основанието ще бъде записано при контиране', 'notice', false);
         $reason = !empty($reason) ? "</br>" . $reason : '';
         
         if ($data->dpInfo->dpOperation == 'accrued') {
@@ -485,7 +487,7 @@ class deals_plg_DpInvoice extends core_Plugin
             $caption = 'договор';
         }
         
-        if ($data->dpInfo->dpOperation == 'accrued') {
+        if ($dpOperation == 'accrued') {
             
             return tr("по {$caption}|* ") . implode(', ', $deals);
         }

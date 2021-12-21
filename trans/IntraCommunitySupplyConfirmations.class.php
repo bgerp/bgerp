@@ -36,7 +36,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'trans_Wrapper, bgerp_plg_Blank, doc_ActivatePlg, plg_Printing, doc_plg_TplManager, plg_RowTools2, doc_DocumentPlg, doc_EmailCreatePlg, plg_Search';
+    public $loadList = 'trans_Wrapper, bgerp_plg_Blank, doc_ActivatePlg, plg_Printing, doc_plg_TplManager, plg_RowTools2, doc_DocumentPlg, doc_EmailCreatePlg, plg_Search, plg_Sorting';
 
 
     /**
@@ -72,7 +72,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     /**
      * Кои полета ще виждаме в листовия изглед
      */
-    public $listFields = 'title=ВОД, originId=Към документ,contragentName=Контрагент,deliveryCountryId=Държава,createdOn, createdBy';
+    public $listFields = 'title=ВОД, originId=Към документ,deliveryCountryId=Държава,folderId=Папка,state,createdOn, createdBy';
 
 
     /**

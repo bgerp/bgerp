@@ -7361,3 +7361,6 @@ only screen and (max-width: 320px) {
 .rack_ZoneDetails .listTable {
   width: 100%; }
 
+.workingTimeBlock table.typeTable {
+  width: 100%; }
+

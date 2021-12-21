@@ -409,6 +409,7 @@ class rack_ZoneDetails extends core_Detail
             if($masterRec->_isSingle === true){
                 $fields['-inline-single'] = true;
             }
+            $mRec->_currentZoneId = $masterRec->id;
             $data->rows[$mRec->id] = rack_Movements::recToVerbal($mRec, $fields);
         }
 

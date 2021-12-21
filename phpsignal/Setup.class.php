@@ -1,12 +1,18 @@
 <?php
 
+use jigarakatidus\Signal;
 
 /**
  * Местоположение на signal-cli
  */
-defIfNot('PHPSIGNAL_SIGNAL_PATH', posix_getpwuid(posix_getuid())['dir']);
+defIfNot('PHPSIGNAL_SIGNAL_PATH', EF_ROOT_PATH);
 defIfNot('PHPSIGNAL_SIGNAL_VERSION', '0.9.2');
 defIfNot('PHPSIGNAL_SIGNAL_NUMBER', '+359');
+defIfNot('PHPSIGNAL_SIGNAL_CAPTCHA','');
+defIfNot('PHPSIGNAL_SIGNAL_VALIDATION_METHOD','');
+defIfNot('PHPSIGNAL_SIGNAL_TEST_NUMBER','');
+
+
 
 /**
  * Wrapper за php-signal CLI
@@ -44,14 +50,26 @@ class phpsignal_Setup extends core_ProtoSetup
      * Описание на модула
      */
     public $info = 'Wrapper за CLI клиент за signal';
+
+    
+/**
+     * Описание на системните действия
+     */
+    public $systemActions = array(
+        array('title' => 'Валидиране ключ', 'url' => array('phpsignal_Client', 'ValidateCode', 'ret_url' => true), 'params' => array('title' => 'Валидиране код')),
+        array('title' => 'Отписване', 'url' => array('phpsignal_Client', 'UnRegister', 'ret_url' => true), 'params' => array('title' => 'Отрегистриране клиент'))
+    );
     
     /**
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'PHPSIGNAL_SIGNAL_PATH' => array('varchar', 'mandatory, caption=Настройки->Път'),
-        'PHPSIGNAL_SIGNAL_VERSION' => array('varchar', 'mandatory, caption=Настройки->Версия'),
-        'PHPSIGNAL_SIGNAL_NUMBER' => array('varchar(18)', 'mandatory, caption=Настройки->Номер')
+        'PHPSIGNAL_SIGNAL_PATH' => array('varchar', 'mandatory, caption=Настройки signal-cli->Път'),
+        'PHPSIGNAL_SIGNAL_VERSION' => array('varchar', 'mandatory, caption=Настройки signal-cli->Версия'),
+        'PHPSIGNAL_SIGNAL_NUMBER' => array('varchar(20)', 'mandatory, caption=Настройки клиент->Номер'),
+        'PHPSIGNAL_SIGNAL_CAPTCHA' => array('varchar(512)', 'caption=Кептча за регистриране->стойност'), // от https://signalcaptchas.org/staging/challenge/generate.html
+        'PHPSIGNAL_SIGNAL_VALIDATION_METHOD' => array('enum(voice,sms)', 'caption=Получаване на код валидиране->SMS/VOICE'),
+        'PHPSIGNAL_SIGNAL_TEST_NUMBER' => array('varchar(20)', 'caption=Номер за тестово съобщение->стойност'),
     );
     
     /**
@@ -63,7 +81,7 @@ class phpsignal_Setup extends core_ProtoSetup
         // Инсталираме библиотеката чрез композера
         if (core_Composer::isInUse()) {
             // $html .= core_Composer::install('jigarakatidus/php-signal', 'dev-main');
-            $html .= core_Composer::install('jigarakatidus/php-signal', '1.1.0');
+            $html .= core_Composer::install('jigarakatidus/php-signal', '2.1.0');
         } else {
             $html .= "<li class='red'>Не е инсталиран композер!</li>";
         }
@@ -73,7 +91,7 @@ class phpsignal_Setup extends core_ProtoSetup
         // Ако няма CLI - го сваляме
         if (!is_executable($binPath . 'signal-cli')) {
             $filename = "signal-cli-" . phpsignal_Setup::get('SIGNAL_VERSION') . ".tar.gz";
-            $cmd = "wget -O {$filename} https://github.com/AsamK/signal-cli/releases/download/v" . phpsignal_Setup::get('SIGNAL_VERSION') . "/{$filename} -P /tmp/ 2>&1";
+            $cmd = "wget -O /tmp/{$filename} https://github.com/AsamK/signal-cli/releases/download/v" . phpsignal_Setup::get('SIGNAL_VERSION') . "/{$filename} -P /tmp/ 2>&1";
             $outputDwnl = null;
             exec ($cmd, $outputDwnl);
             $output = null;
@@ -89,9 +107,32 @@ class phpsignal_Setup extends core_ProtoSetup
         } else {
             $html .= "<li class='debug-info'>Инсталиран от преди това signal-cli</li>";
         }
-        // Регистрира зададения номер ...
-        
-        
+       
         return $html;
     }
+
+    /**
+     * Проверява дали phpsignal е конфигуриран 
+     * @var boolean $fullCheck дали да прави пълна проверка 
+     * @return NULL|string
+     */
+    public function checkConfig($fullCheck = false)
+    {
+        if (!$fullCheck) {
+            
+            return;
+        }
+        if (core_Composer::isInUse()) {
+            $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+            $client = new Signal($binPath, phpsignal_Setup::get('SIGNAL_NUMBER'), Signal::FORMAT_JSON);
+        } else {
+            return "<li class='red'>Не е инсталиран композер!</li>";
+        }
+        $clientNumber = phpsignal_Setup::get('SIGNAL_NUMBER');
+        $res = $client->getUserStatus([$clientNumber]);
+        if (empty($res)) {
+            return "<li class='debug-error'>Не е регистриран signal клиент.</li>";
+        }
+    }
+    
 }

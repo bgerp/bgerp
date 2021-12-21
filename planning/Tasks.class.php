@@ -225,7 +225,11 @@ class planning_Tasks extends core_Master
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Производство->Склад,input=none');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Производство->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Производство->Оператори');
-        
+
+        if(core_Packs::isInstalled('batch')){
+            $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Производство->Отчитане,input=none');
+        }
+
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=none,tdClass=small-field nowrap,placeholder=Няма');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both');
         
@@ -830,7 +834,13 @@ class planning_Tasks extends core_Master
         
         if (isset($rec->productId)) {
             $productRec = cat_Products::fetch($rec->productId, 'canConvert,canStore,measureId');
-            
+
+            if(core_Packs::isInstalled('batch')){
+                if(batch_Defs::getBatchDef($rec->productId)){
+                    $form->setField('followBatchesForFinalProduct', 'input');
+                }
+            }
+
             // Ако артикула е различен от този от заданието и има други основни мерки, само тогава се показват за избор
             if($rec->productId != $originRec->productId){
                 $measureOptions = cat_Products::getPacks($rec->productId, true);

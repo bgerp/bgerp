@@ -38,8 +38,8 @@ abstract class deals_InvoiceMaster extends core_Master
      * Работен кеш
      */
     protected $cache = array();
-    
-    
+
+
     /**
      * Каква да е максималната дължина на стринга за пълнотекстово търсене
      *
@@ -1710,5 +1710,14 @@ abstract class deals_InvoiceMaster extends core_Master
                 $num = $number;
             }
         }
+    }
+
+
+    /**
+     * Може ли документа да се добавя като свързан документ към оридижина си
+     */
+    public static function canAddDocumentToOriginAsLink_($rec)
+    {
+        return $rec->type == 'dc_note';
     }
 }

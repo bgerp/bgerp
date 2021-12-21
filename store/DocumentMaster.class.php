@@ -87,7 +87,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,lineId';
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,lineId,additionalConditions';
     
     
     /**

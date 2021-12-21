@@ -25,7 +25,7 @@ class batch_plg_TaskDetails extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->FLD('batch', 'text', 'input=none,caption=Партида,after=productId,forceField');
+        $mvc->FLD('batch', 'text', 'caption=Партида,after=productId,input=none');
     }
 
 
@@ -44,8 +44,8 @@ class batch_plg_TaskDetails extends core_Plugin
         $Job = doc_Containers::getDocument($taskRec->originId);
         $jobProductId = $Job->fetchField('productId');
         $BatchClass = batch_Defs::getBatchDef($jobProductId);
-
-        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct == 'no' || !$BatchClass) return;
+       
+        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct != 'yes' || !$BatchClass) return;
 
         $form->setField('batch', 'input,unit=|*<small>|на|* ' . cat_Products::getTitleById($jobProductId) . "</small>");
         $batchClassType = $BatchClass->getBatchClassType();
@@ -53,6 +53,13 @@ class batch_plg_TaskDetails extends core_Plugin
         $form->setFieldType('batch', $batchClassType);
         if (isset($BatchClass->fieldPlaceholder)) {
             $form->setField('batch', "placeholder={$BatchClass->fieldPlaceholder}");
+        }
+
+        // Ако има само позволени опции само тях
+        $rec->_jobProductId = $jobProductId;
+        $allowedOptions = $mvc->getAllowedInBatches($rec);
+        if(is_array($allowedOptions)){
+            $form->setOptions('batch', array('' => '') + $allowedOptions);
         }
 
         // Ако има налични партиди в склада да се показват като предложения
@@ -92,7 +99,7 @@ class batch_plg_TaskDetails extends core_Plugin
         $Job = doc_Containers::getDocument($taskRec->originId);
 
         $jobProductId = $Job->fetchField('productId');
-        if($rec->type != 'production' || empty($taskRec->storeId)) return;
+        if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct != 'yes') return;
 
         if (isset($jobProductId)) {
             $BatchClass = batch_Defs::getBatchDef($jobProductId);
@@ -146,6 +153,19 @@ class batch_plg_TaskDetails extends core_Plugin
 
             $batch = batch_Movements::getLinkArr($jobProductId, $rec->batch);
             $row->batch = implode(', ', $batch);
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране за позволени партиди за заприхождаване
+     */
+    public static function on_AfterGetAllowedInBatches($mvc, &$res, $rec)
+    {
+        if(!$res){
+            $taskRec = planning_Tasks::fetch($rec->taskId);
+            $jobDoc = doc_Containers::getDocument($taskRec->originId);
+            $res = $jobDoc->getInstance()->getAllowedBatchesForJob($taskRec->originId);
         }
     }
 }

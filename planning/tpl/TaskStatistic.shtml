@@ -44,6 +44,9 @@
                   <!--ET_BEGIN employees-->
                   <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
                   <!--ET_END employees-->
+                  <!--ET_BEGIN followBatchesForFinalProduct-->
+                  <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
+                  <!--ET_END followBatchesForFinalProduct-->
     			</td>
            </tr>
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>

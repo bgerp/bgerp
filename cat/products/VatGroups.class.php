@@ -119,33 +119,6 @@ class cat_products_VatGroups extends core_Detail
     
     
     /**
-     * След подготовка на записите във вербален вид
-     */
-    public static function on_AfterPrepareListRows1(core_Detail $mvc, $data)
-    {
-        if (!$data->rows) {
-            
-            return;
-        }
-        
-        $now = dt::now(true);
-        $currentGroup = null;
-        
-        foreach ($data->rows as $id => &$row) {
-            $rec = $data->recs[$id];
-            if ($rec->validFrom > $now) {
-                $row->ROW_ATTR['class'] = 'state-draft';
-            } elseif ($rec->validFrom <= $now && is_null($currentGroup)) {
-                $currentGroup = $rec->validFrom;
-                $row->ROW_ATTR['class'] = 'state-active';
-            } else {
-                $row->ROW_ATTR['class'] = 'state-closed';
-            }
-        }
-    }
-    
-    
-    /**
      * Подготовка на файловете
      */
     public function prepareVatGroups($data)

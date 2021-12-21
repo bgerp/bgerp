@@ -1433,32 +1433,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     public function getAllowedInBatches_($id)
     {
         $rec = static::fetchRec($id);
-        $BatchClass = batch_Defs::getBatchDef($rec->productId);
-        if ($BatchClass) {
 
-            // Ако протокола е за крайния артикул
-            if(planning_DirectProductionNote::isForJobProductId($rec)) {
-                $jobDoc = doc_Containers::getDocument($rec->originId);
+        // Ако ще се произвежда артикулът от заданиет, наличните партиди за заприхождаване са тези от заданието
+        if(planning_DirectProductionNote::isForJobProductId($rec)) {
+            $jobDoc = doc_Containers::getDocument($rec->originId);
+            $options = $jobDoc->getInstance()->getAllowedBatchesForJob($rec->originId);
 
-                // Копират се предефинираните партиди в заданието
-                $options = array();
-                $bQuery = batch_BatchesInDocuments::getQuery();
-                $bQuery->where("#detailClassId = {$jobDoc->getClassId()} AND #detailRecId = {$jobDoc->that} AND #productId = {$rec->productId} AND #storeId = {$rec->storeId}");
-                while ($bRec = $bQuery->fetch()) {
-                    $options[$bRec->batch] = $BatchClass->toVerbal($bRec->batch);
-                }
-
-                // Ако няма взимат се тези от типа на партидността (ако има такива)
-                if(!countR($options)){
-                    $BatchType = $BatchClass->getBatchClassType();
-                    if($BatchType instanceof type_Enum){
-                        $options = $BatchType->options;
-                        $options = array_combine(array_values($options), array_values($options));
-                    }
-                }
-
-                return countR($options) ? $options : null;
-            }
+            return $options;
         }
 
         return null;

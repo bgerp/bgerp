@@ -141,7 +141,7 @@ class pos_Points extends core_Master
 
         $this->FLD('setPrices', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Цени, mandatory,default=yes');
         $this->FLD('setDiscounts', 'enum(yes=Разрешено,no=Забранено,ident=При идентификация)', 'caption=Ръчно задаване->Отстъпки, mandatory,settings,default=yes');
-        $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts)', 'caption=Ръчно задаване->Използвани отстъпки');
+        $this->FLD('usedDiscounts', 'table(columns=discount,captions=Отстъпки,validate=pos_Points::validateAllowedDiscounts,discount_class=leftCell)', 'caption=Ръчно задаване->Използвани отстъпки');
         
         $this->FLD('maxSearchProducts', 'int(min=1)', 'caption=Максимален брой резултати в "Избор"->Артикули');
         $this->FLD('maxSearchProductRelations', 'int(min=0)', 'caption=Максимален брой резултати в "Избор"->Свързани артикули');

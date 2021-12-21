@@ -34,9 +34,9 @@ abstract class trans_abstract_ShipmentDocument extends core_Master
 
 
     /**
-     * Може ли да се редактират активирани документи
+     * Да се добавя ли документа като линк към ориджина си
      */
-    protected $addLinks = array();
+    public $addLinkedDocumentToOriginId = true;
 
 
     /**
@@ -128,27 +128,6 @@ abstract class trans_abstract_ShipmentDocument extends core_Master
         );
 
         return $row;
-    }
-
-    /**
-     * Изпълнява се след края на изпълнението на скрипта
-     */
-    public static function on_Shutdown($mvc)
-    {
-        if(countR($mvc->addLinks)){
-            foreach($mvc->addLinks as $rec){
-                doc_Linked::add($rec->containerId, $rec->originId, 'doc', 'doc');
-            }
-        }
-    }
-
-
-    /**
-     * Изпълнява се след създаване на нов запис
-     */
-    protected static function on_AfterCreate($mvc, $rec)
-    {
-        $mvc->addLinks[$rec->id] = $rec;
     }
 
 
