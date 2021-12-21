@@ -150,18 +150,20 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
         while ($pRec = $pQuery->fetch()) {
 
-           $Driver =  cat_Products::getDriver($pRec->id);
+            $productId = ($rec->storeOrCreatProducts == 'storeProds') ? $pRec->productId : $pRec->id;
+
+           $Driver =  cat_Products::getDriver($productId);
             if($Driver instanceof eprod_proto_Product){
-                $productRec = cat_Products::fetch($pRec->id);
+                $productRec = cat_Products::fetch($productId);
                 $material = $Driver->getLabelProduct($productRec);
                 list($driverName) = explode('|', $Driver->singleTitle);
             }
 
             $prodTransWeight = $prodTransVolume = $realProdVol = $realProdWeight = $deviation = $deviationDensity = 0;
-
+            $packVolume = $realPackTara = 0;
             //Обема на кашона
             $uomRec = cat_UoM::fetchBySinonim('кашон');
-            $packRec = cat_products_Packagings::getPack($pRec->id, $uomRec->id);
+            $packRec = cat_products_Packagings::getPack($productId, $uomRec->id);
 
             //Обем на кашона в куб.м.
             $packVolume = $packRec->sizeWidth * $packRec->sizeHeight * $packRec->sizeDepth;
@@ -176,7 +178,7 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
                 $realPackTara = $packRec->tareWeight / $packRec->quantity;
 
                 //Тегло на артикула от параметъра в кг
-                $prodWeight = cat_Products::getParams($pRec->id)[$prodWeightParamId] / 1000 ?? cat_Products::getParams($pRec->id)[$prodWeightKgParamId];
+                $prodWeight = cat_Products::getParams($productId)[$prodWeightParamId] / 1000 ?? cat_Products::getParams($productId)[$prodWeightKgParamId];
                 $prodWeight = $prodWeight ?? 0;
 
                 //Реално тегло на артикула в кг за 1000 бройки
@@ -184,13 +186,12 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
 
             }
 
-            $id = $pRec->id;
             try {
                 // Транспортен обем на продукта от параметър "Транспортен обем" в куб.м за 1000 бр.
-                $prodTransVolume = cat_Products::getParams($pRec->id)[$transportVolumeParamId];
+                $prodTransVolume = cat_Products::getParams($productId)[$transportVolumeParamId];
 
                 //Транспортно тегло от параметър "Транспортно тегло" в кг за 1000 бр
-                $prodTransWeight = cat_Products::getParams($pRec->id)[$transportWeightParamId] * 1000;
+                $prodTransWeight = cat_Products::getParams($productId)[$transportWeightParamId] * 1000;
 
             } catch (Exception $e) {
 
@@ -214,8 +215,8 @@ class store_reports_UnrealisticPricesAndWeights extends frame2_driver_TableData
             }
 
             if ($deviation) {
-                $recs[$id] = (object)array(
-                    'productId' => $pRec->id,                                      // Артикул
+                $recs[$productId] = (object)array(
+                    'productId' => $productId,                                      // Артикул
 
                     'prodVolume' => $prodTransVolume,                              // Транспортен обем
                     'realProdVol' => $realProdVol,                                 // Реален обем на артикула за 1000 бр
