@@ -8,9 +8,7 @@ use jigarakatidus\Signal;
 defIfNot('PHPSIGNAL_SIGNAL_PATH', EF_ROOT_PATH);
 defIfNot('PHPSIGNAL_SIGNAL_VERSION', '0.9.2');
 defIfNot('PHPSIGNAL_SIGNAL_NUMBER', '+359');
-defIfNot('PHPSIGNAL_SIGNAL_CAPTCHA','');
-defIfNot('PHPSIGNAL_SIGNAL_VALIDATION_METHOD','');
-defIfNot('PHPSIGNAL_SIGNAL_TEST_NUMBER','');
+defIfNot('PHPSIGNAL_SIGNAL_TEST_NUMBER','+359');
 
 
 
@@ -56,6 +54,7 @@ class phpsignal_Setup extends core_ProtoSetup
      * Описание на системните действия
      */
     public $systemActions = array(
+        array('title' => 'Регистриране', 'url' => array('phpsignal_Client', 'Register', 'ret_url' => true), 'params' => array('title' => 'Регистриране клиент')),
         array('title' => 'Валидиране ключ', 'url' => array('phpsignal_Client', 'ValidateCode', 'ret_url' => true), 'params' => array('title' => 'Валидиране код')),
         array('title' => 'Отписване', 'url' => array('phpsignal_Client', 'UnRegister', 'ret_url' => true), 'params' => array('title' => 'Отрегистриране клиент'))
     );
@@ -67,8 +66,6 @@ class phpsignal_Setup extends core_ProtoSetup
         'PHPSIGNAL_SIGNAL_PATH' => array('varchar', 'mandatory, caption=Настройки signal-cli->Път'),
         'PHPSIGNAL_SIGNAL_VERSION' => array('varchar', 'mandatory, caption=Настройки signal-cli->Версия'),
         'PHPSIGNAL_SIGNAL_NUMBER' => array('varchar(20)', 'mandatory, caption=Настройки клиент->Номер'),
-        'PHPSIGNAL_SIGNAL_CAPTCHA' => array('varchar(512)', 'caption=Кептча за регистриране->стойност'), // от https://signalcaptchas.org/staging/challenge/generate.html
-        'PHPSIGNAL_SIGNAL_VALIDATION_METHOD' => array('enum(voice,sms)', 'caption=Получаване на код валидиране->SMS/VOICE'),
         'PHPSIGNAL_SIGNAL_TEST_NUMBER' => array('varchar(20)', 'caption=Номер за тестово съобщение->стойност'),
     );
     
@@ -126,12 +123,12 @@ class phpsignal_Setup extends core_ProtoSetup
             $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
             $client = new Signal($binPath, phpsignal_Setup::get('SIGNAL_NUMBER'), Signal::FORMAT_JSON);
         } else {
-            return "<li class='red'>Не е инсталиран композер!</li>";
+            return "Не е инсталиран композер!";
         }
         $clientNumber = phpsignal_Setup::get('SIGNAL_NUMBER');
         $res = $client->getUserStatus([$clientNumber]);
         if (empty($res)) {
-            return "<li class='debug-error'>Не е регистриран signal клиент.</li>";
+            return "Не е регистриран signal клиент.";
         }
     }
     
