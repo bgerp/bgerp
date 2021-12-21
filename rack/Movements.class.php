@@ -806,7 +806,7 @@ class rack_Movements extends rack_MovementAbstract
         expect($rec = $this->fetch($id));
         
         // Заключване на екшъна
-       /* if (!core_Locks::get("movement{$rec->id}", 120, 0)) {
+        if (!core_Locks::get("movement{$rec->id}", 120, 0)) {
             
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
             if($ajaxMode){
@@ -814,7 +814,7 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             followretUrl(array($this));
-       }*/
+        }
         
         if($ajaxMode){
             if(!$this->haveRightFor('done', $rec)){
@@ -1344,13 +1344,13 @@ class rack_Movements extends rack_MovementAbstract
             }
 
             $row->_rowTools->addLink('Приключване', $doneUrl, array('warning' => $doneWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
-            //if($fields['-inline'] && !isset($fields['-inline-single'])){
-                //$doneUrl = toUrl($doneUrl, 'local');
-               // $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
-           // } else {
+            if($fields['-inline'] && !isset($fields['-inline-single'])){
+                $doneUrl = toUrl($doneUrl, 'local');
+                $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+            } else {
                 $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
                 $row->rightColBtns .= ht::createLink($img, $doneUrl, $doneWarning, 'title=Приключване на движението');
-            //}
+            }
         }
 
         if ($mvc->haveRightFor('reject', $rec)) {
