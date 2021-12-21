@@ -122,21 +122,18 @@ class phpsignal_Client extends core_Manager
         if ($form->isSubmitted()) {
             $retUrl = getRetUrl();
             
-            // Инстанция на класа
-            $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
-            $client = new Signal($binPath, phpsignal_Setup::get('SIGNAL_NUMBER'), Signal::FORMAT_JSON);
-            
-            $signalNumber = phpsignal_Setup::get('SIGNAL_NUMBER');
-            
-            if (false !== strpos($client->getUserStatus([$signalNumber]), 'true')) {
-                $msg = 'Регистриран отпреди номер.|*';
-            } else {
-                $validationMethod = ($form->rec->validationMethod == 'voice') ? true : false;
-                if ($client->Register($validationMethod, $signalNumber)) {
-                    $msg = "Успешно регистриран номер.";
-                }
+            if (core_Composer::isInUse()) {
+                $signalNumber = phpsignal_Setup::get('SIGNAL_NUMBER');
+                // Инстанция на класа
+                $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+                $client = new Signal($binPath, $signalNumber, Signal::FORMAT_JSON);
             }
             
+            $validationMethod = ($form->rec->validationMethod == 'voice') ? true : false;
+            $msg = "Неуспешна регистрация";
+            if ($x = $client->Register($validationMethod, $form->rec->captcha)) {
+                $msg = "Успешно регистриран номер.";
+            }
             
             return new Redirect($retUrl, $msg);
             
