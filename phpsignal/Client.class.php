@@ -31,11 +31,8 @@ class phpsignal_Client extends core_Manager
         if (core_Composer::isInUse()) {
             try {
                 // Инстанция на класа
-                $client = new Signal(
-                    phpsignal_Setup::get('SIGNAL_BIN_PATH'), // Binary Path
-                    phpsignal_Setup::get('SIGNAL_NUMBER'), // Username/Number including Country Code with '+'
-                    Signal::FORMAT_JSON // Format
-                    );
+                $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+                $client = new Signal($binPath, phpsignal_Setup::get('SIGNAL_NUMBER'), Signal::FORMAT_JSON);
             } catch (Exception $e) {
                 reportException($e);
             }
@@ -61,12 +58,18 @@ class phpsignal_Client extends core_Manager
         if ($form->isSubmitted()) {
             $retUrl = getRetUrl();
             
-            
-            
-            $msg = 'Регистриран код за signal-cli|*';
+            if (core_Composer::isInUse()) {
+                $signalNumber = phpsignal_Setup::get('SIGNAL_NUMBER');
+                // Инстанция на класа
+                $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+                $client = new Signal($binPath, $signalNumber, Signal::FORMAT_JSON);
+            }
+            $msg = "Неуспешна валидация";
+            if ($client->verify($form->rec->key)) {
+                $msg = 'Валидиран код за signal-cli|*';
+            }
             
             return new Redirect($retUrl, $msg);
-            
         }
         $form->toolbar->addSbBtn('Валидирай', 'save', 'ef_icon = img/16/disk.png, title = Валидация');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
@@ -109,5 +112,44 @@ class phpsignal_Client extends core_Manager
             
     }
     
-
+    /**
+     * Регистрира signal клиента
+     */
+    public function act_Register()
+    {
+        requireRole('admin');
+        $form = cls::get('core_Form');
+        $form->title = 'Регистрация клиент signal';
+        $form->FLD('captcha', 'varchar(512)', 'caption=Кепча от: https://signalcaptchas.org/staging/challenge/generate.html->Кепча');
+        $form->FLD('validationMethod', 'enum(voice,sms)', 'caption=Получаване на код валидиране->VOICE/SMS');
+        
+        $form->input('captcha,validationMethod', true);
+        
+        if ($form->isSubmitted()) {
+            $retUrl = getRetUrl();
+            
+            if (core_Composer::isInUse()) {
+                $signalNumber = phpsignal_Setup::get('SIGNAL_NUMBER');
+                // Инстанция на класа
+                $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+                $client = new Signal($binPath, $signalNumber, Signal::FORMAT_JSON);
+            }
+            
+            $validationMethod = ($form->rec->validationMethod == 'voice') ? true : false;
+            $msg = "Неуспешна регистрация";
+            if ($client->Register($validationMethod, $form->rec->captcha)) {
+                $msg = "Успешно регистриран номер.";
+            }
+            
+            return new Redirect($retUrl, $msg);
+            
+        }
+        $form->toolbar->addSbBtn('Регистрирай', 'save', 'ef_icon = img/16/disk.png, title = Регистрирай');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+        
+        $tpl = $this->renderWrapping($form->renderHtml());
+        
+        return $tpl;
+    }
+    
 }

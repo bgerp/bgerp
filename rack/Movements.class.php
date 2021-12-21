@@ -260,10 +260,7 @@ class rack_Movements extends rack_MovementAbstract
                 
                 $documents = (countR($documents)) ? keylist::fromArray($documents) : null;
                 $rec->documents = keylist::merge($rec->documents, $documents);
-
-                if($rec->_isCreatedClosed === true){
-                    $rec->workerId = core_Users::getCurrent();
-                }
+                $rec->workerId = core_Users::getCurrent();
             }
         }
 
@@ -860,11 +857,11 @@ class rack_Movements extends rack_MovementAbstract
                 $newRec->state = 'closed';
                 $newRec->brState = 'active';
 
-                // Отделям само к-то за тази зона, като ново приключено движение
+                // Отделя се само к-то за тази зона, като ново приключено движение
                 $this->save_($newRec);
                 rack_Logs::add($newRec->storeId, $newRec->productId, 'close', $newRec->positionTo, $newRec->id, "Приключване на движение #{$newRec->id}");
 
-                // Остатъка го записвам ново движение с приспадната текущата зона
+                // Оригиналното движение се редактира, премахвайки тази част, която е отделена като ново
                 $rec->zones = @json_encode($newZoneArr);
                 $rec->zoneList = keylist::removeKey($rec->zoneList, $currentZoneId);
                 $rec->documents = keylist::removeKey($rec->documents, $zoneDocumentContainerId);
