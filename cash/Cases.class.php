@@ -9,7 +9,7 @@
  * @package   cash
  *
  * @author    Milen Georgiev <milen@download.bg> и Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -55,9 +55,16 @@ class cash_Cases extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, bgerp_plg_FLB, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified, doc_plg_Close';
-    
-    
+    public $loadList = 'plg_RowTools2, acc_plg_Registry, cash_Wrapper, bgerp_plg_FLB, plg_Current, doc_FolderPlg, plg_Created, plg_Rejected, plg_State, plg_Modified, doc_plg_Close, deals_plg_AdditionalConditions';
+
+
+    /**
+     * Полета за допълнителни условие към документи
+     * @see deals_plg_AdditionalConditions
+     */
+    public $additionalConditionsToDocuments = 'sales_Sales,purchase_Purchases';
+
+
     /**
      * Кой може да пише
      */
@@ -162,10 +169,10 @@ class cash_Cases extends core_Master
      */
     public function description()
     {
-        $this->FLD('name', 'varchar(255)', 'caption=Наименование,oldFiled=Title,mandatory');
+        $this->FLD('name', 'varchar(255)', 'caption=Наименование,mandatory');
         $this->FLD('cashiers', 'userList(roles=cash|ceo)', 'caption=Контиране на документи->Потребители');
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
-        $this->FLD('defaultPaymentType', 'key(mvc=cond_Payments,select=title,allowEmpty)', 'caption=Дефолтен безналичен метод на плащане->Избор');
+        $this->FLD('defaultPaymentType', 'key(mvc=cond_Payments,select=title,allowEmpty)', 'caption=Безналичен метод на плащане по подразбиране->Избор');
         
         $this->setDbUnique('name');
     }

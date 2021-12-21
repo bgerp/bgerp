@@ -164,7 +164,7 @@ class batch_plg_Jobs extends core_Plugin
         if($form->isSubmitted()){
             if(isset($rec->id)){
                 if(empty($rec->storeId) && batch_BatchesInDocuments::fetchField("#containerId = {$rec->containerId}")){
-                    $form->setWarning('storeId', 'Не е посочен склад, разпределените партиди ще бъдат изтритиЮ*!');
+                    $form->setWarning('storeId', 'Не е посочен склад, разпределените партиди ще бъдат изтрити|*!');
                 }
             }
         }
@@ -202,6 +202,47 @@ class batch_plg_Jobs extends core_Plugin
                     $res = array_combine(array_values($options), array_values($options));
                 }
             }
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране връщаш позволените партиди за документ към задание
+     *
+     * @param $mvc
+     * @param $res
+     * @param $jobOriginId
+     * @return void
+     */
+    public static function on_AfterGetAllowedBatchesForJob($mvc, &$res, $jobOriginId)
+    {
+        if(isset($res)) return;
+
+        $jobDoc = doc_Containers::getDocument($jobOriginId);
+        $jobRec = $jobDoc->fetch('productId,storeId');
+        $BatchClass = batch_Defs::getBatchDef($jobRec->productId);
+        if ($BatchClass) {
+
+            // Копират се предефинираните партиди в заданието
+            $options = array();
+            $bQuery = batch_BatchesInDocuments::getQuery();
+            $bQuery->where("#detailClassId = {$jobDoc->getClassId()} AND #detailRecId = {$jobDoc->that} AND #productId = {$jobRec->productId} AND #storeId = '{$jobRec->storeId}'");
+            Mode::push('text', 'plain');
+            while ($bRec = $bQuery->fetch()) {
+                $options[$bRec->batch] = $BatchClass->toVerbal($bRec->batch);
+            }
+            Mode::pop('text');
+
+            // Ако няма взимат се тези от типа на партидността (ако има такива)
+            if(!countR($options)){
+                $BatchType = $BatchClass->getBatchClassType();
+                if($BatchType instanceof type_Enum){
+                    $options = $BatchType->options;
+                    $options = array_combine(array_values($options), array_values($options));
+                }
+            }
+
+            $res = countR($options) ? array_combine($options, $options) : null;
         }
     }
 }

@@ -78,7 +78,7 @@ class batch_definitions_ExpirationDate extends batch_definitions_Date
      */
     public static function displayExpiryDate($date, $format, $time)
     {
-        if (Mode::isReadOnly()) {
+        if (Mode::isReadOnly() || Mode::is('text', 'plain')) {
             
             return cls::get('type_Html')->toVerbal($date);
         }

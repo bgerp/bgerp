@@ -284,9 +284,14 @@ class acc_ArticleDetails extends doc_Detail
                             $form->setField("{$type}Ent{$i}", "removeAndRefreshForm={{$type}Price}");
                             
                             // Задаваме курса към основната валута за дефолт цена
-                            $rate = currency_CurrencyRates::getRate($masterRec->valior, currency_Currencies::getCodeById($itemRec->objectId), null);
+                            $currencyCode = currency_Currencies::getCodeById($itemRec->objectId);
+                            $rate = currency_CurrencyRates::getRate($masterRec->valior, $currencyCode, null);
                             $form->setDefault("{$type}Price", $rate);
                             $form->setField("{$type}Ent{$i}", "removeAndRefreshForm={$type}Price");
+                            if($currencyCode == acc_Periods::getBaseCurrencyCode($masterRec->valior)){
+                                $form->setReadOnly("{$type}Price");
+                                $form->setField("{$type}Price", array('hint' => 'Цената на основната валута за периода, трябва да е винаги фиксирана|*!'));
+                            }
                         }
                     }
                 }

@@ -23,22 +23,17 @@
                 <!--ET_BEGIN address-->
                 <div>[#address#]</div>
                 <!--ET_END address-->
-
-                <!--ET_BEGIN WORKING_TIME-->
-                [#WORKING_TIME#]
-                <div><span class="quiet">|Работно време|*</span>:<!--ET_BEGIN workingTimeStart--> |от|* [#workingTimeStart#]<!--ET_END workingTimeStart--> <!--ET_BEGIN workingTimeEnd-->|до|* [#workingTimeEnd#]<!--ET_END workingTimeEnd--></div>
-                <!--ET_END WORKING_TIME-->
             </div>
         </fieldset>
          <!--ET_END ADDRESS_SECTION-->
-        <!--ET_BEGIN specifics-->
+        <!--ET_BEGIN workingTime-->
         <fieldset class="detail-info">
-            <legend class="groupTitle">|Други|*</legend>
-            <div class="groupList">
-                [#specifics#]
+            <legend class="groupTitle">|Работно време|*</legend>
+            <div class="groupList workingTimeBlock">
+                [#workingTime#]
             </div>
         </fieldset>
-        <!--ET_END specifics-->
+        <!--ET_END workingTime-->
         <!--ET_BEGIN type-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Описание|*</legend>
@@ -49,6 +44,7 @@
                         <span class="gray-title">|Тип|*:</span> [#type#]
                     </li>
                     <!--ET_END type-->
+
                     <!--ET_BEGIN mol-->
                     <li class="info">
                         <span class="gray-title">|Отговорник|*:</span> [#mol#]
@@ -78,6 +74,14 @@
             </div>
         </fieldset>
         <!--ET_END type-->
+        <!--ET_BEGIN specifics-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Други|*</legend>
+            <div class="groupList">
+                [#specifics#]
+            </div>
+        </fieldset>
+        <!--ET_END specifics-->
         <!--ET_BEGIN comment-->
         <fieldset class="detail-info">
             <legend class="groupTitle">|Информация (за вътрешно/служебно ползване - не се показва в документи)|*</legend>

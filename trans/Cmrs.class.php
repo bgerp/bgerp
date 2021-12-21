@@ -11,7 +11,7 @@
  * @package   trans
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -33,7 +33,7 @@ class trans_Cmrs extends trans_abstract_ShipmentDocument
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg';
+    public $loadList = 'plg_RowTools2, trans_Wrapper,plg_Clone,doc_DocumentPlg, plg_Printing, plg_Search, doc_ActivatePlg, doc_EmailCreatePlg, plg_Sorting';
     
     
     /**

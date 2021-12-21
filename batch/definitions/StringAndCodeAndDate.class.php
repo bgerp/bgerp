@@ -133,10 +133,14 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
     public function toVerbal($value)
     {
         list($string, $date) = explode('|', $value);
-
         $date = batch_definitions_ExpirationDate::displayExpiryDate($date, $this->rec->format, $this->rec->time);
+
         $string = core_Type::getByName('varchar')->toVerbal($string);
-        $value = "<span>{$string}{$date}</span>";
+        $value = "{$string}{$date}";
+
+        if(!Mode::is('text', 'plain') && $value != strip_tags($value)) {
+            $value = "<span>{$value}</span>";
+        }
 
         return $value;
     }
@@ -173,7 +177,7 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
         $expectedEndString = str_replace($shouldStartWith, '', $value);
         if (!dt::checkByMask($expectedEndString, $this->rec->format)) {
             $expectedFormat = dt::mysql2verbal(dt::today(), $this->rec->format);
-            $msg = "|Срока на годност трябва да е във формата|* <b>{$expectedFormat}</b>";
+            $msg = "|След|* <b>{$shouldStartWith}</b> |трябва да следва дата във формата|* <b>{$expectedFormat}</b>";
 
             return false;
         }

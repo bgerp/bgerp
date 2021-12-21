@@ -228,21 +228,21 @@ class trans_plg_LinesPlugin extends core_Plugin
         core_Lg::push($rec->tplLang);
         
         if (isset($rec->lineId)) {
-            if(!Mode::is('printing')){
-                $lineRec = trans_Lines::fetch($rec->lineId);
-                $row->lineId = '';
-                if(isset($mvc->termDateFld) && $lineRec->start != $rec->{$mvc->termDateFld}){
-                    $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
-                    $row->lineId .= $lineDate . '/';
-                }
-                $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
-                if(doc_Threads::haveRightFor('single', $lineRec->threadId)){
-                    if(doc_Threads::haveRightFor('single', $lineRec->threadId)){
-                        $lineSingleUrl = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $mvc->getHandle($rec));
-                        $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
-                    }
-                }
 
+
+            $lineRec = trans_Lines::fetch($rec->lineId);
+            $row->lineId = '';
+            if(isset($mvc->termDateFld) && $lineRec->start != $rec->{$mvc->termDateFld}){
+                $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
+                $row->lineId .= $lineDate . '/';
+            }
+            $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
+            if(!Mode::is('printing') && doc_Threads::haveRightFor('single', $lineRec->threadId)){
+                $lineSingleUrl = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $mvc->getHandle($rec));
+                $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
+            }
+
+            if(!Mode::is('printing')){
                 $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
             }
 

@@ -1760,6 +1760,16 @@ class cat_Products extends embed_Manager
     /**
      * Връща себестойноста на артикула
      *
+     * 1. Ако е стандартен първата по приоритет
+     *  - От ценова политика "Себестойност"
+     *  - От драйвера на артикула, ако метода връща себестойност
+     *  - Ако артикула има прототип, и той има себестойност в ценова политика "Себестойност"
+     *
+     * 1. Ако е нестандартен първата по приоритет
+     *  - От драйвера на артикула, ако метода връща себестойност
+     *  - От ценова политика "Себестойност"
+     *  - Ако артикула има прототип, и той има себестойност в ценова политика "Себестойност"
+     *
      * @param int      $productId       - ид на артикул
      * @param int      $packagingId     - ид на опаковка
      * @param float    $quantity        - количество
@@ -1771,20 +1781,31 @@ class cat_Products extends embed_Manager
     public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
         // Опитваме се да намерим запис в в себестойностти за артикула
-        
         $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
-        
+
+        // Дали артикула е стандартен или не
+        $isPublic = cat_Products::fetchField($productId, 'isPublic');
+
         // Ако няма цена се опитва да намери от драйвера
+        $primeCostDriver = null;
         if ($Driver = cat_Products::getDriver($productId)) {
-            $primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $primeCostlistId);
+            $primeCostDriver = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $primeCostlistId);
         }
-        
+
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
         $date = price_ListToCustomers::canonizeTime($date);
-        if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
-            $primeCost = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+
+        if($isPublic == 'yes'){
+
+            // Ако е стандартен първо се търси цената по политика "Себестойност", ако няма от драйвера
+            $primeCostDefault = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+            $primeCost = (isset($primeCostDefault)) ? $primeCostDefault : $primeCostDriver;
+        } else {
+
+            // Ако е нестандартен се търси първо от драйвера, после от себестойност
+            $primeCost = (is_object($primeCostDriver) && isset($primeCostDriver->price) || isset($primeCostDriver)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
-        
+
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
         if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
             if ($proto = cat_Products::fetchField($productId, 'proto')) {
@@ -1793,7 +1814,7 @@ class cat_Products extends embed_Manager
         }
         
         $primeCost = is_object($primeCost) ? $primeCost->price : $primeCost;
-        
+
         return $primeCost;
     }
 
@@ -4030,6 +4051,11 @@ class cat_Products extends embed_Manager
             
             // Връща се отношението и за 1-ца към $toUomId
             if ($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)) {
+                if(empty($pRec->quantity)) {
+                    wp($pRec);
+                    continue;
+                }
+
                 $res = $res / $pRec->quantity;
                 
                 return $res;

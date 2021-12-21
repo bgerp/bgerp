@@ -812,6 +812,7 @@ class rack_Movements extends rack_MovementAbstract
             if($ajaxMode){
                 return status_Messages::returnStatusesArray();
             }
+
             followretUrl(array($this));
         }
         
@@ -825,10 +826,62 @@ class rack_Movements extends rack_MovementAbstract
             $this->requireRightFor('done', $rec);
         }
 
-        $rec->workerId = core_Users::getCurrent();
-        $rec->state = 'closed';
-        $rec->brState = 'active';
-        $this->save($rec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy');
+        $skip = false;
+
+        // Ако в урл-то има текуща зона
+        $currentZoneId = Request::get('currentZoneId', 'int');
+        if($currentZoneId && !empty($rec->zones)){
+            $zoneArr = @json_decode($rec->zones, true);
+
+            // И движението е към повече от една зона
+            if(is_array($zoneArr) && countR($zoneArr['zone']) > 1){
+                $newZoneArr = $zoneArr;
+                $currentZoneKey = array_search($currentZoneId, $newZoneArr['zone']);
+                $quantityInZoneInPack = $newZoneArr['quantity'][$currentZoneKey];
+                $quantityToRemove = $quantityInZoneInPack * $rec->quantityInPack;
+                unset($newZoneArr['zone'][$currentZoneKey]);
+                unset($newZoneArr['quantity'][$currentZoneKey]);
+
+                $newZoneArr['zone'] = array_values($newZoneArr['zone']);
+                $newZoneArr['quantity'] = array_values($newZoneArr['quantity']);
+
+                $newRec = clone $rec;
+                unset($newRec->id, $newRec->positionTo);
+                $newRec->quantity = $quantityToRemove;
+                $newRec->workerId = $newRec->modifiedBy = $newRec->createdBy = core_Users::getCurrent();
+                $newRec->modifiedOn = dt::now();
+                $newRec->zoneList = keylist::addKey('', $currentZoneId);
+                $newRec->packQuantity = $quantityInZoneInPack;
+                $zoneDocumentContainerId = rack_Zones::fetchField($currentZoneId, 'containerId');
+
+                $newRec->documents = keylist::addKey('', $zoneDocumentContainerId);
+                $newZoneObj = array('zone' => array(0 => $currentZoneId), 'quantity' => array(0 => $quantityInZoneInPack));
+                $newRec->zones = @json_encode($newZoneObj);
+                $newRec->state = 'closed';
+                $newRec->brState = 'active';
+
+                // Отделям само к-то за тази зона, като ново приключено движение
+                $this->save_($newRec);
+                rack_Logs::add($newRec->storeId, $newRec->productId, 'close', $newRec->positionTo, $newRec->id, "Приключване на движение #{$newRec->id}");
+
+                // Остатъка го записвам ново движение с приспадната текущата зона
+                $rec->zones = @json_encode($newZoneArr);
+                $rec->zoneList = keylist::removeKey($rec->zoneList, $currentZoneId);
+                $rec->documents = keylist::removeKey($rec->documents, $zoneDocumentContainerId);
+                $rec->quantity -= $quantityToRemove;
+                $this->save_($rec);
+
+                $skip = true;
+            }
+        }
+
+        // Ако движението е без зони или е само към една зона просто се приключва
+        if(!$skip){
+            $rec->workerId = core_Users::getCurrent();
+            $rec->state = 'closed';
+            $rec->brState = 'active';
+            $this->save($rec, 'state,brState,packagings,workerId,modifiedOn,modifiedBy');
+        }
         
         core_Locks::release("movement{$rec->id}");
         
@@ -1284,15 +1337,18 @@ class rack_Movements extends rack_MovementAbstract
         }
 
         if ($mvc->haveRightFor('done', $rec)) {
-            $stopUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
-            $row->_rowTools->addLink('Приключване', array($mvc, 'done', $rec->id, 'ret_url' => true), array('warning' => $doneWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
+            $doneUrl = array($mvc, 'done', $rec->id, 'ret_url' => true);
+            if(isset($rec->_currentZoneId)){
+                $doneUrl['currentZoneId'] = $rec->_currentZoneId;
+            }
 
+            $row->_rowTools->addLink('Приключване', $doneUrl, array('warning' => $doneWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
             if($fields['-inline'] && !isset($fields['-inline-single'])){
-                $stopUrl = toUrl($stopUrl, 'local');
-                $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('class' => 'toggle-movement', 'data-url' => $stopUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+                $doneUrl = toUrl($doneUrl, 'local');
+                $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
-                $row->rightColBtns .= ht::createLink($img, $stopUrl, $doneWarning, 'title=Приключване на движението');
+                $row->rightColBtns .= ht::createLink($img, $doneUrl, $doneWarning, 'title=Приключване на движението');
             }
         }
 

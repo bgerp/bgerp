@@ -67,6 +67,12 @@ class trans_Features extends core_Manager
 
 
     /**
+     * Кой може да променя състоянието на валутата
+     */
+    public $canChangestate = 'trans,ceo';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -86,6 +92,39 @@ class trans_Features extends core_Manager
         if($action == 'delete' && isset($rec)){
             if(!empty($rec->lastUsedOn)){
                 $requiredRoles = 'no_one';
+            }
+        }
+    }
+
+
+    /**
+     * След началното установяване на този мениджър
+     */
+    public function loadSetupData()
+    {
+        $file = 'trans/data/Features.csv';
+        $fields = array(0 => 'name');
+
+        $cntObj = csv_Lib::importOnce($this, $file, $fields);
+        $res = $cntObj->html;
+
+        return $res;
+    }
+
+
+    /**
+     * Преди импортиране на записите
+     */
+    protected static function on_BeforeImportRec($mvc, &$rec)
+    {
+        // Ако има вече запис с това име
+        $exId = $mvc->fetchField(array("#name = '[#1#]'", $rec->name));
+        if($exId){
+
+            // и той е затворен - ще си остане затворен
+            $exState = $mvc->fetchField($exId, 'state', false);
+            if($exState == 'closed'){
+                $rec->state = $exState;
             }
         }
     }

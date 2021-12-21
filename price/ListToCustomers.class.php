@@ -340,12 +340,20 @@ class price_ListToCustomers extends core_Manager
                 $rec->listId = $listId;
             }
         }
-        
+
+        // Подсигуряване, че няма да е NaN цената
+        if(is_nan($rec->price)){
+            $rec->price = null;
+            wp($customerClass, $customerId, $productId, $packagingId, $quantity, $datetime, $rate, $chargeVat, $listId, $quotationPriceFirst);
+        }
+
         // Ако все още няма цена, но има прототип проверява се има ли цена по политика за прототипа, използва се тя
         if(is_null($rec->price) && isset($productRec->proto)){
             $rec = $this->getPriceByList($listId, $productRec->proto, $packagingId, $quantity, $datetime, $rate, $chargeVat);
         }
-        
+
+
+
         // Обръщаме цената във валута с ДДС ако е зададено и се закръгля спрямо ценоразписа
         if (!is_null($rec->price)) {
             $vat = cat_Products::getVat($productId);

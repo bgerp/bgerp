@@ -95,7 +95,7 @@ class speedy_Adapter {
             
             return $result;
         }
-        
+
         try{
             $this->eps = new EPSFacade(new EPSSOAPInterfaceImpl(), $userName,  $password);
             $this->resultLogin = $this->eps->getResultLogin();
@@ -106,6 +106,13 @@ class speedy_Adapter {
             
             $result->success = false;
             $result->errorMsg = tr("Проблем при логване");
+
+            $msg = $e->getMessage();
+            if(!haveRole('debug')){
+                $msg = ($msg == 'Service Unavailable') ? 'Недостъпна услуга. Моля опитайте по-късно|*!' : ((strpos($msg, 'InvalidUsernameOrPasswordException') !== false) ? 'Невалидно потребителско име и/или парола|*!' : 'Проблем при логване');
+            }
+
+            $result->errorMsg = $msg;
         }
        
         return $result;

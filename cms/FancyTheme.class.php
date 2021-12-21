@@ -259,7 +259,7 @@ class cms_FancyTheme extends core_ProtoInner
 
                 if(countR($imgs) > 1){
                     $banner->append('.fadein { position:relative; display:block;} .fadein img {position:relative; left:0; top:0;}', 'STYLES');
-                    jquery_Jquery::run($banner, "fadeImages({$fadeTransition}, {$fadeDelay});", true);
+                    jquery_Jquery::run($banner, "fadeImages('#cmsTop', {$fadeTransition}, {$fadeDelay});", true);
                 }
 
                 $this->haveOwnHeaderImages = true;

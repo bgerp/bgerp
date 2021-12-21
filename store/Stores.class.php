@@ -37,9 +37,16 @@ class store_Stores extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified, doc_plg_Close';
-    
-    
+    public $loadList = 'plg_RowTools2, plg_Created, acc_plg_Registry, bgerp_plg_FLB, store_Wrapper, plg_Current, plg_Rejected, doc_FolderPlg, plg_State, plg_Modified, doc_plg_Close, deals_plg_AdditionalConditions';
+
+
+    /**
+     * Полета за допълнителни условие към документи
+     * @see deals_plg_AdditionalConditions
+     */
+    public $additionalConditionsToDocuments = 'sales_Sales,purchase_Purchases,store_ShipmentOrders';
+
+
     /**
      * Кой има право да променя?
      */
