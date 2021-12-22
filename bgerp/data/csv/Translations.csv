@@ -2972,3 +2972,6 @@ en,Отровни и заразни вещества,Poisonous and infectious su
 en,Радиоактивни материали,Radioactive materials
 en,Други опасни вещества,Other dangerous substances
 en,Съгласно офериране,According to auction
+en,"Невалидно потребителско име. Трябва да започва с буква", "Invalid nick. It must start with a letter"
+en,"Невалидно потребителско име. Трябва да започва с буква", "Invalid nick. It must start with a letter"
+en,"Може да съдържа малки и големи букви, цифри, долна черта и точка", "It may contain small and big letters, digits, underscore or a dot"
