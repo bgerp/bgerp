@@ -541,6 +541,12 @@ class core_FieldSet extends core_BaseClass
     /**
      * Връща типа на посоченото поле. Ако полето
      * липсва, а $strict е истина, генерира се грешка
+     *
+     * @param string $name
+     * @param boolean $strict
+     *
+     * @return core_Type
+     * @throws core_exception_Expect
      */
     public function getFieldType($name, $strict = true)
     {
