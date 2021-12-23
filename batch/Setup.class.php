@@ -176,9 +176,12 @@ class batch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Партидни движения на заданията', 'batch_plg_Jobs', 'planning_Jobs', 'private');
         $html .= $Plugins->installPlugin('Партидни движения към прогреса на производствените операции', 'batch_plg_TaskDetails', 'planning_ProductionTaskDetails', 'private');
 
-        // Обновяване на протокола за инвентаризация да му се сетъпне модела
-        $Notes = cls::get('store_InventoryNotes');
-        $html .= $Notes->setupMvc();
+        // Обновяване на моделите към, които са закачени партиди
+        $classesToSetup = array('planning_ProductionTaskDetails', 'store_InventoryNoteDetails', 'planning_DirectProductionNote', 'sales_SalesDetails', 'planning_DirectProductNoteDetails', 'purchase_PurchasesDetails', 'store_ConsignmentProtocols', 'store_TransfersDetails', 'store_ReceiptDetails', 'store_ShipmentOrderDetails', 'pos_Reports');
+        foreach ($classesToSetup as $clsToSetup){
+            $SetupCls = cls::get($clsToSetup);
+            $html .= $SetupCls->setupMvc();
+        }
         
         return $html;
     }
