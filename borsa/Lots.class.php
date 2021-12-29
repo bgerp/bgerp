@@ -243,7 +243,7 @@ class borsa_Lots extends core_Master
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
-        $pArr = $this->getChangePeriods($rec->id);
+        $pArr = $mvc->getChangePeriods($rec->id);
         
         if ($rec->quantity) {
             // Добавяме периоди с количества по подразбиране
@@ -623,7 +623,7 @@ class borsa_Lots extends core_Master
         
         $tpl = $form->renderHtml();
         
-        return $this->getExternalLayout($tpl, $data->pageTitle);
+        return $this->getExternalLayout($tpl, $this->pageTitle);
     
     }
     
@@ -672,13 +672,13 @@ class borsa_Lots extends core_Master
      */
     protected function getAllowedProdId($cId = null)
     {
-        $res = Mode::get($this->allowedProdModeName, $resArr);
+        $res = Mode::get($this->allowedProdModeName);
         
         if (!isset($res) || (rand(1,10) == 5)) {
             $this->setAllowedProdIds($cId);
         }
         
-        return Mode::get($this->allowedProdModeName, $resArr);
+        return Mode::get($this->allowedProdModeName);
     }
     
     

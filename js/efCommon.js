@@ -75,10 +75,10 @@ function runOnLoad(functionName) {
 /**
  * Сменя изображенията с fade ефект
  */
-function fadeImages(el, delay){
+function fadeImages(el, transition, delay){
 	$('.fadein img:gt(0)').hide();
 	setInterval(function(){
-		$('.fadein :first-child').css({position: 'absolute'}).fadeOut(el).next('img').css({position: 'absolute'}).fadeIn(1500).end().appendTo('.fadein');
+		$('.fadein :first-child').css({position: 'absolute'}).fadeOut(el).next('img').css({position: 'absolute'}).fadeIn(transition).end().appendTo('.fadein');
 		$('.fadein :first-child').css({position: 'relative'});
 	}, delay);
 }

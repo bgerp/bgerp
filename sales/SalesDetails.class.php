@@ -179,7 +179,7 @@ class sales_SalesDetails extends deals_DealDetail
         if (isset($rec->productId)) {
             $pInfo = cat_Products::getProductInfo($rec->productId);
             
-            if (isset($pInfo->meta['canStore'])) {
+            if (isset($pInfo->meta['canStore']) && $masterRec->shipmentStoreId) {
                 $deliveryDate = $mvc->Master->getDeliveryDate($masterRec);
                 $storeInfo = deals_Helper::checkProductQuantityInStore($rec->productId, $rec->packagingId, $rec->packQuantity, $masterRec->shipmentStoreId, $deliveryDate);
                 $form->info = $storeInfo->formInfo;

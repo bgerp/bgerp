@@ -360,8 +360,9 @@ class cat_products_Params extends doc_Detail
         $query = self::getQuery();
         $query->EXT('group', 'cat_Params', 'externalName=group,externalKey=paramId');
         $query->EXT('order', 'cat_Params', 'externalName=order,externalKey=paramId');
+        $query->XPR('orderEx', 'varchar', 'COALESCE(#order, 999999)');
         $query->where("#productId = {$data->masterId} AND #classId = {$data->masterClassId}");
-        $query->orderBy('group,order,id', 'ASC');
+        $query->orderBy('group,orderEx,id', 'ASC');
 
         // Ако подготвяме за външен документ, да се показват само параметрите за външни документи
         if ($data->documentType == 'public' || $data->documentType == 'invoice') {
@@ -558,4 +559,35 @@ class cat_products_Params extends doc_Detail
         
         return $notEdittableParamNames;
     }
+
+
+    /**
+     * Форсира стойност на продуктов параметър
+     *
+     * @param $objectId              - ид на обект
+     * @param $paramName             - име на параметър
+     * @param $paramSuffix           - суфикс на параметър
+     * @param $paramValue            - стойност на параметър
+     * @param string $classId        - домейн на обекта
+     * @param string $paramType      - тип на параметъра
+     * @param null $paramTypeOptions - опции на параметъра
+     * @return mixed|object|void $rec
+     * @throws core_exception_Expect
+     */
+    public static function forceParam($objectId, $paramName, $paramSuffix, $paramValue, $classId = 'cat_Products', $paramType = 'cond_type_varchar', $paramTypeOptions = null)
+    {
+        $classId = cls::get($classId)->getClassId();
+        expect($paramId = cat_Params::force(null, $paramName, $paramType, $paramTypeOptions, $paramSuffix));
+
+        $rec = self::fetch("#productId = {$objectId} AND #paramId = {$paramId} AND #classId = {$classId}");
+
+        if(empty($rec)){
+            $rec = (object)array('productId' => $objectId, 'classId' => $classId, 'paramId' => $paramId, 'paramValue' => $paramValue);
+            cls::get(get_called_class())->save_($rec);
+        }
+
+        return $rec;
+    }
 }
+
+

@@ -1,9 +1,9 @@
 <div class="singleView">
     [#SingleToolbar#]
     <h2>
-        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Зона|* <b style="color:green;">[#num#]</b> <!--ET_BEGIN readiness-->[#readiness#]<!--ET_END readiness--></div>
+        <div style="padding:5px;" class=" [#STATE_CLASS#]">|Зона|* <b style="color:green;">[#num#]</b> [#containerId#] <!--ET_BEGIN readiness-->[#readiness#]<!--ET_END readiness--></div>
     </h2>
-    <fieldset class="detail-info">
+    <fieldset class="detail-info no-print">
         <div class="groupList">
             <table>
                 <tr>
@@ -18,12 +18,6 @@
                     <td style='text-align:left' class='quiet'>|Склад|*:</td>
                     <td> [#storeId#]</td>
                 </tr>
-                <!--ET_BEGIN containerId-->
-                <tr>
-                    <td style='text-align:left' class='quiet'>|Документ|*:</td>
-                    <td>[#containerId#]</td>
-                </tr>
-                <!--ET_END containerId-->
                 <!--ET_BEGIN description-->
                 <tr>
                     <td style='text-align:left' class='quiet'>|Описание|*:</td>
@@ -39,10 +33,7 @@
             </table>
         </div>
     </fieldset>
-    <fieldset class="detail-info">
-        <legend class="groupTitle">|Обобщена информация|*</legend>
-        <div class="groupList">
-            [#rack_ZoneDetails#]
-        </div>
-    </fieldset>
+    <div style="margin-top:15px;">
+        [#rack_ZoneDetails#]
+    </div>
 </div>

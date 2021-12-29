@@ -93,7 +93,17 @@ class batch_Setup extends core_ProtoSetup
     /**
      * Дефинирани класове, които имат интерфейси
      */
-    public $defClasses = 'batch_definitions_Varchar,batch_definitions_Serial,batch_definitions_ExpirationDate,batch_definitions_Document,batch_definitions_DeliveryDate,batch_definitions_ProductionDate,batch_definitions_Component,batch_definitions_StringAndDate,batch_definitions_Digits,batch_definitions_Job';
+    public $defClasses = 'batch_definitions_Varchar,
+                          batch_definitions_Serial,
+                          batch_definitions_ExpirationDate,
+                          batch_definitions_Document,
+                          batch_definitions_DeliveryDate,
+                          batch_definitions_ProductionDate,
+                          batch_definitions_Component,
+                          batch_definitions_StringAndDate,
+                          batch_definitions_StringAndCodeAndDate,
+                          batch_definitions_Digits,
+                          batch_definitions_Job';
     
     
     /**
@@ -163,7 +173,9 @@ class batch_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Партидни движения на протокола за инвентаризация', 'batch_plg_InventoryNotes', 'store_InventoryNoteDetails', 'private');
         $html .= $Plugins->installPlugin('Партидни движения на протокола за производство', 'batch_plg_DocumentMovementDetail', 'planning_DirectProductionNote', 'private');
         $html .= $Plugins->installPlugin('Партидни движения на отчета за ПОС продажби', 'batch_plg_PosReports', 'pos_Reports', 'private');
-        
+        $html .= $Plugins->installPlugin('Партидни движения на заданията', 'batch_plg_Jobs', 'planning_Jobs', 'private');
+        $html .= $Plugins->installPlugin('Партидни движения към прогреса на производствените операции', 'batch_plg_TaskDetails', 'planning_ProductionTaskDetails', 'private');
+
         // Обновяване на протокола за инвентаризация да му се сетъпне модела
         $Notes = cls::get('store_InventoryNotes');
         $html .= $Notes->setupMvc();

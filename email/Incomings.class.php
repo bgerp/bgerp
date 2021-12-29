@@ -536,7 +536,6 @@ class email_Incomings extends core_Master
 
                 if (!empty($arrWeight)) {
                     arsort($arrWeight);
-
                     foreach ($arrWeight as $clsName => $dummy) {
                         try {
                             $status = $clsInstArr[$clsName]->process($mime, $accId, $uid);
@@ -552,7 +551,7 @@ class email_Incomings extends core_Master
                 }
 
                 if (!isset($status) || is_array($status)) {
-                    $this->process($mime, $accId, $uid, $status['preroute']);
+                    $this->process($mime, $accId, $uid, $status['preroute'], $status['spam']);
                     $status = 'incoming';
                 }
             }
@@ -577,7 +576,7 @@ class email_Incomings extends core_Master
     /**
      * Подготвя, записва и рутира зададеното писмо
      */
-    public function process($mime, $accId, $uid, $prerouteRecArr = array())
+    public function process($mime, $accId, $uid, $prerouteRecArr = array(), $spamDataArr = array())
     {
         $mime->saveFiles();
         
@@ -634,8 +633,12 @@ class email_Incomings extends core_Master
         
         // Преобразуваме в масив с хедъри и сериализираме
         $rec->headers = $mime->parseHeaders($headersStr);
-        
-        $rec->spamScore = email_Spam::getSpamScore($rec->headers, true, $mime, $rec);
+
+        if (!$spamDataArr && $spamDataArr['checkSpam'] !== false) {
+            $rec->spamScore = email_Spam::getSpamScore($rec->headers, true, $mime, $rec);
+        } else {
+            $rec->spamScore = 0;
+        }
 
         if ($prerouteRecArr) {
             $rec->_prerouteRecArr = $prerouteRecArr;

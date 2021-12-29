@@ -143,7 +143,7 @@ class export_Export extends core_Mvc
         }
         
         $exportFormats = $this->getPossibleExports($classId, $docId);
-        
+
         if (!empty($exportFormats)) {
             ksort($exportFormats);
         }
@@ -155,20 +155,20 @@ class export_Export extends core_Mvc
         $suggestions = rtrim($suggestions, ',');
         
         $form->FNC('type', "enum({$suggestions})", 'maxRadio=10, caption=Вид, input, mandatory,silent,removeAndRefreshForm');
-        $form->input(null, 'silent');
-        
-        // Ако е избран драйвер, той може да добавя полета за параметри на формата
-        if($type = $form->rec->type){
-            $intfCls = cls::getInterface('export_ExportTypeIntf', $type);
-            $intfCls->addParamFields($form, $classId, $docId);
-        }
 
         $pKey = 'docExportType_' . core_Users::getCurrent();
         if (($docExportType = core_Permanent::get($pKey)) && (isset($exportFormats[$docExportType]))) {
             $form->setDefault('type', $docExportType);
         }
 
+        $form->input(null, 'silent');
         $form->input();
+
+        // Ако е избран драйвер, той може да добавя полета за параметри на формата
+        if($type = $form->rec->type){
+            $intfCls = cls::getInterface('export_ExportTypeIntf', $type);
+            $intfCls->addParamFields($form, $classId, $docId);
+        }
         
         if ($form->isSubmitted()) {
             $exportFormatsArr = $this->getPossibleExports($classId, $docId);

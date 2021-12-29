@@ -113,24 +113,26 @@ class rack_plg_Shipments extends core_Plugin
             $res = array();
             if(isset($mvc->detailToPlaceInZones)){
                 $Detail = cls::get($mvc->detailToPlaceInZones);
+
+
                 $dQuery = $Detail->getQuery();
                 $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$Detail->productFld}");
                 $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #canStore = 'yes'");
-                
+
                 while($dRec = $dQuery->fetch()){
-                    
+
                     $key = "{$dRec->{$Detail->productFld}}|{$dRec->packagingId}";
                     $rest = $dRec->{$Detail->quantityFld};
-                    
-                    $Def = batch_Defs::getBatchDef($dRec->productId);
+                    $Def = batch_Defs::getBatchDef($dRec->{$Detail->productFld});
+
                     if (is_object($Def)) {
-                        
                         $bQuery = batch_BatchesInDocuments::getQuery();
-                        $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}}");
+                        $bQuery->where("#detailClassId = {$Detail->getClassId()} AND #detailRecId = {$dRec->id} AND #productId = {$dRec->{$Detail->productFld}} AND #operation = 'out'");
+
                         while($bRec = $bQuery->fetch()){
-                            $batches = batch_Defs::getBatchArray($bRec->productId, $bRec->batch);
+                            $batches = batch_Defs::getBatchArray($dRec->{$Detail->productFld}, $bRec->batch);
                             $quantity = (countR($batches) == 1) ? $bRec->quantity : $bRec->quantity / countR($batches);
-                            
+
                             foreach ($batches as $k => $b) {
                                 $key2 = "{$key}|{$k}";
                                 if(!array_key_exists($key2, $res)){
@@ -141,9 +143,9 @@ class rack_plg_Shipments extends core_Plugin
                             }
                         }
                     }
-                    
-                    if(round($rest, 2) > 0){
-                        $key3 = "{$key}|{$k}||";
+
+                    if(round($rest, 5) > 0){
+                        $key3 = "{$key}|||";
                         if(!array_key_exists($key3, $res)){
                             $res[$key3] = (object)array('productId' => $dRec->{$Detail->productFld}, 'packagingId' => $dRec->packagingId, 'batch' => '');
                         }
@@ -166,9 +168,40 @@ class rack_plg_Shipments extends core_Plugin
         if ($zoneId = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'id')){
             rack_ZoneDetails::syncWithDoc($zoneId, $rec->containerId);
         }
+
+        // Ако документа е изполван в зона да се синхронизира
+        if($zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}", 'id,defaultUserId,storeId')){
+            $mvc->syncWithZone[$rec->containerId] = $zoneRec;
+        }
     }
-    
-    
+
+
+    /**
+     * Изчиства записите, заопашени за запис
+     */
+    public static function on_Shutdown($mvc)
+    {
+        if(is_array($mvc->syncWithZone)){
+            foreach ($mvc->syncWithZone as $containerId => $zoneRec){
+
+                // Синхронизиране на документа със зоната
+                rack_ZoneDetails::syncWithDoc($zoneRec->id, $containerId);
+
+                // Ще се регенерират движенията само за артикулите в тази зона
+                $zdQuery = rack_ZoneDetails::getQuery();
+                $zdQuery->XPR('documentQuantityRound', 'double', 'ROUND(COALESCE(#documentQuantity, 0), 2)');
+                $zdQuery->XPR('movementQuantityRound', 'double', 'ROUND(COALESCE(#movementQuantity, 0), 2)');
+                $zdQuery->where("#zoneId = {$zoneRec->id} AND (#documentQuantityRound != #movementQuantityRound OR #documentQuantityRound = 0)");
+                $zdQuery->show('productId');
+
+                $productIdsInZone = arr::extractValuesFromArray($zdQuery->fetchAll(), 'productId');
+                rack_Movements::logDebug("RACK ZONE ({$zoneRec->id}) UPDATE '" . implode('|', $productIdsInZone) . "'");
+                rack_Zones::pickupAll($zoneRec->storeId, $zoneRec->defaultUserId, $productIdsInZone);
+            }
+        }
+    }
+
+
     /**
      * Изпълнява се преди контиране на документа
      */

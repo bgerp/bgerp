@@ -252,9 +252,7 @@ class store_StockPlanning extends core_Manager
     function act_recalcAll()
     {
         requireRole('debug');
-
-        cls::get('store_Setup')->migratePendings();
-
+        $this->recalcPlannedStocks();
         followRetUrl();
     }
 
@@ -377,6 +375,70 @@ class store_StockPlanning extends core_Manager
         }
 
         return $res;
+    }
+
+
+    /**
+     * Първоначално наливане на запазените количества
+     */
+    private function recalcPlannedStocks()
+    {
+        // Ако не е имало складови движения, не се прави нищо
+        if(!store_Products::count()) return;
+
+        $Stocks = cls::get('store_StockPlanning');
+        $Stocks->truncate();
+
+        // Кои документи запазват на заявка
+        $stockableClasses = array('store_ShipmentOrders',
+            'store_Receipts',
+            'store_Transfers',
+            'store_ConsignmentProtocols',
+            'planning_ConsumptionNotes',
+            'planning_DirectProductionNote',
+            'pos_Receipts');
+
+        // Записват се запазените количества
+        $stocksArr = array();
+        foreach ($stockableClasses as $cls){
+            $Source = cls::get($cls);
+            $Source->setupMvc();
+
+            $query = $Source->getQuery();
+            $query->in("state", $Source->updatePlannedStockOnChangeStates);
+            $count = $query->count();
+            core_App::setTimeLimit(0.6 * $count, false,300);
+
+            while($rec = $query->fetch()){
+                $arr = $Source->getPlannedStocks($rec);
+                store_StockPlanning::addStaticValuesToStockArr($arr, $Source, $rec->id);
+                $stocksArr = array_merge($stocksArr, $arr);
+            }
+        }
+
+        // Записване на запазеното на индивидуланите количества
+        $Stocks->saveArray($stocksArr);
+
+        // Преизчисляване на запазеното по сделки и запазени.
+        $dealsArr = array();
+        $stockableOriginClasses = array('sales_Sales', 'purchase_Purchases', 'planning_Jobs');
+        foreach ($stockableOriginClasses as $cls) {
+            $Source = cls::get($cls);
+            $Source->setupMvc();
+
+            $query = $Source->getQuery();
+            $query->in("state", $Source->updatePlannedStockOnChangeStates);
+            $count = $query->count();
+            core_App::setTimeLimit(0.7 * $count, false,300);
+
+            while ($rec = $query->fetch()) {
+                $arr = $Source->getPlannedStocks($rec);
+                store_StockPlanning::addStaticValuesToStockArr($arr, $Source, $rec->id);
+                $dealsArr = array_merge($dealsArr, $arr);
+            }
+        }
+
+        $Stocks->saveArray($dealsArr);
     }
 }
 

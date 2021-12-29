@@ -78,7 +78,7 @@
                 </div>
             </fieldset>
             <!--ET_END SELECT_FIELD-->
-            
+            [#deals/tpl/AdditionalConditionsBlock.shtml#]
             [#DETAILS#]
             <div style="clear:both;"></div>
         </div>

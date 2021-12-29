@@ -584,8 +584,14 @@ class cat_Products extends embed_Manager
             }
             
             if (!empty($rec->code)) {
-                if (preg_match('/[^0-9a-zа-я\- _]/iu', $rec->code)) {
-                    $form->setError('code', 'Полето може да съдържа само букви, цифри, тирета, интервали и долна черта!');
+
+                // Ако тепърва се задава нов код, проверява се дали е допустим от настройките
+                $checkCode = empty($rec->id) || (isset($rec->id) && $mvc->fetchField($rec->id, 'code', false) != $rec->code);
+                if($checkCode){
+                    $codeError = null;
+                    if(!cat_Setup::checkProductCode($rec->code, $codeError)){
+                        $form->setError('code', $codeError);
+                    }
                 }
             }
             
@@ -902,11 +908,13 @@ class cat_Products extends embed_Manager
      */
     public static function expandFilter(&$listFilter)
     {
-        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%');
+        $orderOptions = arr::make('all=Всички,standard=Стандартни,private=Нестандартни,last=Последно добавени,eproduct=Артикул в Е-маг,prototypes=Шаблони,closed=Закрити,vat09=ДДС 9%,vat0=ДДС 0%,withBatches=С партидност,withoutBatches=Без партидност');
         if (!core_Packs::isInstalled('eshop')) {
             unset($orderOptions['eproduct']);
         }
-        
+        if (!core_Packs::isInstalled('batch')) {
+            unset($orderOptions['withBatches'], $orderOptions['withoutBatches']);
+        }
         $orderOptions = arr::fromArray($orderOptions);
         $listFilter->FNC('order', "enum({$orderOptions})", 'caption=Подредба,input,silent,remember,autoFilter');
         $listFilter->FNC('groupId', 'key2(mvc=cat_Groups,select=name,allowEmpty)', 'placeholder=Група,caption=Група,input,silent,remember,autoFilter');
@@ -998,6 +1006,20 @@ class cat_Products extends embed_Manager
                     $data->query->in('id', $products);
                 } else {
                     $data->query->where('1=2');
+                }
+                break;
+            case 'withBatches':
+                $productsWithBatches = batch_Items::getProductsWithDefs();
+                if(countR($productsWithBatches)){
+                    $data->query->where("#canStore = 'yes'");
+                    $data->query->in('id', array_keys($productsWithBatches));
+                }
+                break;
+            case 'withoutBatches':
+                $productsWithBatches = batch_Items::getProductsWithDefs();
+                if(countR($productsWithBatches)){
+                    $data->query->where("#canStore = 'yes'");
+                    $data->query->notIn('id', array_keys($productsWithBatches));
                 }
                 break;
             default:
@@ -1738,6 +1760,16 @@ class cat_Products extends embed_Manager
     /**
      * Връща себестойноста на артикула
      *
+     * 1. Ако е стандартен първата по приоритет
+     *  - От ценова политика "Себестойност"
+     *  - От драйвера на артикула, ако метода връща себестойност
+     *  - Ако артикула има прототип, и той има себестойност в ценова политика "Себестойност"
+     *
+     * 1. Ако е нестандартен първата по приоритет
+     *  - От драйвера на артикула, ако метода връща себестойност
+     *  - От ценова политика "Себестойност"
+     *  - Ако артикула има прототип, и той има себестойност в ценова политика "Себестойност"
+     *
      * @param int      $productId       - ид на артикул
      * @param int      $packagingId     - ид на опаковка
      * @param float    $quantity        - количество
@@ -1749,20 +1781,31 @@ class cat_Products extends embed_Manager
     public static function getPrimeCost($productId, $packagingId = null, $quantity = 1, $date = null, $primeCostlistId = null)
     {
         // Опитваме се да намерим запис в в себестойностти за артикула
-        
         $primeCostlistId = (isset($primeCostlistId)) ? $primeCostlistId : price_ListRules::PRICE_LIST_COST;
-        
+
+        // Дали артикула е стандартен или не
+        $isPublic = cat_Products::fetchField($productId, 'isPublic');
+
         // Ако няма цена се опитва да намери от драйвера
+        $primeCostDriver = null;
         if ($Driver = cat_Products::getDriver($productId)) {
-            $primeCost = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $primeCostlistId);
+            $primeCostDriver = $Driver->getPrice($productId, $quantity, 0, 0, $date, 1, 'no', $primeCostlistId);
         }
-        
+
         // Ако няма цена от драйвера, се гледа политика 'Себестойност';
         $date = price_ListToCustomers::canonizeTime($date);
-        if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
-            $primeCost = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+
+        if($isPublic == 'yes'){
+
+            // Ако е стандартен първо се търси цената по политика "Себестойност", ако няма от драйвера
+            $primeCostDefault = price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
+            $primeCost = (isset($primeCostDefault)) ? $primeCostDefault : $primeCostDriver;
+        } else {
+
+            // Ако е нестандартен се търси първо от драйвера, после от себестойност
+            $primeCost = (is_object($primeCostDriver) && isset($primeCostDriver->price) || isset($primeCostDriver)) ? $primeCostDriver : price_ListRules::getPrice($primeCostlistId, $productId, $packagingId, $date);
         }
-        
+
         // Ако няма себестойност, но има прототип, гледа се неговата себестойност
         if ((is_object($primeCost) && !isset($primeCost->price)) || !isset($primeCost)) {
             if ($proto = cat_Products::fetchField($productId, 'proto')) {
@@ -1771,7 +1814,7 @@ class cat_Products extends embed_Manager
         }
         
         $primeCost = is_object($primeCost) ? $primeCost->price : $primeCost;
-        
+
         return $primeCost;
     }
 
@@ -3574,9 +3617,11 @@ class cat_Products extends embed_Manager
      *
      * @return string
      */
-    public function getExportMasterFieldName()
+    public function getExportMasterFieldName($class)
     {
-        return 'productId';
+        setIfNot($productFldName, cls::get($class)->productFld, 'productId');
+
+        return $productFldName;
     }
     
     
@@ -3617,8 +3662,6 @@ class cat_Products extends embed_Manager
         expect(!empty($detArr));
 
         $recs = array();
-
-        $exportFStr = $this->getExportMasterFieldName();
         $exportFCls = cls::get(get_called_class());
         $fFieldsArr = array();
 
@@ -3627,6 +3670,7 @@ class cat_Products extends embed_Manager
                 continue;
             }
 
+            $exportFStr = $this->getExportMasterFieldName($dName);
             $dInst = cls::get($dName);
 
             $detClsId = $dInst->getClassId();
@@ -3677,7 +3721,9 @@ class cat_Products extends embed_Manager
                     $recs[$dRec->id] = new stdClass();
                 }
 
-                foreach (array('productId' => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
+                setIfNot($dInst->productFld, 'productId');
+
+                foreach (array("{$dInst->productFld}" => 'Артикул', 'packPrice' => 'Цена', 'discount' => "Отстъпка") as $fName => $fCaption) {
 
                     if (!isset($dInst->fields[$fName]) && !isset($dRec->{$fName}) && !array_key_exists($fName, (array) $dRec)) {
 
@@ -3777,7 +3823,7 @@ class cat_Products extends embed_Manager
                         }
                     }
                 }
-                $recs[$dRec->id]->productId = cat_Products::getVerbal($dRec->productId, 'name');
+                $recs[$dRec->id]->{$dInst->productFld} = cat_Products::getVerbal($dRec->{$dInst->productFld}, 'name');
 
                 // Добавяме отстъпката към цената
                 if ($allFFieldsArr['packPrice']) {
@@ -3808,13 +3854,13 @@ class cat_Products extends embed_Manager
                             $bQuery->where(array("#packagingId = '[#1#]'", $dRec->packagingId));
                         }
 
-                        if (isset($dRec->productId)) {
-                            $bQuery->where(array("#productId = '[#1#]'", $dRec->productId));
+                        if (isset($dRec->{$dInst->productFld})) {
+                            $bQuery->where(array("#productId = '[#1#]'", $dRec->{$dInst->productFld}));
                         }
 
                         $bQuery->where(array("#detailRecId = '[#1#]'", $dRec->id));
                         $bQuery->where(array("#detailClassId = '[#1#]'", $detClsId));
-
+                        $bQuery->groupBy('batch');
                         $bQuery->orderBy('id', 'ASC');
 
                         $haveBatch = false;
@@ -4005,6 +4051,11 @@ class cat_Products extends embed_Manager
             
             // Връща се отношението и за 1-ца към $toUomId
             if ($res = cat_UoM::convertValue(1, $pRec->packagingId, $toUomId)) {
+                if(empty($pRec->quantity)) {
+                    wp($pRec);
+                    continue;
+                }
+
                 $res = $res / $pRec->quantity;
                 
                 return $res;

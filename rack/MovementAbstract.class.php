@@ -61,6 +61,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $mvc->FLD('canceledOn', 'datetime(format=smartTime)', 'caption=Върнато||Returned->На, input=none');
         $mvc->FLD('canceledBy', 'key(mvc=core_Users)', 'caption=Върнато||Returned->От||By, input=none');
+        $mvc->FLD('packagings', 'blob(serialize,compress)', 'caption=Опаковки,column=none,single=none,input=none');
 
         $mvc->setDbIndex('storeId');
         $mvc->setDbIndex('palletId');
@@ -158,14 +159,10 @@ abstract class rack_MovementAbstract extends core_Manager
     public function getMovementDescription($rec, $skipZones = false, $makeLinks = true)
     {
         $rec = $this->fetchRec($rec);
-
-        $packQuantity = isset($rec->_originalPackQuantity) ? $rec->_originalPackQuantity : $rec->packQuantity;
         $position = $this->getFieldType('position')->toVerbal($rec->position);
         $positionTo = $this->getFieldType('positionTo')->toVerbal($rec->positionTo);
 
         $Double = core_Type::getByName('double(smartRound)');
-        $packagingRow = cat_UoM::getShortName($rec->packagingId);
-        $packQuantityRow = $Double->toVerbal($packQuantity);
 
         $class = '';
         if ($palletId = cat_UoM::fetchBySinonim('pallet')->id) {
@@ -176,20 +173,15 @@ abstract class rack_MovementAbstract extends core_Manager
             }
         }
 
-        $movementArr = array();
-        $packType = cat_UoM::fetchField($rec->packagingId, 'type');
-        if ($packType != 'uom') {
-            $packagingRow = str::getPlural($packQuantity, $packagingRow, true);
-        }
-        if (!empty($packQuantity)) {
-            $packQuantityRow = ht::styleIfNegative($packQuantityRow, $packQuantity);
-            $movementArr[] = "{$position} (<span {$class}>{$packQuantityRow}</span> {$packagingRow})";
-        }
+        $movementArr = $quantities = array();
+        $quantities['from'] = (object)array('quantity' => round($rec->quantity, 6), 'position' => $position, 'class' => $class);
 
         if ($skipZones === false) {
-            $quantityInZones = array();
+            $quantityInZones = 0;
             $zones = self::getZoneArr($rec, $quantityInZones);
-            $restQuantity = round($packQuantity, 6) - round($quantityInZones, 6);
+            $quantityInZones *= $rec->quantityInPack;
+
+            $restQuantity = round($rec->quantity, 9) - round($quantityInZones, 9);
 
             foreach ($zones as $zoneRec) {
                 $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
@@ -201,20 +193,37 @@ abstract class rack_MovementAbstract extends core_Manager
                 } else {
                     $zoneTitle = ht::createHint($zoneRec->zone, 'Зоната вече не съществува', 'warning');
                 }
+                $quantities[$zoneRec->zone] = (object)array('quantity' => round($zoneRec->quantity * $rec->quantityInPack, 6), 'position' => $zoneTitle, 'class' => $class);
+            }
 
-                $zoneQuantity = $Double->toVerbal($zoneRec->quantity);
-                $zoneQuantity = ht::styleIfNegative($zoneQuantity, $zoneRec->quantity);
-                $movementArr[] = "<span {$class}>{$zoneTitle} ( {$zoneQuantity} )</span>";
+            if (!empty($positionTo) && round($restQuantity, 6)) {
+                $quantities['to'] = (object)array('quantity' => $restQuantity, 'position' => $positionTo, 'class' => $class);
             }
         }
 
-        if (!empty($positionTo) && $restQuantity) {
-            $resQuantity = $Double->toVerbal($restQuantity);
-            $movementArr[] = "{$positionTo} ({$resQuantity})";
+        foreach ($quantities as $k => $a){
+            if(empty($a->quantity) && $k == 'from') continue;
+
+            if(is_array($rec->packagings)){
+                $convertedQuantity = static::getSmartPackagings($rec->productId, $rec->packagings, $a->quantity, $rec->packagingId);
+                if(isset($convertedQuantity)){
+                    $movementArr[$k] = "{$a->position} (<span {$a->class}>{$convertedQuantity}</span>)";
+                }
+            }
+
+            if(!array_key_exists($k, $movementArr)){
+                $packQuantity = $a->quantity / $rec->quantityInPack;
+                $packQuantity = core_Math::roundNumber($packQuantity);
+                $packQuantityVerbal = $Double->toVerbal($packQuantity);
+                $packQuantityVerbal = ht::styleIfNegative($packQuantityVerbal, $packQuantity);
+                $packDisplay = tr(cat_UoM::getSmartName($rec->packagingId, $packQuantity));
+                $packQuantityVerbal = "{$packQuantityVerbal} {$packDisplay}";
+                $movementArr[$k] = "{$a->position} (<span {$a->class}>{$packQuantityVerbal}</span>)";
+            }
         }
 
-        if($rec->state == 'pending' && isset($movementArr[0])){
-            $movementArr[0] = "<span class='movement-position-notice'>{$movementArr[0]}</span>";
+        if($rec->state == 'pending' && isset($movementArr['from'])){
+            $movementArr['from'] = "<span class='movement-position-notice'>{$movementArr['from']}</span>";
         }
 
         $res = implode(' » ', $movementArr);
@@ -239,7 +248,6 @@ abstract class rack_MovementAbstract extends core_Manager
             $zoneArr = type_Table::toArray($rec->zones);
             if (countR($zoneArr)) {
                 foreach ($zoneArr as &$obj) {
-                    $obj->quantity = core_Type::getByName('double')->fromVerbal($obj->quantity);
                     $quantityInZones += $obj->quantity;
                 }
             }
@@ -259,6 +267,7 @@ abstract class rack_MovementAbstract extends core_Manager
 
         $data->query->where("#storeId = {$storeId}");
         $data->query->XPR('orderByState', 'int', "(CASE #state WHEN 'pending' THEN 1 WHEN 'waiting' THEN 2 WHEN 'active' THEN 3 ELSE 4 END)");
+
         if ($palletId = Request::get('palletId', 'int')) {
             $data->query->where("#palletId = {$palletId}");
         }
@@ -335,12 +344,6 @@ abstract class rack_MovementAbstract extends core_Manager
             if($rec->state != 'waiting'){
                 $requiredRoles = 'no_one';
             }
-
-            if($rec->workerId != $userId){
-                if(!haveRole('rackMaster')){
-
-                }
-            }
         }
 
         if($action == 'reject' && isset($rec->state)){
@@ -392,5 +395,92 @@ abstract class rack_MovementAbstract extends core_Manager
             $data->listTableMvc->tableRowTpl = "[#ADD_ROWS#][#ROW#]\n";
             $data->listFields['productId'] = '@Артикул';
         }
+    }
+
+
+    /**
+     * Връща умно показване на опаковките
+     *
+     * @param int $productId
+     * @param array $packagingArr
+     * @param int $quantity
+     * @param int|null $preferPackagingIdIFThereAreSimilar
+     * @return string|null $string
+     */
+    protected static function getSmartPackagings($productId, $packagingArr, $quantity, $preferPackagingIdIFThereAreSimilar = null)
+    {
+        $sign = ($quantity < 0) ? -1 : 1;
+        $quantity = abs($quantity);
+
+        // Кои опаковки са с по-малко количество от нужното
+        $packs = array_filter($packagingArr, function($a) use ($quantity) {return $a['quantity'] <= $quantity;});
+        if(!countR($packs)) return null;
+
+        // Подобрено сортиране
+        uasort($packs, function (&$a, &$b)  {
+            if ($a['quantity'] == $b['quantity']) { return $a['id'] > $b['id'] ? 1 : -1;}
+
+            return ($a['quantity'] > $b['quantity']) ? -1 : 1;
+        });
+
+        $packs = array_values($packs);
+        $originalPacks = $packs;
+
+        // Коя е най-малката опаковка
+        $packsByNow = array();
+        end($packs);
+        $lastElementKey = key($packs);
+        $lastElement = $packs[$lastElementKey];
+        reset($packs);
+
+        do {
+            $first = $packs[key($packs)];
+            $inPack = floor(round($quantity / $first['quantity'], 6));
+            $remaining = round($quantity - ($inPack * $first['quantity']), 6);
+            unset($packs[key($packs)]);
+            $quantity = $remaining;
+            if(empty($inPack)) continue;
+
+            $similarArr = array();
+            array_walk($originalPacks, function($a) use(&$similarArr, $first) {if($a['quantity'] == $first['quantity']) {$similarArr[$a['packagingId']] = $a['packagingId'];}});
+            $packsByNow[] = array('packagingId' => $first['packagingId'], 'quantity' => $inPack, 'similarPacks' => $similarArr);
+        } while($remaining >= $lastElement['quantity'] && countR($packs));
+
+        // Ако има остатък се показва и тях в основна мярка
+        if($remaining) {
+            $remaining = round($remaining, 6);
+            $productMeasureId = cat_Products::fetchField($productId, 'measureId');
+            $remaining = cat_Uom::round($productMeasureId, $remaining);
+            $packsByNow[] = array('packagingId' => $productMeasureId, 'quantity' => $remaining, 'similarPacks' => array());
+        }
+
+        // Показване на опаковките
+        $string = '';
+        foreach ($packsByNow as $p){
+            $p['quantity'] = $sign * $p['quantity'];
+            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($p['quantity']);
+            $quantityVerbal = ht::styleIfNegative($quantityVerbal, $p['quantity']);
+
+            // Ако има опаковки със същото к-во ще се показват и тях освен ако не се предпочита конкретна
+            $displayPackNamesArr = array($p['packagingId'] => $p['packagingId']);
+            $displayPackNamesArr += $p['similarPacks'];
+            if(isset($preferPackagingIdIFThereAreSimilar) && array_key_exists($preferPackagingIdIFThereAreSimilar, $displayPackNamesArr)){
+                $displayPackNamesArr = array($preferPackagingIdIFThereAreSimilar => $displayPackNamesArr[$preferPackagingIdIFThereAreSimilar]);
+            }
+
+            $displayStringArr = array();
+            foreach ($displayPackNamesArr as $packId){
+                $displayStringArr[] = tr(cat_UoM::getSmartName($packId, $p['quantity']));
+            }
+            $displayString = implode('/', $displayStringArr);
+            $plus = ($sign < 0) ? "&nbsp;" : "&nbsp;+&nbsp;";
+            if(Mode::is('text', 'plain')){
+                $plus = ($sign < 0) ? " " : " + ";
+            }
+
+            $string .= (!empty($string) ? $plus : "") . "{$quantityVerbal} {$displayString}";
+        }
+
+        return $string;
     }
 }

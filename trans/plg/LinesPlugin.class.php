@@ -28,7 +28,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         setIfNot($mvc->lineFieldName, 'lineId');
         setIfNot($mvc->lineNoteFieldName, 'lineNotes');
-        
+
         // Създаваме поле за избор на линия, ако няма такова
         if (!$mvc->getField($mvc->lineFieldName, false)) {
             $mvc->FLD($mvc->lineFieldName, 'key(mvc=trans_Lines,select=title,allowEmpty)', 'input=none');
@@ -228,21 +228,21 @@ class trans_plg_LinesPlugin extends core_Plugin
         core_Lg::push($rec->tplLang);
         
         if (isset($rec->lineId)) {
-            if(!Mode::is('printing')){
-                $lineRec = trans_Lines::fetch($rec->lineId);
-                $row->lineId = '';
-                if(isset($mvc->termDateFld) && $lineRec->start != $rec->{$mvc->termDateFld}){
-                    $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
-                    $row->lineId .= $lineDate . '/';
-                }
-                $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
-                if(doc_Threads::haveRightFor('single', $lineRec->threadId)){
-                    if(doc_Threads::haveRightFor('single', $lineRec->threadId)){
-                        $lineSingleUrl = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $mvc->getHandle($rec));
-                        $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
-                    }
-                }
 
+
+            $lineRec = trans_Lines::fetch($rec->lineId);
+            $row->lineId = '';
+            if(isset($mvc->termDateFld) && $lineRec->start != $rec->{$mvc->termDateFld}){
+                $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
+                $row->lineId .= $lineDate . '/';
+            }
+            $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
+            if(!Mode::is('printing') && doc_Threads::haveRightFor('single', $lineRec->threadId)){
+                $lineSingleUrl = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $mvc->getHandle($rec));
+                $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
+            }
+
+            if(!Mode::is('printing')){
                 $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
             }
 
@@ -328,7 +328,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if(countR($units)){
                     $row->logisticInfo = trans_Helper::displayTransUnits($units);
                     $row->logisticInfo = ht::createHint($row->logisticInfo, $hint, $hintType, false);
-                    if(empty($rec->transUnitsInput)){
+                    if(empty($rec->transUnitsInput) && empty($rec->transUnits)){
                         $row->logisticInfo = "<span style='color:blue'>{$row->logisticInfo}</span>";
                     }
                 }
@@ -598,7 +598,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     {
         $unsetFields = array($mvc->lineFieldName, $mvc->lineNoteFieldName);
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $unsetFields = array_merge(array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName));
+            $unsetFields = array_merge($unsetFields, array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName));
         }
 
         foreach ($unsetFields as $fld){

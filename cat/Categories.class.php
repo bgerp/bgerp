@@ -585,8 +585,12 @@ class cat_Categories extends core_Master
                     $error = "Артикулът се използва е Е-маг. Трябва да остане продаваем|*!";
                 }
             }
+
+            if(!isset($metasArr['canManifacture']) && planning_Jobs::fetchField("#productId = {$productId} AND #state IN ('active', 'wakeup', 'stopped')")){
+                $error = "Артикулът се използва в активни/спрени/приключени задания. Трябва да остане производим|*!";
+            }
         }
-        
+
         return empty($error);
     }
 }

@@ -49,7 +49,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     /**
      * Кои полета от листовия изглед да се скриват ако няма записи в тях
      */
-    public $hideListFieldsIfEmpty = 'order,roles';
+    public $hideListFieldsIfEmpty = 'roles';
     
     
     /**
@@ -348,7 +348,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
         // Подготовка на записа на параметъра
         $typeName = $type;
         if(strpos($type, 'cond_type_') === false){
-            expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')));
+            expect(in_array(strtolower($type), array('double', 'text', 'varchar', 'time', 'date', 'component', 'percent', 'int', 'delivery', 'paymentmethod', 'image', 'enum', 'set', 'file')), $type);
             $typeName = "cond_type_{$type}";
         }
         

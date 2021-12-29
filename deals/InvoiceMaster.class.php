@@ -38,8 +38,8 @@ abstract class deals_InvoiceMaster extends core_Master
      * Работен кеш
      */
     protected $cache = array();
-    
-    
+
+
     /**
      * Каква да е максималната дължина на стринга за пълнотекстово търсене
      *
@@ -142,7 +142,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
-        $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6)', 'caption=Допълнително->Бележки');
+        $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6, passage=Общи)', 'caption=Допълнително->Бележки');
         $mvc->FNC('dealValueWithoutDiscount', 'double(decimals=2)', 'caption=Дан. основа,summary=amount');
         $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
@@ -1127,7 +1127,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         if ($fields['-single']) {
-            if (empty($rec->vatReason)) {
+            if (empty($rec->vatReason) && !in_array($rec->vatRate, array('yes', 'separate'))) {
                 if (!drdata_Countries::isEu($rec->contragentCountryId)) {
                     $row->vatReason = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
                 } elseif (!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')) {
@@ -1710,5 +1710,14 @@ abstract class deals_InvoiceMaster extends core_Master
                 $num = $number;
             }
         }
+    }
+
+
+    /**
+     * Може ли документа да се добавя като свързан документ към оридижина си
+     */
+    public static function canAddDocumentToOriginAsLink_($rec)
+    {
+        return $rec->type == 'dc_note';
     }
 }

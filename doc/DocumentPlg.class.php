@@ -77,7 +77,11 @@ class doc_DocumentPlg extends core_Plugin
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['doc_DocumentIntf'], 'doc_DocumentIntf');
         setIfNot($mvc->interfaces['acc_RegisterIntf'], 'acc_RegisterIntf');
-        
+
+        setIfNot($mvc->addDocumentLinks, array());
+        setIfNot($mvc->addLinkedDocumentToOriginId, false);
+        setIfNot($mvc->addLinkedOriginFieldName, 'originId');
+
         // Добавя поле за последно използване
         if (!isset($mvc->fields['lastUsedOn'])) {
             $mvc->FLD('lastUsedOn', 'datetime(format=smartTime)', 'caption=Последна употреба,input=none,column=none');
@@ -761,7 +765,10 @@ class doc_DocumentPlg extends core_Plugin
     {
         // Ако създаваме нов документ и ...
         if (!$rec->id) {
-            
+            if($rec->{$mvc->addLinkedOriginFieldName} && $mvc->canAddDocumentToOriginAsLink($rec)){
+                $mvc->addDocumentLinks[$rec->id] = $rec;
+            }
+
             // ... този документ няма ключ към папка и нишка, тогава
             // извикваме метода за рутиране на документа
             if (!isset($rec->folderId) || !isset($rec->threadId)) {
@@ -921,6 +928,16 @@ class doc_DocumentPlg extends core_Plugin
      */
     public static function on_Shutdown($mvc)
     {
+        // Ако има заопашени документи за добавяне като връзки да се добавят
+        if(countR($mvc->addDocumentLinks)){
+            foreach ($mvc->addDocumentLinks as $r){
+                if(isset($r->containerId) && isset($r->{$mvc->addLinkedOriginFieldName})){
+                    $comment = $mvc->getLinkedDocCommentToOrigin($r);
+                    doc_Linked::add($r->containerId, $r->{$mvc->addLinkedOriginFieldName}, 'doc', 'doc', $comment);
+                }
+            }
+        }
+
         if (countR($mvc->pendingQueue)) {
             foreach ($mvc->pendingQueue as $rec) {
                 $log = ($rec->state == 'pending') ? 'Документът става на заявка' : 'Документът се връща в чернова';
@@ -4819,5 +4836,25 @@ class doc_DocumentPlg extends core_Plugin
         } else {
             $res = $comment;
         }
+    }
+
+
+    /**
+     * Метод по подразбиране може ли документа да се добавя като свързан документ към оридижина си
+     */
+    public static function on_AfterCanAddDocumentToOriginAsLink($mvc, &$res, $rec)
+    {
+        if(!$res){
+           $res = $mvc->addLinkedDocumentToOriginId;
+        }
+    }
+
+
+    /**
+     * Метод по подразбиране за коментара с който да се добави свързания документ към оридижина си
+     */
+    public static function on_AfterGetLinkedDocCommentToOrigin($mvc, &$res, $rec)
+    {
+
     }
 }

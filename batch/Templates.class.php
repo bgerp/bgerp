@@ -50,8 +50,8 @@ class batch_Templates extends embed_Manager
      * Кой може да го разглежда?
      */
     public $canList = 'batchMaster,ceo';
-    
-    
+
+
     /**
      * Кой има право да променя системните данни?
      */
@@ -197,6 +197,10 @@ class batch_Templates extends embed_Manager
         $form = &$data->form;
         $rec = &$form->rec;
 
+        // При смяна на драйвера да се рефрешват допълнителни полета
+        $remFields = $form->getFieldParam('driverClass', 'removeAndRefreshForm') . "|autoAllocate";
+        $form->setField('driverClass', "removeAndRefreshForm={$remFields}");
+
         if(isset($rec->productId)){
             $form->setField('productId', 'input');
             $form->setOptions('productId', array($rec->productId => cat_Products::getTitleById($rec->productId, false)));
@@ -216,6 +220,9 @@ class batch_Templates extends embed_Manager
                 if ($Driver->canChangeBatchUniquePerProduct() !== true) {
                     $form->setField('uniqueProduct', 'input=none');
                 }
+
+                $defaultAutoAllocate = ($Driver->canAutoAllocate()) ? 'yes' : 'no';
+                $form->setDefault('autoAllocate', $defaultAutoAllocate);
             }
         }
     }
@@ -227,7 +234,7 @@ class batch_Templates extends embed_Manager
     protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
     {
         // Ако се иска директно контиране редирект към екшъна за контиране
-        if ($data->form->isSubmitted()) {
+        if (isset($data->form) && $data->form->isSubmitted()) {
             if(isset($data->form->rec->productId)){
                 $data->retUrl = cat_Products::getSingleUrlArray($data->form->rec->productId);
             }
@@ -265,6 +272,12 @@ class batch_Templates extends embed_Manager
     {
         if($action == 'add' && isset($rec->productId)){
             if(!batch_Defs::haveRightFor('add', (object)array('productId' => $rec->productId))){
+                $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'delete' && isset($rec)){
+            if(batch_Defs::fetchField("#templateId = {$rec->id}")){
                 $requiredRoles = 'no_one';
             }
         }

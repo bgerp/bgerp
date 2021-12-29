@@ -65,7 +65,7 @@ abstract class deals_DealMaster extends deals_DealBase
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith';
+    public $fieldsNotToClone = 'valior,contoActions,amountDelivered,amountBl,amountPaid,amountInvoiced,amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,sharedViews,closedDocuments,paymentState,deliveryTime,currencyRate,contragentClassId,contragentId,state,deliveryTermTime,closedOn,visiblePricesByAllInThread,closeWith,additionalConditions';
     
     
     /**
@@ -255,7 +255,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Допълнително->ДДС,notChangeableByContractor');
         $mvc->FLD('makeInvoice', 'enum(yes=Да,no=Не)', 'caption=Допълнително->Фактуриране,maxRadio=2,columns=2,notChangeableByContractor');
         $mvc->FLD('note', 'text(rows=4)', 'caption=Допълнително->Условия,notChangeableByContractor', array('attr' => array('rows' => 3)));
-        
+        $mvc->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),notChangeableByContractor,input=none');
+
         $mvc->FLD(
             'state',
                 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен, pending=Заявка,stopped=Спряно)',
@@ -673,6 +674,7 @@ abstract class deals_DealMaster extends deals_DealBase
     private function getSubTitle($rec)
     {
         $fields = arr::make('amountDelivered,amountToDeliver,amountPaid,amountToPay,amountInvoiced,amountToInvoice', true);
+        $fields['-subTitle'] = true;
         $row = $this->recToVerbal($rec, $fields);
         
         $subTitle = tr('Дост:') . " {$row->amountDelivered} ({$row->amountToDeliver})";
@@ -988,9 +990,14 @@ abstract class deals_DealMaster extends deals_DealBase
                 $update = true;
             }
         }
-        
+
+        if(empty($rec->additionalConditions)){
+            $rec->additionalConditions = $mvc->getConditionArr($rec);
+            $update = true;
+        }
+
         if ($update === true) {
-            $mvc->save_($rec, 'deliveryTermTime,deliveryAdress');
+            $mvc->save_($rec, 'deliveryTermTime,deliveryAdress,additionalConditions');
         }
     }
     
@@ -1001,7 +1008,8 @@ abstract class deals_DealMaster extends deals_DealBase
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $amountType = $mvc->getField('amountDeal')->type;
-        if ($rec->state == 'active') {
+
+        if ($rec->state == 'active' || isset($fields['-subTitle'])) {
             $rec->amountToDeliver = round($rec->amountDeal - $rec->amountDelivered, 2);
             $rec->amountToPay = round($rec->amountDelivered - $rec->amountPaid, 2);
             $rec->amountToInvoice = $rec->amountDelivered - $rec->amountInvoiced;
@@ -1094,15 +1102,25 @@ abstract class deals_DealMaster extends deals_DealBase
                     $row->notes .= "<li>{$note}</li>";
                 }
             }
-            
-            // Показване на допълнителните условия от артикулите
-            $additionalConditions = deals_Helper::getConditionsFromProducts($mvc->mainDetail, $mvc, $rec->id, $rec->tplLang);
-            if (is_array($additionalConditions)) {
-                foreach ($additionalConditions as $cond) {
-                    $row->notes .= "<li>{$cond}</li>";
+
+            // Допълнителните условия
+            $conditions = $rec->additionalConditions;
+            if(empty($rec->additionalConditions)){
+                $conditions = $mvc->getConditionArr($rec, true);
+                if(in_array($rec->state, array('pending', 'draft'))){
+                    foreach($conditions as &$cArr){
+                        if(!Mode::isReadOnly()){
+                            $cArr = "<span style='color:blue'>{$cArr}</span>";
+                        }
+                        $cArr = ht::createHint($cArr, 'Условието, ще бъде записано при активиране');
+                    }
                 }
             }
-            
+
+            foreach ($conditions as $aCond) {
+                $row->notes .= "<li>{$aCond}</li>";
+            }
+
             // Взависимост начислява ли се ддс-то се показва подходящия текст
             switch ($rec->chargeVat) {
                 case 'yes':
@@ -1191,13 +1209,50 @@ abstract class deals_DealMaster extends deals_DealBase
             core_Lg::pop();
         }
     }
-    
-    
+
+
+    /**
+     * Връща масив с услочията
+     *
+     * @param $rec
+     * @param bool $auto
+     * @return array $conditions
+     */
+    protected function getConditionArr($rec, $auto = false)
+    {
+        $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+
+        $conditions = array();
+        $calc = ($auto === false) ? true : in_array($rec->state, array('pending', 'draft'));
+
+        foreach (array('bank_Accounts' => 'bankAccountId', 'cash_Cases' => 'caseId', 'store_Stores' => 'shipmentStoreId') as  $fldMaster => $fld){
+            if(!empty($rec->{$fld}) && $calc){
+                $objectId = $rec->{$fld};
+                if($fld == 'bankAccountId' && !is_numeric($rec->{$fld})){
+                    $objectId = bank_Accounts::fetchField("#iban = '{$rec->{$fld}}'");
+                }
+
+
+                $aCondition = $fldMaster::getDocumentConditionFor($objectId, $this, $lang);
+                if(!empty($aCondition)){
+                    $key = md5(strtolower(str::utf2ascii(trim($aCondition))));
+                    $aCondition = preg_replace('!\s+!', ' ', str::mbUcfirst($aCondition));
+                    $conditions[$key] = $aCondition;
+                }
+            }
+        }
+
+        $additionalConditions = deals_Helper::getConditionsFromProducts($this->mainDetail, $this, $rec->id, $lang);
+        $additionalConditions = $conditions + $additionalConditions;
+
+        return array_values($additionalConditions);
+    }
+
+
     /**
      * Най-големия срок на доставка
      *
      * @param int $id
-     *
      * @return int|NULL
      */
     public function getMaxDeliveryTime($id)
@@ -1851,7 +1906,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param float  $tolerance    - толеранс между 0(0%) и 1(100%) (не е задължителен)
      * @param string $term         - срок (не е задължителен)
      * @param string $notes        - забележки
-     *@param  string $batch        - партида
+     * @param  string $batch        - партида
      *
      *
      * @return mixed $id/FALSE     - ид на запис или FALSE
@@ -2184,30 +2239,32 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param mixed $rec - ид или запис на документ
      * @return array      - логистичните данни
      *
-     *		string(2)     ['fromCountry']     - международното име на английски на държавата за натоварване
-     * 		string|NULL   ['fromPCode']       - пощенски код на мястото за натоварване
-     * 		string|NULL   ['fromPlace']       - град за натоварване
-     * 		string|NULL   ['fromAddress']     - адрес за натоварване
-     *  	string|NULL   ['fromCompany']     - фирма
-     *   	string|NULL   ['fromPerson']      - лице
-     *      string|NULL   ['fromLocationId']  - лице
-     *      string|NULL   ['fromAddressInfo']   - особености
-     * 		datetime|NULL ['loadingTime']     - дата на натоварване
-     * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
-     * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
-     * 		string|NULL   ['toPlace']         - град за разтоварване
-     *  	string|NULL   ['toAddress']       - адрес за разтоварване
-     *   	string|NULL   ['toCompany']       - фирма
-     *   	string|NULL   ['toPerson']        - лице
-     *      string|NULL   ['toLocationId']    - лице
-     *      string|NULL   ['toPersonPhones']  - телефон на лицето
-     *      string|NULL   ['toAddressInfo']   - особености
-     *      string|NULL   ['instructions']    - инструкции
-     * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
-     * 		text|NULL 	  ['conditions']      - други условия
-     *		varchar|NULL  ['ourReff']         - наш реф
-     * 		double|NULL   ['totalWeight']     - общо тегло
-     * 		double|NULL   ['totalVolume']     - общ обем
+     *		string(2)     ['fromCountry']         - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']           - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']           - град за натоварване
+     * 		string|NULL   ['fromAddress']         - адрес за натоварване
+     *  	string|NULL   ['fromCompany']         - фирма
+     *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromLocationId']      - лице
+     *      string|NULL   ['fromAddressInfo']     - особености
+     *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
+     * 		datetime|NULL ['loadingTime']         - дата на натоварване
+     * 		string(2)     ['toCountry']           - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']             - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']             - град за разтоварване
+     *  	string|NULL   ['toAddress']           - адрес за разтоварване
+     *   	string|NULL   ['toCompany']           - фирма
+     *   	string|NULL   ['toPerson']            - лице
+     *      string|NULL   ['toLocationId']        - лице
+     *      string|NULL   ['toPersonPhones']      - телефон на лицето
+     *      string|NULL   ['toAddressInfo']       - особености
+     *      string|NULL   ['toAddressFeatures']   - особености на транспорта
+     *      string|NULL   ['instructions']        - инструкции
+     * 		datetime|NULL ['deliveryTime']        - дата на разтоварване
+     * 		text|NULL 	  ['conditions']          - други условия
+     *		varchar|NULL  ['ourReff']             - наш реф
+     * 		double|NULL   ['totalWeight']         - общо тегло
+     * 		double|NULL   ['totalVolume']         - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -2245,6 +2302,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $res["{$ownPart}Person"] = !empty($storeLocation->mol) ? $storeLocation->mol : null;
             $res["{$ownPart}LocationId"] = $storeLocation->id;
             $res["{$ownPart}AddressInfo"] = $storeLocation->specifics;
+            $res["{$ownPart}AddressFeatures"] = $storeLocation->features;
         } else {
             $res["{$ownPart}PCode"] = !empty($ownCompany->pCode) ? $ownCompany->pCode : null;
             $res["{$ownPart}Place"] = !empty($ownCompany->place) ? $ownCompany->place : null;
@@ -2271,6 +2329,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $res["{$contrPart}Address"] = !empty($contragentLocation->address) ? $contragentLocation->address : null;
             $res["{$contrPart}LocationId"] = $contragentLocation->id;
             $res["{$contrPart}AddressInfo"] = $contragentLocation->specifics;
+            $res["{$contrPart}AddressFeatures"] = $contragentLocation->features;
             if(!empty($contragentLocation->mol) || !empty($contragentLocation->tel)){
                 $res["{$contrPart}Person"] = !empty($contragentLocation->mol) ? $contragentLocation->mol : null;
                 $res["{$contrPart}PersonPhones"] = !empty($contragentLocation->tel) ? $contragentLocation->tel : null;
@@ -2466,8 +2525,9 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec = $mvc->fetchRec($rec);
 
             // Ако документа не е заявка/активен или има финална експедиция - няма да запазва нищо
-            if(($rec->state != 'pending' && $rec->state != 'active') || !deals_Helper::canHaveMoreDeliveries($rec->threadId, $rec->containerId)) {
+            if(($rec->state != 'pending' && $rec->state != 'active') || !deals_Helper::canHaveMoreDeliveries($rec->threadId, $rec->containerId, true)) {
                 $res = array();
+
                 return;
             }
 
@@ -2558,10 +2618,21 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
     {
+        $rec = $mvc->fetchRec($id);
+        if(isset($mvc->closeDealDoc)){
+            $CloseDoc = cls::get($mvc->closeDealDoc);
+            $closedDocRec = $CloseDoc->fetch("#docClassId = {$mvc->getClassId()} AND #docId = {$rec->id} AND #state = 'active'");
+            if($closedDocRec){
+                core_Statuses::newStatus( "Документа не може да се оттегли, докато е контиран |* <b>#{$CloseDoc->getHandle($rec->id)}</b>", 'error');
+
+                return false;
+            }
+        }
+
         if(!core_Packs::isInstalled('rack')) return;
 
         // Ако има, се спира оттеглянето
-        $rec = $mvc->fetchRec($id);
+
 
         $errorDocuments = array();
         $descendants = $mvc->getDescendants($rec->id);

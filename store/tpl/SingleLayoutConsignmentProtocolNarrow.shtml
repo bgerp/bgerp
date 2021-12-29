@@ -76,7 +76,7 @@
                                 <!--ET_END storeId-->
 
                                 <!--ET_BEGIN lineId-->
-                                <tr class="no-print">
+                                <tr>
                                     <td class='quiet nowrap aright'>|Транспорт|*:</td>
                                     <td>[#lineId#]</td>
                                 </tr>

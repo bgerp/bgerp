@@ -449,22 +449,33 @@ abstract class deals_Helper
         $storeName = isset($storeId) ? (" |в|* " . store_Stores::getTitleById($storeId)) : '';
         $verbalQuantity = $Double->toVerbal($quantity);
         $verbalQuantityInStock = $Double->toVerbal($quantityInStock);
-
-        $verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
         $foundQuantity = $quantity;
 
-        $string = "Минимално разполагаемо";
-        $verbalDate = $date;
-        if(!empty($date)){
-            if(strpos($date, ' 00:00:00') !== false){
-                $verbalDate = dt::mysql2verbal($date, 'd.m.Y');
-            } else {
-                $verbalDate = dt::mysql2verbal($date, 'd.m.Y H:i');
-            }
-            $string = "|Разполагаемо към|*";
+        $exRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = {$productId}");
+        $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
+        $freeQuantityMin = is_object($exRec) ? ($exRec->quantity - $exRec->reservedQuantityMin + $exRec->expectedQuantityMin) : null;
+
+        $date = (!empty($date)) ? $date : dt::today();
+        if(isset($minQuantityDate) && $date <= $minQuantityDate){
+            $displayDate = dt::verbal2mysql($minQuantityDate);
+            $displayText = "Минимално разполагаемо към|*";
+            $verbalQuantity = $Double->toVerbal($freeQuantityMin);
+
+        } else {
+            $displayDate = $date;
+            $displayText = "Разполагаемо към|*";
         }
 
-        $text = "|Налично|* <b>{$storeName}</b> : {$verbalQuantityInStock} {$shortUom}<br> {$string} <b class='small'>{$verbalDate}</b>: {$verbalQuantity} {$shortUom}";
+        if(!empty($displayDate)){
+            if(strpos($displayDate, ' 00:00:00') !== false){
+                $displayDate = dt::mysql2verbal($displayDate, 'd.m.Y');
+            } else {
+                $displayDate = dt::mysql2verbal($displayDate, 'd.m.Y H:i');
+            }
+        }
+
+        $verbalQuantity = ht::styleNumber($verbalQuantity, $quantity);
+        $text = "|Налично|* <b>{$storeName}</b> : {$verbalQuantityInStock} {$shortUom}<br> {$displayText} <b class='small'>{$displayDate}</b>: {$verbalQuantity} {$shortUom}";
         if (!empty($stRec->reserved)) {
             $verbalReserved = $Double->toVerbal($stRec->reserved);
             $text .= ' ' . "|*( |Запазено|* {$verbalReserved} {$shortUom} )";
@@ -478,7 +489,8 @@ abstract class deals_Helper
         if ($packQuantity > ($quantity / $quantityInPack)) {
             $obj->warning = "Въведеното количество е по-голямо от разполагаемо|* <b>{$verbalQuantity}</b> |в склада|*";
         }
-        
+
+
         return $obj;
     }
     
@@ -777,6 +789,9 @@ abstract class deals_Helper
         $showStoreInMsg = isset($storeId) ? tr('в склада') : '';
         $stRec = store_Products::getQuantities($productId, $storeId, $date);
 
+        $exRec = store_Products::fetch("#storeId = '{$storeId}' AND #productId = {$productId}");
+        $minQuantityDate = is_object($exRec) ? $exRec->dateMin : null;
+
         // Ако има посочена нишка, чийто първи документ да се игнорира от хоризонтите,
         if(isset($ignoreFirstDocumentPlannedInThread)){
             if($firstDocument = doc_Threads::getFirstDocument($ignoreFirstDocumentPlannedInThread)){
@@ -795,12 +810,14 @@ abstract class deals_Helper
                     $iRec = $iQuery->fetch();
 
                     // Ако първия документ в нишката е запазил, игнорират се запазените к-ва от него за документите в същия тред
-                    if(is_object($iRec) && is_object($stRec)){
-                        $stRec->reserved -= $iRec->quantityOut;
-                        $stRec->reserved = abs($stRec->reserved);
-                        $stRec->expected -= $iRec->quantityIn;
-                        $stRec->expected = abs($stRec->expected);
-                        $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                    if(is_object($iRec)){
+                        if(is_object($stRec)){
+                            $stRec->reserved -= $iRec->quantityOut;
+                            $stRec->reserved = abs($stRec->reserved);
+                            $stRec->expected -= $iRec->quantityIn;
+                            $stRec->expected = abs($stRec->expected);
+                            $stRec->free = $stRec->quantity - $stRec->reserved + $stRec->expected;
+                        }
                     }
                 }
             }
@@ -809,6 +826,8 @@ abstract class deals_Helper
         $freeQuantityOriginal = $stRec->free;
         $Double = core_Type::getByName('double(smartRound)');
         $freeQuantity = ($state == 'draft') ? $freeQuantityOriginal - $quantity : $freeQuantityOriginal;
+        $freeQuantityMin = is_object($exRec) ? ($exRec->quantity - $exRec->reservedQuantityMin + $exRec->expectedQuantityMin) : null;
+
         $futureQuantity = $stRec->quantity - $quantity;
         $measureName = cat_UoM::getShortName(cat_Products::fetchField($productId, 'measureId'));
         $inStockVerbal = $Double->toVerbal($stRec->quantity);
@@ -819,21 +838,41 @@ abstract class deals_Helper
             $showNegativeWarning = cat_Products::fetchField($productId, 'isPublic') == 'yes';
         }
 
-        if ($futureQuantity < 0 && $freeQuantity < 0) {
-            if($showNegativeWarning){
-                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
-                $class = 'doc-negative-quantity';
-                $makeLink = false;
+        // Проверка дали има минимално разполагаемо
+        $firstCheck = false;
+        if(isset($minQuantityDate) && $date <= $minQuantityDate){
+            if(($state == 'pending' && $freeQuantityMin < 0) || ($state == 'draft' && $quantity > $freeQuantityMin)){
+                if($showNegativeWarning){
+                    if(isset($date) && $date != dt::today()){
+                        $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
+                        $freeQuantityMinVerbal = core_Type::getByName('double(smartRound)')->toVerbal($freeQuantityMin);
+                        $hint = "Разполагаемо минимално налично към|* {$minDateVerbal}: {$freeQuantityMinVerbal} |{$measureName}|*";
+                    } else {
+                        $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    }
+                }
+
+                $firstCheck = true;
             }
-        } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
-            if($showNegativeWarning) {
-                $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
-            }
-        } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
-            if($showNegativeWarning) {
-                $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
-                $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+        }
+
+        if(!$firstCheck){
+            if ($futureQuantity < 0 && $freeQuantity < 0) {
+                if($showNegativeWarning){
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*!";
+                    $class = 'doc-negative-quantity';
+                    $makeLink = false;
+                }
+            } elseif ($futureQuantity < 0 && $freeQuantity >= 0) {
+                if($showNegativeWarning) {
+                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+                    $hint = "Недостатъчна наличност|*: {$inStockVerbal} |{$measureName}|*. |Контирането на документа ще доведе до отрицателна наличност|* |{$showStoreInMsg}|*! |Очаква се доставка - разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|*";
+                }
+            } elseif ($futureQuantity >= 0 && $freeQuantity < 0) {
+                if($showNegativeWarning) {
+                    $freeQuantityOriginalVerbal = $Double->toVerbal($freeQuantityOriginal);
+                    $hint = "Разполагаема наличност|*: {$freeQuantityOriginalVerbal} |{$measureName}|* |Наличното количество|*: {$inStockVerbal} |{$measureName}|* |е резервирано|*.";
+                }
             }
         }
         
@@ -841,8 +880,7 @@ abstract class deals_Helper
             $html = ht::createHint($html, $hint, 'warning', false, null, "class={$class}");
 
             //  Показване на хоризонта при нужда
-            $productName = cat_Products::getVerbal($productId, 'name');
-            $url = array('store_Products', 'list', 'storeId' => $storeId, 'search' => $productName);
+            $url = array('store_Products', 'list', 'storeId' => $storeId, 'productId' => $productId);
             if(isset($date)){
                 $diff = dt::secsBetween(dt::verbal2mysql($date, false), dt::today());
                 $url['horizon'] = $diff;
@@ -1544,12 +1582,13 @@ abstract class deals_Helper
     /**
      * Помощен метод връщащ разпределението на плащанията по фактури
      *
-     * @param int           $threadId - ид на тред
-     * @param datetime|NULL $valior   - към коя дата
+     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
+     * @param datetime|NULL $valior            - към коя дата
+     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
      *
      * @return array $paid      - масив с разпределените плащания
      */
-    public static function getInvoicePayments($threadId, $valior = null)
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
     {
         expect($threadId);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
@@ -1645,6 +1684,30 @@ abstract class deals_Helper
                     $payArr[$pRec->containerId] = (object) array('containerId' => $pRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => $invMap[$pRec->fromContainerId], 'paymentType' => $type, 'isReverse' => ($pRec->isReverse == 'yes'));
                 }
             }
+        }
+
+        // Ако в нишките има активни или приключени сделки с плащане да участват и те
+        foreach(array('sales_Sales', 'purchase_Purchases') as $dealDoc){
+            $DealDoc = cls::get($dealDoc);
+            $dQuery = $DealDoc->getQuery();
+            $dQuery->in('threadId', $threads);
+            $dQuery->where("#state = 'active' || #state = 'closed'");
+            $dQuery->where(array("#contoActions LIKE '%pay%'"));
+            if (isset($valior)) {
+                $dQuery->where("#valior <= '{$valior}'");
+            }
+
+            while ($dRec = $dQuery->fetch()) {
+                $amount = $dRec->amountDeal;
+                $payArr[$dRec->containerId] = (object) array('containerId' => $dRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => null, 'paymentType' => 'cash', 'isReverse' => false);
+            }
+        }
+
+        if($onlyExactPayments){
+
+            // Ако се изискват само конкретните платежни документи към ф-те - оставят се само те
+            // плащанията, които не са към конкретна фактура не се показват
+            $payArr = array_filter($payArr, function ($a) {return isset($a->to);});
         }
 
         self::allocationOfPayments($newInvoiceArr, $payArr);
@@ -2307,9 +2370,10 @@ abstract class deals_Helper
      *
      * @param $threadId                - ид на нишка
      * @param null $ignoreContainerId  - игнориране на документ
+     * @param bool $ignoreDrafts       - игнориране на черновите документи
      * @return bool                    - има ли финална експедиция или не
      */
-    public static function canHaveMoreDeliveries($threadId, $ignoreContainerId = null)
+    public static function canHaveMoreDeliveries($threadId, $ignoreContainerId = null, $ignoreDrafts = false)
     {
         $firstDocument = doc_Threads::getFirstDocument($threadId);
         $firstDocRec = $firstDocument->fetch('oneTimeDelivery,contoActions');
@@ -2327,6 +2391,11 @@ abstract class deals_Helper
         if(isset($ignoreContainerId)){
             $cQuery->where("#id != {$ignoreContainerId}");
         }
+
+        if($ignoreDrafts){
+            $cQuery->where("#state != 'draft'");
+        }
+
         $cQuery->show('id');
         $count = $cQuery->count();
 

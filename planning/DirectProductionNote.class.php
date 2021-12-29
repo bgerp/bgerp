@@ -1422,4 +1422,26 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         followRetUrl(null, 'Записите са заредени от начало');
     }
+
+
+    /**
+     * Връща позволените партиди за заприхождаване в документа
+     *
+     * @param $id
+     * @return array|null $options
+     */
+    public function getAllowedInBatches_($id)
+    {
+        $rec = static::fetchRec($id);
+
+        // Ако ще се произвежда артикулът от заданиет, наличните партиди за заприхождаване са тези от заданието
+        if(planning_DirectProductionNote::isForJobProductId($rec)) {
+            $jobDoc = doc_Containers::getDocument($rec->originId);
+            $options = $jobDoc->getInstance()->getAllowedBatchesForJob($rec->originId);
+
+            return $options;
+        }
+
+        return null;
+    }
 }

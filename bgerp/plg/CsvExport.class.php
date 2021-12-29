@@ -80,8 +80,11 @@ class bgerp_plg_CsvExport extends core_BaseClass
             $sets[] = "{$name}={$fld->caption}";
             $selected[$name] = $name;
         }
-        $sets[] = 'ExternalLink=Линк';
-        
+
+        if($this->mvc instanceof core_Master){
+            $sets[] = 'ExternalLink=Линк';
+        }
+
         $selectedFields = cls::get('type_Set')->fromVerbal($selected);
         
         $sets = implode(',', $sets);

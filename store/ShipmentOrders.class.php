@@ -35,16 +35,22 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Поддържани интерфейси
      */
-    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf,
+    public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, export_XmlExportIntf=store_iface_ShipmentOrderToXmlImpl,
                           acc_TransactionSourceIntf=store_transaction_ShipmentOrder, bgerp_DealIntf,trans_LogisticDataIntf,label_SequenceIntf=store_iface_ShipmentLabelImpl,deals_InvoiceSourceIntf, doc_ContragentDataIntf';
 
 
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, store_plg_StoreFilter,deals_plg_SaveValiorOnActivation,store_Wrapper,purchase_plg_ExtractPurchasesData, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, change_Plugin, store_plg_StoreFilter,deals_plg_SaveValiorOnActivation,store_Wrapper,purchase_plg_ExtractPurchasesData, sales_plg_CalcPriceDelta, plg_Sorting,store_plg_Request,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, trans_plg_LinesPlugin, acc_plg_DocumentSummary, doc_plg_TplManager,deals_plg_SelectInvoicesToDocument,
 					doc_EmailCreatePlg, bgerp_plg_Blank, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search';
+
+
+    /**
+     * Полетата, които могат да се променят с change_Plugin
+     */
+    public $changableFields = 'note';
 
 
     /**
@@ -218,6 +224,7 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryTime');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
+        $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
         $this->setField('deliveryTime', 'caption=Натоварване');
         $this->setDbIndex('createdOn');
     }
@@ -273,6 +280,26 @@ class store_ShipmentOrders extends store_DocumentMaster
 
             if (Mode::is('text', 'xhtml') || Mode::is('printing') || Mode::is('pdf')) {
                 unset($row->storeReadiness);
+            }
+
+            $conditions = $rec->additionalConditions;
+            if(empty($conditions)){
+                if(in_array($rec->state, array('pending', 'draft'))){
+                    $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $rec->tplLang);
+                    if(!empty($condition)){
+                        if(!Mode::isReadOnly()){
+                            $condition = "<span style='color:blue'>{$condition}</span>";
+                        }
+                        $condition = ht::createHint($condition, 'Ще бъде записано при активиране');
+                        $conditions = array($condition);
+                    }
+                }
+            }
+
+            if(is_array($conditions)){
+                foreach ($conditions as $cond){
+                    $row->note .= "\n" . $cond;
+                }
             }
         }
 
@@ -410,30 +437,32 @@ class store_ShipmentOrders extends store_DocumentMaster
      * @param mixed $rec - ид или запис на документ
      * @return array      - логистичните данни
      *
-     *		string(2)     ['fromCountry']     - международното име на английски на държавата за натоварване
-     * 		string|NULL   ['fromPCode']       - пощенски код на мястото за натоварване
-     * 		string|NULL   ['fromPlace']       - град за натоварване
-     * 		string|NULL   ['fromAddress']     - адрес за натоварване
-     *  	string|NULL   ['fromCompany']     - фирма
-     *   	string|NULL   ['fromPerson']      - лице
-     *      string|NULL   ['fromLocationId']  - лице
-     *      string|NULL   ['fromAddressInfo']   - особености
-     * 		datetime|NULL ['loadingTime']     - дата на натоварване
-     * 		string(2)     ['toCountry']       - международното име на английски на държавата за разтоварване
-     * 		string|NULL   ['toPCode']         - пощенски код на мястото за разтоварване
-     * 		string|NULL   ['toPlace']         - град за разтоварване
-     *  	string|NULL   ['toAddress']       - адрес за разтоварване
-     *   	string|NULL   ['toCompany']       - фирма
-     *   	string|NULL   ['toPerson']        - лице
-     *      string|NULL   ['toLocationId']    - лице
-     *      string|NULL   ['toPersonPhones']  - телефон на лицето
-     *      string|NULL   ['toAddressInfo']   - особености
-     *      string|NULL   ['instructions']    - инструкции
-     * 		datetime|NULL ['deliveryTime']    - дата на разтоварване
-     * 		text|NULL 	  ['conditions']      - други условия
-     *		varchar|NULL  ['ourReff']         - наш реф
-     * 		double|NULL   ['totalWeight']     - общо тегло
-     * 		double|NULL   ['totalVolume']     - общ обем
+     *		string(2)     ['fromCountry']         - международното име на английски на държавата за натоварване
+     * 		string|NULL   ['fromPCode']           - пощенски код на мястото за натоварване
+     * 		string|NULL   ['fromPlace']           - град за натоварване
+     * 		string|NULL   ['fromAddress']         - адрес за натоварване
+     *  	string|NULL   ['fromCompany']         - фирма
+     *   	string|NULL   ['fromPerson']          - лице
+     *      string|NULL   ['fromLocationId']      - лице
+     *      string|NULL   ['fromAddressInfo']     - особености
+     *      string|NULL   ['fromAddressFeatures'] - особености на транспорта
+     * 		datetime|NULL ['loadingTime']         - дата на натоварване
+     * 		string(2)     ['toCountry']           - международното име на английски на държавата за разтоварване
+     * 		string|NULL   ['toPCode']             - пощенски код на мястото за разтоварване
+     * 		string|NULL   ['toPlace']             - град за разтоварване
+     *  	string|NULL   ['toAddress']           - адрес за разтоварване
+     *   	string|NULL   ['toCompany']           - фирма
+     *   	string|NULL   ['toPerson']            - лице
+     *      string|NULL   ['toLocationId']        - лице
+     *      string|NULL   ['toPersonPhones']      - телефон на лицето
+     *      string|NULL   ['toAddressInfo']       - особености
+     *      string|NULL   ['toAddressFeatures']   - особености на транспорта
+     *      string|NULL   ['instructions']        - инструкции
+     * 		datetime|NULL ['deliveryTime']        - дата на разтоварване
+     * 		text|NULL 	  ['conditions']          - други условия
+     *		varchar|NULL  ['ourReff']             - наш реф
+     * 		double|NULL   ['totalWeight']         - общо тегло
+     * 		double|NULL   ['totalVolume']         - общ обем
      */
     public function getLogisticData($rec)
     {
@@ -441,7 +470,7 @@ class store_ShipmentOrders extends store_DocumentMaster
         $res = parent::getLogisticData($rec);
 
         unset($res['deliveryTime']);
-        $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : $rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY');
+        $res['loadingTime'] = (!empty($rec->deliveryTime)) ? $rec->deliveryTime : ($rec->valior . ' ' . bgerp_Setup::get('START_OF_WORKING_DAY'));
 
         return $res;
     }
@@ -515,24 +544,28 @@ class store_ShipmentOrders extends store_DocumentMaster
 
         // Бутони за редакция и добавяне на ЧМР-та
         if (in_array($rec->state, array('active', 'pending'))) {
-            if ($cmrId = trans_Cmrs::fetchField("#originId = {$rec->containerId} AND #state != 'rejected'")) {
-                if (trans_Cmrs::haveRightFor('single', $cmrId)) {
-                    $arrow = html_entity_decode('&#9660;', ENT_COMPAT | ENT_HTML401, 'UTF-8');
-                    $data->toolbar->addBtn("ЧМР|* {$arrow}", array('trans_Cmrs', 'single', $cmrId, 'ret_url' => true), "title=Преглед на|* #CMR{$cmrId},ef_icon=img/16/passage.png");
-                }
-            } elseif (trans_Cmrs::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
+            $logisticData = $mvc->getLogisticData($rec->id);
+            $countryId = drdata_Countries::getIdByName($logisticData['toCountry']);
+            $bgId = drdata_Countries::getIdByName('Bulgaria');
+
+            if (trans_Cmrs::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
 
                 // Само ако условието на доставка позволява ЧМР да се добавя към документа
                 $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
                 $cmrRow = 2;
                 if($firstDoc->isInstanceOf('deals_DealMaster')){
                     $deliveryTermId = $firstDoc->fetchField('deliveryTermId');
-                    if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes') {
+                    if ((isset($deliveryTermId) && strpos(cond_DeliveryTerms::fetchField($deliveryTermId, 'properties'), 'cmr') !== false) || trans_Setup::get('CMR_SHOW_BTN') == 'yes' || $countryId != $bgId) {
                         $cmrRow = 1;
                     }
                 }
 
                 $data->toolbar->addBtn('ЧМР', array('trans_Cmrs', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "title=Създаване на ЧМР към експедиционното нареждане,ef_icon=img/16/passage.png,row={$cmrRow}");
+            }
+
+            if(trans_IntraCommunitySupplyConfirmations::haveRightFor('add', (object)array('originId' => $rec->containerId))){
+                $vodRowBtn = ($countryId == $bgId || !drdata_Countries::isEu($countryId)) ? 2 : 1;
+                $data->toolbar->addBtn('ВОД', array('trans_IntraCommunitySupplyConfirmations', 'add', 'originId' => $rec->containerId, 'ret_url' => true), "ef_icon=img/16/document_accept.png,title=Създаване на ново потвърждение за ВОД,row={$vodRowBtn}");
             }
         }
 
@@ -660,6 +693,23 @@ class store_ShipmentOrders extends store_DocumentMaster
         $hiddenTransport = round($hiddenTransport, 2);
         if(!empty($hiddenTransport)){
             $res['hiddenTransport'] = $hiddenTransport;
+        }
+    }
+
+
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        // Ако потребителя не е в група доставчици го включваме
+        $rec = $mvc->fetchRec($rec);
+
+        if(empty($rec->additionalConditions)){
+            $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
+            $condition = store_Stores::getDocumentConditionFor($rec->storeId, $mvc, $lang);
+            $rec->additionalConditions = array($condition);
+            $mvc->save_($rec, 'additionalConditions');
         }
     }
 }

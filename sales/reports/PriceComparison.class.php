@@ -246,14 +246,27 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     {
         $fld = cls::get('core_FieldSet');
 
-        $fld->FLD('productId', 'varchar', 'caption=Артикул');
-        $fld->FLD('lowPrice', 'double', 'caption=Цена -> Ниска');
-        $fld->FLD('hiPrice', 'double', 'caption=Цена -> Висока');
-        $fld->FLD('diffPrice', 'double', 'caption=Разлика -> Стойност');
-        if ($rec->typePercent != 'none') {
-            $fld->FLD('diffPercent', 'double', 'caption=Разлика -> Процент');
-        }
+        if ($export === false) {
 
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('lowPrice', 'double(decimals=2,smartRound)', 'caption=Цена -> Ниска');
+            $fld->FLD('hiPrice', 'double(decimals=2,smartRound)', 'caption=Цена -> Висока');
+            $fld->FLD('diffPrice', 'double(decimals=2,smartRound)', 'caption=Разлика -> Стойност');
+            if ($rec->typePercent != 'none') {
+                $fld->FLD('diffPercent', 'double(decimals=2,smartRound)', 'caption=Разлика -> Процент');
+            }
+        }else{
+
+            $fld->FLD('code', 'varchar', 'caption=Код');
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('lowPrice', 'double(decimals=2,smartRound)', 'caption=Цена -> Ниска');
+            $fld->FLD('hiPrice', 'double(decimals=2,smartRound)', 'caption=Цена -> Висока');
+            $fld->FLD('diffPrice', 'double(decimals=2,smartRound)', 'caption=Разлика -> Стойност');
+            if ($rec->typePercent != 'none') {
+                $fld->FLD('diffPercent', 'double(decimals=2,smartRound)', 'caption=Разлика -> Процент');
+            }
+
+        }
 
         return $fld;
     }
@@ -270,7 +283,10 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
     protected function detailRecToVerbal($rec, &$dRec)
     {
         $Int = cls::get('type_Int');
-        $Double = core_Type::getByName('double(decimals=2,smartRound)');
+
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+
         $Date = cls::get('type_Date');
         $Percent = cls::get('type_Percent');
 
@@ -313,6 +329,14 @@ class sales_reports_PriceComparison extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
+
+
+
+        $res->productId = cat_Products::fetch($dRec->productId)->name;
+        $res->code = $dRec->code;
 
     }
 
