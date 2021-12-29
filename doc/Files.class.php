@@ -461,8 +461,8 @@ class doc_Files extends core_Manager
      */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->query->where("#show = 'yes' OR #show IS NULL");
-        
+        $data->query->where("#show != 'no'");
+
         $sPrefix = '__';
         $folderPrefix = $sPrefix . 'folder__';
         
