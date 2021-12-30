@@ -268,7 +268,7 @@ class doc_Setup extends core_ProtoSetup
         'doc_FolderResources',
         'doc_LinkedLast',
         'migrate::foldersRepairSerchKeywords2124',
-        'migrate::showFiles2126',
+        'migrate::showFiles2152',
     );
 
 
@@ -528,17 +528,17 @@ class doc_Setup extends core_ProtoSetup
     /**
      * Миграция, за показване/скирване на файловете в документите
      */
-    public function showFiles2126()
+    public function showFiles2152()
     {
         $callOn = dt::addSecs(120);
-        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2126', NULL, $callOn);
+        core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2152', NULL, $callOn);
     }
 
 
     /**
-     * Постепенна миграция, която се вика от showFiles2126 и се самонавива
+     * Постепенна миграция, която се вика от showFiles2152 и се самонавива
      */
-    public static function callback_migrateShowFiles2126()
+    public static function callback_migrateShowFiles2152()
     {
         core_App::setTimeLimit(100);
         $query = doc_Files::getQuery();
@@ -556,7 +556,7 @@ class doc_Setup extends core_ProtoSetup
 
         if ($cnt) {
             $callOn = dt::addSecs(120);
-            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2126', NULL, $callOn);
+            core_CallOnTime::setCall('doc_Setup', 'migrateShowFiles2152', NULL, $callOn);
         } else {
             doc_Files::logDebug("Няма повече файлове за миграция в документите");
 

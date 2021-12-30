@@ -445,7 +445,33 @@ class fileman_Data extends core_Manager
         
         return false;
     }
-    
+
+
+    /**
+     * Извиква се след успешен запис в модела
+     *
+     * @param core_Mvc $mvc
+     * @param int      $id  първичния ключ на направения запис
+     * @param stdClass $rec всички полета, които току-що са били записани
+     */
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
+    {
+        // При добавяне на нов файл, ако все още не са определени ключовите думи, да вкара поне името на файла
+        if (!trim($rec->searchKeywords) && $rec->id) {
+            $fNames = '';
+            $fQuery = fileman_Files::getQuery();
+            $fQuery->where(array("#dataId = '[#1#]'", $rec->id));
+            $fQuery->show('name');
+            while ($fRec = $fQuery->fetch()) {
+                $fNames .= ' ' . $fRec->name;
+            }
+
+            $rec->searchKeywords = ' ' . plg_Search::normalizeText(trim($fNames));
+
+            $mvc->save_($rec, 'searchKeywords');
+        }
+    }
+
     
     /**
      * Пуска обработки на файла
@@ -476,7 +502,7 @@ class fileman_Data extends core_Manager
             $query->orderBy('lastUse', 'ASC');
             $query->orderBy('createdOn', 'ASC');
         }
-        
+
         $query->limit(100);
         
         while ($rec = $query->fetch()) {

@@ -179,53 +179,56 @@ class cond_plg_DefaultValues extends core_Plugin
             }
         }
     }
-    
-    
+
+
     /**
-     * Намира последния документ в дадена папка от същия потребител
+     * Намира стойността на полето от последния активен/затворен документ в папката за текущия потребител,
      *
-     * @param core_Mvc $mvc      - мениджъра
-     * @param int      $folderId - ид на папката
-     * @param bool     $fromUser - дали документа да е от текущия
-     *                           потребител или не
+     * @param core_Mvc $mvc
+     * @param $rec
+     * @param $name
      *
-     * @return mixed $rec - последния запис
+     * @return mixed
      */
     private static function getFromLastDocUser(core_Mvc $mvc, $rec, $name)
     {
         return self::getFromLastDocument($mvc, $rec->folderId, $name);
     }
-    
-    
+
+
     /**
-     * Намира последния документ в дадена папка
+     * Намира стойността на полето от последния активен/затворен документ в папката,
      *
-     * @param core_Mvc $mvc      - мениджъра
-     * @param int      $folderId - ид на папката
-     * @param bool     $fromUser - дали документа да е от текущия
-     *                           потребител или не
+     * @param core_Mvc $mvc
+     * @param $rec
+     * @param $name
      *
-     * @return mixed $rec - последния запис
+     * @return mixed
      */
     private static function getFromLastDoc(core_Mvc $mvc, $rec, $name)
     {
         return self::getFromLastDocument($mvc, $rec->folderId, $name, false);
     }
-    
-    
+
+
     /**
-     * Намира последния документ в дадена папка
+     * Намира стойността на полето от последния активен/затворен документ в папката,
+     * от текущия потребител или без значение потребителя
+     *
+     * @param core_Mvc $mvc
+     * @param $folderId
+     * @param $name
+     * @param bool $fromUser
+     *
+     * @return mixed
      */
     public static function getFromLastDocument(core_Mvc $mvc, $folderId, $name, $fromUser = true)
     {
-        if (empty($folderId)) {
-            
-            return;
-        }
+        if (empty($folderId)) return;
         
         $cu = core_Users::getCurrent();
         $query = $mvc->getQuery();
-        $query->where("#state != 'draft' AND #state != 'rejected'");
+        $query->where("#state = 'active' OR #state = 'closed'");
         
         $query->where("#folderId = {$folderId}");
         if ($fromUser) {
@@ -250,7 +253,7 @@ class cond_plg_DefaultValues extends core_Plugin
         
         // Намиране на последната продажба, на контрагент от същата държава
         $query = $mvc->getQuery();
-        $query->where("#state != 'draft' AND #state != 'rejected'");
+        $query->where("#state = 'active' OR #state = 'closed'");
         $query->orderBy('#createdOn', 'DESC');
         $query->where("#folderId != {$rec->folderId}");
         $query->groupBy('folderId');
@@ -303,13 +306,14 @@ class cond_plg_DefaultValues extends core_Plugin
      */
     private static function getFromSessionValue(core_Mvc $mvc, $rec, $name)
     {
-        $fldType = $mvc->getFieldType($name);
-        if($fldType instanceof type_Key || $fldType instanceof type_Keylist){
-            if($typeMvc = $fldType->params['mvc']){
-                $TypeMvc = cls::get($typeMvc);
-                if($TypeMvc->hasPlugin('plg_Current')){
-                    
-                    return $TypeMvc->getCurrent('id', false);
+        if($fldType = $mvc->getFieldType($name)){
+            if($fldType instanceof type_Key || $fldType instanceof type_Keylist){
+                if($typeMvc = $fldType->params['mvc']){
+                    $TypeMvc = cls::get($typeMvc);
+                    if($TypeMvc->hasPlugin('plg_Current')){
+
+                        return $TypeMvc->getCurrent('id', false);
+                    }
                 }
             }
         }
