@@ -51,7 +51,7 @@ class sales_transaction_CloseDeal extends deals_ClosedDealTransaction
 
         $valior = $this->class->getValiorDate($rec);
         if (Mode::get('saveTransaction')) {
-            acc_journal_RejectRedirect::expect(!acc_plg_Contable::haveDocumentInThreadWithStates($rec->threadId, 'pending,draft'), tr("Към продажбата има документ в състояние заявка и/или чернова"));
+            acc_journal_RejectRedirect::expect(!acc_plg_Contable::haveDocumentInThreadWithStates($rec->threadId, 'pending,draft', $rec->containerId), tr("Към продажбата има документ в състояние заявка и/или чернова"));
             $rec->valior = $valior;
         }
 
