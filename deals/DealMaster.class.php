@@ -991,17 +991,38 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
+        $updatedConditions = false;
         if(empty($rec->additionalConditions)){
             $rec->additionalConditions = $mvc->getConditionArr($rec);
-            $update = true;
+            $updatedConditions = $update = true;
         }
 
         if ($update === true) {
             $mvc->save_($rec, 'deliveryTermTime,deliveryAdress,additionalConditions');
         }
+
+        // Форсиране на обновяването на ключовите думи, ако са обновени допълнителните условия
+        if($updatedConditions){
+            plg_Search::forceUpdateKeywords($mvc, $rec);
+        }
     }
-    
-    
+
+
+    /**
+     * Добавя ключови думи за пълнотекстово търсене
+     */
+    public static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
+    {
+        // Добавяне на допълнителните условия към ключовите думи
+        $additionalConditions = (!empty($rec->additionalConditions)) ? $rec->additionalConditions : $mvc->getConditionArr($rec);
+        if(is_array($additionalConditions)){
+            foreach ($additionalConditions as $cond) {
+                $res .= ' ' . plg_Search::normalizeText($cond);
+            }
+        }
+    }
+
+
     /**
      * След преобразуване на записа в четим за хора вид
      */
@@ -1223,7 +1244,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $lang = isset($rec->tplLang) ? $rec->tplLang : doc_TplManager::fetchField($rec->template, 'lang');
 
         $conditions = array();
-        $calc = ($auto === false) ? true : in_array($rec->state, array('pending', 'draft'));
+        $calc = ($auto === false) || in_array($rec->state, array('pending', 'draft'));
 
         foreach (array('bank_Accounts' => 'bankAccountId', 'cash_Cases' => 'caseId', 'store_Stores' => 'shipmentStoreId') as  $fldMaster => $fld){
             if(!empty($rec->{$fld}) && $calc){
@@ -1231,7 +1252,6 @@ abstract class deals_DealMaster extends deals_DealBase
                 if($fld == 'bankAccountId' && !is_numeric($rec->{$fld})){
                     $objectId = bank_Accounts::fetchField("#iban = '{$rec->{$fld}}'");
                 }
-
 
                 $aCondition = $fldMaster::getDocumentConditionFor($objectId, $this, $lang);
                 if(!empty($aCondition)){
@@ -1242,10 +1262,12 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
-        $additionalConditions = deals_Helper::getConditionsFromProducts($this->mainDetail, $this, $rec->id, $lang);
-        $additionalConditions = $conditions + $additionalConditions;
+        if(isset($rec->id)){
+            $additionalConditions = deals_Helper::getConditionsFromProducts($this->mainDetail, $this, $rec->id, $lang);
+            $conditions = $conditions + $additionalConditions;
+        }
 
-        return array_values($additionalConditions);
+        return array_values($conditions);
     }
 
 
