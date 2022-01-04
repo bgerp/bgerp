@@ -190,7 +190,7 @@ class purchase_Purchases extends deals_DealMaster
         'dealerId' => 'lastDocUser',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
         'oneTimeDelivery' => 'clientCondition'
@@ -296,6 +296,7 @@ class purchase_Purchases extends deals_DealMaster
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
         $this->setField('oneTimeDelivery', 'salecondSysId=purchaseOneTimeDelivery');
+        $this->setField('chargeVat', 'salecondSysId=purchaseChargeVat');
     }
     
     
