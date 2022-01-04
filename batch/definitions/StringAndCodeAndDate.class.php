@@ -195,11 +195,13 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
      */
     public function normalize($value)
     {
-        $expectedFormatDate = dt::mysql2verbal(dt::today(), $this->rec->format);
-        $dateLen = mb_strlen($expectedFormatDate);
+        if(strpos($value, '|') === false){
+            $expectedFormatDate = dt::mysql2verbal(dt::today(), $this->rec->format);
+            $dateLen = mb_strlen($expectedFormatDate);
 
-        $startsWith = mb_substr($value, 0, mb_strlen($value) - $dateLen);
-        $value = str_replace($startsWith, "{$startsWith}|", $value);
+            $startsWith = mb_substr($value, 0, mb_strlen($value) - $dateLen);
+            $value = str_replace($startsWith, "{$startsWith}|", $value);
+        }
 
         return ($value == '') ? null : $value;
     }

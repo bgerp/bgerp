@@ -248,7 +248,9 @@ class batch_plg_InventoryNotes extends core_Plugin
         // Сумиране на партидите
         while ($rec = $query->fetch()) {
             if (!empty($rec->batch)) {
+                Mode::push('text', 'plain');
                 $batches = $Def->makeArray($rec->batch);
+                Mode::pop();
                 $quantity = $rec->quantity / countR($batches);
             } else {
                 if ($count == 1 && $alwaysShowBatches !== true) {
@@ -258,7 +260,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $batches = array('' => '');
                 $quantity = $rec->quantity;
             }
-            
+
             foreach ($batches as $k => $v) {
                 if (!array_key_exists($k, $batchesInDetail)) {
                     $batchesInDetail[$k] = (object) array('quantity' => 0, 'batch' => $v);
@@ -277,10 +279,10 @@ class batch_plg_InventoryNotes extends core_Plugin
         
         $allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, null, array('store_InventoryNotes', $noteId), true);
         $allBatches[''] = $expectedQuantity - array_sum($allBatches);
-        
+
         $summary = array();
         $combinedKeys = array_keys($batchesInDetail + $allBatches);
-        
+
         // Засичане
         $expected = $expectedQuantity;
         foreach ($combinedKeys as $batch) {
@@ -300,7 +302,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             unset($summary['']);
             $summary[''] = $noBatch;
         }
-        
+
         return $summary;
     }
     
@@ -335,6 +337,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             }
             
             $Def = batch_Defs::getBatchDef($sRec->productId);
+
             foreach ($summary as $batch => $bRec) {
                 $bRec->noteId = $sRec->noteId;
                 $bRec->orderCode = $sRec->orderCode;
