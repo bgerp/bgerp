@@ -113,6 +113,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $purchQuery->show('folderId, contragentId, folderTitle');
 
+        $purSuggestions = $suggestions = array();
+
         while ($purContragent = $purchQuery->fetch()) {
             if (!is_null($purContragent->contragentId)) {
                 $purSuggestions[$purContragent->folderId] = $purContragent->folderTitle;
