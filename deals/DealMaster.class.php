@@ -2629,8 +2629,8 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     protected static function on_BeforeChangeState($mvc, &$rec, $state)
     {
-        if(acc_plg_Contable::havePendingDocuments($rec->threadId, $rec->containerId)){
-            followRetUrl(null, 'Сделката не може да се открие/закрие, защото има документи на заявка', 'error');
+        if(acc_plg_Contable::haveDocumentInThreadWithStates($rec->threadId, 'pending,draft', $rec->containerId)){
+            followRetUrl(null, 'Сделката не може да се открие/закрие, защото има документи на заявка и/или чернова', 'error');
         }
     }
 
