@@ -313,19 +313,24 @@ class purchase_plg_ExtractPurchasesData extends core_Plugin
         $costsArr = array();
         while ($cost = $costAllocQuery->fetch()) {
             $document = doc_Containers::getDocument($cost->containerId);
-            if(acc_Journal::fetchByDoc($document->getClassId(), $document->that)){
-                $costClassName = core_Classes::getName($cost->detailClassId);
-                $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
-                $costProdAmount = ($cost->quantity < 1) ? $costProdAmount : ($costProdAmount / $cost->quantity);
-
-                foreach ($cost->productsData as $costProd) {
-                    if (!in_array($cost->state, array('active','closed'))) {
-                        $costProdAmount = 0;
-                    }
-
-                    // Намираме колко е еденичната цена, и я умножаваме по преразпределеното количество
-                    $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
+            $useCost = in_array($cost->state, array('active','closed'));
+            if($useCost && $document->isInstanceOf('deals_DealMaster')){
+                if(!acc_Journal::fetchByDoc($document->getClassId(), $document->that)){
+                    $useCost = false;
                 }
+            }
+
+            $costClassName = core_Classes::getName($cost->detailClassId);
+            $costProdAmount = $costClassName::fetch($cost->detailRecId)->amount;
+            $costProdAmount = ($cost->quantity < 1) ? $costProdAmount : ($costProdAmount / $cost->quantity);
+
+            foreach ($cost->productsData as $costProd) {
+                if (!$useCost) {
+                    $costProdAmount = 0;
+                }
+
+                // Намираме колко е еденичната цена, и я умножаваме по преразпределеното количество
+                $costsArr[$costProd->productId] += $costProdAmount * $costProd->allocated;
             }
         }
 
