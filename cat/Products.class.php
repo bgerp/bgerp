@@ -4144,4 +4144,11 @@ class cat_Products extends embed_Manager
             }
         }
     }
+
+    function act_Arsov()
+    {
+        $r = purchase_plg_ExtractPurchasesData::getAllocatedCostsByProduct(80874);
+
+        bp($r);
+    }
 }
