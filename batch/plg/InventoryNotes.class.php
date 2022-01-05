@@ -294,6 +294,8 @@ class batch_plg_InventoryNotes extends core_Plugin
         }
 
         $allBatches = batch_Items::getBatchQuantitiesInStore($productId, $storeId, $valior, null, array('store_InventoryNotes', $noteId), true);
+        if(!countR($allBatches) && !countR($batchesInDetail)) return false;
+
         $allBatches[''] = $expectedQuantity - array_sum($allBatches);
 
         $summary = array();
@@ -311,7 +313,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $expected -= $summary[$batch]->blQuantity;
             }
         }
-        
+
         // Без партидата отива най-отдоло
         if (isset($summary[''])) {
             $noBatch = $summary[''];
@@ -338,8 +340,8 @@ class batch_plg_InventoryNotes extends core_Plugin
         $valior = dt::addDays(-1, $masterRec->valior);
         $valior = dt::verbal2mysql($valior, false);
         
-        $alwaysShowBatches = (Mode::is('blank') && Request::get('showBatches')) ? true : false;
-        
+        $alwaysShowBatches = (Mode::is('blank') && Request::get('showBatches')) || $masterRec->expandByBatches == 'yes';
+
         $r = array();
         $recs = array();
         foreach ($summaryRows as $id => $sRow) {
@@ -348,8 +350,7 @@ class batch_plg_InventoryNotes extends core_Plugin
             $r[$id] = $sRow;
             
             $summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
-            if (!is_array($summary)) continue;
-
+            if(!$summary) continue;
             $Def = batch_Defs::getBatchDef($sRec->productId);
 
             foreach ($summary as $batch => $bRec) {
@@ -378,7 +379,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $r[$k] = $clone;
             }
         }
-        
+
         $summaryRecs = $recs;
         $summaryRows = $r;
     }
