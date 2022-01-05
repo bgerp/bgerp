@@ -56,7 +56,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени)', 'caption=Плащане,after=typeOfInvoice,removeAndRefreshForm,single=none,mandatory,silent');
 
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото');
-        $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate');
+        $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate, placeholder=текуща');
 
         $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit=лв.,input=hidden,after=checkDate,silent,single=none');
 
