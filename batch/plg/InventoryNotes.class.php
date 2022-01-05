@@ -109,7 +109,14 @@ class batch_plg_InventoryNotes extends core_Plugin
                     $form->setDefault('batchEx', $rec->batch);
                 }
             }
-            
+
+            if(isset($rec->editQuantity)){
+                $form->setField('batchNew', 'input=none');
+                if(isset($rec->editBatch)){
+                    $form->setReadOnly('batchEx', $rec->editBatch);
+                }
+            }
+
             $form->setField('batchNew', $autohide);
         }
     }
@@ -215,6 +222,8 @@ class batch_plg_InventoryNotes extends core_Plugin
         } else {
             $row->batch = $batches[key($batches)];
         }
+
+
     }
     
     
@@ -345,7 +354,9 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $bRec->orderName = $sRec->noteId;
                 $bRec->groupName = $sRec->groupName;
                 $bRec->isBatch = true;
-                
+                $bRec->_batch = $batch;
+                $bRec->productId = $sRec->productId;
+
                 $clone = clone $sRow;
                 $productId = new core_ET("<span class='note-batch-row'><span class='note-batch-product-name'>[#product#]</span> <span class='note-batch-name'>[#batch#]</span></span>");
                 $productId->replace(strip_tags($clone->productId), 'product');
@@ -356,7 +367,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $clone->quantity = $Double->toVerbal($bRec->quantity);
                 $clone->delta = $Double->toVerbal($bRec->delta);
                 unset($clone->code);
-                
+
                 $k = "{$id}|{$batch}";
                 $recs[$k] = $bRec;
                 $r[$k] = $clone;
