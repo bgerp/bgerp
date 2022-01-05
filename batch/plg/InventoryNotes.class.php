@@ -117,6 +117,10 @@ class batch_plg_InventoryNotes extends core_Plugin
                 }
             }
 
+            if(isset($rec->editSummary) && !isset($rec->editBatch)){
+                $form->setField('batchEx', 'input=none');
+            }
+
             $form->setField('batchNew', $autohide);
         }
     }
@@ -143,11 +147,13 @@ class batch_plg_InventoryNotes extends core_Plugin
             if (!empty($rec->batchEx) && !empty($rec->batchNew)) {
                 $form->setError('batchNew,batchEx', 'Само едното поле може да е попълнено, или никое');
             }
-            
+
             if (!isset($rec->quantity)) {
-                $b = $BatchClass->normalize($rec->batchNew);
-                $b = $BatchClass->makeArray($b);
-                $rec->quantity = countR($b);
+                if(!isset($rec->editSummary)){
+                    $b = $BatchClass->normalize($rec->batchNew);
+                    $b = $BatchClass->makeArray($b);
+                    $rec->quantity = countR($b);
+                }
             }
             
             if (!empty($rec->batchNew)) {
@@ -358,7 +364,7 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $bRec->productId = $sRec->productId;
 
                 $clone = clone $sRow;
-                $productId = new core_ET("<span class='note-batch-row'><span class='note-batch-product-name'>[#product#]</span> <span class='note-batch-name'>[#batch#]</span></span>");
+                $productId = new core_ET("<span class='note-batch-row'><span class='note-batch-product-name'>[#product#]</span>: <span class='note-batch-name'>[#batch#]</span></span>");
                 $productId->replace(strip_tags($clone->productId), 'product');
                 $productId->replace(($batch) ? $Def->toVerbal($batch) : tr('Без партида'), 'batch');
                 $clone->productId = $productId;

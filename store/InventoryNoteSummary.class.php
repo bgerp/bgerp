@@ -390,9 +390,10 @@ class store_InventoryNoteSummary extends doc_Detail
             }
 
             if (isset($rec)) {
+                $isNoBatchRow = $rec->isBatch && empty($rec->_batch);
 
                 // Добавяне на бутон за редакция на реда
-                if ($rec->productId && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
+                if ($rec->productId && !$isNoBatchRow && store_InventoryNoteDetails::haveRightFor('add', (object) array('noteId' => $rec->noteId, 'productId' => $rec->productId))) {
                     $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId));
 
                     // Ако се редактира сумарен ред. Маркира се в урл-то
@@ -848,9 +849,11 @@ class store_InventoryNoteSummary extends doc_Detail
         $query->where("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
         $query->XPR('sumQuantity', 'double', 'SUM(#quantity)');
         $query->show('sumQuantity,quantity');
-        
-        $quantity = $query->fetch()->sumQuantity;
-        $rec->quantity = round($quantity, 4);
+
+        $rec->quantity = $query->fetch()->sumQuantity;
+        if(isset($rec->quantity)){
+            $rec->quantity = round($rec->quantity, 4);
+        }
         
         cls::get('store_InventoryNoteSummary')->save($rec, 'quantity');
     }

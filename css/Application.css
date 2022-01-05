@@ -6572,6 +6572,9 @@ only screen and (max-width: 320px) {
  * стилове за принтиране
  */
 @media print {
+  .note-batch-product-name {
+    color: black !important; }
+
   .wide .singleView {
     display: block; }
 
@@ -7363,4 +7366,7 @@ only screen and (max-width: 320px) {
 
 .workingTimeBlock table.typeTable {
   width: 100%; }
+
+.note-batch-product-name {
+  color: #888888; }
 

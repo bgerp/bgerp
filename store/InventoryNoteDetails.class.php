@@ -259,7 +259,7 @@ class store_InventoryNoteDetails extends doc_Detail
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = (isset($rec->packQuantity)) ? $rec->packQuantity * $rec->quantityInPack : null;
         }
-        
+
         $mvc->invoke('AfterAfterInputEditForm', array($form));
     }
     
