@@ -6572,9 +6572,6 @@ only screen and (max-width: 320px) {
  * стилове за принтиране
  */
 @media print {
-  .note-batch-product-name {
-    color: black !important; }
-
   .wide .singleView {
     display: block; }
 

@@ -397,7 +397,7 @@ class store_InventoryNoteSummary extends doc_Detail
                     $url = array('store_InventoryNoteDetails', 'add', 'noteId' => $rec->noteId, 'productId' => $rec->productId, 'ret_url' => array('store_InventoryNotes', 'single', $rec->noteId));
 
                     // Ако се редактира сумарен ред. Маркира се в урл-то
-                    if(isset($rec->quantity)){
+                    if(isset($rec->quantity) || isset($rec->_batch)){
                         $url['packagingId'] = cat_Products::fetchField($rec->productId, 'measureId');
                         $url['editQuantity'] = $rec->quantity;
                         $url['editSummary'] = true;
@@ -446,10 +446,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        if ($data->masterData->rec->state == 'rejected' || Mode::isReadOnly()) {
-            
-            return;
-        }
+        if ($data->masterData->rec->state == 'rejected' || Mode::isReadOnly()) return;
         
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png,title=Филтриране на данните');
         $data->listFilter->FLD('threadId', 'key(mvc=doc_Threads)', 'input=hidden');
@@ -481,9 +478,7 @@ class store_InventoryNoteSummary extends doc_Detail
             return $rec->id;
         }
         
-        $sRec = (object) array('noteId' => $noteId,
-            'productId' => $productId,
-            'groups' => cat_Products::fetchField($productId, 'groups'));
+        $sRec = (object) array('noteId' => $noteId, 'productId' => $productId, 'groups' => cat_Products::fetchField($productId, 'groups'));
         
         // Ако няма запис, създаваме го
         return self::save($sRec);
@@ -549,23 +544,20 @@ class store_InventoryNoteSummary extends doc_Detail
             unset($data->listFields['delta']);
             unset($data->listFields['charge']);
             unset($data->listFields['quantity']);
-            
+            unset($data->listFields['btns']);
+
             if (Request::get('showBlQuantities') !== '1') {
                 unset($data->listFields['blQuantity']);
+            } else {
+                $data->listFields['blQuantity'] = 'Очаквано';
             }
-            
-            $data->listFields['quantitySum'] = 'Количество';
-        }
-
-        if (Mode::is('printing')) {
-            unset($data->listFields['btns']);
+            $data->listFields['quantitySum'] = 'Установено';
         } else {
+            $data->listFields['quantity'] = 'Количество->|*<small>|Установено|*</small>';
+            $data->listFields['blQuantity'] = 'Количество->|*<small>|Очаквано|*</small>';
+            $data->listFields['delta'] = 'Количество->|*<small>|Разлика|*</small>';
             $data->listFields['btns'] = 'Количество->|*<small>|Пулт|*</small>';
         }
-
-        $data->listFields['quantity'] = 'Количество->|*<small>|Установено|*</small>';
-        $data->listFields['blQuantity'] = 'Количество->|*<small>|Очаквано|*</small>';
-        $data->listFields['delta'] = 'Количество->|*<small>|Разлика|*</small>';
     }
     
     
@@ -574,10 +566,7 @@ class store_InventoryNoteSummary extends doc_Detail
      */
     protected static function on_AfterPrepareListRecs(core_Mvc $mvc, $data)
     {
-        if (!countR($data->recs)) {
-            
-            return;
-        }
+        if (!countR($data->recs)) return;
 
         // Извличаме наведнъж записите за всички артикули в протокола
         $allProducts =  arr::extractValuesFromArray($data->recs, 'productId');
@@ -614,7 +603,7 @@ class store_InventoryNoteSummary extends doc_Detail
         
         $masterRec = store_InventoryNotes::fetch($rec->noteId);
         
-        $responsibles = array();
+        $responsible = array();
         $chiefs = keylist::toArray(store_Stores::fetchField($masterRec->storeId, 'chiefs'));
         $rec->charge = self::fetchField($rec->id, 'charge');
         
@@ -623,10 +612,10 @@ class store_InventoryNoteSummary extends doc_Detail
         }
         
         foreach ($chiefs as $c) {
-            $responsibles[$c] = core_Users::getVerbal($c, 'nick');
+            $responsible[$c] = core_Users::getVerbal($c, 'nick');
         }
-        
-        $responsibles = array('' => '') + $responsibles;
+
+        $responsible = array('' => '') + $responsible;
         
         if ($masterRec->state == 'draft') {
             if (!Mode::isReadOnly() && !Mode::is('blank')) {
@@ -636,7 +625,7 @@ class store_InventoryNoteSummary extends doc_Detail
                     $attr['data-url'] = toUrl(array('store_InventoryNoteSummary', 'setResponsiblePerson', $rec->id), 'local');
                     $attr['title'] = 'Избор на материално отговорно лице';
                     
-                    $charge = ht::createSelect('charge', $responsibles, $rec->charge, $attr);
+                    $charge = ht::createSelect('charge', $responsible, $rec->charge, $attr);
                     $charge->removePlaces();
                 }
             }
@@ -770,8 +759,13 @@ class store_InventoryNoteSummary extends doc_Detail
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
         
         // Проверяваме имали кеш за $data->rows
-        $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
-        $cacheRows = !empty($data->listFilter->rec->search) ? false : true;
+        $cache = null;
+
+
+        core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
+
+
+        $cacheRows = empty($data->listFilter->rec->search);
         if (!empty($data->listFilter->rec->search) || Mode::is('printing')) {
             $cacheRows = false;
             $cache = false;
@@ -782,7 +776,7 @@ class store_InventoryNoteSummary extends doc_Detail
             // Ако няма кеш подготвяме $data->rows стандартно
             $data = parent::prepareListRows_($data);
             if (Mode::is('blank')) {
-                $callExpandRows = (Request::get('showBatches', 'int')) ? true : false;
+                $callExpandRows = (bool)Request::get('showBatches', 'int');
             } else {
                 $callExpandRows = true;
             }
