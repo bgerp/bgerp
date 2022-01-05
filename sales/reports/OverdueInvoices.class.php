@@ -49,7 +49,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=title,mandatory,single=none');
+        $fieldset->FLD('checkDate', 'date', 'caption=Към дата,after=title,single=none');
         $fieldset->FLD('additional', 'table(columns=limit1|limit2,captions=Праг 1|Праг 2,widths=3em|3em,btnOff,unit=дни просрочие)', 'caption=Периоди||Additional,autohide,advanced,after=checkDate,single=none');
         $fieldset->FLD('typeGrupping', 'enum(contragent=Контрагент,overduePeriod=Период на просрочие)', 'caption=Групиране,maxRadio=2,columns=2,after=additional');
         $fieldset->FLD('dealer', 'user(rolesForAll=sales|ceo,allowEmpty,roles=ceo|sales)', 'caption=Филтри->Търговец,placeholder=Всички,single=none,after=typeGrupping,input');
@@ -99,6 +99,27 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         asort($suggestions);
         
         $form->setSuggestions('contragent', $suggestions);
+    }
+
+    /**
+     * След рендиране на единичния изглед
+     *
+     * @param cat_ProductDriver $Driver
+     * @param embed_Manager $Embedder
+     * @param core_Form $form
+     * @param stdClass $data
+     */
+    protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
+    {
+
+        $rec = $form->rec;
+        if ($form->isSubmitted()) {
+
+            if (!$rec->checkDate){
+                $rec->checkDate = dt::today();
+            }
+
+        }
     }
     
     
