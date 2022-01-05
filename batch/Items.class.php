@@ -599,7 +599,8 @@ class batch_Items extends core_Master
         $query->where("#state != 'closed'");
         $query->show('batch,quantity,operation,date,docType,docId');
         $query->where("#productId = {$productId} AND #storeId = {$storeId}");
-        
+        $query->where("#date <= '{$date}'");
+
         if (countR($except) == 2) {
             $docType = cls::get($except[0])->getClassId();
             $docId = $except[1];
