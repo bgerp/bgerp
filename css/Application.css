@@ -7364,3 +7364,6 @@ only screen and (max-width: 320px) {
 .workingTimeBlock table.typeTable {
   width: 100%; }
 
+.note-batch-product-name {
+  color: #888888; }
+
