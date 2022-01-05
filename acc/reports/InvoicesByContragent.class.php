@@ -56,7 +56,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $fieldset->FLD('unpaid', 'enum(all=Всички,unpaid=Неплатени)', 'caption=Плащане,after=typeOfInvoice,removeAndRefreshForm,single=none,mandatory,silent');
 
         $fieldset->FLD('fromDate', 'date', 'caption=От дата,after=unpaid, placeholder=от началото');
-        $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate,mandatory');
+        $fieldset->FLD('checkDate', 'date', 'caption=До дата,after=fromDate');
 
         $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit=лв.,input=hidden,after=checkDate,silent,single=none');
 
@@ -90,8 +90,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($rec->unpaid == 'all') {
             $form->setDefault('fromDate', null);
         }
-        $checkDate = dt::today();
-        $form->setDefault('checkDate', "{$checkDate}");
+        if ($rec->unpaid == 'all' ){
+            $checkDate = dt::today();
+            $form->setDefault('checkDate', "{$checkDate}");
+        }
+
 
         $form->setDefault('typeOfInvoice', 'out');
 
@@ -167,6 +170,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+        if ($rec->unpaid == 'unpaid' && !$rec->checkDate ){
+            $checkDate = dt::now();
+        }else{
+            $checkDate = $rec->checkDate;
+        }
+
         $recs = array();
 
         // Фактури ПРОДАЖБИ
@@ -199,7 +208,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             //Крайна дата / 'към дата'
             $invQuery->where(array(
                 "#date <= '[#1#]'",
-                $rec->checkDate
+                $checkDate
             ));
 
             //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
@@ -287,7 +296,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     //Ако продажбата е приключена с друг договор фактурите от тази сделка остават в справката, ако е приключена
                     //по друг начин сделката се прескача.
                     if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
-                        ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
+                        ($className::fetchField($firstDocument->that, 'closedOn') <= $checkDate) &&
                         !$unitedCheck) {
                         continue;
                     }
@@ -301,7 +310,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if ($rec->unpaid == 'all') {
 
                     // масив от фактури в тази нишка //
-                    $invoicePayments = deals_Helper::getInvoicePayments($salesInvoice->threadId, $rec->checkDate);
+                    $invoicePayments = deals_Helper::getInvoicePayments($salesInvoice->threadId, $checkDate);
 
                     $paydocs = $invoicePayments[$salesInvoice->containerId];
 
@@ -383,7 +392,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $salesInvoiceOverDue = 0;
 
                     // масив от фактури в тази нишка //
-                    $invoicePayments = (deals_Helper::getInvoicePayments($thread, $rec->checkDate));
+                    $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
 
                     if (is_array($invoicePayments)) {
 
@@ -418,7 +427,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             );
 
                             //Ако датата на фактурата е по голяма от избраната "към дата" не влиза в масива
-                            if ($rec->checkDate < $iRec->date) {
+                            if ($checkDate < $iRec->date) {
                                 continue;
                             }
 
@@ -431,7 +440,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             }
 
                             if ($iRec->dueDate && $invDiff > 0 &&
-                                $iRec->dueDate < $rec->checkDate) {
+                                $iRec->dueDate < $checkDate) {
                                 $salesInvoiceOverDue = $invDiff;
                             }
 
@@ -509,7 +518,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             $pQuery->where(array(
                 "#date <= '[#1#]'",
-                $rec->checkDate
+                $checkDate
             ));
 
             //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
@@ -576,7 +585,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
 
                     // масив от фактури в тази нишка //
-                    $invoicePayments = (deals_Helper::getInvoicePayments($purchaseInvoices->threadId, $rec->checkDate));
+                    $invoicePayments = (deals_Helper::getInvoicePayments($purchaseInvoices->threadId, $checkDate));
 
                     $paydocs = $invoicePayments[$purchaseInvoices->containerId];
 
@@ -662,7 +671,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     }
 
                     if (($className::fetchField($firstDocument->that, 'state') == 'closed') &&
-                        ($className::fetchField($firstDocument->that, 'closedOn') <= $rec->checkDate) &&
+                        ($className::fetchField($firstDocument->that, 'closedOn') <= $checkDate) &&
                         !$purUnitedCheck) {
                         continue;
                     }
@@ -677,7 +686,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     $purchaseInvoiceOverDue = 0;
 
                     // масив от фактури в тази нишка //
-                    $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $rec->checkDate));
+                    $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $checkDate));
 
                     if ((is_array($pInvoicePayments))) {
 
@@ -714,7 +723,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             );
 
                             //Ако датата на фактурата е по голяма от избраната "към дата" не влиза в масива
-                            if ($rec->checkDate < $iRec->date) {
+                            if ($checkDate < $iRec->date) {
                                 continue;
                             }
 
@@ -723,7 +732,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             }
 
                             if ($iRec->dueDate && ($invDiff) > 0 &&
-                                $iRec->dueDate < $rec->checkDate) {
+                                $iRec->dueDate < $checkDate) {
                                 $purchaseInvoiceOverDue = ($invDiff);
                             }
 
@@ -1055,11 +1064,16 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getDueDate($dRec, $verbal = true, $rec)
     {
+        if ($rec->unpaid == 'unpaid' && !$rec->checkDate ){
+            $checkDate = dt::now();
+        }else{
+            $checkDate = $rec->checkDate;
+        }
         if ($verbal === true) {
             if ($dRec->dueDate) {
                 $dueDate = dt::mysql2verbal($dRec->dueDate, $mask = 'd.m.Y');
 
-                if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+                if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $checkDate) {
                     $dueDate = "<span class='smallHintHolder'>" . ht::createHint($dueDate, 'фактурата е просрочена', 'warning') . "</span>";
                 }
             } else {
@@ -1360,6 +1374,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
+        if ($rec->unpaid == 'unpaid' && !$rec->checkDate ){
+            $checkDate = dt::now();
+        }else{
+            $checkDate = $rec->checkDate;
+        }
+
         $res->paidAmount = (self::getPaidAmount($dRec));
 
         $res->paidDates = self::getPaidDates($dRec, false);
@@ -1372,7 +1392,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $res->invoiceOverSumm = ($invoiceOverSumm);
         }
 
-        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $rec->checkDate) {
+        if ($dRec->dueDate && $dRec->invoiceCurrentSumm > 0 && $dRec->dueDate < $checkDate) {
             $res->dueDateStatus = 'Просрочен';
         }
 
