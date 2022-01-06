@@ -309,23 +309,28 @@ class planning_Hr extends core_Master
      *
      * @return array $options
      */
-    public static function getByFolderId($folderId)
+    public static function getByFolderId($folderId = null)
     {
         $options = array();
         
         // Ако папката не поддържа ресурси оператори да не се връща нищо
-        $Cover = doc_Folders::getCover($folderId);
-        $resourceTypes = $Cover->getResourceTypeArray();
-        if (!isset($resourceTypes['hr'])) {
-            
-            return $options;
+        if(isset($folderId)){
+            $Cover = doc_Folders::getCover($folderId);
+            $resourceTypes = $Cover->getResourceTypeArray();
+            if (!isset($resourceTypes['hr'])) {
+
+                return $options;
+            }
         }
         
         $emplGroupId = crm_Groups::getIdFromSysId('employees');
         
         $classId = self::getClassId();
         $fQuery = planning_AssetResourceFolders::getQuery();
-        $fQuery->where("#classId = {$classId} AND #folderId = {$folderId}");
+        $fQuery->where("#classId = {$classId}");
+        if(isset($folderId)){
+            $fQuery->where("#folderId = {$folderId}");
+        }
         $fQuery->show('objectId');
         $objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
         
