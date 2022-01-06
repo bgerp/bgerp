@@ -79,7 +79,7 @@ class planning_Stages extends core_Extender
         $this->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty,makeLinks)', 'caption=Използване в производството->Центрове на дейност, remember,mandatory,silent');
         $this->FLD('name', 'varchar', 'caption=Използване в производството->Наименование,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Складируем,notNull,value=yes');
-        $this->FLD('norm', 'time', 'caption=Използване в производството->Норма');
+        $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
         $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
         
         $this->setDbIndex('state');
@@ -111,6 +111,10 @@ class planning_Stages extends core_Extender
                 $form->setField("{$mvc->className}_canStore", 'hint=Артикулът е с партида|*!');
             }
         }
+
+        $form->setField("measureId", 'removeAndRefreshForm,silent');
+        $form->input('measureId', 'silent');
+        $form->setFieldTypeParams("{$mvc->className}_norm", array('measureId' => $rec->measureId));
     }
     
     
@@ -207,6 +211,10 @@ class planning_Stages extends core_Extender
             } else {
                 $row->name = "<span class='red'>" . tr('Проблем с показването') . "</span>";
             }
+        }
+
+        if($Extended = $mvc->getExtended($rec)){
+            $row->norm = core_Type::getByName("planning_type_ProductionRate(measureId={$Extended->fetchField('measureId')})")->toVerbal($rec->norm);
         }
     }
     
