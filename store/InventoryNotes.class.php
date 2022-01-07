@@ -631,7 +631,7 @@ class store_InventoryNotes extends core_Master
         expect($rec = $this->fetchRec($id));
         
         // Дигаме тайм лимита
-        core_App::setTimeLimit(600);
+        core_App::setTimeLimit(800);
         
         // Извличаме артикулите от баланса
         $balanceArr = $this->getProductsFromBalance($rec);

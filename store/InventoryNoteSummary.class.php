@@ -771,13 +771,11 @@ class store_InventoryNoteSummary extends doc_Detail
         // Подготвяме ключа за кеширане
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
         
-        // Проверяваме имали кеш за $data->rows
+        // Проверяваме имали кеш за $data->rows, ако потребителя е с роля дебъг - няма кеш
         $cache = null;
-
-
-        core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
-
-
+        if(!haveRole('debug')){
+            $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
+        }
 
         $cacheRows = empty($data->listFilter->rec->search);
         if (!empty($data->listFilter->rec->search) || Mode::is('printing')) {
