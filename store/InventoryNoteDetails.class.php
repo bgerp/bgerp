@@ -308,6 +308,9 @@ class store_InventoryNoteDetails extends doc_Detail
             
             unset($data->retUrl['id']);
             unset($data->retUrl['packagingId']);
+            unset($data->retUrl['editSummary']);
+            unset($data->retUrl['editBatch']);
+            unset($data->retUrl['editQuantity']);
         }
     }
     
