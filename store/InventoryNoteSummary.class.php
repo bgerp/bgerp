@@ -200,11 +200,6 @@ class store_InventoryNoteSummary extends doc_Detail
         $row->code = $rec->verbalCode;
         $row->ROW_ATTR['id'] = "row->{$rec->id}";
         
-        if (!Mode::isReadOnly()) {
-            $row->productId = cat_Products::getVerbal($rec->productId, 'name');
-            $row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
-        }
-        
         // Записваме датата на модифициране в чист вид за сравнение при инвалидирането на кеширането
         $row->groupName = $rec->groupName;
         
@@ -374,6 +369,13 @@ class store_InventoryNoteSummary extends doc_Detail
                 } else {
                     $row->quantity = "<span style='color:blue'>{$row->quantity}</span>";
                     $row->quantity = ht::createHint($row->quantity, 'Към количеството са добавени и неуточнените партиди', 'notice', false);
+                }
+            }
+
+            if(!$rec->isBatch){
+                if (!Mode::isReadOnly()) {
+                    $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+                    $row->productId = ht::createLinkRef($row->productId, cat_Products::getSingleUrlArray($rec->productId));
                 }
             }
 
@@ -765,7 +767,7 @@ class store_InventoryNoteSummary extends doc_Detail
     public function prepareListRows_(&$data)
     {
         // Филтрираме записите
-        $expand = ($data->masterData->rec->expandGroups == 'yes') ? true : false;
+        $expand = $data->masterData->rec->expandGroups == 'yes';
         self::filterRecs($data->masterData->rec->groups, $data->recs, 'orderCode', 'orderName', 'groups', $expand);
 
         // Подготвяме ключа за кеширане
