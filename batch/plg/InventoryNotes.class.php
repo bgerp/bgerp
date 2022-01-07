@@ -348,12 +348,15 @@ class batch_plg_InventoryNotes extends core_Plugin
             $sRec = $summaryRecs[$id];
             $recs[$id] = $sRec;
             $r[$id] = $sRow;
-            
+
             $summary = self::getBatchSummary($sRec->noteId, $sRec->productId, $sRec->blQuantity, $storeId, $valior, $alwaysShowBatches);
             if(!$summary) continue;
             $Def = batch_Defs::getBatchDef($sRec->productId);
 
             foreach ($summary as $batch => $bRec) {
+                if($sRec->quantityHasAddedValues == 'yes'){
+                    $bRec->quantityHasAddedValues = 'yes';
+                }
                 $bRec->noteId = $sRec->noteId;
                 $bRec->orderCode = $sRec->orderCode;
                 $bRec->verbalCode = $sRec->verbalCode;
@@ -368,9 +371,10 @@ class batch_plg_InventoryNotes extends core_Plugin
                 $productId->replace(strip_tags($clone->productId), 'product');
                 $productId->replace(($batch) ? $Def->toVerbal($batch) : tr('Без партида'), 'batch');
                 $clone->productId = $productId;
-                
+
                 $clone->blQuantity = $Double->toVerbal($bRec->blQuantity);
                 $clone->quantity = $Double->toVerbal($bRec->quantity);
+
                 $clone->delta = $Double->toVerbal($bRec->delta);
                 unset($clone->code);
 
@@ -465,5 +469,45 @@ class batch_plg_InventoryNotes extends core_Plugin
     public static function on_AfterRejectMaster($mvc, $rec)
     {
         batch_Movements::removeMovement('store_InventoryNotes', $rec);
+    }
+
+
+    /**
+     * След преизчисление на съмърито
+     */
+    public static function on_AfterRecalcSummary($mvc, &$summaryRec)
+    {
+        $explicitBatchQuantities = array();
+        $dQuery = store_InventoryNoteDetails::getQuery();
+        $dQuery->where("#batch IS NOT NULL AND #productId = {$summaryRec->productId} AND #noteId = {$summaryRec->noteId}");
+        $dQuery->XPR('totalQ', 'double', 'SUM(#quantity)');
+        $dQuery->groupBy('batch');
+        $dQuery->show('batch, totalQ');
+        $calcedQuantity = 0;
+        while($dRec = $dQuery->fetch()){
+            $calcedQuantity += $dRec->totalQ;
+            $explicitBatchQuantities[$dRec->batch] = $dRec->totalQ;
+        }
+
+        if(!countR($explicitBatchQuantities)) {
+            $summaryRec->quantityHasAddedValues = 'no';
+            return;
+        }
+
+        $masterRec = store_InventoryNotes::fetch($summaryRec->noteId, 'valior,storeId');
+        $valior = dt::addDays(-1, $masterRec->valior);
+        $valior = dt::verbal2mysql($valior, false);
+
+        $batchQuantities = batch_Items::getBatchQuantitiesInStore($summaryRec->productId, $masterRec->storeId, $valior, null, array(), true);
+        $notInputed = array_diff_key($batchQuantities, $explicitBatchQuantities);
+        array_walk($notInputed, function($a) use (&$calcedQuantity) {$calcedQuantity += $a;});
+        $expectedBatchQuantities = array_sum($batchQuantities);
+
+        if(!isset($explicitBatchQuantities[''])){
+            $calcedQuantity += $summaryRec->blQuantity - $expectedBatchQuantities;
+        }
+
+        $summaryRec->quantity = $calcedQuantity;
+        $summaryRec->quantityHasAddedValues = 'yes';
     }
 }

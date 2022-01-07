@@ -130,7 +130,8 @@ class store_InventoryNoteSummary extends doc_Detail
         $this->FLD('groups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Групи');
         $this->FLD('charge', 'user', 'caption=Начет');
         $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none,forceField');
-        
+        $this->FLD('quantityHasAddedValues', 'enum(yes,no)', 'input=none,notNull,value=no');
+
         $this->setDbUnique('noteId,productId');
     }
     
@@ -363,7 +364,19 @@ class store_InventoryNoteSummary extends doc_Detail
 
         foreach ($data->rows as $id => &$row) {
             $rec = &$data->recs[$id];
-            
+
+            if($rec->quantityHasAddedValues == 'yes'){
+                if($rec->isBatch){
+                    if(!isset($rec->quantity)){
+                        $row->quantity = $row->blQuantity;
+                        $row->quantity = "<span class='quiet small'>{$row->quantity}</span>";
+                    }
+                } else {
+                    $row->quantity = "<span style='color:blue'>{$row->quantity}</span>";
+                    $row->quantity = ht::createHint($row->quantity, 'Към количеството са добавени и неуточнените партиди', 'notice', false);
+                }
+            }
+
             if (isset($rec)) {
                 $row->delta = static::renderDeltaCell($rec);
                 $row->delta = "<div id='delta{$rec->id}'>{$row->delta}</div>";
@@ -759,7 +772,12 @@ class store_InventoryNoteSummary extends doc_Detail
         $key = store_InventoryNotes::getCacheKey($data->masterData->rec);
         
         // Проверяваме имали кеш за $data->rows
-        $cache = core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
+        $cache = null;
+
+
+        core_Cache::get("{$this->Master->className}_{$data->masterData->rec->id}", $key);
+
+
 
         $cacheRows = empty($data->listFilter->rec->search);
         if (!empty($data->listFilter->rec->search) || Mode::is('printing')) {
@@ -829,12 +847,12 @@ class store_InventoryNoteSummary extends doc_Detail
     /**
      * Рекалкулиране на количествата
      *
-     * @param int $id
+     * @param int|stdClass $id
      */
     public static function recalc($id)
     {
         expect($id);
-        $rec = self::fetch($id);
+        $rec = self::fetchRec($id);
         $query = store_InventoryNoteDetails::getQuery();
         $query->where("#noteId = {$rec->noteId} AND #productId = {$rec->productId}");
         $query->XPR('sumQuantity', 'double', 'SUM(#quantity)');
@@ -843,9 +861,12 @@ class store_InventoryNoteSummary extends doc_Detail
         $rec->quantity = $query->fetch()->sumQuantity;
         if(isset($rec->quantity)){
             $rec->quantity = round($rec->quantity, 4);
+        } else {
+            $rec->quantityHasAddedValues = 'no';
         }
-        
-        cls::get('store_InventoryNoteSummary')->save($rec, 'quantity');
+
+        cls::get('store_InventoryNoteDetails')->invoke('AfterRecalcSummary', array(&$rec));
+        cls::get('store_InventoryNoteSummary')->save($rec, 'quantity,quantityHasAddedValues');
     }
     
     

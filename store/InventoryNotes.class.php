@@ -690,7 +690,21 @@ class store_InventoryNotes extends core_Master
                 }
             }
         }
-        
+
+        // Ако е инсталиран пакета за партиди
+        if(core_Packs::isInstalled('batch')){
+            $recalcQuery = store_InventoryNoteSummary::getQuery();
+            $recalcQuery->where("#noteId = {$rec->id} AND #quantityHasAddedValues = 'yes'");
+            $productsWithBatches = batch_Items::getProductsWithDefs(false);
+            if(countR($productsWithBatches)){
+                $recalcQuery->in('productId', $productsWithBatches);
+            }
+
+            while($sRec = $recalcQuery->fetch()){
+                store_InventoryNoteSummary::recalc($sRec);
+            }
+        }
+
         self::logWrite('Синхронизиране на данните', $rec->id);
     }
     
