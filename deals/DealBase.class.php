@@ -360,13 +360,13 @@ abstract class deals_DealBase extends core_Master
                 $err = array();
                 foreach ($deals1 as $d1) {
                     $threadId = $this->fetchField($d1, 'threadId');
-                    if (acc_plg_Contable::havePendingDocuments($threadId)) {
+                    if (acc_plg_Contable::haveDocumentInThreadWithStates($threadId, 'pending,draft')) {
                         $err[] = $this->getLink($d1, 0);
                     }
                 }
                 
                 if (countR($err)) {
-                    $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка|*: ' . implode(',', $err);
+                    $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
                     $form->setError('closeWith', $msg);
                 }
                 

@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     0.12
@@ -42,7 +42,7 @@ class planning_Stages extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Етап,folders=Центрове,canStore=Засклаждане,norm=Норма,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
+    public $listFields = 'name=Етап,folders=Центрове,canStore=Складируем,norm=Норма,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
     
     
     /**
@@ -60,7 +60,7 @@ class planning_Stages extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'folders,name,canStore,norm';
+    protected $extenderFields = 'folders,name,canStore,norm,storeInput,storeIn,fixedAssets,employees';
     
     
     /**
@@ -78,10 +78,15 @@ class planning_Stages extends core_Extender
     {
         $this->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty,makeLinks)', 'caption=Използване в производството->Центрове на дейност, remember,mandatory,silent');
         $this->FLD('name', 'varchar', 'caption=Използване в производството->Наименование,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
-        $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Складируем,notNull,value=yes');
-        $this->FLD('norm', 'time', 'caption=Използване в производството->Норма');
+        $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Складируем,notNull,value=yes,silent');
+        $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
         $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
-        
+
+        $this->FLD('storeInput', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад влагане');
+        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад приемане');
+        $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
+
         $this->setDbIndex('state');
     }
     
@@ -96,7 +101,11 @@ class planning_Stages extends core_Extender
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
+        $form->setField("measureId", 'removeAndRefreshForm,silent');
+        $form->setField("measureId", "removeAndRefreshForm={$mvc->className}_storeInput|{$mvc->className}_storeIn");
+        $form->input("measureId,{$mvc->className}_canStore,{$mvc->className}_folders", 'silent');
+
         $resourceSuggestionsArr = doc_Folders::getSelectArr(array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'planning_Centers'));
         $form->setSuggestions("{$mvc->className}_folders", $resourceSuggestionsArr);
         $form->setDefault("{$mvc->className}_folders", keylist::addKey('', planning_Centers::getUndefinedFolderId()));
@@ -110,6 +119,18 @@ class planning_Stages extends core_Extender
                 $form->setReadOnly("{$mvc->className}_canStore");
                 $form->setField("{$mvc->className}_canStore", 'hint=Артикулът е с партида|*!');
             }
+        }
+
+        $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId());
+        $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId());
+
+        if(isset($rec->measureId)){
+            $form->setFieldTypeParams("{$mvc->className}_norm", array('measureId' => $rec->measureId));
+        }
+
+        if($rec->{"{$mvc->className}_canStore"} != 'yes'){
+            $form->setField("{$mvc->className}_storeInput", 'input=none');
+            $form->setField("{$mvc->className}_storeIn", 'input=none');
         }
     }
     
@@ -208,6 +229,22 @@ class planning_Stages extends core_Extender
                 $row->name = "<span class='red'>" . tr('Проблем с показването') . "</span>";
             }
         }
+
+        if($Extended = $mvc->getExtended($rec)){
+            if(isset($rec->norm)){
+                $row->norm = core_Type::getByName("planning_type_ProductionRate(measureId={$Extended->fetchField('measureId')})")->toVerbal($rec->norm);
+            } else {
+                $row->norm = null;
+            }
+
+            if(isset($rec->storeInput)){
+                $row->storeInput = store_Stores::getHyperlink($rec->storeInput, true);
+            }
+
+            if(isset($rec->storeInput)){
+                $row->storeInput = store_Stores::getHyperlink($rec->storeInput, true);
+            }
+        }
     }
     
     
@@ -254,8 +291,6 @@ class planning_Stages extends core_Extender
     /**
      * След подготовка на единичния изглед
      *
-     * @param core_Manager $mvc
-     * @param core_ET      $tpl
      * @param stdClass     $data
      */
     public function prepareStages_(&$data)
@@ -287,9 +322,8 @@ class planning_Stages extends core_Extender
     /**
      * След рендиране на единичния изглед
      *
-     * @param core_Manager $mvc
-     * @param core_ET      $tpl
-     * @param stdClass     $data
+     * @param stdClass $data
+     * @return core_ET $tpl
      */
     public function renderStages_(&$data)
     {

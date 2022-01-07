@@ -82,8 +82,8 @@ class abbyyocr_Setup extends core_ProtoSetup
         $data = array();
         
         // Ако текущия клас е избран по подразбиране
-        if ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('abbyyocr_Converter')) {
-            
+        if ($conf->_data['FILEMAN_OCR'] && ($conf->_data['FILEMAN_OCR'] == core_Classes::getId('abbyyocr_Converter', true))) {
+
             // Премахваме го
             $data['FILEMAN_OCR'] = null;
             
