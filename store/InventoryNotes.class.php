@@ -524,6 +524,8 @@ class store_InventoryNotes extends core_Master
         
         if (!Mode::is('printing')) {
             $tpl->removeBlock('COUNTER');
+        } else {
+            $tpl->removeBlock('ExtState');
         }
     }
     
