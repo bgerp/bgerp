@@ -127,6 +127,7 @@ class rack_MovementGenerator extends core_Manager
         
         do {
             $fullPallets = self::getFullPallets($p, $quantityPerPallet);
+
             $res = self::p2q($p, $z, $fullPallets, $quantityPerPallet);
  
             $moves = arr::combine($moves, $res);
@@ -153,12 +154,14 @@ class rack_MovementGenerator extends core_Manager
             if ($l == $o->pallet) {
                 $o->zones[$r] = $q;
             }
-            if ($l == 'ret') { 
+            if ($l == 'ret') {  
                 // Ако върнатото количество е над 80% от палета, приемаме, че е по-добре да вземем
                 // само това, което ни трябва за зоните. Тук трябва да се проеми това ограничение по зададено максимално тегло
                 // на вземането от палета, което може да стане ръчно. Функцията трябва да получава макс количество,
                 // при което не се взема целия палет, а само необходимата част
+                // $q - какво трябва да върнем
                 if ($quantityPerPallet && $q > 0 && ($q <= (1-self::ALMOST_FULL) * $quantityPerPallet)) {
+                    
                     $o->ret = $q;
                     
                     // Къде да е върнат палета?
@@ -171,10 +174,16 @@ class rack_MovementGenerator extends core_Manager
                     
                     // Търси палет на първия ред, който има най-малко бройки
                     foreach ($p as $pI => $pQ) {
-                        if (stripos($pI, 'a')) {
-                            $qNew = $p[$pI] ? $p[$pI] : 0;
+                        if(!isset($minPq) || ($pQ < $minPq)) {
+                            $o->retPos = $pI; 
+                            $minPq = $pQ;
+                        }                        
                             
-                            if (($quantityPerPallet && $quantityPerPallet >= self::ALMOST_FULL * ($pQ + $q)) || (($pQ + $q) * self::ALMOST_FULL < $q)) {
+                        if (self::isFirstRow($pI)) {
+                            
+                            if (($quantityPerPallet) && 
+                                ($quantityPerPallet >= self::ALMOST_FULL * ($pQ + $q))) {
+                           
                                 $o->retPos = $pI;
                                 
                                 break;
@@ -208,18 +217,20 @@ class rack_MovementGenerator extends core_Manager
         
         asort($p);
         asort($z);
-        $sumZ = array_sum($z);
+        $sumZ = array_sum($z); // Количество за всички зони 
         
+        /* 
         // Вземаме от най-ниския палет, с изключение на случаиите, когато, количеството което трябва да оставим е по-голямо от 0.8 от цял палет.
-        if (!$quantityPerPallet || $quantityPerPallet * self::ALMOST_FULL >= $sumZ) {
+        if ( $quantityPerPallet > 0 && $quantityPerPallet * self::ALMOST_FULL >= $sumZ) {
             foreach ($p as $pos => $q) {
-                if (stripos($pos, 'a') || stripos($pos, 'а')) {
+                if (self::isFirstRow($pos)) {
                     unset($p[$pos]);
                     $p = array_merge(array($pos => $q), $p);
                     break;
                 }
             }
         }
+        */
         
         $pCombi = array();
         $cnt = countR($p);
@@ -238,12 +249,12 @@ class rack_MovementGenerator extends core_Manager
 
         // Вкарваме точните съответсвия
         foreach ($pCombi as $pQ => $pK) {
-            if ($zK = (float) $zCombi[$pQ]) {
+            if ($zK = $zCombi["{$pQ}"]) {  
                 $moves = self::moveGen($p, $z, $pK, $zK);
                 break;
             }
         }
-        
+    
         if (!countR($moves)) {
             $zR = array_reverse($z, true);
             foreach ($fullPallets as $i => $pQ) {
@@ -296,6 +307,15 @@ class rack_MovementGenerator extends core_Manager
     {
         return ($a % $b) ? self::gcd($b, $a % $b) : $b;
     }
+
+
+    /**
+     * Проверява дали позицията е не първи ред
+     */
+    public static function isFirstRow($pos)
+    {
+        return stripos($pos, 'a') || stripos($pos, 'а');
+    }
     
     
     /**
@@ -308,14 +328,14 @@ class rack_MovementGenerator extends core_Manager
         $pK = explode('|', trim($pK, '|'));
         $zK = explode('|', trim($zK, '|'));
         
-        foreach ($pK as $pI) {
+        foreach ($pK as $pI) {  
             $pQ = (float) $p[$pI];  
             if ($pQ <= 0) {
                 continue;
             }
             $moves["get=>{$pI}"] = $pQ;
             foreach ($zK as $zI) {
-                $zQ = (float) $z[$zI];
+                $zQ = (float) $z[$zI];  
                 if ($zQ <= 0) {
                     continue;
                 }
@@ -392,7 +412,7 @@ class rack_MovementGenerator extends core_Manager
             $res = array();
             foreach ($pallets as $i => $iP) {
                 if ($iP >= $quantityPerPallet) {
-                    $res[$i] = (float) $iP;
+                    $res[$i] = (float) $iP;  
                 }
             }
         }
