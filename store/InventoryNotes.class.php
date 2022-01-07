@@ -700,10 +700,10 @@ class store_InventoryNotes extends core_Master
             $productsWithBatches = batch_Items::getProductsWithDefs(false);
             if(countR($productsWithBatches)){
                 $recalcQuery->in('productId', $productsWithBatches);
-            }
 
-            while($sRec = $recalcQuery->fetch()){
-                store_InventoryNoteSummary::recalc($sRec);
+                while($sRec = $recalcQuery->fetch()){
+                    store_InventoryNoteSummary::recalc($sRec);
+                }
             }
         }
 
