@@ -616,11 +616,11 @@ class planning_Tasks extends core_Master
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $dQuery->where("#taskId = {$rec->id} AND #productId = {$rec->productId} AND #type = 'production' AND #state != 'rejected'");
-        $dQuery->XPR('sumQuantity', 'double', "SUM(#quantity)");
+        $dQuery->XPR('sumQuantity', 'double', "ROUND(SUM(#quantity), 5)");
         $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
-        $dQuery->XPR('sumScrappedQuantity', 'double', "SUM(#scrappedQuantity)");
+        $dQuery->XPR('sumScrappedQuantity', 'double', "ROUND(SUM(#scrappedQuantity), 5)");
         $dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
-        
+
         // Преизчисляваме общото тегло
         $res = $dQuery->fetch();
         $rec->totalWeight = $res->sumWeight;
@@ -1239,15 +1239,15 @@ class planning_Tasks extends core_Master
         $query->XPR('sum', 'double', 'SUM((COALESCE(#totalQuantity, 0) - COALESCE(#scrappedQuantity, 0)) * #quantityInPack)');
         $query->where("#originId = {$jobRec->containerId} AND #productId = {$jobRec->productId}");
         $query->where("#state != 'rejected' AND #state != 'pending'");
-        $query->show('totalQuantity,sum');
-        
+        $query->show('sum');
+
         $sum = $query->fetch()->sum;
-        $quantity = (!empty($sum)) ? $sum : 0;
-        
+        $quantity = (!empty($sum)) ? round($sum, 5) : 0;
+
         return $quantity;
     }
-    
-    
+
+
     /**
      * Връща името на операцията готово за партида
      *
