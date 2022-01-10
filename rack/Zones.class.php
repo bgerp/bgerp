@@ -1134,7 +1134,16 @@ class rack_Zones extends core_Master
             if (!countR($palletsArr)) continue;
 
             // Какво е разпределянето на палетите
-            $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
+            if(rack_Setup::get('PICKUP_STRATEGY') == 'ver2') {
+                $packQuery = cat_products_Packagings::getQuery();
+                $packagings = array();
+                while($packRec = $packQuery->fetch("#productId = {$pRec->productId}")) {
+                    $packagings[] = $packRec;
+                }
+                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, $packagings);
+            } else {
+                $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
+            }
 
             // Ако има генерирани движения се записват
             $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId);
