@@ -1479,8 +1479,12 @@ class cat_Products extends embed_Manager
                 $bQuery = cat_Boms::getQuery();
                 $bQuery->where("#state = 'active'");
                 $bQuery->groupBy('productId');
-                $in = implode(',', arr::extractValuesFromArray($bQuery->fetchAll(), 'productId'));
-                $where = "#id IN ($in) OR #innerClass = " . planning_interface_StageDriver::getClassId();
+                $where = "#innerClass = " . planning_interface_StageDriver::getClassId();
+                $in = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
+                if(countR($in)){
+                    $in = implode(',', $in);
+                    $where .= " OR #id IN ({$in})";
+                }
                 $query->where($where);
             }
 
