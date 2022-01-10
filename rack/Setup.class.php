@@ -23,6 +23,33 @@ defIfNot('RACK_DIFF_PALLETS_IN_SAME_POS', 'no');
  */
 defIfNot('RACK_DEFAULT_ZONE_COLORS', '#eeeeee');
 
+/**
+ * Коя стратегия за движенията да се използва
+ */
+defIfNot('RACK_PICKUP_STRATEGY', 'ver1');
+
+/**
+ * Средни времена по операции->Вземане на палет
+ */
+defIfNot('RACK_TIME_GET', 20);
+
+/**
+ * Средни времена по операции->Оставяне в зона
+ */
+defIfNot('RACK_TIME_ZONE', 5);
+
+/**
+ * Средни времена по операции->Връщане
+ */
+defIfNot('RACK_TIME_RETURN', 10);
+
+/**
+ * Средни времена по операции->Броене
+ */
+defIfNot('RACK_TIME_COUNT', 4);
+
+
+
 
 /**
  * class rack_Setup
@@ -175,6 +202,11 @@ class rack_Setup extends core_ProtoSetup
         'RACK_DELETE_ARCHIVED_MOVEMENTS' => array('time','caption=Изтриване на архивирани движения->Период'),
         'RACK_DIFF_PALLETS_IN_SAME_POS' => array('enum(no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване'),
         'RACK_DEFAULT_ZONE_COLORS' => array('color_Type','caption=Козметични настройки на зоните->Цвят'),
+        'RACK_PICKUP_STRATEGY' => array('enum(ver1,ver2)', 'caption=Стратегия за генериране на движенията->Избор'),
+        'RACK_TIME_GET' => array('int', 'caption=Средни времена по операции->Вземане'),
+        'RACK_TIME_ZONE' => array('int', 'caption=Средни времена по операции->Оставяне'),
+        'RACK_TIME_RETURN' => array('int', 'caption=Средни времена по операции->Връщане'),
+        'RACK_TIME_COUNT' => array('int', 'caption=Средни времена по операции->Броене'),
     );
 
 
