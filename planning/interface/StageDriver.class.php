@@ -105,4 +105,27 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
             $rec->groups = keylist::fromArray($Embedder->expandInput(type_Keylist::toArray($rec->groupsInput)));
         }
     }
+
+
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    public static function on_AfterPrepareRetUrl($Driver, embed_Manager &$Embedder, $res, $data)
+    {
+        // Ако се иска директно контиране редирект към екшъна за контиране
+        if (isset($data->form) && $data->form->isSubmitted() && $data->form->rec->id) {
+            $retUrl = getRetUrl();
+
+            if($retUrl['Ctr'] == 'cat_BomDetails' && $retUrl['type'] == 'stage'){
+                if(cat_Products::haveDriver($data->form->rec->id, 'planning_interface_StageDriver')){
+                    if($Driver = cat_Products::getDriver($data->form->rec->id)){
+                        if ($Driver->canSelectDriver()) {
+                            $retUrl['resourceId'] = $data->form->rec->id;
+                            $data->retUrl = $retUrl;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

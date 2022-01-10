@@ -1170,4 +1170,23 @@ class cat_BomDetails extends doc_Detail
             }
         }
     }
+
+
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        $rec = $data->form->rec;
+        if ($rec->type == 'stage' && !isset($rec->id)) {
+            $stageDriverClassId = planning_interface_StageDriver::getClassId();
+            if(cls::get('planning_interface_StageDriver')->canSelectDriver()){
+                if(cat_Products::haveRightFor('add', (object)array('innerClass' => $stageDriverClassId))){
+                    $addUrl = array('cat_Products', 'add', 'innerClass' => $stageDriverClassId);
+                    $addUrl['ret_url'] = getCurrentUrl();
+                    $data->form->toolbar->addBtn('Нов производствен етап', $addUrl, 'id=btnReq,order=9.99971', 'ef_icon = img/16/add.png,title=Създаване на артикул за нов производствен етап');
+                }
+            }
+        }
+    }
 }
