@@ -116,6 +116,7 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
         if (isset($data->form) && $data->form->isSubmitted() && $data->form->rec->id) {
             $retUrl = getRetUrl();
 
+            // Ако се създава от рецепта: да редиректне към нея с вече готовото ид
             if($retUrl['Ctr'] == 'cat_BomDetails' && $retUrl['type'] == 'stage'){
                 if(cat_Products::haveDriver($data->form->rec->id, 'planning_interface_StageDriver')){
                     if($Driver = cat_Products::getDriver($data->form->rec->id)){

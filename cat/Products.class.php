@@ -1680,25 +1680,26 @@ class cat_Products extends embed_Manager
      * Намира всички стандартни + нестандартни артикули (тези само за клиента или споделени към него).
      * Или ако не е подаден контрагент от всички налични артикули
      *
-     * @param mixed     $customerClass    - клас на контрагента
-     * @param int|NULL  $customerId       - ид на контрагента
-     * @param string    $datetime         - към коя дата
-     * @param mixed     $hasProperties    - свойства, които да имат артикулите
-     * @param mixed     $hasnotProperties - свойства, които да нямат артикулите
-     * @param int|NULL  $limit            - лимит
-     * @param bool      $orHasProperties  - Дали трябва да имат всички свойства от зададените или поне едно
-     * @param mixed     $groups           - групи в които да участват
-     * @param mixed     $notInGroups      - групи в които да не участват
-     * @param null|bool $isPublic         - null за всички артикули, true за стандартните, false за нестандартните
-     * @param null|bool $driverId         - null за всички артикули, true за тези с избрания драйвер
-     * @param null|bool $showTemplates     - дали да се показват и шаблоните
+     * @param mixed     $customerClass        - клас на контрагента
+     * @param int|NULL  $customerId           - ид на контрагента
+     * @param string    $datetime             - към коя дата
+     * @param mixed     $hasProperties        - свойства, които да имат артикулите
+     * @param mixed     $hasnotProperties     - свойства, които да нямат артикулите
+     * @param int|NULL  $limit                - лимит
+     * @param bool      $orHasProperties      - Дали трябва да имат всички свойства от зададените или поне едно
+     * @param mixed     $groups               - групи в които да участват
+     * @param mixed     $notInGroups          - групи в които да не участват
+     * @param null|bool $isPublic             - null за всички артикули, true за стандартните, false за нестандартните
+     * @param null|bool $driverId             - null за всички артикули, true за тези с избрания драйвер
+     * @param null|bool $showTemplates        - дали да се показват и шаблоните
+     * @param null|bool $onlyProductionStages - дали да са само артикули, които могат да бъдат производствени етапи
      *
      * @return array $products         - артикулите групирани по вида им стандартни/нестандартни
      */
-    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null, $driverId = null, $showTemplates = null)
+    public static function getProducts($customerClass, $customerId, $datetime = null, $hasProperties = null, $hasnotProperties = null, $limit = null, $orHasProperties = false, $groups = null, $notInGroups = null, $isPublic = null, $driverId = null, $showTemplates = null, $onlyProductionStages = null)
     {
         $Type = core_Type::getByName('key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)');
-        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic', 'driverId', 'showTemplates') as $val) {
+        foreach (array('customerClass', 'customerId', 'orHasProperties', 'isPublic', 'driverId', 'showTemplates', 'onlyProductionStages') as $val) {
             if (isset(${"{$val}"})) {
                 $Type->params[$val] = ${"{$val}"};
             }

@@ -791,7 +791,7 @@ class cat_BomDetails extends doc_Detail
         
         if ($action == 'add' && isset($rec->type)) {
             if($rec->type == 'stage'){
-                $options = cat_Products::getProducts(null, null, null, 'canConvert', null, 1, false, null, null, null, planning_interface_StageDriver::getClassId());
+                $options = cat_Products::getProducts(null, null, null, 'canConvert', null, 1, false, null, null, null, null, null, true);
                 if(!countR($options)){
                     $requiredRoles = 'no_one';
                 }
