@@ -1474,17 +1474,14 @@ class cat_Products extends embed_Manager
                 $query->notLikeKeylist('groups', $params['notInGroups']);
             }
 
-            // Филтър само на артикули с рецепта, ако е зададен
-            if (isset($params['onlyWithBoms'])) {
+            // Филтър само за артикули, които могат да бъдат Производствени етапи
+            if (isset($params['onlyProductionStages'])) {
                 $bQuery = cat_Boms::getQuery();
                 $bQuery->where("#state = 'active'");
                 $bQuery->groupBy('productId');
-                $in = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
-                if (countR($in)) {
-                    $query->in('id', $in);
-                } else {
-                    $query->where('1=2');
-                }
+                $in = implode(',', arr::extractValuesFromArray($bQuery->fetchAll(), 'productId'));
+                $where = "#id IN ($in) OR #innerClass = " . planning_interface_StageDriver::getClassId();
+                $query->where($where);
             }
 
             if (isset($params['isPublic'])) {
