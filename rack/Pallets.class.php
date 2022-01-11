@@ -1252,4 +1252,10 @@ class rack_Pallets extends core_Manager
             arr::sortObjects($recs, 'position', 'ASC', 'natural');
         }
     }
+
+    function act_Test()
+    {
+        $r = cls::get('planning_Setup')->updatePlanningStages();
+        bp($r);
+    }
 }
