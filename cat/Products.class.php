@@ -3721,6 +3721,8 @@ class cat_Products extends embed_Manager
             while ($dRec = $dQuery->fetch()) {
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
+                    $recs[$dRec->id]->id = $dRec->id;
+                    $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
                 }
 
                 setIfNot($dInst->productFld, 'productId');
@@ -3905,7 +3907,6 @@ class cat_Products extends embed_Manager
             if ($masterMvc instanceof deals_InvoiceMaster) {
                 if (isset($allFFieldsArr['quantity']) && $mRec->type == 'dc_note') {
                     $Detail::modifyDcDetails($recs, $mRec, $Detail);
-
                     foreach ($recs as $id => &$mdRec) {
                         if ($allFFieldsArr['packPrice']) {
                             if ($mdRec->packPrice && $mdRec->discount) {
@@ -3925,8 +3926,45 @@ class cat_Products extends embed_Manager
             }
         }
 
+        $rate = isset($mRec->currencyRate) ? $mRec->currencyRate : $mRec->rate;
+        $chargeVat = isset($mRec->chargeVat) ? $mRec->chargeVat : $mRec->vatRate;
+
+        $currencyId = is_numeric($mRec->currencyId) ? currency_Currencies::getCodeById($mRec->currencyId) : $mRec->currencyId;
+        $addMiscPriceFields = false;
+
+            foreach ($recs as $rec){
+                unset($rec->id);
+                unset($rec->clonedFromDetailId);
+                if(isset($rec->packPrice) && isset($rate)) {
+                    $addMiscPriceFields = true;
+                    if(empty($rec->batch) && core_Packs::isInstalled('batch')) {
+                        $rec->batch = null;
+                    }
+                    $rec->chargeVat = ($chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
+                    $rec->currency = $currencyId;
+                    if(!empty($rec->discount)){
+                        $rec->discount = core_Type::getByName('percent')->toVerbal($rec->discount);
+                    }
+
+                    if($chargeVat == 'yes'){
+                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($mRec->{$masterMvc->valiorFld}), $rate, $chargeVat);
+                        $rec->chargeVat = tr('с ДДС');
+                    } else {
+                        $rec->chargeVat = tr('без ДДС');
+                    }
+                }
+            }
+
+        if($addMiscPriceFields){
+            $csvFields->FLD('chargeVat', 'varchar', 'caption=ДДС');
+            $csvFields->FLD('currency', 'varchar', 'caption=Валута');
+            if (core_Packs::isInstalled('batch') && !$csvFields->fields['batch']) {
+                $csvFields->FLD('batch', 'text', 'caption=Партида');
+            }
+        }
+
         // Подреждане за запазване на предишна логика
-        $orderMap = array('code', 'packQuantity', 'packagingId', 'packPrice');
+        $orderMap = array('code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
         $fArr = $csvFields->fields;
         $newFArr = array();
         foreach ($fArr as $fName => $fRec) {

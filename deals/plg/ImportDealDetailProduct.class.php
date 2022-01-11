@@ -134,7 +134,6 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                     if ($mvc->haveRightFor('import')) {
 
                         // Обработваме и проверяваме данните
-
                         $errArr = self::checkRows($rows, $fields, $rec->folderId, $mvc);
 
                         if (!empty($errArr)) {
@@ -277,12 +276,11 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             }
             
             $packs = cat_Products::getPacks($pRec->productId);
-            
+
             if (isset($obj->pack)) {
                 $obj->exPack = $obj->pack;
-                
-                $packId = cat_UoM::fetchBySinonim($obj->pack)->id;
-                
+                $packId = is_numeric($obj->pack) ? $obj->pack : cat_UoM::fetchBySinonim($obj->pack)->id;
+
                 if (!$packId) {
                     foreach ($packs as $pId => $pName) {
                         if (strpos($obj->pack, $pName) !== false) {
@@ -351,9 +349,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if (isset($pRec->packagingId) && $pRec->packagingId != $obj->pack) {
                     $err[$i][] = $obj->code . ' - |Подадения баркод е за друга опаковка|*!';
                 }
-                
+
                 if (!array_key_exists($obj->pack, $packs)) {
-                    $err[$i][] = $obj->code . ' - |Артикулът не поддържа подадената мярка/опаковка|* (' . implode(',', $packs) . ')!';
+                    $err[$i][] = $obj->code . ' - |Артикулът не поддържа подадената мярка/опаковка|* (' . $obj->pack . ')!';
                 }
             }
             
