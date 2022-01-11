@@ -12,6 +12,7 @@ defIfNot('RACK_DELETE_OLD_MOVEMENTS', 5184000);
  */
 defIfNot('RACK_DELETE_ARCHIVED_MOVEMENTS', dt::SECONDS_IN_MONTH * 12);
 
+
 /**
  * Да се допуска ли колизия на палети
  */
@@ -23,25 +24,30 @@ defIfNot('RACK_DIFF_PALLETS_IN_SAME_POS', 'no');
  */
 defIfNot('RACK_DEFAULT_ZONE_COLORS', '#eeeeee');
 
+
 /**
  * Коя стратегия за движенията да се използва
  */
 defIfNot('RACK_PICKUP_STRATEGY', 'ver1');
+
 
 /**
  * Средни времена по операции->Вземане на палет
  */
 defIfNot('RACK_TIME_GET', 20);
 
+
 /**
  * Средни времена по операции->Оставяне в зона
  */
 defIfNot('RACK_TIME_ZONE', 5);
 
+
 /**
  * Средни времена по операции->Връщане
  */
 defIfNot('RACK_TIME_RETURN', 10);
+
 
 /**
  * Средни времена по операции->Броене
