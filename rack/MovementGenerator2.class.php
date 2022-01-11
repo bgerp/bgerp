@@ -157,7 +157,8 @@ class rack_MovementGenerator2 extends core_Manager
         // Генерираме масива с опаковките
         $packArr = array();
         foreach($packaging as $pack) {
-            $packArr[$pack->quantity * $scale] = $pack->packagingId;
+            $k = $pack->quantity * $scale;
+            $packArr["{$k}"] = $pack->packagingId;
         }
         krsort($packArr);
 
@@ -448,6 +449,7 @@ class rack_MovementGenerator2 extends core_Manager
 
         $sec = $timeCount;
         $res = 0;
+
         foreach($packs as $pQ => $id) {
             $sec = $sec / 1.8;
             if($n = floor($q/$pQ)) {
