@@ -160,8 +160,7 @@ class rack_MovementGenerator2 extends core_Manager
             $packArr[$pack->quantity * $scale] = $pack->packagingId;
         }
         krsort($packArr);
-      
-        bp($packArr, $scale);
+
         // Подготвяме данни свързани с палетите
         $sumP = 0;
         $pArr = array();
@@ -307,8 +306,10 @@ class rack_MovementGenerator2 extends core_Manager
    
  
         // Генерираме движенията за всяка група и изисляваме времето, което ще отнеме
-        foreach($bestMove as $m) {
-            $res[] = $m;
+        if(is_array($bestMove)){
+            foreach($bestMove as $m) {
+                $res[] = $m;
+            }
         }
        
         return $res;
