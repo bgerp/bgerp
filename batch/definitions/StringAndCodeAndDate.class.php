@@ -18,6 +18,11 @@
 class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
 {
     /**
+     * Разделител от срока на годност
+     */
+    const SEPARATOR = '|';
+
+    /**
      * Добавя полетата на драйвера към Fieldset
      *
      * @param core_Fieldset $fieldset
@@ -34,7 +39,7 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
     /**
      * Преди показване на форма за добавяне/промяна.
      *
-     * @param frame2_driver_Proto $Driver
+     * @param batch_definitions_Proto $Driver
      * @param embed_Manager $Embedder
      * @param stdClass $data
      */
@@ -53,6 +58,22 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
                 $form->setReadOnly('format');
                 $form->setField('format', 'hint=Има вече артикули с този тази партидност');
             }
+        }
+    }
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна.
+     *
+     * @param batch_definitions_Proto $Driver
+     * @param embed_Manager $Embedder
+     * @param stdClass $form
+     */
+    protected static function on_AfterInputEditForm(batch_definitions_Proto $Driver, embed_Manager $Embedder, &$form)
+    {
+        $rec = &$form->rec;
+        if (preg_match('/[^a-z_\-0-9]/i', $rec->prefix)) {
+            $form->setError('prefix', "Полето може да съдържа само латински букви и цифри|*!");
         }
     }
 
@@ -83,8 +104,9 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
             }
 
             // Прави се опит за получаване на следващия свободен номер
+            $separator = static::SEPARATOR;
             $date = dt::mysql2verbal($date, $this->rec->format);
-            $batch = "{$this->rec->prefix}{$this->rec->productCode}|{$date}";
+            $batch = "{$this->rec->prefix}{$this->rec->productCode}{$separator}{$date}";
         }
 
         return $batch;
@@ -101,7 +123,7 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
      */
     public function getFeatures($value)
     {
-        list($code, $date) = explode('|', $value);
+        list($code, $date) = explode(static::SEPARATOR, $value);
         $varcharClassId = batch_definitions_Varchar::getClassId();
         $dateClassId = batch_definitions_ExpirationDate::getClassId();
         $date = dt::getMysqlFromMask($date, $this->rec->format);
@@ -132,7 +154,7 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
      */
     public function toVerbal($value)
     {
-        list($string, $date) = explode('|', $value);
+        list($string, $date) = explode(static::SEPARATOR, $value);
         $date = batch_definitions_ExpirationDate::displayExpiryDate($date, $this->rec->format, $this->rec->time);
 
         $string = core_Type::getByName('varchar')->toVerbal($string);
@@ -195,11 +217,13 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
      */
     public function normalize($value)
     {
-        $expectedFormatDate = dt::mysql2verbal(dt::today(), $this->rec->format);
-        $dateLen = mb_strlen($expectedFormatDate);
+        if(strpos($value, static::SEPARATOR) === false){
+            $expectedFormatDate = dt::mysql2verbal(dt::today(), $this->rec->format);
+            $dateLen = mb_strlen($expectedFormatDate);
 
-        $startsWith = mb_substr($value, 0, mb_strlen($value) - $dateLen);
-        $value = str_replace($startsWith, "{$startsWith}|", $value);
+            $startsWith = mb_substr($value, 0, mb_strlen($value) - $dateLen);
+            $value = str_replace($startsWith, "{$startsWith}|", $value);
+        }
 
         return ($value == '') ? null : $value;
     }
@@ -219,8 +243,8 @@ class batch_definitions_StringAndCodeAndDate extends batch_definitions_Varchar
 
         if (is_array($dates)) {
             usort($dates, function ($a, $b) {
-                list(, $aDate) = explode('|', $a);
-                list(, $bDate) = explode('|', $b);
+                list(, $aDate) = explode(static::SEPARATOR, $a);
+                list(, $bDate) = explode(static::SEPARATOR, $b);
 
                 $aTime = strtotime(dt::getMysqlFromMask($aDate, $this->rec->format));
                 $bTime = strtotime(dt::getMysqlFromMask($bDate, $this->rec->format));

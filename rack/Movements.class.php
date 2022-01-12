@@ -804,7 +804,7 @@ class rack_Movements extends rack_MovementAbstract
         
         // Заключване на екшъна
         if (!core_Locks::get("movement{$rec->id}", 120, 0)) {
-            
+
             core_Statuses::newStatus('Друг потребител работи по движението|*!', 'warning');
             if($ajaxMode){
                 return status_Messages::returnStatusesArray();
@@ -827,6 +827,16 @@ class rack_Movements extends rack_MovementAbstract
 
         // Ако в урл-то има текуща зона
         $currentZoneId = Request::get('currentZoneId', 'int');
+
+        // Дали ако има текуща зона да се приключва движението на части
+        if($currentZoneId){
+            $closeCombinedMovementsAtOnce = store_Stores::fetchField($rec->storeId, 'closeCombinedMovementsAtOnce');
+            $closeCombinedMovementsAtOnce = empty($closeCombinedMovementsAtOnce) ? rack_Setup::get('CLOSE_COMBINED_MOVEMENTS_AT_ONCE') : $closeCombinedMovementsAtOnce;
+            if($closeCombinedMovementsAtOnce == 'yes'){
+                $currentZoneId = null;
+            }
+        }
+
         if($currentZoneId && !empty($rec->zones)){
             $zoneArr = @json_decode($rec->zones, true);
 
