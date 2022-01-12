@@ -15,6 +15,14 @@
  */
 class email_Incomings extends core_Master
 {
+
+
+    /**
+     * Път до бланката към документа
+     */
+    public $blankImage = '/email/img/IncomingsBlank.png';
+
+
     /**
      * Масив с IP-та, които се приемат за рискови и контрагента, ако не е от същата държава
      * Трбва да дава предупреждение за измама
