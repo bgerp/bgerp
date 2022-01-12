@@ -161,7 +161,6 @@ abstract class rack_MovementAbstract extends core_Manager
         $rec = $this->fetchRec($rec);
         $position = $this->getFieldType('position')->toVerbal($rec->position);
         $positionTo = $this->getFieldType('positionTo')->toVerbal($rec->positionTo);
-
         $Double = core_Type::getByName('double(smartRound)');
 
         $class = '';
@@ -179,22 +178,28 @@ abstract class rack_MovementAbstract extends core_Manager
         if ($skipZones === false) {
             $quantityInZones = 0;
             $zones = self::getZoneArr($rec, $quantityInZones);
-            $quantityInZones *= $rec->quantityInPack;
 
+            $quantityInZones *= $rec->quantityInPack;
             $restQuantity = round($rec->quantity, 9) - round($quantityInZones, 9);
 
+            $zoneQuantities = array();
             foreach ($zones as $zoneRec) {
                 $class = ($rec->state == 'active') ? "class='movement-position-notice'" : "";
-                if(rack_Zones::fetchField($zoneRec->zone)){
+                if($zRec = rack_Zones::fetch($zoneRec->zone, 'id,num')){
+                    $num = $zRec->num;
                     $zoneTitle = rack_Zones::getDisplayZone($zoneRec->zone, false, false);
                     if($makeLinks){
                         $zoneTitle = ht::createLink($zoneTitle, rack_Zones::getUrlArr($zoneRec->zone));
                     }
                 } else {
+                    $num = $zoneRec->zone;
                     $zoneTitle = ht::createHint($zoneRec->zone, 'Зоната вече не съществува', 'warning');
                 }
-                $quantities[$zoneRec->zone] = (object)array('quantity' => round($zoneRec->quantity * $rec->quantityInPack, 6), 'position' => $zoneTitle, 'class' => $class);
+                $zoneQuantities[$zoneRec->zone] = (object)array('quantity' => round($zoneRec->quantity * $rec->quantityInPack, 6), 'position' => $zoneTitle, 'class' => $class, 'num' => $num);
             }
+
+            arr::sortObjects($zoneQuantities, 'num', 'ASC');
+            $quantities += $zoneQuantities;
 
             if (!empty($positionTo) && round($restQuantity, 6)) {
                 $quantities['to'] = (object)array('quantity' => $restQuantity, 'position' => $positionTo, 'class' => $class);

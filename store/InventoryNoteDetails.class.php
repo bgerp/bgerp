@@ -10,7 +10,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -130,6 +130,9 @@ class store_InventoryNoteDetails extends doc_Detail
         $this->FLD('quantity', 'double', 'caption=Количество,input=none');
         $this->FLD('quantityInPack', 'double(decimals=2)', 'input=hidden,column=none');
         $this->FNC('packQuantity', 'double(decimals=2,min=0)', 'caption=Количество,input');
+        $this->FNC('editQuantity', 'double', 'input=hidden,silent');
+        $this->FNC('editSummary', 'double', 'input=hidden,silent');
+        $this->FNC('editBatch', 'varchar(nullIfEmpty)', 'input=hidden,silent');
     }
     
     
@@ -218,7 +221,14 @@ class store_InventoryNoteDetails extends doc_Detail
         } else {
             $form->setField('packagingId', 'input=none');
         }
-        
+
+
+        if(isset($rec->editQuantity)){
+            $form->setReadOnly('productId');
+            $form->setReadOnly('packagingId');
+            $form->setDefault('packQuantity', $rec->editQuantity);
+        }
+
         return $data;
     }
     
@@ -249,7 +259,7 @@ class store_InventoryNoteDetails extends doc_Detail
             $rec->quantityInPack = ($productInfo->packagings[$rec->packagingId]) ? $productInfo->packagings[$rec->packagingId]->quantity : 1;
             $rec->quantity = (isset($rec->packQuantity)) ? $rec->packQuantity * $rec->quantityInPack : null;
         }
-        
+
         $mvc->invoke('AfterAfterInputEditForm', array($form));
     }
     
@@ -298,6 +308,9 @@ class store_InventoryNoteDetails extends doc_Detail
             
             unset($data->retUrl['id']);
             unset($data->retUrl['packagingId']);
+            unset($data->retUrl['editSummary']);
+            unset($data->retUrl['editBatch']);
+            unset($data->retUrl['editQuantity']);
         }
     }
     
@@ -311,10 +324,19 @@ class store_InventoryNoteDetails extends doc_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
+        // Ако е редакция от съмърите да се изтрият другите записи
+        if(isset($rec->editSummary)){
+            $deleteWhere = "#noteId = {$rec->noteId} AND #productId = {$rec->productId} AND #id != '{$rec->id}'";
+            if(isset($rec->editBatch) && core_Packs::isInstalled('batch')){
+                $deleteWhere .= " AND #batch = '{$rec->batch}'";
+            }
+            static::delete($deleteWhere);
+        }
+
         if (is_null($rec->quantity)) {
             $mvc->delete($rec->id);
         }
-        
+
         $summeryId = store_InventoryNoteSummary::force($rec->noteId, $rec->productId);
         store_InventoryNoteSummary::recalc($summeryId);
         

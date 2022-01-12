@@ -127,7 +127,8 @@ class rack_MovementGenerator extends core_Manager
         
         do {
             $fullPallets = self::getFullPallets($p, $quantityPerPallet);
-
+          
+            // На всяка стъпка вземаме по един палет и го разпределяме
             $res = self::p2q($p, $z, $fullPallets, $quantityPerPallet);
  
             $moves = arr::combine($moves, $res);
@@ -160,8 +161,8 @@ class rack_MovementGenerator extends core_Manager
                 // на вземането от палета, което може да стане ръчно. Функцията трябва да получава макс количество,
                 // при което не се взема целия палет, а само необходимата част
                 // $q - какво трябва да върнем
-                if ($quantityPerPallet && $q > 0 && ($q <= (1-self::ALMOST_FULL) * $quantityPerPallet)) {
-                    
+                if ((($o->quantity / 4 > $q) && !self::isFirstRow($o->pallet)) || $quantityPerPallet && $q > 0 && ($q <= (1-self::ALMOST_FULL) * $quantityPerPallet)) {
+                     
                     $o->ret = $q;
                     
                     // Къде да е върнат палета?
@@ -198,6 +199,41 @@ class rack_MovementGenerator extends core_Manager
     
         return $res;
     }
+
+
+    /**
+     * Автоматично самотестване
+     */
+    public function act_Test2()
+    {
+        // Вземаме от по-малкият палет
+        $p = ['1a1' => 200, '1b1' => 100];
+        $q = ['z1' => 50, 'z2' => 40];
+        $mArr = self::mainP2Q($p, $q);
+        expect($mArr[1]->pallet == '1b1', $p, $q, $mArr);
+        
+        // Ако 
+        $p = ['1c1' => 200, '1b1' => 100, '1a1' => 120];
+        $q = ['z1' => 50, 'z2' => 90];
+        $mArr = self::mainP2Q($p, $q);
+        expect($mArr[1]->pallet == '1c1', $p, $q, $mArr);
+
+        // В два палета има точно, колкото трябват
+        $p = ['1a2' => 200, '1b1' => 100, '1a1' => 40];
+        $q = ['z1' => 140];
+        $mArr = self::mainP2Q($p, $q);
+        expect($mArr[2]->pallet == '1a1', $p, $q, $mArr);
+        expect($mArr[1]->pallet == '1b1', $p, $q, $mArr);
+
+        // В два палета има точно, колкото трябват
+        $p = ['1a1' => 200, '1b1' => 150, '1c1' => 150, '1d1' => 200];
+        $q = ['z1' => 190];
+        $mArr = self::mainP2Q($p, $q);
+        expect($mArr[1]->quantity == 200, $p, $q, $mArr);
+        expect($mArr[1]->retPos == '1a1', $p, $q, $mArr);
+
+        return 'OK';
+    }
     
     
     /**
@@ -233,9 +269,11 @@ class rack_MovementGenerator extends core_Manager
         */
         
         $pCombi = array();
+        $pR = $p;
+        krsort($pR);
         $cnt = countR($p);
         while ($cnt-- > 0 && countR($pCombi) < 20000) {
-            $pCombi = self::addCombi($p, $pCombi);
+            $pCombi = self::addCombi($pR, $pCombi);
         }
         
         $zCombi = array();
@@ -246,15 +284,14 @@ class rack_MovementGenerator extends core_Manager
 
         // Подреждаме от най-големите комбинации към най-малките
         krsort($zCombi);
-
-        // Вкарваме точните съответсвия
+ 
+        // Вкарваме точните съответсвия на комбинации
         foreach ($pCombi as $pQ => $pK) {
             if ($zK = $zCombi["{$pQ}"]) {  
                 $moves = self::moveGen($p, $z, $pK, $zK);
                 break;
             }
         }
-    
         if (!countR($moves)) {
             $zR = array_reverse($z, true);
             foreach ($fullPallets as $i => $pQ) {
@@ -275,27 +312,27 @@ class rack_MovementGenerator extends core_Manager
                 }
             }
         }
-        
+       
         if (!countR($moves)) {
-            $kZ = '';
+            $kZ = '';  
             $t = 0;
             $zR = array_reverse($z, true);
             foreach ($zR as $zI => $zQ) {
                 $zK .= ($zK == '' ? '|' : '') .$zI . '|';
                 $t += $zQ;
             }
-            
-            if ($t) {
+        
+            if ($t) { 
                 foreach ($pCombi as $pQ => $pK) {
                     if ($pQ >= $t) {
                         break;
                     }
                 }
-                
+           
                 $moves = self::moveGen($p, $z, $pK, $zK);
             }
         }
-        
+          
         return $moves;
     }
     
@@ -401,6 +438,13 @@ class rack_MovementGenerator extends core_Manager
             
             arsort($cnt);
             $best = key($cnt);
+            foreach($cnt as $q => $n) {
+                if($q != $best) unset($ctn[$q]);
+            }
+
+            krsort($cnt);
+            $best = key($cnt);
+
             if ($cnt[$best] > 1) {
                 $quantityPerPallet = $best;
             }

@@ -200,8 +200,8 @@ class cat_BomDetails extends doc_Detail
         // Добавяме всички вложими артикули за избор
         $metas = ($rec->type == 'pop') ? 'canConvert,canStore' : 'canConvert';
         $groups = ($rec->type == 'pop') ? cat_Groups::getKeylistBySysIds('waste') : null;
-        $onlyWithBoms = ($rec->type != 'stage') ? null : true;
-        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'onlyWithBoms' => $onlyWithBoms));
+        $onlyProductionStages = ($rec->type != 'stage') ? null : true;
+        $form->setFieldTypeParams('resourceId', array('hasProperties' => $metas, 'groups' => $groups, 'onlyProductionStages' => $onlyProductionStages));
         
         $form->setDefault('type', 'input');
         $quantity = $data->masterRec->quantity;
@@ -791,7 +791,7 @@ class cat_BomDetails extends doc_Detail
         
         if ($action == 'add' && isset($rec->type)) {
             if($rec->type == 'stage'){
-                $options = cat_Products::getProducts(null, null, null, 'canConvert', null, 1, false, null, null, null, planning_interface_StageDriver::getClassId());
+                $options = cat_Products::getProducts(null, null, null, 'canConvert', null, 1, false, null, null, null, null, null, true);
                 if(!countR($options)){
                     $requiredRoles = 'no_one';
                 }
@@ -1167,6 +1167,25 @@ class cat_BomDetails extends doc_Detail
         foreach ($query->getDeletedRecs() as $rec) {
             if ($rec->type == 'stage') {
                 $mvc->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
+            }
+        }
+    }
+
+
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        $rec = $data->form->rec;
+        if ($rec->type == 'stage' && !isset($rec->id)) {
+            $stageDriverClassId = planning_interface_StageDriver::getClassId();
+            if(cls::get('planning_interface_StageDriver')->canSelectDriver()){
+                if(cat_Products::haveRightFor('add', (object)array('innerClass' => $stageDriverClassId))){
+                    $addUrl = array('cat_Products', 'add', 'innerClass' => $stageDriverClassId);
+                    $addUrl['ret_url'] = getCurrentUrl();
+                    $data->form->toolbar->addBtn('Нов производствен етап', $addUrl, 'id=btnReq,order=9.99971', 'ef_icon = img/16/add.png,title=Създаване на артикул за нов производствен етап');
+                }
             }
         }
     }

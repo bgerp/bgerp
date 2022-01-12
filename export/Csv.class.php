@@ -202,7 +202,7 @@ class export_Csv extends core_Mvc
         
         try {
             $clsArr = core_Classes::getOptionsByInterface('export_DetailExportCsvIntf');
-            
+
             foreach ($clsArr as $clsName) {
                 $inst = cls::getInterface('export_DetailExportCsvIntf', $clsName);
                 $csvFields = new core_FieldSet();
@@ -213,6 +213,10 @@ class export_Csv extends core_Mvc
                 }
             }
         } catch (core_exception_Expect $e) {
+            reportException($e);
+            if(haveRole('debug')){
+                core_Statuses::newStatus($e->getMessage(), 'error');
+            }
         }
         
         $fileHnd = null;

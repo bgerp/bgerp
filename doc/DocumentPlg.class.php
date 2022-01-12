@@ -169,7 +169,7 @@ class doc_DocumentPlg extends core_Plugin
         if ($mvc->fetchFieldsBeforeDelete) {
             $mvc->fetchFieldsBeforeDelete .= ',';
         }
-        $mvc->fetchFieldsBeforeDelete = 'containerId';
+        $mvc->fetchFieldsBeforeDelete .= 'containerId';
 
         setIfNot($mvc->addSubTitleToList, false);
     }

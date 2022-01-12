@@ -56,6 +56,20 @@
                                 <td class='dt'>|Мярка на наличностите|*:</td>
                                 <td>[#displayStockMeasure#]</td>
                             </tr>
+
+                            <!--ET_BEGIN samePosPallets-->
+                            <tr>
+                                <td class='dt'>|Различни палети на една позиция|*:</td>
+                                <td>[#samePosPallets#]</td>
+                            </tr>
+                            <!--ET_END samePosPallets-->
+
+                            <!--ET_BEGIN closeCombinedMovementsAtOnce-->
+                            <tr>
+                                <td class='dt'>|Приключване на комбинирани движения|*:</td>
+                                <td>[#closeCombinedMovementsAtOnce#]</td>
+                            </tr>
+                            <!--ET_END closeCombinedMovementsAtOnce-->
                         </table>
                     </div>
                 </fieldset>

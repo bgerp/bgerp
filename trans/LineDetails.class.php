@@ -358,6 +358,8 @@ class trans_LineDetails extends doc_Detail
         if($fields['renderDocumentInline']){
             $row->ROW_ATTR['class'] .= " detailedView";
         }
+
+        $row->num = core_Type::getByName('int')->toVerbal($rec->num);
     }
     
     
@@ -395,6 +397,12 @@ class trans_LineDetails extends doc_Detail
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');
+
+        foreach ($data->rows as $row){
+            if(isset($row->_rowTools)){
+                $row->_rowTools->append($row->num);
+            }
+        }
     }
 
 
@@ -563,7 +571,10 @@ class trans_LineDetails extends doc_Detail
         $documentsWithPayments = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId());
         $paymentDocuments = array_filter($recs, function ($a) use ($paymentDocsClassIds) {return in_array($a->classId, $paymentDocsClassIds);});
 
+        $count = 0;
         foreach ($data->recs as $rec){
+            $count++;
+            $rec->num = $count;
             if(!in_array($rec->classId, $documentsWithPayments) || $rec->status == 'removed') continue;
 
             // Към всеки документ който може да има платежен се добавят на неговия ред тези създадени към него

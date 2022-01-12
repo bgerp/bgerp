@@ -156,7 +156,8 @@ class acc_plg_ExpenseAllocation extends core_Plugin
 
                 if(!$form->gotErrors()){
                     if($rec->allocationBy != 'no'){
-                        if ($error = acc_ValueCorrections::allocateAmount($rec->productsData, $rec->packQuantity, $rec->allocationBy)) {
+                        $packQuantity = isset($rec->packQuantity) ? $rec->packQuantity : deals_Helper::getDefaultPackQuantity($rec->productId, $rec->packagingId);
+                        if ($error = acc_ValueCorrections::allocateAmount($rec->productsData, $packQuantity, $rec->allocationBy)) {
                             $form->setError('allocateBy,chosenProducts', $error);
                         }
                     }
