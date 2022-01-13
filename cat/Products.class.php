@@ -353,7 +353,7 @@ class cat_Products extends embed_Manager
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
         $this->FLD('code', 'varchar(32, ci)', 'caption=Код,remember=info,width=15em');
-        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field|transliterate');
+        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field');
         $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
@@ -2198,8 +2198,13 @@ class cat_Products extends embed_Manager
             if (!is_object($rec) && type_Int::isInt($rec)) {
                 $rec = $mvc->fetchRec($rec);
             }
-            
+
+            $originalName = $rec->name;
             $part = self::getDisplayName($rec);
+
+            if ($originalName == $part) {
+                $part = core_Lg::transliterate($part);
+            }
             
             return false;
         } elseif ($field == 'code') {
