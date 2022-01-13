@@ -2180,7 +2180,7 @@ class cat_Products extends embed_Manager
         $name = $rec->name;
         
         $lg = core_Lg::getCurrent();
-        if ($lg == 'en' && !empty($rec->nameEn)) {
+        if ($lg != 'bg' && !empty($rec->nameEn)) {
             $name = $rec->nameEn;
         }
         
