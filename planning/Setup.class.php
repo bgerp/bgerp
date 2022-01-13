@@ -92,6 +92,12 @@ defIfNot('PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE', '');
 
 
 /**
+ * Дефолтна папка за създаване на нови производствени етапи
+ */
+defIfNot('PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID', '');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -154,6 +160,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на заданието->Без модификации от'),
         'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
         'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за брой,per1Min=Брой за минута,minPer10=Минути за 10 броя,minPer100=Минути за 100 броя,per1Hour=Броя за час,per8Hour=Брой за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за брой"->Избор'),
+        'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
     );
     
     
@@ -161,6 +168,7 @@ class planning_Setup extends core_ProtoSetup
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(
+        'planning_Steps',
         'planning_Jobs',
         'planning_ConsumptionNotes',
         'planning_ConsumptionNoteDetails',
@@ -178,7 +186,6 @@ class planning_Setup extends core_ProtoSetup
         'planning_Centers',
         'planning_Hr',
         'planning_FoldersWithResources',
-        'planning_Stages',
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',
@@ -211,7 +218,7 @@ class planning_Setup extends core_ProtoSetup
      */
     public $defClasses = 'planning_reports_PlanningImpl,planning_reports_PurchaseImpl, planning_reports_MaterialsImpl,
                           planning_reports_ArticlesWithAssignedTasks,planning_interface_ImportTaskProducts,planning_interface_ImportTaskSerial,
-                          planning_interface_ImportFromLastBom,planning_interface_StageDriver,planning_reports_Workflows,planning_Terminal,
+                          planning_interface_ImportFromLastBom,planning_interface_StepProductDriver,planning_reports_Workflows,planning_Terminal,
                           planning_reports_ArticlesProduced,planning_reports_ConsumedItemsByJob,planning_reports_MaterialPlanning';
     
     
@@ -228,7 +235,7 @@ class planning_Setup extends core_ProtoSetup
         $html .= fileman_Buckets::createBucket('workCards', 'Работни карти', 'pdf,jpg,jpeg,png', '200MB', 'powerUser', 'powerUser');
         
         $Plugins = cls::get('core_Plugins');
-        $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StageDriver', 'private');
+        $html .= $Plugins->installPlugin('Екстендър към драйвера за производствени етапи', 'embed_plg_Extender', 'planning_interface_StepProductDriver', 'private');
         
         return $html;
     }
@@ -264,5 +271,20 @@ class planning_Setup extends core_ProtoSetup
                 core_Cron::addOnce($rec);
             }
         }
+    }
+
+
+    /**
+     * Миграция на производствените етапи
+     */
+    public function updatePlanningStages()
+    {
+        $Stages = cls::get('planning_Steps');
+        $Stages->setupMvc();
+
+        $centerIdValue = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
+        $centerIdColName = str::phpToMysqlName('centerId');
+        $query = "UPDATE {$Stages->dbTableName} SET {$centerIdColName} = {$centerIdValue} WHERE {$centerIdColName} IS NULL";
+        $Stages->db->query($query);
     }
 }

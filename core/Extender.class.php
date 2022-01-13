@@ -176,7 +176,7 @@ abstract class core_Extender extends core_Master
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        $addUrl = $mvc->getListAddUrl();
+        $addUrl = static::getListAddUrl();
         if(countR($addUrl) && !Request::get('Rejected', 'int')){
             $data->toolbar->addBtn('Нов запис', $addUrl, false, "ef_icon = img/16/star_2.png,title=Добавяне на нов {$mvc->singleTitle}");
         }
@@ -200,7 +200,7 @@ abstract class core_Extender extends core_Master
      *
      * @return array $addUrl
      */
-    protected function getListAddUrl()
+    public static function getListAddUrl()
     {
         return array();
     }

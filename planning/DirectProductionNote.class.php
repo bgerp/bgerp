@@ -324,7 +324,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } else {
                 $form->setField('storeId', 'mandatory');
                 $form->setField('packagingId', 'input');
-                if(cat_Products::haveDriver($rec->productId, 'planning_interface_StageDriver')){
+                if(cat_Products::haveDriver($rec->productId, 'planning_interface_StepProductDriver')){
                     $form->setField('inputStoreId', 'mandatory');
                 }
             }

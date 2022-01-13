@@ -1479,7 +1479,7 @@ class cat_Products extends embed_Manager
                 $bQuery = cat_Boms::getQuery();
                 $bQuery->where("#state = 'active'");
                 $bQuery->groupBy('productId');
-                $where = "#innerClass = " . planning_interface_StageDriver::getClassId();
+                $where = "#innerClass = " . planning_interface_StepProductDriver::getClassId();
                 $in = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
                 if(countR($in)){
                     $in = implode(',', $in);
@@ -3205,8 +3205,8 @@ class cat_Products extends embed_Manager
     {
         $mvc->createdProducts[] = $rec;
     }
-    
-    
+
+
     /**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
@@ -3227,6 +3227,7 @@ class cat_Products extends embed_Manager
      *               o employees                      - списък (кейлист) от служители
      *               o storeId                        - склад
      *               o indTime                        - норма
+     *               o centerId                       - център на производство
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото

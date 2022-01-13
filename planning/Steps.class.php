@@ -13,8 +13,14 @@
  *
  * @since     0.12
  */
-class planning_Stages extends core_Extender
+class planning_Steps extends core_Extender
 {
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'planning_Stages';
+
+
     /**
      * Заглавие
      */
@@ -30,9 +36,15 @@ class planning_Stages extends core_Extender
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'planning_Wrapper,plg_RowTools2,plg_Search,plg_Rejected';
-    
-    
+    public $loadList = 'planning_Wrapper,plg_RowTools2,plg_GroupByField,plg_Search,plg_Rejected';
+
+
+    /**
+     * По-кое поле да се групират листовите данни
+     */
+    public $groupByField = 'centerId';
+
+
     /**
      * Кой има достъп до лист изгледа
      */
@@ -42,9 +54,9 @@ class planning_Stages extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Етап,folders=Центрове,canStore=Складируем,norm=Норма,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
-    
-    
+    public $listFields = 'name=Етап,centerId=Център,fixedAssets,employees,norm,storeIn,storeInput,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -54,13 +66,13 @@ class planning_Stages extends core_Extender
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'folders,name';
+    public $searchFields = 'centerId,name';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'folders,name,canStore,norm,storeInput,storeIn,fixedAssets,employees';
+    protected $extenderFields = 'centerId,name,canStore,norm,storeInput,storeIn,fixedAssets,employees';
     
     
     /**
@@ -76,16 +88,16 @@ class planning_Stages extends core_Extender
      */
     public function description()
     {
-        $this->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty,makeLinks)', 'caption=Използване в производството->Центрове на дейност, remember,mandatory,silent');
+        $this->FLD('centerId', 'key(mvc=planning_Centers,select=name)', 'caption=Използване в производството->Център,mandatory,silent');
         $this->FLD('name', 'varchar', 'caption=Използване в производството->Наименование,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Складируем,notNull,value=yes,silent');
-        $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
-        $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
 
+        $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
         $this->FLD('storeInput', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад влагане');
         $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад приемане');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
+        $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
 
         $this->setDbIndex('state');
     }
@@ -102,14 +114,13 @@ class planning_Stages extends core_Extender
         $form = &$data->form;
         $rec = &$form->rec;
 
-        $form->setField("measureId", 'removeAndRefreshForm,silent');
-        $form->setField("measureId", "removeAndRefreshForm={$mvc->className}_storeInput|{$mvc->className}_storeIn");
-        $form->input("measureId,{$mvc->className}_canStore,{$mvc->className}_folders", 'silent');
+        $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_storeInput|{$mvc->className}_storeIn");
+        $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm");
+        $form->setDefault("{$mvc->className}_canStore", 'yes');
 
-        $resourceSuggestionsArr = doc_Folders::getSelectArr(array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'planning_Centers'));
-        $form->setSuggestions("{$mvc->className}_folders", $resourceSuggestionsArr);
-        $form->setDefault("{$mvc->className}_folders", keylist::addKey('', planning_Centers::getUndefinedFolderId()));
-    
+        $form->setDefault("{$mvc->className}_centerId", planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
+        $form->input("{$mvc->className}_canStore,{$mvc->className}_centerId", 'silent');
+
         if($form->getField('meta', false)){
             $form->setField('meta', 'input=none');
         }
@@ -121,8 +132,11 @@ class planning_Stages extends core_Extender
             }
         }
 
-        $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId());
-        $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId());
+        if(isset($rec->{"{$mvc->className}_centerId"})){
+            $folderId = planning_Centers::fetchField($rec->{"{$mvc->className}_centerId"}, 'folderId');
+            $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($folderId, $rec->{"{$mvc->className}_employees"}));
+            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($folderId, $rec->{"{$mvc->className}_fixedAssets"}));
+        }
 
         if(isset($rec->measureId)){
             $form->setFieldTypeParams("{$mvc->className}_norm", array('measureId' => $rec->measureId));
@@ -152,7 +166,6 @@ class planning_Stages extends core_Extender
             } else {
                 $metaArr['canStore'] = 'canStore';
             }
-            
             $rec->meta = implode(',', $metaArr);
         }
     }
@@ -192,12 +205,19 @@ class planning_Stages extends core_Extender
      * 
      * @return array $addUrl
      */
-    protected function getListAddUrl()
+    public static function getListAddUrl($userId = null)
     {
         $addUrl = array();
-        if($driverId = planning_interface_StageDriver::getClassId()){
-            if (cat_Products::haveRightFor('add', (object)array('innerClass' => $driverId)) && cls::get($driverId)->canSelectDriver()) {
+
+        if(cls::get('planning_interface_StepProductDriver')->canSelectDriver($userId)) {
+            $driverId = planning_interface_StepProductDriver::getClassId();
+            if (cat_Products::haveRightFor('add', (object)array('innerClass' => $driverId), $userId)) {
                 $addUrl = array('cat_Products', 'add', 'innerClass' => $driverId, 'ret_url' => true);
+
+                $folderId = planning_Setup::get('DEFAULT_PRODUCTION_STEP_FOLDER_ID');
+                if($folderId && doc_Folders::haveRightToFolder($folderId)){
+                    $addUrl['folderId'] = $folderId;
+                }
             }
         }
         
@@ -241,8 +261,14 @@ class planning_Stages extends core_Extender
                 $row->storeInput = store_Stores::getHyperlink($rec->storeInput, true);
             }
 
-            if(isset($rec->storeInput)){
-                $row->storeInput = store_Stores::getHyperlink($rec->storeInput, true);
+            if(isset($rec->storeIn)){
+                $row->storeIn = store_Stores::getHyperlink($rec->storeIn, true);
+            }
+
+            $row->centerId = planning_Centers::getHyperlink($rec->centerId, true);
+
+            if(!empty($rec->employees)){
+                $row->employees = implode(', ', planning_Hr::getPersonsCodesArr($rec->employees, true));
             }
         }
     }
@@ -253,19 +279,15 @@ class planning_Stages extends core_Extender
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->FLD('centerFolderId', 'key(mvc=doc_Folders,select=name)','placeholder=Център на дейност');
-        $centerOptionsArr = doc_Folders::getSelectArr(array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'planning_Centers'));
-        $data->listFilter->setOptions('centerFolderId', array('' => '') + $centerOptionsArr);
-        
-        $data->listFilter->showFields = 'search,centerFolderId';
+        $data->listFilter->showFields = 'search,centerId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->query->orderBy('state', 'asc');
+        $data->query->orderBy('centerId,state', 'asc');
         
         if($filterRec = $data->listFilter->rec){
-            if(!empty($filterRec->centerFolderId)){
-                $data->query->where("LOCATE('|{$filterRec->centerFolderId}|', #folders)");
+            if(!empty($filterRec->centerId)){
+                $data->query->where("#centerId = {$filterRec->centerId}");
             }
         }
     }
@@ -281,7 +303,7 @@ class planning_Stages extends core_Extender
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
         // Показване на данните от екстендъра в шаблона
-        $blockTpl = getTplFromFile('planning/tpl/StageBlock.shtml');
+        $blockTpl = getTplFromFile('planning/tpl/StepBlock.shtml');
         $blockTpl->placeObject($data->row);
         $blockTpl->removeBlocksAndPlaces();
         $tpl->append($blockTpl, 'ADDITIONAL_TOP_BLOCK');
@@ -301,11 +323,10 @@ class planning_Stages extends core_Extender
         $data->recs = $data->rows = array();
         $fields = $this->selectFields();
         $fields['-list'] = true;
-        
+
         // Подготовка на записите
         $query = self::getQuery();
-        $query->where("LOCATE('|{$data->masterData->rec->folderId}|', #folders)");
-        $query->where("#state != 'rejected'");
+        $query->where("#centerId = {$data->masterId} AND #state != 'rejected'");
         $query->orderBy('state', "ASC");
         
         while($rec = $query->fetch()){
@@ -314,8 +335,12 @@ class planning_Stages extends core_Extender
         }
         
         $this->prepareListFields($data);
-        unset($data->listFields['folders']);
-        $data->addUrl = self::getListAddUrl($data->masterData->rec->id);
+        unset($data->listFields['centerId']);
+        unset($data->listFields['state']);
+        $data->addUrl = static::getListAddUrl();
+        if(countR($data->addUrl)){
+            $data->addUrl["{$this->className}_centerId"] = $data->masterId;
+        }
     }
     
     
@@ -337,7 +362,7 @@ class planning_Stages extends core_Extender
         $tpl->append($tableHtml, 'content');
         
         if(countR($data->addUrl)){
-            $addBtn = ht::createLink('', $data->addUrl, false, "title=Добавяне на нов производствен етап в центъра на дейност,ef_icon=img/16/add.png");
+            $addBtn = ht::createLink('', $data->addUrl, false, "title=Добавяне на нов епат в производството в центъра на дейност,ef_icon=img/16/add.png");
             $tpl->append($addBtn, 'title');
         }
         

@@ -1224,6 +1224,7 @@ class planning_Jobs extends core_Master
         $form->FLD('select', 'varchar', 'caption=Избор,mandatory');
         
         $options = $this->getTaskOptions($jobRec);
+
         if(countR($options)){
             $form->setOptions('select', $options);
             $form->setDefault('select', 'new');
@@ -1235,11 +1236,14 @@ class planning_Jobs extends core_Master
         if ($form->isSubmitted()) {
             $action = $form->rec->select;
             $actionArr = explode('|', $action);
+
             if ($actionArr[0] == 'sys') {
                 
                 // Създаване на шаблонна операция
                 $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
                 $draft = $defaultTasks[$actionArr[1]];
+                $folderId = isset($draft->centerId) ? planning_Centers::fetchField($draft->centerId, 'folderId') : $folderId;
+
                 $url = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $draft->title, 'ret_url' => true, 'systemId' => $actionArr[1]);
                 redirect($url);
             } elseif ($actionArr[0] == 'c') {
