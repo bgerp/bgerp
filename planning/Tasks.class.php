@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -313,10 +313,9 @@ class planning_Tasks extends core_Master
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param core_Mvc $mvc
+     * @param core_ET  $tpl
+     * @param stdClass $data
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
@@ -337,7 +336,7 @@ class planning_Tasks extends core_Master
         static::fillGapsInRec($rec);
         $row = parent::recToVerbal_($rec, $fields);
         $mvc = cls::get(get_called_class());
-        $row->title = self::getHyperlink($rec->id, (isset($fields['-list']) ? true : false));
+        $row->title = self::getHyperlink($rec->id, isset($fields['-list']));
         
         $red = new color_Object('#FF0000');
         $blue = new color_Object('green');
@@ -530,7 +529,7 @@ class planning_Tasks extends core_Master
      * Добавя допълнителни полетата в антетката
      *
      * @param core_Master $mvc
-     * @param NULL|array  $res
+     * @param NULL|array  $resArr
      * @param object      $rec
      * @param object      $row
      */
@@ -809,7 +808,7 @@ class planning_Tasks extends core_Master
         $origin = doc_Containers::getDocument($rec->originId);
         $originRec = $origin->fetch();
         
-        // Добавяме допустимите опции
+        // Добавяне на допустимите опции
         $options = planning_Centers::getManifacturableOptions($rec->folderId);
         if(!array_key_exists($originRec->productId, $options)){
             $options = array("{$originRec->productId}" => cat_Products::getTitleById($originRec->productId, false)) + $options;
@@ -822,9 +821,10 @@ class planning_Tasks extends core_Master
         $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
         
         if (isset($rec->systemId, $tasks[$rec->systemId])) {
-            $fields = array_keys($form->selectFields("#input != 'none' AND #input != 'hidden'"));
-            foreach ($fields as $fieldName) {
-                $form->setDefault($fieldName, $tasks[$rec->systemId]->{$fieldName});
+            $taskData = (array)$tasks[$rec->systemId];
+            unset($taskData['products']);
+            foreach ($taskData as $fieldName => $defaultValue) {
+                $form->setDefault($fieldName, $defaultValue);
             }
             $form->setReadOnly('productId');
         }
@@ -955,19 +955,22 @@ class planning_Tasks extends core_Master
         }
         
         foreach (array('fixedAssets' => 'planning_AssetResources', 'employees' => 'planning_Hr') as $field => $Det) {
-            $arr = $Det::getByFolderId($rec->folderId, $rec->{$field});
-            if (countR($arr)) {
-                $form->setSuggestions($field, $arr);
+            $suggestions = $Det::getByFolderId($rec->folderId, $rec->{$field});
+            if (countR($suggestions)) {
+                $form->setField($field, 'input');
+                $form->setSuggestions($field, $suggestions);
+
+                if($field == 'fixedAssets') {
+                    $plannedAssets = cat_Products::getParams($rec->productId, 'planningAssets');
+                    if (!empty($plannedAssets)) {
+                        $intersected = array_intersect_key($suggestions, keylist::toArray($plannedAssets));
+                        if(countR($intersected)){
+                            $form->setDefault('fixedAssets', keylist::fromArray($intersected));
+                        }
+                    }
+                }
             } else {
                 $form->setField($field, 'input=none');
-            }
-
-            if($field == 'fixedAssets'){
-                $plannedAssets = cat_Products::getParams($rec->productId, 'planningAssets');
-                if(!empty($plannedAssets)){
-                    $plannedAssets = keylist::toArray($plannedAssets);
-                    $form->setDefault('fixedAssets', $plannedAssets);
-                }
             }
         }
 
@@ -1085,12 +1088,11 @@ class planning_Tasks extends core_Master
         $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart,costsCount');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        
         $tpl = $table->get($data->rows, $data->listFields);
         
         // Имали бутони за добавяне
         if (isset($data->addUrlArray)) {
-            $btn = ht::createBtn('Нова операция', $data->addUrlArray, false, false, "title=Създаване на производствена операция към задание,ef_icon={$this->singleIcon}");
+            $btn = ht::createLink('', $data->addUrlArray, false, "title=Създаване на производствена операция към задание,ef_icon=img/16/add.png");
             $tpl->append($btn, 'btnTasks');
         }
         
@@ -1216,10 +1218,8 @@ class planning_Tasks extends core_Master
     /**
      * Връща количеството произведено по задачи по дадено задание
      *
-     * @param mixed                     $jobId
-     * @param string $type
-     *
-     * @return float $quantity
+     * @param int|stdClass $jobId
+     * @return double $quantity
      */
     public static function getProducedQuantityForJob($jobId)
     {
@@ -1282,13 +1282,12 @@ class planning_Tasks extends core_Master
     public function searchByCode($str)
     {
         $resArr = array();
-        
         $str = trim($str);
         
-        $taskDetilQuery = planning_ProductionTaskDetails::getQuery();
-        $taskDetilQuery->where(array("#serial = '[#1#]'", $str));
+        $taskDetailQuery = planning_ProductionTaskDetails::getQuery();
+        $taskDetailQuery->where(array("#serial = '[#1#]'", $str));
         
-        while($dRec = $taskDetilQuery->fetch()) {
+        while($dRec = $taskDetailQuery->fetch()) {
             
             $res = new stdClass();
             $tRec = $this->fetch($dRec->taskId);

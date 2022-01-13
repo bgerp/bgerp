@@ -242,6 +242,7 @@ class cat_BomDetails extends doc_Detail
 
                 // Ако има данни за производство
                 $form->setField('centerId', 'input');
+                $form->setField('norm', 'input');
                 $Driver = cat_Products::getDriver($rec->resourceId);
                 $productionData = $Driver->getProductionStepData($rec->resourceId);
 
