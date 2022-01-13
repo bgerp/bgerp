@@ -31,6 +31,12 @@
             <td class="title-style" style='width:150px'>|Видимост|*</td>
             <td> [#state#]</td>
         </tr>
+        <!--ET_BEGIN originId-->
+        <tr>
+            <td class="title-style" style='width:150px'>|Клонирано от|*</td>
+            <td> [#originId#]</td>
+        </tr>
+        <!--ET_END originId-->
     </table>
 </div>
 <div class='scrolling-holder' style = 'padding:10px;background-color:lightgrey'>
