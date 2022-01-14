@@ -253,7 +253,7 @@ class cat_BomDetails extends doc_Detail
                 }
 
                 // Добавяне на дефолтите от производствените данни
-                if($form->cmd == 'refresh'){
+                if($form->cmd == 'refresh' || Request::get('resourceId', 'int')){
                     if(empty($rec->centerId) && empty($rec->norm) && empty($rec->storeIn) && empty($rec->storeInput) && empty($rec->fixedAssets) && empty($rec->employees)){
                         foreach (array('centerId', 'norm', 'storeIn', 'storeInput', 'fixedAssets', 'employees') as $productionFld){
                             $defaultValue = is_array($productionData[$productionFld]) ? keylist::fromArray($productionData[$productionFld]) : $productionData[$productionFld];
