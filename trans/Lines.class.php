@@ -404,7 +404,7 @@ class trans_Lines extends core_Master
             // Лайв изчисление на общите ЛЕ
             $transUnitsTotal = array();
             $dQuery = trans_LineDetails::getQuery();
-            $dQuery->where("#lineId = {$rec->id}");
+            $dQuery->where("#lineId = {$rec->id} AND #containerState != 'rejected' AND #status != 'removed'");
             while ($dRec = $dQuery->fetch()) {
                 $Document = doc_Containers::getDocument($dRec->containerId);
                 if (!array_key_exists($dRec->containerId, $mvc->cacheLineInfo)) {
