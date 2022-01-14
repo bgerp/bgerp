@@ -1254,6 +1254,7 @@ class planning_Jobs extends core_Master
 
                 $newTask = clone $taskRec;
                 plg_Clone::unsetFieldsNotToClone($Tasks, $newTask, $taskRec);
+
                 $newTask->plannedQuantity = $taskRec->plannedQuantity;
                 $newTask->_isClone = true;
                 $newTask->originId = $jobRec->containerId;
@@ -1261,6 +1262,9 @@ class planning_Jobs extends core_Master
                 unset($newTask->id);
                 unset($newTask->threadId);
                 unset($newTask->containerId);
+                unset($newTask->createdOn);
+                unset($newTask->createdBy);
+
                 if ($Tasks->save($newTask)) {
                     $Tasks->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
                 }
@@ -1305,7 +1309,7 @@ class planning_Jobs extends core_Master
         // Имали задачи за клониране
         if (isset($rec->oldJobId)) {
             $oldTasks = planning_Tasks::getTasksByJob($rec->oldJobId);
-            
+
             if (countR($oldTasks)) {
                 $options1 = array();
                 foreach ($oldTasks as $k1 => $oldTitle) {

@@ -180,7 +180,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,inputInTask,totalQuantity,plannedQuantity';
+    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,inputInTask,totalQuantity,plannedQuantity,timeStart,timeEnd,timeDuration';
     
     
     /**
