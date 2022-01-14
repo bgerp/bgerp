@@ -1256,7 +1256,7 @@ class cat_BomDetails extends doc_Detail
         $rec = $data->form->rec;
         if ($rec->type == 'stage' && !isset($rec->id)) {
 
-            $addStepUrl = planning_Steps::getListAddUrl();
+            $addStepUrl = cls::get('planning_Steps')->getListAddUrl();
             if(countR($addStepUrl)){
                 $addStepUrl['ret_url'] = getCurrentUrl();
                 $data->form->toolbar->addBtn('Нов етап', $addStepUrl, 'id=btnReq,order=9.99971', 'ef_icon = img/16/add.png,title=Създаване на артикул за нов етап в производството');

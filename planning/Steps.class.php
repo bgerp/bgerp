@@ -198,14 +198,15 @@ class planning_Steps extends core_Extender
         $rec->state = $managerRec->state;
         $mvc->save_($rec, 'state');
     }
-    
-    
+
+
     /**
      * Какво да е дефолтното урл, за добавяне от листовия изглед
-     * 
+     *
+     * @param int|null $userId
      * @return array $addUrl
      */
-    public static function getListAddUrl($userId = null)
+    public function getListAddUrl($userId = null)
     {
         $addUrl = array();
 
