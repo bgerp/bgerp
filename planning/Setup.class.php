@@ -189,6 +189,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',
+        'migrate::updatePlanningStages1',
     );
     
     
@@ -277,14 +278,30 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Миграция на производствените етапи
      */
-    public function updatePlanningStages()
+    public function updatePlanningStages1()
     {
-        $Stages = cls::get('planning_Steps');
-        $Stages->setupMvc();
+        $Steps = cls::get('planning_Steps');
+        $Steps->setupMvc();
 
-        $centerIdValue = planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID;
-        $centerIdColName = str::phpToMysqlName('centerId');
-        $query = "UPDATE {$Stages->dbTableName} SET {$centerIdColName} = {$centerIdValue} WHERE {$centerIdColName} IS NULL";
-        $Stages->db->query($query);
+        $update = array();
+        $query = $Steps->getQuery();
+        $query->FLD('folders', 'keylist(mvc=doc_Folders, select=title, allowEmpty,makeLinks)');
+        $query->where("#centerId IS NULL AND #folders IS NOT NULL");
+
+        while($rec = $query->fetch()){
+            $oldFolders = keylist::toArray($rec->folders);
+            if(countR($oldFolders)){
+                $firstFolderId = key($oldFolders);
+                $Cover = doc_Folders::getCover($firstFolderId);
+                if($Cover->isInstanceOf('planning_Centers')){
+                    $rec->centerId =  $Cover->that;
+                    $update[$rec->id] = $rec;
+                }
+            }
+        }
+
+        if(countR($update)){
+            $Steps->saveArray($update, 'id,centerId');
+        }
     }
 }
