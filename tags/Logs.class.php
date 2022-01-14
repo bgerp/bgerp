@@ -88,10 +88,7 @@ class tags_Logs extends core_Manager
 
         $this->setDbUnique('containerId, tagId, userId');
 
-        $this->setDbIndex('docClassId, docId, userId');
-        $this->setDbIndex('docClassId, docId');
-        $this->setDbIndex('containerId');
-        $this->setDbIndex('tagId');
+        $this->setDbIndex('docId, docClassId');
     }
 
 
@@ -133,8 +130,8 @@ class tags_Logs extends core_Manager
         }
 
         $query = self::getQuery();
-        $query->where(array("#docClassId = '[#1#]'", $docClassId));
         $query->where(array("#docId = '[#1#]'", $docId));
+        $query->where(array("#docClassId = '[#1#]'", $docClassId));
 
         self::restrictQueryByType($query, $userId);
 
@@ -238,8 +235,8 @@ class tags_Logs extends core_Manager
         $form->FNC('commonTags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове->Общи, class=keylist-wide twoCols, input=input, silent');
 
         $query = self::getQuery();
-        $query->where(array("#docClassId = '[#1#]'", $docClassId));
         $query->where(array("#docId = '[#1#]'", $docId));
+        $query->where(array("#docClassId = '[#1#]'", $docClassId));
 
         $form->_cQuery = clone $query;
 

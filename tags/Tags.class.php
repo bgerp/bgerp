@@ -97,6 +97,42 @@ class tags_Tags extends core_Manager
 
 
     /**
+     * Връща всички тагове
+     *
+     * @param null|string $typeOrder
+     * @param null|string $nameOrder
+     * @param null|string $state
+     *
+     * @return array
+     */
+    public static function getNamesArr($typeOrder = 'DESC', $nameOrder = 'ASC', $state = null)
+    {
+        static $namesArr = array();
+        if (empty($namesArr)) {
+            $query = self::getQuery();
+            $query->show('id, name');
+            if (isset($typeOrder)) {
+                $query->orderBy('type', $typeOrder);
+            }
+
+            if (isset($nameOrder)) {
+                $query->orderBy('name', $nameOrder);
+            }
+
+            if (isset($state)) {
+                $query->where(array("#state = '[#1#]'", $state));
+            }
+
+            while ($rec = $query->fetchAndCache()) {
+                $namesArr[$rec->id] = $rec->name;
+            }
+        }
+
+        return $namesArr;
+    }
+
+
+    /**
      * Връща името на тага и span с цвета
      *
      * @param integer $tagId
