@@ -583,6 +583,9 @@ class trans_LineDetails extends doc_Detail
         $count = 0;
 
         foreach ($data->recs as $rec){
+            $count++;
+            $rec->num = $count;
+
             if($rec->status == 'removed'){
                 $rec->classId = 'removed';
                 $removedRecs[$rec->id] = $rec;
@@ -590,8 +593,6 @@ class trans_LineDetails extends doc_Detail
                 continue;
             }
 
-            $count++;
-            $rec->num = $count;
             if(!in_array($rec->classId, $documentsWithPayments) || $rec->status == 'removed') continue;
 
             // Към всеки документ който може да има платежен се добавят на неговия ред тези създадени към него
