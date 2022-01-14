@@ -536,6 +536,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         if(isset($fields['-single'])){
             $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+
+            if(core_Packs::isInstalled('rack')){
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore == 'yes'){
+                    $showLink = !(core_Packs::isInstalled('batch') && batch_Defs::getBatchDef($rec->productId) );
+                    if($showLink){
+
+                        // Бутон за палетиране
+                        if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($rec->storeId, $rec->productId, $rec->packagingId, $rec->packQuantity, null, $rec->containerId)){
+                            $row->productId = $palletImgLink->getContent() . $row->productId;
+                        }
+                    }
+                }
+            }
+
         } else {
             $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
         }
