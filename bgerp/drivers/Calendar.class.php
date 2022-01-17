@@ -122,7 +122,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             $Calendar->prepareListRecs($resData->calendarState);
             if (is_array($resData->calendarState->recs)) {
                 $resData->cData = array();
-                foreach ($resData->calendarState->recs as $id => $rec) {
+                foreach ($resData->calendarState->recs as $rec) {
                     $time = dt::mysql2timestamp($rec->time);
                     $i = (int) date('j', $time);
                     
@@ -165,47 +165,34 @@ class bgerp_drivers_Calendar extends core_BaseClass
             }
             
             // Съдържание на списъка със събития
-            
-            // От вчера
-            $previousDayTms = mktime(0, 0, 0, date('m'), date('j') - 1, date('Y'));
-            $from = dt::timestamp2mysql($previousDayTms);
-            
-            // До вдругиден
-            $afterTwoDays = mktime(0, 0, -1, date('m'), date('j') + 3, date('Y'));
-            $to = dt::timestamp2mysql($afterTwoDays);
-            
-            if (Request::get($sInputField)) {
-                $from = dt::addDays(-30, $from);
-                $to = dt::addDays(360, $to);
+
+            $pArr = array();
+            $pArr['tPageVar'] = $this->getPageVar($dRec->originIdCalc);
+            $pArr['search'] = Request::get($sInputField);
+            $pArr['tPerPage'] = $dRec->fTasksPerPage ? $dRec->fTasksPerPage : 5;
+            $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
+            $pArr['hideClosedTasks'] = isset($dRec->hideClosedTasks) ? $dRec->hideClosedTasks : 86400;
+            $pArr['taskPriority'] = $dRec->taskPriority;
+            $pArr['remPriority'] = $dRec->remPriority;
+
+            $pArr['_userId'] = $userId;
+            $today = dt::now(false);
+            $pArr['_todayF'] = $today . ' 00:00:00';
+
+            // Намираме работните дни, така че да останат 3 работни дни винаги
+            $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), $userId, 1);
+            $endWorkingDayCnt = (dt::daysBetween($nWorkDay, $today)) ? 3 : 2;
+            $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, $userId, $endWorkingDayCnt);
+            $pArr['_endWorkingDay'] .= ' 23:59:59';
+            $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
+
+            $dDif = dt::daysBetween($pArr['_endWorkingDay'], $today);
+            if ($dDif > 4) {
+                $pArr['_endWorkingDay'] = dt::addDays(4, $today . ' 23:59:59');
             }
+
+            $resData->EventsData = $this->prepareCalendarEvents($userId, $pArr);
         }
-
-        $pArr = array();
-        $pArr['tPageVar'] = $this->getPageVar($dRec->originIdCalc);
-        $pArr['search'] = Request::get($sInputField);
-        $pArr['tPerPage'] = $dRec->fTasksPerPage ? $dRec->fTasksPerPage : 5;
-        $pArr['fTasksDays'] = $dRec->fTasksDays ? $dRec->fTasksDays : core_DateTime::SECONDS_IN_MONTH;
-        $pArr['hideClosedTasks'] = isset($dRec->hideClosedTasks) ? $dRec->hideClosedTasks : 86400;
-        $pArr['taskPriority'] = $dRec->taskPriority;
-        $pArr['remPriority'] = $dRec->remPriority;
-
-        $pArr['_userId'] = $userId;
-        $today = dt::now(false);
-        $pArr['_todayF'] = $today . ' 00:00:00';
-
-        // Намираме работните дни, така че да останат 3 работни дни винаги
-        $nWorkDay = cal_Calendar::nextWorkingDay(dt::addDays(-1, $today, false), $userId, 1);
-        $endWorkingDayCnt = (dt::daysBetween($nWorkDay, $today)) ? 3 : 2;
-        $pArr['_endWorkingDay'] = cal_Calendar::nextWorkingDay($today, $userId, $endWorkingDayCnt);
-        $pArr['_endWorkingDay'] .= ' 23:59:59';
-        $pArr['fTasksDays'] = dt::addSecs($pArr['fTasksDays'], $pArr['_endWorkingDay']);
-
-        $dDif = dt::daysBetween($pArr['_endWorkingDay'], $today);
-        if ($dDif > 4) {
-            $pArr['_endWorkingDay'] = dt::addDays(4, $today . ' 23:59:59');
-        }
-
-        $resData->EventsData = $this->prepareCalendarEvents($userId, $pArr);
 
         return $resData;
     }
@@ -873,7 +860,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $month = Request::get('cal_month', 'int');
         $month = $month ? $month : date('m');
         $cArr[] = $month;
-        
+
         $year = Request::get('cal_year', 'int');
         $year = $year ? $year : date('Y');
         $cArr[] = $year;
