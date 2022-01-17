@@ -462,7 +462,7 @@ class trans_Lines extends core_Master
         $rec = $data->rec;
         $row = $data->row;
 
-        $amount = $amountReturned = $weight = $volume = 0;
+        $amount = $amountExpected = $amountReturned = $weight = $volume = 0;
         $sumWeight = $sumVolume = true;
 
         $dQuery = trans_LineDetails::getQuery();
@@ -473,11 +473,16 @@ class trans_Lines extends core_Master
             $transInfo = $Document->getTransportLineInfo($rec->id);
             $isStoreDocument = $Document->haveInterface('store_iface_DocumentIntf');
 
-            if (!$isStoreDocument && $dRec->containerState == 'active') {
+            if (!$isStoreDocument) {
                 if ($transInfo['baseAmount'] < 0) {
-                    $amountReturned += $transInfo['baseAmount'];
+                    if($dRec->containerState == 'active'){
+                        $amountReturned += $transInfo['baseAmount'];
+                    }
                 } else {
-                    $amount += $transInfo['baseAmount'];
+                    if($dRec->containerState == 'active'){
+                        $amount += $transInfo['baseAmount'];
+                    }
+                    $amountExpected += $transInfo['baseAmount'];
                 }
             }
 
@@ -505,6 +510,9 @@ class trans_Lines extends core_Master
         // Показване на сумарната информация
         $row->weight = (!empty($weight)) ? cls::get('cat_type_Weight')->toVerbal($weight) : "<span class='quiet'>N/A</span>";
         $row->volume = (!empty($volume)) ? cls::get('cat_type_Volume')->toVerbal($volume) : "<span class='quiet'>N/A</span>";
+
+        $row->totalAmountExpected = core_Type::getByName('double(decimals=2)')->toVerbal($amountExpected);
+        $row->totalAmountExpected = ht::styleNumber($row->totalAmountExpected, $amount);
 
         $row->totalAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
         $row->totalAmount = ht::styleNumber($row->totalAmount, $amount);
