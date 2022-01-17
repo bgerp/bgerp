@@ -229,7 +229,7 @@ class sales_Sales extends deals_DealMaster
         'bankAccountId' => 'lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
         'oneTimeDelivery' => 'clientCondition'
