@@ -205,11 +205,12 @@ class trans_LineDetails extends doc_Detail
                 $displayContainerId .= " / {$createdBy}";
             }
 
-            $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
-
             if (Mode::is('screenMode', 'narrow')) {
                 $displayContainerId .= "<br>{$createdBy}";
             }
+            
+            $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
+            
         }
 
         if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {
