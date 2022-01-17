@@ -1139,6 +1139,11 @@ abstract class deals_InvoiceMaster extends core_Master
                         if($rec->state == 'draft'){
                             $row->vatReason = ht::createHint($row->vatReason, 'Ще се запише при активиране');
                         }
+                    } else {
+                        $bgId = drdata_Countries::getIdByName('Bulgaria');
+                        if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
+                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС№ трябва да е посочено основание', 'error');
+                        }
                     }
                 }
             }
@@ -1777,6 +1782,25 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
+    }
 
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+
+        if(!in_array($rec->vatRate, array('yes', 'separate'))){
+            if(empty($rec->vatReason)){
+                $bgId = drdata_Countries::getIdByName('Bulgaria');
+                if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
+
+                    core_Statuses::newStatus('При неначисляване на ДДС на контрагент от "България" с ДДС № трябва да е посочено основание', 'error');
+                    return false;
+                }
+            }
+        }
     }
 }

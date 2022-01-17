@@ -362,12 +362,6 @@ class sales_Invoices extends deals_InvoiceMaster
                 $form->setDefault('accountId', $ownAcc);
             }
         }
-        
-        if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
-            if ($rec->contragentCountryId == drdata_Countries::getIdByName('Bulgaria')) {
-                $form->setField('vatReason', 'mandatory');
-            }
-        }
 
         $tLang = doc_TplManager::fetchField($rec->template, 'lang');
         core_Lg::push($tLang);

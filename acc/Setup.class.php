@@ -60,7 +60,7 @@ defIfNot('ACC_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ/вн
 /**
  * Основание за неначисляване на ДДС ако "Моята фирма" не е регистрирана по ДДС
  */
-defIfNot('ACC_VAT_REASON_MY_COMPANY_NO_VAT', 'чл. 113, ал. 9 от ЗДДС');
+defIfNot('ACC_VAT_REASON_MY_COMPANY_NO_VAT', 'чл.113, ал. 9 от ЗДДС');
 
 
 /**
