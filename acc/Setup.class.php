@@ -54,7 +54,13 @@ defIfNot('ACC_VAT_REASON_IN_EU', 'чл.53 от ЗДДС – ВОД');
 /**
  * Основание за неначисляване на ДДС за контрагент извън ЕС
  */
-defIfNot('ACC_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ извън ЕС');
+defIfNot('ACC_VAT_REASON_OUTSIDE_EU', 'чл.28 от ЗДДС – износ/внос извън ЕС');
+
+
+/**
+ * Основание за неначисляване на ДДС ако "Моята фирма" не е регистрирана по ДДС
+ */
+defIfNot('ACC_VAT_REASON_MY_COMPANY_NO_VAT', 'чл. 113, ал. 9 от ЗДДС');
 
 
 /**
@@ -78,7 +84,7 @@ defIfNot('ACC_DATE_FOR_INVOICE_DATE', '10');
 /**
  * Какво количество автоматично да се попълва в корекцията от закръгляния
  */
-defIfNot('ACC_BALANCE_REPAIR_QUANITITY_BELLOW', '0,00999');
+defIfNot('ACC_BALANCE_REPAIR_QUANTITY_BELLOW', '0,00999');
 
 
 /**
@@ -211,12 +217,17 @@ class acc_Setup extends core_ProtoSetup
         ),
         'ACC_VAT_REASON_OUTSIDE_EU' => array(
             'varchar',
-            'caption=Основание за неначисляване на ДДС за контрагент->Извън ЕС'
+            'caption=Основание за неначисляване на ДДС ако "Моята фирма" е с ДДС номер->Контрагент (Извън ЕС)'
         ),
         'ACC_VAT_REASON_IN_EU' => array(
             'varchar',
-            'caption=Основание за неначисляване на ДДС за контрагент->От ЕС'
+            'caption=Основание за неначисляване на ДДС ако "Моята фирма" е с ДДС номер->Контрагент (ЕС)'
         ),
+        'ACC_VAT_REASON_MY_COMPANY_NO_VAT' => array(
+            'varchar',
+            'caption=Основание за неначисляване на ДДС ако моята фирма е без ДДС номер->Избор'
+        ),
+
         'ACC_COST_OBJECT_DOCUMENTS' => array(
             'keylist(mvc=core_Classes,select=name)',
             'caption=Кои документи могат да бъдат разходни обекти->Документи,optionsFunc=acc_Setup::getDocumentOptions'
@@ -245,7 +256,7 @@ class acc_Setup extends core_ProtoSetup
             'acc_type_accounts',
             'caption=Корекция на грешки от закръгляне->Сметки'
         ),
-        'ACC_BALANCE_REPAIR_QUANITITY_BELLOW' => array(
+        'ACC_BALANCE_REPAIR_QUANTITY_BELLOW' => array(
             'double',
             'caption=Корекция на грешки от закръгляне->Количество под'
         ),
