@@ -364,7 +364,7 @@ class sales_Invoices extends deals_InvoiceMaster
         }
         
         if ($rec->vatRate != 'yes' && $rec->vatRate != 'separate') {
-            if ($rec->contragentCountryId == drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')) {
+            if ($rec->contragentCountryId == drdata_Countries::getIdByName('Bulgaria')) {
                 $form->setField('vatReason', 'mandatory');
             }
         }

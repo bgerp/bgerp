@@ -77,7 +77,7 @@ abstract class deals_InvoiceMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'number,date,dueDate,vatDate';
+    public $fieldsNotToClone = 'number,date,dueDate,vatDate,vatReason';
     
     
     /**
@@ -788,7 +788,8 @@ abstract class deals_InvoiceMaster extends core_Master
         
         $noReason1 = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
         $noReason2 = acc_Setup::get('VAT_REASON_IN_EU');
-        $suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2);
+        $noReason3 = acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
+        $suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2, $noReason3 => $noReason3);
         $form->setSuggestions('vatReason', $suggestions);
 
         if(empty($rec->id) && $rec->type == 'invoice'){
@@ -1127,11 +1128,18 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         if ($fields['-single']) {
-            if (empty($rec->vatReason) && !in_array($rec->vatRate, array('yes', 'separate'))) {
-                if (!drdata_Countries::isEu($rec->contragentCountryId)) {
-                    $row->vatReason = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
-                } elseif (!empty($rec->contragentVatNo) && $rec->contragentCountryId != drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id')) {
-                    $row->vatReason = acc_Setup::get('VAT_REASON_IN_EU');
+            if(!in_array($rec->vatRate, array('yes', 'separate'))){
+                if(empty($rec->vatReason)){
+                    $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);
+                    if(!empty($vatReason)){
+                        $row->vatReason = $vatReason;
+                        if(!Mode::isReadOnly()){
+                            $row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
+                        }
+                        if($rec->state == 'draft'){
+                            $row->vatReason = ht::createHint($row->vatReason, 'Ще се запише при активиране');
+                        }
+                    }
                 }
             }
             
@@ -1719,5 +1727,56 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function canAddDocumentToOriginAsLink_($rec)
     {
         return $rec->type == 'dc_note';
+    }
+
+
+    /**
+     * Какво да е основанието за неначисляване на ДДС
+     *
+     * @param int $contragentCountryId - ид на държава на контрагента
+     * @param string $contragentVatId  - ДДС номер на контрагента (ако има)
+     * @param $ownCompanyId            - ид на "Моята фирма"
+     * @return string|null
+     */
+    public function getNoVatReason($contragentCountryId, $contragentVatId, $ownCompanyId = null)
+    {
+        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) {
+
+            return acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
+        }
+
+        $bgCountryId = drdata_Countries::getIdByName('Bulgaria');
+        if($contragentCountryId != $bgCountryId){
+            $reason = drdata_Countries::isEu($contragentCountryId) ? 'VAT_REASON_IN_EU' : 'VAT_REASON_OUTSIDE_EU';
+
+            return acc_Setup::get($reason);
+        }
+
+        if(empty($contragentVatId)){
+
+            return acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
+        }
+
+        return null;
+    }
+
+
+    /**
+     * Функция, която се извиква след активирането на документа
+     */
+    public static function on_AfterActivation($mvc, &$rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+
+        if(!in_array($rec->vatRate, array('yes', 'separate'))) {
+            if (empty($rec->vatReason)) {
+                $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);
+                if(!empty($vatReason)){
+                    $rec->vatReason = $vatReason;
+                    $mvc->save_($rec, 'vatReason');
+                }
+            }
+        }
+
     }
 }
