@@ -206,7 +206,7 @@ class trans_LineDetails extends doc_Detail
             }
 
             if (Mode::is('screenMode', 'narrow')) {
-                $displayContainerId .= "<br>{$createdBy}";
+                $displayContainerId .= "<br>   {$createdBy}";
             }
             
             $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
