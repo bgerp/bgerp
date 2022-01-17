@@ -202,13 +202,13 @@ class trans_LineDetails extends doc_Detail
             $createdBy = crm_Profiles::createLink($Document->fetchField('createdBy'))->getContent();
             $displayContainerId = $row->containerId;
             if (!Mode::is('screenMode', 'narrow')) {
-                $displayContainerId .= "/{$createdBy}";
+                $displayContainerId .= " / {$createdBy}";
             }
 
             $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
 
             if (Mode::is('screenMode', 'narrow')) {
-                $row->containerId .= "<br>{$createdBy}";
+                $displayContainerId .= "<br>{$createdBy}";
             }
         }
 
