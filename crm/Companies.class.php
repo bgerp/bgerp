@@ -1542,8 +1542,8 @@ class crm_Companies extends core_Master
         
         return $html;
     }
-    
-    
+
+
     /**
      * Дали на фирмата се начислява ДДС:
      * Не начисляваме ако:
@@ -1552,13 +1552,14 @@ class crm_Companies extends core_Master
      * Ако няма държава начисляваме ДДС
      *
      * @param int $id - id' то на записа
-     *
+     * @param int|null $ownCompanyId - ид на "Моята фирма"
      * @return bool TRUE/FALSE
      */
-    public static function shouldChargeVat($id)
+    public static function shouldChargeVat($id, $ownCompanyId = null)
     {
         $rec = static::fetch($id);
-        
+        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return false;
+
         // Ако не е посочена държава, вингаи начисляваме ДДС
         if (!$rec->country) {
             
@@ -2665,5 +2666,24 @@ class crm_Companies extends core_Master
        
         // Връщане на данните, ако са извлечени
         return $data;
+    }
+
+
+    /**
+     * Дали "Моята Фирма" е регистрирана по ДДС
+     *
+     * @param int|null $ownCompanyId
+     * @return bool
+     */
+    public static function isOwnCompanyVatRegistered($ownCompanyId = null)
+    {
+        if(empty($ownCompanyId)){
+            $myCompany = crm_Companies::fetchOurCompany();
+            $myCompanyVatId = $myCompany->vatId;
+        } else {
+            $myCompanyVatId = crm_Companies::fetchField($ownCompanyId, 'vatId');
+        }
+
+        return !empty($myCompanyVatId);
     }
 }

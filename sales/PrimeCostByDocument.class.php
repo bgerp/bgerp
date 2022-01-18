@@ -326,11 +326,13 @@ class sales_PrimeCostByDocument extends core_Manager
             $masters[$pRec->containerId] = array(doc_Containers::getDocument($pRec->containerId), $pRec->state, null);
             $masters[$pRec->containerId]['total'] = $pRec->total;
             $masters[$pRec->containerId]['chargeVat'] = $pRec->chargeVat;
-            
-            foreach ($pRec->details['receiptDetails'] as $pdRec){
-                if($pdRec->action != 'sale') continue;
-                $key = "{$pRec->id}000{$pdRec->value}";
-                $posIds[$key] = $key;
+
+            if(is_array($pRec->details['receiptDetails'])){
+                foreach ($pRec->details['receiptDetails'] as $pdRec){
+                    if($pdRec->action != 'sale') continue;
+                    $key = "{$pRec->id}000{$pdRec->value}";
+                    $posIds[$key] = $key;
+                }
             }
         }
         

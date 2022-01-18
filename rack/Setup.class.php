@@ -12,6 +12,7 @@ defIfNot('RACK_DELETE_OLD_MOVEMENTS', 5184000);
  */
 defIfNot('RACK_DELETE_ARCHIVED_MOVEMENTS', dt::SECONDS_IN_MONTH * 12);
 
+
 /**
  * Да се допуска ли колизия на палети
  */
@@ -23,25 +24,30 @@ defIfNot('RACK_DIFF_PALLETS_IN_SAME_POS', 'no');
  */
 defIfNot('RACK_DEFAULT_ZONE_COLORS', '#eeeeee');
 
+
 /**
  * Коя стратегия за движенията да се използва
  */
 defIfNot('RACK_PICKUP_STRATEGY', 'ver1');
+
 
 /**
  * Средни времена по операции->Вземане на палет
  */
 defIfNot('RACK_TIME_GET', 20);
 
+
 /**
  * Средни времена по операции->Оставяне в зона
  */
 defIfNot('RACK_TIME_ZONE', 5);
 
+
 /**
  * Средни времена по операции->Връщане
  */
 defIfNot('RACK_TIME_RETURN', 10);
+
 
 /**
  * Средни времена по операции->Броене
@@ -49,6 +55,10 @@ defIfNot('RACK_TIME_RETURN', 10);
 defIfNot('RACK_TIME_COUNT', 4);
 
 
+/**
+ * Приключване на движения в терминала
+ */
+defIfNot('RACK_CLOSE_COMBINED_MOVEMENTS_AT_ONCE', 'no');
 
 
 /**
@@ -202,6 +212,7 @@ class rack_Setup extends core_ProtoSetup
         'RACK_DELETE_ARCHIVED_MOVEMENTS' => array('time','caption=Изтриване на архивирани движения->Период'),
         'RACK_DIFF_PALLETS_IN_SAME_POS' => array('enum(no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване'),
         'RACK_DEFAULT_ZONE_COLORS' => array('color_Type','caption=Козметични настройки на зоните->Цвят'),
+        'RACK_CLOSE_COMBINED_MOVEMENTS_AT_ONCE' => array('enum(yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване'),
         'RACK_PICKUP_STRATEGY' => array('enum(ver1,ver2)', 'caption=Стратегия за генериране на движенията->Избор'),
         'RACK_TIME_GET' => array('int', 'caption=Средни времена по операции->Вземане'),
         'RACK_TIME_ZONE' => array('int', 'caption=Средни времена по операции->Оставяне'),

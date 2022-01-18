@@ -260,7 +260,7 @@ class acc_BalanceRepairs extends core_Master
         if($useDefaults != 'yes'){
             $defaultAccounts = keylist::toArray(acc_Setup::get('BALANCE_REPAIR_ACCOUNTS'));
             $defaultAmount = acc_Setup::get('BALANCE_REPAIR_AMOUNT_BELLOW');
-            $defaultQuantity = acc_Setup::get('BALANCE_REPAIR_QUANITITY_BELLOW');
+            $defaultQuantity = acc_Setup::get('BALANCE_REPAIR_QUANTITY_BELLOW');
             
             foreach ($defaultAccounts as $accountId){
                 $dRec = (object)array('repairId' => $rec->id, 'accountId' => $accountId, 'blQuantity' => $defaultQuantity, 'blAmount' => $defaultAmount);

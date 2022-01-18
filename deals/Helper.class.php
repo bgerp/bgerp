@@ -1921,17 +1921,20 @@ abstract class deals_Helper
             $payments['bank'] = 'bank';
         }
     }
-    
-    
+
+
     /**
      * Дефолтния режим на ДДС за папката
      *
      * @param int $folderId
-     *
+     * @param int|null $ownCompanyId
      * @return string
      */
-    public static function getDefaultChargeVat($folderId)
+    public static function getDefaultChargeVat($folderId, $ownCompanyId = null)
     {
+        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return 'no';
+
+        // Ако не може да се намери се търси от папката
         $coverId = doc_Folders::fetchCoverId($folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
         if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {

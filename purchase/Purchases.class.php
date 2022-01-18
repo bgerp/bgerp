@@ -190,7 +190,7 @@ class purchase_Purchases extends deals_DealMaster
         'dealerId' => 'lastDocUser',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
         'oneTimeDelivery' => 'clientCondition'

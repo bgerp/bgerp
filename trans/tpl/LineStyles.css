@@ -73,3 +73,9 @@ td .documentHtml {
   td .documentHtml tr {
     background-color: #f4f5cf; }
 
+tr .groupremoved {
+  display: none; }
+
+.printing .group-by-field-row {
+  color: black !important; }
+

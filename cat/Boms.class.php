@@ -1332,7 +1332,7 @@ class cat_Boms extends core_Master
         // Изчисляваме количеството ако можем
         $rowParams = self::getProductParams($rec->resourceId);
         self::pushParams($params, $rowParams);
-        $doTouchRec = ($rec->state == 'rejected') ? false : true;
+        $doTouchRec = !(($rec->state == 'rejected'));
         
         $scope = self::getScope($params);
         $rQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $scope);
@@ -1410,7 +1410,11 @@ class cat_Boms extends core_Master
         } else {
             $price = null;
             if (isset($rec->coefficient)) {
-                $rQuantity /= $rec->coefficient;
+                if ($rQuantity != cat_BomDetails::CALC_ERROR) {
+                    $rQuantity /= $rec->coefficient;
+                } else {
+                    $rQuantity = 0;
+                }
             }
             
             // Ако е етап, новите параметри са неговите данни + количестото му по тиража
@@ -1614,7 +1618,7 @@ class cat_Boms extends core_Master
     public function getIcon($id)
     {
         $rec = $this->fetch($id);
-        $icon = ($rec->type == 'sales') ? $this->singleIcon : (($rec->type == 'instant') ? $this->singleProductionBomIcon : $this->singleProductionBomIcon);
+        $icon = ($rec->type == 'sales') ? $this->singleIcon : $this->singleProductionBomIcon;
         
         return $icon;
     }
@@ -1705,13 +1709,18 @@ class cat_Boms extends core_Master
             }
             
             $quantityP = ($quantityP / $rec->quantity) * $quantity;
-            
-            // Подготвяме задачата за етапа, с него за производим
+
+            // Подготвяне задачата за етапа, с него за производим
             $arr = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
                 'plannedQuantity' => $quantityP,
                 'productId' => $dRec->resourceId,
                 'packagingId' => $dRec->packagingId,
                 'quantityInPack' => $dRec->quantityInPack,
+                'storeId' => $dRec->storeIn,
+                'centerId' => $dRec->centerId,
+                'fixedAssets' => $dRec->fixedAssets,
+                'employees' => $dRec->employees,
+                'indTime' => $dRec->norm,
                 'products' => array('input' => array(), 'waste' => array()));
             
             // Добавяме директните наследници на етапа като материали за влагане/отпадък

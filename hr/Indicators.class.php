@@ -132,13 +132,17 @@ class hr_Indicators extends core_Manager
         
         $form = cls::get('core_Form');
         $form->FLD('timeline', 'datetime', 'caption=От кога');
+        $form->FLD('sources', 'classes(interface=hr_IndicatorsSourceIntf,select=title)', 'caption=Източници');
+
         $form->input();
         
         if ($form->isSubmitted()) {
             $rec = $form->rec;
             
             $this->logWrite("Преизчисляване на индикаторите");
-            self::recalc($rec->timeline);
+            $sources = !empty($rec->sources) ? keylist::toArray($rec->sources) : null;
+            self::recalc($rec->timeline, $sources);
+
             followRetUrl(null, 'Индикаторите са преизчислени');
         }
         
@@ -166,13 +170,13 @@ class hr_Indicators extends core_Manager
      * Рекалкулиране на индикаторите от определена дата
      *
      * @param datetime $timeline
-     *
+     * @param array|null $sources
      * @return void
      */
-    private static function recalc($timeline)
+    private static function recalc($timeline, $sources = null)
     {
         $persons = array();
-        $periods = self::saveIndicators($timeline, $persons);
+        $periods = self::saveIndicators($timeline, $persons, $sources);
         
         // Форсиране на лицата в група 'Служители'
         if (is_array($persons)) {
@@ -195,10 +199,11 @@ class hr_Indicators extends core_Manager
      *
      * @param datetime  $timeline
      * @param array $persons  - лицата
+     * @param array|int $sources - източници
      *
      * @return array $periods - засегнатите периоди
      */
-    public static function saveIndicators($timeline, &$persons = array())
+    public static function saveIndicators($timeline, &$persons = array(), $sources = null)
     {
         // Записите за кои документи, трябва да почистим (id-та в ключовете),
         // оставяйки определени записи (id-та в масива - стойност)
@@ -208,18 +213,22 @@ class hr_Indicators extends core_Manager
         $periods = array();
         
         // Намираме всички класове съдържащи интерфейса
-        $docArr = core_Classes::getOptionsByInterface('hr_IndicatorsSourceIntf');
-        
-        // Ако нямаме източници - нищо не правим
-        if (!is_array($docArr) || !countR($docArr)) {
-            
-            return $periods;
+        if(is_array($sources) && countR($sources)){
+            $docArr = $sources;
+        } else {
+            $docArr = core_Classes::getOptionsByInterface('hr_IndicatorsSourceIntf');
+
+            // Ако нямаме източници - нищо не правим
+            if (!is_array($docArr) || !countR($docArr)) {
+
+                return $periods;
+            }
         }
         
         // Зареждаме всеки един такъв клас
         foreach ($docArr as $class) {
             $sMvc = cls::get($class);
-            
+
             try{
                 // Взимаме връщания масив от интерфейсния метод
                 $data = $sMvc->getIndicatorValues($timeline);
@@ -230,7 +239,6 @@ class hr_Indicators extends core_Manager
                 
                 continue;
             }
-            
             
             if (is_array($data) && countR($data)) {
                 
@@ -293,7 +301,7 @@ class hr_Indicators extends core_Manager
             }
             $query->delete();
         }
-        
+
         return $periods;
     }
     

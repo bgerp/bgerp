@@ -481,6 +481,17 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         }
+
+        // Ако документа е в нишка на затворена продажба и се прави опит за Заявка или възстановяване на заявка да не може
+        if((($action == 'pending' && $rec->state == 'draft') || ($action == 'restore' && $rec->brState == 'pending')) && isset($rec)){
+            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDocument->isInstanceOf('deals_DealMaster')){
+                    if($firstDocument->fetchField('state') == 'closed'){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
     }
     
     

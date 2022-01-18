@@ -1224,6 +1224,7 @@ class planning_Jobs extends core_Master
         $form->FLD('select', 'varchar', 'caption=Избор,mandatory');
         
         $options = $this->getTaskOptions($jobRec);
+
         if(countR($options)){
             $form->setOptions('select', $options);
             $form->setDefault('select', 'new');
@@ -1235,11 +1236,14 @@ class planning_Jobs extends core_Master
         if ($form->isSubmitted()) {
             $action = $form->rec->select;
             $actionArr = explode('|', $action);
+
             if ($actionArr[0] == 'sys') {
                 
                 // Създаване на шаблонна операция
                 $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
                 $draft = $defaultTasks[$actionArr[1]];
+                $folderId = isset($draft->centerId) ? planning_Centers::fetchField($draft->centerId, 'folderId') : $folderId;
+
                 $url = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $draft->title, 'ret_url' => true, 'systemId' => $actionArr[1]);
                 redirect($url);
             } elseif ($actionArr[0] == 'c') {
@@ -1250,6 +1254,7 @@ class planning_Jobs extends core_Master
 
                 $newTask = clone $taskRec;
                 plg_Clone::unsetFieldsNotToClone($Tasks, $newTask, $taskRec);
+
                 $newTask->plannedQuantity = $taskRec->plannedQuantity;
                 $newTask->_isClone = true;
                 $newTask->originId = $jobRec->containerId;
@@ -1257,6 +1262,9 @@ class planning_Jobs extends core_Master
                 unset($newTask->id);
                 unset($newTask->threadId);
                 unset($newTask->containerId);
+                unset($newTask->createdOn);
+                unset($newTask->createdBy);
+
                 if ($Tasks->save($newTask)) {
                     $Tasks->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
                 }
@@ -1301,7 +1309,7 @@ class planning_Jobs extends core_Master
         // Имали задачи за клониране
         if (isset($rec->oldJobId)) {
             $oldTasks = planning_Tasks::getTasksByJob($rec->oldJobId);
-            
+
             if (countR($oldTasks)) {
                 $options1 = array();
                 foreach ($oldTasks as $k1 => $oldTitle) {

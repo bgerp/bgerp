@@ -124,10 +124,10 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     {
         return $this->class->renderProductDescription($data);
     }
-    
-    
+
+
     /**
-     * Връща информация за какви дефолт задачи за производство могат да се създават към заданието на артикула
+     * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
      * @param mixed $jobRec   - ид или запис на задание
      * @param float $quantity - к-во за произвеждане
@@ -146,13 +146,14 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      *               o employees                      - списък (кейлист) от служители
      *               o storeId                        - склад
      *               o indTime                        - норма
+     *               o centerId                       - център на производство
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
      *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
      *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
      *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
-     *               
+     *
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал
      *                  o packagingId    - ид на опаковка
@@ -639,5 +640,23 @@ class cat_ProductDriverIntf extends embed_DriverIntf
     public function getQuotationEmailText($productId, $quotationId, $lang = null)
     {
         return $this->class->getQuotationEmailText($productId, $quotationId, $lang);
+    }
+
+
+    /**
+     * Връща информация за данните от производствения етап
+     *
+     * @param int $productId
+     * @return array
+     *          int|null   ['centerId']    - ид на център на дейност
+     *          int|null   ['storeIn']     - ид на склад за засклаждане (ако е складируем)
+     *          int|null   ['storeInput']  - ид на склад за влагане (ако е складируем)
+     *          array|null ['fixedAssets'] - масив от ид-та на оборудвания (@see planning_AssetResources)
+     *          array|null ['employees']   - масив от ид-та на оператори (@see planning_Hr)
+     *          int|null   ['norm']        - норма за производство
+     */
+    public function getProductionStepData($productId)
+    {
+        return $this->class->getProductionStepData($productId);
     }
 }

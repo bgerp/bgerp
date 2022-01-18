@@ -353,7 +353,7 @@ class cat_Products extends embed_Manager
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
         $this->FLD('code', 'varchar(32, ci)', 'caption=Код,remember=info,width=15em');
-        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field|transliterate');
+        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field');
         $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
@@ -1479,7 +1479,7 @@ class cat_Products extends embed_Manager
                 $bQuery = cat_Boms::getQuery();
                 $bQuery->where("#state = 'active'");
                 $bQuery->groupBy('productId');
-                $where = "#innerClass = " . planning_interface_StageDriver::getClassId();
+                $where = "#innerClass = " . planning_interface_StepProductDriver::getClassId();
                 $in = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
                 if(countR($in)){
                     $in = implode(',', $in);
@@ -2180,7 +2180,7 @@ class cat_Products extends embed_Manager
         $name = $rec->name;
         
         $lg = core_Lg::getCurrent();
-        if ($lg == 'en' && !empty($rec->nameEn)) {
+        if ($lg != 'bg' && !empty($rec->nameEn)) {
             $name = $rec->nameEn;
         }
         
@@ -2198,8 +2198,13 @@ class cat_Products extends embed_Manager
             if (!is_object($rec) && type_Int::isInt($rec)) {
                 $rec = $mvc->fetchRec($rec);
             }
-            
+
+            $originalName = $rec->name;
             $part = self::getDisplayName($rec);
+
+            if ($originalName == $part) {
+                $part = core_Lg::transliterate($part);
+            }
             
             return false;
         } elseif ($field == 'code') {
@@ -3205,8 +3210,8 @@ class cat_Products extends embed_Manager
     {
         $mvc->createdProducts[] = $rec;
     }
-    
-    
+
+
     /**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
@@ -3227,6 +3232,7 @@ class cat_Products extends embed_Manager
      *               o employees                      - списък (кейлист) от служители
      *               o storeId                        - склад
      *               o indTime                        - норма
+     *               o centerId                       - център на производство
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
@@ -3721,6 +3727,8 @@ class cat_Products extends embed_Manager
             while ($dRec = $dQuery->fetch()) {
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
+                    $recs[$dRec->id]->id = $dRec->id;
+                    $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
                 }
 
                 setIfNot($dInst->productFld, 'productId');
@@ -3905,7 +3913,6 @@ class cat_Products extends embed_Manager
             if ($masterMvc instanceof deals_InvoiceMaster) {
                 if (isset($allFFieldsArr['quantity']) && $mRec->type == 'dc_note') {
                     $Detail::modifyDcDetails($recs, $mRec, $Detail);
-
                     foreach ($recs as $id => &$mdRec) {
                         if ($allFFieldsArr['packPrice']) {
                             if ($mdRec->packPrice && $mdRec->discount) {
@@ -3925,8 +3932,45 @@ class cat_Products extends embed_Manager
             }
         }
 
+        $rate = isset($mRec->currencyRate) ? $mRec->currencyRate : $mRec->rate;
+        $chargeVat = isset($mRec->chargeVat) ? $mRec->chargeVat : $mRec->vatRate;
+
+        $currencyId = is_numeric($mRec->currencyId) ? currency_Currencies::getCodeById($mRec->currencyId) : $mRec->currencyId;
+        $addMiscPriceFields = false;
+
+            foreach ($recs as $rec){
+                unset($rec->id);
+                unset($rec->clonedFromDetailId);
+                if(isset($rec->packPrice) && isset($rate)) {
+                    $addMiscPriceFields = true;
+                    if(empty($rec->batch) && core_Packs::isInstalled('batch')) {
+                        $rec->batch = null;
+                    }
+                    $rec->chargeVat = ($chargeVat == 'yes') ? tr('с ДДС') : tr('без ДДС');
+                    $rec->currency = $currencyId;
+                    if(!empty($rec->discount)){
+                        $rec->discount = core_Type::getByName('percent')->toVerbal($rec->discount);
+                    }
+
+                    if($chargeVat == 'yes'){
+                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($mRec->{$masterMvc->valiorFld}), $rate, $chargeVat);
+                        $rec->chargeVat = tr('с ДДС');
+                    } else {
+                        $rec->chargeVat = tr('без ДДС');
+                    }
+                }
+            }
+
+        if($addMiscPriceFields){
+            $csvFields->FLD('chargeVat', 'varchar', 'caption=ДДС');
+            $csvFields->FLD('currency', 'varchar', 'caption=Валута');
+            if (core_Packs::isInstalled('batch') && !$csvFields->fields['batch']) {
+                $csvFields->FLD('batch', 'text', 'caption=Партида');
+            }
+        }
+
         // Подреждане за запазване на предишна логика
-        $orderMap = array('code', 'packQuantity', 'packagingId', 'packPrice');
+        $orderMap = array('code', 'packQuantity', 'packagingId', 'packPrice', 'batch');
         $fArr = $csvFields->fields;
         $newFArr = array();
         foreach ($fArr as $fName => $fRec) {

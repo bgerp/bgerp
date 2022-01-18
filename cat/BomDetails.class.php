@@ -143,15 +143,23 @@ class cat_BomDetails extends doc_Detail
      */
     public function description()
     {
-        $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Етап,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,forceOpen)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description');
+        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax,forceOpen)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description|storeInput|storeIn|centerId|fixedAssets|employees|norm');
+        $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Подетап на,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
         $this->FLD('position', 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
         $this->FLD('propQuantity', 'text(rows=2)', 'caption=Формула,tdClass=accCell,mandatory');
         $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
+
+        $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
+        $this->FLD('storeInput', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад влагане,input=none');
+        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад приемане,input=none');
+        $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване,input=none');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори,input=none,input=none');
+        $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма,input=none');
+
         $this->FLD('type', 'enum(input=Влагане,pop=Отпадък,stage=Етап)', 'caption=Действие,silent,input=hidden');
         $this->FLD('primeCost', 'double', 'caption=Себестойност,input=none,tdClass=accCell');
         $this->FLD('params', 'blob(serialize, compress)', 'input=none');
@@ -160,6 +168,7 @@ class cat_BomDetails extends doc_Detail
         
         $this->setDbIndex('parentId');
         $this->setDbIndex('resourceId');
+        $this->setDbIndex('type');
     }
     
     
@@ -194,7 +203,7 @@ class cat_BomDetails extends doc_Detail
         $form = &$data->form;
         $rec = &$form->rec;
         
-        $matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : 'Подетап');
+        $matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : 'Етап');
         $form->setField('resourceId', "caption={$matCaption}");
         
         // Добавяме всички вложими артикули за избор
@@ -226,6 +235,48 @@ class cat_BomDetails extends doc_Detail
             $form->setOptions('parentId', array('' => '') + $stages);
         } else {
             $form->setReadOnly('parentId');
+        }
+
+        if($rec->type == 'stage'){
+            if(isset($rec->resourceId) && $data->masterRec->type == 'production'){
+
+                // Ако има данни за производство
+                $form->setField('centerId', 'input');
+                $form->setField('norm', 'input');
+                $Driver = cat_Products::getDriver($rec->resourceId);
+                $productionData = $Driver->getProductionStepData($rec->resourceId);
+
+                $canStore = cat_Products::fetchField($rec->resourceId, 'canStore');
+                if($canStore == 'yes'){
+                    $form->setField('storeInput', 'input');
+                    $form->setField('storeIn', 'input');
+                }
+
+                // Добавяне на дефолтите от производствените данни
+                if($form->cmd == 'refresh' || Request::get('resourceId', 'int')){
+                    if(empty($rec->centerId) && empty($rec->norm) && empty($rec->storeIn) && empty($rec->storeInput) && empty($rec->fixedAssets) && empty($rec->employees)){
+                        foreach (array('centerId', 'norm', 'storeIn', 'storeInput', 'fixedAssets', 'employees') as $productionFld){
+                            $defaultValue = is_array($productionData[$productionFld]) ? keylist::fromArray($productionData[$productionFld]) : $productionData[$productionFld];
+                            $form->setDefault($productionFld, $defaultValue);
+                        }
+                    }
+                }
+
+                // Ако има избран център на дейност да се добавят наличните оборудвания и оператори в него
+                if(isset($rec->centerId)){
+                    $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+                    $form->setField('fixedAssets', 'input');
+                    $form->setField('employees', 'input');
+
+                    // Налични оборудвания от избрания център
+                    $fixedAssets = planning_AssetResources::getByFolderId($folderId, $rec->fixedAssets);
+                    $form->setSuggestions("fixedAssets", $fixedAssets);
+
+                    // Наличните човешки ресурси от избрания център
+                    $hrAssets = planning_Hr::getByFolderId($folderId, $rec->employees);
+                    $form->setSuggestions("employees", $hrAssets);
+                }
+            }
         }
     }
     
@@ -385,12 +436,11 @@ class cat_BomDetails extends doc_Detail
             $scope['$Начално='] = '$Начално=';
             
             $rec->params = $scope;
-            
+
             $context = array_keys($scope);
             $context = array_combine($context, $context);
             unset($context['$T']);
             $form->setSuggestions('propQuantity', $context);
-            
             $pInfo = cat_Products::getProductInfo($rec->resourceId);
             
             if($form->_replaceProduct !== true){
@@ -414,7 +464,6 @@ class cat_BomDetails extends doc_Detail
                 $description = html2text_Converter::toRichText($description);
                 $description = cls::get('type_Richtext')->fromVerbal($description);
                 $description = str_replace("\n\n", "\n", $description);
-                
                 $form->setDefault('description', $description);
             }
         }
@@ -570,7 +619,7 @@ class cat_BomDetails extends doc_Detail
             $row->ROW_ATTR['style'] = 'background-color:#EFEFEF';
             $row->ROW_ATTR['title'] = tr('Етап');
         } else {
-            $row->ROW_ATTR['class'] = ($rec->type != 'input' && $rec->type != 'stage') ? 'row-removed' : 'row-added';
+            $row->ROW_ATTR['class'] = ($rec->type != 'input') ? 'row-removed' : 'row-added';
         }
         
         if (!Mode::is('text', 'xhtml') && !Mode::is('printing')) {
@@ -596,12 +645,38 @@ class cat_BomDetails extends doc_Detail
         $position = implode('.', $codePath);
         $position = cls::get('type_Varchar')->toVerbal($position);
         $row->position = $position;
-        
-        if ($rec->description) {
-            $row->description = $mvc->getFieldType('description')->toVerbal($rec->description);
-            $row->resourceId .= "<br><small>{$row->description}</small>";
+
+        $descriptionArr = array();
+        if ($rec->type == 'stage') {
+            if(!empty($rec->centerId)){
+                $descriptionArr[] = tr("Център на дейност|*: " . planning_Centers::getHyperlink($rec->centerId, true));
+            }
+            if(!empty($rec->storeIn)){
+                $descriptionArr[] = tr("Приемане|*: " . store_Stores::getHyperlink($rec->storeIn, true));
+            }
+            if(!empty($rec->storeInput)){
+                $descriptionArr[] = tr("Влагане|*: " . store_Stores::getHyperlink($rec->storeInput, true));
+            }
+            if(!empty($rec->fixedAssets)){
+                $descriptionArr[] = tr("Оборудване|*: ") . $mvc->getFieldType('fixedAssets')->toVerbal($rec->fixedAssets);
+            }
+            if(!empty($rec->employees)){
+                $descriptionArr[] = tr("Оператори|*: ") . implode(', ', planning_Hr::getPersonsCodesArr($rec->employees, true));
+            }
+            if(!empty($rec->norm)){
+                $descriptionArr[] = tr("Норма|*: " . $mvc->getFieldType('norm')->toVerbal($rec->norm));
+            }
         }
-        
+
+        if (!empty($rec->description)) {
+            $descriptionArr[] = $mvc->getFieldType('description')->toVerbal($rec->description);
+        }
+
+        if(countR($descriptionArr)){
+            $description = implode("<br>", $descriptionArr);
+            $row->resourceId .= "<br><small>{$description}</small>";
+        }
+
         $propQuantity = $rec->propQuantity;
         $coefficient = null;
         
@@ -694,6 +769,7 @@ class cat_BomDetails extends doc_Detail
         $rec->type = 'input';
         $this->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
         $rec->coefficient = null;
+        $rec->centerId = $rec->storeInput = $rec->storeIn = $rec->fixedAssets = $rec->employees = $rec->norm = null;
         $this->save($rec);
         
         $title = cat_Products::getTitleById($rec->resourceId);
@@ -1179,13 +1255,11 @@ class cat_BomDetails extends doc_Detail
     {
         $rec = $data->form->rec;
         if ($rec->type == 'stage' && !isset($rec->id)) {
-            $stageDriverClassId = planning_interface_StageDriver::getClassId();
-            if(cls::get('planning_interface_StageDriver')->canSelectDriver()){
-                if(cat_Products::haveRightFor('add', (object)array('innerClass' => $stageDriverClassId))){
-                    $addUrl = array('cat_Products', 'add', 'innerClass' => $stageDriverClassId);
-                    $addUrl['ret_url'] = getCurrentUrl();
-                    $data->form->toolbar->addBtn('Нов производствен етап', $addUrl, 'id=btnReq,order=9.99971', 'ef_icon = img/16/add.png,title=Създаване на артикул за нов производствен етап');
-                }
+
+            $addStepUrl = cls::get('planning_Steps')->getListAddUrl();
+            if(countR($addStepUrl)){
+                $addStepUrl['ret_url'] = getCurrentUrl();
+                $data->form->toolbar->addBtn('Нов етап', $addStepUrl, 'id=btnReq,order=9.99971', 'ef_icon = img/16/add.png,title=Създаване на артикул за нов етап в производството');
             }
         }
     }

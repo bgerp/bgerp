@@ -1593,6 +1593,9 @@ function flashDocInterpolation(docId) {
     el.style.backgroundColor = '#ffff80';
     setTimeout(function() {
         el.style.backgroundColor = endColorHex;
+
+        // Премахва хаштага (котвата) след отваряне и флашване на документа
+        history.pushState({}, '', location.href.replace(/\#[a-z0-9]+$/gi, ''));
     }, 2010);
 
     if (endColorHex.substring(0, 1) != '#') {
