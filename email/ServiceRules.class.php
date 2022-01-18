@@ -394,7 +394,7 @@ class email_ServiceRules extends embed_Manager
 
         $pattern = preg_quote($pattern, '/');
 
-        $pattern = str_ireplace('\\*', '.{0,1000}', $pattern);
+        $pattern = str_ireplace('\\*', '.{0,10000}', $pattern);
 
         $pattern = '/^\s*' . $pattern . '\s*$/iu';
 
