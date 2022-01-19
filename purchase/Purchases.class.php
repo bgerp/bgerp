@@ -186,7 +186,7 @@ class purchase_Purchases extends deals_DealMaster
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
-        'bankAccountId' => 'lastDocUser|lastDoc',
+        'bankAccountId' => 'defMethod',
         'dealerId' => 'lastDocUser',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
@@ -858,5 +858,30 @@ class purchase_Purchases extends deals_DealMaster
                 }
             }
         }
+    }
+
+
+    /**
+     * Дефолтна стойност на полето за банкова сметка
+     *
+     * @param $rec
+     * @return mixed|void|null
+     */
+    public function getDefaultBankAccountId($rec)
+    {
+        $bankAccounts = array();
+        foreach (array('lastDocUser', 'lastDoc') as $strat){
+            $foundAccId = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'bankAccountId', $strat);
+            if(!empty($foundAccId)){
+                $bankAccounts[$foundAccId] = $foundAccId;
+            }
+        }
+
+        foreach ($bankAccounts as $bankAccountId){
+            $bAccId = bank_Accounts::fetchField(array("#iban = '[#1#]'", $bankAccountId), 'id');
+            if($bAccId) return $bankAccountId;
+        }
+
+        return null;
     }
 }
