@@ -1218,7 +1218,6 @@ class planning_Jobs extends core_Master
         planning_Tasks::requireRightFor('add', (object) array('originId' => $originId));
         $jobRec = doc_Containers::getDocument($originId)->fetch();
         $folderId = (!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : $jobRec->folderId;
-        $Cover = doc_Folders::getCover($folderId);
         if(!planning_Tasks::canAddToFolder($folderId)){
             $folderId = planning_Centers::getUndefinedFolderId();
         }
