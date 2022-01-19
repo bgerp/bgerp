@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -204,6 +204,8 @@ class cat_BomDetails extends doc_Detail
         $rec = &$form->rec;
         
         $matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : 'Етап');
+        $parentIdCaption = ($rec->type == 'stage') ? 'Подетап на' : 'Етап';
+        $form->setField('parentId', "caption={$parentIdCaption}");
         $form->setField('resourceId', "caption={$matCaption}");
         
         // Добавяме всички вложими артикули за избор
@@ -330,7 +332,7 @@ class cat_BomDetails extends doc_Detail
     /**
      * Проверява за коректност израз и го форматира.
      */
-    public static function highliteExpr($expr, $params, $coefficient)
+    public static function highlightExpr($expr, $params, $coefficient)
     {
         $rQuantity = cat_BomDetails::calcExpr($expr, $params);
         if ($rQuantity === self::CALC_ERROR) {
@@ -690,7 +692,7 @@ class cat_BomDetails extends doc_Detail
         
         $rec->rowQuantity = cat_BomDetails::calcExpr($rec->propQuantity, $rec->params);
         
-        $highlightedExpr = static::highliteExpr($propQuantity, $rec->params, $coefficient);
+        $highlightedExpr = static::highlightExpr($propQuantity, $rec->params, $coefficient);
         $row->propQuantity = $highlightedExpr;
         
         if ($rec->rowQuantity == static::CALC_ERROR) {
