@@ -1222,8 +1222,8 @@ class planning_Jobs extends core_Master
         $form = cls::get('core_Form');
         $form->title = 'Създаване на производствени операция към|* <b>' . self::getHyperlink($jobRec->id, true) . '</b>';
 
-        $checkedImgNo = ht::createImg(array('src' => sbf('img/16/checkbox_no.png', '')))->getContent();
-        $checkedImg = ht::createImg(array('src' => sbf('img/16/checked.png', '')))->getContent();
+        $checkedImgNo = ht::createImg(array('src' => sbf('img/16/checked-not-green.png', '')))->getContent();
+        $checkedImg = ht::createImg(array('src' => sbf('img/16/checked-green.png', '')))->getContent();
 
         $form->info = getTplFromFile('planning/tpl/SelectTaskInJobForm.shtml');
         $options = array();
