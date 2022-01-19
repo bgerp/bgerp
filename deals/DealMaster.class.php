@@ -1251,6 +1251,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 $objectId = $rec->{$fld};
                 if($fld == 'bankAccountId' && !is_numeric($rec->{$fld})){
                     $objectId = bank_Accounts::fetchField("#iban = '{$rec->{$fld}}'");
+                    if(empty($objectId)) continue;
                 }
 
                 $aCondition = $fldMaster::getDocumentConditionFor($objectId, $this, $lang);
