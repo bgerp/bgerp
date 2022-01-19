@@ -870,6 +870,8 @@ class purchase_Purchases extends deals_DealMaster
     public function getDefaultBankAccountId($rec)
     {
         $bankAccounts = array();
+
+        // Намиране на последните б. сметки
         foreach (array('lastDocUser', 'lastDoc') as $strat){
             $foundAccId = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'bankAccountId', $strat);
             if(!empty($foundAccId)){
@@ -877,6 +879,7 @@ class purchase_Purchases extends deals_DealMaster
             }
         }
 
+        // Връща се последната, която не е премахната
         foreach ($bankAccounts as $bankAccountId){
             $bAccId = bank_Accounts::fetchField(array("#iban = '[#1#]'", $bankAccountId), 'id');
             if($bAccId) return $bankAccountId;

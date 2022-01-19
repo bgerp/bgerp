@@ -1383,9 +1383,9 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        
-        if ($mvc->haveRightFor('single', $rec) && $rec->state != 'reject') {
-            $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция');
+
+        if ($mvc->haveRightFor('single', $rec) && $rec->state != 'rejected') {
+            $data->toolbar->addBtn('Р. карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция,row=2');
         }
 
         if ($mvc->haveRightFor('edit', $rec)) {
