@@ -1217,8 +1217,12 @@ class planning_Jobs extends core_Master
         expect($originId = Request::get('originId', 'int'));
         planning_Tasks::requireRightFor('add', (object) array('originId' => $originId));
         $jobRec = doc_Containers::getDocument($originId)->fetch();
-        $folderId = (!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : null;
-        
+        $folderId = (!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : $jobRec->folderId;
+        $Cover = doc_Folders::getCover($folderId);
+        if(!planning_Tasks::canAddToFolder($folderId)){
+            $folderId = planning_Centers::getUndefinedFolderId();
+        }
+
         $form = cls::get('core_Form');
         $form->title = 'Създаване на производствени операция към|* <b>' . self::getHyperlink($jobRec->id, true) . '</b>';
 
@@ -1254,7 +1258,7 @@ class planning_Jobs extends core_Master
                     $img = $checkedImg;
                 }
 
-                $folderId = isset($draft->centerId) ? planning_Centers::fetchField($defTask->centerId, 'folderId') : $folderId;
+                $folderId = isset($defTask->centerId) ? planning_Centers::fetchField($defTask->centerId, 'folderId') : $folderId;
                 $urlAdd = array();
                 if(planning_Tasks::haveRightFor('add', (object)array('originId' => $jobRec->containerId, 'productId' => $defTask->productId, 'folderId' => $folderId))){
                     $urlAdd = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $defTask->title, 'ret_url' => true, 'systemId' => $sysId);

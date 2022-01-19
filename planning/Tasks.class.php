@@ -671,9 +671,10 @@ class planning_Tasks extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        return true;
+        $Cover = doc_Folders::getCover($folderId);
+
+        return $Cover->isInstanceOf('planning_Centers');
     }
-    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
@@ -1383,7 +1384,7 @@ class planning_Tasks extends core_Master
     {
         $rec = $data->rec;
         
-        if ($mvc->haveRightFor('single', $rec)) {
+        if ($mvc->haveRightFor('single', $rec) && $rec->state != 'reject') {
             $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция');
         }
 
