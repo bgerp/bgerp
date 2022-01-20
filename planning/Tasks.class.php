@@ -896,7 +896,9 @@ class planning_Tasks extends core_Master
                 $form->setDefault('measureId', $productRec->measureId);
                 $form->setField('measureId', 'input=hidden');
             }
-           
+
+            $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
+
             if (empty($rec->id)) {
                 
                 // Показване на параметрите за задача във формата, като задължителни полета

@@ -1451,8 +1451,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Ако ще се произвежда артикулът от заданиет, наличните партиди за заприхождаване са тези от заданието
         if(planning_DirectProductionNote::isForJobProductId($rec)) {
-            $jobDoc = doc_Containers::getDocument($rec->originId);
-            $options = $jobDoc->getInstance()->getAllowedBatchesForJob($rec->originId);
+            $jobRec = static::getJobRec($rec);
+            $options = cls::get('planning_Jobs')->getAllowedBatchesForJob($jobRec->containerId);
 
             return $options;
         }

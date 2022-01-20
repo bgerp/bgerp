@@ -114,12 +114,13 @@ class planning_Steps extends core_Extender
         $form = &$data->form;
         $rec = &$form->rec;
 
+        $form->setField("measureId", "removeAndRefreshForm,silent");
         $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_storeInput|{$mvc->className}_storeIn");
         $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm");
         $form->setDefault("{$mvc->className}_canStore", 'yes');
 
         $form->setDefault("{$mvc->className}_centerId", planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
-        $form->input("{$mvc->className}_canStore,{$mvc->className}_centerId", 'silent');
+        $form->input("{$mvc->className}_canStore,{$mvc->className}_centerId,measureId", 'silent');
 
         if($form->getField('meta', false)){
             $form->setField('meta', 'input=none');
