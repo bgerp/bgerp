@@ -1877,9 +1877,12 @@ class cat_Products extends embed_Manager
                     $allowedMeasures += cat_Uom::getSameTypeMeasures($secondMeasureId);
                 }
                 unset($allowedMeasures['']);
-
-                $allowedMeasuresString = implode(',', array_keys($allowedMeasures));
-                $packQuery->where("#type != 'uom' OR #packagingId IN ({$allowedMeasuresString})");
+                if(countR($allowedMeasures)){
+                    $allowedMeasuresString = implode(',', array_keys($allowedMeasures));
+                    $packQuery->where("#type != 'uom' OR #packagingId IN ({$allowedMeasuresString})");
+                } else {
+                    $packQuery->where("1=2");
+                }
             }
 
             while ($packRec = $packQuery->fetch()) {
