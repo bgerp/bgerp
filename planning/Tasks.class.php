@@ -114,6 +114,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Кой може да ги създава от задания?
+     */
+    public $canCreatejobtasks = 'ceo, taskPlanning';
+
+
+    /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,taskPlanning';
@@ -180,7 +186,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,inputInTask,totalQuantity,plannedQuantity,timeStart,timeEnd,timeDuration';
+    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,inputInTask,totalQuantity,plannedQuantity,timeStart,timeEnd,timeDuration,systemId';
     
     
     /**
@@ -251,7 +257,7 @@ class planning_Tasks extends core_Master
         $this->FLD('producedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Заскладено,input=none');
         
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
-        $this->FNC('systemId', 'int', 'silent,input=hidden');
+        $this->FLD('systemId', 'int', 'silent,input=hidden');
         $this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
         $this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание,autoHide');
@@ -665,9 +671,10 @@ class planning_Tasks extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        return true;
+        $Cover = doc_Folders::getCover($folderId);
+
+        return $Cover->isInstanceOf('planning_Centers');
     }
-    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
@@ -707,6 +714,40 @@ class planning_Tasks extends core_Master
         if ($action == 'close' && $rec) {
             if ($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped') {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'createjobtasks' && isset($rec)){
+
+            if(empty($rec->type) || empty($rec->jobId)){
+                $requiredRoles = 'no_one';
+            } elseif(!in_array($rec->type, array('all', 'clone'))){
+                $requiredRoles = 'no_one';
+            } else {
+                $jobRec = planning_Jobs::fetch($rec->jobId);
+                if(!$mvc->haveRightFor('add', (object)array('folderId' => $rec->folderId, 'originId' => $jobRec->containerId))){
+                    $requiredRoles = 'no_one';
+                } else {
+                    if($rec->type == 'clone'){
+                        if(empty($rec->cloneId) || empty($jobRec->oldJobId)){
+                            $requiredRoles = 'no_one';
+                        }
+                    } elseif($rec->type == 'all') {
+                        $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+                        if(!countR($defaultTasks)){
+                            $requiredRoles = 'no_one';
+                        } else {
+                            $tQuery = planning_Tasks::getQuery();
+                            $tQuery->where("#originId = {$jobRec->containerId} AND #systemId IS NOT NULL AND #state != 'rejected'");
+                            $tQuery->show('systemId');
+                            $exSystemIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'systemId');
+                            $remainingSystemTasks = array_diff_key($defaultTasks, $exSystemIds);
+                            if(!countR($remainingSystemTasks)){
+                                $requiredRoles = 'no_one';
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -1342,9 +1383,9 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        
-        if ($mvc->haveRightFor('single', $rec)) {
-            $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция');
+
+        if ($mvc->haveRightFor('single', $rec) && $rec->state != 'rejected') {
+            $data->toolbar->addBtn('Р. карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция,row=2');
         }
 
         if ($mvc->haveRightFor('edit', $rec)) {
@@ -1490,5 +1531,91 @@ class planning_Tasks extends core_Master
         }
 
         return $result;
+    }
+
+
+    /**
+     * Екшън за създаване на задачи към задание
+     *
+     * @return void
+     * @throws core_exception_Expect
+     */
+    public function act_CreateJobTasks()
+    {
+        planning_Tasks::requireRightFor('createjobtasks');
+        expect($type = Request::get('type', 'enum(all,clone)'));
+        expect($jobId = Request::get('jobId', 'int'));
+        expect($jobRec = planning_Jobs::fetch($jobId));
+
+        // Ако ще се клонира съществуваща операция
+        if($type == 'clone'){
+            expect($cloneId = Request::get('cloneId', 'int'));
+            planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'cloneId' => $cloneId, 'type' => 'clone'));
+            expect($taskRec = $this->fetch($cloneId));
+
+            $newTask = clone $taskRec;
+            plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
+
+            $newTask->plannedQuantity = $taskRec->plannedQuantity;
+            $newTask->_isClone = true;
+            $newTask->originId = $jobRec->containerId;
+            $newTask->state = 'draft';
+            $newTask->clonedFromId = $newTask->id;
+            unset($newTask->id);
+            unset($newTask->threadId);
+            unset($newTask->containerId);
+            unset($newTask->createdOn);
+            unset($newTask->createdBy);
+            unset($newTask->systemId);
+
+            if ($this->save($newTask)) {
+                $this->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
+                $this->logWrite('Клониране от предходно задание', $newTask->id);
+            }
+
+            followRetUrl(null, 'Операцията е клонирана успешно');
+        } elseif($type == 'all'){
+
+            // Ако ще се клонират всички шаблонни операции
+            planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'));
+
+            $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+            foreach ($defaultTasks as $sysId => $defaultTask){
+                if(planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")) continue;
+
+                unset($defaultTask->products);
+                $newTask = clone $defaultTask;
+                $newTask->originId = $jobRec->containerId;
+                $newTask->systemId = $sysId;
+
+                // Клонират се в папката на посочения в тях център, ако няма в центъра от заданието, ако и там няма в Неопределения
+                $folderId = isset($defaultTask->centerId) ? planning_Centers::fetchField($defaultTask->centerId, 'folderId') : ((!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : null);
+                if(planning_Tasks::canAddToFolder($folderId)){
+                    $folderId = planning_Centers::getUndefinedFolderId();
+                }
+                $newTask->folderId = $folderId;
+                $this->save($newTask);
+                $this->logWrite('Автоматично създаване от задание', $newTask->id);
+            }
+
+            followRetUrl(null, 'Операциите са успешно създадени');
+        }
+
+        followRetUrl(null, 'Имаше проблем', 'error');
+    }
+
+
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако се иска директно контиране редирект към екшъна за контиране
+        if (isset($data->form) && $data->form->isSubmitted() && $data->form->rec->id) {
+            $retUrl = getRetUrl();
+            if($retUrl['Ctr'] == 'planning_Jobs' && $retUrl['Act'] == 'selectTaskAction'){
+                $data->retUrl = $retUrl;
+            }
+        }
     }
 }

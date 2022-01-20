@@ -8372,3 +8372,25 @@ body.narrow {
 	width: 100%;
 }
 
+.selectTaskOptions {
+	width:100%;
+}
+.selectTaskOptions td {
+	padding:4px;
+}
+.selectTaskOptions tr.selectTaskFromJobRow {
+	background-color: #eee;
+	border:1px solid #bbb;
+}
+
+.selectTaskOptions tr.selectTaskFromJobRow td {
+	padding-left:8px;
+	padding-top:5px;
+	padding-bottom:5px;
+	font-weight:bold;
+}
+
+.selectTaskOptions tr.createAllTasksForJob {
+	font-style:italic;
+}
+

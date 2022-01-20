@@ -42,13 +42,16 @@ class rack_MovementGenerator2 extends core_Manager
         requireRole('debug');
 
         $form = cls::get('core_Form');
-        $form->FLD('pallets', 'table(columns=pallet|quantity,captions=Палет|Количество,widths=8em|8em)', 'caption=Палети,mandatory');
+        $form->FLD('pallets', 'table(columns=pallet|quantity|createdOn,captions=Палет|Количество|Създаване,widths=8em|8em)', 'caption=Палети,mandatory');
         $form->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=8em|8em)', 'caption=Зони,mandatory');
         $form->FLD('packagings', 'table(columns=packagingId|quantity,captions=Опаковка|Количество,widths=8em|8em)', 'caption=Опаковки,mandatory');
         $form->FLD('smallZonesPriority', 'enum(yes=Да,no=Не)', 'caption=Приоритетност на малките количества->Избор');
 
         $packOptions = cat_UoM::getPackagingOptions() + cat_UoM::getUomOptions();
         $form->setFieldTypeParams('packagings', array('packagingId_opt' => $packOptions));
+        $createdOnOpt = array(dt::addDays(-4), dt::addDays(-3), dt::addDays(-2), dt::addDays(-1), dt::addDays(1), dt::now());
+        $createdOnOpt = array('' => '') + arr::make($createdOnOpt, true);
+        $form->setFieldTypeParams('pallets', array('createdOn_opt' => $createdOnOpt));
 
         $form->toolbar = cls::get('core_Toolbar');
         $form->toolbar->addSbBtn('Изпрати');
@@ -65,7 +68,7 @@ class rack_MovementGenerator2 extends core_Manager
 
             foreach ($pArr->pallet as $i => $key) {
                 if ($pArr->quantity[$i]) {
-                    $p[] = (object) array('position' => $key, 'quantity' => $pArr->quantity[$i]);
+                    $p[] = (object) array('position' => $key, 'quantity' => $pArr->quantity[$i], 'createdOn' => $pArr->createdOn[$i]);
                 }
             }
             foreach ($qArr->zone as $i => $key) {

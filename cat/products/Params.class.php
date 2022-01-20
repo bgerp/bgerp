@@ -494,12 +494,15 @@ class cat_products_Params extends doc_Detail
      */
     protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec)
     {
-        $mvc->syncWithFeature($rec->paramId, $rec->productId);
+        $Class = cls::get($rec->classId);
+        if($Class instanceof cat_Products){
+            $mvc->syncWithFeature($rec->paramId, $rec->productId);
+        }
         
         $paramName = cat_Params::getVerbal($rec->paramId, 'typeExt');
         $logMsg = ($rec->_isCreated) ? 'Добавяне на параметър' : 'Редактиране на параметър';
-        cls::get($rec->classId)->logWrite($logMsg, $rec->productId);
-        cls::get($rec->classId)->logDebug("{$logMsg}: {$paramName}", $rec->productId);
+        $Class->logWrite($logMsg, $rec->productId);
+        $Class->logDebug("{$logMsg}: {$paramName}", $rec->productId);
     }
     
     

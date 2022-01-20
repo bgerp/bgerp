@@ -188,7 +188,7 @@ class rack_Pallets extends core_Manager
         $pallets = array();
         $query = self::getQuery();
         $query->where("#productId = {$productId} AND #storeId = {$storeId} AND #state != 'closed'");
-        $query->show('quantity,position');
+        $query->show('quantity,position,createdOn');
         if(!is_null($batch)){
             $query->where("#batch = '{$batch}'");
         }
@@ -216,7 +216,7 @@ class rack_Pallets extends core_Manager
             }
 
             // Разликата
-            $pallets[$rec->id] = (object) array('quantity' => $rest, 'position' => $rec->position);
+            $pallets[$rec->id] = (object) array('quantity' => $rest, 'position' => $rec->position, 'createdOn' => $rec->createdOn);
         }
 
         return $pallets;
