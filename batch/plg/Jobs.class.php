@@ -92,31 +92,51 @@ class batch_plg_Jobs extends core_Plugin
      */
     private static function modifyBatches($mvc, $rec, $action)
     {
-        if(isset($rec->storeId) && isset($rec->saleId)){
+        if(isset($rec->storeId)){
             $batchDef = batch_Defs::getBatchDef($rec->productId);
             $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+
             if(is_object($batchDef) && $canStore == 'yes'){
-                if($action == 'add'){
-                    $threadId = sales_Sales::fetchField($rec->saleId, 'threadId');
 
-                    $saveBatches = array();
-                    $bQuery = batch_BatchesInDocuments::getQuery();
-                    $bQuery->EXT('threadId', 'doc_Containers', "externalName=threadId,externalKey=containerId");
-                    $bQuery->where("#threadId = {$threadId} AND #productId = {$rec->productId} AND #storeId = {$rec->storeId}");
-                    $bQuery->show('batch,quantity');
-                    while($bRec = $bQuery->fetch()){
-                        $saveBatches["{$bRec->batch}"] = $bRec->quantity;
-                    }
+                // Ако е към продажба
+                if(isset($rec->saleId)){
+                    if($action == 'add'){
+                        $threadId = sales_Sales::fetchField($rec->saleId, 'threadId');
 
-                    if(countR($saveBatches)){
-                        batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $saveBatches, true);
+                        // Взима се обединението на партидите от документите в нишката ѝ
+                        $saveBatches = array();
+                        $bQuery = batch_BatchesInDocuments::getQuery();
+                        $bQuery->EXT('threadId', 'doc_Containers', "externalName=threadId,externalKey=containerId");
+                        $bQuery->where("#threadId = {$threadId} AND #productId = {$rec->productId} AND #storeId = {$rec->storeId}");
+                        $bQuery->show('batch,quantity');
+                        while($bRec = $bQuery->fetch()){
+                            $saveBatches["{$bRec->batch}"] = $bRec->quantity;
+                        }
+
+                        if(countR($saveBatches)){
+                            batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $saveBatches, true);
+                        } elseif($batchDef instanceof batch_definitions_Job){
+
+                            // Ако няма, но продажбата е от тип задание да се вземе автоматичната стойност
+                            $defValue = $batchDef->getAutoValue($mvc, $rec->id, $rec->storeId, $rec->dueDate);
+                            if($defValue){
+                                $arr = array("{$defValue}" => $rec->quantity);
+                                batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $arr, true);
+                            }
+                        }
+                    } elseif($action == 'update'){
+                        $bQuery = batch_BatchesInDocuments::getQuery();
+                        $bQuery->where("#containerId = {$rec->containerId}");
+                        while($bRec = $bQuery->fetch()){
+                            $bRec->storeId = $rec->storeId;
+                            batch_BatchesInDocuments::save($bRec, 'storeId');
+                        }
                     }
-                } elseif($action == 'update'){
-                    $bQuery = batch_BatchesInDocuments::getQuery();
-                    $bQuery->where("#containerId = {$rec->containerId}");
-                    while($bRec = $bQuery->fetch()){
-                        $bRec->storeId = $rec->storeId;
-                        batch_BatchesInDocuments::save($bRec, 'storeId');
+                } elseif($batchDef instanceof batch_definitions_Job){
+                    $defValue = $batchDef->getAutoValue($mvc, $rec->id, $rec->storeId, $rec->dueDate);
+                    if($defValue){
+                        $arr = array("{$defValue}" => $rec->quantity);
+                        batch_BatchesInDocuments::saveBatches($mvc, $rec->id, $arr, true);
                     }
                 }
             }
