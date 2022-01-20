@@ -220,21 +220,24 @@ class rack_MovementGenerator2 extends core_Manager
         if($qInPallet) {
             foreach($pArr as $pId => $pQ) {
                 if($pQ == $qInPallet) {
-                    $fullPallets[$pId] = $pallets[$pId]->age;
+                    $fullPallets[$pId] = (int) $pallets[$pId]->age;
+                    if(self::isFirstRow($pallets[$pId]->position)) {
+                        $fullPallets[$pId] -= $maxAge+1;
+                    }
                 }
             }
- 
+
             if(count($fullPallets)) {
                 arsort($fullPallets);
                 $fullPallets = array_keys($fullPallets);
-    
+ 
                 foreach($zones as $zId => $zQ) {
                     if($n = (floor($zQ/$qInPallet))) {
                   
                         do {
                             // Вземаме най-горния елемент, генерираме движение и го махаме от наличните палети
                             $p = array_shift($fullPallets);
-                            $res[$p] = (object) array(
+                            $res[] = (object) array(
                                 'pallet' => $pallets[$p]->position,
                                 'zones'  => array($zId => $qInPallet)
                                 );
@@ -252,7 +255,6 @@ class rack_MovementGenerator2 extends core_Manager
                 }
             }
         }  
- 
 
         $sumZ = array_sum($zones);
 
@@ -455,7 +457,6 @@ class rack_MovementGenerator2 extends core_Manager
         }
         
         $o->pallets = $p;
-        
  
         return $moves;
     }
@@ -601,6 +602,9 @@ class rack_MovementGenerator2 extends core_Manager
                 $newRec->palletToId = $palletRec->id;
                 $newRec->batch = $palletRec->batch;
                 $newRec->positionTo = $obj->pallet;
+            } else {
+                // Липсва палет в движението
+                wp($allocatedArr, $productId, $packagingId, $batch);
             }
             
             if(!countR($obj->zones)){
