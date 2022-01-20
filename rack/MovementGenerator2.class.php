@@ -187,9 +187,6 @@ class rack_MovementGenerator2 extends core_Manager
             }
         }
 
-   
-
- 
         // Ако имаме недостиг, приоритизираме малките зони
         asort($zones);
       
@@ -233,6 +230,7 @@ class rack_MovementGenerator2 extends core_Manager
                             $p = array_shift($fullPallets);
                             $res[$p] = (object) array(
                                 'pallet' => $pallets[$p]->position,
+                                'quantity' => $qInPallet,
                                 'zones'  => array($zId => $qInPallet)
                                 );
                             $pArr[$p] -= $qInPallet;
