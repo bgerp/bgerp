@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -176,14 +176,9 @@ class planning_interface_ProductionNoteImpl
         
         // Каква е мярката и количеството
         $measureId = $pRec->measureId;
-        
-        $origin = doc_Containers::getDocument($rec->originId);
-        $jobId = $origin->that;
-        if($origin->isInstanceOf('planning_Tasks')){
-            $taskOrigin = doc_Containers::getDocument($origin->that);
-            $jobId = $taskOrigin->that;
-        }
-        $jobHandle = "#" . $origin->getHandle($jobId);
+
+        $jobRec = planning_DirectProductionNote::getJobRec($rec);
+        $jobHandle = "#" . planning_Jobs::getHandle($jobRec);
         
         $code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
         $name = trim(cat_Products::getVerbal($rec->productId, 'name'));
