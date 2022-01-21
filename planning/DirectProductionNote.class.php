@@ -241,8 +241,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $storeId = $originRec->storeId;
         $saleId = $originRec->saleId;
         if($originDoc->isInstanceOf('planning_Tasks')){
+
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
-            $storeId = $jobRec->storeId;
+            $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
         } else {
