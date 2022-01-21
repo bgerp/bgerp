@@ -554,14 +554,17 @@ class planning_Tasks extends core_Master
         } elseif(empty($rec->totalWeight)) {
             $row->totalWeight = "<span class='quiet'>N/A</span>";
         }
-        
-        $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table>
+
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if($canStore == 'yes'){
+            $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table>
                 <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо тегло|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
                 <tr><td style='font-weight:normal'>|Режим|*:</td><td>[#showadditionalUom#]</td></tr>
                 <!--ET_BEGIN weightDeviationNotice--><tr><td style='font-weight:normal'>|Отбелязване|*:</td><td>+/- [#weightDeviationNotice#]</td></tr><!--ET_END weightDeviationNotice-->
                 <tr><td style='font-weight:normal'>|Предупреждение|*:</td><td>+/- [#weightDeviationWarning#]</td></tr>
                 <!--ET_BEGIN weightDeviationAverageWarning--><tr><td style='font-weight:normal'>|Спрямо средното|*:</td><td>+/- [#weightDeviationAverageWarning#]</td></tr><!--ET_END weightDeviationAverageWarning-->
                 </table>"));
+        }
         
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table>
                 <tr><td style='font-weight:normal'>|Етикет|*:</td><td>[#labelType#]</td></tr>
@@ -956,6 +959,11 @@ class planning_Tasks extends core_Master
                 $packs = cat_Products::getPacks($rec->productId, false, $originRec->secondMeasureId);
                 $form->setOptions('packagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
+            } else {
+                $form->setField('showadditionalUom', 'input=none');
+                $form->setField('weightDeviationNotice', 'input=none');
+                $form->setField('weightDeviationWarning', 'input=none');
+                $form->setField('weightDeviationAverageWarning', 'input=none');
             }
             
             // Ако артикула е вложим, може да се влага по друга операция

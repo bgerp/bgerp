@@ -164,6 +164,8 @@ class planning_Steps extends core_Extender
             $metaArr = type_Set::toArray($rec->meta);
             if($rec->{"{$mvc->className}_canStore"} == 'no'){
                 unset($metaArr['canStore']);
+                $rec->{"{$mvc->className}_storeInput"} = null;
+                $rec->{"{$mvc->className}_storeIn"} = null;
             } else {
                 $metaArr['canStore'] = 'canStore';
             }
