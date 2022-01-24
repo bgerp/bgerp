@@ -116,7 +116,13 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public $canConto = 'ceo,store';
 
-
+    
+    /**
+     * Кои роли може да променят активно ЕН
+     */
+    public $canChangerec = 'ceo,sales';
+    
+	
     /**
      * Полета, които ще се показват в листов изглед
      */
