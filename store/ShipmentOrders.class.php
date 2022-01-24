@@ -120,7 +120,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Кои роли може да променят активно ЕН
      */
-    public $canChangerec = 'ceo,sales';
+    public $canChangerec = 'ceo,store';
     
 	
     /**
