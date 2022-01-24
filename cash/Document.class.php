@@ -219,8 +219,12 @@ abstract class cash_Document extends deals_PaymentDocument
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
             $amount = round($amount, 2);
         }
-       
-        return abs($amount);
+
+        if(isset($amount)){
+            $amount = abs($amount);
+        }
+
+        return $amount;
     }
     
     
