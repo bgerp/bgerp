@@ -1133,16 +1133,17 @@ abstract class deals_InvoiceMaster extends core_Master
                     $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);
                     if(!empty($vatReason)){
                         $row->vatReason = $vatReason;
-                        if(!Mode::isReadOnly()){
-                            $row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
-                        }
+
                         if($rec->state == 'draft'){
-                            $row->vatReason = ht::createHint($row->vatReason, 'Ще се запише при активиране');
+                            if(!Mode::isReadOnly()){$row->vatReason = "<span style='color:blue'>{$vatReason}</span>";
+                            }
+
+                            $row->vatReason = ht::createHint($row->vatReason, 'Основанието е определено автоматично. Ще бъде записано при активиранеЮ*!', 'notice', false);
                         }
                     } else {
                         $bgId = drdata_Countries::getIdByName('Bulgaria');
                         if($rec->contragentCountryId == $bgId && !empty($rec->contragentVatNo)){
-                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС№ трябва да е посочено основание', 'error');
+                            $row->vatReason = ht::createHint($row->vatReason, 'При неначисляване на ДДС на контрагент от "България" с ДДС№ трябва да е посочено основаниеЮ*!', 'error');
                         }
                     }
                 }
@@ -1237,7 +1238,7 @@ abstract class deals_InvoiceMaster extends core_Master
                             $row->dueDate = $mvc->getFieldType('dueDate')->toVerbal($dueDate);
                             if (!$rec->dueTime) {
                                 $time = cls::get('type_Time')->toVerbal($defTime);
-                                $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според срока за плащане по подразбиране|*: {$time}. Ще бъде записан при контиране");
+                                $row->dueDate = ht::createHint("<span style='color:blue'>{$row->dueDate}</span>", "Според срока за плащане по подразбиране|*: {$time}. Ще бъде записан при контиране", 'notice', false);
                             }
                         }
                     }
