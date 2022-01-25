@@ -259,6 +259,13 @@ abstract class deals_DeliveryDocumentDetail extends doc_Detail
                 $requiredRoles = 'no_one';
             }
         }
+
+        if ($action == 'createproduct' && isset($rec)) {
+            $isReverse = $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'isReverse');
+            if($isReverse == 'yes'){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
