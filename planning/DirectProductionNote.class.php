@@ -241,8 +241,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $storeId = $originRec->storeId;
         $saleId = $originRec->saleId;
         if($originDoc->isInstanceOf('planning_Tasks')){
+
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
-            $storeId = $jobRec->storeId;
+            $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
         } else {
@@ -1451,8 +1452,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Ако ще се произвежда артикулът от заданиет, наличните партиди за заприхождаване са тези от заданието
         if(planning_DirectProductionNote::isForJobProductId($rec)) {
-            $jobDoc = doc_Containers::getDocument($rec->originId);
-            $options = $jobDoc->getInstance()->getAllowedBatchesForJob($rec->originId);
+            $jobRec = static::getJobRec($rec);
+            $options = cls::get('planning_Jobs')->getAllowedBatchesForJob($jobRec->containerId);
 
             return $options;
         }

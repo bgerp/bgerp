@@ -36,9 +36,11 @@ class deals_plg_SetTermDate extends core_Plugin
             $row->{$mvc->termDateFld} .= (!empty($row->{$mvc->termDateFld})) ? '' : '<div class=border-field></div>';
             $row->{$mvc->termDateFld} = $row->{$mvc->termDateFld} . ht::createLink('', array($mvc, 'settermdate', $rec->id, 'ret_url' => true), false, 'ef_icon=img/16/edit.png,title=Задаване на нова дата');
         }
-        
-        if(!empty($rec->{$mvc->termDateFld}) && $rec->{$mvc->termDateFld} < dt::today()){
-            $row->{$mvc->termDateFld} = ht::createHint($row->{$mvc->termDateFld}, 'Датата е в миналото', 'warning', false);
+
+        if(in_array($rec->state, array('pending', 'draft'))){
+            if(!empty($rec->{$mvc->termDateFld}) && $rec->{$mvc->termDateFld} < dt::today()){
+                $row->{$mvc->termDateFld} = ht::createHint($row->{$mvc->termDateFld}, 'Датата е в миналото', 'warning', false);
+            }
         }
     }
     

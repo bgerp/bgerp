@@ -431,7 +431,13 @@ abstract class deals_DealBase extends core_Master
         if ($fields['-list']) {
             $row->title = static::getLink($rec->id);
         }
-        
+
+        if ($fields['-single']) {
+            if(isset($rec->clonedFromId)){
+                $row->clonedFromId = static::getLink($rec->clonedFromId, 0);
+            }
+        }
+
         return $row;
     }
     
