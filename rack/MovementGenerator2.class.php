@@ -420,6 +420,7 @@ class rack_MovementGenerator2 extends core_Manager
                 } else {
                     $p[$pI] = 0;
                     $o->ret = $pQ;
+                    $o->retPos = $o->pallet;
                     $retTime = $timeReturn;
                     $retTime += self::timeToCount($pQ, $packs);
                     $o->returnTime = $retTime;
@@ -442,9 +443,12 @@ class rack_MovementGenerator2 extends core_Manager
                 }
 
                 // Ако връщаме на същото място по-добре да не връщаме нищо, а да сме взели по-малко
-                if(isset($o->retPos) && $o->retPos == $o->pallet && $o->ret > 0) {
-                    $o->quantity = $o->quantity - $o->ret;
-                    $o->ret = $o->retPos = null;
+                if(isset($o->retPos) && ($o->retPos == $o->pallet) && $o->ret > 0) {
+                    // Todo: тук трябва да се оставят случаите, когато вземаме цял палет и връщаме между 25% и 75% от него
+                    if(!isset($qInPallet) || $qInPallet != $o->quantity || $o->ret < 0.20 * $qInPallet || $o->ret > 0.80 * $qInPallet) {
+                        $o->quantity = $o->quantity - $o->ret;
+                        $o->ret = $o->retPos = null;
+                    }
                 }
             } 
 
