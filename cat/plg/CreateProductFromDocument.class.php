@@ -24,7 +24,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
     {
         setIfNot($mvc->filterProtoByMeta, 'canSell');
         expect(in_array($mvc->filterProtoByMeta, array('canSell', 'canBuy', 'canStore', 'canConvert', 'fixedAsset', 'canManifacture')));
-        expect($mvc instanceof deals_DealDetail || $mvc instanceof deals_QuotationDetails || $mvc instanceof store_InternalDocumentDetail);
+        expect($mvc instanceof deals_DealDetail || $mvc instanceof deals_QuotationDetails || $mvc instanceof store_InternalDocumentDetail || $mvc instanceof deals_DeliveryDocumentDetail);
     }
     
     
@@ -263,7 +263,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                 $Driver->invoke('AfterPrepareEditForm', array($Products, (object) array('form' => $form, 'action' => $action)));
                 $defMetas = $Driver->getDefaultMetas();
                 if (isset($defMetas['canManifacture'])) {
-                    if(!($mvc instanceof store_InternalDocumentDetail)){
+                    if(!(($mvc instanceof store_InternalDocumentDetail) || ($mvc instanceof deals_DeliveryDocumentDetail))){
                         $form->setField('tolerance', 'input');
                         $form->setField('term', 'input');
                     }
@@ -427,6 +427,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
 
                     // Хакване на автоматично изчислена цена
                     if (!($mvc instanceof sales_QuotationsDetails)) {
+
                         if ($Driver->canAutoCalcPrimeCost($productId) == true && empty($dRec->packPrice)) {
                             $Policy = (isset($mvc->Master->Policy)) ? $mvc->Master->Policy : cls::get('price_ListToCustomers');
                             $listId = ($masterRec->priceListId) ? $masterRec->priceListId : null;
