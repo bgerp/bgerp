@@ -841,7 +841,7 @@ abstract class deals_Helper
         // Проверка дали има минимално разполагаемо
         $firstCheck = false;
         if(isset($minQuantityDate) && $date <= $minQuantityDate){
-            if(($state == 'pending' && $freeQuantityMin < 0) || ($state == 'draft' && $quantity > $freeQuantityMin)){
+            if(($state == 'pending' && $freeQuantityMin < 0)){
                 if($showNegativeWarning){
                     if(isset($date) && $date != dt::today()){
                         $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
