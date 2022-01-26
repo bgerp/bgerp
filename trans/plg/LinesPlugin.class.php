@@ -185,14 +185,14 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if ($exLineId && $exLineId != $rec->lineId) {
                     $mvc->updateLines[$exLineId] = $exLineId;
                 }
-                
+
                 // Редирект след успешния запис
                 followRetUrl(null, 'Промените са записани успешно|*!');
             }
         }
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $mvc->getSingleUrlArray($id), 'ef_icon = img/16/close-red.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         
         // Рендиране на формата
         $res = $form->renderHtml();
