@@ -245,6 +245,7 @@ class cat_BomDetails extends doc_Detail
                 // Ако има данни за производство
                 $form->setField('centerId', 'input');
                 $form->setField('norm', 'input');
+                $form->input('centerId', 'silent');
                 $Driver = cat_Products::getDriver($rec->resourceId);
                 $productionData = $Driver->getProductionStepData($rec->resourceId);
 
@@ -530,6 +531,12 @@ class cat_BomDetails extends doc_Detail
             if ($rec->type == 'stage') {
                 if ($mvc->fetchField("#bomId = {$rec->bomId} AND #type = 'stage' AND #resourceId = '{$rec->resourceId}' AND #id != '{$rec->id}'")) {
                     $form->setError('resourceId', 'Един етап може да се среща само веднъж в рецептата');
+                }
+
+                if (!empty($rec->fixedAssets)) {
+                    if (!planning_AssetGroups::haveSameGroup($rec->fixedAssets)) {
+                        $form->setError('fixedAssets', 'Оборудванията са от различни групи');
+                    }
                 }
             }
             
