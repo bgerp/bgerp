@@ -74,8 +74,8 @@ class rack_MovementGenerator2 extends core_Manager
             }
             foreach ($qArr->zone as $i => $key) {
                 if ($qArr->quantity[$i]) {
-                    $q = core_Type::getByName('double')->fromVerbal($qArr->quantity[$i]);
-                    $q[$key] = $q;
+                    $q1 = core_Type::getByName('double')->fromVerbal($qArr->quantity[$i]);
+                    $q[$key] = $q1;
                 }
             }
 
