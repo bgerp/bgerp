@@ -285,7 +285,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
 
-            while ($salesInvoice = $invQuery->fetch()) {bp($invQuery->count());
+            while ($salesInvoice = $invQuery->fetch()) {
                 $firstDocument = doc_Threads::getFirstDocument($salesInvoice->threadId);
 
 
