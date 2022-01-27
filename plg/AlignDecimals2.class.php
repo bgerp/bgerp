@@ -52,7 +52,8 @@ class plg_AlignDecimals2 extends core_Plugin
         // Закръгляме сумата и я обръщаме във вербален вид
         foreach ($recs as $id => &$rec) {
             foreach ($decFields as $fName) {
-                if (isset($recs[$id]->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName}) && $rows[$id]->{$fName} != doc_plg_HidePrices::HIDDEN_PLACEHOLDER) {
+                $buriedElement = doc_plg_HidePrices::getBuriedElement();
+                if (isset($rec->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName}) && $rows[$id]->{$fName} != $buriedElement) {
                     $Type = clone $mvc->fields[$fName]->type;
                     
                     if(!$Type->params['decimals']) {
