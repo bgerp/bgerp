@@ -362,7 +362,7 @@ class core_Settings extends core_Manager
         return $dataVal;
     }
     
-    
+
     /**
      * Екшън за модифициране на данни
      */
@@ -406,22 +406,22 @@ class core_Settings extends core_Manager
         
         // Вземаме стойностите за този потребител/роля
         $valsArr = self::fetchKeyNoMerge($key, $form->rec->_userOrRole);
-        
+
         // Добавяме стойностите по подразбиране
         foreach ($valsArr as $valKey => $val) {
             $form->setDefault($valKey, $val);
         }
-        
+
         // Извикваме интерфейсната функция
         $class->prepareSettingsForm($form);
-        
+
         $currCu = core_Users::getCurrent();
         
         $cuForAll = null;
         if (haveRole($form->fields['_userOrRole']->type->params['rolesForAllSysTeam'])) {
             $cuForAll = $currCu;
         }
-        
+
         // Ако в някое поле е зададено, че това е опция за всички потребители и кой може да го променя
         $uSettingForAllArr = array();
         $sForAllFieldArr = $form->selectFields('#settingForAll');
@@ -442,7 +442,7 @@ class core_Settings extends core_Manager
         
         // Ключа може да е променен в интерфейсния метод
         $key = $form->rec->_key;
-        
+
         // Ако е избран потребител, а не роля
         if ($form->rec->_userOrRole > 0) {
             
@@ -510,7 +510,7 @@ class core_Settings extends core_Manager
                 }
             }
         }
-        
+
         try {
             // Инпутваме формата
             $form->input();
@@ -520,7 +520,7 @@ class core_Settings extends core_Manager
                 $sudo = false;
             }
         }
-        
+
         if ($sudo) {
             core_Users::exitSudo();
         }
@@ -549,10 +549,10 @@ class core_Settings extends core_Manager
             unset($recArr['_className']);
             
             $sForAllValArr = null;
-            
-            // Премахваме всички празни стойности или defaul от enum
+
+            // Премахваме всички празни стойности или default от enum
             foreach ((array) $recArr as $valKey => $value) {
-                
+
                 // Ако тази опция е за всички потребители
                 if (!empty($uSettingForAllArr) && $uSettingForAllArr[$valKey] && ($allSystemId != $form->rec->_userOrRole)) {
                     $sForAllValArr[$valKey] = $value;
@@ -565,8 +565,19 @@ class core_Settings extends core_Manager
                 if ((!$value && !$instanceOfEnum && ($value !== 0)) || ($value == 'default' && $instanceOfEnum)) {
                     unset($recArr[$valKey]);
                 }
+
+                // Ако е ричтекст сравняваме уеднаквяваме новия ред преди да сравним
+                if ($form->fields[$valKey]->type instanceof type_Richtext) {
+                    $origVals = core_Packs::getAllConfigVals();
+                    $recComp = preg_replace('/(\r\n)|(\n\r)/', "\n", $recArr[$valKey]);
+                    $valComp = preg_replace('/(\r\n)|(\n\r)/', "\n", $origVals[$valKey]);
+
+                    if ($recComp == $valComp) {
+                        unset($recArr[$valKey]);
+                    }
+                }
             }
-            
+
             // Записваме данните
             self::setValues($key, (array) $recArr, $userOrRole);
             
@@ -647,7 +658,7 @@ class core_Settings extends core_Manager
         if ($mergeVals && $oldRec) {
             $valArr = array_merge((array) $oldRec->data, (array) $valArr);
         }
-        
+
         // Ако няма стойности, изтриваме записа
         if (!$valArr && $oldRec) {
             self::delete($oldRec->id);
