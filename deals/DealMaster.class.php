@@ -715,13 +715,16 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $row = (object) array(
             'title' => $title,
-            'subTitle' => $this->getSubTitle($rec),
             'authorId' => $rec->createdBy,
             'author' => $this->getVerbal($rec, 'createdBy'),
             'state' => $rec->state,
             'recTitle' => $title,
         );
-        
+
+        if(doc_plg_HidePrices::canSeePriceFields($rec)){
+            $row->subTitle = $this->getSubTitle($rec);
+        }
+
         return $row;
     }
     

@@ -315,7 +315,13 @@ class trans_LineDetails extends doc_Detail
         }
 
         if ($Document->haveRightFor('changeline') && (!Mode::is('printing') && !Mode::is('xhtml')) && $rec->status != 'removed') {
-            $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), array('ef_icon' => 'img/16/lorry_go.png', 'title' => 'Промяна на транспортната информация'));
+            $lineThreadId = trans_Lines::fetchField($rec->lineId, 'threadId');
+            $retUrl = (trans_Lines::haveRightFor('single', $rec->lineId)) ? array('doc_Containers', 'list', 'threadId' => $lineThreadId, 'docId' => trans_Lines::getHandle($rec->lineId), "#" => $handle) : true;
+            if (!Mode::is('screenMode', 'narrow')){
+                $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => $retUrl), false, 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
+            } else {
+                $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), array('ef_icon' => 'img/16/lorry_go.png', 'title' => 'Промяна на транспортната информация'));
+            }
         }
 
         // Ако има платежни документи към складовия
