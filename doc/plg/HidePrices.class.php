@@ -63,9 +63,9 @@ class doc_plg_HidePrices extends core_Plugin
     
     
     /**
-     * Дали потребителя може да вичжда чувствителната информация
+     * Дали потребителя може да вижда чувствителната информация
      */
-    protected static function canSeePriceFields($rec)
+    public static function canSeePriceFields($rec)
     {
         // Ако има изброените роли, може да вижда цените
         if (haveRole('ceo,seePrice')) {
