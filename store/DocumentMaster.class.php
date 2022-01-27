@@ -425,8 +425,8 @@ abstract class store_DocumentMaster extends core_Master
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
             $data->row = (object) ((array) $data->row + (array) $data->summary);
         }  elseif(!doc_plg_HidePrices::canSeePriceFields($rec)) {
-            $data->row->value = doc_plg_HidePrices::HIDDEN_PLACEHOLDER;
-            $data->row->total = doc_plg_HidePrices::HIDDEN_PLACEHOLDER;
+            $data->row->value = doc_plg_HidePrices::getBuriedElement();
+            $data->row->total = doc_plg_HidePrices::getBuriedElement();
         }
     }
     

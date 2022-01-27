@@ -1075,7 +1075,7 @@ class core_Packs extends core_Manager
             }
             
             $form->FNC($field, $type, $params);
-            
+
             if (($data[$field] || $data[$field] === (double) 0 || $data[$field] === (int) 0) &&
                             (!defined($field) || ($data[$field] != constant($field)))) {
                 $form->setDefault($field, $data[$field]);
@@ -1100,14 +1100,23 @@ class core_Packs extends core_Manager
         }
         
         if ($form->isSubmitted()) {
-            
+
             $callOnConfigChange = array();
             foreach ($description as $field => $params) {
                 
                 $sysDefault = defined($field) ? constant($field) : '';
                 $fType = $form->getFieldType($field, false);
-                if ($sysDefault != $form->rec->{$field}) {
-                    
+
+                $sysDefaultComp = $sysDefault;
+                $fieldComp = $form->rec->{$field};
+
+                // Уеднаквяваме края на реда за ричтекст полетата
+                if ($form->fields[$field]->type instanceof type_Richtext) {
+                    $fieldComp = preg_replace('/(\r\n)|(\n\r)/', "\n", $form->rec->{$field});
+                    $sysDefaultComp = preg_replace('/(\r\n)|(\n\r)/', "\n", $sysDefault);
+                }
+
+                if ($sysDefaultComp != $fieldComp) {
                     // Да може да се зададе автоматичната стойност
                     if ((($fType instanceof type_Class) || ($fType instanceof type_Enum) || ($fType instanceof color_Type))
                                     && ($fType->params['allowEmpty']) && ($form->rec->{$field} === null)) {
@@ -1177,7 +1186,58 @@ class core_Packs extends core_Manager
         
         return $this->renderWrapping($form->renderHtml());
     }
-    
+
+
+    /**
+     * Връща всички дефолтни конфигурации
+     *
+     * @return array
+     */
+    public static function getAllConfigVals()
+    {
+        static $allFieldArr = array();
+
+        if (!empty($allFieldArr)) {
+
+            return $allFieldArr;
+        }
+
+        $query = core_Packs::getQuery();
+        while ($rec = $query->fetch()) {
+
+            // Зареждаме сетъп пакета
+            $clsName = $rec->name . '_Setup';
+            if (!cls::load($clsName, true)) {
+                continue;
+            }
+            $clsInst = core_Cls::get($clsName);
+
+            // Ако няма полета за конфигуриране
+            if (!($clsInst->getConfigDescription())) {
+                continue;
+            }
+
+            // Флаг, който указва да не се вземат данните от настройките
+            // Да не се инвоква функцията от плъгините
+            $savedStopInvoke = core_ObjectConfiguration::$stopInvoke;
+            core_ObjectConfiguration::$stopInvoke = true;
+
+            $packConf = core_Packs::getConfig($rec->name);
+
+            // Обхождаме всички полета за конфигуриране
+            foreach ((array)$clsInst->getConfigDescription() as $field => $arguments) {
+
+                // Коя стойност да се използва за полето
+                $fieldVal = isset($settingsDefArr[$field]) ? $settingsDefArr[$field] : $packConf->{$field};
+                $allFieldArr[$field] = $fieldVal;
+            }
+
+            core_ObjectConfiguration::$stopInvoke = $savedStopInvoke;
+        }
+
+        return $allFieldArr;
+    }
+
     
     /**
      * Метод викащ се след промяна на уеб константа, на която и е зададен метод за викане

@@ -22,13 +22,6 @@
  */
 class doc_plg_HidePrices extends core_Plugin
 {
-
-    /**
-     * Какво да се показва когато е скрито полето
-     */
-    const HIDDEN_PLACEHOLDER = "<span class='confidential-field'>confidential</span>";
-
-
     /**
      * След инициализирането на модела
      *
@@ -186,8 +179,18 @@ class doc_plg_HidePrices extends core_Plugin
             $data = new stdClass();
         }
     }
-    
-    
+
+
+    /**
+     * Какъв е скритие елемент, с който ще се замести чувствителната информация
+     * @return string
+     */
+    public static function getBuriedElement()
+    {
+        return "<span class='confidential-field'>" . tr('заличено||buried'). "</span>";
+    }
+
+
     /**
      * Ф-я махаща всички полета от вербален запис, които са маркирани
      */
@@ -195,7 +198,7 @@ class doc_plg_HidePrices extends core_Plugin
     {
         if (countR($fields)) {
             foreach ($fields as $name) {
-                $row->{$name} = static::HIDDEN_PLACEHOLDER;
+                $row->{$name} = static::getBuriedElement();
             }
         }
     }
