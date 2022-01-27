@@ -22,6 +22,13 @@
  */
 class doc_plg_HidePrices extends core_Plugin
 {
+
+    /**
+     * Какво да се показва когато е скрито полето
+     */
+    const HIDDEN_PLACEHOLDER = "<span class='confidential-field'>confidential</span>";
+
+
     /**
      * След инициализирането на модела
      *
@@ -188,7 +195,7 @@ class doc_plg_HidePrices extends core_Plugin
     {
         if (countR($fields)) {
             foreach ($fields as $name) {
-                unset($row->{$name});
+                $row->{$name} = static::HIDDEN_PLACEHOLDER;
             }
         }
     }

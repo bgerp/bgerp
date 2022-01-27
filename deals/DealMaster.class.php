@@ -658,6 +658,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 
                 cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
             }
+        }  elseif(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+            $data->row->value = doc_plg_HidePrices::HIDDEN_PLACEHOLDER;
+            $data->row->total = doc_plg_HidePrices::HIDDEN_PLACEHOLDER;
         }
     }
     
