@@ -605,7 +605,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                                 $rec->{$mvc->lineFieldName} = $oldLineId;
                                 
                                 if($mvc instanceof cash_Document){
-                                    $lineCaseId = trans_Lines::fetchField($oldLineId, 'caseId');
+                                    $lineCaseId = trans_Lines::fetchField($oldLineId, 'defaultCaseId');
                                     if($lineCaseId && empty($rec->peroCase)){
                                         $rec->peroCase = $lineCaseId;
                                     }
