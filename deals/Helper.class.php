@@ -352,7 +352,7 @@ abstract class deals_Helper
             $arr['vat02BaseAmount'] = '0.00';
             $arr['vat02BaseCurrencyId'] = $baseCurrency;
         }
-        
+
         return (object) $arr;
     }
     

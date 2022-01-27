@@ -622,7 +622,7 @@ abstract class deals_InvoiceMaster extends core_Master
     {
         parent::prepareSingle_($data);
         $rec = &$data->rec;
-        
+
         if (empty($data->noTotal)) {
             if (isset($rec->type) && $rec->type != 'invoice' && isset($rec->changeAmount)) {
                 $this->_total = new stdClass();
@@ -637,9 +637,11 @@ abstract class deals_InvoiceMaster extends core_Master
             
             $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->date, $rate, $rec->currencyId, $rec->vatRate, true, $rec->tplLang);
-            
+
             $data->row = (object) ((array) $data->row + (array) $data->summary);
             $data->row->vatAmount = $data->summary->vatAmount;
+        } elseif(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+            $data->row->value = doc_plg_HidePrices::HIDDEN_PLACEHOLDER;
         }
     }
     
