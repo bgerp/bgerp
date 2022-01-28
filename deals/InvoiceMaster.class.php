@@ -1619,7 +1619,11 @@ abstract class deals_InvoiceMaster extends core_Master
                 $dRec->packPrice = $dRec->price * $dRec->quantityInPack;
                 unset($dRec->discount);
             }
-            $dRec->clonedFromDetailId = $dRec->id;
+
+            if(!($this instanceof sales_Proformas)){
+                $dRec->clonedFromDetailId = $dRec->id;
+            }
+
             unset($dRec->id);
             unset($dRec->{$Detail->masterKey});
             unset($dRec->createdOn);
