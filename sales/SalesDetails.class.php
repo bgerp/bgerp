@@ -235,7 +235,7 @@ class sales_SalesDetails extends deals_DealDetail
                    $warning = 'Цената е под себестойността';
                    if(isset($foundPrimeCost)){
                        $foundPrimeCost /= $masterRec->currencyRate;
-                       $primeCostVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
+                       $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
                        $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                    }
                    
