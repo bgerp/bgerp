@@ -225,6 +225,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 if ($rec->crmGroup && !$rec->contragent) {
                     $foldersInGroups = self::getFoldersInGroups($rec);
 
+                    if (empty($foldersInGroups)){
+                        return $recs;
+                    }
+
                     $invQuery->in('folderId', $foldersInGroups);
                 }
 
@@ -235,9 +239,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                     $foldersInGroups = self::getFoldersInGroups($rec);
 
+                    if (empty($foldersInGroups)){
+                        return $recs;
+                    }
+
                     $invQuery->in('folderId', $foldersInGroups);
                 }
             }
+
 
             // Обединени продажби
             $salesQuery = sales_Sales::getQuery();

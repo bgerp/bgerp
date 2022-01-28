@@ -3242,6 +3242,7 @@ class cat_Products extends embed_Manager
      *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
      *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
      *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
+     *               o description                    - забележки
      *
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал

@@ -658,6 +658,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 
                 cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
             }
+        }  elseif(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+            $data->row->value = doc_plg_HidePrices::getBuriedElement();
+            $data->row->total = doc_plg_HidePrices::getBuriedElement();
         }
     }
     
@@ -715,13 +718,16 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $row = (object) array(
             'title' => $title,
-            'subTitle' => $this->getSubTitle($rec),
             'authorId' => $rec->createdBy,
             'author' => $this->getVerbal($rec, 'createdBy'),
             'state' => $rec->state,
             'recTitle' => $title,
         );
-        
+
+        if(doc_plg_HidePrices::canSeePriceFields($rec)){
+            $row->subTitle = $this->getSubTitle($rec);
+        }
+
         return $row;
     }
     

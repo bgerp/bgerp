@@ -30,7 +30,7 @@ class plg_AlignDecimals2 extends core_Plugin
         // Намираме всички полета, които се показват от типа Double
         $decFields = array();
         foreach ($mvc->fields as $name => $field) {
-            if ($field->type instanceof type_Double && $filed->input != 'none' && !($field->type instanceof type_Percent)) {
+            if ($field->type instanceof type_Double && $field->input != 'none' && !($field->type instanceof type_Percent)) {
                 $decFields[] = $name;
             }
         }
@@ -52,7 +52,8 @@ class plg_AlignDecimals2 extends core_Plugin
         // Закръгляме сумата и я обръщаме във вербален вид
         foreach ($recs as $id => &$rec) {
             foreach ($decFields as $fName) {
-                if (isset($recs[$id]->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName})) {
+                $buriedElement = doc_plg_HidePrices::getBuriedElement();
+                if (isset($rec->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName}) && $rows[$id]->{$fName} != $buriedElement) {
                     $Type = clone $mvc->fields[$fName]->type;
                     
                     if(!$Type->params['decimals']) {
@@ -62,11 +63,6 @@ class plg_AlignDecimals2 extends core_Plugin
                     }
                     
                     $rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});
-                    //if(strpos($rows[$id]->{$fName}, $mvc->getFieldType($fName)->toVerbal($rec->{$fName})) !== FALSE) {
-                       // $rows[$id]->{$fName} = str_replace($mvc->getFieldType($fName)->toVerbal($rec->{$fName}), $Type->toVerbal($rec->{$fName}), $rows[$id]->{$fName});
-                    //} else {
-                      //  $rows[$id]->{$fName} = $Type->toVerbal($rec->{$fName});
-                    //}
                 }
             }
         }
