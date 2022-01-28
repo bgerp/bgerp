@@ -309,15 +309,16 @@ class rack_MovementGenerator2 extends core_Manager
             foreach($zoneKeys as $zKey) {
                 $rate = 0;
                 $move = self::moveGen($pArr, $zones, $cKey, $zKey, $rate, $packArr, $pallets, $qInPallet);
-                // $d[$cKey .'-' . $zKey] = (object) array('move' => $move, 'rate' => $rate);
+                 $d[$cKey .'-' . $zKey] = (object) array('move' => $move, 'rate' => $rate);
                 if($bestRate === null || $bestRate > $rate) {
                     $bestMove = $move;
                     $bestRate = $rate;
                 }
             }
         }
-   
  
+ 
+
         // Генерираме движенията за всяка група и изисляваме времето, което ще отнеме
         if(is_array($bestMove)){
             foreach($bestMove as $m) {
@@ -347,7 +348,7 @@ class rack_MovementGenerator2 extends core_Manager
      */
     public static function isFirstRow($pos)
     {
-        return stripos($pos, 'a') || stripos($pos, 'а');
+        return stripos($pos, 'a') !== false || stripos($pos, 'а') !== false;
     }
     
     
@@ -408,7 +409,9 @@ class rack_MovementGenerator2 extends core_Manager
                 }
             }
             
-            $getTime = $timeGet;
+            $getTime = $timeGet * (1.1 - 0.1 * self::isFirstRow($o->pallet));
+          
+
             $retTime = 0;
 
             if($pQ) {
@@ -416,15 +419,14 @@ class rack_MovementGenerator2 extends core_Manager
                 if(isset($qInPallet) && $pQ > $qInPallet/3) {
                     $o->quantity = $o->quantity - $pQ;
                     $o->partial  = true;
-                    $getTime += self::timeToCount($o->quantity, $packs) + self::timeToCount($pQ, $packs) ;
+                    $getTime += self::timeToCount($o->quantity, $packs) + 5*($o->quantity + $pQ == $qInPallet) ;
                 } else {
                     $p[$pI] = 0;
                     $o->ret = $pQ;
                     $o->retPos = $o->pallet;
                     $retTime = $timeReturn;
                     $retTime += self::timeToCount($pQ, $packs);
-                    $o->returnTime = $retTime;
-                    $rate += $retTime;
+
                     // Намираме най-добрата позиция за връщане на палет
                     // На първи ред с някаква предишна наличност
                     // На първи ред без предишна наличност
@@ -433,7 +435,8 @@ class rack_MovementGenerator2 extends core_Manager
                         foreach($allPallets as $pallet) {
                             $pos = $pallet->position;
                             if(self::isFirstRow($pos) && $pallet->quantity > 0) {
-                                if($pallet->quantity + $o->ret <= $qInPallet) {
+                                $maxLoad = self::getMaxLoad($pos);
+                                if($pallet->quantity + $o->ret <= $qInPallet * $maxLoad) {
                                     $o->retPos = $pos;
                                     break;
                                 }
@@ -448,6 +451,7 @@ class rack_MovementGenerator2 extends core_Manager
                     if(!isset($qInPallet) || $qInPallet != $o->quantity || $o->ret < 0.20 * $qInPallet || $o->ret > 0.80 * $qInPallet) {
                         $o->quantity = $o->quantity - $o->ret;
                         $o->ret = $o->retPos = null;
+                        $retTime = 0;
                     }
                 }
             } 
@@ -494,6 +498,26 @@ class rack_MovementGenerator2 extends core_Manager
         return $res;
     }
 
+
+    /**
+     * Връща процента на максимално натоварване
+     * Той отразява колко процента за дадения стелаж от пълен палет стока може да се натовари на една позиция
+     */
+    public static function getMaxLoad($pos)
+    {
+        $res = null;
+
+        if($rack = (int) $pos) {
+            $rRec = rack_Racks::fetch($rack);
+            $res = $rRec->maxLoad;
+        }
+
+        if(!$res) {
+            $res = 1;
+        }
+
+        return $res;
+    }
 
     
     /**
