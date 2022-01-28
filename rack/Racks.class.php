@@ -132,8 +132,9 @@ class rack_Racks extends core_Master
         $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter,input=none');
         $this->FLD('reserved', 'int', 'caption=Палет-места->Запазени,smartCenter,input=none');
         
-        $this->FLD('constrColumnsStep', 'int', 'caption=Брой палети на една основа->Палети,smartCenter');
-        
+        $this->FLD('constrColumnsStep', 'int', 'caption=Палети на една основа->Брой,smartCenter');
+        $this->FLD('maxLoad', 'percent', 'smartCenter,placeholder=100%,suggestions=100%|90%|80%|70%|60%|50%|40%|30%|20%|10%', array('caption' => 'Допустимо натоварване, като част от пълен палет->Част'));
+
         $this->setDbIndex('storeId');
         $this->setDbUnique('storeId,num');
     }

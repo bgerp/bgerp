@@ -113,9 +113,13 @@ class rack_PositionType extends type_Varchar
     public static function toArray($p)
     {
         $matches = array();
-        preg_match('/([0-9]{1,3})[\\-]{0,1}([a-z])[\\-]{0,1}([0-9]{1,3})(\-?)([a-z]{0,1})/i', $p, $matches);
         
-        $res = array((int) $matches[1], strtoupper($matches[2]), (int) $matches[3], strtolower($matches[5]));
+        $res = null;
+
+        if(preg_match('/([0-9]{1,3})[\\-]{0,1}([a-z])[\\-]{0,1}([0-9]{1,3})(\-?)([a-z]{0,1})/i', $p, $matches)) {
+        
+            $res = array((int) $matches[1], strtoupper($matches[2]), (int) $matches[3], strtolower($matches[5]));
+        }
 
         return $res;
     }
