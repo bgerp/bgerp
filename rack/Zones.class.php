@@ -1144,6 +1144,7 @@ class rack_Zones extends core_Master
                 while($packRec = $packQuery->fetch("#productId = {$pRec->productId}")) {
                     $packagings[] = $packRec;
                 }
+
                 $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, $packagings);
             } else {
                 $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);

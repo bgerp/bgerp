@@ -52,8 +52,14 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
      * Кой има право да променя взаимно заменяемите артикули?
      */
     public $canReplaceproduct = 'ceo,planning,store';
-    
-    
+
+
+    /**
+     * Може ли да се импортират цени
+     */
+    public $allowPriceImport = false;
+
+
     /**
      * Кой има право да добавя?
      */

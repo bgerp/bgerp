@@ -238,15 +238,19 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
             $metaArr = arr::make($mvc->metaProducts, true);
             if(!countR($metaArr)){
                 $masterRec = $mvc->Master->fetch($masterId);
-                if(isset($masterRec->originId)){
-                    $Document = doc_Containers::getDocument($masterRec->originId);
-                    if ($Document->className == 'sales_Sales') {
-                        $metaArr = array('canSell' => 'canSell');
-                    } elseif ($Document->className == 'purchase_Purchases') {
-                        $metaArr = array('canBuy' => 'canBuy');
+                if($mvc instanceof planning_DirectProductNoteDetails){
+                    $metaArr = array('canConvert' => 'canConvert');
+                } else {
+                    if(isset($masterRec->originId)){
+                        $Document = doc_Containers::getDocument($masterRec->originId);
+                        if ($Document->className == 'sales_Sales') {
+                            $metaArr = array('canSell' => 'canSell');
+                        } elseif ($Document->className == 'purchase_Purchases') {
+                            $metaArr = array('canBuy' => 'canBuy');
+                        }
+                    } elseif($mvc instanceof store_TransfersDetails){
+                        $metaArr = array('canStore' => 'canStore');
                     }
-                } elseif($mvc instanceof store_TransfersDetails){
-                    $metaArr = array('canStore' => 'canStore');
                 }
             }
 

@@ -169,7 +169,7 @@ class cat_Products extends embed_Manager
     /**
      * Кой може да затваря?
      */
-    public $canClose = 'cat,ceo,sales,purchase';
+    public $canClose = 'cat,ceo,sales,purchase,planning,production';
     
     
     /**
@@ -299,7 +299,7 @@ class cat_Products extends embed_Manager
     /**
      * Полета, които могат да бъдат експортирани
      */
-    public $exportableCsvFields = 'code, name, nameEn, measureId, groups, meta';
+    public $exportableCsvFields = 'code, name, nameEn, measureId, groups, meta, info';
     
     
     /**
@@ -1479,7 +1479,7 @@ class cat_Products extends embed_Manager
                 $bQuery = cat_Boms::getQuery();
                 $bQuery->where("#state = 'active'");
                 $bQuery->groupBy('productId');
-                $where = "#innerClass = " . planning_interface_StageDriver::getClassId();
+                $where = "#innerClass = " . planning_interface_StepProductDriver::getClassId();
                 $in = arr::extractValuesFromArray($bQuery->fetchAll(), 'productId');
                 if(countR($in)){
                     $in = implode(',', $in);
@@ -1877,9 +1877,12 @@ class cat_Products extends embed_Manager
                     $allowedMeasures += cat_Uom::getSameTypeMeasures($secondMeasureId);
                 }
                 unset($allowedMeasures['']);
-
-                $allowedMeasuresString = implode(',', array_keys($allowedMeasures));
-                $packQuery->where("#type != 'uom' OR #packagingId IN ({$allowedMeasuresString})");
+                if(countR($allowedMeasures)){
+                    $allowedMeasuresString = implode(',', array_keys($allowedMeasures));
+                    $packQuery->where("#type != 'uom' OR #packagingId IN ({$allowedMeasuresString})");
+                } else {
+                    $packQuery->where("1=2");
+                }
             }
 
             while ($packRec = $packQuery->fetch()) {
@@ -3210,8 +3213,8 @@ class cat_Products extends embed_Manager
     {
         $mvc->createdProducts[] = $rec;
     }
-    
-    
+
+
     /**
      * Връща информация за какви дефолт задачи за производство могат да се създават по артикула
      *
@@ -3232,12 +3235,14 @@ class cat_Products extends embed_Manager
      *               o employees                      - списък (кейлист) от служители
      *               o storeId                        - склад
      *               o indTime                        - норма
+     *               o centerId                       - център на производство
      *               o indPackagingId                 - опаковка/мярка за норма
      *               o indTimeAllocation              - начин на отчитане на нормата
      *               o showadditionalUom              - какъв е режима за изчисляване на теглото
      *               o weightDeviationNotice          - какво да е отклонението на теглото за внимание
      *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
      *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
+     *               o description                    - забележки
      *
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал

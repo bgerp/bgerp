@@ -198,6 +198,10 @@ abstract class deals_QuotationMaster extends core_Master
         $form = &$data->form;
         $rec = &$form->rec;
 
+        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+            $form->setReadOnly('chargeVat');
+        }
+
         $form->input('deliveryTermId');
         if(isset($rec->deliveryTermId)){
             if(cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)){
@@ -273,6 +277,15 @@ abstract class deals_QuotationMaster extends core_Master
      */
     public function getDefaultChargeVat($rec)
     {
+        // Ako "Моята фирма" е без ДДС номер - без начисляване
+        if(!crm_Companies::isOwnCompanyVatRegistered()) return 'no';
+
+        // После се търси по приоритет
+        foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
+            $chargeVat = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'chargeVat', $strategy);
+            if(!empty($chargeVat)) return $chargeVat;
+        }
+
         return deals_Helper::getDefaultChargeVat($rec->folderId);
     }
 

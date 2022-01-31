@@ -278,7 +278,11 @@ abstract class deals_DealMaster extends deals_DealBase
         $form = &$data->form;
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = $form->rec;
-        
+
+        if(!crm_Companies::isOwnCompanyVatRegistered()) {
+            $form->setReadOnly('chargeVat');
+        }
+
         if (empty($rec->id)) {
             $form->setDefault('shipmentStoreId', store_Stores::getCurrent('id', false));
         }
@@ -323,6 +327,15 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     public function getDefaultChargeVat($rec)
     {
+        // Ako "Моята фирма" е без ДДС номер - без начисляване
+        if(!crm_Companies::isOwnCompanyVatRegistered()) return 'no';
+
+        // После се търси по приоритет
+        foreach (array('clientCondition', 'lastDocUser', 'lastDoc') as $strategy){
+            $chargeVat = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'chargeVat', $strategy);
+            if(!empty($chargeVat)) return $chargeVat;
+        }
+
         return deals_Helper::getDefaultChargeVat($rec->folderId);
     }
     
@@ -645,6 +658,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 
                 cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->valior, $rec->currencyId);
             }
+        }  elseif(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+            $data->row->value = doc_plg_HidePrices::getBuriedElement();
+            $data->row->total = doc_plg_HidePrices::getBuriedElement();
         }
     }
     
@@ -702,13 +718,16 @@ abstract class deals_DealMaster extends deals_DealBase
         
         $row = (object) array(
             'title' => $title,
-            'subTitle' => $this->getSubTitle($rec),
             'authorId' => $rec->createdBy,
             'author' => $this->getVerbal($rec, 'createdBy'),
             'state' => $rec->state,
             'recTitle' => $title,
         );
-        
+
+        if(doc_plg_HidePrices::canSeePriceFields($rec)){
+            $row->subTitle = $this->getSubTitle($rec);
+        }
+
         return $row;
     }
     
@@ -1654,7 +1673,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - COALESCE(#amountInvoiced, 0), 2)');
         $query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered, 2)');
         
-        $percent = bgerp_Setup::get('CLOSE_UNDELIVERED_OVER');
+        $percent = deals_Setup::get('CLOSE_UNDELIVERED_OVER');
         $percent = (!empty($percent)) ? $percent : 1;
         
         $query->XPR('minDelivered', 'double', "ROUND(#amountDeal * {$percent}, 2)");

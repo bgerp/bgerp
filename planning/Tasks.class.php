@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -114,6 +114,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Кой може да ги създава от задания?
+     */
+    public $canCreatejobtasks = 'ceo, taskPlanning';
+
+
+    /**
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,taskPlanning';
@@ -180,7 +186,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,inputInTask,totalQuantity,plannedQuantity';
+    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,inputInTask,totalQuantity,plannedQuantity,timeStart,timeEnd,timeDuration,systemId';
     
     
     /**
@@ -251,7 +257,7 @@ class planning_Tasks extends core_Master
         $this->FLD('producedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Заскладено,input=none');
         
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
-        $this->FNC('systemId', 'int', 'silent,input=hidden');
+        $this->FLD('systemId', 'int', 'silent,input=hidden');
         $this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
         $this->FLD('inputInTask', 'int', 'caption=Произвеждане->Влагане в,input=none,after=indTime');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание,autoHide');
@@ -313,10 +319,9 @@ class planning_Tasks extends core_Master
     /**
      * След рендиране на единичния изглед
      *
-     * @param cat_ProductDriver $Driver
-     * @param embed_Manager     $Embedder
-     * @param core_ET           $tpl
-     * @param stdClass          $data
+     * @param core_Mvc $mvc
+     * @param core_ET  $tpl
+     * @param stdClass $data
      */
     protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
     {
@@ -337,7 +342,7 @@ class planning_Tasks extends core_Master
         static::fillGapsInRec($rec);
         $row = parent::recToVerbal_($rec, $fields);
         $mvc = cls::get(get_called_class());
-        $row->title = self::getHyperlink($rec->id, (isset($fields['-list']) ? true : false));
+        $row->title = self::getHyperlink($rec->id, isset($fields['-list']));
         
         $red = new color_Object('#FF0000');
         $blue = new color_Object('green');
@@ -530,7 +535,7 @@ class planning_Tasks extends core_Master
      * Добавя допълнителни полетата в антетката
      *
      * @param core_Master $mvc
-     * @param NULL|array  $res
+     * @param NULL|array  $resArr
      * @param object      $rec
      * @param object      $row
      */
@@ -549,14 +554,17 @@ class planning_Tasks extends core_Master
         } elseif(empty($rec->totalWeight)) {
             $row->totalWeight = "<span class='quiet'>N/A</span>";
         }
-        
-        $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table>
+
+        $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+        if($canStore == 'yes'){
+            $resArr['additional'] = array('name' => tr('Изчисляване на тегло'), 'val' => tr("|*<table>
                 <!--ET_BEGIN totalWeight--><tr><td style='font-weight:normal'>|Общо тегло|*:</td><td>[#totalWeight#]</td></tr><!--ET_END totalWeight-->
                 <tr><td style='font-weight:normal'>|Режим|*:</td><td>[#showadditionalUom#]</td></tr>
                 <!--ET_BEGIN weightDeviationNotice--><tr><td style='font-weight:normal'>|Отбелязване|*:</td><td>+/- [#weightDeviationNotice#]</td></tr><!--ET_END weightDeviationNotice-->
                 <tr><td style='font-weight:normal'>|Предупреждение|*:</td><td>+/- [#weightDeviationWarning#]</td></tr>
                 <!--ET_BEGIN weightDeviationAverageWarning--><tr><td style='font-weight:normal'>|Спрямо средното|*:</td><td>+/- [#weightDeviationAverageWarning#]</td></tr><!--ET_END weightDeviationAverageWarning-->
                 </table>"));
+        }
         
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table>
                 <tr><td style='font-weight:normal'>|Етикет|*:</td><td>[#labelType#]</td></tr>
@@ -666,9 +674,10 @@ class planning_Tasks extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
-        return true;
+        $Cover = doc_Folders::getCover($folderId);
+
+        return $Cover->isInstanceOf('planning_Centers');
     }
-    
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
@@ -708,6 +717,40 @@ class planning_Tasks extends core_Master
         if ($action == 'close' && $rec) {
             if ($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped') {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'createjobtasks' && isset($rec)){
+
+            if(empty($rec->type) || empty($rec->jobId)){
+                $requiredRoles = 'no_one';
+            } elseif(!in_array($rec->type, array('all', 'clone'))){
+                $requiredRoles = 'no_one';
+            } else {
+                $jobRec = planning_Jobs::fetch($rec->jobId);
+                if(!$mvc->haveRightFor('add', (object)array('folderId' => $rec->folderId, 'originId' => $jobRec->containerId))){
+                    $requiredRoles = 'no_one';
+                } else {
+                    if($rec->type == 'clone'){
+                        if(empty($rec->cloneId) || empty($jobRec->oldJobId)){
+                            $requiredRoles = 'no_one';
+                        }
+                    } elseif($rec->type == 'all') {
+                        $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+                        if(!countR($defaultTasks)){
+                            $requiredRoles = 'no_one';
+                        } else {
+                            $tQuery = planning_Tasks::getQuery();
+                            $tQuery->where("#originId = {$jobRec->containerId} AND #systemId IS NOT NULL AND #state != 'rejected'");
+                            $tQuery->show('systemId');
+                            $exSystemIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'systemId');
+                            $remainingSystemTasks = array_diff_key($defaultTasks, $exSystemIds);
+                            if(!countR($remainingSystemTasks)){
+                                $requiredRoles = 'no_one';
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -809,7 +852,7 @@ class planning_Tasks extends core_Master
         $origin = doc_Containers::getDocument($rec->originId);
         $originRec = $origin->fetch();
         
-        // Добавяме допустимите опции
+        // Добавяне на допустимите опции
         $options = planning_Centers::getManifacturableOptions($rec->folderId);
         if(!array_key_exists($originRec->productId, $options)){
             $options = array("{$originRec->productId}" => cat_Products::getTitleById($originRec->productId, false)) + $options;
@@ -822,9 +865,10 @@ class planning_Tasks extends core_Master
         $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
         
         if (isset($rec->systemId, $tasks[$rec->systemId])) {
-            $fields = array_keys($form->selectFields("#input != 'none' AND #input != 'hidden'"));
-            foreach ($fields as $fieldName) {
-                $form->setDefault($fieldName, $tasks[$rec->systemId]->{$fieldName});
+            $taskData = (array)$tasks[$rec->systemId];
+            unset($taskData['products']);
+            foreach ($taskData as $fieldName => $defaultValue) {
+                $form->setDefault($fieldName, $defaultValue);
             }
             $form->setReadOnly('productId');
         }
@@ -855,7 +899,9 @@ class planning_Tasks extends core_Master
                 $form->setDefault('measureId', $productRec->measureId);
                 $form->setField('measureId', 'input=hidden');
             }
-           
+
+            $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
+
             if (empty($rec->id)) {
                 
                 // Показване на параметрите за задача във формата, като задължителни полета
@@ -913,6 +959,11 @@ class planning_Tasks extends core_Master
                 $packs = cat_Products::getPacks($rec->productId, false, $originRec->secondMeasureId);
                 $form->setOptions('packagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
+            } else {
+                $form->setField('showadditionalUom', 'input=none');
+                $form->setField('weightDeviationNotice', 'input=none');
+                $form->setField('weightDeviationWarning', 'input=none');
+                $form->setField('weightDeviationAverageWarning', 'input=none');
             }
             
             // Ако артикула е вложим, може да се влага по друга операция
@@ -955,29 +1006,22 @@ class planning_Tasks extends core_Master
         }
         
         foreach (array('fixedAssets' => 'planning_AssetResources', 'employees' => 'planning_Hr') as $field => $Det) {
-            $arr = $Det::getByFolderId($rec->folderId);
+            $suggestions = $Det::getByFolderId($rec->folderId, $rec->{$field});
+            if (countR($suggestions)) {
+                $form->setField($field, 'input');
+                $form->setSuggestions($field, $suggestions);
 
-            if (!empty($rec->{$field})) {
-                $alreadyIn = keylist::toArray($rec->{$field});
-                foreach ($alreadyIn as $fId) {
-                    if (!array_key_exists($fId, $arr)) {
-                        $arr[$fId] = $Det::getTitleById($fId, false);
+                if($field == 'fixedAssets') {
+                    $plannedAssets = cat_Products::getParams($rec->productId, 'planningAssets');
+                    if (!empty($plannedAssets)) {
+                        $intersected = array_intersect_key($suggestions, keylist::toArray($plannedAssets));
+                        if(countR($intersected)){
+                            $form->setDefault('fixedAssets', keylist::fromArray($intersected));
+                        }
                     }
                 }
-            }
-
-            if (countR($arr)) {
-                $form->setSuggestions($field, $arr);
             } else {
                 $form->setField($field, 'input=none');
-            }
-
-            if($field == 'fixedAssets'){
-                $plannedAssets = cat_Products::getParams($rec->productId, 'planningAssets');
-                if(!empty($plannedAssets)){
-                    $plannedAssets = keylist::toArray($plannedAssets);
-                    $form->setDefault('fixedAssets', $plannedAssets);
-                }
             }
         }
 
@@ -1095,12 +1139,11 @@ class planning_Tasks extends core_Master
         $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart,costsCount');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        
         $tpl = $table->get($data->rows, $data->listFields);
         
         // Имали бутони за добавяне
         if (isset($data->addUrlArray)) {
-            $btn = ht::createBtn('Нова операция', $data->addUrlArray, false, false, "title=Създаване на производствена операция към задание,ef_icon={$this->singleIcon}");
+            $btn = ht::createLink('', $data->addUrlArray, false, "title=Създаване на производствена операция към задание,ef_icon=img/16/add.png");
             $tpl->append($btn, 'btnTasks');
         }
         
@@ -1226,10 +1269,8 @@ class planning_Tasks extends core_Master
     /**
      * Връща количеството произведено по задачи по дадено задание
      *
-     * @param mixed                     $jobId
-     * @param string $type
-     *
-     * @return float $quantity
+     * @param int|stdClass $jobId
+     * @return double $quantity
      */
     public static function getProducedQuantityForJob($jobId)
     {
@@ -1292,13 +1333,12 @@ class planning_Tasks extends core_Master
     public function searchByCode($str)
     {
         $resArr = array();
-        
         $str = trim($str);
         
-        $taskDetilQuery = planning_ProductionTaskDetails::getQuery();
-        $taskDetilQuery->where(array("#serial = '[#1#]'", $str));
+        $taskDetailQuery = planning_ProductionTaskDetails::getQuery();
+        $taskDetailQuery->where(array("#serial = '[#1#]'", $str));
         
-        while($dRec = $taskDetilQuery->fetch()) {
+        while($dRec = $taskDetailQuery->fetch()) {
             
             $res = new stdClass();
             $tRec = $this->fetch($dRec->taskId);
@@ -1353,9 +1393,9 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        
-        if ($mvc->haveRightFor('single', $rec)) {
-            $data->toolbar->addBtn('Работна карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция');
+
+        if ($mvc->haveRightFor('single', $rec) && $rec->state != 'rejected') {
+            $data->toolbar->addBtn('Р. карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция,row=2');
         }
 
         if ($mvc->haveRightFor('edit', $rec)) {
@@ -1501,5 +1541,91 @@ class planning_Tasks extends core_Master
         }
 
         return $result;
+    }
+
+
+    /**
+     * Екшън за създаване на задачи към задание
+     *
+     * @return void
+     * @throws core_exception_Expect
+     */
+    public function act_CreateJobTasks()
+    {
+        planning_Tasks::requireRightFor('createjobtasks');
+        expect($type = Request::get('type', 'enum(all,clone)'));
+        expect($jobId = Request::get('jobId', 'int'));
+        expect($jobRec = planning_Jobs::fetch($jobId));
+
+        // Ако ще се клонира съществуваща операция
+        if($type == 'clone'){
+            expect($cloneId = Request::get('cloneId', 'int'));
+            planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'cloneId' => $cloneId, 'type' => 'clone'));
+            expect($taskRec = $this->fetch($cloneId));
+
+            $newTask = clone $taskRec;
+            plg_Clone::unsetFieldsNotToClone($this, $newTask, $taskRec);
+
+            $newTask->plannedQuantity = $taskRec->plannedQuantity;
+            $newTask->_isClone = true;
+            $newTask->originId = $jobRec->containerId;
+            $newTask->state = 'draft';
+            $newTask->clonedFromId = $newTask->id;
+            unset($newTask->id);
+            unset($newTask->threadId);
+            unset($newTask->containerId);
+            unset($newTask->createdOn);
+            unset($newTask->createdBy);
+            unset($newTask->systemId);
+
+            if ($this->save($newTask)) {
+                $this->invoke('AfterSaveCloneRec', array($taskRec, &$newTask));
+                $this->logWrite('Клониране от предходно задание', $newTask->id);
+            }
+
+            followRetUrl(null, 'Операцията е клонирана успешно');
+        } elseif($type == 'all'){
+
+            // Ако ще се клонират всички шаблонни операции
+            planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'));
+
+            $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
+            foreach ($defaultTasks as $sysId => $defaultTask){
+                if(planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")) continue;
+
+                unset($defaultTask->products);
+                $newTask = clone $defaultTask;
+                $newTask->originId = $jobRec->containerId;
+                $newTask->systemId = $sysId;
+
+                // Клонират се в папката на посочения в тях център, ако няма в центъра от заданието, ако и там няма в Неопределения
+                $folderId = isset($defaultTask->centerId) ? planning_Centers::fetchField($defaultTask->centerId, 'folderId') : ((!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : null);
+                if(planning_Tasks::canAddToFolder($folderId)){
+                    $folderId = planning_Centers::getUndefinedFolderId();
+                }
+                $newTask->folderId = $folderId;
+                $this->save($newTask);
+                $this->logWrite('Автоматично създаване от задание', $newTask->id);
+            }
+
+            followRetUrl(null, 'Операциите са успешно създадени');
+        }
+
+        followRetUrl(null, 'Имаше проблем', 'error');
+    }
+
+
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    public static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако се иска директно контиране редирект към екшъна за контиране
+        if (isset($data->form) && $data->form->isSubmitted() && $data->form->rec->id) {
+            $retUrl = getRetUrl();
+            if($retUrl['Ctr'] == 'planning_Jobs' && $retUrl['Act'] == 'selectTaskAction'){
+                $data->retUrl = $retUrl;
+            }
+        }
     }
 }

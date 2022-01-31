@@ -88,19 +88,19 @@
 			<table class="listTable lineSummary" style="margin-top:10px;margin-bottom:10px">
 				<thead>
 				<tr>
-					<td class="sum-th">|Общо тегло|*</td>
-					<td class="sum-th">|Общ обем|*</td>
 					<td class="sum-th">|Инкасирано|*, [#baseCurrencyCode#]</td>
 					<td class="sum-th">|Изплатено|*, [#baseCurrencyCode#]</td>
-					<td class="sum-th">|Логистични единици|*</td>
+					<td class="sum-th">|Общо тегло|*</td>
+					<td class="sum-th">|Общ обем|*</td>
+					<td class="sum-th">|Общо ЛЕ|*</td>
 					<td class="sum-th">|Информация|*</td>
 				</tr>
 				</thead>
 				<tr>
+					<td class="centered">[#totalAmount#] <div class="quiet small">( [#totalAmountExpected#] )</div></td>
+					<td class="centered">[#totalAmountReturn#]</td>
 					<td class="centered">[#weight#]</td>
 					<td class="centered">[#volume#]</td>
-					<td class="centered">[#totalAmount#]</td>
-					<td class="centered">[#totalAmountReturn#]</td>
 					<td class="centered">[#transUnitsTotal#]</td>
 					<td class="centered" style="font-size:0.8em;text-align:left">
 						<!--ET_BEGIN defaultCaseId-->

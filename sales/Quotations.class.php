@@ -150,6 +150,12 @@ class sales_Quotations extends deals_QuotationMaster
 
 
     /**
+     * Полета свързани с цени
+     */
+    public $priceFields = 'expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -607,39 +613,49 @@ class sales_Quotations extends deals_QuotationMaster
             return false;
         }
 
-        $saveRecs = $productsWithoutPrices = array();
+
+        $saveRecs = $productsWithoutPrices = $productIds = array();
         $Detail = cls::get($mvc->mainDetail);
         $dQuery = sales_QuotationsDetails::getQuery();
         $dQuery->where("#quotationId = {$rec->id}");
-        $dQuery->where('#price IS NULL || #tolerance IS NULL || #term IS NULL || #weight IS NULL');
+
         while ($dRec = $dQuery->fetch()) {
-            if (!isset($dRec->price)) {
-                $Detail::calcLivePrice($dRec, $rec, true);
+            $productIds[$dRec->productId] = $dRec->productId;
+            if(!isset($dRec->price) || !isset($dRec->tolerance) || !isset($dRec->term) || !isset($dRec->weight)){
                 if (!isset($dRec->price)) {
-                    $productsWithoutPrices[] = cat_Products::getTitleById($dRec->productId);
-                }
-            }
-
-            if (!isset($dRec->term)) {
-                if ($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)) {
-                    if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime) {
-                        $term += $deliveryTime;
+                    $Detail::calcLivePrice($dRec, $rec, true);
+                    if (!isset($dRec->price)) {
+                        $productsWithoutPrices[] = cat_Products::getTitleById($dRec->productId);
                     }
-                    $dRec->term = $term;
                 }
-            }
 
-            if (!isset($dRec->tolerance)) {
-                if ($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)) {
-                    $dRec->tolerance = $tolerance;
+                if (!isset($dRec->term)) {
+                    if ($term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity)) {
+                        if ($deliveryTime = sales_TransportValues::get('sales_Quotations', $dRec->quotationId, $dRec->id)->deliveryTime) {
+                            $term += $deliveryTime;
+                        }
+                        $dRec->term = $term;
+                    }
                 }
-            }
 
-            if (!isset($dRec->weight)) {
-                $dRec->weight = cat_Products::getTransportWeight($dRec->productId, $dRec->quantity);
+                if (!isset($dRec->tolerance)) {
+                    if ($tolerance = cat_Products::getTolerance($dRec->productId, $dRec->quantity)) {
+                        $dRec->tolerance = $tolerance;
+                    }
+                }
+
+                if (!isset($dRec->weight)) {
+                    $dRec->weight = cat_Products::getTransportWeight($dRec->productId, $dRec->quantity);
+                }
+
+                $saveRecs[] = $dRec;
             }
-            
-            $saveRecs[] = $dRec;
+        }
+
+        if($redirectError = deals_Helper::getContoRedirectError($productIds, 'canSell', 'generic', 'вече не са продаваеми или са генерични')){
+            core_Statuses::newStatus($redirectError, 'error');
+
+            return false;
         }
 
         $count = countR($productsWithoutPrices);
@@ -648,6 +664,7 @@ class sales_Quotations extends deals_QuotationMaster
             $start = ($count == 1) ? 'артикулът' : 'артикулите';
             $mid = ($count == 1) ? 'му' : 'им';
             $error = "На {$start}|* <b>{$imploded}</b> |трябва да {$mid} се въведе цена|*!";
+            core_Statuses::newStatus($error, 'error');
 
             return false;
         }

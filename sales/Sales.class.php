@@ -166,9 +166,9 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountBl,expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
-    
-    
+    public $priceFields = 'amountDeal,amountBl,expectedTransportCost,visibleTransportCost,amountInvoicedDownpaymentToDeduct,amountInvoicedDownpayment,hiddenTransportCost,leftTransportCost,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
+
+
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -229,7 +229,7 @@ class sales_Sales extends deals_DealMaster
         'bankAccountId' => 'lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
         'oneTimeDelivery' => 'clientCondition'
@@ -465,11 +465,19 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
-                    $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
-                    $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
-                    $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
-                    $form->setReadOnly('deliveryCalcTransport');
-                    
+                    if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
+                        $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                        $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
+                        $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
+                        if(empty($rec->deliveryCalcTransport)){
+                            $form->setReadOnly('deliveryCalcTransport', $calcCostDefault);
+                        } else {
+                            $form->setReadOnly('deliveryCalcTransport');
+                        }
+                    } else {
+                        $form->setReadOnly('deliveryCalcTransport');
+                    }
+
                     if ($deliveryCalcCost == 'yes') {
                         $form->setReadOnly('deliveryAdress');
                         $form->setReadOnly('deliveryLocationId');

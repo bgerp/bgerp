@@ -78,7 +78,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FNC('packPrice', 'double(minDecimals=2)', 'caption=Цена,input,smartCenter');
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
-        $mvc->FLD('clonedFromDetailId', "key(mvc={$mvc->className},select=id)", 'caption=От кое поле е клонирано,input=hidden');
+        $mvc->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
         $mvc->setDbIndex('productId,packagingId');
     }
     
