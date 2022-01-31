@@ -248,12 +248,16 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
             $shortMeasure = ($rec->productId == $masterRec->productId) ? cat_UoM::getShortName($pRec->measureId) : cat_UoM::getShortName($info->packagingId);
-            
-            if($rec->type == 'production' && isset($masterRec->packagingId)){
+
+            if($rec->type == 'production' && isset($masterRec->packagingId) && $rec->productId == $masterRec->productId){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
                 $form->setField('quantity', "unit={$unit}");
-                $packRec = cat_products_Packagings::getPack($masterRec->productId, $masterRec->packagingId);
-                $defaultQuantity = is_object($packRec) ? ($packRec->quantity / $masterRec->quantityInPack) : 1;
+                $defaultQuantity = $masterRec->packagingQuantityInPack;
+                if(!$defaultQuantity){
+                    $packRec = cat_products_Packagings::getPack($rec->productId, $masterRec->packagingId);
+                    $defaultQuantity = is_object($packRec) ? $packRec->quantity : 1;
+                }
+
                 $form->setField('quantity', "placeholder={$defaultQuantity}");
                 $form->rec->_defaultQuantity = $defaultQuantity;
             } else {
@@ -489,17 +493,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {
             $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
         }
-        
+
         if ($rec->type == 'production') {
             $row->type = (!empty($packagingId) && ($labelPackagingId !== $pRec->measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
         }
-        
-        $row->scrappedQuantity = '';
-        if (!empty($rec->scrappedQuantity)) {
-            $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity);
-            $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
-        }
-        $row->quantity = "<b>{$row->quantity}</b> {$row->measureId} {$row->scrappedQuantity}";
         
         if (isset($rec->employees)) {
             $row->employees = self::getVerbalEmployees($rec->employees);
@@ -584,6 +581,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
+
+            $row->scrappedQuantity = '';
+            if (!empty($rec->scrappedQuantity)) {
+                $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity);
+                $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
+            }
+            $row->quantity = "<b>{$row->quantity}</b> {$row->measureId} {$row->scrappedQuantity}";
+
             if($id == $lastRecId){
                 $row->ROW_ATTR['class'] .= ' lastRow';
             }

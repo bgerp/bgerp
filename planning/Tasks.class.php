@@ -236,7 +236,8 @@ class planning_Tasks extends core_Master
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Производство->Отчитане,input=none');
         }
 
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=none,tdClass=small-field nowrap,placeholder=Няма');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=packagingQuantityInPack');
+        $this->FLD('packagingQuantityInPack', 'double(smartRound)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=none');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both');
         
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Време за производство->Норма,smartCenter');
@@ -462,7 +463,21 @@ class planning_Tasks extends core_Master
         if(empty($rec->packagingId)){
             $row->packagingId = "<span class='quiet'>N/A</span>";
         }
-        
+
+        if(isset($rec->packagingId)) {
+            if(empty($rec->packagingQuantityInPack)){
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+                $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
+                $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
+                $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
+                $row->packagingQuantityInPack = $quantityInPackDefault;
+            } else {
+                $row->packagingQuantityInPack .= " {$row->measureId}";
+            }
+        } else {
+            $row->packagingQuantityInPack = "<span class='quiet'>N/A</span>";
+        }
+
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
         $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
         
@@ -569,6 +584,7 @@ class planning_Tasks extends core_Master
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table>
                 <tr><td style='font-weight:normal'>|Етикет|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#packagingId#]</td></tr>
+                <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#packagingQuantityInPack#]</td></tr>
                 </table>"));
         
         $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table>
@@ -965,7 +981,13 @@ class planning_Tasks extends core_Master
                 $form->setField('weightDeviationWarning', 'input=none');
                 $form->setField('weightDeviationAverageWarning', 'input=none');
             }
-            
+
+            if(isset($rec->packagingId)){
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+                $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
+                $form->setField('packagingQuantityInPack', "placeholder={$quantityInPackDefault}");
+            }
+
             // Ако артикула е вложим, може да се влага по друга операция
             if ($productRec->canConvert == 'yes') {
                 $tasks = self::getTasksByJob($origin->that, true);
@@ -984,6 +1006,7 @@ class planning_Tasks extends core_Master
             if ($productRec->canStore == 'yes') {
                 $form->setField('storeId', 'input');
                 $form->setField('packagingId', 'input');
+                $form->setField('packagingQuantityInPack', 'input');
                 $form->setField('indPackagingId', 'input');
             } else {
                 $form->setField('labelType', 'input=hidden');
@@ -1029,6 +1052,7 @@ class planning_Tasks extends core_Master
             $form->setReadOnly('productId');
             if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
                 $form->setReadOnly('packagingId');
+                $form->setReadOnly('packagingQuantityInPack');
             }
         }
     }
