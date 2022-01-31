@@ -150,6 +150,12 @@ class sales_Quotations extends deals_QuotationMaster
 
 
     /**
+     * Полета свързани с цени
+     */
+    public $priceFields = 'expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
