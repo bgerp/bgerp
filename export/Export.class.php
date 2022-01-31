@@ -162,7 +162,7 @@ class export_Export extends core_Mvc
         }
 
         $form->input(null, 'silent');
-        $form->input();
+//        $form->input();
 
         // Ако е избран драйвер, той може да добавя полета за параметри на формата
         if($type = $form->rec->type){
