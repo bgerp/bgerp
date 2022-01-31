@@ -97,7 +97,7 @@
 				</tr>
 				</thead>
 				<tr>
-					<td class="centered">[#totalAmount#] <div class="quiet small">( [#totalAmountExpected#] )</div></td>
+					<td class="centered">[#totalAmount#] <div class="quiet small">от [#totalAmountExpected#]</div></td>
 					<td class="centered">[#totalAmountReturn#]</td>
 					<td class="centered">[#weight#]</td>
 					<td class="centered">[#volume#]</td>
