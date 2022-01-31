@@ -271,7 +271,7 @@ class purchase_Quotations extends deals_QuotationMaster
     protected static function on_BeforeActivation($mvc, $res)
     {
         $rec = $mvc->fetch($res->id);
-        $dQuery = sales_QuotationsDetails::getQuery();
+        $dQuery = purchase_QuotationDetails::getQuery();
         $dQuery->where("#quotationId = {$rec->id}");
         $dQuery->show('productId');
         $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
