@@ -539,36 +539,49 @@ class planning_AssetResources extends core_Master
     /**
      * Избор на наличното оборудване в подадената папка
      *
-     * @param int|null $folderId - ид на папка
+     * @param int|null $folderId - ид на папка, или null за всички папки
+     * @param mixed $exIds       - ид-та които да се добавят към опциите
      *
-     * @return array $option    - налично оборудване
+     * @return array $options    - налично оборудване
      */
-    public static function getByFolderId($folderId = null)
+    public static function getByFolderId($folderId = null, $exIds = null)
     {
         $options = array();
-        
+        $noOptions = false;
+
         // Ако папката не поддържа ресурси оборудване да не се връща нищо
         if (isset($folderId)) {
             if (!self::canFolderHaveAsset($folderId)) {
-                
-                return $options;
+                $noOptions = true;
             }
         }
-        
-        $fQuery = planning_AssetResourceFolders::getQuery();
-        if (isset($folderId)) {
-            $fQuery->where(array("#folderId = '[#1#]'", $folderId));
-        }
-        $fQuery->where(array("#classId = '[#1#]'", self::getClassId()));
-        
-        while ($fRec = $fQuery->fetch()) {
-            if ($rec = self::fetch($fRec->objectId)) {
-                if ($rec->state == 'rejected' || $rec->state == 'closed' || $rec->simultaneity == 0) continue;
 
-                $options[$rec->id] = self::getRecTitle($rec, false);
+        // Ако ще се търсят опции
+        if(!$noOptions){
+            $fQuery = planning_AssetResourceFolders::getQuery();
+            if (isset($folderId)) {
+                $fQuery->where(array("#folderId = '[#1#]'", $folderId));
+            }
+            $fQuery->where(array("#classId = '[#1#]'", self::getClassId()));
+
+            while ($fRec = $fQuery->fetch()) {
+                if ($rec = self::fetch($fRec->objectId)) {
+                    if ($rec->state == 'rejected' || $rec->state == 'closed' || $rec->simultaneity == 0) continue;
+                    $options[$rec->id] = self::getRecTitle($rec, false);
+                }
             }
         }
-        
+
+        // Ако има съществуващи ид-та и тях ги няма в опциите да се добавят
+        if(isset($exIds)) {
+            $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
+            foreach ($exOptions as $eId) {
+                if (!array_key_exists($eId, $options)) {
+                    $options[$eId] = self::getTitleById($eId, false);
+                }
+            }
+        }
+
         return $options;
     }
     

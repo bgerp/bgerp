@@ -236,11 +236,11 @@
     <!--ET_BEGIN Tasks-->
     <div class='scrolling-holder'>
         <div class='job-head1' style='margin-top:10px;padding-top:8px;padding-bottom:8px'>
-            <b>|Производствени операции|*</b>
+            <b>|Производствени операции|* [#btnTasks#]</b>
         </div>
         <div class="clearfix21 portal planning" style='border-top: none'>
             [#Tasks#]
-            <div style='margin-top:6px'>[#btnTasks#]</div>
+            <div style='margin-top:6px'></div>
         </div>
     </div>
 

@@ -55,18 +55,19 @@ class rack_MovementGenerator extends core_Manager
         if ($form->isSubmitted()) {
             $pArr = json_decode($rec->pallets);
             $qArr = json_decode($rec->zones);
-            
+
             foreach ($pArr->pallet as $i => $key) {
                 if ($pArr->quantity[$i]) {
-                    $p[$key] = $pArr->quantity[$i];
+                    $p[$key] = core_Type::getByName('double')->fromVerbal($pArr->quantity[$i]);
                 }
             }
+
             foreach ($qArr->zone as $i => $key) {
                 if ($qArr->quantity[$i]) {
-                    $q[$key] = $qArr->quantity[$i];
+                    $q[$key] = core_Type::getByName('double')->fromVerbal($qArr->quantity[$i]);
                 }
             }
-            
+
             $mArr = self::mainP2Q($p, $q, null, $rec->smallZonesPriority);
         }
         
@@ -506,7 +507,10 @@ class rack_MovementGenerator extends core_Manager
                 $newRec->palletId = $palletRec->id;
                 $newRec->palletToId = $palletRec->id;
                 $newRec->batch = $palletRec->batch;
-                $newRec->positionTo = $obj->pallet;
+                $newRec->positionTo = ($obj->retPos) ? $obj->retPos : $obj->pallet;
+            } else {
+                // Липсва палет в движението
+                wp($allocatedArr, $productId, $packagingId, $batch);
             }
             
             if(!countR($obj->zones)){
@@ -525,7 +529,7 @@ class rack_MovementGenerator extends core_Manager
             
             $res[] = $newRec;
         }
-        
+
         return $res;
     }
 }

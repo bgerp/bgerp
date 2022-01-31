@@ -146,7 +146,7 @@ class planning_Centers extends core_Master
      *
      * @var string|array
      */
-    public $details = 'stages=planning_Stages,planning_Points';
+    public $details = 'stages=planning_Steps,planning_Points';
     
     
     /**
@@ -373,11 +373,13 @@ class planning_Centers extends core_Master
      */
     public static function getManifacturableOptions($folderId)
     {
+        $Cover = doc_Folders::getCover($folderId);
         $options = array();
-        $sQuery = planning_Stages::getQuery();
-        $sQuery->where("LOCATE('|{$folderId}|', #folders) AND #state != 'closed' AND #state != 'rejected' AND #classId = " . cat_Products::getClassId());
+        $sQuery = planning_Steps::getQuery();
+
+        $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = " . cat_Products::getClassId());
         while($sRec = $sQuery->fetch()){
-            if($Extended = planning_Stages::getExtended($sRec)){
+            if($Extended = planning_Steps::getExtended($sRec)){
                 $options[$Extended->that] = $Extended->getTitleById(false);
             }
         }
@@ -411,23 +413,14 @@ class planning_Centers extends core_Master
         
         $query = self::getQuery();
         $query->where("#state != 'closed' AND #state != 'rejected'");
-        $cloneQuery = clone $query;
         while($rec = $query->fetch()){
-            if(planning_Stages::fetch("LOCATE('|{$rec->folderId}|', #folders)")){
+            if(planning_Steps::fetch("#centerId = {$rec->id}")){
                 if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
                     $options[$rec->folderId] = self::getRecTitle($rec, false);
                 }
             }
         }
-        
-        if(!countR($options)){
-            while($rec = $cloneQuery->fetch()){
-                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
-                    $options[$rec->folderId] = self::getRecTitle($rec, false);
-                }
-            }
-        }
-        
+
         return $options;
     }
     

@@ -75,7 +75,7 @@ class mejs_Adapter
         }
         
         // Генерираме уникално id
-        $id = core_Os::getUniqId('mejs');
+        $id = ht::getUniqId('mejs');
         
         // Шаблона, който ще връщаме
         $mTpl = new ET("<div>

@@ -42,13 +42,16 @@ class rack_MovementGenerator2 extends core_Manager
         requireRole('debug');
 
         $form = cls::get('core_Form');
-        $form->FLD('pallets', 'table(columns=pallet|quantity,captions=Палет|Количество,widths=8em|8em)', 'caption=Палети,mandatory');
+        $form->FLD('pallets', 'table(columns=pallet|quantity|createdOn,captions=Палет|Количество|Създаване,widths=8em|8em)', 'caption=Палети,mandatory');
         $form->FLD('zones', 'table(columns=zone|quantity,captions=Зона|Количество,widths=8em|8em)', 'caption=Зони,mandatory');
         $form->FLD('packagings', 'table(columns=packagingId|quantity,captions=Опаковка|Количество,widths=8em|8em)', 'caption=Опаковки,mandatory');
         $form->FLD('smallZonesPriority', 'enum(yes=Да,no=Не)', 'caption=Приоритетност на малките количества->Избор');
 
         $packOptions = cat_UoM::getPackagingOptions() + cat_UoM::getUomOptions();
         $form->setFieldTypeParams('packagings', array('packagingId_opt' => $packOptions));
+        $createdOnOpt = array(dt::addDays(-4), dt::addDays(-3), dt::addDays(-2), dt::addDays(-1), dt::addDays(1), dt::now());
+        $createdOnOpt = array('' => '') + arr::make($createdOnOpt, true);
+        $form->setFieldTypeParams('pallets', array('createdOn_opt' => $createdOnOpt));
 
         $form->toolbar = cls::get('core_Toolbar');
         $form->toolbar->addSbBtn('Изпрати');
@@ -65,12 +68,14 @@ class rack_MovementGenerator2 extends core_Manager
 
             foreach ($pArr->pallet as $i => $key) {
                 if ($pArr->quantity[$i]) {
-                    $p[] = (object) array('position' => $key, 'quantity' => $pArr->quantity[$i]);
+                    $qVerbal = core_Type::getByName('double')->fromVerbal($pArr->quantity[$i]);
+                    $p[] = (object) array('position' => $key, 'quantity' => $qVerbal, 'createdOn' => $pArr->createdOn[$i]);
                 }
             }
             foreach ($qArr->zone as $i => $key) {
                 if ($qArr->quantity[$i]) {
-                    $q[$key] = $qArr->quantity[$i];
+                    $qVerbal = core_Type::getByName('double')->fromVerbal($qArr->quantity[$i]);
+                    $q[$key] = $qVerbal;
                 }
             }
 
@@ -132,7 +137,7 @@ class rack_MovementGenerator2 extends core_Manager
      * 
      */
     public static function mainP2Q($pallets, $zones, $packaging = array(), $volume = null, $weight = null)
-    {  
+    { 
         // Сумарно колко трябва да доставим
         $sumZ = array_sum($zones); 
  
@@ -140,13 +145,12 @@ class rack_MovementGenerator2 extends core_Manager
         $scale = 1;
         
         // Ако имаме дробни количества в опаковки, умножаваме всичко по 1000
-        /* 
-        foreach($packaging as $pack) {
+       /* foreach($packaging as $pack) {bp(fmod($pack->quantity * $scale, 1), $pack);
             while(fmod($pack->quantity * $scale, 1) > 0) {
                 $scale *= 10;
             }
-        } 
-        */
+        } */
+ 
         
         // Изискването за твърде голямо скалиране се приема за грешка във входните данни
         if($scale > 1000000) {
@@ -154,6 +158,11 @@ class rack_MovementGenerator2 extends core_Manager
             return false;
         }
         
+        // Скалираме и зоните
+        foreach ($zones as $zI => $zQ) {
+            $zones[$zI] *= $scale;
+        }
+
         // Генерираме масива с опаковките
         $packArr = array();
         foreach($packaging as $pack) {
@@ -165,22 +174,24 @@ class rack_MovementGenerator2 extends core_Manager
         // Подготвяме данни свързани с палетите
         $sumP = 0;
         $pArr = array();
+        $maxAge = 0;
         foreach($pallets as $id => $p) {
             
-            // Сумарно колко имаме в склада?
-            $sumP += $p->quantity;
-         
             // Масив само с количествата
             if($p->quantity > 0) {
                 $pArr[$id] = $p->quantity * $scale;
             }
 
+            // Сумарно колко имаме в склада?
+            $sumP += $pArr[$id];
+        
             // Определяме възрастта на всяки палет
             if(isset($p->createdOn)) {
                 $p->age = dt::daysBetween(dt::now(), $p->createdOn);
+                $maxAge = max($maxAge, $p->age);
             }
         }
- 
+
         // Ако имаме недостиг, приоритизираме малките зони
         asort($zones);
       
@@ -208,22 +219,26 @@ class rack_MovementGenerator2 extends core_Manager
         if($qInPallet) {
             foreach($pArr as $pId => $pQ) {
                 if($pQ == $qInPallet) {
-                    $fullPallets[$pId] = $pallets[$pId]->age;
+                    $fullPallets[$pId] = (int) $pallets[$pId]->age;
+                    if(self::isFirstRow($pallets[$pId]->position)) {
+                        $fullPallets[$pId] -= $maxAge+1;
+                    }
                 }
             }
- 
+
             if(count($fullPallets)) {
                 arsort($fullPallets);
                 $fullPallets = array_keys($fullPallets);
-    
+ 
                 foreach($zones as $zId => $zQ) {
                     if($n = (floor($zQ/$qInPallet))) {
                   
                         do {
                             // Вземаме най-горния елемент, генерираме движение и го махаме от наличните палети
                             $p = array_shift($fullPallets);
-                            $res[$p] = (object) array(
-                                'pallet' => $p,
+                            $res[] = (object) array(
+                                'pallet' => $pallets[$p]->position,
+                                'quantity' => $qInPallet,
                                 'zones'  => array($zId => $qInPallet)
                                 );
                             $pArr[$p] -= $qInPallet;
@@ -240,7 +255,6 @@ class rack_MovementGenerator2 extends core_Manager
                 }
             }
         }  
- 
 
         $sumZ = array_sum($zones);
 
@@ -297,22 +311,23 @@ class rack_MovementGenerator2 extends core_Manager
             foreach($zoneKeys as $zKey) {
                 $rate = 0;
                 $move = self::moveGen($pArr, $zones, $cKey, $zKey, $rate, $packArr, $pallets, $qInPallet);
-                // $d[$cKey .'-' . $zKey] = (object) array('move' => $move, 'rate' => $rate);
+                 $d[$cKey .'-' . $zKey] = (object) array('move' => $move, 'rate' => $rate);
                 if($bestRate === null || $bestRate > $rate) {
                     $bestMove = $move;
                     $bestRate = $rate;
                 }
             }
         }
-   
  
+ 
+
         // Генерираме движенията за всяка група и изисляваме времето, което ще отнеме
         if(is_array($bestMove)){
             foreach($bestMove as $m) {
                 $res[] = $m;
             }
         }
-       
+ 
         return $res;
     }
 
@@ -335,7 +350,7 @@ class rack_MovementGenerator2 extends core_Manager
      */
     public static function isFirstRow($pos)
     {
-        return stripos($pos, 'a') || stripos($pos, 'а');
+        return stripos($pos, 'a') !== false || stripos($pos, 'а') !== false;
     }
     
     
@@ -396,27 +411,49 @@ class rack_MovementGenerator2 extends core_Manager
                 }
             }
             
-            $getTime = $timeGet;
+            $getTime = $timeGet * (1.1 - 0.1 * self::isFirstRow($o->pallet));
+          
+
             $retTime = 0;
 
             if($pQ) {
                 // Ако връщаме над 1/3 от пълен палет, по-добре да вземем само това, което ни трябва
-                if($pQ > $qInPallet/3) {
+                if(isset($qInPallet) && $pQ > $qInPallet/3) {
                     $o->quantity = $o->quantity - $pQ;
                     $o->partial  = true;
-                    $getTime += self::timeToCount($o->quantity, $packs) + self::timeToCount($pQ, $packs) ;
+                    $getTime += self::timeToCount($o->quantity, $packs) + 5*($o->quantity + $pQ == $qInPallet) ;
                 } else {
                     $p[$pI] = 0;
-                    $o->return = $pQ;
+                    $o->ret = $pQ;
+                    $o->retPos = $o->pallet;
                     $retTime = $timeReturn;
                     $retTime += self::timeToCount($pQ, $packs);
-                    $o->returnTime = $retTime;
-                    $rate += $retTime;
+
                     // Намираме най-добрата позиция за връщане на палет
                     // На първи ред с някаква предишна наличност
                     // На първи ред без предишна наличност
                     // Където и до сега си е бил
-                    foreach($allPallets as $pallet) {
+                    if(isset($qInPallet)) {
+                        foreach($allPallets as $pallet) {
+                            $pos = $pallet->position;
+                            if(self::isFirstRow($pos) && $pallet->quantity > 0) {
+                                $maxLoad = self::getMaxLoad($pos);
+                                if($pallet->quantity + $o->ret <= $qInPallet * $maxLoad) {
+                                    $o->retPos = $pos;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Ако връщаме на същото място по-добре да не връщаме нищо, а да сме взели по-малко
+                if(isset($o->retPos) && ($o->retPos == $o->pallet) && $o->ret > 0) {
+                    // Todo: тук трябва да се оставят случаите, когато вземаме цял палет и връщаме между 25% и 75% от него
+                    if(!isset($qInPallet) || $qInPallet != $o->quantity || $o->ret < 0.20 * $qInPallet || $o->ret > 0.80 * $qInPallet) {
+                        $o->quantity = $o->quantity - $o->ret;
+                        $o->ret = $o->retPos = null;
+                        $retTime = 0;
                     }
                 }
             } 
@@ -428,7 +465,7 @@ class rack_MovementGenerator2 extends core_Manager
         }
         
         $o->pallets = $p;
-
+ 
         return $moves;
     }
 
@@ -464,7 +501,26 @@ class rack_MovementGenerator2 extends core_Manager
     }
 
 
-    
+    /**
+     * Връща процента на максимално натоварване
+     * Той отразява колко процента за дадения стелаж от пълен палет стока може да се натовари на една позиция
+     */
+    public static function getMaxLoad($pos)
+    {
+        $res = null;
+
+        if($rack = (int) $pos) {
+            $rRec = rack_Racks::fetch($rack);
+            $res = $rRec->maxLoad;
+        }
+
+        if(!$res) {
+            $res = 1;
+        }
+
+        return $res;
+    }
+
     
     /**
      * Добавя комбинации с ключове/стойности от следващо ниво
@@ -573,7 +629,10 @@ class rack_MovementGenerator2 extends core_Manager
                 $newRec->palletId = $palletRec->id;
                 $newRec->palletToId = $palletRec->id;
                 $newRec->batch = $palletRec->batch;
-                $newRec->positionTo = $obj->pallet;
+                $newRec->positionTo = ($obj->retPos) ? $obj->retPos : $obj->pallet;
+            } else {
+                // Липсва палет в движението
+                wp($allocatedArr, $productId, $packagingId, $batch);
             }
             
             if(!countR($obj->zones)){

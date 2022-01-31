@@ -18,6 +18,12 @@
 class trans_plg_LinesPlugin extends core_Plugin
 {
     /**
+     * Константа за текст-а в лога при редакция
+     */
+    const EDIT_LOG_ACTION = 'Редакция на транспорта';
+
+
+    /**
      * След дефиниране на полетата на модела
      *
      * @param core_Mvc $mvc
@@ -75,6 +81,10 @@ class trans_plg_LinesPlugin extends core_Plugin
             if ($mvc->haveRightFor('changeline', $rec)) {
                 $data->toolbar->addBtn('Транспорт', array($mvc, 'changeline', $rec->id, 'ret_url' => true), 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
             }
+        }
+
+        if (Request::get('editTrans')) {
+            bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $mvc->getHandle($rec->id), 'editTrans' => true), '*');
         }
     }
     
@@ -163,8 +173,11 @@ class trans_plg_LinesPlugin extends core_Plugin
                 $rec->_changeLine = true;
                 $mvc->save($rec);
                 $mvc->updateMaster($rec);
-                $mvc->logWrite('Редакция на транспорта', $rec->id);
-                
+                $mvc->logWrite(static::EDIT_LOG_ACTION, $rec->id);
+
+                // Нотифициране на всички други потребители, редактирали транспорта преди
+                static::notifyTransportEditors($mvc, $rec);
+
                 if (!$rec->lineId) {
                     trans_LineDetails::delete("#containerId = {$rec->containerId}");
                 }
@@ -172,14 +185,14 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if ($exLineId && $exLineId != $rec->lineId) {
                     $mvc->updateLines[$exLineId] = $exLineId;
                 }
-                
+
                 // Редирект след успешния запис
                 followRetUrl(null, 'Промените са записани успешно|*!');
             }
         }
         
         $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png');
-        $form->toolbar->addBtn('Отказ', $mvc->getSingleUrlArray($id), 'ef_icon = img/16/close-red.png');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
         
         // Рендиране на формата
         $res = $form->renderHtml();
@@ -189,8 +202,41 @@ class trans_plg_LinesPlugin extends core_Plugin
         // ВАЖНО: спираме изпълнението на евентуални други плъгини
         return false;
     }
-    
-    
+
+
+    /**
+     * Изпращане на нотификации на другите потребителите, редактирали транспорта
+     *
+     * @param core_Mvc $mvc     - документ
+     * @param stdCLass|int $rec - запис
+     * @param int|null $userId  - ид на потребител, null за текущия
+     * @return void
+     */
+    private static function notifyTransportEditors($mvc, $rec, $userId = null)
+    {
+        // Кои са потребителите променяли транспорта
+        $userId = isset($userId) ? $userId : core_Users::getCurrent('id');
+        $rec = $mvc->fetchRec($rec);
+        $oRecs = log_Data::getObjectRecs($mvc->className, $rec->id, 'write', static::EDIT_LOG_ACTION);
+        $editorsArr = arr::extractValuesFromArray($oRecs, 'userId');
+
+        // Подготовка на съобщението
+        $handle = $mvc->getHandle($rec);
+        $notificationUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $handle, 'editTrans' => true);
+        $currentUserNick = core_Users::getCurrent('nick');
+
+        // Оставят се само потребителите различни от посочения, които са редактирали транспорта
+        unset($editorsArr[$userId]);
+
+        // Изпращане на нотификация, ако все още имат достъп до документа
+        foreach ($editorsArr as $editorUserId){
+            if($mvc->haveRightFor('single', $rec->id, $editorUserId)){
+                bgerp_Notifications::add("|*{$currentUserNick} |промени информацията за транспорта на|* #{$handle}", $notificationUrl, $editorUserId);
+            }
+        }
+    }
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
@@ -559,7 +605,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                                 $rec->{$mvc->lineFieldName} = $oldLineId;
                                 
                                 if($mvc instanceof cash_Document){
-                                    $lineCaseId = trans_Lines::fetchField($oldLineId, 'caseId');
+                                    $lineCaseId = trans_Lines::fetchField($oldLineId, 'defaultCaseId');
                                     if($lineCaseId && empty($rec->peroCase)){
                                         $rec->peroCase = $lineCaseId;
                                     }

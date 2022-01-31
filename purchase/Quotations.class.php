@@ -260,4 +260,26 @@ class purchase_Quotations extends deals_QuotationMaster
 
         $form->setSuggestions('bankAccountId', bank_Accounts::getContragentIbans($rec->contragentId, $rec->contragentClassId));
     }
+
+
+    /**
+     * Функция, която се извиква преди активирането на документа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    protected static function on_BeforeActivation($mvc, $res)
+    {
+        $rec = $mvc->fetch($res->id);
+        $dQuery = purchase_QuotationDetails::getQuery();
+        $dQuery->where("#quotationId = {$rec->id}");
+        $dQuery->show('productId');
+        $productIds = arr::extractValuesFromArray($dQuery->fetchAll(), 'productId');
+
+        if($redirectError = deals_Helper::getContoRedirectError($productIds, 'canBuy', 'generic', 'вече не са купуваеми или са генерични')){
+            core_Statuses::newStatus($redirectError, 'error');
+
+            return false;
+        }
+    }
 }

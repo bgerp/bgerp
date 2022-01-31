@@ -209,7 +209,7 @@ class sales_SalesDetails extends deals_DealDetail
             return;
         }
         $masterRec = $data->masterData->rec;
-        
+
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
             $pInfo = cat_Products::getProductInfo($rec->productId);
@@ -235,7 +235,7 @@ class sales_SalesDetails extends deals_DealDetail
                    $warning = 'Цената е под себестойността';
                    if(isset($foundPrimeCost)){
                        $foundPrimeCost /= $masterRec->currencyRate;
-                       $primeCostVerbal = core_Type::getByName('double(smartRound)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
+                       $primeCostVerbal = core_Type::getByName('double(decimals=5)')->toVerbal($foundPrimeCost * $rec->quantityInPack);
                        $warning = "{$warning}|*: {$primeCostVerbal} {$masterRec->currencyId} |без ДДС|*";
                    }
                    
@@ -255,7 +255,9 @@ class sales_SalesDetails extends deals_DealDetail
             // Ако е имало проблем при изчисляването на скрития транспорт, показва се хинт
             $fee = sales_TransportValues::get($mvc->Master, $rec->saleId, $rec->id);
             $vat = cat_Products::getVat($rec->productId, $masterRec->valior);
-            $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+            if(doc_plg_HidePrices::canSeePriceFields($masterRec)){
+                $row->amount = sales_TransportValues::getAmountHint($row->amount, $fee->fee, $vat, $masterRec->currencyRate, $masterRec->chargeVat, $masterRec->currencyId, $fee->explain);
+            }
         }
     }
     

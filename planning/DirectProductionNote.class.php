@@ -241,8 +241,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         $storeId = $originRec->storeId;
         $saleId = $originRec->saleId;
         if($originDoc->isInstanceOf('planning_Tasks')){
+
             $jobRec = doc_Containers::getDocument($originRec->originId)->fetch();
-            $storeId = $jobRec->storeId;
+            $storeId = ($originRec->storeId) ? $originRec->storeId : $jobRec->storeId;
             $saleId = $jobRec->saleId;
             $productOptions = planning_ProductionTaskProducts::getOptionsByType($originDoc->that, 'production');
         } else {
@@ -324,7 +325,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             } else {
                 $form->setField('storeId', 'mandatory');
                 $form->setField('packagingId', 'input');
-                if(cat_Products::haveDriver($rec->productId, 'planning_interface_StageDriver')){
+                if(cat_Products::haveDriver($rec->productId, 'planning_interface_StepProductDriver')){
                     $form->setField('inputStoreId', 'mandatory');
                 }
             }
@@ -536,6 +537,21 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         if(isset($fields['-single'])){
             $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+
+            if(core_Packs::isInstalled('rack')){
+                $canStore = cat_Products::fetchField($rec->productId, 'canStore');
+                if($canStore == 'yes'){
+                    $showLink = !(core_Packs::isInstalled('batch') && batch_Defs::getBatchDef($rec->productId) );
+                    if($showLink){
+
+                        // Бутон за палетиране
+                        if($palletImgLink = rack_Pallets::getFloorToPalletImgLink($rec->storeId, $rec->productId, $rec->packagingId, $rec->packQuantity, null, $rec->containerId)){
+                            $row->productId = $palletImgLink->getContent() . $row->productId;
+                        }
+                    }
+                }
+            }
+
         } else {
             $row->productId = cat_Products::getShortHyperlink($rec->productId, null, 'short', 'internal');
         }
@@ -1436,8 +1452,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Ако ще се произвежда артикулът от заданиет, наличните партиди за заприхождаване са тези от заданието
         if(planning_DirectProductionNote::isForJobProductId($rec)) {
-            $jobDoc = doc_Containers::getDocument($rec->originId);
-            $options = $jobDoc->getInstance()->getAllowedBatchesForJob($rec->originId);
+            $jobRec = static::getJobRec($rec);
+            $options = cls::get('planning_Jobs')->getAllowedBatchesForJob($jobRec->containerId);
 
             return $options;
         }

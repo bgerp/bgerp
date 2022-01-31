@@ -276,8 +276,10 @@ class purchase_Invoices extends deals_InvoiceMaster
         $coverId = doc_Folders::fetchCoverId($form->rec->folderId);
         $form->setOptions('accountId', bank_Accounts::getContragentIbans($coverId, $coverClass, true));
         
-        if ($form->rec->vatRate != 'yes' && $form->rec->vatRate != 'separate') {
-            $form->setField('vatReason', 'mandatory');
+        if (!in_array($form->rec->vatRate, array('yes', 'separate'))) {
+            if(!crm_Companies::isOwnCompanyVatRegistered()){
+                $form->setField('vatReason', 'mandatory');
+            }
         }
         
         $bgId = drdata_Countries::fetchField("#commonName = 'Bulgaria'", 'id');
@@ -298,7 +300,6 @@ class purchase_Invoices extends deals_InvoiceMaster
             $fRec = fileman::fetchByFh($clonedFh);
             doc_DocumentPlg::showOriginalFile($fRec, $form);
         }
-        
     }
     
     
@@ -835,10 +836,11 @@ class purchase_Invoices extends deals_InvoiceMaster
             if ($pRec->state != 'closed') {
                 if (($pRec->chargeVat == 'exempt') || ($pRec->chargeVat == 'no')) {
                     $form->FNC('invVatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС, input, before=acceptance, mandatory');
-                    
                     $noReason1 = acc_Setup::get('VAT_REASON_OUTSIDE_EU');
                     $noReason2 = acc_Setup::get('VAT_REASON_IN_EU');
-                    $suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2);
+                    $noReason3 = acc_Setup::get('VAT_REASON_MY_COMPANY_NO_VAT');
+                    $suggestions = array('' => '', $noReason1 => $noReason1, $noReason2 => $noReason2, $noReason3 => $noReason3);
+
                     $form->setSuggestions('invVatReason', $suggestions);
                 }
             }

@@ -110,7 +110,8 @@ class trans_LineDetails extends doc_Detail
                                         'store_ConsignmentProtocols' => 'Отговорно пазене',
                                         'store_Transfers' => 'Трансфери',
                                         'cash_Pko' => 'Приходни касови ордери',
-                                        'cash_Rko' => 'Разходни касови ордери',);
+                                        'cash_Rko' => 'Разходни касови ордери',
+                                        'removed' => 'Премахнати документи');
     
     
     /**
@@ -198,10 +199,10 @@ class trans_LineDetails extends doc_Detail
         $row->containerId = "#{$handle}";
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
-            $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$row->containerId}</span>";
-
             $createdBy = crm_Profiles::createLink($Document->fetchField('createdBy'))->getContent();
-            $row->containerId .= "&nbsp;{$createdBy}";
+            $displayContainerId = $row->containerId;
+            $displayContainerId .= " / {$createdBy}";
+            $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
         }
 
         if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {
@@ -256,7 +257,7 @@ class trans_LineDetails extends doc_Detail
         if($Document->haveInterface('store_iface_DocumentIntf')){
 
             // Ако документа в момента е в зона
-            if(isset($transportInfo['zoneId'])){
+            if(isset($transportInfo['zoneId']) && $rec->status != 'removed'){
                 $readiness = core_Type::getByName('percent(decimals=0)')->toVerbal($transportInfo['readiness']);
                 if(!Mode::isReadOnly()){
                     $readiness = "<div class='block-readiness lineShow'>{$readiness}</div>";
@@ -283,11 +284,14 @@ class trans_LineDetails extends doc_Detail
             if(!empty($transportInfo['contragentName'])){
                 $row->address = "<span style='margin:2px'>" . $transportInfo['contragentName'] . "</span>";
             }
-            $amountTpl = new core_ET("");
-            $amountTpl->append('<div class="payment-line-amount">');
-            $amountTpl->append($transportInfo['amountVerbal']);
-            $amountTpl->append('</div>');
-            $row->amount = $amountTpl;
+
+            if($rec->status != 'removed'){
+                $amountTpl = new core_ET("");
+                $amountTpl->append('<div class="payment-line-amount">');
+                $amountTpl->append($transportInfo['amountVerbal']);
+                $amountTpl->append('</div>');
+                $row->amount = $amountTpl;
+            }
         }
 
         if(!empty($row->address)){
@@ -311,7 +315,13 @@ class trans_LineDetails extends doc_Detail
         }
 
         if ($Document->haveRightFor('changeline') && (!Mode::is('printing') && !Mode::is('xhtml')) && $rec->status != 'removed') {
-            $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), false, 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
+            $lineThreadId = trans_Lines::fetchField($rec->lineId, 'threadId');
+            $retUrl = (trans_Lines::haveRightFor('single', $rec->lineId)) ? array('doc_Containers', 'list', 'threadId' => $lineThreadId, 'docId' => trans_Lines::getHandle($rec->lineId), "#" => $handle) : true;
+            if (!Mode::is('screenMode', 'narrow')){
+                $row->logistic .= "&nbsp; " . ht::createLink('', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => $retUrl), false, 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
+            } else {
+                $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), array('ef_icon' => 'img/16/lorry_go.png', 'title' => 'Промяна на транспортната информация'));
+            }
         }
 
         // Ако има платежни документи към складовия
@@ -330,9 +340,11 @@ class trans_LineDetails extends doc_Detail
                     $paymentInfo['amountVerbal'] = "<span class='state-{$p->containerState} document-handler'>{$paymentInfo['amountVerbal']}</span>";
                 }
 
-                if(!core_Mode::isReadOnly()){
-                    $paymentInfo['amountVerbal'] = ht::createLinkRef($paymentInfo['amountVerbal'], $PayDoc->getSingleUrlArray(), false, 'title=Преглед на документа');
-                }
+                Mode::push('text', 'plain');
+                $paymentCaption = "#" . $PayDoc->getHandle() . " (" . core_Type::getByName('double(decimals=2)')->toVerbal($paymentInfo['amount']) . ")";
+                Mode::pop('text');
+                $row->_rowTools->addLink($paymentCaption, $PayDoc->getSingleUrlArray(), array('ef_icon' => $PayDoc->singleIcon, 'title' => 'Преглед на документа'));
+
                 $amountTpl->append('<div class="payment-line-amount">');
                 $amountTpl->append($paymentInfo['amountVerbal']);
                 $amountTpl->append('</div>');
@@ -358,8 +370,6 @@ class trans_LineDetails extends doc_Detail
         if($fields['renderDocumentInline']){
             $row->ROW_ATTR['class'] .= " detailedView";
         }
-
-        $row->num = core_Type::getByName('int')->toVerbal($rec->num);
     }
     
     
@@ -397,12 +407,6 @@ class trans_LineDetails extends doc_Detail
         $data->listTableMvc->FNC('notes', 'varchar', 'tdClass=row-notes');
         $data->listTableMvc->FNC('zoneId', 'varchar', 'smartCenter,tdClass=small-field');
         $data->listTableMvc->FNC('documentHtml', 'varchar', 'tdClass=documentHtml');
-
-        foreach ($data->rows as $row){
-            if(isset($row->_rowTools)){
-                $row->_rowTools->append($row->num);
-            }
-        }
     }
 
 
@@ -528,8 +532,12 @@ class trans_LineDetails extends doc_Detail
     {
         // Към коя група спада документа
         if (!array_key_exists($groupId, self::$cache)) {
-            $className = cls::getClassName($groupId);
+            $className = ($groupId == 'removed') ? 'removed' : cls::getClassName($groupId);
             $className = tr(self::$classGroups[$className]);
+
+            if(!Mode::isReadOnly() && $groupId == 'removed'){
+                $className .= " <a id= 'groupBtn{$groupId}' href=\"javascript:toggleDisplayByClass('groupBtn{$groupId}','group{$groupId}')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
+            }
             self::$cache[$groupId] = $className;
         }
 
@@ -569,13 +577,18 @@ class trans_LineDetails extends doc_Detail
         // Кои документи са платежни и кои документи могат да имат такива към тях
         $paymentDocsClassIds = array(cash_Pko::getClassId(), cash_Rko::getClassId());
         $documentsWithPayments = array(store_ShipmentOrders::getClassId(), store_Receipts::getClassId());
-        $paymentDocuments = array_filter($recs, function ($a) use ($paymentDocsClassIds) {return in_array($a->classId, $paymentDocsClassIds);});
+        $paymentDocuments = array_filter($recs, function ($a) use ($paymentDocsClassIds) {return in_array($a->classId, $paymentDocsClassIds) && ($a->status != 'removed');});
 
-        $count = 0;
+        $removedRecs = array();
         foreach ($data->recs as $rec){
-            $count++;
-            $rec->num = $count;
-            if(!in_array($rec->classId, $documentsWithPayments) || $rec->status == 'removed') continue;
+            if($rec->status == 'removed'){
+                $rec->classId = 'removed';
+                $removedRecs[$rec->id] = $rec;
+                unset($data->recs[$rec->id]);
+                continue;
+            }
+
+            if(!in_array($rec->classId, $documentsWithPayments)) continue;
 
             // Към всеки документ който може да има платежен се добавят на неговия ред тези създадени към него
             $shipmentPayments = array_filter($paymentDocuments, function($a) use (&$rec){
@@ -616,6 +629,10 @@ class trans_LineDetails extends doc_Detail
                 unset($paymentDocuments[$i]);
                 unset($data->recs[$i]);
             }
+        }
+
+        if(countR($removedRecs)){
+            $data->recs += $removedRecs;
         }
     }
     

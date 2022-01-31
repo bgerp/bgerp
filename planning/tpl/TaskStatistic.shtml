@@ -35,7 +35,7 @@
                   <span style='font-weight:normal'>|Влагане в|*</span>: [#inputInTask#]<br>
                   <!--ET_END inputInTask-->
                   <!--ET_BEGIN storeId-->
-                  <span style='font-weight:normal'>|От склад|*</span>: [#storeId#]<br>
+                  <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->
                   <!--ET_BEGIN fixedAssets-->
                   <span style='font-weight:normal'>|Оборудване|*</span>: [#fixedAssets#]<br>

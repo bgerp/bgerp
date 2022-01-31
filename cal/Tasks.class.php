@@ -752,7 +752,26 @@ class cal_Tasks extends embed_Manager
         
         return new Redirect($retUrl);
     }
-    
+
+
+    /**
+     * Преди подготовка на сингъла
+     *
+     * @param stdClass $mvc
+     * @param mixed $res
+     * @param stdClass $data
+     */
+    protected static function on_BeforePrepareSingleFields($mvc, &$res, $data)
+    {
+        // Документи създадени от анонимни потребители да няма връзка към друг документ или ник
+        // И да не може да се ембедва съдържание
+        if ($data->rec->createdBy == -1) {
+            $mvc->fields['description']->type->params['hndToLink'] = 'no';
+            $mvc->fields['description']->type->params['nickToLink'] = 'no';
+            $mvc->fields['description']->type->params['oembed'] = 'none';
+        }
+    }
+
     
     /**
      * След преобразуване на записа в четим за хора вид.

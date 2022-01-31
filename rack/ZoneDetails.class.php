@@ -128,7 +128,10 @@ class rack_ZoneDetails extends core_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        $row->productId = Mode::get('inlineDetail') ?  ht::createLinkRef(cat_Products::getTitleById($rec->productId), array('cat_Products', 'single', $rec->productId)) : cat_Products::getShortHyperlink($rec->productId, true);
+        if(!Mode::is('printing')){
+            $row->productId = Mode::get('inlineDetail') ?  ht::createLinkRef(cat_Products::getTitleById($rec->productId), array('cat_Products', 'single', $rec->productId)) : cat_Products::getShortHyperlink($rec->productId, true);
+        }
+
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         $movementQuantity = core_Math::roundNumber($rec->movementQuantity);
         $documentQuantity = core_Math::roundNumber($rec->documentQuantity);

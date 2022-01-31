@@ -9,15 +9,20 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Производствен етап
+ * @title     Етап в производството
  */
-class planning_interface_StageDriver extends cat_GeneralProductDriver
+class planning_interface_StepProductDriver extends cat_GeneralProductDriver
 {
-    
+    /**
+     * За конвертиране на съществуващи MySQL таблици от предишни версии
+     */
+    public $oldClassName = 'planning_interface_StageDriver';
+
+
     /**
      * Кой може да избира драйвъра
      */
@@ -37,7 +42,7 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
      *
      * @param string
      */
-    public $extenderClass = 'planning_Stages';
+    public $extenderClass = 'planning_Steps';
     
     
     /**
@@ -118,7 +123,7 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
 
             // Ако се създава от рецепта: да редиректне към нея с вече готовото ид
             if($retUrl['Ctr'] == 'cat_BomDetails' && $retUrl['type'] == 'stage'){
-                if(cat_Products::haveDriver($data->form->rec->id, 'planning_interface_StageDriver')){
+                if(cat_Products::haveDriver($data->form->rec->id, 'planning_interface_StepProductDriver')){
                     if($Driver = cat_Products::getDriver($data->form->rec->id)){
                         if ($Driver->canSelectDriver()) {
                             $retUrl['resourceId'] = $data->form->rec->id;
@@ -128,5 +133,28 @@ class planning_interface_StageDriver extends cat_GeneralProductDriver
                 }
             }
         }
+    }
+
+
+    /**
+     * Връща информация за данните от производствения етап
+     *
+     * @param int $productId
+     * @return array
+     *          int|null   ['centerId']    - ид на център на дейност
+     *          int|null   ['storeIn']     - ид на склад за засклаждане (ако е складируем)
+     *          int|null   ['storeInput']  - ид на склад за влагане (ако е складируем)
+     *          array|null ['fixedAssets'] - масив от ид-та на оборудвания (@see planning_AssetResources)
+     *          array|null ['employees']   - масив от ид-та на оператори (@see planning_Hr)
+     *          int|null   ['norm']        - норма за производство
+     */
+    public function getProductionStepData($productId)
+    {
+        $rec = cat_Products::fetch($productId);
+        $res = array('centerId' => $rec->planning_Steps_centerId, 'storeIn' => $rec->planning_Steps_storeIn, 'storeInput' => $rec->planning_Steps_storeInput, 'norm' => $rec->planning_Steps_norm);
+        $res['fixedAssets'] = !empty($rec->planning_Steps_fixedAssets) ? keylist::toArray($rec->planning_Steps_fixedAssets) : null;
+        $res['employees'] = !empty($rec->planning_Steps_employees) ? keylist::toArray($rec->planning_Steps_employees) : null;
+
+        return $res;
     }
 }
