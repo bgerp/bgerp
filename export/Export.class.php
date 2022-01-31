@@ -169,6 +169,9 @@ class export_Export extends core_Mvc
             $intfCls = cls::getInterface('export_ExportTypeIntf', $type);
             $intfCls->addParamFields($form, $classId, $docId);
         }
+
+        $form->input(null, 'silent');
+        $form->input();
         
         if ($form->isSubmitted()) {
             $exportFormatsArr = $this->getPossibleExports($classId, $docId);
