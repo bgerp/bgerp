@@ -1121,7 +1121,7 @@ class cat_products_Packagings extends core_Detail
         } else {
             if ($rec->packagingId && $rec->productId) {
                 $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId), 'quantity');
-                bp($quantity, $rec);
+
                 if (isset($quantity)) {
                     if ($quantity != $rec->quantityInPack) {
                         $notMatchArr[$rec->productId] = $quantity;
