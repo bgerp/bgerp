@@ -199,7 +199,7 @@ class trans_LineDetails extends doc_Detail
         $row->containerId = "#{$handle}";
         if (!core_Mode::isReadOnly()) {
             $row->containerId = $Document->getLink(0);
-            $createdBy = crm_Profiles::createLink($Document->fetchField('createdBy'))->getContent();
+            $createdBy = core_Users::getNick($Document->fetchField('createdBy'));
             $displayContainerId = $row->containerId;
             $displayContainerId .= " / {$createdBy}";
             $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
