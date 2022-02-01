@@ -359,7 +359,7 @@ class rack_MovementGenerator2 extends core_Manager
      */
     private static function moveGen($p, $z, $pK, $zK, &$rate, $packs, $allPallets, $qInPallet)
     {
-        static $timeGet, $timeZone, $timeReturn;
+        static $timeGet, $timeGetA, $timeZone, $timeReturn;
 
         if(!isset($timeGet)) {
             $timeGet = rack_Setup::get('TIME_GET');
@@ -413,7 +413,7 @@ class rack_MovementGenerator2 extends core_Manager
             }
             
             $getTime =  self::isFirstRow($o->pallet) ? $timeGetA : $timeGet;
-          
+    
             $retTime = 0;
 
             if($pQ) {
@@ -421,7 +421,8 @@ class rack_MovementGenerator2 extends core_Manager
                 if(isset($qInPallet) && $pQ > $qInPallet/3) {
                     $o->quantity = $o->quantity - $pQ;
                     $o->partial  = true;
-                    $getTime += self::timeToCount($o->quantity, $packs) + 5*($o->quantity + $pQ == $qInPallet) ;
+                 
+                    $getTime += self::timeToCount($o->quantity, $packs) + 5*($o->quantity + $pQ == $qInPallet) ;     
                 } else {
                     $p[$pI] = 0;
                     $o->ret = $pQ;
