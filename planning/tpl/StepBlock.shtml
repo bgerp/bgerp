@@ -50,3 +50,38 @@
 		<!--ET_END planning_Steps_norm-->
     </table>
 </fieldset>
+<!--ET_BEGIN LABELS-->
+<fieldset class="detail-info">
+	[#LABELS#]
+	<legend class="groupTitle">|Етикиране в производствена операция|*</legend>
+	<table>
+		<!--ET_BEGIN planning_Steps_labelPackagingId-->
+		<tr>
+			<td class='quiet'>|Опаковка|*:</td>
+			<td>[#planning_Steps_labelPackagingId#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelPackagingId-->
+
+		<!--ET_BEGIN planning_Steps_labelQuantityInPack-->
+		<tr>
+			<td class='quiet'>|В опаковка|*:</td>
+			<td>[#planning_Steps_labelQuantityInPack#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelQuantityInPack-->
+
+		<!--ET_BEGIN planning_Steps_labelType-->
+		<tr>
+			<td class='quiet'>|Етикет|*:</td>
+			<td>[#planning_Steps_labelType#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelType-->
+
+		<!--ET_BEGIN planning_Steps_labelTemplate-->
+		<tr>
+			<td class='quiet'>|Шаблон|*:</td>
+			<td>[#planning_Steps_labelTemplate#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelTemplate-->
+	</table>
+</fieldset>
+<!--ET_END LABELS-->
