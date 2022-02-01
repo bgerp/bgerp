@@ -160,12 +160,14 @@ class planning_Steps extends core_Extender
             // Ако артикула е складируем показват се полетата за етикетиране
             $form->setField("{$mvc->className}_labelPackagingId", 'input');
             if(isset($rec->id)){
-                $packs = cat_Products::getPacks($rec->id);
-                $form->setOptions("{$mvc->className}_labelPackagingId", array('' => '') + $packs);
+                $packs = array('' => '') + cat_Products::getPacks($rec->id);
+            } else {
+                $packs = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false));
             }
+            $form->setOptions("{$mvc->className}_labelPackagingId", array('' => '') + $packs);
 
             // Ако има избрана опаковка за етикиране
-            if(isset($rec->{"{$mvc->className}_labelPackagingId"})){
+            if(!empty($rec->{"{$mvc->className}_labelPackagingId"})){
                 $templateOptions = planning_Tasks::getAllAvailableLabelTemplates($rec->{"{$mvc->className}_labelTemplate"});
                 $form->setOptions("{$mvc->className}_labelTemplate", $templateOptions);
 
@@ -174,11 +176,13 @@ class planning_Steps extends core_Extender
                 $form->setField("{$mvc->className}_labelTemplate", 'input');
 
                 // При редакция на артикул наличните опаковки за етикетиране са само тези на артикула
+                $quantityInPack = 1;
                 if(isset($rec->id)){
                     $packRec = cat_products_Packagings::getPack($rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                    $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
+
                 }
+                $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
             }
         }
     }
@@ -216,10 +220,10 @@ class planning_Steps extends core_Extender
             }
 
             // При създаване, ако е посочена опаковка за етикет - задължително трябва да е въведено количество в нея
-            if(!isset($rec->id)){
-                if(isset($rec->{"{$mvc->className}_labelPackagingId"})){
-                    if(empty($rec->{"{$mvc->className}_labelQuantityInPack"})){
-                        $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да зададете количество в опаковката/мярката|*!');
+            if(isset($rec->{"{$mvc->className}_labelPackagingId"})){
+                if(isset($rec->{"{$mvc->className}_labelQuantityInPack"})){
+                    if($rec->{"{$mvc->className}_labelPackagingId"} == $rec->measureId && $rec->{"{$mvc->className}_labelQuantityInPack"} != 1){
+                        $form->setError("{$mvc->className}_labelQuantityInPack", 'Ако за етикиране е избрана основната мярка, то количеството не може да е различно от 1|*!');
                     }
                 }
             }
@@ -287,27 +291,6 @@ class planning_Steps extends core_Extender
                     }
                 }
             }
-        }
-    }
-
-
-    /**
-     * Изпълнява се след създаване на нов запис
-     */
-    protected static function on_AfterCreate($mvc, $rec)
-    {
-        $measureId = cls::get($rec->classId)->fetchField($rec->objectId, 'measureId');
-
-        // След създаване добавя се запис за продуктовата опаковка
-        if(isset($rec->labelPackagingId) && $rec->labelPackagingId != $measureId){
-            $newPack = (object)array('productId' => $rec->objectId,
-                                     'packagingId' => $rec->labelPackagingId,
-                                     'quantity' => $rec->labelQuantityInPack,
-                                     'firstClassId' => $rec->classId,
-                                     'firstDocId' => $rec->objectId,
-            );
-
-            cat_products_Packagings::save($newPack);
         }
     }
 
