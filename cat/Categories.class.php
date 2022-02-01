@@ -549,10 +549,28 @@ class cat_Categories extends core_Master
     {
         $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
         $exMeta = (isset($productId)) ? type_Set::toArray(cat_Products::fetchField($productId, 'meta')) : array();
-        
+
+        $Driver = cat_Products::getDriver($productId);
+        if($Driver instanceof planning_interface_StepProductDriver){
+            if(!isset($metasArr['canManifacture'])){
+                $error = "Артикулът е етап от производство и трябва да остане производим|*!";
+            } elseif(!isset($metasArr['canConvert'])){
+                $error = "Артикулът е етап от производство и трябва да остане вложим|*!";
+            } else {
+                $canStore = cat_Products::fetchField($productId, 'planning_Steps_canStore');
+                if($canStore == 'yes' && !isset($metasArr['canStore'])){
+                    $error = "Артикулът е складируем етап от производство и трябва да остане складируем|*!";
+                } elseif($canStore != 'yes' && isset($metasArr['canStore'])){
+                    $error = "Артикулът е нескладируем етап от производство и не може да стане складируем|*!";
+                }
+
+                if(!empty($error)) return false;
+            }
+        }
+
         if(isset($metasArr['generic'])) {
              if(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
-                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА|*";
+                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА|*!";
              } elseif(!isset($metasArr['canConvert'])){
                  $error = "Генеричният артикул трябва да е и Вложим|*!";
              } elseif(isset($productId) && !haveRole('debug')){

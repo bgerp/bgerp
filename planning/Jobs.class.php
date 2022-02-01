@@ -1263,7 +1263,7 @@ class planning_Jobs extends core_Master
                     $urlAdd = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $defTask->title, 'ret_url' => true, 'systemId' => $sysId);
                 }
 
-                $urlLink = ht::createBtn('Създаване', $urlAdd, $warning, false, 'title=Създаване на производствена операция');
+                $urlLink = ht::createBtn('Създаване', $urlAdd, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/add.png');
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CHECKED' => $img, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
         }
@@ -1290,7 +1290,7 @@ class planning_Jobs extends core_Master
                         $urlClone = array('planning_Tasks', 'createjobtasks', 'type' => 'clone', 'cloneId' => $k1, 'jobId' => $jobRec->id, 'ret_url' => true);
                     }
 
-                    $urlLink = ht::createBtn('Клониране', $urlClone, $warning, false, 'title=Създаване на производствена операция');
+                    $urlLink = ht::createBtn('Клониране', $urlClone, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/clone.png');
                     $options[] = (object)array('DEFAULT_TASK_CAPTION' => $oldTitle, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CHECKED' => $img, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
                 }
             }
@@ -1306,7 +1306,7 @@ class planning_Jobs extends core_Master
                     $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId);
                 }
 
-                $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, 'title=Създаване на нова производствена операция в избрания център');
+                $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, 'title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png');
                 $dName = doc_Folders::recToVerbal($depFolderId)->title;
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CHECKED' => null, 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
             }
