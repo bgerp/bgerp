@@ -169,7 +169,7 @@ class cat_Products extends embed_Manager
     /**
      * Кой може да затваря?
      */
-    public $canClose = 'cat,ceo,sales,purchase';
+    public $canClose = 'cat,ceo,sales,purchase,planning,production';
     
     
     /**
