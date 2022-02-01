@@ -84,7 +84,8 @@ class label_Setup extends core_ProtoSetup
         $html .= $Plugins->installPlugin('Принтиране на етикети от справки', 'label_plg_Print', 'frame2_Reports', 'private');
         $html .= $Plugins->installPlugin('Принтиране на етикети от прогрес на производствена операция', 'label_plg_Print', 'planning_ProductionTaskDetails', 'private');
         $html .= $Plugins->installPlugin('Принтиране на етикети от протокол за производство', 'label_plg_Print', 'planning_DirectProductionNote', 'private');
-        
+        $html .= $Plugins->installPlugin('Принтиране на етикети от производствена операция', 'label_plg_Print', 'planning_Tasks', 'private');
+
         core_Interfaces::add('label_TemplateRendererIntf');
         
         return $html;

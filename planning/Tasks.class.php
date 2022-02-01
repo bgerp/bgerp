@@ -204,7 +204,7 @@ class planning_Tasks extends core_Master
     /**
      * Интерфейси, поддържани от този мениджър
      */
-    public $interfaces = 'barcode_SearchIntf';
+    public $interfaces = 'barcode_SearchIntf,label_SequenceIntf=planning_interface_TaskLabel';
     
     
     /**
@@ -213,8 +213,14 @@ class planning_Tasks extends core_Master
      * @see acc_plg_DocumentSummary
      */
     public $showNullDateFields = true;
-    
-    
+
+
+    /**
+     * Да се проверява ли дали има разминаване с к-то в опаковката
+     */
+    public $dontCheckQuantityInPack = true;
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -235,11 +241,11 @@ class planning_Tasks extends core_Master
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Производство->Отчитане,input=none');
         }
-
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=packagingQuantityInPack');
-        $this->FLD('packagingQuantityInPack', 'double(smartRound)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=none');
+        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=packagingQuantityInPack|labelTemplate');
+        $this->FLD('packagingQuantityInPack', 'double(smartRound)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both');
-        
+        $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
+
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Време за производство->Норма,smartCenter');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,removeAndRefreshForm,caption=Време за производство->Опаковка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Време за производство->Разпределяне,smartCenter,notNull,value=common');
@@ -474,8 +480,23 @@ class planning_Tasks extends core_Master
             } else {
                 $row->packagingQuantityInPack .= " {$row->measureId}";
             }
+        }
+
+        if(isset($rec->labelTemplate)){
+            $row->labelTemplate = label_Templates::getHyperlink($rec->labelTemplate);
         } else {
-            $row->packagingQuantityInPack = "<span class='quiet'>N/A</span>";
+            $row->labelTemplate = "<span class='quiet'>N/A</span>";
+        }
+
+        if(!isset($rec->packagingQuantityInPack)){
+            if(isset($rec->packagingId)) {
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+                $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
+                $quantityInPack = core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack);
+                $row->packagingQuantityInPack = ht::createHint("<span style='color:blue'>{$quantityInPack}</span>", 'Идва от опаковката/мярката на артикула');
+            } else {
+                $row->packagingQuantityInPack = "<span class='quiet'>N/A</span>";
+            }
         }
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
@@ -524,7 +545,7 @@ class planning_Tasks extends core_Master
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            
+
             // Може да се избират само оборудвания от една група
             if (isset($rec->fixedAssets)) {
                 if (!planning_AssetGroups::haveSameGroup($rec->fixedAssets)) {
@@ -580,11 +601,12 @@ class planning_Tasks extends core_Master
                 <!--ET_BEGIN weightDeviationAverageWarning--><tr><td style='font-weight:normal'>|Спрямо средното|*:</td><td>+/- [#weightDeviationAverageWarning#]</td></tr><!--ET_END weightDeviationAverageWarning-->
                 </table>"));
         }
-        
+
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table>
                 <tr><td style='font-weight:normal'>|Етикет|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#packagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#packagingQuantityInPack#]</td></tr>
+                <tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>
                 </table>"));
         
         $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table>
@@ -736,8 +758,13 @@ class planning_Tasks extends core_Master
             }
         }
 
-        if($action == 'createjobtasks' && isset($rec)){
+        if($action == 'printlabel' && isset($rec)){
+            if(empty($rec->packagingId)){
+                $requiredRoles = 'no_one';
+            }
+        }
 
+        if($action == 'createjobtasks' && isset($rec)){
             if(empty($rec->type) || empty($rec->jobId)){
                 $requiredRoles = 'no_one';
             } elseif(!in_array($rec->type, array('all', 'clone'))){
@@ -845,14 +872,6 @@ class planning_Tasks extends core_Master
         $form = &$data->form;
         $rec = $form->rec;
 
-        $defaultShowAdditionalUom = planning_Setup::get('TASK_WEIGHT_MODE');
-        $form->setField('weightDeviationWarning', "placeholder=" . core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING')));
-        $form->setDefault('showadditionalUom', $defaultShowAdditionalUom);
-
-        if($defaultShowAdditionalUom == $rec->showadditionalUom){
-            $form->setField('showadditionalUom', 'autohide=any');
-        }
-
         if($rec->showadditionalUom)
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
@@ -879,7 +898,8 @@ class planning_Tasks extends core_Master
        
         $form->setOptions('productId', $options);
         $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
-        
+        $form->setDefault('labelType', 'both');
+
         if (isset($rec->systemId, $tasks[$rec->systemId])) {
             $taskData = (array)$tasks[$rec->systemId];
             unset($taskData['products']);
@@ -924,6 +944,7 @@ class planning_Tasks extends core_Master
                 $params = cat_Products::getParams($rec->productId);
                 $taskParams = cat_Params::getTaskParamIds();
                 $diff = array_intersect_key($params, $taskParams);
+
                 foreach ($diff as $pId => $v) {
                     $paramRec = cat_Params::fetch($pId);
                     $name = cat_Params::getVerbal($paramRec, 'name');
@@ -975,17 +996,25 @@ class planning_Tasks extends core_Master
                 $packs = cat_Products::getPacks($rec->productId, false, $originRec->secondMeasureId);
                 $form->setOptions('packagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
+
+                $form->setField('storeId', 'input');
+                $form->setField('packagingId', 'input');
+                $form->setField('packagingQuantityInPack', 'input');
+                $form->setField('indPackagingId', 'input');
+
+                $defaultShowAdditionalUom = planning_Setup::get('TASK_WEIGHT_MODE');
+                $form->setField('weightDeviationWarning', "placeholder=" . core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING')));
+                $form->setDefault('showadditionalUom', $defaultShowAdditionalUom);
+
+                if($defaultShowAdditionalUom == $rec->showadditionalUom){
+                    $form->setField('showadditionalUom', 'autohide=any');
+                }
             } else {
                 $form->setField('showadditionalUom', 'input=none');
                 $form->setField('weightDeviationNotice', 'input=none');
                 $form->setField('weightDeviationWarning', 'input=none');
                 $form->setField('weightDeviationAverageWarning', 'input=none');
-            }
-
-            if(isset($rec->packagingId)){
-                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
-                $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
-                $form->setField('packagingQuantityInPack', "placeholder={$quantityInPackDefault}");
+                $form->setDefault('indPackagingId', $rec->measureId);
             }
 
             // Ако артикула е вложим, може да се влага по друга операция
@@ -1002,18 +1031,18 @@ class planning_Tasks extends core_Master
                 $measureShort = cat_UoM::getShortName($rec->measureId);
                 $form->setField('plannedQuantity', "unit={$measureShort}");
             }
-            
-            if ($productRec->canStore == 'yes') {
-                $form->setField('storeId', 'input');
-                $form->setField('packagingId', 'input');
-                $form->setField('packagingQuantityInPack', 'input');
-                $form->setField('indPackagingId', 'input');
-            } else {
-                $form->setField('labelType', 'input=hidden');
-                $form->setField('labelType', 'print');
-                $form->setDefault('indPackagingId', $rec->measureId);
+
+            if(isset($rec->packagingId)){
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+                $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
+                $form->setField('packagingQuantityInPack', "placeholder={$quantityInPackDefault}");
+
+                $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);
+                $form->setField('labelTemplate', 'input');
+                $form->setOptions('labelTemplate', $templateOptions);
+                $form->setDefault('labelTemplate', key($templateOptions));
             }
-            
+
             if ($rec->productId == $originRec->productId) {
                 $toProduce = ($originRec->quantity - $originRec->quantityProduced);
                 if ($toProduce > 0) {
@@ -1651,5 +1680,45 @@ class planning_Tasks extends core_Master
                 $data->retUrl = $retUrl;
             }
         }
+    }
+
+
+    /**
+     * Кои са достъпните етикети за печат
+     */
+    public function getLabelTemplates_($rec)
+    {
+        // Ако има избран етикет връща се само той
+        $res = array();
+        $rec = $this->fetchRec($rec);
+        if(isset($rec->labelTemplate)){
+            $res[$rec->labelTemplate] = label_Templates::fetch($rec->labelTemplate);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Връща наличните за избор шаблони за производствени операции
+     *
+     * @param int|null $exTemplateId - ид на вече избран шаблон ако има да се добави към опциите
+     * @return array $options
+     */
+    public static function getAllAvailableLabelTemplates($exTemplateId = null)
+    {
+        $options = array();
+        $labelTemplateRecs = label_Templates::getTemplatesByClass(get_called_class());
+        foreach ($labelTemplateRecs as $templateRec){
+            $options[$templateRec->id] = $templateRec->title;
+        }
+
+        if(isset($exTemplateId)){
+            if(!array_key_exists($exTemplateId, $options)){
+                $options[$exTemplateId] = label_Templates::fetchField($exTemplateId, 'title');
+            }
+        }
+
+        return $options;
     }
 }

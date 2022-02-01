@@ -31,7 +31,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Интерфейси
      */
-    public $interfaces = 'hr_IndicatorsSourceIntf,label_SequenceIntf=planning_interface_TaskLabel';
+    public $interfaces = 'hr_IndicatorsSourceIntf,label_SequenceIntf=planning_interface_TaskLabelDetail';
     
     
     /**
