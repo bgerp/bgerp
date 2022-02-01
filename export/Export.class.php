@@ -162,13 +162,16 @@ class export_Export extends core_Mvc
         }
 
         $form->input(null, 'silent');
-        $form->input();
+//        $form->input();
 
         // Ако е избран драйвер, той може да добавя полета за параметри на формата
         if($type = $form->rec->type){
             $intfCls = cls::getInterface('export_ExportTypeIntf', $type);
             $intfCls->addParamFields($form, $classId, $docId);
         }
+
+        $form->input(null, 'silent');
+        $form->input();
         
         if ($form->isSubmitted()) {
             $exportFormatsArr = $this->getPossibleExports($classId, $docId);

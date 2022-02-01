@@ -453,7 +453,11 @@ class deals_plg_DpInvoice extends core_Plugin
             
             $lastRow = new ET("<tr><td colspan={$colspan1}></td><td colspan='{$colspan}'>" . tr('Приспадане на авансово плащане') . ' ' . $reason . " <td style='text-align:right'>[#dpAmount#]</td></td></tr>");
         }
-        
+
+        if(!doc_plg_HidePrices::canSeePriceFields($data->masterData->rec)){
+            $data->dpInfo->dpAmount = doc_plg_HidePrices::getBuriedElement();
+        }
+
         $lastRow->placeObject($data->dpInfo);
         $tpl->append($lastRow, 'ROW_AFTER');
     }

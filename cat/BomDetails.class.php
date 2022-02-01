@@ -240,7 +240,7 @@ class cat_BomDetails extends doc_Detail
         }
 
         if($rec->type == 'stage'){
-            if(isset($rec->resourceId) && $data->masterRec->type == 'production'){
+            if(isset($rec->resourceId)){
 
                 // Ако има данни за производство
                 $form->setField('centerId', 'input');
@@ -261,6 +261,9 @@ class cat_BomDetails extends doc_Detail
                         foreach (array('centerId', 'norm', 'storeIn', 'storeInput', 'fixedAssets', 'employees') as $productionFld){
                             $defaultValue = is_array($productionData[$productionFld]) ? keylist::fromArray($productionData[$productionFld]) : $productionData[$productionFld];
                             $form->setDefault($productionFld, $defaultValue);
+                            if($data->masterRec->type != 'production') {
+                                $form->setField($productionFld, 'autohide=any');
+                            }
                         }
                     }
                 }

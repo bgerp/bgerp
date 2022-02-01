@@ -1673,7 +1673,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - COALESCE(#amountInvoiced, 0), 2)');
         $query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered, 2)');
         
-        $percent = bgerp_Setup::get('CLOSE_UNDELIVERED_OVER');
+        $percent = deals_Setup::get('CLOSE_UNDELIVERED_OVER');
         $percent = (!empty($percent)) ? $percent : 1;
         
         $query->XPR('minDelivered', 'double', "ROUND(#amountDeal * {$percent}, 2)");

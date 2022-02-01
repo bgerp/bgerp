@@ -2,14 +2,14 @@
 
 
 /**
- * Плъгин подравняващ броя на десетичните символи, с помоща на новите функции в core_Math
+ * Плъгин подравняващ броя на десетичните символи, с помоща на core_Math
  *
  *
  * @category  bgerp
  * @package   plg
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2021 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -39,7 +39,7 @@ class plg_AlignDecimals2 extends core_Plugin
             
             return;
         }
-        
+
         //$decFields = array(5 => 'packPrice');
         
         // тука определяме най-дългата дробна част, без да записваме числото
@@ -48,12 +48,12 @@ class plg_AlignDecimals2 extends core_Plugin
                 core_Math::roundNumber($rec->{$fName}, ${"{$fName}FracLen"});
             }
         }
-        
+
         // Закръгляме сумата и я обръщаме във вербален вид
         foreach ($recs as $id => &$rec) {
             foreach ($decFields as $fName) {
-                $buriedElement = doc_plg_HidePrices::getBuriedElement();
-                if (isset($rec->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName}) && $rows[$id]->{$fName} != $buriedElement) {
+
+                if (isset($rec->{$fName}) && !is_object($rows[$id]->{$fName}) && !is_null($rows[$id]->{$fName}) && preg_match("/<[^<]+>/",$rows[$id]->{$fName}) == 0) {
                     $Type = clone $mvc->fields[$fName]->type;
                     
                     if(!$Type->params['decimals']) {
@@ -77,10 +77,7 @@ class plg_AlignDecimals2 extends core_Plugin
         $recs = &$data->recs;
         $rows = &$data->rows;
         
-        if (!countR($recs)) {
-            
-            return;
-        }
+        if (!countR($recs)) return;
         
         self::alignDecimals($data->listTableMvc, $recs, $rows);
     }
