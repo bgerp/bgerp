@@ -363,6 +363,7 @@ class rack_MovementGenerator2 extends core_Manager
 
         if(!isset($timeGet)) {
             $timeGet = rack_Setup::get('TIME_GET');
+            $timeGetA = rack_Setup::get('TIME_GET_A');
             $timeZone = rack_Setup::get('TIME_ZONE');
             $timeReturn = rack_Setup::get('TIME_RETURN');
         }
@@ -411,9 +412,8 @@ class rack_MovementGenerator2 extends core_Manager
                 }
             }
             
-            $getTime = $timeGet * (1.1 - 0.1 * self::isFirstRow($o->pallet));
+            $getTime =  self::isFirstRow($o->pallet) ? $timeGetA : $timeGet;
           
-
             $retTime = 0;
 
             if($pQ) {

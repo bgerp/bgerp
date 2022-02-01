@@ -38,6 +38,12 @@ defIfNot('RACK_TIME_GET', 20);
 
 
 /**
+ * Средни времена по операции->Вземане на палет от ред А
+ */
+defIfNot('RACK_TIME_GET_A', 19);
+
+
+/**
  * Средни времена по операции->Оставяне в зона
  */
 defIfNot('RACK_TIME_ZONE', 5);
@@ -215,6 +221,7 @@ class rack_Setup extends core_ProtoSetup
         'RACK_CLOSE_COMBINED_MOVEMENTS_AT_ONCE' => array('enum(yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване'),
         'RACK_PICKUP_STRATEGY' => array('enum(ver1,ver2)', 'caption=Стратегия за генериране на движенията->Избор'),
         'RACK_TIME_GET' => array('int', 'caption=Средни времена по операции->Вземане'),
+        'RACK_TIME_GET_A' => array('int', 'caption=Средни времена по операции->Вземане ot A'),
         'RACK_TIME_ZONE' => array('int', 'caption=Средни времена по операции->Оставяне'),
         'RACK_TIME_RETURN' => array('int', 'caption=Средни времена по операции->Връщане'),
         'RACK_TIME_COUNT' => array('int', 'caption=Средни времена по операции->Броене'),
