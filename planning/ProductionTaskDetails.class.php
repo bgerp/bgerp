@@ -249,7 +249,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
             $shortMeasure = ($rec->productId == $masterRec->productId) ? cat_UoM::getShortName($pRec->measureId) : cat_UoM::getShortName($info->packagingId);
 
-            if($rec->type == 'production' && isset($masterRec->packagingId) && $rec->productId == $masterRec->productId){
+            if($rec->type == 'production' && isset($masterRec->packagingId) && $rec->productId == $masterRec->productId && $masterRec->packagingId != $masterRec->measureId){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
                 $form->setField('quantity', "unit={$unit}");
                 $defaultQuantity = $masterRec->packagingQuantityInPack;
@@ -711,9 +711,9 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Документа не може да се създава  в нова нишка, ако е възоснова на друг
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $data->toolbar->removeBtn('btnAdd');
-            
+            $masterRec = $data->masterData->rec;
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-                $btnName = empty($data->masterData->rec->packagingId) ? 'Произвеждане' : "Произв.|* " . tr(cat_UoM::getTitleById(($data->masterData->rec->packagingId)));
+                $btnName = (empty($masterRec->packagingId) || $masterRec->packagingId == $masterRec->measureId) ? 'Произвеждане' : "Произв.|* " . tr(cat_UoM::getTitleById(($masterRec->packagingId)));
                 $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на произведен артикул');
             }
             

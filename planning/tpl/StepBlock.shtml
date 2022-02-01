@@ -27,21 +27,18 @@
 			<td>[#planning_Steps_storeIn#]</td>
 		</tr>
 		<!--ET_END planning_Steps_storeIn-->
-
-		<!--ET_BEGIN planning_Steps_employees-->
-		<tr>
-			<td class='quiet'>|Оператори|*:</td>
-			<td>[#planning_Steps_employees#]</td>
-		</tr>
-		<!--ET_END planning_Steps_employees-->
-
 		<!--ET_BEGIN planning_Steps_fixedAssets-->
 		<tr>
 			<td class='quiet'>|Оборудване|*:</td>
 			<td>[#planning_Steps_fixedAssets#]</td>
 		</tr>
 		<!--ET_END planning_Steps_fixedAssets-->
-
+		<!--ET_BEGIN planning_Steps_employees-->
+		<tr>
+			<td class='quiet'>|Оператори|*:</td>
+			<td>[#planning_Steps_employees#]</td>
+		</tr>
+		<!--ET_END planning_Steps_employees-->
 		<!--ET_BEGIN planning_Steps_norm-->
 		<tr>
 			<td class='quiet'>|Норма|*:</td>
