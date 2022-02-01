@@ -61,7 +61,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      */
     protected function on_AfterRecToVerbal(cat_ProductDriver $Driver, $mvc, $row, $rec)
     {
-        unset($row->editMetaBtn);
+       // unset($row->editMetaBtn);
     }
     
     
