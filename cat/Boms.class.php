@@ -1708,12 +1708,14 @@ class cat_Boms extends core_Master
                 $quantityP *= $q;
                 $parent = $pRec->parentId;
             }
-            
-            $quantityP = ($quantityP / $rec->quantity) * $quantity;
+
+            $quantityP = (($quantityP) / $rec->quantity) * $quantity;
+            $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
             // Подготвяне задачата за етапа, с него за производим
             $arr = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
-                'plannedQuantity' => $quantityP,
+                'plannedQuantity' => $q1,
+                'measureId' => cat_Products::fetchField($dRec->resourceId, 'measureId'),
                 'productId' => $dRec->resourceId,
                 'packagingId' => $dRec->packagingId,
                 'quantityInPack' => $dRec->quantityInPack,
@@ -1723,6 +1725,10 @@ class cat_Boms extends core_Master
                 'employees' => $dRec->employees,
                 'indTime' => $dRec->norm,
                 'description' =>  $dRec->description,
+                'labelPackagingId' => $dRec->labelPackagingId,
+                'labelQuantityInPack' => $dRec->labelQuantityInPack,
+                'labelType' => $dRec->labelType,
+                'labelTemplate' => $dRec->labelTemplate,
                 'products' => array('input' => array(), 'waste' => array()));
             
             // Добавяме директните наследници на етапа като материали за влагане/отпадък

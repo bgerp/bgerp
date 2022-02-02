@@ -1243,10 +1243,12 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#productId = '[#1#]' AND #action = 'sale|code' AND #value = '[#2#]'", $productId, $uomId));
             } elseif($Detail == 'planning_Jobs'){
                 $dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
-            } elseif ($Detail == 'cat_BomDetails') {
+            } elseif ($Detail == 'cat_BomDetails') {//bp();
                 $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             } elseif ($Detail == 'store_TransfersDetails') {
                 $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
+            } elseif ($Detail == 'planning_Tasks') {
+                $dQuery->where(array("#productId = '[#1#]' AND #labelPackagingId = '[#2#]'", $productId, $uomId));
             } else {
                 $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             }

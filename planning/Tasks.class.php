@@ -230,7 +230,7 @@ class planning_Tasks extends core_Master
         $this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
         
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Производство->Артикул,removeAndRefreshForm=packagingId|measureId|quantityInPack|inputInTask|paramcat|plannedQuantity|indPackagingId,silent');
-        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Производство->Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|packagingId|indPackagingId,silent');
+        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Производство->Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Производство->Планирано');
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=Производство->К-во в мярка,input=none');
         
@@ -241,8 +241,8 @@ class planning_Tasks extends core_Master
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Производство->Отчитане,input=none');
         }
-        $this->FLD('packagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=packagingQuantityInPack|labelTemplate');
-        $this->FLD('packagingQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden');
+        $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
+        $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
 
@@ -259,7 +259,7 @@ class planning_Tasks extends core_Master
         $this->FLD('timeDuration', 'time', 'caption=Времена за планиране->Продължителност,changable,input=none');
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Край,changable, tdClass=leftColImportant,formOrder=103,input=none');
         
-        $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=packagingId,input=none');
+        $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=labelPackagingId,input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
         $this->FLD('producedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Заскладено,input=none');
         
@@ -466,19 +466,19 @@ class planning_Tasks extends core_Master
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
         
-        if(empty($rec->packagingId)){
-            $row->packagingId = "<span class='quiet'>N/A</span>";
+        if(empty($rec->labelPackagingId)){
+            $row->labelPackagingId = "<span class='quiet'>N/A</span>";
         }
 
-        if(isset($rec->packagingId)) {
-            if(empty($rec->packagingQuantityInPack)){
-                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+        if(isset($rec->labelPackagingId)) {
+            if(empty($rec->labelQuantityInPack)){
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
                 $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
                 $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                 $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
-                $row->packagingQuantityInPack = $quantityInPackDefault;
+                $row->labelQuantityInPack = $quantityInPackDefault;
             } else {
-                $row->packagingQuantityInPack .= " {$row->measureId}";
+                $row->labelQuantityInPack .= " {$row->measureId}";
             }
         }
 
@@ -488,14 +488,14 @@ class planning_Tasks extends core_Master
             $row->labelTemplate = "<span class='quiet'>N/A</span>";
         }
 
-        if(!isset($rec->packagingQuantityInPack)){
-            if(isset($rec->packagingId)) {
-                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+        if(!isset($rec->labelQuantityInPack)){
+            if(isset($rec->labelPackagingId)) {
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
                 $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
                 $quantityInPack = core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack);
-                $row->packagingQuantityInPack = ht::createHint("<span style='color:blue'>{$quantityInPack}</span>", 'Идва от опаковката/мярката на артикула');
+                $row->labelQuantityInPack = ht::createHint("<span style='color:blue'>{$quantityInPack}</span>", 'Идва от опаковката/мярката на артикула');
             } else {
-                $row->packagingQuantityInPack = "<span class='quiet'>N/A</span>";
+                $row->labelQuantityInPack = "<span class='quiet'>N/A</span>";
             }
         }
 
@@ -604,8 +604,8 @@ class planning_Tasks extends core_Master
 
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table>
                 <tr><td style='font-weight:normal'>|Етикет|*:</td><td>[#labelType#]</td></tr>
-                <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#packagingId#]</td></tr>
-                <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#packagingQuantityInPack#]</td></tr>
+                <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#labelPackagingId#]</td></tr>
+                <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#labelQuantityInPack#]</td></tr>
                 <tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>
                 </table>"));
         
@@ -759,7 +759,7 @@ class planning_Tasks extends core_Master
         }
 
         if($action == 'printlabel' && isset($rec)){
-            if(empty($rec->packagingId)){
+            if(empty($rec->labelPackagingId)){
                 $requiredRoles = 'no_one';
             }
         }
@@ -827,7 +827,7 @@ class planning_Tasks extends core_Master
                                 $p = (object) $p;
                                 $nRec = new stdClass();
                                 $nRec->taskId = $rec->id;
-                                $nRec->packagingId = $p->packagingId;
+                                $nRec->packagingId = $p->labelPackagingId;
                                 $nRec->quantityInPack = $p->quantityInPack;
                                 $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
                                 $nRec->productId = $p->productId;
@@ -978,27 +978,15 @@ class planning_Tasks extends core_Master
                     
                     $rec->params["paramcat{$pId}"] = (object) array('paramId' => $pId);
                 }
-                
-                if ($productRec->canStore == 'yes') {
-                    if($originRec->packagingId != $rec->measureId){
-                        $form->setDefault('packagingId', $rec->measureId);
-                    }
-                    
-                    if(isset($rec->packagingId)){
-                        $form->setDefault('indPackagingId', $rec->packagingId);
-                    }
-                } else {
-                    $form->setDefault('indPackagingId', $rec->measureId);
-                }
             }
-           
+
             if ($productRec->canStore == 'yes') {
                 $packs = cat_Products::getPacks($rec->productId, false, $originRec->secondMeasureId);
-                $form->setOptions('packagingId', array('' => '') + $packs);
+                $form->setOptions('labelPackagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
 
                 $form->setField('storeId', 'input');
-                $form->setField('packagingId', 'input');
+                $form->setField('labelPackagingId', 'input');
                 $form->setField('indPackagingId', 'input');
 
                 $defaultShowAdditionalUom = planning_Setup::get('TASK_WEIGHT_MODE');
@@ -1031,16 +1019,23 @@ class planning_Tasks extends core_Master
                 $form->setField('plannedQuantity', "unit={$measureShort}");
             }
 
-            if(isset($rec->packagingId)){
-                $form->setField('packagingQuantityInPack', 'input');
-                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+            if(isset($rec->labelPackagingId)){
+                $form->setField('labelQuantityInPack', 'input');
+                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
                 $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
-                $form->setField('packagingQuantityInPack', "placeholder={$quantityInPackDefault}");
+                $form->setField('labelQuantityInPack', "placeholder={$quantityInPackDefault}");
 
                 $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);
                 $form->setField('labelTemplate', 'input');
                 $form->setOptions('labelTemplate', $templateOptions);
                 $form->setDefault('labelTemplate', key($templateOptions));
+                $defaultIndPackagingId = $rec->labelPackagingId;
+            } else {
+                $defaultIndPackagingId = $rec->measureId;
+            }
+
+            if(empty($rec->id)){
+                $form->setDefault('indPackagingId', $defaultIndPackagingId);
             }
 
             if ($rec->productId == $originRec->productId) {
@@ -1080,8 +1075,8 @@ class planning_Tasks extends core_Master
         if (isset($rec->id)) {
             $form->setReadOnly('productId');
             if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
-                $form->setReadOnly('packagingId');
-                $form->setReadOnly('packagingQuantityInPack');
+                $form->setReadOnly('labelPackagingId');
+                $form->setReadOnly('labelQuantityInPack');
             }
         }
     }

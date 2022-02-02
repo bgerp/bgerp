@@ -1239,7 +1239,7 @@ class planning_Jobs extends core_Master
                 $img = $checkedImgNo;
                 $title = tr('Несъздадените шаблонни операции');
                 $createAllUrl = array('planning_Tasks', 'createjobtasks', 'type' => 'all', 'jobId' => $jobRec->id, 'ret_url' => true);
-                $urlLink = ht::createBtn('Създаване', $createAllUrl, 'Наистина ли желаете да създадете наведнъж всички останали шаблонни операции|*?', false, 'title=Създаване на всички шаблонни операции за артикула');
+                $urlLink = ht::createBtn('Създаване', $createAllUrl, 'Наистина ли желаете да създадете наведнъж всички останали шаблонни операции|*?', false, 'title=Създаване на всички шаблонни операции за артикула,ef_icon=img/16/add.png');
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CHECKED' => $img, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
 

@@ -249,12 +249,12 @@ class planning_ProductionTaskDetails extends doc_Detail
             $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
             $shortMeasure = ($rec->productId == $masterRec->productId) ? cat_UoM::getShortName($pRec->measureId) : cat_UoM::getShortName($info->packagingId);
 
-            if($rec->type == 'production' && isset($masterRec->packagingId) && $rec->productId == $masterRec->productId && $masterRec->packagingId != $masterRec->measureId){
-                $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->packagingId);
+            if($rec->type == 'production' && isset($masterRec->labelPackagingId) && $rec->productId == $masterRec->productId && $masterRec->labelPackagingId != $masterRec->measureId){
+                $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->labelPackagingId);
                 $form->setField('quantity', "unit={$unit}");
                 $defaultQuantity = $masterRec->packagingQuantityInPack;
                 if(!$defaultQuantity){
-                    $packRec = cat_products_Packagings::getPack($rec->productId, $masterRec->packagingId);
+                    $packRec = cat_products_Packagings::getPack($rec->productId, $masterRec->labelPackagingId);
                     $defaultQuantity = is_object($packRec) ? $packRec->quantity : 1;
                 }
 
@@ -311,7 +311,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         if ($form->isSubmitted()) {
             $masterRec = planning_Tasks::fetch($rec->taskId);
-            if (empty($rec->serial) && empty($rec->productId) && !empty($masterRec->packagingId)) {
+            if (empty($rec->serial) && empty($rec->productId) && !empty($masterRec->labelPackagingId)) {
                 $form->setError('serial,productId', 'Трябва да е въведен артикул или сериен номер');
             }
             
@@ -480,7 +480,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->measureId = cat_UoM::getShortName($pRec->measureId);
         
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-        $labelPackagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
+        $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $pRec->measureId;
         
         if($taskRec->productId != $rec->productId){
             $packagingId = $labelPackagingId;
@@ -713,7 +713,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->toolbar->removeBtn('btnAdd');
             $masterRec = $data->masterData->rec;
             if ($mvc->haveRightFor('add', (object) array('taskId' => $data->masterId, 'type' => 'production'))) {
-                $btnName = (empty($masterRec->packagingId) || $masterRec->packagingId == $masterRec->measureId) ? 'Произвеждане' : "Произв.|* " . tr(cat_UoM::getTitleById(($masterRec->packagingId)));
+                $btnName = (empty($masterRec->labelPackagingId) || $masterRec->labelPackagingId == $masterRec->measureId) ? 'Произвеждане' : "Произв.|* " . tr(cat_UoM::getTitleById(($masterRec->labelPackagingId)));
                 $data->toolbar->addBtn($btnName, array($mvc, 'add', 'taskId' => $data->masterId, 'type' => 'production', 'ret_url' => true), false, 'ef_icon = img/16/package.png,title=Добавяне на произведен артикул');
             }
             
