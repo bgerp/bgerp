@@ -551,7 +551,6 @@ class cat_Categories extends core_Master
         $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
         $exMeta = (isset($productId)) ? type_Set::toArray(cat_Products::fetchField($productId, 'meta')) : array();
 
-
         $Driver = cls::get($driverId);
         if($Driver instanceof planning_interface_StepProductDriver){
             if(!isset($metasArr['canManifacture'])){
