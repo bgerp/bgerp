@@ -637,9 +637,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (isset($data->masterMvc) && $masterRec->productId != $rec->productId) {
                 $row->info = "{$row->productId}";
             }
-            
-            if(!empty($row->notes)){
-                $row->type .= "<small>{$row->notes}</small>";
+
+            if(!empty($rec->notes)){
+                $notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
+                $row->type = ht::createHint($row->type, $notes);
             }
             
             if(Mode::is('taskProgressInTerminal')){
