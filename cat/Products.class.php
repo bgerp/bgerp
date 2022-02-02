@@ -620,7 +620,7 @@ class cat_Products extends embed_Manager
             }
             
             $metaError = null;
-            if (!cat_Categories::checkMetas($rec->meta, $rec->id, $metaError)) {
+            if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $rec->id, $metaError)) {
                 $form->setError('meta', $metaError);
             }
         }

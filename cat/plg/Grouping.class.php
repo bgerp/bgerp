@@ -156,7 +156,7 @@ class cat_plg_Grouping extends core_Plugin
                     $obj->id = $id;
                     $obj->meta = $rec->meta;
                     
-                    if(!cat_Categories::checkMetas($rec->meta, $id, $metaError)){
+                    if(!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $id, $metaError)){
                         $form->setError('meta', $metaError);
                     }
                     
@@ -171,8 +171,7 @@ class cat_plg_Grouping extends core_Plugin
                         
                         $groups = array_merge($groups, arr::make($rec->addMetas, true));
                         $groups = array_diff($groups, arr::make($rec->delMetas, true));
-                        
-                        if(!cat_Categories::checkMetas($groups, $id, $metaError)){
+                        if(!cat_Categories::checkMetas($groups, $rec->innerClass, $id, $metaError)){
                             $form->setError('addMetas', $metaError);
                         }
                         

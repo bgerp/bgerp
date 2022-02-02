@@ -541,22 +541,24 @@ class cat_Categories extends core_Master
      * Добавена проверка на различните комбинации от свойства
      * 
      * @param mixed $metasArr
+     * @param int|null $driverId
      * @param int|null $productId
      * @param string|null $error
      * @return boolean
      */
-    public static function checkMetas($metasArr, $productId, &$error)
+    public static function checkMetas($metasArr, $driverId, $productId, &$error)
     {
         $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
         $exMeta = (isset($productId)) ? type_Set::toArray(cat_Products::fetchField($productId, 'meta')) : array();
 
-        $Driver = cat_Products::getDriver($productId);
+
+        $Driver = cls::get($driverId);
         if($Driver instanceof planning_interface_StepProductDriver){
             if(!isset($metasArr['canManifacture'])){
                 $error = "Артикулът е етап от производство и трябва да остане производим|*!";
             } elseif(!isset($metasArr['canConvert'])){
                 $error = "Артикулът е етап от производство и трябва да остане вложим|*!";
-            } else {
+            } elseif(isset($productId)) {
                 $canStore = cat_Products::fetchField($productId, 'planning_Steps_canStore');
                 if($canStore == 'yes' && !isset($metasArr['canStore'])){
                     $error = "Артикулът е складируем етап от производство и трябва да остане складируем|*!";
