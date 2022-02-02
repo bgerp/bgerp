@@ -480,7 +480,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->measureId = cat_UoM::getShortName($pRec->measureId);
         
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-        $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $pRec->measureId;
+
+        $labelPackagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
         
         if($taskRec->productId != $rec->productId){
             $packagingId = $labelPackagingId;

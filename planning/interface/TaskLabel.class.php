@@ -245,11 +245,16 @@ class planning_interface_TaskLabel
      * @param string $allowSkip
      *
      * @return int
-     *
      * @see label_SequenceIntf
      */
     public function getLabelEstimatedCnt($id)
     {
+        $rec = $this->class->fetchRec($id);
+        if(!empty($rec->labelQuantityInPack)){
+            $count = $rec->plannedQuantity / $rec->labelQuantityInPack;
+
+            return ceil($count);
+        }
     }
 
 

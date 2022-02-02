@@ -187,7 +187,6 @@ class planning_ProductionTaskProducts extends core_Detail
                 if($data->action != 'replaceproduct'){
                     $form->setReadOnly('productId');
                     $form->setReadOnly('packagingId');
-                    $form->setReadOnly('indTime');
                 }
                 
                 if (!haveRole('ceo,planningMaster')) {
@@ -421,8 +420,10 @@ class planning_ProductionTaskProducts extends core_Detail
         // Ако артикула е същия като от операцията, връща се оттам
         $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,labelPackagingId,plannedQuantity,measureId,quantityInPack');
         if ($taskRec->productId == $productId) {
-            if(empty($taskRec->packagingId)){
+            if(empty($taskRec->labelPackagingId)){
                 $taskRec->packagingId = $taskRec->measureId;
+            } else {
+                $taskRec->packagingId = $taskRec->labelPackagingId;
             }
 
             return $taskRec;
@@ -432,7 +433,6 @@ class planning_ProductionTaskProducts extends core_Detail
         $query = self::getQuery();
         $query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
         $query->show('productId,indTime,packagingId,plannedQuantity,totalQuantity,limit');
-        
         if ($rec = $query->fetch()) {
             
             return $rec;

@@ -827,7 +827,7 @@ class planning_Tasks extends core_Master
                                 $p = (object) $p;
                                 $nRec = new stdClass();
                                 $nRec->taskId = $rec->id;
-                                $nRec->packagingId = $p->labelPackagingId;
+                                $nRec->packagingId = $p->packagingId;
                                 $nRec->quantityInPack = $p->quantityInPack;
                                 $nRec->plannedQuantity = $p->packQuantity * $rec->plannedQuantity;
                                 $nRec->productId = $p->productId;

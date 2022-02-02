@@ -1678,11 +1678,10 @@ class cat_Boms extends core_Master
                 $quantityE = 0;
             }
             $quantityE = ($quantityE / $rec->quantity) * $quantity;
-            
             $place = ($detRec->type == 'pop') ? 'waste' : 'input';
             $tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantityE / $quantity, 'quantityInPack' => $detRec->quantityInPack);
         }
-        
+
         // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
         // А неговите подетапи са за влагане/отпадък
         $query = cat_BomDetails::getQuery();
