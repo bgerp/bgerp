@@ -3244,7 +3244,7 @@ class cat_Products extends embed_Manager
      *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
      *               o description                    - забележки
      *               o labelPackagingId               - ид на опаковка за етикетиране
-     *               o packagingQuantityInPack        - к-во в опаковката
+     *               o labelQuantityInPack            - к-во в опаковката
      *               o labelType                      - как да се въвежда етикета
      *               o labelTemplate                  - ид на шаблон за етикет
      *

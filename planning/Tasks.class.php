@@ -241,7 +241,7 @@ class planning_Tasks extends core_Master
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Производство->Отчитане,input=none');
         }
-        $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
+        $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate|indPackagingId|,oldFieldName=packagingId');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
@@ -871,6 +871,7 @@ class planning_Tasks extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+        $form->setField('state', 'input=hidden');
 
         if($rec->showadditionalUom)
         if (isset($rec->systemId)) {
@@ -1021,6 +1022,7 @@ class planning_Tasks extends core_Master
 
             if(isset($rec->labelPackagingId)){
                 $form->setField('labelQuantityInPack', 'input');
+                $form->setDefault('indPackagingId', $rec->labelPackagingId);
                 $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
                 $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
                 $form->setField('labelQuantityInPack', "placeholder={$quantityInPackDefault}");

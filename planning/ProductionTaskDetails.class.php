@@ -252,7 +252,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if($rec->type == 'production' && isset($masterRec->labelPackagingId) && $rec->productId == $masterRec->productId && $masterRec->labelPackagingId != $masterRec->measureId){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->labelPackagingId);
                 $form->setField('quantity', "unit={$unit}");
-                $defaultQuantity = $masterRec->packagingQuantityInPack;
+                $defaultQuantity = $masterRec->labelQuantityInPack;
                 if(!$defaultQuantity){
                     $packRec = cat_products_Packagings::getPack($rec->productId, $masterRec->labelPackagingId);
                     $defaultQuantity = is_object($packRec) ? $packRec->quantity : 1;

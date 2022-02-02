@@ -131,7 +131,7 @@ class planning_interface_TaskLabel
         $date = date('m/y');
 
         $ean = null;
-        $quantity = $rec->packagingQuantityInPack;
+        $quantity = $rec->labelQuantityInPack;
         if(empty($quantity) && isset($rec->packagingId)){
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $quantity = is_object($packRec) ? $packRec->quantity : 1;
