@@ -288,8 +288,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             while ($salesInvoice = $invQuery->fetch()) {
                 $firstDocument = doc_Threads::getFirstDocument($salesInvoice->threadId);
 
-
                 $firstDocumentArr[$salesInvoice->threadId] = $firstDocument->that;
+
+                //НАЛОЖИТЕЛНА КОРЕКЦИЯ ЗА БЪРЗИ ПРОДАЖБИ.
+                //КОГАТО СЕ ОПРАВИ ФУНКЦИЯТА ЗА РАЗПРЕДЕЛЕНИЕ НА ПЛАЩАНИЯТА
+                //ТОВА ДА СЕ МАХНЕ
+                $fastMarker = in_array($firstDocumentArr[$salesInvoice->threadId], array_keys($fastSales)) ? 0 : 1;
 
                 $className = $firstDocument->className;
 
@@ -372,6 +376,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             'contragent' => $salesInvoice->contragentName,
                             'type' => $salesInvoice->type,
                             'payDocuments' => $paydocs->used,
+                            'fastMarker'=> $fastMarker,
                             'invoicePayout' => $paydocs->payout,
                             'dcPay' => $dcPay
                         );
@@ -413,6 +418,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             // Ако продажбата е бърза, фактурата се счита за платена
                             //Когато се коригира функцията за разпределение на плащанията това да се премахне !!!
                             $invDiff = in_array($firstDocumentArr[$thread], array_keys($fastSales)) ? 0 : $invDiff;
+
+                            $fastMarker = in_array($firstDocumentArr[$thread], array_keys($fastSales)) ? 0 : 1;
 
                             // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
                             if ($rec->unpaid == 'unpaid') {
@@ -489,6 +496,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'invoiceValue' => $paydocs->amount,
                                     'invoiceVAT' => $iRec->vatAmount,
                                     'invoicePayout' => $paydocs->payout,
+                                    'fastMarker'=> $fastMarker,
                                     'invoiceCurrentSumm' => $invDiff,
                                     'payDocuments' => $paydocs->used,
                                     'contragent' => $iRec->contragentName
@@ -588,9 +596,22 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             // Фактури ПОКУПКИ
             while ($purchaseInvoices = $pQuery->fetch()) {
 
+                $firstDocument = doc_Threads::getFirstDocument($purchaseInvoices->threadId);
+
+                $firstDocumentArr[$purchaseInvoices->threadId] = $firstDocument->that;
+
+                //НАЛОЖИТЕЛНА КОРЕКЦИЯ ЗА БЪРЗИ ПОКУПКИ
+                //КОГАТО СЕ ОПРАВИ ФУНКЦИЯТА ЗА РАЗПРЕДЕЛЕНИЕ НА ПЛАЩАНИЯТА
+                //ТОВА ДА СЕ МАХНЕ
+                $fastMarker = in_array($purchaseInvoices->id, array_keys($fastPur)) ? 0 : 1;
+
+
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
-                    $invoiceValue = ($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount;
+
+                    $aaa[$purchaseInvoices->id] = $fastMarker;
+
+                    $invoiceValue = (($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount) / $purchaseInvoices->rate;
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
 
                     // масив от фактури в тази нишка //
@@ -644,6 +665,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             'type' => $purchaseInvoices->type,
                             'payDocuments' => $paydocs->used,
                             'invoicePayout' => $paydocs->payout,
+                            'fastMarker'=> $fastMarker,
                             'dcPay' => $dcPay
                         );
                     }
@@ -664,10 +686,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     continue;
                 }
 
-
-                $firstDocument = doc_Threads::getFirstDocument($purchaseInvoices->threadId);
-
-                $firstDocumentArr[$purchaseInvoices->threadId] = $firstDocument->that;
 
                 $className = $firstDocument->className;
 
@@ -708,6 +726,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             // Ако покупката е бърза, фактурата се счита за платена
                             //Когато се коригира функцията за разпределение на плащанията това да се премахне !!!
                             $invDiff = in_array($firstDocumentArr[$pThread], array_keys($fastPur)) ? 0 : $invDiff;
+
+                            $fastMarker = in_array($purchaseInvoices->threadId, array_keys($fastPur)) ? 0 : 1;
 
                             // Ако са избрани само неплатените фактури
                             if ($rec->unpaid == 'unpaid') {
@@ -778,6 +798,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'invoiceValue' => $paydocs->amount,
                                     'invoiceVAT' => $iRec->vatAmount,
                                     'invoicePayout' => $paydocs->payout,
+                                    'fastMarker'=> $fastMarker,
                                     'invoiceCurrentSumm' => $invDiff,
                                     'payDocuments' => $paydocs->used,
                                     'contragent' => $iRec->contragentName
@@ -993,7 +1014,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
-        $paidAmount = $dRec->invoicePayout * $dRec->rate;
+
+        if ($dRec->fastMarker == 1){
+
+            $paidAmount = $dRec->invoicePayout * $dRec->rate;
+        }else{
+            $paidAmount = $dRec->invoicePayout;
+        }
+
 
         return $paidAmount;
     }
