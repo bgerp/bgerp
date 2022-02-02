@@ -590,7 +590,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
-                    $invoiceValue = ($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount;
+                    $invoiceValue = (($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount) / $purchaseInvoices->rate;
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
 
                     // масив от фактури в тази нишка //
@@ -916,7 +916,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
         }
-
+//bp($recs);
         return $recs;
     }
 
@@ -993,6 +993,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getPaidAmount($dRec, $verbal = true)
     {
+
         $paidAmount = $dRec->invoicePayout * $dRec->rate;
 
         return $paidAmount;
