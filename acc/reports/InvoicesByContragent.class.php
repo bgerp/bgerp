@@ -916,7 +916,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
         }
-//bp($recs);
+
         return $recs;
     }
 
