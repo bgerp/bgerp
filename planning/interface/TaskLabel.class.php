@@ -251,4 +251,21 @@ class planning_interface_TaskLabel
     public function getLabelEstimatedCnt($id)
     {
     }
+
+
+    /**
+     * Кой е дефолтния шаблон за печат към обекта
+     *
+     * @param $id
+     * @return int|null
+     */
+    public function getDefaultLabelTemplateId($id)
+    {
+        $rec = $this->class->fetchRec($id);
+        if(isset($rec->labelTemplate)){
+            return $rec->labelTemplate;
+        }
+
+        return null;
+    }
 }

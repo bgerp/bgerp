@@ -1684,22 +1684,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Кои са достъпните етикети за печат
-     */
-    public function getLabelTemplates_($rec)
-    {
-        // Ако има избран етикет връща се само той
-        $res = array();
-        $rec = $this->fetchRec($rec);
-        if(isset($rec->labelTemplate)){
-            $res[$rec->labelTemplate] = label_Templates::fetch($rec->labelTemplate);
-        }
-
-        return $res;
-    }
-
-
-    /**
      * Връща наличните за избор шаблони за производствени операции
      *
      * @param int|null $exTemplateId - ид на вече избран шаблон ако има да се добави към опциите

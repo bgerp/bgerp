@@ -142,4 +142,16 @@ class planning_interface_HrLabelImpl
     {
         return null;
     }
+
+
+    /**
+     * Кой е дефолтния шаблон за печат към обекта
+     *
+     * @param $id
+     * @return int|null
+     */
+    public function getDefaultLabelTemplateId($id)
+    {
+        return null;
+    }
 }

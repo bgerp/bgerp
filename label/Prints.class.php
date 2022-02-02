@@ -308,7 +308,7 @@ class label_Prints extends core_Master
             
             $form->setOptions('templateId', array('' => '') + $optArr);
             
-            $defOptKey = $mvc->getDefaultTemplateId($optArr, $rec->classId);
+            $defOptKey = $mvc->getDefaultTemplateId($optArr, $rec->classId, $rec->objectId);
             
             $form->setDefault('templateId', $defOptKey);
         }
@@ -449,10 +449,16 @@ class label_Prints extends core_Master
      *
      * @return int
      */
-    protected static function getDefaultTemplateId($optArr, $classId = null)
+    protected static function getDefaultTemplateId($optArr, $classId = null, $objectId = null)
     {
+        if(isset($classId) && isset($objectId)){
+            $intfInst = cls::getInterface('label_SequenceIntf', $classId);
+            $defaultTemplateId = $intfInst->getDefaultLabelTemplateId($objectId);
+
+            if(isset($defaultTemplateId)) return $defaultTemplateId;
+        }
+
         $qLimit = 5;
-        
         $query = self::getQuery();
         if ($classId) {
             $query->where(array("#classId = '[#1#]'", $classId));
@@ -486,7 +492,7 @@ class label_Prints extends core_Master
             reset($tArr);
             $defOptKey = key($tArr);
         }
-        
+
         return $defOptKey;
     }
     
