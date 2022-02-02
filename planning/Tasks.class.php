@@ -999,7 +999,6 @@ class planning_Tasks extends core_Master
 
                 $form->setField('storeId', 'input');
                 $form->setField('packagingId', 'input');
-                $form->setField('packagingQuantityInPack', 'input');
                 $form->setField('indPackagingId', 'input');
 
                 $defaultShowAdditionalUom = planning_Setup::get('TASK_WEIGHT_MODE');
@@ -1033,6 +1032,7 @@ class planning_Tasks extends core_Master
             }
 
             if(isset($rec->packagingId)){
+                $form->setField('packagingQuantityInPack', 'input');
                 $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
                 $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
                 $form->setField('packagingQuantityInPack', "placeholder={$quantityInPackDefault}");
