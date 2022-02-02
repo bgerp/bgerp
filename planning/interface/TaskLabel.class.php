@@ -132,8 +132,8 @@ class planning_interface_TaskLabel
 
         $ean = null;
         $quantity = $rec->labelQuantityInPack;
-        if(empty($quantity) && isset($rec->packagingId)){
-            $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+        if(empty($quantity) && isset($rec->labelPackagingId)){
+            $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
             $quantity = is_object($packRec) ? $packRec->quantity : 1;
             $ean = is_object($packRec) ? $rec->eanCode : null;
         }
