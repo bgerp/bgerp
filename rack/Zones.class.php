@@ -1140,8 +1140,10 @@ class rack_Zones extends core_Master
             // Какво е разпределянето на палетите
             if(rack_Setup::get('PICKUP_STRATEGY') == 'ver2') {
                 $packQuery = cat_products_Packagings::getQuery();
+                $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging'");
                 $packagings = array();
-                while($packRec = $packQuery->fetch("#productId = {$pRec->productId}")) {
+                while($packRec = $packQuery->fetch()) {
                     $packagings[] = $packRec;
                 }
 
