@@ -150,6 +150,12 @@ class rack_Zones extends core_Master
 
 
     /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1135,13 +1141,26 @@ class rack_Zones extends core_Master
 
             // Какво е разпределянето на палетите
             if(rack_Setup::get('PICKUP_STRATEGY') == 'ver2') {
-                $packQuery = cat_products_Packagings::getQuery();
-                $packagings = array();
-                while($packRec = $packQuery->fetch("#productId = {$pRec->productId}")) {
-                    $packagings[] = $packRec;
+
+                // Извличане само на опаковките на артикула + основната мярка
+                if(!array_key_exists($pRec->productId, static::$cache)){
+                    $packQuery = cat_products_Packagings::getQuery();
+                    $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                    $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging'");
+                    $packQuery->show('quantity,packagingId');
+                    $packagings = array();
+                    while($packRec = $packQuery->fetch()) {
+                        $packagings[] = $packRec;
+                    }
+                    if(!countR($packagings)){
+                        $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+                        $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
+                    }
+
+                    static::$cache[$pRec->productId] = $packagings;
                 }
 
-                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, $packagings);
+                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId]);
             } else {
                 $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             }

@@ -187,7 +187,6 @@ class planning_ProductionTaskProducts extends core_Detail
                 if($data->action != 'replaceproduct'){
                     $form->setReadOnly('productId');
                     $form->setReadOnly('packagingId');
-                    $form->setReadOnly('indTime');
                 }
                 
                 if (!haveRole('ceo,planningMaster')) {
@@ -419,10 +418,12 @@ class planning_ProductionTaskProducts extends core_Detail
         expect(in_array($type, array('input', 'waste', 'production')));
         
         // Ако артикула е същия като от операцията, връща се оттам
-        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,packagingId,plannedQuantity,measureId,quantityInPack');
+        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,fixedAssets,productId,indTime,labelPackagingId,plannedQuantity,measureId,quantityInPack');
         if ($taskRec->productId == $productId) {
-            if(empty($taskRec->packagingId)){
+            if(empty($taskRec->labelPackagingId)){
                 $taskRec->packagingId = $taskRec->measureId;
+            } else {
+                $taskRec->packagingId = $taskRec->labelPackagingId;
             }
 
             return $taskRec;
@@ -432,7 +433,6 @@ class planning_ProductionTaskProducts extends core_Detail
         $query = self::getQuery();
         $query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
         $query->show('productId,indTime,packagingId,plannedQuantity,totalQuantity,limit');
-        
         if ($rec = $query->fetch()) {
             
             return $rec;
@@ -442,7 +442,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if ($type == 'input') {
             $tQuery = planning_Tasks::getQuery();
             $tQuery->where("#productId = {$productId} AND #inputInTask = {$taskRec->id} AND #state != 'rejected' AND #state != 'closed' AND #state != 'draft' AND #state != 'pending'");
-            $tQuery->show('productId,packagingId,plannedQuantity,totalQuantity');
+            $tQuery->show('productId,labelPackagingId,plannedQuantity,totalQuantity');
             if ($tRec = $tQuery->fetch()) {
                 $tRec->totalQuantity = (!empty($tRec->totalQuantity)) ? $tRec->totalQuantity : 0;
                 

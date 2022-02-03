@@ -159,12 +159,12 @@ class planning_Steps extends core_Extender
 
             // Ако артикула е складируем показват се полетата за етикетиране
             $form->setField("{$mvc->className}_labelPackagingId", 'input');
+
+            // Ако артикула е съществуващ само наличните опаковки са достъпни
             if(isset($rec->id)){
                 $packs = array('' => '') + cat_Products::getPacks($rec->id);
-            } else {
-                $packs = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false));
+                $form->setOptions("{$mvc->className}_labelPackagingId", array('' => '') + $packs);
             }
-            $form->setOptions("{$mvc->className}_labelPackagingId", array('' => '') + $packs);
 
             // Ако има избрана опаковка за етикиране
             if(!empty($rec->{"{$mvc->className}_labelPackagingId"})){
@@ -176,13 +176,12 @@ class planning_Steps extends core_Extender
                 $form->setField("{$mvc->className}_labelTemplate", 'input');
 
                 // При редакция на артикул наличните опаковки за етикетиране са само тези на артикула
-                $quantityInPack = 1;
                 if(isset($rec->id)){
                     $packRec = cat_products_Packagings::getPack($rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-
+                    $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
                 }
-                $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
+
             }
         }
     }
@@ -225,6 +224,8 @@ class planning_Steps extends core_Extender
                     if($rec->{"{$mvc->className}_labelPackagingId"} == $rec->measureId && $rec->{"{$mvc->className}_labelQuantityInPack"} != 1){
                         $form->setError("{$mvc->className}_labelQuantityInPack", 'Ако за етикиране е избрана основната мярка, то количеството не може да е различно от 1|*!');
                     }
+                } elseif(!isset($rec->id)){
+                    $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да е въвдено количество при добавяне на нова опаковка|*!');
                 }
             }
         }
@@ -252,6 +253,27 @@ class planning_Steps extends core_Extender
             $rec->_oldLabelPackagingId = $mvc->fetchField($rec->id, 'labelPackagingId', false);
         } else {
             $rec->_isCreated = true;
+        }
+    }
+
+
+    /**
+     * Изпълнява се след създаване на нов запис
+     */
+    protected static function on_AfterCreate($mvc, $rec)
+    {
+        $measureId = cls::get($rec->classId)->fetchField($rec->objectId, 'measureId');
+
+        // След създаване добавя се запис за продуктовата опаковка
+        if(isset($rec->labelPackagingId) && $rec->labelPackagingId != $measureId){
+            $newPack = (object)array('productId' => $rec->objectId,
+                                     'packagingId' => $rec->labelPackagingId,
+                                     'quantity' => $rec->labelQuantityInPack,
+                                     'firstClassId' => $rec->classId,
+                                     'firstDocId' => $rec->objectId,
+            );
+
+            cat_products_Packagings::save($newPack);
         }
     }
 

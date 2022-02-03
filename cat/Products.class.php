@@ -620,7 +620,7 @@ class cat_Products extends embed_Manager
             }
             
             $metaError = null;
-            if (!cat_Categories::checkMetas($rec->meta, $rec->id, $metaError)) {
+            if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $rec->id, $metaError)) {
                 $form->setError('meta', $metaError);
             }
         }
@@ -3243,6 +3243,10 @@ class cat_Products extends embed_Manager
      *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
      *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
      *               o description                    - забележки
+     *               o labelPackagingId               - ид на опаковка за етикетиране
+     *               o labelQuantityInPack            - к-во в опаковката
+     *               o labelType                      - как да се въвежда етикета
+     *               o labelTemplate                  - ид на шаблон за етикет
      *
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал

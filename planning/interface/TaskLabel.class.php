@@ -131,9 +131,9 @@ class planning_interface_TaskLabel
         $date = date('m/y');
 
         $ean = null;
-        $quantity = $rec->packagingQuantityInPack;
-        if(empty($quantity) && isset($rec->packagingId)){
-            $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
+        $quantity = $rec->labelQuantityInPack;
+        if(empty($quantity) && isset($rec->labelPackagingId)){
+            $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
             $quantity = is_object($packRec) ? $packRec->quantity : 1;
             $ean = is_object($packRec) ? $rec->eanCode : null;
         }
@@ -245,10 +245,32 @@ class planning_interface_TaskLabel
      * @param string $allowSkip
      *
      * @return int
-     *
      * @see label_SequenceIntf
      */
     public function getLabelEstimatedCnt($id)
     {
+        $rec = $this->class->fetchRec($id);
+        if(!empty($rec->labelQuantityInPack)){
+            $count = $rec->plannedQuantity / $rec->labelQuantityInPack;
+
+            return ceil($count);
+        }
+    }
+
+
+    /**
+     * Кой е дефолтния шаблон за печат към обекта
+     *
+     * @param $id
+     * @return int|null
+     */
+    public function getDefaultLabelTemplateId($id)
+    {
+        $rec = $this->class->fetchRec($id);
+        if(isset($rec->labelTemplate)){
+            return $rec->labelTemplate;
+        }
+
+        return null;
     }
 }

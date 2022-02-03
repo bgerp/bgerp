@@ -376,6 +376,9 @@ class label_Templates extends core_Master
     {
         // Вземаме шаблона с вкарания css
         $row->template = static::templateWithInlineCSS($row->template, $rec->css);
+        if(isset($rec->clonedFromId)){
+            $row->clonedFromId = static::getHyperlink($rec->clonedFromId, true);
+        }
     }
     
     
@@ -735,6 +738,9 @@ class label_Templates extends core_Master
                     } elseif(is_array($array['htmlPlaceholders']) && in_array($placeholder, $array['htmlPlaceholders'])){
                         $params = array();
                         label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'html', $params);
+                    } elseif($placeholder == 'SERIAL'){
+                        $params = array('Showing' => 'barcodeAndStr', 'BarcodeType' => 'code128', 'Ratio' => '4', 'Width' => '160', 'Height' => '60', 'Rotation' => 'yes');
+                        label_TemplateFormats::addToTemplate($tRec->id, $placeholder, 'barcode', $params);
                     } else {
                         $type = 'caption';
                         $params = array();

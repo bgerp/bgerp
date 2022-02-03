@@ -108,6 +108,18 @@ class label_SequenceIntf
      */
     public function getDefaultLabelWithData($id, $templateId)
     {
-        return null;
+        return $this->class->getDefaultLabelWithData($id, $templateId);
+    }
+
+
+    /**
+     * Кой е дефолтния шаблон за печат към обекта
+     *
+     * @param $id
+     * @return int|null
+     */
+    public function getDefaultLabelTemplateId($id)
+    {
+        return $this->class->getDefaultLabelTemplateId($id);
     }
 }

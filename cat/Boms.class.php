@@ -1678,11 +1678,10 @@ class cat_Boms extends core_Master
                 $quantityE = 0;
             }
             $quantityE = ($quantityE / $rec->quantity) * $quantity;
-            
             $place = ($detRec->type == 'pop') ? 'waste' : 'input';
             $tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantityE / $quantity, 'quantityInPack' => $detRec->quantityInPack);
         }
-        
+
         // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
         // А неговите подетапи са за влагане/отпадък
         $query = cat_BomDetails::getQuery();
@@ -1708,12 +1707,14 @@ class cat_Boms extends core_Master
                 $quantityP *= $q;
                 $parent = $pRec->parentId;
             }
-            
-            $quantityP = ($quantityP / $rec->quantity) * $quantity;
+
+            $quantityP = (($quantityP) / $rec->quantity) * $quantity;
+            $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
             // Подготвяне задачата за етапа, с него за производим
             $arr = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
-                'plannedQuantity' => $quantityP,
+                'plannedQuantity' => $q1,
+                'measureId' => cat_Products::fetchField($dRec->resourceId, 'measureId'),
                 'productId' => $dRec->resourceId,
                 'packagingId' => $dRec->packagingId,
                 'quantityInPack' => $dRec->quantityInPack,
@@ -1723,6 +1724,10 @@ class cat_Boms extends core_Master
                 'employees' => $dRec->employees,
                 'indTime' => $dRec->norm,
                 'description' =>  $dRec->description,
+                'labelPackagingId' => $dRec->labelPackagingId,
+                'labelQuantityInPack' => $dRec->labelQuantityInPack,
+                'labelType' => $dRec->labelType,
+                'labelTemplate' => $dRec->labelTemplate,
                 'products' => array('input' => array(), 'waste' => array()));
             
             // Добавяме директните наследници на етапа като материали за влагане/отпадък
