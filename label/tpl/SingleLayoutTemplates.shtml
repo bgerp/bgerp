@@ -11,10 +11,14 @@
             [#template#]
         </div>
     </div>
-    
-    <div><span class="quiet">|Рендер|*: </span> [#rendererClassId#]</div>
     <div><span class="quiet">|Размери|*: </span> [#sizes#]</div>
     <div><span class="quiet">|Създаване|*: </span> |от|* [#createdBy#] |на|* [#createdOn#]</div>
+    <!--ET_BEGIN clonedFromId-->
+    <div><span class="quiet">|Клонирано от|*: </span> [#clonedFromId#]</div>
+    <!--ET_END clonedFromId-->
+    <!--ET_BEGIN rendererClassId-->
+    <div><span class="quiet">|Рендер|*: </span> [#rendererClassId#]</div>
+    <!--ET_END rendererClassId-->
     <br>
     [#DETAILS#]
 </div>

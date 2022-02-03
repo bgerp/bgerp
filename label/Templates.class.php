@@ -376,6 +376,9 @@ class label_Templates extends core_Master
     {
         // Вземаме шаблона с вкарания css
         $row->template = static::templateWithInlineCSS($row->template, $rec->css);
+        if(isset($rec->clonedFromId)){
+            $row->clonedFromId = static::getHyperlink($rec->clonedFromId, true);
+        }
     }
     
     
