@@ -1150,10 +1150,13 @@ class rack_Zones extends core_Master
                     $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging'");
                     $packQuery->show('quantity,packagingId');
                     $packagings = array();
-                    $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
                     while($packRec = $packQuery->fetch()) {
                         $packagings[] = $packRec;
                     }
+                    if(!countR($packagings)){
+                        $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
+                    }
+
                     static::$cache[$pRec->productId] = $packagings;
                 }
 
