@@ -1144,7 +1144,6 @@ class rack_Zones extends core_Master
 
                 // Извличане само на опаковките на артикула + основната мярка
                 if(!array_key_exists($pRec->productId, static::$cache)){
-                    $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
                     $packQuery = cat_products_Packagings::getQuery();
                     $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
                     $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging'");
@@ -1154,6 +1153,7 @@ class rack_Zones extends core_Master
                         $packagings[] = $packRec;
                     }
                     if(!countR($packagings)){
+                        $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
                         $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
                     }
 
