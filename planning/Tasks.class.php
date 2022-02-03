@@ -229,7 +229,7 @@ class planning_Tasks extends core_Master
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
         
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Производство->Артикул,removeAndRefreshForm=packagingId|measureId|quantityInPack|inputInTask|paramcat|plannedQuantity|indPackagingId,silent');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Производство->Артикул,removeAndRefreshForm=packagingId|measureId|quantityInPack|inputInTask|paramcat|plannedQuantity|indPackagingId|storeId|fixedAssets|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Производство->Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Производство->Планирано');
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=Производство->К-во в мярка,input=none');
@@ -937,8 +937,30 @@ class planning_Tasks extends core_Master
                 $form->setDefault('measureId', $productRec->measureId);
                 $form->setField('measureId', 'input=hidden');
             }
-
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
+
+            // Ако не е системна, взима се дефолта от драйвера
+            if(empty($rec->systemId)){
+                if($Driver = cat_Products::getDriver($rec->productId)){
+                    $productionData = $Driver->getProductionData($rec->productId);
+                    $defFields = arr::make(array('fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate'), true);
+                    $defFields['storeId'] = 'storeIn';
+                    $defFields['indTime'] = 'norm';
+                    foreach ($defFields as $fld => $val){
+                        $form->setDefault($fld, $productionData[$val]);
+                    }
+                }
+            }
+
+            if (isset($rec->systemId, $tasks[$rec->systemId])) {
+                $taskData = (array)$tasks[$rec->systemId];
+                unset($taskData['products']);
+                foreach ($taskData as $fieldName => $defaultValue) {
+                    $form->setDefault($fieldName, $defaultValue);
+                }
+                $form->setReadOnly('productId');
+            }
+
 
             if (empty($rec->id)) {
                 
