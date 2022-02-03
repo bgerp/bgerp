@@ -525,21 +525,25 @@ class rack_MovementGenerator2 extends core_Manager
 
         $sI = $dI = $i;
 
+ // bp($sArr, $dArr, $pArr, $s, $d, $res);
+
         while($sI > 0 && $dI > 0) {
             $sQ = $sArr[$sI] * $pArr[$sI];
             $dQ = $dArr[$dI] * $pArr[$dI];
 
             // Отброяваме възможното
             $m = min($sQ, $dQ);
-            if($m > 0) {
+            if($m > 0.0001) {
                 $sec = $sec/1.8;
-                $res += $sec * $m;
+                $res += $sec * ($m/$pArr[$dI]); 
+ 
+            
                 $sArr[$sI] -= $m/$pArr[$sI];
                 $dArr[$dI] -= $m/$pArr[$dI];
 
                 // Ако разбутваме по-голяма опаковка, за по-малка в получателя, даваме наказание
-                if($sI < $dI) {
-                    $res += $sec * 10;
+                if($sI < $dI) {  
+                    $res += $sec * 10; 
                 }
             }
 
@@ -552,20 +556,17 @@ class rack_MovementGenerator2 extends core_Manager
             if($dArr[$dI] <= 0) {
                 $dI--;
             }
+            
+            // bp($sArr, $dArr, $sI, $dI);
         }
+
+    //    bp($sArr, $dArr, $pArr, $s, $d, $res);
 
         return $res;
     }
 
     
-    /**
-     * Консумира масива $dArr от $sArr
-     */
-    private static function consume(&$sArr, &$dArr, &$pArr, &$sec, &$res)
-    {
-        
-    }
-
+ 
 
     /**
      * Връща процента на максимално натоварване
