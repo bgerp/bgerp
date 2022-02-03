@@ -780,7 +780,8 @@ class planning_Tasks extends core_Master
                         }
                     } elseif($rec->type == 'all') {
                         $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
-                        if(!countR($defaultTasks)){
+                        $defaultTaskCount = countR($defaultTasks);
+                        if(!$defaultTaskCount){
                             $requiredRoles = 'no_one';
                         } else {
                             $tQuery = planning_Tasks::getQuery();
@@ -788,7 +789,7 @@ class planning_Tasks extends core_Master
                             $tQuery->show('systemId');
                             $exSystemIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'systemId');
                             $remainingSystemTasks = array_diff_key($defaultTasks, $exSystemIds);
-                            if(!countR($remainingSystemTasks)){
+                            if(!countR($remainingSystemTasks) || $defaultTaskCount == 1){
                                 $requiredRoles = 'no_one';
                             }
                         }
