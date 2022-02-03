@@ -47,7 +47,7 @@ class rack_MovementGenerator2 extends core_Manager
         $form->FLD('packagings', 'table(columns=packagingId|quantity,captions=Опаковка|Количество,widths=8em|8em)', 'caption=Опаковки,mandatory');
         $form->FLD('smallZonesPriority', 'enum(yes=Да,no=Не)', 'caption=Приоритетност на малките количества->Избор');
 
-        $packOptions = cat_UoM::getPackagingOptions() + cat_UoM::getUomOptions();
+        $packOptions = array('' => '') + cat_UoM::getPackagingOptions() + cat_UoM::getUomOptions();
         $form->setFieldTypeParams('packagings', array('packagingId_opt' => $packOptions));
         $createdOnOpt = array(dt::addDays(-4), dt::addDays(-3), dt::addDays(-2), dt::addDays(-1), dt::addDays(1), dt::now());
         $createdOnOpt = array('' => '') + arr::make($createdOnOpt, true);
@@ -78,9 +78,9 @@ class rack_MovementGenerator2 extends core_Manager
                     $q[$key] = $qVerbal;
                 }
             }
-
+ 
             foreach ($packArr->packagingId as $i => $key) {
-                if ($pArr->quantity[$i]) {
+                if ($packArr->quantity[$i]) {
                     $packs[] = (object) array('packagingId' => $key, 'quantity' => $packArr->quantity[$i]);
                 }
             }
@@ -162,7 +162,10 @@ class rack_MovementGenerator2 extends core_Manager
         foreach ($zones as $zI => $zQ) {
             $zones[$zI] *= $scale;
         }
-
+        
+        // Сортираме опаковките
+        asort($packaging);
+ 
         // Генерираме масива с опаковките
         $packArr = array();
         foreach($packaging as $pack) {
@@ -267,6 +270,7 @@ class rack_MovementGenerator2 extends core_Manager
  
         // филтрираме масива с комбинациите
         $ages = array();
+       
         foreach($pCombi as $key => $q) {
             // Махаме комбинациите, които са под общото количество в зоните
             if($q < $sumZ) {
@@ -320,7 +324,6 @@ class rack_MovementGenerator2 extends core_Manager
         }
  
  
-
         // Генерираме движенията за всяка група и изисляваме времето, което ще отнеме
         if(is_array($bestMove)){
             foreach($bestMove as $m) {
@@ -380,8 +383,9 @@ class rack_MovementGenerator2 extends core_Manager
             $pQ = (float) $p[$pI];  
             
             if ($pQ <= 0) continue;
+ 
+            $o = $moves[$i] = (object) array('pallet' => $allPallets[$pI]->position, 'quantity' => $pQ, 'zones' => array(), 'pQ' => $pQ);
 
-            $o = $moves[$i] = (object) array('pallet' => $allPallets[$pI]->position, 'quantity' => $pQ, 'zones' => array());
             foreach ($zK as $zI) {
                 $zQ = (float) $z[$zI];  
                 if ($zQ <= 0) {
@@ -394,12 +398,6 @@ class rack_MovementGenerator2 extends core_Manager
                 $q = min($zQ, $pQ);
                 
                 $o->zones[$zI] = $q;
-                $time = $timeZone;
-                if($q != $o->qiantity) {
-                    $time += self::timeToCount($q, $packs);
-                }
-                $rate += $time;
-                $o->zoneTimes[] = $time;
 
                 $pQ = $p[$pI] -= $q;
                 $zQ = $z[$zI] -= $q;
@@ -411,24 +409,16 @@ class rack_MovementGenerator2 extends core_Manager
                     unset($z[$zI]);
                 }
             }
-            
-            $getTime =  self::isFirstRow($o->pallet) ? $timeGetA : $timeGet;
-    
-            $retTime = 0;
 
             if($pQ) {
                 // Ако връщаме над 1/3 от пълен палет, по-добре да вземем само това, което ни трябва
                 if(isset($qInPallet) && $pQ > $qInPallet/3) {
                     $o->quantity = $o->quantity - $pQ;
                     $o->partial  = true;
-                 
-                    $getTime += self::timeToCount($o->quantity, $packs) + 5*($o->quantity + $pQ == $qInPallet) ;     
                 } else {
                     $p[$pI] = 0;
                     $o->ret = $pQ;
                     $o->retPos = $o->pallet;
-                    $retTime = $timeReturn;
-                    $retTime += self::timeToCount($pQ, $packs);
 
                     // Намираме най-добрата позиция за връщане на палет
                     // На първи ред с някаква предишна наличност
@@ -453,16 +443,39 @@ class rack_MovementGenerator2 extends core_Manager
                     // Todo: тук трябва да се оставят случаите, когато вземаме цял палет и връщаме между 25% и 75% от него
                     if(!isset($qInPallet) || $qInPallet != $o->quantity || $o->ret < 0.20 * $qInPallet || $o->ret > 0.80 * $qInPallet) {
                         $o->quantity = $o->quantity - $o->ret;
+                        // Възстановяваме и палета
+                        $p[$pI] = $o->ret;
                         $o->ret = $o->retPos = null;
-                        $retTime = 0;
                     }
                 }
             } 
 
-            $rate += $getTime + $retTime;
-            $o->getTime = $getTime;
-            $o->retTime = $retTime;
             $i++;
+        }
+
+        // Изчисляваме рейтинга на движенията
+        foreach($moves as $m) {
+            // Вземане от палета
+            $rate = self::isFirstRow($m->pallet) ? $timeGetA : $timeGet;
+
+            // Броене от палета
+            if($m->pQ != $m->quantity) {
+                $rate += self::timeToCount($m->pQ, $m->quantity, $packs);
+            }
+            
+            $q = $m->quantity;
+            // Оставяне по зоните
+            foreach($m->zones as $zI => $zQ) {
+                $rate += $timeZone;
+                if($q != $zQ) {
+                    $rate += self::timeToCount($q, $zQ, $packs);
+                }
+            }
+
+            // Връщане
+            if($o->ret) {
+                $rate += $timeReturn;
+            }
         }
         
         $o->pallets = $p;
@@ -478,27 +491,78 @@ class rack_MovementGenerator2 extends core_Manager
      * Колко преброявания на единици продук ще имаме?
      * 
      */
-    private static function timeToCount($q, $packs)
+    private static function timeToCount($s, $d, $packs)
     {
-        static $timeCount;
-        if(!isset($timeCount)) {
-            $timeCount = rack_Setup::get('TIME_COUNT');
+        expect($pallet >= $q);
+
+        static $sec;
+        if(!isset($sec)) {
+            $sec = rack_Setup::get('TIME_COUNT');
         }
 
-        $sec = $timeCount;
-        $res = 0;
+        krsort($packs);
+        
+        $sTemp = $s;
+        $dTemp = $d;
+        $i = 1;
+        $p = $sArr = $dArr = array();
+        foreach($packs as $pQ => $pI) {
+            $sArr[$i] = (int) ($sTemp / $pQ);
+            $sTemp -= $sArr[$i] * $pQ;
+            $dArr[$i] = (int) ($dTemp / $pQ);
+            $dTemp -= $dArr[$i] * $pQ;
+            $pArr[$i] = $pQ;
+            $i++;
+        }
 
-        foreach($packs as $pQ => $id) {
-            $sec = $sec / 1.8;
-            if($n = floor($q/$pQ)) {
-                $q -= $n * $pQ;
-                $res += round($n * $sec);
+        if($sTemp > 0.0001 || $dTemp > 0.0001) {
+            $sArr[$i] = $sTemp;
+            $dArr[$i] = $dTemp;
+            $pArr[$i] = 1;
+        } else {
+            $i--;
+        }
+
+        $sI = $dI = $i;
+
+        while($sI > 0 && $dI > 0) {
+            $sQ = $sArr[$sI] * $pArr[$sI];
+            $dQ = $dArr[$dI] * $pArr[$dI];
+
+            // Отброяваме възможното
+            $m = min($sQ, $dQ);
+            if($m > 0) {
+                $res += $sec * $m;
+                $sArr[$sI] -= $m/$pArr[$sI];
+                $dArr[$dI] -= $m/$pArr[$dI];
+
+                // Ако разбутваме по-голяма опаковка, за по-малка в получателя, даваме наказание
+                if($sI < $dI) {
+                    $res += $sec * 5;
+                }
+            }
+
+            // Ако източника недостига, преместваме индекса към по-голямата опаковка
+            if($sArr[$sI] <= 0) {
+                $sI--;
+            }
+
+            // Ако получателя е запълнен - преместваме към по-голямата опаковка
+            if($dArr[$dI] <= 0) {
+                $dI--;
             }
         }
 
-        $res += $q;
- 
         return $res;
+    }
+
+    
+    /**
+     * Консумира масива $dArr от $sArr
+     */
+    private static function consume(&$sArr, &$dArr, &$pArr, &$sec, &$res)
+    {
+        
     }
 
 
