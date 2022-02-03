@@ -493,6 +493,8 @@ class rack_MovementGenerator2 extends core_Manager
      */
     private static function timeToCount($s, $d, $packs)
     {
+        set_time_limit(5);
+
         expect($pallet >= $q);
 
         static $sec;
@@ -509,13 +511,15 @@ class rack_MovementGenerator2 extends core_Manager
         foreach($packs as $pQ => $pI) {
             $sArr[$i] = (int) ($sTemp / $pQ);
             $sTemp -= $sArr[$i] * $pQ;
+            $sTemp = round($sTemp, 6);
             $dArr[$i] = (int) ($dTemp / $pQ);
             $dTemp -= $dArr[$i] * $pQ;
+            $dTemp = round($dTemp, 6);
             $pArr[$i] = $pQ;
             $i++;
         }
 
-        if($sTemp > 0.0001 || $dTemp > 0.0001) {
+        if($sTemp > 0 || $dTemp > 0) {
             $sArr[$i] = $sTemp;
             $dArr[$i] = $dTemp;
             $pArr[$i] = 1;
@@ -532,14 +536,17 @@ class rack_MovementGenerator2 extends core_Manager
             $dQ = $dArr[$dI] * $pArr[$dI];
 
             // Отброяваме възможното
-            $m = min($sQ, $dQ);
-            if($m > 0.0001) {
+            $m = round(min($sQ, $dQ), 6);
+
+            if($m > 0) {
                 $sec = $sec/1.8;
                 $res += $sec * ($m/$pArr[$dI]); 
  
             
                 $sArr[$sI] -= $m/$pArr[$sI];
+                $sArr[$sI] = round($sArr[$sI], 6);
                 $dArr[$dI] -= $m/$pArr[$dI];
+                $dArr[$dI] = round($dArr[$dI], 6);
 
                 // Ако разбутваме по-голяма опаковка, за по-малка в получателя, даваме наказание
                 if($sI < $dI) {  
@@ -557,10 +564,10 @@ class rack_MovementGenerator2 extends core_Manager
                 $dI--;
             }
             
-            // bp($sArr, $dArr, $sI, $dI);
+            // if($i++ > 10)  bp($sArr, $dArr, $sI, $dI);
         }
 
-    //    bp($sArr, $dArr, $pArr, $s, $d, $res);
+            //    bp($sArr, $dArr, $pArr, $s, $d, $res);
 
         return $res;
     }
