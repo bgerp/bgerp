@@ -156,6 +156,12 @@ class rack_Zones extends core_Master
 
 
     /**
+     * Работен кеш 2
+     */
+    protected static $maxPalletQuantity = null;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1099,7 +1105,7 @@ class rack_Zones extends core_Master
      * @param array|null $productIds - ид-та на артикули
      * @param boolean $deletePendingSystemMovementsInZoneFirst - да се изтрият ли първи системните движения
      */
-    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true)
+    private static function  pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true)
     {
         // Ако се иска да се изтрият движенията към зоната
         if($deletePendingSystemMovementsInZoneFirst){
@@ -1156,6 +1162,24 @@ class rack_Zones extends core_Master
                     while($packRec = $packQuery->fetch()) {
                         $packagings[] = $packRec;
                     }
+
+                    // Ако артикула няма опаковка палет намира се к-то на най-големия палет в системата
+                    $palletId = cat_UoM::fetchBySinonim('pallet')->id;
+                    if(!array_key_exists($palletId, $packagings)){
+                        if(is_null(static::$maxPalletQuantity)){
+                            $maxQuery = cat_products_Packagings::getQuery();
+                            $maxQuery->XPR('maxQuantity', 'double', 'MAX(#quantity)');
+                            $maxQuery->show('quantity');
+                            $maxQuery->where("#packagingId = '{$palletId}'");
+                            static::$maxPalletQuantity = $maxQuery->fetch()->quantity;
+                        }
+
+                        // Добавя се към опаковките и палета
+                        if(isset(static::$maxPalletQuantity)){
+                            $packagings[] = (object)array('packagingId' => $palletId, 'quantity' => static::$maxPalletQuantity);
+                        }
+                    }
+
                     if(!countR($packagings)){
                         $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
                         $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
