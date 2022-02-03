@@ -532,13 +532,14 @@ class rack_MovementGenerator2 extends core_Manager
             // Отброяваме възможното
             $m = min($sQ, $dQ);
             if($m > 0) {
+                $sec = $sec/1.8;
                 $res += $sec * $m;
                 $sArr[$sI] -= $m/$pArr[$sI];
                 $dArr[$dI] -= $m/$pArr[$dI];
 
                 // Ако разбутваме по-голяма опаковка, за по-малка в получателя, даваме наказание
                 if($sI < $dI) {
-                    $res += $sec * 5;
+                    $res += $sec * 10;
                 }
             }
 
