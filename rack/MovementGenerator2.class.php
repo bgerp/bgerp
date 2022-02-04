@@ -449,7 +449,7 @@ class rack_MovementGenerator2 extends core_Manager
                     }
                 }
             } 
-
+            $o->quantity = round($o->quantity, 6);
             $i++;
         }
 
