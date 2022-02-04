@@ -263,7 +263,8 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
-        
+        $row->totalQuantity = ht::styleNumber($row->totalQuantity, $rec->totalQuantity);
+
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
