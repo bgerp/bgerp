@@ -1085,6 +1085,7 @@ class cat_BomDetails extends doc_Detail
      * Преди запис на документ, изчислява стойността на полето `isContable`
      *
      * @param core_Manager $mvc
+     * @param stdClass     $res
      * @param stdClass     $rec
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
