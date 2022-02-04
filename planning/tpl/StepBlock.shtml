@@ -68,7 +68,7 @@
 
 		<!--ET_BEGIN planning_Steps_labelType-->
 		<tr>
-			<td class='quiet'>|Етикет|*:</td>
+			<td class='quiet'>|Производ. №|*:</td>
 			<td>[#planning_Steps_labelType#]</td>
 		</tr>
 		<!--ET_END planning_Steps_labelType-->

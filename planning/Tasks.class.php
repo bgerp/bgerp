@@ -603,7 +603,7 @@ class planning_Tasks extends core_Master
         }
 
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table>
-                <tr><td style='font-weight:normal'>|Етикет|*:</td><td>[#labelType#]</td></tr>
+                <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#labelPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#labelQuantityInPack#]</td></tr>
                 <tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>
