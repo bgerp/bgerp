@@ -1725,4 +1725,16 @@ class planning_Tasks extends core_Master
 
         return $options;
     }
+
+
+    /**
+     * Параметрите на бутона за етикетиране
+     */
+    protected static function on_AfterGetLabelTemplates($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        if(isset($rec->labelTemplate) && !array_key_exists($rec->labelTemplate, $res)){
+            $res[$rec->labelTemplate] = label_Templates::fetch($rec->labelTemplate);
+        }
+    }
 }
