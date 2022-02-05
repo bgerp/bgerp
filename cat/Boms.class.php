@@ -524,11 +524,6 @@ class cat_Boms extends core_Master
             $productId = (isset($rec->productId)) ? $rec->productId : $mvc->fetchField($rec->id, 'productId');
             cat_Products::touchRec($productId);
         }
-        
-        // @todo да се махне след като се провери дали някой не записва документа докато е активен
-        if(isset($rec->state) && $rec->state == $rec->brState && $rec->state != 'draft'){
-            wp('cat_Boms::afterSaveActive', $rec);
-        }
     }
     
     
@@ -536,7 +531,6 @@ class cat_Boms extends core_Master
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
-     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -732,6 +726,8 @@ class cat_Boms extends core_Master
      * Връща информация с ресурсите използвани в технологичната рецепта
      *
      * @param mixed $id - ид или запис
+     * @param double $quantity - ид или запис
+     * @param datetime $date - ид или запис
      *
      * @return array $res - Информация за рецептата
      *               ->quantity - к-во
@@ -799,14 +795,14 @@ class cat_Boms extends core_Master
      * Ф-я за добавяне на нова рецепта към артикул
      *
      * @param mixed   $productId - ид или запис на производим артикул
-     * @param int   $quantity  - количество за което е рецептата
-     * @param array $details   - масив с обекти за детайли
-     *                         ->resourceId   - ид на ресурс
-     *                         ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
-     *                         ->stageId      - опционално, към кой производствен етап е детайла
-     *                         ->baseQuantity - начално количество на ресурса
-     *                         ->propQuantity - пропорционално количество на ресурса
-     * @param string  $notes     - забележки
+     * @param int   $quantity    - количество за което е рецептата
+     * @param array $details     - масив с обекти за детайли
+     *                        ->resourceId   - ид на ресурс
+     *                        ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
+     *                        ->stageId      - опционално, към кой производствен етап е детайла
+     *                        ->baseQuantity - начално количество на ресурса
+     *                        ->propQuantity - пропорционално количество на ресурса
+     * @param string  $notes   - забележки
      * @param float $expenses  - процент режийни разходи
      *
      * @return int $id         - ид на новосъздадената рецепта
@@ -1041,7 +1037,6 @@ class cat_Boms extends core_Master
      * Рендиране на рецептите на един артикул
      *
      * @param stdClass $data
-     *
      * @return core_ET
      */
     public function renderBoms($data)
@@ -1132,8 +1127,7 @@ class cat_Boms extends core_Master
     /**
      * Връща допустимите параметри за формулите
      *
-     * @param stdClass $rec - запис
-     *
+     * @param int $productId - запис
      * @return array - допустимите параметри с техните стойностти
      */
     public static function getProductParams($productId)
@@ -1194,7 +1188,6 @@ class cat_Boms extends core_Master
      * Връща контекста на параметрите
      *
      * @param array $params
-     *
      * @return array $scope
      */
     public static function getScope($params)

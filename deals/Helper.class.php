@@ -1625,7 +1625,7 @@ abstract class deals_Helper
         if (!countR($invoicesArr)) {
             return array();
         }
-        
+
         $newInvoiceArr = $invMap = $payArr = array();
         foreach ($invoicesArr as $containerId => $handler) {
             $Document = doc_Containers::getDocument($containerId);
@@ -1698,7 +1698,7 @@ abstract class deals_Helper
             }
 
             while ($dRec = $dQuery->fetch()) {
-                $amount = $dRec->amountDeal;
+                $amount = round($dRec->amountDeal / $dRec->currencyRate, 6);
                 $payArr[$dRec->containerId] = (object) array('containerId' => $dRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => null, 'paymentType' => 'cash', 'isReverse' => false);
             }
         }

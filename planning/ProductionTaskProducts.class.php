@@ -32,7 +32,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'type,productId,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,packagingId=Количества->Мярка,storeId,indTime=Норма,totalTime=Общо';
+    public $listFields = 'type,productId,plannedQuantity=Количества->Планирано,limit=Количества->Макс.,totalQuantity=Количества->Изпълнено,packagingId=Количества->Мярка,storeId,indTime,totalTime';
     
     
     /**
@@ -116,7 +116,7 @@ class planning_ProductionTaskProducts extends core_Detail
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
         $this->FLD('quantityInPack', 'double', 'mandatory,input=none');
         $this->FLD('totalQuantity', 'double(smartRound)', 'caption=Количество->Изпълнено,input=none,notNull');
-        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма');
+        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Норма->Единична');
         $this->FLD('limit', 'double(min=0)', 'caption=Макс. к-во,input=none');
         $this->FLD('totalTime', 'time(noSmart)', 'caption=Норма->Общо,input=none');
         
@@ -263,7 +263,8 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
-        
+        $row->totalQuantity = ht::styleNumber($row->totalQuantity, $rec->totalQuantity);
+
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
         
@@ -271,7 +272,11 @@ class planning_ProductionTaskProducts extends core_Detail
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
 
-        $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($rec->indTime);
+        if(isset($rec->indTime)){
+            $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($rec->indTime);
+        } else {
+            $row->indTime = "<span class='quiet'>N/A</span>";
+        }
     }
     
     
@@ -317,22 +322,28 @@ class planning_ProductionTaskProducts extends core_Detail
     public static function updateTotalQuantity($taskId, $productId, $type)
     {
         $rec = self::fetch("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}'");
-        if (empty($rec)) {
-            
-            return;
+
+        if (empty($rec)) return;
+
+        $updateFields = 'totalQuantity';
+        if(isset($rec->indTime)){
+            $updateFields .= ',totalTime';
         }
-        
+
         $rec->totalQuantity = $rec->totalTime = 0;
         $query = planning_ProductionTaskDetails::getQuery();
         $query->where("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}' AND #state != 'rejected'");
 
         while ($dRec = $query->fetch()) {
-            $normInSecs = planning_type_ProductionRate::getInSecsByQuantity($dRec->norm, $dRec->quantity);
-            $rec->totalTime += $normInSecs;
+            if(isset($rec->indTime)){
+                $normInSecs = planning_type_ProductionRate::getInSecsByQuantity($dRec->norm, $dRec->quantity);
+                $rec->totalTime += $normInSecs;
+            }
+
             $rec->totalQuantity += $dRec->quantity;
         }
 
-        self::save($rec, 'totalQuantity,totalTime');
+        self::save($rec, $updateFields);
     }
     
     

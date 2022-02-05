@@ -831,6 +831,13 @@ class label_Prints extends core_Master
                 $data->query->where(array("#mediaId = '[#1#]'", $filter->mediaId));
             }
         }
+
+        // Добавяне на филтър по източник, ако има в урл-то
+        $classId = Request::get('classId', 'int');
+        $objectId = Request::get('objectId', 'int');
+        if($classId && $objectId){
+            $data->query->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $classId, $objectId));
+        }
     }
     
     

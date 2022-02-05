@@ -488,6 +488,14 @@ class planning_Tasks extends core_Master
             $row->labelTemplate = "<span class='quiet'>N/A</span>";
         }
 
+        // Линк към отпечаванията ако има
+        if(label_Prints::haveRightFor('list')){
+            if($printCount = label_Prints::count("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id}")){
+                $row->printCount = core_Type::getByName('int')->toVerbal($printCount);
+                $row->printCount = ht::createLink($row->printCount, array('label_Prints', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true));
+            }
+        }
+
         if(!isset($rec->labelQuantityInPack)){
             if(isset($rec->labelPackagingId)) {
                 $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
@@ -603,10 +611,13 @@ class planning_Tasks extends core_Master
         }
 
         $resArr['labels'] = array('name' => tr('Етикетиране'), 'val' => tr("|*<table>
-                <tr><td style='font-weight:normal'>|Етикет|*:</td><td>[#labelType#]</td></tr>
+                <tr><td style='font-weight:normal'>|Производ. №|*:</td><td>[#labelType#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#labelPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|В опаковка|*:</td><td>[#labelQuantityInPack#]</td></tr>
                 <tr><td style='font-weight:normal'>|Шаблон|*:</td><td>[#labelTemplate#]</td></tr>
+                <!--ET_BEGIN printCount-->
+                <tr><td style='font-weight:normal'>|Отпечатвания|*:</td><td>[#printCount#]</td></tr>
+                <!--ET_END printCount-->
                 </table>"));
         
         $resArr['indTimes'] = array('name' => tr('Заработка'), 'val' => tr("|*<table>
@@ -1724,5 +1735,17 @@ class planning_Tasks extends core_Master
         }
 
         return $options;
+    }
+
+
+    /**
+     * Параметрите на бутона за етикетиране
+     */
+    protected static function on_AfterGetLabelTemplates($mvc, &$res, $rec)
+    {
+        $rec = $mvc->fetchRec($rec);
+        if(isset($rec->labelTemplate) && !array_key_exists($rec->labelTemplate, $res)){
+            $res[$rec->labelTemplate] = label_Templates::fetch($rec->labelTemplate);
+        }
     }
 }
