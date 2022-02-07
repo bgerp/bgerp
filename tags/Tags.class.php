@@ -174,7 +174,7 @@ class tags_Tags extends core_Manager
 
         $name = $resArr['nameLink'];
 
-        $resArr['spanNoName'] = $resArr['span'] . " title='{$name}'></span>";
+        $resArr['spanNoName'] = $resArr['span'] . " title='{$resArr['name']}'></span>";
 
         $resArr['span'] .= '>' . $name;
 
