@@ -156,6 +156,12 @@ class tags_Tags extends core_Manager
 
         $resArr['name'] = self::recToVerbal($rec, 'name')->name;
 
+        $url = toUrl(array('doc_Search'));
+        $url = rtrim($url, '/');
+        $url .= "/?tags%5B%5D={$rec->id}&tags%5Bselect2%5D=1";
+
+        $resArr['nameLink'] = ht::createLink($rec->name, $url);
+
         $resArr['span'] = "<span class='tags tagType-{$rec->type}'";
 
         if ($rec->color) {
@@ -166,7 +172,7 @@ class tags_Tags extends core_Manager
             $resArr['span'] .= " style='background-color: {$rec->color}; color: {$color}'";
         }
 
-        $name = $resArr['name'];
+        $name = $resArr['nameLink'];
 
         $resArr['spanNoName'] = $resArr['span'] . " title='{$name}'></span>";
 
