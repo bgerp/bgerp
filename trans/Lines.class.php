@@ -515,7 +515,11 @@ class trans_Lines extends core_Master
         $row->totalAmountExpected = ht::styleNumber($row->totalAmountExpected, $amount);
 
         $row->totalAmount = core_Type::getByName('double(decimals=2)')->toVerbal($amount);
-        $row->totalAmount = ht::styleNumber($row->totalAmount, $amount);
+        if($amount < $amountExpected){
+            $row->totalAmount = "<b class='red'>{$row->totalAmount}</b>";
+        } else {
+            $row->totalAmount = "<span style='color:green'>{$row->totalAmount}</span>";
+        }
 
         $row->totalAmountReturn = core_Type::getByName('double(decimals=2)')->toVerbal(abs($amountReturned));
         $row->totalAmountReturn = ht::styleNumber($row->totalAmountReturn, abs($amountReturned));
