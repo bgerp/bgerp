@@ -33,9 +33,11 @@ class page_Print extends page_Html
         $this->push('css/common.css', 'CSS');
         $this->push('css/Application.css', 'CSS');
         $this->push('css/internalTheme.css', 'CSS');
-        
-        jquery_Jquery::run($this, 'window.print();');
-        
+
+        if (Mode::get('runPrinting') !== false) {
+            jquery_Jquery::run($this, 'window.print();');
+        }
+
         $this->append('
          * {
              background-color: none !important;
