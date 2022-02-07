@@ -94,7 +94,7 @@ class tcost_Fees extends core_Detail
     public function description()
     {
         $this->FLD('feeId', 'key(mvc=tcost_FeeZones, select=name)', 'caption=Зона, mandatory, input=hidden,silent');
-        $this->FLD('weight', 'double(min=0,smartRound)', 'caption=Правила за изчисление->Тегло, mandatory,unit=кг');
+        $this->FLD('weight', 'double(Min=0,smartRound)', 'caption=Правила за изчисление->Тегло, mandatory,unit=кг');
         $this->FLD('price', 'double(min=0)', 'caption=Стойност->Сума, mandatory,unit=без ДДС');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Стойност->Валута, mandatory');
         $this->FLD('secondPrice', 'double(min=0)', 'caption=Втора стойност->Стойност,silent,removeAndRefreshForm=secondCurrencyId,unit=без ДДС');
@@ -267,8 +267,12 @@ class tcost_Fees extends core_Detail
         
         $rec->total = self::getTotalPrice($rec);
         $row->total = $mvc->getFieldType('total')->toVerbal($rec->total);
-        
-        $kgPrice = $rec->total / $rec->weight;
+
+        if(!empty($rec->weight)){
+            $kgPrice = $rec->total / $rec->weight;
+        } else {
+            $kgPrice = null;
+        }
         
         if ($lastPrice >= $rec->price) {
             $row->ROW_ATTR = array('style' => 'color:red;');
@@ -279,7 +283,6 @@ class tcost_Fees extends core_Detail
         }
         
         $lastKgPrice = $kgPrice;
-        
         $lastPrice = $rec->price;
     }
     
