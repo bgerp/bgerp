@@ -275,34 +275,38 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         if (isset($rec->lineId)) {
 
+            $showTransInfo = trans_Setup::get('SHOW_LOG_INFO_IN_DOCUMENTS');
+            if($showTransInfo == 'show' || ($showTransInfo == 'hide' && !Mode::isReadOnly())){
+                $lineRec = trans_Lines::fetch($rec->lineId);
+                $row->lineId = '';
+                if(isset($mvc->termDateFld) && $lineRec->start != $rec->{$mvc->termDateFld}){
+                    $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
+                    $row->lineId .= $lineDate . '/';
+                }
+                $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
+                if(!Mode::is('printing') && doc_Threads::haveRightFor('single', $lineRec->threadId)){
+                    $lineSingleUrl = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $mvc->getHandle($rec));
+                    $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
+                }
 
-            $lineRec = trans_Lines::fetch($rec->lineId);
-            $row->lineId = '';
-            if(isset($mvc->termDateFld) && $lineRec->start != $rec->{$mvc->termDateFld}){
-                $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
-                $row->lineId .= $lineDate . '/';
-            }
-            $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
-            if(!Mode::is('printing') && doc_Threads::haveRightFor('single', $lineRec->threadId)){
-                $lineSingleUrl = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $mvc->getHandle($rec));
-                $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
-            }
+                if(!Mode::is('printing')){
+                    $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
+                }
 
-            if(!Mode::is('printing')){
-                $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
-            }
+                if(!empty($lineRec->forwarderId)){
+                    $row->lineForwarderId = crm_Companies::getHyperlink($lineRec->forwarderId);
+                }
 
-            if(!empty($lineRec->forwarderId)){
-                $row->lineForwarderId = crm_Companies::getHyperlink($lineRec->forwarderId);
-            }
-
-            if(!empty($lineRec->vehicle)){
-                $row->lineVehicleId = core_Type::getByName('varchar')->toVerbal($lineRec->vehicle);
-                if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))) {
-                    if(!empty($vehicleRec->number)){
-                        $row->lineVehicleId = trans_Vehicles::getVerbal($vehicleRec, 'number');
+                if(!empty($lineRec->vehicle)){
+                    $row->lineVehicleId = core_Type::getByName('varchar')->toVerbal($lineRec->vehicle);
+                    if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))) {
+                        if(!empty($vehicleRec->number)){
+                            $row->lineVehicleId = trans_Vehicles::getVerbal($vehicleRec, 'number');
+                        }
                     }
                 }
+            } else {
+                unset($row->lineId);
             }
         }
         
