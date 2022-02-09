@@ -1648,9 +1648,9 @@ class cat_Boms extends core_Master
     public static function getTasksFromBom($id, $quantity = 1)
     {
         expect($rec = self::fetchRec($id));
-        $tasks = array();
         $pName = cat_Products::getTitleById($rec->productId, false);
-        
+        $Details = cls::get('cat_BomDetails');
+
         // За основния артикул подготвяме задача
         // В която самия той е за произвеждане
         $tasks = array(1 => (object) array('title' => $pName,
@@ -1705,7 +1705,7 @@ class cat_Boms extends core_Master
             $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
             // Подготвяне задачата за етапа, с него за производим
-            $arr = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
+            $obj = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
                 'plannedQuantity' => $q1,
                 'measureId' => cat_Products::fetchField($dRec->resourceId, 'measureId'),
                 'productId' => $dRec->resourceId,
@@ -1721,8 +1721,16 @@ class cat_Boms extends core_Master
                 'labelQuantityInPack' => $dRec->labelQuantityInPack,
                 'labelType' => $dRec->labelType,
                 'labelTemplate' => $dRec->labelTemplate,
+                'params' => array(),
                 'products' => array('input' => array(), 'waste' => array()));
-            
+
+            $pQuery = cat_products_Params::getQuery();
+            $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");
+            $pQuery->show('paramId,paramValue');
+            while($pRec = $pQuery->fetch()){
+                $obj->params[$pRec->paramId] = $pRec->paramValue;
+            }
+
             // Добавяме директните наследници на етапа като материали за влагане/отпадък
             while ($cRec = $query2->fetch()) {
                 $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
@@ -1731,11 +1739,11 @@ class cat_Boms extends core_Master
                 }
                 
                 $place = ($cRec->type == 'pop') ? 'waste' : 'input';
-                $arr->products[$place][] = array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
+                $obj->products[$place][] = array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
             }
             
             // Събираме задачите
-            $tasks[] = $arr;
+            $tasks[] = $obj;
         }
 
         // Връщаме масива с готовите задачи

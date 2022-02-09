@@ -144,7 +144,7 @@ class cat_BomDetails extends doc_Detail
     public function description()
     {
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description|storeInput|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate');
+        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description|storeInput|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
         $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Подетап на,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -210,6 +210,8 @@ class cat_BomDetails extends doc_Detail
 
         if(!isset($rec->id)){
             $form->setFieldTypeParams('resourceId', array('forceOpen' => 'forceOpen'));
+        } else {
+            $form->setReadOnly('resourceId');
         }
 
         $matCaption = ($rec->type == 'input') ? 'Артикул' : (($rec->type == 'pop') ? 'Отпадък' : 'Етап');
@@ -311,6 +313,19 @@ class cat_BomDetails extends doc_Detail
                     // Наличните човешки ресурси от избрания център
                     $hrAssets = planning_Hr::getByFolderId($folderId, $rec->employees);
                     $form->setSuggestions("employees", $hrAssets);
+                }
+
+                if(empty($rec->id)){
+                    cat_products_Params::addProductParamsToForm($mvc, $rec->id, $rec->resourceId, $form, true, false);
+
+                    // Задаване на дефолтни параметри
+                    $params = cat_Products::getParams($rec->resourceId);
+                    $taskParams = cat_Params::getTaskParamIds();
+                    $params = array_intersect_key($params, $taskParams);
+
+                    foreach ($params as $pId => $pValue){
+                        $form->setDefault("paramcat{$pId}", $pValue);
+                    }
                 }
             }
         }
@@ -740,7 +755,16 @@ class cat_BomDetails extends doc_Detail
 
         if(countR($descriptionArr)){
             $description = implode("", $descriptionArr);
-            $row->resourceId .= "<br><small><table class='bomProductionStepTable'>{$description}</table></small>";
+            $row->resourceId .= "<div class='small'><table class='bomProductionStepTable'>{$description}</table></div>";
+        }
+
+        if($rec->type == 'stage'){
+            $rec->state = cat_Boms::fetchField($rec->bomId, 'state');
+            $paramData = cat_products_Params::prepareClassObjectParams($mvc, $rec);
+            if (isset($paramData)) {
+                $paramTpl = cat_products_Params::renderParams($paramData);
+                $row->resourceId .= "<div class='small'>" . $paramTpl->getContent() . "</div>";
+            }
         }
 
         $propQuantity = $rec->propQuantity;
@@ -831,9 +855,11 @@ class cat_BomDetails extends doc_Detail
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('shrink', $rec);
-        
+
+        // От етап се свива на обикновен артикул
         $rec->type = 'input';
         $this->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
+        cat_products_Params::delete("#classId = {$this->getClassId()} AND #productId = {$rec->id}");
         $rec->coefficient = null;
         $rec->centerId = $rec->storeInput = $rec->storeIn = $rec->fixedAssets = $rec->employees = $rec->norm = null;
         $this->save($rec);
@@ -1161,6 +1187,10 @@ class cat_BomDetails extends doc_Detail
                 $mvc->save_($rec, 'coefficient');
             }
         }
+
+        if(!empty($rec->_params)){
+            cat_products_Params::saveParams($mvc, $rec);
+        }
     }
     
     
@@ -1306,10 +1336,11 @@ class cat_BomDetails extends doc_Detail
      */
     public static function on_AfterDelete($mvc, &$numDelRows, $query, $cond)
     {
-        // Ако изтриваме етап, изтриваме всичките редове от този етап
+        // Ако изтриваме етап, изтриваме всичките редове от този етап, както и добавените параметри към него
         foreach ($query->getDeletedRecs() as $rec) {
             if ($rec->type == 'stage') {
                 $mvc->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
+                cat_products_Params::delete("#classId = {$mvc->getClassId()} AND #productId = {$rec->id}");
             }
         }
     }

@@ -298,7 +298,7 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
-        $data->paramData = self::prepareTaskParams($data->rec);
+        $data->paramData = cat_products_Params::prepareClassObjectParams($mvc, $data->rec);
         
         if(Mode::is('printworkcard')){
             $ownCompanyData = crm_Companies::fetchOwnCompany();
@@ -853,25 +853,10 @@ class planning_Tasks extends core_Master
                 }
             }
         }
-        
+
         // Копиране на параметрите на артикула към операцията
-        if (!is_array($rec->params)) {
-            
-            return;
-        }
-        
-        $tasksClassId = planning_Tasks::getClassId();
-        foreach ($rec->params as $k => $o) {
-            if (!isset($rec->{$k})) {
-                continue;
-            }
-            
-            $nRec = (object) array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $tasksClassId, 'productId' => $rec->id);
-            if ($id = cat_products_Params::fetchField("#classId = {$tasksClassId} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')) {
-                $nRec->id = $id;
-            }
-            
-            cat_products_Params::save($nRec, null, 'REPLACE');
+        if (is_array($rec->_params)) {
+            cat_products_Params::saveParams($mvc, $rec);
         }
     }
     
@@ -921,7 +906,7 @@ class planning_Tasks extends core_Master
             }
             $form->setReadOnly('productId');
         }
-        
+
         // Ако не е указано друго, е артикула от заданието
         $form->setDefault('productId', $originRec->productId);
         
@@ -963,55 +948,16 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            if (isset($rec->systemId, $tasks[$rec->systemId])) {
-                $taskData = (array)$tasks[$rec->systemId];
-                unset($taskData['products']);
-                foreach ($taskData as $fieldName => $defaultValue) {
-                    $form->setDefault($fieldName, $defaultValue);
-                }
-                $form->setReadOnly('productId');
+            if (empty($rec->id)) {
+                cat_products_Params::addProductParamsToForm($mvc, $rec->id, $rec->productId, $form);
             }
 
-
-            if (empty($rec->id)) {
-                
-                // Показване на параметрите за задача във формата, като задължителни полета
-                $params = cat_Products::getParams($rec->productId);
-                $taskParams = cat_Params::getTaskParamIds();
-                $diff = array_intersect_key($params, $taskParams);
-
-                foreach ($diff as $pId => $v) {
-                    $paramRec = cat_Params::fetch($pId);
-                    $name = cat_Params::getVerbal($paramRec, 'name');
-                    $form->FLD("paramcat{$pId}", 'double', "caption=Параметри на задачата->{$name},mandatory,before=description");
-                    $ParamType = cat_Params::getTypeInstance($pId, $mvc, $rec->id, $rec->paramValue);
-                    $form->setFieldType("paramcat{$pId}", $ParamType);
-                    $form->setDefault("paramcat{$pId}", cat_Params::getDefaultValue($pId, $mvc, $rec->id, $rec->paramValue));
-
-                    // Дефолта е параметъра от дефолтната задача за този артикул, ако има такава
-                    if (isset($rec->systemId, $tasks[$rec->systemId])) {
-                        $form->setDefault("paramcat{$pId}", $tasks[$rec->systemId]->params[$pId]);
+            if (isset($rec->systemId, $tasks[$rec->systemId])) {
+                $taskData = (array)$tasks[$rec->systemId];
+                if(countR($taskData['params'])){
+                    foreach ($taskData['params'] as $pId => $pVal){
+                        $form->setDefault("paramcat{$pId}", $pVal);
                     }
-                    if (!empty($paramRec->suffix)) {
-                        $suffix = cat_Params::getVerbal($paramRec, 'suffix');
-                        $form->setField("paramcat{$pId}", "unit={$suffix}");
-                    }
-                    
-                    if (isset($v)) {
-                        if ($ParamType instanceof fileman_FileType) {
-                            $form->setDefault("paramcat{$pId}", $v);
-                        } else {
-                            if(cat_Params::haveDriver($paramRec, 'cond_type_Keylist')){
-                                $defaults = keylist::toArray($v);
-                                $v = array_intersect_key($ParamType->getSuggestions(), $defaults);
-                            } else {
-                                $v = array('' => '', "{$v}" => "{$v}");
-                            }
-                            $form->setSuggestions("paramcat{$pId}", $v);
-                        }
-                    }
-                    
-                    $rec->params["paramcat{$pId}"] = (object) array('paramId' => $pId);
                 }
             }
 
