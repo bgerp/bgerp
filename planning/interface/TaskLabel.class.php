@@ -155,11 +155,21 @@ class planning_interface_TaskLabel
             core_App::setTimeLimit(round($cnt / 8, 2), false, 100);
         }
 
+        $weight = null;
+        if(!empty($rec->totalWeight) && !empty($rec->labelQuantityInPack)) {
+            $singleWeight = $rec->totalWeight / $rec->totalQuantity;
+            $weight = round($singleWeight * $rec->labelQuantityInPack, 4);
+        }
+
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
             $res = array('CODE' => $code, 'NAME' => $name, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'QUANTITY' => $quantity, 'JOB' => $jobCode);
             if(!empty($ean)){
                 $res['EAN'] = $ean;
+            }
+
+            if(!empty($weight)){
+                $res['WEIGHT'] = $weight;
             }
 
             if (countR($params)) {
