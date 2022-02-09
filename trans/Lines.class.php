@@ -233,6 +233,7 @@ class trans_Lines extends core_Master
         }
 
         $titleArr[] = str::limitLen($rec->title, 32);
+        $titleArr[] = static::getHandle($rec->id);
         $recTitle = implode('/', $titleArr);
 
         if ($escaped) {
