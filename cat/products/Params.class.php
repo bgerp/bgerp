@@ -656,7 +656,7 @@ class cat_products_Params extends doc_Detail
             }
 
             if (isset($v)) {
-                if (($ParamType instanceof fileman_FileType) || ($ParamType instanceof type_Text)) {
+                if (($ParamType instanceof fileman_FileType)) {
                     $form->setDefault("paramcat{$pId}", $v);
                 }else {
                     if(cat_Params::haveDriver($paramRec, 'cond_type_Keylist')){
