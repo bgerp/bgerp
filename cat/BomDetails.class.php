@@ -149,7 +149,7 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
         
-        $this->FLD('position', 'int(Min=0)', 'caption=Позиция,smartCenter,tdClass=leftCol');
+        $this->FLD('position', 'int(Min=0)', 'caption=Позиция,tdClass=leftCol');
         $this->FLD('propQuantity', 'text(rows=2)', 'caption=Формула,tdClass=accCell,mandatory');
         $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
