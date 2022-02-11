@@ -87,7 +87,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,lineId,additionalConditions';
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,lineId,additionalConditions,reverseId';
     
     
     /**
@@ -133,6 +133,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, class=contactData,autohide');
         $mvc->FLD('features', 'keylist(mvc=trans_Features,select=name)', 'caption=Адрес за доставка->Особености');
         $mvc->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Други,autohide');
+        $mvc->FLD('reverseId', 'int', 'caption=Връщане от,input=hidden,silent');
 
         $mvc->setDbIndex('valior');
     }
@@ -524,6 +525,10 @@ abstract class store_DocumentMaster extends core_Master
             
             if ($rec->isReverse == 'yes') {
                 $row->operationSysId = tr('Връщане на стока');
+
+                if(isset($rec->reverseId)){
+                    $row->operationSysId .= tr("|* |от|* ") . cls::get($mvc->reverseClassName)->getLink($rec->reverseId, 0, array('ef_icon' => false));
+                }
             }
         } elseif (isset($fields['-list'])) {
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
@@ -562,7 +567,7 @@ abstract class store_DocumentMaster extends core_Master
             if ($firstDoc->haveInterface('bgerp_DealAggregatorIntf')) {
                 $operations = $firstDoc->getShipmentOperations();
                 
-                return (isset($operations[static::$defOperationSysId])) ? true : false;
+                return isset($operations[static::$defOperationSysId]);
             }
         }
         
@@ -1279,5 +1284,69 @@ abstract class store_DocumentMaster extends core_Master
         }
         
         return $comment;
+    }
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $data
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = $data->rec;
+        if ($rec->isReverse == 'no') {
+            if($rec->state == 'active'){
+                if(isset($mvc->reverseClassName)){
+                    $ReverseClass = cls::get($mvc->reverseClassName);
+                    if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseId' => $rec->id))) {
+                        $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseId' => $rec->id, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Подготвя данните (в обекта $data) необходими за единичния изглед
+     */
+    public function prepareEditForm_($data)
+    {
+        parent::prepareEditForm_($data);
+        $rec = &$data->form->rec;
+        if (isset($rec->reverseId) && empty($rec->id)) {
+            $data->action = 'clone';
+        }
+
+        return $data;
+    }
+
+
+    /**
+     * Кои детайли да се клонират с промяна
+     *
+     * @param stdClass $rec
+     * @param mixed    $Detail
+     *
+     * @return array
+     */
+    public function getDetailsToCloneAndChange($rec, &$Detail)
+    {
+        $Detail = cls::get($this->mainDetail);
+        $id = $rec->clonedFromId;
+
+        // Ако е създаден като обратен документ взима детайлите от него
+        if (isset($rec->reverseId) && empty($rec->id)) {
+            $Class = cls::get($this->reverseClassName);
+            $Detail = cls::get($Class->mainDetail);
+            $id = $rec->reverseId;
+        }
+
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$id}");
+
+        return $dQuery->fetchAll();
     }
 }

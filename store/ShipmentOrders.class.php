@@ -222,6 +222,12 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
+     * Огледален клас за обратната операция
+     */
+    public $reverseClassName = 'store_Receipts';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
