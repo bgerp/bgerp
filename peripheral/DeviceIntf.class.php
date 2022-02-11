@@ -23,9 +23,9 @@ class peripheral_DeviceIntf extends embed_DriverIntf
      * @param array $params
      * @return boolean
      */
-    public static function checkDevice($rec, $params)
+    public function checkDevice($rec, $params)
     {
         
-        return $this->class->checkDevice($allRecsArr, $params);
+        return $this->class->checkDevice($rec, $params);
     }
 }
