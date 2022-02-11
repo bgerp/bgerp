@@ -155,10 +155,14 @@ class planning_interface_TaskLabel
             core_App::setTimeLimit(round($cnt / 8, 2), false, 100);
         }
 
-        $weight = null;
-        if(!empty($rec->totalWeight) && !empty($rec->labelQuantityInPack)) {
-            $singleWeight = $rec->totalWeight / $rec->totalQuantity;
-            $weight = round($singleWeight * $rec->labelQuantityInPack, 4);
+        $batch = null;
+        if(core_Packs::isInstalled('batch')){
+            if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+                if($BatchDef instanceof batch_definitions_Job){
+                    $origin = doc_Containers::getDocument($rec->originId);
+                    $batch = $BatchDef->getDefaultBatchName($origin->that);
+                }
+            }
         }
 
         $arr = array();
@@ -168,8 +172,8 @@ class planning_interface_TaskLabel
                 $res['EAN'] = $ean;
             }
 
-            if(!empty($weight)){
-                $res['WEIGHT'] = $weight;
+            if(!empty($batch)){
+                $res['BATCH'] = $batch;
             }
 
             if (countR($params)) {
@@ -180,14 +184,6 @@ class planning_interface_TaskLabel
             foreach ($additionalFields as $addFieldName => $addFieldValue){
                 if(!array_key_exists($addFieldName, $res)){
                     $res[$addFieldName] = $addFieldValue;
-                }
-            }
-
-            // Генериране на сериен номер от драйвера при нужда
-            if(is_object($Driver)){
-                $res['SERIAL'] = 'EXAMPLE';
-                if ($onlyPreview === false) {
-                    $res['SERIAL'] = $Driver->generateSerial($rec->productId, 'planning_Tasks', $rec->id);
                 }
             }
 
