@@ -361,9 +361,11 @@ class store_Receipts extends store_DocumentMaster
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if(isset($fields['-single'])){
-            core_Lg::push($rec->tplLang);
-            $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
-            core_Lg::pop();
+            if(!empty($rec->deliveryTime)){
+                core_Lg::push($rec->tplLang);
+                $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
+                core_Lg::pop();
+            }
         }
     }
 }
