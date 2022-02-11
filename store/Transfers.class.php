@@ -597,6 +597,7 @@ class store_Transfers extends core_Master
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
      *               ['countryId']      string|NULL - ид на държава
+     *               ['place']          string|NULL - населено място
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -614,6 +615,7 @@ class store_Transfers extends core_Master
             $res['locationId'] = $toStoreLocation->id;
             $res['addressInfo'] = $toStoreLocation->comment;
             $res['countryId'] = $toStoreLocation->countryId;
+            $res['place'] = $toStoreLocation->place;
         }
 
         return $res;

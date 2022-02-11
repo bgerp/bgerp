@@ -222,7 +222,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Подготовка на съобщението
         $handle = $mvc->getHandle($rec);
-        $notificationUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $handle, 'editTrans' => true);
+        $lineRec = isset($rec->lineId) ? trans_Lines::fetch($rec->lineId) : null;
         $currentUserNick = core_Users::getCurrent('nick');
 
         // Оставят се само потребителите различни от посочения, които са редактирали транспорта
@@ -230,8 +230,19 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Изпращане на нотификация, ако все още имат достъп до документа
         foreach ($editorsArr as $editorUserId){
-            if($mvc->haveRightFor('single', $rec->id, $editorUserId)){
-                bgerp_Notifications::add("|*{$currentUserNick} |промени информацията за транспорта на|* #{$handle}", $notificationUrl, $editorUserId);
+            $url = null;
+
+            // Ако документа е към ТЛ и има достъп до нея - линка сочи на там, иначе към сингъла на документа
+            if(is_object($lineRec) && trans_Lines::haveRightFor('single', $lineRec, $editorUserId)){
+                $url = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $handle, 'editTrans' => true);
+            } elseif($mvc->haveRightFor('single', $rec->id, $editorUserId)){
+                $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $handle, 'editTrans' => true);
+            }
+
+            if(is_array($url)){
+                $customUrl = $url;
+                unset($customUrl['#']);
+                bgerp_Notifications::add("|*{$currentUserNick} |промени информацията за транспорта на|* #{$handle}", $customUrl, $editorUserId, null, $url);
             }
         }
     }

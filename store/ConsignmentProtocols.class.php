@@ -553,6 +553,7 @@ class store_ConsignmentProtocols extends core_Master
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
      *               ['countryId']      string|NULL - ид на държава
+     *               ['place']          string|NULL - населено място
      */
     public function getTransportLineInfo_($rec, $lineId)
     {

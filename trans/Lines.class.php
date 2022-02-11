@@ -214,6 +214,7 @@ class trans_Lines extends core_Master
         $this->FLD('countReadyDocuments', 'int', 'input=none,notNull,value=0');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'input=none,caption=Държави');
         $this->FLD('transUnitsTotal', 'blob(serialize, compress)', 'input=none,caption=Логистична информация');
+        $this->FLD('places', 'varchar(255)', 'caption=Населени места');
     }
 
 
@@ -317,6 +318,10 @@ class trans_Lines extends core_Master
             $url = array($mvc, 'single', $rec->id, 'Printing' => 'yes', 'Width' => 'yes', 'lineTab' => Request::get('lineTab'));
             $data->toolbar->addBtn('Печат', $url, 'target=_blank,row=2', "id={$printBtnId},target=_blank,row=2,ef_icon = img/16/printer.png,title=Печат на документа");
         }
+
+        if (Request::get('editTrans')) {
+            bgerp_Notifications::clear(getCurrentUrl(), '*');
+        }
     }
 
 
@@ -415,6 +420,11 @@ class trans_Lines extends core_Master
                 if (is_array($transportInfo['transportUnits'])) {
                     trans_Helper::sumTransUnits($transUnitsTotal, $transportInfo['transportUnits']);
                 }
+            }
+
+            $countries = keylist::toArray($rec->countries);
+            if(countR($countries) != 1){
+                unset($row->places);
             }
         }
 
@@ -599,7 +609,7 @@ class trans_Lines extends core_Master
         $dQuery->where("#containerState != 'rejected' AND #status != 'removed'");
         $dQuery->show('status,containerId,containerState');
 
-        $stores = $cases = $countries = $transUnitsTotal = array();
+        $stores = $cases = $countries = $transUnitsTotal = $places = array();
         $rec->countStoreDocuments = $rec->countActiveDocuments = $rec->countReadyDocuments = 0;
         while ($dRec = $dQuery->fetch()) {
             $Doc = doc_Containers::getDocument($dRec->containerId);
@@ -607,6 +617,9 @@ class trans_Lines extends core_Master
                 $this->cacheLineInfo[$dRec->containerId] = $Doc->getTransportLineInfo($rec->id);
             }
             $lineInfo = $this->cacheLineInfo[$dRec->containerId];
+            if (!empty($lineInfo['place'])) {
+                $places[$lineInfo['place']] = bglocal_Address::canonizePlace($lineInfo['place']);
+            }
 
             if (!empty($lineInfo['countryId'])) {
                 $countries[$lineInfo['countryId']] = $lineInfo['countryId'];
@@ -645,6 +658,11 @@ class trans_Lines extends core_Master
         if (countR($cases)) {
             $cases = array_combine(array_values($cases), $cases);
             $rec->cases = keylist::fromArray($cases);
+        }
+
+        $rec->places = null;
+        if(countR($places)){
+            $rec->places = implode(', ', $places);
         }
 
         $rec->transUnitsTotal = countR($transUnitsTotal) ? $transUnitsTotal : null;
