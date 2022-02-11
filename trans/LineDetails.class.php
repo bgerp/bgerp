@@ -126,6 +126,11 @@ class trans_LineDetails extends doc_Detail
         $this->EXT('containerState', 'doc_Containers', 'externalName=state,externalKey=containerId');
         $this->EXT('containerThreadId', 'doc_Containers', 'externalName=threadId,externalKey=containerId');
 
+        $this->FLD('createdOn', 'datetime(format=smartTime)', 'input=none');
+        $this->FLD('createdBy', 'key(mvc=core_Users,select=nick)', 'input=none');
+        $this->FLD('modifiedOn', 'datetime(format=smartTime)', 'input=none');
+        $this->FLD('modifiedBy', 'key(mvc=core_Users,select=nick)', 'input=none');
+
         $this->setDbIndex('containerId,status');
         $this->setDbIndex('containerId');
         $this->setDbIndex('classId');
@@ -144,7 +149,9 @@ class trans_LineDetails extends doc_Detail
     public static function sync($lineId, $containerId)
     {
         $Document = doc_Containers::getDocument($containerId);
-        
+        $cu = core_Users::getCurrent();
+        $now = dt::now();
+
         // Има ли запис за тази линия
         $rec = self::fetch("#lineId = {$lineId} AND #containerId = {$containerId}");
         
@@ -153,12 +160,17 @@ class trans_LineDetails extends doc_Detail
         $exQuery->where("#lineId != {$lineId} AND #containerId = {$containerId} AND #status != 'removed'");
         while ($exRec = $exQuery->fetch()) {
             $exRec->status = 'removed';
-            self::save($exRec, 'status');
+            $exRec->modifiedOn = $now;
+            $exRec->modifiedBy = $cu;
+            self::save($exRec, 'status,modifiedOn,modifiedBy');
         }
         
         // Ако няма се създава нов запис
         if (empty($rec)) {
-            $rec = (object) array('lineId' => $lineId, 'containerId' => $containerId, 'classId' => $Document->getClassId());
+            $rec = (object) array('lineId' => $lineId, 'containerId' => $containerId, 'classId' => $Document->getClassId(), 'createdOn' => $now, 'createdBy' => $cu);
+        } else {
+            $rec->modifiedOn = $now;
+            $rec->modifiedBy = $cu;
         }
         $rec->status = 'ready';
 

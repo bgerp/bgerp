@@ -31,7 +31,7 @@ class trans_Lines extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary, plg_Search';
+    public $loadList = 'plg_RowTools2, trans_Wrapper, plg_Printing, plg_Clone, doc_DocumentPlg, change_Plugin, doc_ActivatePlg, doc_plg_SelectFolder, doc_plg_Close, acc_plg_DocumentSummary, plg_Search, plg_Sorting';
 
 
     /**
@@ -872,5 +872,22 @@ class trans_Lines extends core_Master
                 }
             }
         }
+    }
+
+
+    /**
+     * Коя е дефолт папката за нови записи
+     */
+    public function getDefaultFolder()
+    {
+        // Дефолтната папка е тази към която линия последно е закачан документ
+        $cu = core_Users::getCurrent();
+        $tQuery = trans_LineDetails::getQuery();
+        $tQuery->EXT('folderId', 'trans_Lines', 'externalName=folderId,externalKey=lineId');
+        $tQuery->where("#createdBy = '{$cu}'");
+        $tQuery->show('folderId');
+        $tQuery->orderBy('createdOn', 'DESC');
+
+        return $tQuery->fetch()->folderId;
     }
 }

@@ -145,19 +145,15 @@ class doc_plg_SelectFolder extends core_Plugin
         // В кои последно 10 папки този потребител е създавал този вид документ?
         $cu = core_Users::getCurrent();
         $mQuery = $mvc->getQuery();
-        $mQuery->where("#createdBy = {$cu} AND #state != 'rejected'");
-        $mQuery->groupBy('folderId');
+        $mQuery->where("#createdBy = {$cu}444 AND #state != 'rejected'");
+        $mQuery->orderBy('#createdOn', 'DESC');
         $mQuery->limit(10);
         $mQuery->show('folderId');
-        $mQuery->orderBy('#createdOn', 'DESC');
-        $prefArr = array();
-        while($mRec = $mQuery->fetch()) {
-            $prefArr[$mRec->folderId] = $mRec->folderId;
-        }
-        if(count($prefArr)) {
-            $form->setDefault('folderId', array_shift($prefArr));
-        }
+        $prefArr = arr::extractValuesFromArray($mQuery->fetchAll(), 'folderId');
 
+        if(count($prefArr)) {
+            $form->setDefault('folderId', key($prefArr));
+        }
         $form->setFieldTypeParams('folderId', array('where' => "#coverClass IN ({$coverKeys})", 'preferred' => $prefArr));
  
         $form->setField('folderId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
@@ -194,11 +190,11 @@ class doc_plg_SelectFolder extends core_Plugin
         } */
         
         $defaultFolderId = Request::get('defaultFolderId');
-        
+
         if (!$defaultFolderId) {
             $defaultFolderId = $mvc->getDefaultFolder();
         }
-        
+       // bp($defaultFolderId, $form->rec);
         if ($defaultFolderId && $mvc->canAddToFolder($defaultFolderId)) {
             $form->setDefault('folderId', $defaultFolderId);
         }
