@@ -249,7 +249,7 @@ class planning_Jobs extends core_Master
         $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане в');
-        $this->FLD('storeInput', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Влагане от,after=storeId');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLinks)', 'caption=Влагане от,after=storeId');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Забележки');
 
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
@@ -919,10 +919,6 @@ class planning_Jobs extends core_Master
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
 
-            if (isset($rec->storeInput)) {
-                $row->storeInput = store_Stores::getHyperlink($rec->storeInput, true);
-            }
-
             if(!empty($rec->deliveryTermId)){
                 $row->deliveryTermId = cond_DeliveryTerms::getHyperlink($rec->deliveryTermId, true);
             }
@@ -1541,7 +1537,6 @@ class planning_Jobs extends core_Master
 
             // Ако има активна рецепта
             if($lastReceipt = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')){
-                $storeInput = isset($rec->storeInput) ? $rec->storeInput : $rec->storeId;
 
                 // Кои са материалите и
                 $receiptClassId = cat_Boms::getClassId();
@@ -1600,7 +1595,15 @@ class planning_Jobs extends core_Master
                         }
 
                         if($remainingQuantity > 0){
-                            $res[] = (object)array('storeId'          => $storeInput,
+                            if(isset($rec->inputStores)){
+                                $quantities = store_Products::getQuantitiesByStore($materialRec->productId, null, $rec->inputStores);
+                                arsort($quantities);
+                                $inputStoreId = key($quantities);
+                            } else {
+                                $inputStoreId = null;
+                            }
+
+                            $res[] = (object)array('storeId'          => $inputStoreId,
                                                    'productId'        => $materialRec->productId,
                                                    'date'             => $date,
                                                    'quantityIn'       => null,

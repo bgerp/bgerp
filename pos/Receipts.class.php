@@ -1221,12 +1221,7 @@ class pos_Receipts extends core_Master
     public static function getBiggestQuantity($productId, $pointId)
     {
         $stores = pos_Points::getStores($pointId);
-        $storeArr = array();
-        foreach ($stores as $storeId){
-            $quantity = store_Products::getQuantities($productId, $storeId)->quantity;
-            $storeArr[$storeId] = $quantity;
-        }
-
+        $storeArr = store_Products::getQuantitiesByStore($productId, null, $stores);
         arsort($storeArr);
 
         return $storeArr[key($storeArr)];

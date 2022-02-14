@@ -60,12 +60,12 @@
                         <td>[#storeId#]</td>
                     </tr>
                     <!--ET_END storeId-->
-                    <!--ET_BEGIN storeInput-->
+                    <!--ET_BEGIN inputStores-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Влагане от|*:</td>
-                        <td>[#storeInput#]</td>
+                        <td>[#inputStores#]</td>
                     </tr>
-                    <!--ET_END storeInput-->
+                    <!--ET_END inputStores-->
                     <!--ET_BEGIN tolerance-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Толеранс|*:</td>
