@@ -194,7 +194,7 @@ class doc_plg_SelectFolder extends core_Plugin
         if (!$defaultFolderId) {
             $defaultFolderId = $mvc->getDefaultFolder();
         }
-       // bp($defaultFolderId, $form->rec);
+
         if ($defaultFolderId && $mvc->canAddToFolder($defaultFolderId)) {
             $form->setDefault('folderId', $defaultFolderId);
         }

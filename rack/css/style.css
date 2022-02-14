@@ -174,3 +174,10 @@
     text-align:right;
     width:1% !important;
 }
+
+.differentReturnPosition a{
+    font-weight:bold;
+    padding: 2px;
+    background-color: orange;
+    border:#eee;
+}

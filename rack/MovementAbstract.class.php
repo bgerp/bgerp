@@ -202,6 +202,10 @@ abstract class rack_MovementAbstract extends core_Manager
             $quantities += $zoneQuantities;
 
             if (!empty($positionTo) && round($restQuantity, 6)) {
+                if($rec->positionTo != $rec->position){
+                    $positionTo = "<span class='differentReturnPosition'>{$positionTo}</span>";
+                }
+
                 $quantities['to'] = (object)array('quantity' => $restQuantity, 'position' => $positionTo, 'class' => $class);
             }
         }
@@ -228,6 +232,7 @@ abstract class rack_MovementAbstract extends core_Manager
         }
 
         if($rec->state == 'pending' && isset($movementArr['from'])){
+
             $movementArr['from'] = "<span class='movement-position-notice'>{$movementArr['from']}</span>";
         }
 
