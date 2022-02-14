@@ -248,7 +248,8 @@ class planning_Jobs extends core_Master
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане в');
+        $this->FLD('storeInput', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Влагане от,after=storeId');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Забележки');
 
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
@@ -918,6 +919,10 @@ class planning_Jobs extends core_Master
                 $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
             }
 
+            if (isset($rec->storeInput)) {
+                $row->storeInput = store_Stores::getHyperlink($rec->storeInput, true);
+            }
+
             if(!empty($rec->deliveryTermId)){
                 $row->deliveryTermId = cond_DeliveryTerms::getHyperlink($rec->deliveryTermId, true);
             }
@@ -1527,15 +1532,16 @@ class planning_Jobs extends core_Master
             if($productRec->canStore == 'yes') {
                 // Записване на очакваното количество за производство
                 $res[] = (object)array('storeId'          => $rec->storeId,
-                                           'productId'        => $rec->productId,
-                                           'date'             => $date,
-                                           'quantityIn'       => $quantityToProduce,
-                                           'quantityOut'      => null,
-                                           'genericProductId' => $genericProductId);
+                                       'productId'        => $rec->productId,
+                                       'date'             => $date,
+                                       'quantityIn'       => $quantityToProduce,
+                                       'quantityOut'      => null,
+                                       'genericProductId' => $genericProductId);
             }
 
             // Ако има активна рецепта
             if($lastReceipt = cat_Products::getLastActiveBom($rec->productId, 'production,instant,sales')){
+                $storeInput = isset($rec->storeInput) ? $rec->storeInput : $rec->storeId;
 
                 // Кои са материалите и
                 $receiptClassId = cat_Boms::getClassId();
@@ -1594,7 +1600,7 @@ class planning_Jobs extends core_Master
                         }
 
                         if($remainingQuantity > 0){
-                            $res[] = (object)array('storeId'          => $rec->storeId,
+                            $res[] = (object)array('storeId'          => $storeInput,
                                                    'productId'        => $materialRec->productId,
                                                    'date'             => $date,
                                                    'quantityIn'       => null,
