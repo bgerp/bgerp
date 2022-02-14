@@ -145,7 +145,7 @@ class doc_plg_SelectFolder extends core_Plugin
         // В кои последно 10 папки този потребител е създавал този вид документ?
         $cu = core_Users::getCurrent();
         $mQuery = $mvc->getQuery();
-        $mQuery->where("#createdBy = {$cu}444 AND #state != 'rejected'");
+        $mQuery->where("#createdBy = {$cu} AND #state != 'rejected'");
         $mQuery->orderBy('#createdOn', 'DESC');
         $mQuery->limit(10);
         $mQuery->show('folderId');
