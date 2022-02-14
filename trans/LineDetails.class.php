@@ -168,10 +168,9 @@ class trans_LineDetails extends doc_Detail
         // Ако няма се създава нов запис
         if (empty($rec)) {
             $rec = (object) array('lineId' => $lineId, 'containerId' => $containerId, 'classId' => $Document->getClassId(), 'createdOn' => $now, 'createdBy' => $cu);
-        } else {
-            $rec->modifiedOn = $now;
-            $rec->modifiedBy = $cu;
         }
+        $rec->modifiedOn = $now;
+        $rec->modifiedBy = $cu;
         $rec->status = 'ready';
 
         self::save($rec);

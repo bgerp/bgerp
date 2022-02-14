@@ -683,18 +683,21 @@ class trans_Lines extends core_Master
         return 'opened';
     }
 
-
     /**
-     * Връща всички избираеми линии
+     * Връща всички избираеми линии в посочената папка
      *
-     * @return array $linesArr - масив с опции
+     * @param int|null $folderId - ид на папка, null за всички
+     * @return array $linesArr   - масив с опции
      */
-    public static function getSelectableLines()
+    public static function getSelectableLines($folderId = null)
     {
         $linesArr = array();
         $query = self::getQuery();
         $query->where("#state = 'pending'");
         $query->orderBy('id', 'DESC');
+        if(isset($folderId)){
+            $query->where("#folderId = {$folderId}");
+        }
 
         $recs = $query->fetchAll();
         array_walk($recs, function ($rec) use (&$linesArr) {
@@ -884,10 +887,20 @@ class trans_Lines extends core_Master
         $cu = core_Users::getCurrent();
         $tQuery = trans_LineDetails::getQuery();
         $tQuery->EXT('folderId', 'trans_Lines', 'externalName=folderId,externalKey=lineId');
-        $tQuery->where("#createdBy = '{$cu}'");
+        $tQuery->where("#modifiedBy = '{$cu}'");
         $tQuery->show('folderId');
-        $tQuery->orderBy('createdOn', 'DESC');
+        $tQuery->orderBy('modifiedOn', 'DESC');
 
-        return $tQuery->fetch()->folderId;
+        // Ако няма е тази, в която последно е създавал линия
+        $folderId = $tQuery->fetch()->folderId;
+        if(empty($folderId)){
+            $query = trans_Lines::getQuery();
+            $query->where("#createdBy = {$cu} AND #state != 'rejected'");
+            $query->orderBy("#createdOn", 'DESC');
+            $query->show('folderId');
+            $folderId = $query->fetch()->folderId;
+        }
+
+        return $folderId;
     }
 }
