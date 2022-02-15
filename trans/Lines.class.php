@@ -903,4 +903,20 @@ class trans_Lines extends core_Master
 
         return $folderId;
     }
+
+
+    /**
+     * Връща наличните за избор папки на ТЛ
+     *
+     * @return array $options
+     */
+    public static function getSelectableFolderOptions()
+    {
+        $Type = core_Type::getByName("key2(mvc=doc_Folders,select=title)");
+        $Type->params['restrictViewAccess'] = 'yes';
+        $Type->params['containingDocumentIds'] = trans_Lines::getClassId();
+        $options = $Type->getOptions(null);
+
+        return $options;
+    }
 }
