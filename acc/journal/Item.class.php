@@ -46,19 +46,17 @@ class acc_journal_Item
         }
         
         if (!isset($objectId)) {
-            wp($this);
             acc_journal_Exception::expect(is_null($classId) || is_numeric($classId), 'Не е подаден клас');
             
             $this->id = $classId;
             
             if ($this->id) {
-                wp($this);
                 acc_journal_Exception::expect($this->itemRec = $this->fetchItemRecById($this->id), 'Липсва перо');
                 $this->classId = $this->itemRec->classId;
                 $this->objectId = $this->itemRec->objectId;
             }
         } else {
-            acc_journal_Exception::expect(is_numeric($objectId), 'Невалидно ид');
+            acc_journal_Exception::expect(is_numeric($objectId), "Невалидно ид: {$objectId}");
             
             $this->classId = $classId;
             $this->objectId = $objectId;
@@ -86,7 +84,6 @@ class acc_journal_Item
         }
         
         if (is_numeric($iface)) {
-            wp($this);
             acc_journal_Exception::expect($iface = core_Interfaces::fetchField($iface, 'name'), "Липсващ интерфейс: '{$iface}'");
         }
         
@@ -112,8 +109,7 @@ class acc_journal_Item
         }
         
         if (isset($this->id)) {
-            wp($this, $itemId);
-            acc_journal_Exception::expect($this->id == $itemId, 'Грешно ид');
+            acc_journal_Exception::expect($this->id == $itemId, "Грешно ид: {$itemId}");
         }
         
         $this->id = $itemId;
