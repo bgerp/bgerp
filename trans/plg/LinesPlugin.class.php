@@ -107,23 +107,41 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         $exLineId = $rec->lineId;
         $form = cls::get('core_Form');
-        
+        $form->setAction(getCurrentUrl());
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
+        $form->FLD('id', 'int', 'input=hidden,silent,caption=№');
+        $form->FLD('lineFolderId', 'int', 'caption=Папка,silent,removeAndRefreshForm=lineId');
         $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт');
         $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Забележки,after=volume');
-        $linesArr = trans_Lines::getSelectableLines();
-        if(isset($exLineId) && !array_key_exists($exLineId, $linesArr)){
-            $linesArr[$exLineId] = trans_Lines::getRecTitle($exLineId, false);
+        $form->setFieldTypeParams('lineFolderId', array('restrictViewAccess' => 'yes', 'containingDocumentIds' => trans_Lines::getClassId()));
+        $form->input(null, 'silent');
+
+        $folderOptions = trans_Lines::getSelectableFolderOptions();
+        // Ако има избрана линия за избрана папка е избраната на линията
+        if(isset($rec->{$mvc->lineFieldName})){
+            $lineFolderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'folderId');
+
+            $form->setDefault('lineFolderId', $lineFolderId);
+            $form->setDefault('lineId', $rec->{$mvc->lineFieldName});
+            if(!array_key_exists($lineFolderId, $folderOptions)){
+                $folderOptions[$lineFolderId] = doc_Folders::getTitleById($lineFolderId, false);
+            }
+            $form->setDefault('lineFolderId', key($folderOptions));
+        } else {
+            $form->setDefault('lineFolderId', cls::get('trans_Lines')->getDefaultFolder());
         }
+
+        $linesArr = trans_Lines::getSelectableLines($form->rec->lineFolderId);
+        $form->setOptions('lineId', array('' => '') + $linesArr);
 
         if(!countR($linesArr)){
-            $form->info = tr("Няма транспортни линии на заявка с бъдеща дата");
+            $form->info = tr("Няма транспортни линии на заявка с бъдеща дата в избраната папка");
         }
 
-        $form->setOptions('lineId', array('' => '') + $linesArr);
-        $form->setDefault('lineId', $rec->{$mvc->lineFieldName});
         $form->setDefault('lineNotes', $rec->lineNotes);
-        
+        $form->setOptions('lineFolderId', $folderOptions);
+
+        // Ако е складов документ показват се и полета за складова информация
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             $form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
             $form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
@@ -133,8 +151,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             $form->setDefault('weight', $rec->weightInput);
             $form->setDefault('volume', $rec->volumeInput);
         }
-        
-        $form->input(null, 'silent');
+
         $form->input();
         
         if ($form->isSubmitted()) {
