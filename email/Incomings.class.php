@@ -212,7 +212,13 @@ class email_Incomings extends core_Master
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn';
-    
+
+
+    /**
+     * Дали да взема контрагент данните от последния документ в папката
+     */
+    public $getContragentDataFromLastDoc = false;
+
 
     /**
      * Описание на модела
