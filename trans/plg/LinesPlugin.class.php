@@ -144,7 +144,7 @@ class trans_plg_LinesPlugin extends core_Plugin
         // Ако е складов документ показват се и полета за складова информация
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             $form->FLD('weight', 'cat_type_Weight', 'caption=Логистична информация->Тегло');
-            $form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
+            $form->FLD('volume', 'cat_type_Volume', 'caption=Логистична информация->Обем');
             
             $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($rec->transUnitsInput);
             trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
