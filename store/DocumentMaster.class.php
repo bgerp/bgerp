@@ -937,7 +937,12 @@ abstract class store_DocumentMaster extends core_Master
             $address .= drdata_Countries::getTitleById($countryId) . " ";
             core_Lg::pop();
         }
+
         $res['address'] = "{$address}{$logisticData["{$part}PCode"]} {$logisticData["{$part}Place"]}, {$logisticData["{$part}Address"]}";
+        if(!empty($logisticData["{$part}AddressFeatures"])){
+            $res['address'] .= "; " . strip_tags(core_Type::getByName("keylist(mvc=trans_Features,select=name)")->toVerbal($logisticData["{$part}AddressFeatures"]));
+        }
+
         if(!empty($logisticData["{$part}Person"])){
             $res['address'] .= ", {$logisticData["{$part}Person"]}";
         }
