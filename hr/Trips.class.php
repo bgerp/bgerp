@@ -187,7 +187,7 @@ class hr_Trips extends core_Master
         $this->FLD('amountHouse', 'double(decimals=2)', 'caption=Начисления->Квартирни,input=none, changable');
         $this->FNC('title', 'varchar', 'column=none');
         
-        $this->FLD('sharedUsers', 'userList(roles=hrTrips|ceo)', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(roles=hrTrips|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
     
     
