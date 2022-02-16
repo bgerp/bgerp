@@ -110,9 +110,9 @@ class trans_plg_LinesPlugin extends core_Plugin
         $form->setAction(getCurrentUrl());
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
         $form->FLD('id', 'int', 'input=hidden,silent,caption=№');
-        $form->FLD('lineFolderId', 'int', 'caption=Папка,silent,removeAndRefreshForm=lineId');
-        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт');
-        $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Забележки,after=volume');
+        $form->FLD('lineFolderId', 'int', 'caption=Избор на Транспортна линия->От папка,silent,removeAndRefreshForm=lineId');
+        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Избор на Транспортна линия->Транспорт');
+        $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Логистична информация->Забележки,after=volume');
         $form->setFieldTypeParams('lineFolderId', array('restrictViewAccess' => 'yes', 'containingDocumentIds' => trans_Lines::getClassId()));
         $form->input(null, 'silent');
 
@@ -143,8 +143,8 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Ако е складов документ показват се и полета за складова информация
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
-            $form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
+            $form->FLD('weight', 'cat_type_Weight', 'caption=Логистична информация->Тегло');
+            $form->FLD('volume', 'cat_type_Volume', 'caption=Логистична информация->Обем');
             
             $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($rec->transUnitsInput);
             trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);

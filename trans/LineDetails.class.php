@@ -468,7 +468,7 @@ class trans_LineDetails extends doc_Detail
     {
         $form->setDefault('transUnitsInput', $value);
         $units = trans_TransportUnits::getAll();
-        $form->FLD('transUnitsInput', 'table(columns=unitId|quantity,captions=ЛЕ|Брой,validate=trans_LineDetails::validateTransTable)', 'caption=Лог. ед.,after=lineNotes');
+        $form->FLD('transUnitsInput', 'table(columns=unitId|quantity,captions=Вид|Брой,validate=trans_LineDetails::validateTransTable)', 'caption=Логистична информация->Лог. ед.,after=lineNotes');
         $form->setFieldTypeParams('transUnitsInput', array('unitId_opt' => array('' => '') + $units));
     }
     
