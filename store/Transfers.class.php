@@ -598,6 +598,7 @@ class store_Transfers extends core_Master
      *               ['addressInfo']    string|NULL - информация за адреса
      *               ['countryId']      string|NULL - ид на държава
      *               ['place']          string|NULL - населено място
+     *               ['features']       array       - свойства на адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -616,6 +617,9 @@ class store_Transfers extends core_Master
             $res['addressInfo'] = $toStoreLocation->comment;
             $res['countryId'] = $toStoreLocation->countryId;
             $res['place'] = $toStoreLocation->place;
+            if(!empty($toStoreLocation->features)){
+                $res['features'] = keylist::toArray($toStoreLocation->features);
+            }
         }
 
         return $res;
