@@ -214,7 +214,7 @@ class trans_Lines extends core_Master
         $this->FLD('countReadyDocuments', 'int', 'input=none,notNull,value=0');
         $this->FLD('countries', 'keylist(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)', 'input=none,caption=Държави');
         $this->FLD('transUnitsTotal', 'blob(serialize, compress)', 'input=none,caption=Логистична информация');
-        $this->FLD('places', 'varchar(255)', 'caption=Населени места');
+        $this->FLD('places', 'varchar(255)', 'caption=Населени места,input=none');
     }
 
 
