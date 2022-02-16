@@ -906,6 +906,7 @@ abstract class store_DocumentMaster extends core_Master
      *               ['addressInfo']    string|NULL - информация за адреса
      *               ['countryId']      string|NULL - ид на държава
      *               ['place']          string|NULL - населено място
+     *               ['features']       array       - свойства на адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -935,7 +936,7 @@ abstract class store_DocumentMaster extends core_Master
 
         $res['address'] = "{$address}{$logisticData["{$part}PCode"]} {$logisticData["{$part}Place"]}, {$logisticData["{$part}Address"]}";
         if(!empty($logisticData["{$part}AddressFeatures"])){
-            $res['address'] .= "; " . strip_tags(core_Type::getByName("keylist(mvc=trans_Features,select=name)")->toVerbal($logisticData["{$part}AddressFeatures"]));
+            $res['features'] = keylist::toArray($logisticData["{$part}AddressFeatures"]);
         }
 
         if(!empty($logisticData["{$part}Person"])){

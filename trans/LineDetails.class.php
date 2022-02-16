@@ -216,6 +216,13 @@ class trans_LineDetails extends doc_Detail
             $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
         }
 
+        $tags = tags_Logs::getTagsFor($Document->getClassId(), $Document->that);
+        if(count($tags)){
+            $tagsStr = '';
+            array_walk($tags, function($a) use (&$tagsStr){$tagsStr  .= $a['span'];});
+            $row->containerId .= "<span class='documentTags'>{$tagsStr}</span>";
+        }
+
         if (isset($fields['renderDocumentInline']) && isset($Document->layoutFileInLine)) {
             if($rec->containerState != 'rejected' && $rec->status != 'removed'){
                 Mode::push('noBlank', true);
@@ -333,6 +340,14 @@ class trans_LineDetails extends doc_Detail
             } else {
                 $row->_rowTools->addLink('Транспорт', array($Document->getInstance(), 'changeline', $Document->that, 'ret_url' => true), array('ef_icon' => 'img/16/lorry_go.png', 'title' => 'Промяна на транспортната информация'));
             }
+        }
+
+        if(!empty($transportInfo['features'])){
+            $featuresString = '';
+            foreach ($transportInfo['features'] as $transFeatureId){
+                $featuresString .= "<div class='lineFeature'>" . trans_Features::getVerbal($transFeatureId, 'name') . "</div>";
+            }
+            $row->logistic = "<div>{$row->logistic}</div>{$featuresString}";
         }
 
         // Ако има платежни документи към складовия
