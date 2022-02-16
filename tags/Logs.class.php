@@ -234,6 +234,8 @@ class tags_Logs extends core_Manager
         $form->FNC('personalTags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове->Персонални, class=keylist-wide twoCols, input=input, silent');
         $form->FNC('commonTags', 'keylist(mvc=tags_Tags, select=name, select2MinItems=28, columns=2)', 'caption=Тагове->Общи, class=keylist-wide twoCols, input=input, silent');
 
+
+
         $query = self::getQuery();
         $query->where(array("#docId = '[#1#]'", $docId));
         $query->where(array("#docClassId = '[#1#]'", $docClassId));
@@ -250,8 +252,7 @@ class tags_Logs extends core_Manager
         }
 
         $form->_oldTagArr = $oldTagArr;
-
-        $tagsArr = tags_Tags::getTagsOptions($oldTagArr);
+        $tagsArr = tags_Tags::getTagsOptions($oldTagArr, $docClassId);
 
         $form->setSuggestions('personalTags', $tagsArr['personal']);
         $form->setSuggestions('commonTags', $tagsArr['common']);
