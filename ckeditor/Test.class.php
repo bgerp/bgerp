@@ -67,6 +67,8 @@ class ckeditor_Test extends core_Master
      */
     public function description()
     {
+        requireRole('admin');
+
         $this->FLD('text1', 'RichHtml', 'caption=Test 1');
         $this->FLD('text2', 'RichHtml', 'caption=Test 2');
     }
