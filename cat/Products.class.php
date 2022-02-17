@@ -1100,8 +1100,26 @@ class cat_Products extends embed_Manager
         
         return $result;
     }
-    
-    
+
+
+    /**
+     * Възможност за подредба по код
+     * Добавя допълнително поле и подрежда по него
+     *
+     * @param core_Query $query
+     * @param string|bool $order - ако е false - не подрежда, а само добавя полето. Може да е `DESC` или `ASC`
+     * @param string $prefix - префикс, когато няма код се използва `id`, а този префикс се добавя преди него. Може и да е празен стринг
+     */
+    public static function setCodeToQuery(&$query, $order = 'DESC', $prefix = 'Art')
+    {
+        $query->XPR('calcCode', 'varchar', "IF((#code IS NULL OR #code = ''), CONCAT('{$prefix}', #id), #code)");
+
+        if ($order !== false) {
+            $query->orderBy('calcCode', $order);
+        }
+    }
+
+
     /**
      * Задава код на артикула ако няма
      *
