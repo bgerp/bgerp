@@ -50,7 +50,7 @@ class ckeditor_Test extends core_Master
     /**
      * Кой може да добявя,редактира или изтрива статия
      */
-    public $canWrite = 'cms, ceo';
+    public $canWrite = 'ceo, admin';
     
 
     
