@@ -798,7 +798,7 @@ class hr_Leaves extends core_Master
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
             // ако началната дата на отпуската е по-малка от дата на създаване на документа
             // искаме датите на създаване и одобряване да са преди началната дата
-            if($leaveFromTs <= $createdOnTs) {
+            if($leaveFromTs <= $createdOnTs || $activatedOnTs >= $leaveFromTs ) {
   
                 if($data->rec->state == 'active'){
 
