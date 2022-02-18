@@ -468,12 +468,10 @@ class planning_Tasks extends core_Master
         
         if(empty($rec->labelPackagingId)){
             $row->labelPackagingId = "<span class='quiet'>N/A</span>";
-        }
-
-        if(isset($rec->labelPackagingId)) {
+            $row->labelQuantityInPack = "<span class='quiet'>N/A</span>";
+        } else {
             if(empty($rec->labelQuantityInPack)){
-                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
-                $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
+                $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($rec->productId, $rec->measureId, $rec->labelPackagingId);
                 $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                 $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
                 $row->labelQuantityInPack = $quantityInPackDefault;
@@ -496,23 +494,29 @@ class planning_Tasks extends core_Master
             }
         }
 
-        if(!isset($rec->labelQuantityInPack)){
-            if(isset($rec->labelPackagingId)) {
-                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
-                $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                $quantityInPack = core_Type::getByName('double(smartRound)')->toVerbal($quantityInPack);
-                $row->labelQuantityInPack = ht::createHint("<span style='color:blue'>{$quantityInPack}</span>", 'Идва от опаковката/мярката на артикула');
-            } else {
-                $row->labelQuantityInPack = "<span class='quiet'>N/A</span>";
-            }
-        }
+
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
         $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
         
         return $row;
     }
-    
+
+    public static function getDefaultQuantityInLabelPackagingId($productId, $measureId, $labelPackagingId)
+    {
+        $packRec = cat_products_Packagings::getPack($productId, $labelPackagingId);
+        $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
+        $productMeasureId = cat_Products::fetchField($productId, 'measureId');
+        if($productMeasureId != $measureId){
+            $packRec1 = cat_products_Packagings::getPack($productId, $measureId);
+            $quantityInSecondMeasure = is_object($packRec1) ? $packRec1->quantity : 1;
+            $quantityInPackDefault = (1 / $quantityInSecondMeasure) * $quantityInPackDefault;
+            $round = cat_UoM::fetchField($measureId, 'round');
+            $quantityInPackDefault = round($quantityInPackDefault, $round);
+        }
+
+        return $quantityInPackDefault;
+    }
     
     /**
      * Интерфейсен метод на doc_DocumentInterface
@@ -919,18 +923,26 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            // Ако артикула е различен от този от заданието и има други основни мерки, само тогава се показват за избор
-            if($rec->productId != $originRec->productId){
-                $measureOptions = cat_Products::getPacks($rec->productId, true);
-                $measuresCount = countR($measureOptions);
-                $form->setOptions('measureId', $measureOptions);
-                $form->setDefault('measureId', key($measureOptions));
-                if($measuresCount == 1){
-                    $form->setField('measureId', 'input=hidden');
+            if($rec->productId == $originRec->productId){
+
+                // Ако артикула е този от заданието то допустимите мерки са тази от заданието и втората му мярка ако има
+                if(cat_UoM::fetchField($originRec->packagingId, 'type') == 'uom'){
+                    $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
+                } else {
+                    $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
+                }
+                if(isset($originRec->secondMeasureId)){
+                    $secondMeasureId = ($originRec->secondMeasureId == $originRec->packagingId) ? $productRec->measureId : $originRec->secondMeasureId;
+                    $measureOptions[$secondMeasureId] = cat_UoM::getTitleById($secondMeasureId, false);
                 }
             } else {
-                $measuresCount = 1;
-                $form->setDefault('measureId', $productRec->measureId);
+                $measureOptions = cat_Products::getPacks($rec->productId, true);
+            }
+
+            $measuresCount = countR($measureOptions);
+            $form->setOptions('measureId', $measureOptions);
+            $form->setDefault('measureId', key($measureOptions));
+            if($measuresCount == 1){
                 $form->setField('measureId', 'input=hidden');
             }
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
@@ -962,7 +974,7 @@ class planning_Tasks extends core_Master
             }
 
             if ($productRec->canStore == 'yes') {
-                $packs = cat_Products::getPacks($rec->productId, false, $originRec->secondMeasureId);
+                $packs = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false)) + cat_products_Packagings::getOnlyPacks($rec->productId);
                 $form->setOptions('labelPackagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
 
@@ -1003,8 +1015,7 @@ class planning_Tasks extends core_Master
             if(isset($rec->labelPackagingId)){
                 $form->setField('labelQuantityInPack', 'input');
                 $form->setDefault('indPackagingId', $rec->labelPackagingId);
-                $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
-                $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
+                $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($rec->productId, $rec->measureId, $rec->labelPackagingId);
                 $form->setField('labelQuantityInPack', "placeholder={$quantityInPackDefault}");
 
                 $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);
@@ -1059,6 +1070,7 @@ class planning_Tasks extends core_Master
             if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
                 $form->setReadOnly('labelPackagingId');
                 $form->setReadOnly('labelQuantityInPack');
+                $form->setReadOnly('measureId');
             }
         }
     }

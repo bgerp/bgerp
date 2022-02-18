@@ -433,8 +433,6 @@ class planning_ProductionTaskProducts extends core_Detail
         if ($taskRec->productId == $productId) {
             if(empty($taskRec->labelPackagingId)){
                 $taskRec->packagingId = $taskRec->measureId;
-            } else {
-                $taskRec->packagingId = $taskRec->labelPackagingId;
             }
 
             return $taskRec;

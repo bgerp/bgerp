@@ -247,21 +247,20 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
 
             $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-            $shortMeasure = ($rec->productId == $masterRec->productId) ? cat_UoM::getShortName($pRec->measureId) : cat_UoM::getShortName($info->packagingId);
+            $shortMeasure = ($rec->productId == $masterRec->productId) ? cat_UoM::getShortName($masterRec->measureId) : cat_UoM::getShortName($info->packagingId);
 
             if($rec->type == 'production' && isset($masterRec->labelPackagingId) && $rec->productId == $masterRec->productId && $masterRec->labelPackagingId != $masterRec->measureId){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->labelPackagingId);
                 $form->setField('quantity', "unit={$unit}");
                 $defaultQuantity = $masterRec->labelQuantityInPack;
                 if(!$defaultQuantity){
-                    $packRec = cat_products_Packagings::getPack($rec->productId, $masterRec->labelPackagingId);
-                    $defaultQuantity = is_object($packRec) ? $packRec->quantity : 1;
+                    $defaultQuantity = planning_Tasks::getDefaultQuantityInLabelPackagingId($masterRec->productId, $masterRec->measureId, $masterRec->labelPackagingId);
                 }
-
                 $form->setField('quantity', "placeholder={$defaultQuantity}");
                 $form->rec->_defaultQuantity = $defaultQuantity;
             } else {
-                $unit = cat_UoM::getShortName($info->packagingId);
+                $unitMeasureId = isset($info->packagingId) ? $info->packagingId : $info->measureId;
+                $unit = cat_UoM::getShortName($unitMeasureId);
                 $form->setField('quantity', "unit={$unit}");
             }
         }
@@ -477,26 +476,24 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
-        $row->measureId = cat_UoM::getShortName($pRec->measureId);
-        
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
 
-        $labelPackagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
-        
         if($taskRec->productId != $rec->productId){
-            $packagingId = $labelPackagingId;
+            $measureId = $foundRec->packagingId;
+            $labelPackagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
         } else {
-            $packagingId = $pRec->measureId;
+            $measureId = $foundRec->measureId;
+            $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $foundRec->measureId;
         }
-        $packagingName = cat_UoM::getShortName($packagingId);
+
+        $row->measureId = cat_UoM::getShortName($measureId);
         $labelPackagingName = cat_UoM::getShortName($labelPackagingId);
-        
-        if (cat_UoM::fetchField($packagingId, 'type') != 'uom') {
-            $row->measureId = str::getPlural($rec->quantity, $packagingName, true);
+        if (cat_UoM::fetchField($measureId, 'type') != 'uom') {
+            $row->measureId = str::getPlural($rec->quantity, $row->measureId, true);
         }
 
         if ($rec->type == 'production') {
-            $row->type = (!empty($packagingId) && ($labelPackagingId !== $pRec->measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
+            $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
         }
         
         if (isset($rec->employees)) {
