@@ -2537,7 +2537,7 @@ class cat_Products extends embed_Manager
         }
         
         // Ако потребителя няма определени роли не може да добавя или променя записи в папка на категория
-        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec' || $action == 'close') && isset($rec)) {
+        if (($action == 'add' || $action == 'edit' || $action == 'write' || $action == 'clonerec') && isset($rec)) {
             if ($rec->isPublic == 'yes') {
                 if (!haveRole('ceo,cat')) {
                     $res = 'no_one';
