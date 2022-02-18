@@ -425,6 +425,11 @@ class trans_Lines extends core_Master
             $countries = keylist::toArray($rec->countries);
             if(countR($countries) != 1){
                 unset($row->places);
+            } else {
+                $onlyCountryId = key($countries);
+                if($onlyCountryId == drdata_Countries::getIdByName('Bulgaria') && !empty($rec->places)){
+                    unset($row->countries);
+                }
             }
         }
 
