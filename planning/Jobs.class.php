@@ -1289,8 +1289,14 @@ class planning_Jobs extends core_Master
         }
 
         // Създаване на нови ПО към наличните департаменти за избор
+        $readyOptions = countR($options);
         $departments = planning_Centers::getCentersForTasks($jobRec->id);
-        $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Нова операция в център на дейност'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
+        $caption = tr('Нова операция в център на дейност');
+        if($readyOptions){
+            $caption .= "&nbsp; <a id= 'btnShowTasks' href=\"javascript:toggleDisplayByClass('btnShowTasks', 'newTaskBtn')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>";
+        }
+        $options[] = (object)array('DEFAULT_TASK_CAPTION' => $caption, 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
+
         if(countR($departments)){
             foreach ($departments as $depFolderId => $dName) {
                 $urlNewTask = array();
@@ -1300,7 +1306,8 @@ class planning_Jobs extends core_Master
 
                 $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, 'title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png');
                 $dName = doc_Folders::recToVerbal($depFolderId)->title;
-                $options[] = (object)array('DEFAULT_TASK_CAPTION' => $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
+                $trClass = ($readyOptions) ? 'newTaskBtn' : null;
+                $options[] = (object)array('DEFAULT_TASK_CAPTION' => $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1, 'DEFAULT_TASK_TR_CLASS' => $trClass);
             }
         } else {
             $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Няма налични центрове'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => null, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
