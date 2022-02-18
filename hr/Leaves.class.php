@@ -823,8 +823,8 @@ class hr_Leaves extends core_Master
 
                     // заменяме датат на молбата
                     $row1 = new stdClass();
-                    $rowTpl1 = $tpl->getBlock('createdDate');
-                    $row1->createdDate = dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
+                    $rowTpl1 = $tpl->getBlock('createdDate'); //bp($rowTpl1->createdDate, $data->rec, $row);
+                    $row1->createdDate =  dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
                     $rowTpl1->placeObject($row1);
                     $rowTpl1->removeBlocks();
                     $rowTpl1->append2master();
