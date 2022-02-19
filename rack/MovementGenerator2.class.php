@@ -362,7 +362,7 @@ class rack_MovementGenerator2 extends core_Manager
      */
     public static function isFirstRow($pos)
     {
-        list($num, $row, ) = rack_PositionType::toArray($pos);
+        list($num, $row) = rack_PositionType::toArray($pos);
 
         if(!array_key_exists("{$num}|{$row}", static::$firstRowTo)){
             $storeId = store_Stores::getCurrent();
