@@ -32,8 +32,8 @@ class rack_MovementGenerator extends core_Manager
      * Какъв процент от количеството трябва да е на палета, за да го смятаме за почти пълен?
      */
     const ALMOST_FULL = 0.85;
-
-
+    
+    
     /**
      * Екшън за тест
      */
@@ -349,13 +349,10 @@ class rack_MovementGenerator extends core_Manager
 
     /**
      * Проверява дали позицията е не първи ред
-     *
-     * @param string $pos
-     * @return boolean
      */
     public static function isFirstRow($pos)
     {
-        return rack_MovementGenerator2::isFirstRow($pos);
+        return stripos($pos, 'a') || stripos($pos, 'а');
     }
     
     
