@@ -32,14 +32,8 @@ class rack_MovementGenerator2 extends core_Manager
      * Какъв процент от количеството трябва да е на палета, за да го смятаме за почти пълен?
      */
     const ALMOST_FULL = 0.85;
-
-
-    /**
-     * Работен кеш
-     */
-    static $firstRowTo = array();
-
-
+    
+    
     /**
      * Екшън за тест
      */
@@ -143,7 +137,7 @@ class rack_MovementGenerator2 extends core_Manager
      * 
      */
     public static function mainP2Q($pallets, $zones, $packaging = array(), $volume = null, $weight = null)
-    {
+    { 
         // Сумарно колко трябва да доставим
         $sumZ = array_sum($zones); 
  
@@ -356,20 +350,10 @@ class rack_MovementGenerator2 extends core_Manager
 
     /**
      * Проверява дали позицията е не първи ред
-     *
-     * @param string $pos
-     * @return boolean
      */
     public static function isFirstRow($pos)
     {
-        list($num, $row, ) = rack_PositionType::toArray($pos);
-
-        if(!array_key_exists("{$num}|{$row}", static::$firstRowTo)){
-            $storeId = store_Stores::getCurrent();
-            static::$firstRowTo["{$num}|{$row}"] = rack_Racks::fetchField(array('#storeId = [#1#] AND #num = [#2#]', $storeId, $num), 'firstRowTo');
-        }
-
-        return $row <= static::$firstRowTo["{$num}|{$row}"];
+        return stripos($pos, 'a') !== false || stripos($pos, 'а') !== false;
     }
     
     
