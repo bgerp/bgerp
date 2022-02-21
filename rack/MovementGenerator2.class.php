@@ -32,8 +32,14 @@ class rack_MovementGenerator2 extends core_Manager
      * Какъв процент от количеството трябва да е на палета, за да го смятаме за почти пълен?
      */
     const ALMOST_FULL = 0.85;
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    public static $firstRowTo = array();
+
+
     /**
      * Екшън за тест
      */
@@ -353,7 +359,21 @@ class rack_MovementGenerator2 extends core_Manager
      */
     public static function isFirstRow($pos)
     {
-        return stripos($pos, 'a') !== false || stripos($pos, 'а') !== false;
+        if($pos == rack_PositionType::FLOOR) return false;
+
+        list($num, $row, ) = rack_PositionType::toArray($pos);
+        $row = strtolower($row);
+
+        if(!array_key_exists("{$num}|{$row}", static::$firstRowTo)){
+            if($num){
+                $storeId = store_Stores::getCurrent();
+                static::$firstRowTo["{$num}|{$row}"] = strtolower(rack_Racks::fetchField(array('#storeId = [#1#] AND #num = [#2#]', $storeId, $num), 'firstRowTo'));
+            } else {
+                static::$firstRowTo["{$num}|{$row}"] = 'a';
+            }
+        }
+
+        return $row <= static::$firstRowTo["{$num}|{$row}"];
     }
     
     
