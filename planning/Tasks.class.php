@@ -1046,7 +1046,7 @@ class planning_Tasks extends core_Master
         }
         
         foreach (array('fixedAssets' => 'planning_AssetResources', 'employees' => 'planning_Hr') as $field => $Det) {
-            $suggestions = $Det::getByFolderId($rec->folderId, $rec->{$field});
+            $suggestions = $Det::getByFolderId($rec->folderId, $rec->{$field}, true);
             if (countR($suggestions)) {
                 $form->setField($field, 'input');
                 $form->setSuggestions($field, $suggestions);
