@@ -3731,6 +3731,7 @@ class cat_Products extends embed_Manager
             while ($dRec = $dQuery->fetch()) {
                 if (!$recs[$dRec->id]) {
                     $recs[$dRec->id] = new stdClass();
+                    $recs[$dRec->id]->_productId = $dRec->{$dInst->productFld};
                     $recs[$dRec->id]->id = $dRec->id;
                     $recs[$dRec->id]->clonedFromDetailId = $dRec->clonedFromDetailId;
                 }
@@ -3957,7 +3958,7 @@ class cat_Products extends embed_Manager
                     }
 
                     if($chargeVat == 'yes'){
-                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($mRec->{$masterMvc->valiorFld}), $rate, $chargeVat);
+                        $rec->packPrice = deals_Helper::getDisplayPrice($rec->packPrice, cat_Products::getVat($rec->_productId, $mRec->{$masterMvc->valiorFld}), $rate, $chargeVat);
                         $rec->chargeVat = tr('с ДДС');
                     } else {
                         $rec->chargeVat = tr('без ДДС');
