@@ -431,7 +431,8 @@ class cat_products_Params extends doc_Detail
         }
         
         if (isset($rec->productId, $rec->classId)) {
-            $pRec = cls::get($rec->classId)->fetch($rec->productId);
+            $Class = cls::get($rec->classId);
+            $pRec = $Class->fetch($rec->productId);
             if($rec->classId == cat_Products::getClassId()){
                 if ($action == 'add') {
                     $InnerClass = cls::load($pRec->innerClass, true);
@@ -446,7 +447,7 @@ class cat_products_Params extends doc_Detail
                     $requiredRoles = 'no_one';
                 }
 
-                if (!cat_Products::haveRightFor('single', $rec->productId)) {
+                if (!$Class->haveRightFor('single', $rec->productId)) {
                     $requiredRoles = 'no_one';
                 }
             }
