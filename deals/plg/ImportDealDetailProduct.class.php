@@ -344,8 +344,7 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 }
             }
             
-            if (!$obj->quantity) {
-                // $err[$i][] = $obj->code . ' |Липсващо количество|*';
+            if (!isset($obj->quantity)) {
                 $obj->quantity = 1;
             }
             
@@ -364,7 +363,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
                 if ($pRec) {
                     $obj->quantity = cls::get('type_Double')->fromVerbal($obj->quantity);
                     if (!$obj->quantity) {
-                        $err[$i][] = $obj->code . '|Грешно количество|*';
+                        if(!$mvc->hasPlugin('store_plg_RequestDetail')){
+                            $err[$i][] = $obj->code . '|Невалидно количество|*';
+                        }
                     } else {
                         $packagingId = isset($pRec->packagingId) ? $pRec->packagingId : cat_Products::fetchField($pRec->productId, 'measureId');
                         $warning = null;
