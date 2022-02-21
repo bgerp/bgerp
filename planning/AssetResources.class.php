@@ -539,12 +539,13 @@ class planning_AssetResources extends core_Master
     /**
      * Избор на наличното оборудване в подадената папка
      *
-     * @param int|null $folderId - ид на папка, или null за всички папки
-     * @param mixed $exIds       - ид-та които да се добавят към опциите
+     * @param int|null $folderId       - ид на папка, или null за всички папки
+     * @param mixed $exIds             - ид-та които да се добавят към опциите
+     * @param boolean $useSimultaneity - да се пропускат ли тези с нулева едновременност
      *
      * @return array $options    - налично оборудване
      */
-    public static function getByFolderId($folderId = null, $exIds = null)
+    public static function getByFolderId($folderId = null, $exIds = null, $useSimultaneity = false)
     {
         $options = array();
         $noOptions = false;
@@ -566,7 +567,9 @@ class planning_AssetResources extends core_Master
 
             while ($fRec = $fQuery->fetch()) {
                 if ($rec = self::fetch($fRec->objectId)) {
-                    if ($rec->state == 'rejected' || $rec->state == 'closed' || $rec->simultaneity == 0) continue;
+                    if ($rec->state == 'rejected' || $rec->state == 'closed') continue;
+                    if($useSimultaneity && $rec->simultaneity == 0) continue;
+
                     $options[$rec->id] = self::getRecTitle($rec, false);
                 }
             }

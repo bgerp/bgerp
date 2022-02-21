@@ -136,7 +136,7 @@ class planning_Steps extends core_Extender
         if(isset($rec->{"{$mvc->className}_centerId"})){
             $folderId = planning_Centers::fetchField($rec->{"{$mvc->className}_centerId"}, 'folderId');
             $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($folderId, $rec->{"{$mvc->className}_employees"}));
-            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($folderId, $rec->{"{$mvc->className}_fixedAssets"}));
+            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($folderId, $rec->{"{$mvc->className}_fixedAssets"}, true));
         }
 
         if(isset($rec->measureId)){
