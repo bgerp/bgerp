@@ -749,6 +749,7 @@ class planning_Jobs extends core_Master
         if (isset($rec->productId) && empty($fields['__isDetail'])) {
             $rec->quantityFromTasks = planning_Tasks::getProducedQuantityForJob($rec);
             $rec->quantityFromTasks /= $rec->quantityInPack;
+            $rec->quantityFromTasks = round($rec->quantityFromTasks, 5);
             $row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
         }
 
