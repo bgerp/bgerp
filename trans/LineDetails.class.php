@@ -215,7 +215,7 @@ class trans_LineDetails extends doc_Detail
             $displayContainerId = $row->containerId;
             $displayContainerId .= " / {$createdBy}";
 
-            if($rec->createdOn >= $lineRec->activatedOn){
+            if(!empty($lineRec->activatedOn) && $rec->createdOn >= $lineRec->activatedOn){
                 $createdVerbal = dt::mysql2verbal($rec->createdOn);
                 $displayContainerId .= " / <b style='color:red;'>" . tr('Добавен') . ": {$createdVerbal}</b>";
             }
