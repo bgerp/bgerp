@@ -87,7 +87,7 @@ abstract class store_DocumentMaster extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,lineId,additionalConditions,reverseId';
+    public $fieldsNotToClone = 'valior, amountDelivered, amountDeliveredVat, amountDiscount, deliveryTime,weight,volume,weightInput,volumeInput,lineId,additionalConditions,reverseContainerId';
     
     
     /**
@@ -133,7 +133,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('address', 'varchar', 'caption=Адрес за доставка->Адрес, class=contactData,autohide');
         $mvc->FLD('features', 'keylist(mvc=trans_Features,select=name)', 'caption=Адрес за доставка->Особености');
         $mvc->FLD('addressInfo', 'richtext(bucket=Notes, rows=2)', 'caption=Адрес за доставка->Други,autohide');
-        $mvc->FLD('reverseId', 'int', 'caption=Връщане от,input=hidden,silent');
+        $mvc->FLD('reverseContainerId', 'key(mvc=doc_Containers,select=id)', 'caption=Връщане от,input=hidden,silent');
 
         $mvc->setDbIndex('valior');
     }
@@ -282,7 +282,7 @@ abstract class store_DocumentMaster extends core_Master
     protected static function on_AfterCreate($mvc, $rec)
     {
         $origin = $mvc::getOrigin($rec);
-        
+
         // Ако документа е клониран пропуска се
         if ($rec->_isClone === true) {
             
@@ -525,9 +525,8 @@ abstract class store_DocumentMaster extends core_Master
             
             if ($rec->isReverse == 'yes') {
                 $row->operationSysId = tr('Връщане на стока');
-
-                if(isset($rec->reverseId)){
-                    $row->operationSysId .= tr("|* |от|* ") . cls::get($mvc->reverseClassName)->getLink($rec->reverseId, 0, array('ef_icon' => false));
+                if(isset($rec->reverseContainerId)){
+                    $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
                 }
             }
         } elseif (isset($fields['-list'])) {
@@ -696,6 +695,15 @@ abstract class store_DocumentMaster extends core_Master
     {
         if (empty($rec->originId)) {
             $rec->originId = doc_Threads::getFirstContainerId($rec->threadId);
+        }
+
+        // Ако оригиналния документ е закачен към ТЛ, закача се и този
+        if(empty($rec->id) && isset($rec->reverseContainerId)){
+            $Doc = doc_Containers::getDocument($rec->reverseContainerId);
+            if($lineId = $Doc->fetchField($Doc->lineFieldName)){
+                $rec->{$mvc->lineFieldName} = $lineId;
+                $rec->_changeLine = true;
+            }
         }
     }
 
@@ -1300,8 +1308,8 @@ abstract class store_DocumentMaster extends core_Master
             if($rec->state == 'active'){
                 if(isset($mvc->reverseClassName)){
                     $ReverseClass = cls::get($mvc->reverseClassName);
-                    if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseId' => $rec->id))) {
-                        $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseId' => $rec->id, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
+                    if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
+                        $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
                     }
                 }
             }
@@ -1316,7 +1324,7 @@ abstract class store_DocumentMaster extends core_Master
     {
         parent::prepareEditForm_($data);
         $rec = &$data->form->rec;
-        if (isset($rec->reverseId) && empty($rec->id)) {
+        if (isset($rec->reverseContainerId) && empty($rec->id)) {
             $data->action = 'clone';
         }
 
@@ -1338,10 +1346,10 @@ abstract class store_DocumentMaster extends core_Master
         $id = $rec->clonedFromId;
 
         // Ако е създаден като обратен документ взима детайлите от него
-        if (isset($rec->reverseId) && empty($rec->id)) {
-            $Class = cls::get($this->reverseClassName);
-            $Detail = cls::get($Class->mainDetail);
-            $id = $rec->reverseId;
+        if (isset($rec->reverseContainerId) && empty($rec->id)) {
+            $Source = doc_Containers::getDocument($rec->reverseContainerId);
+            $Detail = cls::get($Source->mainDetail);
+            $id = $Source->that;
         }
 
         $dQuery = $Detail->getQuery();
