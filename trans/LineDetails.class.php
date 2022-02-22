@@ -204,6 +204,7 @@ class trans_LineDetails extends doc_Detail
         $Document = doc_Containers::getDocument($rec->containerId);
         $transportInfo = $Document->getTransportLineInfo($rec->lineId);
         core_RowToolbar::createIfNotExists($row->_rowTools);
+        $lineRec = trans_Lines::fetch($rec->lineId);
 
         // Линк към документа
         $handle = $Document->getHandle();
@@ -213,6 +214,12 @@ class trans_LineDetails extends doc_Detail
             $createdBy = core_Users::getNick($Document->fetchField('createdBy'));
             $displayContainerId = $row->containerId;
             $displayContainerId .= " / {$createdBy}";
+
+            if($rec->createdOn >= $lineRec->activatedOn){
+                $createdVerbal = dt::mysql2verbal($rec->createdOn);
+                $displayContainerId .= " / <b style='color:red;'>" . tr('Добавен') . ": {$createdVerbal}</b>";
+            }
+
             $row->containerId = "<span class='state-{$rec->containerState} document-handler' id='$handle'>{$displayContainerId}</span>";
         }
 
