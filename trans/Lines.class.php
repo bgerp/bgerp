@@ -306,7 +306,7 @@ class trans_Lines extends core_Master
         }
 
         if (!$data->toolbar->haveButton('btnActivate')) {
-            if (self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
+            if (in_array($rec->state, array('draft', 'pending')) && self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
                 $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В транспортната линия има заявки, чернови или оттеглени експедиционни документи|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на транспортната линия'));
             }
         }

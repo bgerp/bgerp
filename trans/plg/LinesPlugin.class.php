@@ -79,7 +79,14 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         if ($rec->state != 'rejected') {
             if ($mvc->haveRightFor('changeline', $rec)) {
-                $data->toolbar->addBtn('Транспорт', array($mvc, 'changeline', $rec->id, 'ret_url' => true), 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
+                $attr = arr::make('ef_icon=img/16/lorry_go.png, title = Промяна на логистичните данни на документа');
+                if(isset($rec->{$mvc->lineFieldName})){
+                    $lineState = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'state');
+                    if(in_array($lineState, array('active', 'closed'))){
+                        $attr['warning'] = "Документът е включен в Активирана/Приключена Транспортна линия! Сигурни ли сте, че искате да промените Логистичните данни?";
+                    }
+                }
+                $data->toolbar->addBtn('Транспорт', array($mvc, 'changeline', $rec->id, 'ret_url' => true), $attr);
             }
         }
 
@@ -132,6 +139,9 @@ class trans_plg_LinesPlugin extends core_Plugin
         }
 
         $linesArr = trans_Lines::getSelectableLines($form->rec->lineFolderId);
+        if(isset($rec->{$mvc->lineFieldName}) && !array_key_exists($rec->{$mvc->lineFieldName}, $linesArr)){
+            $linesArr[$rec->{$mvc->lineFieldName}] = trans_Lines::getTitleById($rec->{$mvc->lineFieldName}, false);
+        }
         $form->setOptions('lineId', array('' => '') + $linesArr);
 
         if(!countR($linesArr)){
@@ -285,9 +295,9 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
         }
         
-        if ($action == 'changeline' && isset($rec->lineId)) {
-            $lineState = trans_Lines::fetchField($rec->lineId, 'state');
-            if ($lineState != 'pending') {
+        if ($action == 'changeline' && isset($rec->{$mvc->lineFieldName})) {
+            $lineState = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'state');
+            if (!in_array($lineState, array('pending', 'active', 'closed'))) {
                 $requiredRoles = 'no_one';
             }
         }
