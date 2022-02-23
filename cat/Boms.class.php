@@ -1654,11 +1654,14 @@ class cat_Boms extends core_Master
         // За основния артикул подготвяме задача
         // В която самия той е за произвеждане
         $tasks = array(1 => (object) array('title' => $pName,
-            'plannedQuantity' => $quantity,
-            'quantityInPack' => 1,
-            'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'),
-            'productId' => $rec->productId,
-            'products' => array('input' => array(),'waste' => array())));
+                                           'plannedQuantity' => $quantity,
+                                           'quantityInPack' => 1,
+                                           '_dId' => null,
+                                           '_parentId' => null,
+                                           '_position' => null,
+                                           'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'),
+                                           'productId' => $rec->productId,
+                                           'products' => array('input' => array(),'waste' => array())));
         
         // Намираме неговите деца от първо ниво те ще бъдат артикулите за влагане/отпадък
         $dQuery = cat_BomDetails::getQuery();
@@ -1677,15 +1680,21 @@ class cat_Boms extends core_Master
 
         // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
         // А неговите подетапи са за влагане/отпадък
+        $onlySteps = $allStages = array();
+        $productStepClassId = planning_interface_StepProductDriver::getClassId();
         $query = cat_BomDetails::getQuery();
+        $query->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $query->where("#bomId = {$rec->id}");
         $query->where("#type = 'stage'");
-        
+        while($dRec1 = $query->fetch()){
+            $allStages[$dRec1->id] = $dRec1;
+            if($dRec1->innerClass == $productStepClassId){
+                $onlySteps[$dRec1->id] = $dRec1;
+            }
+        }
+
         // За всеки етап намираме подетапите му
-        while ($dRec = $query->fetch()) {
-            $query2 = cat_BomDetails::getQuery();
-            $query2->where("#parentId = {$dRec->id}");
-            
+        foreach ($allStages as $dRec) {
             $quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
             if ($quantityP == cat_BomDetails::CALC_ERROR) {
                 $quantityP = 0;
@@ -1701,7 +1710,7 @@ class cat_Boms extends core_Master
                 $parent = $pRec->parentId;
             }
 
-            $quantityP = (($quantityP) / $rec->quantity) * $quantity;
+            $quantityP = (($quantityP) / $rec) * $quantity;
             $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
             // Подготвяне задачата за етапа, с него за производим
@@ -1716,6 +1725,9 @@ class cat_Boms extends core_Master
                 'fixedAssets' => $dRec->fixedAssets,
                 'employees' => $dRec->employees,
                 'indTime' => $dRec->norm,
+                '_dId' => $dRec->id,
+                '_parentId' => $dRec->parentId,
+                '_position' => $dRec->position,
                 'description' =>  $dRec->description,
                 'labelPackagingId' => $dRec->labelPackagingId,
                 'labelQuantityInPack' => $dRec->labelQuantityInPack,
@@ -1732,18 +1744,48 @@ class cat_Boms extends core_Master
             }
 
             // Добавяме директните наследници на етапа като материали за влагане/отпадък
-            while ($cRec = $query2->fetch()) {
-                $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
-                if ($quantityS == cat_BomDetails::CALC_ERROR) {
-                    $quantityS = 0;
+            $query2 = cat_BomDetails::getQuery();
+            $query2->where("#parentId = {$dRec->id}");
+            $query2->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
+            $stageChildren = $query2->fetchAll();
+
+            foreach ($stageChildren as $cRec){
+                if($cRec->innerClass != $productStepClassId){
+                    while ($cRec = $query2->fetch()) {
+                        $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+                        if ($quantityS == cat_BomDetails::CALC_ERROR) {
+                            $quantityS = 0;
+                        }
+
+                        $place = ($cRec->type == 'pop') ? 'waste' : 'input';
+                        $obj->products[$place][] = array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
+                    }
                 }
-                
-                $place = ($cRec->type == 'pop') ? 'waste' : 'input';
-                $obj->products[$place][] = array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
             }
-            
+
             // Събираме задачите
             $tasks[] = $obj;
+        }
+
+        foreach ($tasks as $defTask){
+            if(isset($defTask->_dId)){
+                $siblingSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_parentId && $a->position < $defTask->_position;});
+                $childrenSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_dId;});
+
+                foreach (array($siblingSteps, $childrenSteps) as $arr){
+                    if(countR($arr)){
+                        arr::sortObjects($arr, 'position', 'DESC');
+                        $foundStepId = key($arr);
+                        if($foundStepId){
+                            $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
+                            $foundStepTask = $foundStepArr[key($foundStepArr)];
+                            if($foundStepTask){
+                                $defTask->products['input'][] = array('productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // Връщаме масива с готовите задачи
