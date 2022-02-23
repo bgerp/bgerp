@@ -42,9 +42,9 @@
 <br>
 
 <h3 class="centered" style="font-size:16pt">|М О Л Б А|* </h3>
-<!--ET_BEGIN createdDate-->
-<p class="centered">№ [#id#] / [#createdDate#] |г|*.</p>
-<!--ET_END createdDate-->
+
+<p class="centered">№ [#id#] / <!--ET_BEGIN createdDate-->[#createdDate#]<!--ET_END createdDate--> |г|*.</p>
+
 
 <br><br>
 

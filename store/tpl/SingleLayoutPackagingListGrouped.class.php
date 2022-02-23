@@ -80,7 +80,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         $tariffCodes = array();
         foreach ($data->recs as $rec1) {
             if(!array_key_exists($rec1->tariffNumber, $tariffCodes)){
-                $tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'transUnits' => array(), 'withoutWeightProducts' => array());
+                $tariffCodes[$rec1->tariffNumber] = (object)array('code' => $rec1->tariffNumber, 'weight' => null, 'netWeight' => null, 'transUnits' => array(), 'withoutWeightProducts' => array());
             }
 
             $transUnitId = $transUnitQuantity = null;
@@ -97,9 +97,12 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             if(!empty($transUnitQuantity)){
                 $tariffCodes[$rec1->tariffNumber]->transUnits[$transUnitId] += $transUnitQuantity;
             }
-            
+
+            if ($kgWeight = cat_Products::convertToUom($rec1->productId, 'kg')) {
+                $tariffCodes[$rec1->tariffNumber]->netWeight += $kgWeight * $rec1->quantity;
+            }
+
             $weight = $detail->getWeight($rec1->productId, $rec1->packagingId, $rec1->quantity, $rec1->weight);
-            
             if(empty($weight)){
                 $tariffCodes[$rec1->tariffNumber]->withoutWeightProducts[] = cat_Products::getTitleById($rec1->productId);
             }
@@ -121,6 +124,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
         foreach ($tariffCodes as $tariffNumber => $tariffObject) {
             
             $weight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->weight);
+            $netWeight = core_Type::getByName('cat_type_Weight(decimals=2)')->toVerbal($tariffObject->netWeight);
             if(countR($tariffObject->withoutWeightProducts) && !Mode::isReadOnly()){
                 $imploded = implode(',', $tariffObject->withoutWeightProducts);
                 $weight = ht::createHint($weight, "Следните артикули нямат транспортно тегло|*: {$imploded}", 'warning');
@@ -130,7 +134,7 @@ class store_tpl_SingleLayoutPackagingListGrouped extends doc_TplScript
             $groupAmount .= " {$masterRec->currencyId}, " . (($masterRec->chargeVat == 'yes' || $masterRec->chargeVat == 'separate') ? '|с ДДС|*' : '|без ДДС|*');
             $code = ($tariffNumber != self::EMPTY_TARIFF_NUMBER) ? "HS Code / CTN {$tariffObject->code}" : tr('Без тарифен код');
             $transUnits = trans_Helper::displayTransUnits($tariffObject->transUnits);
-            $groupVerbal = tr("|*<b>{$code}</b>, |Бруто|*: {$weight}, {$transUnits}, |Сума|*: {$groupAmount}");
+            $groupVerbal = tr("|*<b>{$code}</b>, |Бруто|*: {$weight}, |Нето|*: {$netWeight}, {$transUnits}, |Сума|*: {$groupAmount}");
             
             // Създаваме по един ред с името му, разпънат в цялата таблица
             $rowAttr = array('class' => ' group-by-field-row');

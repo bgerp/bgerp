@@ -1,0 +1,52 @@
+<fieldset class="detail-info">
+    <legend class="groupTitle">|Етап в производството - параметри|*</legend>
+    <table>
+    	<tr>
+    		<td class='quiet'>|Наименование|*:</td>
+    		<td>[#planning_Steps_name#]</td>
+    	</tr>
+    	<tr>
+    		<td class='quiet'>|Складируем|*:</td>
+    		<td>[#planning_Steps_canStore#]</td>
+    	</tr>
+		<tr>
+			<td class='quiet'>|Център на дейност|*:</td>
+			<td>[#planning_Steps_centerId#]</td>
+		</tr>
+
+		<!--ET_BEGIN planning_Steps_storeInput-->
+		<tr>
+			<td class='quiet'>|Склад влагане|*:</td>
+			<td>[#planning_Steps_storeInput#]</td>
+		</tr>
+		<!--ET_END planning_Steps_storeInput-->
+
+		<!--ET_BEGIN planning_Steps_storeIn-->
+		<tr>
+			<td class='quiet'>|Склад приемане|*:</td>
+			<td>[#planning_Steps_storeIn#]</td>
+		</tr>
+		<!--ET_END planning_Steps_storeIn-->
+
+		<!--ET_BEGIN planning_Steps_employees-->
+		<tr>
+			<td class='quiet'>|Оператори|*:</td>
+			<td>[#planning_Steps_employees#]</td>
+		</tr>
+		<!--ET_END planning_Steps_employees-->
+
+		<!--ET_BEGIN planning_Steps_fixedAssets-->
+		<tr>
+			<td class='quiet'>|Оборудване|*:</td>
+			<td>[#planning_Steps_fixedAssets#]</td>
+		</tr>
+		<!--ET_END planning_Steps_fixedAssets-->
+
+		<!--ET_BEGIN planning_Steps_norm-->
+		<tr>
+			<td class='quiet'>|Норма|*:</td>
+			<td>[#planning_Steps_norm#]</td>
+		</tr>
+		<!--ET_END planning_Steps_norm-->
+    </table>
+</fieldset>

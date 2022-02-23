@@ -1,4 +1,4 @@
- <?php
+<?php
  
  
  /**
@@ -189,28 +189,26 @@
                  $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity');
 
                  if(!empty($iRec->indTime)){
-                     $iRec->indTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $iRec->totalQuantity);
+                     $iRec->indTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $iRec->quantityInPack);
                  }
                   $divisor = countR(keylist::toArray($tRec->employees));
                  if ($rec->typeOfReport == 'short') {
-                    
-                     
+
                      $id = $val;
                      
                      $labelQuantity = 1 / $divisor;
-                     
-                     
-                     
+
                      $employees = $val;
                  }
                  if ($divisor){
+
                      $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
                      $indTimeSum = $timeAlocation * $iRec->indTime;
+
                  }else{
-                     
                      $indTimeSum = 0;
-                     
                  }
+
                  $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
                  
                  // Запис в масива
@@ -252,7 +250,7 @@
                  }
              }
          }
-         
+
          //Когато е избран тип на справката - ПОДРОБНА
          if ($rec->typeOfReport == 'full') {
          

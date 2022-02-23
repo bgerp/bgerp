@@ -88,33 +88,36 @@
 			<table class="listTable lineSummary" style="margin-top:10px;margin-bottom:10px">
 				<thead>
 				<tr>
-					<td class="sum-th">|Общо тегло|*</td>
-					<td class="sum-th">|Общ обем|*</td>
 					<td class="sum-th">|Инкасирано|*, [#baseCurrencyCode#]</td>
 					<td class="sum-th">|Изплатено|*, [#baseCurrencyCode#]</td>
-					<td class="sum-th">|Логистични единици|*</td>
+					<td class="sum-th">|Общо тегло|*</td>
+					<td class="sum-th">|Общ обем|*</td>
+					<td class="sum-th">|Общо ЛЕ|*</td>
 					<td class="sum-th">|Информация|*</td>
 				</tr>
 				</thead>
 				<tr>
+					<td class="centered">[#totalAmount#] <div class="quiet small">от [#totalAmountExpected#]</div></td>
+					<td class="centered">[#totalAmountReturn#]</td>
 					<td class="centered">[#weight#]</td>
 					<td class="centered">[#volume#]</td>
-					<td class="centered">[#totalAmount#]</td>
-					<td class="centered">[#totalAmountReturn#]</td>
 					<td class="centered">[#transUnitsTotal#]</td>
 					<td class="centered" style="font-size:0.8em;text-align:left">
 						<!--ET_BEGIN defaultCaseId-->
-						<span style='font-weight:normal'>|Каса|*</span>: [#defaultCaseId#]<br>
+						<span style='font-weight:normal'  class="quiet">|Каса|*</span>: [#defaultCaseId#]<br>
 						<!--ET_END defaultCaseId-->
 						<!--ET_BEGIN cases-->
-						<span style='font-weight:normal'>|Каси|*</span>: [#cases#]<br>
+						<span style='font-weight:normal' class="quiet">|Каси|*</span>: [#cases#]<br>
 						<!--ET_END cases-->
 						<!--ET_BEGIN stores-->
-						<span style='font-weight:normal'>|Складове|*</span>: [#stores#]<br>
+						<span style='font-weight:normal' class="quiet">|Складове|*</span>: [#stores#]<br>
 						<!--ET_END stores-->
 						<!--ET_BEGIN countries-->
-						<span style='font-weight:normal'>|Държави|*</span>: [#countries#]<br>
+						<span style='font-weight:normal' class="quiet">|Държави|*</span>: [#countries#]<br>
 						<!--ET_END countries-->
+						<!--ET_BEGIN places-->
+						<span style='font-weight:normal' class="quiet">|Населени места|*</span>: [#places#]<br>
+						<!--ET_END places-->
 					</td>
 				</tr>
 			</table>

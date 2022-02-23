@@ -305,47 +305,63 @@ class planning_Hr extends core_Master
     /**
      * Връща всички оператори, избрани като ресурси в папката
      *
-     * @param int $folderId - ид на папка, NULL за всички
+     * @param int|null $folderId - ид на папка, NULL за всички
+     * @param mixed $exIds       - ид-та които да се добавят към опциите
      *
-     * @return array $options
+     * @return array $options    - opcii za izbor
      */
-    public static function getByFolderId($folderId)
+    public static function getByFolderId($folderId = null, $exIds = null)
     {
         $options = array();
-        
+        $noOptions = false;
+
         // Ако папката не поддържа ресурси оператори да не се връща нищо
-        $Cover = doc_Folders::getCover($folderId);
-        $resourceTypes = $Cover->getResourceTypeArray();
-        if (!isset($resourceTypes['hr'])) {
-            
-            return $options;
+        if(isset($folderId)){
+            $Cover = doc_Folders::getCover($folderId);
+            $resourceTypes = $Cover->getResourceTypeArray();
+            if (!isset($resourceTypes['hr'])) {
+                $noOptions = true;
+            }
         }
-        
-        $emplGroupId = crm_Groups::getIdFromSysId('employees');
-        
-        $classId = self::getClassId();
-        $fQuery = planning_AssetResourceFolders::getQuery();
-        $fQuery->where("#classId = {$classId} AND #folderId = {$folderId}");
-        $fQuery->show('objectId');
-        $objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
-        
-        $query = static::getQuery();
-        $query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
-        $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
-        $query->like('groupList', "|{$emplGroupId}|");
-        $query->where("#state != 'rejected' && #state != 'closed'");
-        $query->show('personId,code');
-        
-        if (countR($objectIds)) {
-            $query->in('id', $objectIds);
-        } else {
-            $query->where('1=2');
+
+        if(!$noOptions){
+            $employeeGroupId = crm_Groups::getIdFromSysId('employees');
+            $classId = self::getClassId();
+            $fQuery = planning_AssetResourceFolders::getQuery();
+            $fQuery->where("#classId = {$classId}");
+            if(isset($folderId)){
+                $fQuery->where("#folderId = {$folderId}");
+            }
+            $fQuery->show('objectId');
+            $objectIds = arr::extractValuesFromArray($fQuery->fetchAll(), 'objectId');
+
+            $query = static::getQuery();
+            $query->EXT('groupList', 'crm_Persons', 'externalName=groupList,externalKey=personId');
+            $query->EXT('state', 'crm_Persons', 'externalName=state,externalKey=personId');
+            $query->like('groupList', "|{$employeeGroupId}|");
+            $query->where("#state != 'rejected' && #state != 'closed'");
+            $query->show('personId,code');
+            if (countR($objectIds)) {
+                $query->in('id', $objectIds);
+            } else {
+                $query->where('1=2');
+            }
+
+            while ($rec = $query->fetch()) {
+                $options[$rec->personId] = $rec->code;
+            }
         }
-        
-        while ($rec = $query->fetch()) {
-            $options[$rec->personId] = $rec->code;
+
+        // Ако има съществуващи ид-та и тях ги няма в опциите да се добавят
+        if(isset($exIds)) {
+            $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
+            foreach ($exOptions as $eId) {
+                if (!array_key_exists($eId, $options)) {
+                    $options[$eId] = static::fetchField("#personId = {$eId}", 'code');
+                }
+            }
         }
-        
+
         return $options;
     }
     

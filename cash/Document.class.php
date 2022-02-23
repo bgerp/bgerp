@@ -219,8 +219,12 @@ abstract class cash_Document extends deals_PaymentDocument
             $amount = $documentRec->amountDelivered / $documentRec->currencyRate;
             $amount = round($amount, 2);
         }
-       
-        return abs($amount);
+
+        if(isset($amount)){
+            $amount = abs($amount);
+        }
+
+        return $amount;
     }
     
     
@@ -568,6 +572,8 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
      *               ['countryId']      string|NULL - ид на държава
+     *               ['place']          string|NULL - населено място
+     *               ['features']       array       - свойства на адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {

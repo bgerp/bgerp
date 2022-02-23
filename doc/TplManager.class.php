@@ -660,4 +660,14 @@ class doc_TplManager extends core_Master
         
         return $res;
     }
+
+    /**
+     * След преобразуване на записа в четим за хора вид
+     */
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
+    {
+        if(isset($rec->originId)){
+            $row->originId = static::getHyperlink($rec->originId, true);
+        }
+    }
 }

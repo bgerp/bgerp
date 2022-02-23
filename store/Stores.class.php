@@ -166,7 +166,7 @@ class store_Stores extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Наименование, chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
+    public $listFields = 'name=Наименование,chiefs,activateRoles,selectUsers,selectRoles,workersIds=Товарачи';
     
     
     /**
@@ -212,6 +212,7 @@ class store_Stores extends core_Master
         $this->FLD('autoShare', 'enum(yes=Да,no=Не)', 'caption=Споделяне на сделките с другите отговорници->Избор,notNull,default=yes,maxRadio=2');
 
         $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
+        $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
 
         $this->setDbUnique('name');
     }
@@ -279,9 +280,12 @@ class store_Stores extends core_Master
         
         // Ако сме в тесен режим
         if (Mode::is('screenMode', 'narrow')) {
-            
-            // Да има само 2 колони
             $data->form->setField('workersIds', array('maxColumns' => 2));
+        }
+
+        if(!core_Packs::isInstalled('rack')){
+            $data->form->setField('samePosPallets', 'input=none');
+            $data->form->setField('closeCombinedMovementsAtOnce', 'input=none');
         }
     }
     
@@ -324,6 +328,19 @@ class store_Stores extends core_Master
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
             }
+
+            if(core_Packs::isInstalled('rack')){
+                if(empty($rec->samePosPallets)){
+                    $row->samePosPallets = $mvc->getFieldType('samePosPallets')->toVerbal(rack_Setup::get('DIFF_PALLETS_IN_SAME_POS'));
+                    $row->samePosPallets = ht::createHint($row->samePosPallets, 'Автоматично за системата', 'notice', false);
+                }
+
+                if(empty($rec->closeCombinedMovementsAtOnce)){
+                    $row->closeCombinedMovementsAtOnce = $mvc->getFieldType('closeCombinedMovementsAtOnce')->toVerbal(rack_Setup::get('CLOSE_COMBINED_MOVEMENTS_AT_ONCE'));
+                    $row->closeCombinedMovementsAtOnce = ht::createHint($row->closeCombinedMovementsAtOnce, 'Автоматично за системата', 'notice', false);
+                }
+            }
+
         } else if (isset($fields['-list']) && doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
             $row->name = "<b style='position:relative; top: 5px;'>" . $row->name . "</b>";
             $row->name .= "    <span class='fright'>" . $row->currentPlg . "</span>";

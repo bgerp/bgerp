@@ -1340,6 +1340,17 @@ class core_Html
         
         return $result;
     }
+
+    /**
+     * Връща уникално id за хита започващо с подадения префикс
+     */
+    public static function getUniqId($prefix = '')
+    {
+        static $id;
+        $id++;
+
+        return $prefix . base_convert($id . rand(1000, 9999), 10, 36);
+    }
     
     
     /**
@@ -1348,11 +1359,9 @@ class core_Html
     public static function setUniqId(&$attr)
     {
         if (!$attr['id']) {
-            static $id;
-            $id++;
             $name = $attr['name'] ? $attr['name'] : 'autoElement';
             $name = str_replace(array('[', ']'), array('_', '_'), $name);
-            $attr['id'] = $name . rand(1000, 9999) . '_' .$id;
+            $attr['id'] = self::getUniqId($name);
         }
     }
     

@@ -91,8 +91,45 @@ class tags_Tags extends core_Manager
         $colorType = cls::get('color_Type');
         $colorType->tdClass = null;
         $this->FLD('color', $colorType, 'caption=Цвят');
+        $this->FLD('classes', 'classes(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Класове, mandatory');
 
         $this->setDbUnique('name');
+    }
+
+
+    /**
+     * Връща всички тагове
+     *
+     * @param null|string $typeOrder
+     * @param null|string $nameOrder
+     * @param null|string $state
+     *
+     * @return array
+     */
+    public static function getNamesArr($typeOrder = 'DESC', $nameOrder = 'ASC', $state = null)
+    {
+        static $namesArr = array();
+        if (empty($namesArr)) {
+            $query = self::getQuery();
+            $query->show('id, name');
+            if (isset($typeOrder)) {
+                $query->orderBy('type', $typeOrder);
+            }
+
+            if (isset($nameOrder)) {
+                $query->orderBy('name', $nameOrder);
+            }
+
+            if (isset($state)) {
+                $query->where(array("#state = '[#1#]'", $state));
+            }
+
+            while ($rec = $query->fetchAndCache()) {
+                $namesArr[$rec->id] = $rec->name;
+            }
+        }
+
+        return $namesArr;
     }
 
 
@@ -145,13 +182,18 @@ class tags_Tags extends core_Manager
     /**
      * Връща масив с таговоте за добавя в опциите
      *
+     * @param array $oldTagArr
+     * @param null|int $docClassId
      * @return array
      */
-    public static function getTagsOptions($oldTagArr = array())
+    public static function getTagsOptions($oldTagArr = array(), $docClassId = null)
     {
         $tagsArr = array();
         $tQuery = self::getQuery();
         $tQuery->where("#state = 'active'");
+        if(isset($docClassId)){
+            $tQuery->where("#classes IS NULL OR LOCATE('|{$docClassId}|', #classes)");
+        }
 
         if (!empty($oldTagArr)) {
             $tQuery->in('id', $oldTagArr, false, true);
@@ -184,9 +226,9 @@ class tags_Tags extends core_Manager
     /**
      * Помощна фунцкия за декорира и вземане на таговете
      *
-     * @param stdClass $rec
-     *
-     * @return string
+     * @param mixed $tArr
+     * @param string $prevText
+     * @return string $tags
      */
     public static function decorateTags($tArr, $prevText = '')
     {

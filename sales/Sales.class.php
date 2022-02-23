@@ -49,7 +49,7 @@ class sales_Sales extends deals_DealMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StockPlanning, sales_Wrapper, sales_plg_CalcPriceDelta, plg_Sorting, acc_plg_Registry, doc_plg_TplManager, doc_DocumentPlg, acc_plg_Contable, plg_Printing,
-                    acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
+                    acc_plg_DocumentSummary, cat_plg_AddSearchKeywords, deals_plg_SaveValiorOnActivation, plg_Search, doc_plg_HidePrices, cond_plg_DefaultValues,
 					doc_EmailCreatePlg, bgerp_plg_Blank, plg_Clone, doc_SharablePlg, doc_plg_Close,change_Plugin,plg_LastUsedKeys, bgerp_plg_Export';
     
     
@@ -62,7 +62,7 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'dealerId,initiatorId,oneTimeDelivery';
+    public $changableFields = 'reff,dealerId,initiatorId,oneTimeDelivery';
     
     
     /**
@@ -166,9 +166,9 @@ class sales_Sales extends deals_DealMaster
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountBl,expectedTransportCost,visibleTransportCost,hiddenTransportCost,leftTransportCost,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
-    
-    
+    public $priceFields = 'amountDeal,amountBl,expectedTransportCost,visibleTransportCost,amountInvoicedDownpaymentToDeduct,amountInvoicedDownpayment,hiddenTransportCost,leftTransportCost,amountDelivered,amountPaid,amountInvoiced,amountToPay,amountToDeliver,amountToInvoice';
+
+
     /**
      * Файл с шаблон за единичен изглед
      */
@@ -229,7 +229,7 @@ class sales_Sales extends deals_DealMaster
         'bankAccountId' => 'lastDocUser|lastDoc',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'clientCondition|lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
         'oneTimeDelivery' => 'clientCondition'
@@ -465,11 +465,19 @@ class sales_Sales extends deals_DealMaster
                 
                 // И условието на доставка е със скрито начисляване, не може да се сменя локацията и условието на доставка
                 if (isset($rec->deliveryTermId)) {
-                    $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
-                    $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
-                    $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
-                    $form->setReadOnly('deliveryCalcTransport');
-                    
+                    if (cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId)) {
+                        $deliveryCalcCost = cond_DeliveryTerms::fetchField($rec->deliveryTermId, 'calcCost');
+                        $calcCostDefault = ($rec->deliveryCalcTransport) ? $rec->deliveryCalcTransport : $deliveryCalcCost;
+                        $form->setDefault($calcCostDefault, 'deliveryCalcTransport');
+                        if(empty($rec->deliveryCalcTransport)){
+                            $form->setReadOnly('deliveryCalcTransport', $calcCostDefault);
+                        } else {
+                            $form->setReadOnly('deliveryCalcTransport');
+                        }
+                    } else {
+                        $form->setReadOnly('deliveryCalcTransport');
+                    }
+
                     if ($deliveryCalcCost == 'yes') {
                         $form->setReadOnly('deliveryAdress');
                         $form->setReadOnly('deliveryLocationId');

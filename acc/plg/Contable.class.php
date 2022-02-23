@@ -481,6 +481,17 @@ class acc_plg_Contable extends core_Plugin
                 $requiredRoles = 'no_one';
             }
         }
+
+        // Ако документа е в нишка на затворена продажба и се прави опит за Заявка или възстановяване на заявка да не може
+        if((($action == 'pending' && $rec->state == 'draft') || ($action == 'restore' && $rec->brState == 'pending')) && isset($rec)){
+            if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
+                if($firstDocument->isInstanceOf('deals_DealMaster')){
+                    if($firstDocument->fetchField('state') == 'closed'){
+                        $requiredRoles = 'no_one';
+                    }
+                }
+            }
+        }
     }
     
     
@@ -907,27 +918,29 @@ class acc_plg_Contable extends core_Plugin
     
     
     /**
-     * Има ли контиращи документи в състояние заявка в нишката
+     * Има ли контиращи документи в подадените състояния в нишката
      *
-     * @param int $threadId
-     * @param int $exceptContainerId
+     * @param int $threadId - ид на тред
+     * @param array $states - състояния на документи
+     * @param int|null $exceptContainerId - игнориране на документ с контейнер
      *
      * @return bool
      */
-    public static function havePendingDocuments($threadId, $exceptContainerId = null)
+    public static function haveDocumentInThreadWithStates($threadId, $states, $exceptContainerId = null)
     {
         $contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
         $contoClasses = array_keys($contoClasses);
         
         $cQuery = doc_Containers::getQuery();
-        $cQuery->where("#state = 'pending'");
+        $states = arr::make($states, true);
+        $cQuery->in('state', $states);
         $cQuery->in('docClass', $contoClasses);
         $cQuery->where("#threadId = {$threadId}");
         if(isset($exceptContainerId)){
             $cQuery->where("#id != {$exceptContainerId}");
         }
 
-        return ($cQuery->fetch()) ? true : false;
+        return (bool)$cQuery->fetch();
     }
     
     

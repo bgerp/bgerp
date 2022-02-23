@@ -424,6 +424,9 @@ abstract class store_DocumentMaster extends core_Master
         if (empty($data->noTotal)) {
             $data->summary = deals_Helper::prepareSummary($this->_total, $rec->valior, $rec->currencyRate, $rec->currencyId, $rec->chargeVat, false, $rec->tplLang);
             $data->row = (object) ((array) $data->row + (array) $data->summary);
+        }  elseif(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+            $data->row->value = doc_plg_HidePrices::getBuriedElement();
+            $data->row->total = doc_plg_HidePrices::getBuriedElement();
         }
     }
     
@@ -902,6 +905,8 @@ abstract class store_DocumentMaster extends core_Master
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
      *               ['countryId']      string|NULL - ид на държава
+     *               ['place']          string|NULL - населено място
+     *               ['features']       array       - свойства на адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
@@ -928,7 +933,12 @@ abstract class store_DocumentMaster extends core_Master
             $address .= drdata_Countries::getTitleById($countryId) . " ";
             core_Lg::pop();
         }
+
         $res['address'] = "{$address}{$logisticData["{$part}PCode"]} {$logisticData["{$part}Place"]}, {$logisticData["{$part}Address"]}";
+        if(!empty($logisticData["{$part}AddressFeatures"])){
+            $res['features'] = keylist::toArray($logisticData["{$part}AddressFeatures"]);
+        }
+
         if(!empty($logisticData["{$part}Person"])){
             $res['address'] .= ", {$logisticData["{$part}Person"]}";
         }
@@ -938,6 +948,10 @@ abstract class store_DocumentMaster extends core_Master
 
         if(!empty($logisticData["{$part}LocationId"])){
             $res['locationId'] .= $logisticData["{$part}LocationId"];
+        }
+
+        if(!empty($logisticData["{$part}Place"])){
+            $res['place'] = $logisticData["{$part}Place"];
         }
 
         $amount = null;

@@ -203,7 +203,8 @@ class store_InventoryNotes extends core_Master
         $this->FLD('expandGroups', 'enum(yes=Да,no=Не)', 'caption=Подгрупи,columns=2,single=none,notNull,value=no');
         $this->FLD('hideOthers', 'enum(yes=Да,no=Не)', 'caption=Показване само на избраните групи->Избор, mandatory, notNull,value=no,maxRadio=2');
         $this->FLD('cache', 'blob', 'input=none');
-        
+        $this->FLD('expandByBatches', 'enum(no=Само ако има въведени,yes=Винаги)', 'caption=Разпъване по партиди при показване->Избор');
+
         // Ако потребителя има роля 'accMaster', може да контира/оотегля/възстановява МО с приключени права
         if (haveRole('accMaster,ceo')) {
             $this->canUseClosedItems = true;
@@ -285,6 +286,10 @@ class store_InventoryNotes extends core_Master
         
         if (isset($form->rec->id)) {
             $form->setReadOnly('storeId');
+        }
+
+        if(!core_Packs::isInstalled('batch')){
+            $form->setField('expandByBatches', 'input=none');
         }
     }
     
@@ -519,6 +524,8 @@ class store_InventoryNotes extends core_Master
         
         if (!Mode::is('printing')) {
             $tpl->removeBlock('COUNTER');
+        } else {
+            $tpl->removeBlock('ExtState');
         }
     }
     
@@ -626,7 +633,7 @@ class store_InventoryNotes extends core_Master
         expect($rec = $this->fetchRec($id));
         
         // Дигаме тайм лимита
-        core_App::setTimeLimit(600);
+        core_App::setTimeLimit(800);
         
         // Извличаме артикулите от баланса
         $balanceArr = $this->getProductsFromBalance($rec);
@@ -685,7 +692,21 @@ class store_InventoryNotes extends core_Master
                 }
             }
         }
-        
+
+        // Ако е инсталиран пакета за партиди
+        if(core_Packs::isInstalled('batch')){
+            $recalcQuery = store_InventoryNoteSummary::getQuery();
+            $recalcQuery->where("#noteId = {$rec->id} AND #quantityHasAddedValues = 'yes'");
+            $productsWithBatches = batch_Items::getProductsWithDefs(false);
+            if(countR($productsWithBatches)){
+                $recalcQuery->in('productId', $productsWithBatches);
+
+                while($sRec = $recalcQuery->fetch()){
+                    store_InventoryNoteSummary::recalc($sRec);
+                }
+            }
+        }
+
         self::logWrite('Синхронизиране на данните', $rec->id);
     }
     

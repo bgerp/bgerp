@@ -31,7 +31,7 @@ class phpsignal_Client extends core_Manager
         if (core_Composer::isInUse()) {
             try {
                 // Инстанция на класа
-                $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+                $binPath = phpsignal_Setup::get('SIGNAL_BIN_PATH');
                 $client = new Signal($binPath, phpsignal_Setup::get('SIGNAL_NUMBER'), Signal::FORMAT_JSON);
             } catch (Exception $e) {
                 reportException($e);
@@ -61,7 +61,7 @@ class phpsignal_Client extends core_Manager
             if (core_Composer::isInUse()) {
                 $signalNumber = phpsignal_Setup::get('SIGNAL_NUMBER');
                 // Инстанция на класа
-                $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+                $binPath = phpsignal_Setup::get('SIGNAL_BIN_PATH');
                 $client = new Signal($binPath, $signalNumber, Signal::FORMAT_JSON);
             }
             $msg = "Неуспешна валидация";
@@ -90,7 +90,7 @@ class phpsignal_Client extends core_Manager
         if (core_Composer::isInUse()) {
             try { 
                 // Инстанция на класа
-                $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+                $binPath = phpsignal_Setup::get('SIGNAL_BIN_PATH');
                 $client = new Signal($binPath, phpsignal_Setup::get('SIGNAL_NUMBER'), Signal::FORMAT_JSON);
             } catch (Exception $e) {
                 reportException($e);
@@ -131,7 +131,7 @@ class phpsignal_Client extends core_Manager
             if (core_Composer::isInUse()) {
                 $signalNumber = phpsignal_Setup::get('SIGNAL_NUMBER');
                 // Инстанция на класа
-                $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+                $binPath = phpsignal_Setup::get('SIGNAL_BIN_PATH');
                 $client = new Signal($binPath, $signalNumber, Signal::FORMAT_JSON);
             }
             
@@ -151,5 +151,13 @@ class phpsignal_Client extends core_Manager
         
         return $tpl;
     }
-    
+
+    /**
+     * Регистрира signal клиента
+     */
+    public function act_Test()
+    {
+        requireRole('admin');
+        bp(phpsignal_Client::send(['+359887181813'], "Hi hi hi ..."));
+    }
 }

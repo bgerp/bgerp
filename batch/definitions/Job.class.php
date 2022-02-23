@@ -47,6 +47,8 @@ class batch_definitions_Job extends batch_definitions_Proto
             if(isset($jobId)){
                 $res = $this->getDefaultBatchName($jobId);
             }
+        } elseif($Class instanceof planning_Jobs){
+            $res = $this->getDefaultBatchName($id);
         }
         
         return $res;

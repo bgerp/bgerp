@@ -733,7 +733,11 @@ class sales_TransportValues extends core_Manager
         $locationId = $masterRec->{$map['deliveryLocationId']};
         if($map['masterMvc'] == 'sales_Quotations'){
             if(!empty($masterRec->{$map['deliveryLocationId']})){
-                $locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$masterRec->{$map['contragentClassId']}}' AND #contragentId = '{$masterRec->{$map['contragentId']}}'", $masterRec->{$map['deliveryLocationId']}), 'id');
+                if(!is_numeric($masterRec->{$map['deliveryLocationId']})){
+                    $locationId = crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$masterRec->{$map['contragentClassId']}}' AND #contragentId = '{$masterRec->{$map['contragentId']}}'", $masterRec->{$map['deliveryLocationId']}), 'id');
+                } else {
+                    $locationId = $masterRec->{$map['deliveryLocationId']};
+                }
             }
         }
 

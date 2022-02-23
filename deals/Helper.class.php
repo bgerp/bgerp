@@ -352,7 +352,7 @@ abstract class deals_Helper
             $arr['vat02BaseAmount'] = '0.00';
             $arr['vat02BaseCurrencyId'] = $baseCurrency;
         }
-        
+
         return (object) $arr;
     }
     
@@ -841,7 +841,7 @@ abstract class deals_Helper
         // Проверка дали има минимално разполагаемо
         $firstCheck = false;
         if(isset($minQuantityDate) && $date <= $minQuantityDate){
-            if(($state == 'pending' && $freeQuantityMin < 0) || ($state == 'draft' && $quantity > $freeQuantityMin)){
+            if(($state == 'pending' && $freeQuantityMin < 0) || (($mvc instanceof sales_SalesDetails) && $state == 'draft' && $quantity > $freeQuantityMin)){
                 if($showNegativeWarning){
                     if(isset($date) && $date != dt::today()){
                         $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
@@ -1921,17 +1921,20 @@ abstract class deals_Helper
             $payments['bank'] = 'bank';
         }
     }
-    
-    
+
+
     /**
      * Дефолтния режим на ДДС за папката
      *
      * @param int $folderId
-     *
+     * @param int|null $ownCompanyId
      * @return string
      */
-    public static function getDefaultChargeVat($folderId)
+    public static function getDefaultChargeVat($folderId, $ownCompanyId = null)
     {
+        if(!crm_Companies::isOwnCompanyVatRegistered($ownCompanyId)) return 'no';
+
+        // Ако не може да се намери се търси от папката
         $coverId = doc_Folders::fetchCoverId($folderId);
         $Class = cls::get(doc_Folders::fetchCoverClassName($folderId));
         if (cls::haveInterface('crm_ContragentAccRegIntf', $Class)) {

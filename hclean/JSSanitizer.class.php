@@ -35,7 +35,7 @@ class hclean_JSSanitizer extends core_Manager
         $tpl->replace($sanitizer, 'SANITIZEJS');
         
         // Генерираме уникално id за атрибута
-        $uniqId = core_Os::getUniqId('emb');
+        $uniqId = ht::getUniqId('emb');
         
         // Заместваме уникалното id
         $tpl->replace($uniqId, 'SANITIZEID');

@@ -54,6 +54,9 @@
 		        			<!--ET_BEGIN closeWith-->
 		        			<br><span style='font-weight:normal'>|Приключено с|*: [#closeWith#]</span>
 		        			<!--ET_END closeWith-->
+                            <!--ET_BEGIN clonedFromId-->
+                            <br><span style='font-weight:normal'>|Клонирано от|*</span>: [#clonedFromId#]
+                            <!--ET_END clonedFromId-->
                         </td>
                     </tr>
                 </table>

@@ -150,6 +150,12 @@ class rack_Zones extends core_Master
 
 
     /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1093,7 +1099,7 @@ class rack_Zones extends core_Master
      * @param array|null $productIds - ид-та на артикули
      * @param boolean $deletePendingSystemMovementsInZoneFirst - да се изтрият ли първи системните движения
      */
-    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true)
+    private static function  pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true)
     {
         // Ако се иска да се изтрият движенията към зоната
         if($deletePendingSystemMovementsInZoneFirst){
@@ -1138,7 +1144,40 @@ class rack_Zones extends core_Master
             if (!countR($palletsArr)) continue;
 
             // Какво е разпределянето на палетите
-            $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
+            if(rack_Setup::get('PICKUP_STRATEGY') == 'ver2') {
+
+                // Извличане само на опаковките на артикула + основната мярка
+                if(!array_key_exists($pRec->productId, static::$cache)){
+                    $packQuery = cat_products_Packagings::getQuery();
+                    $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                    $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging'");
+                    $packQuery->show('quantity,packagingId');
+                    $packagings = array();
+                    while($packRec = $packQuery->fetch()) {
+                        $packagings[] = $packRec;
+                    }
+
+                    // Ако артикула няма опаковка палет намира се к-то на най-големия палет в системата
+                    $palletId = cat_UoM::fetchBySinonim('pallet')->id;
+                    if(!array_key_exists($palletId, $packagings)){
+                        $maxPalletQuantity = max(array_map(function($o) { return $o->quantity;}, $pallets));
+                        if($maxPalletQuantity){
+                            $packagings[] = (object)array('packagingId' => $palletId, 'quantity' => $maxPalletQuantity);
+                        }
+                    }
+
+                    if(!countR($packagings)){
+                        $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+                        $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
+                    }
+
+                    static::$cache[$pRec->productId] = $packagings;
+                }
+
+                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId]);
+            } else {
+                $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
+            }
 
             // Ако има генерирани движения се записват
             $movements = rack_MovementGenerator::getMovements($allocatedPallets, $pRec->productId, $pRec->packagingId, $pRec->batch, $storeId, $workerId);

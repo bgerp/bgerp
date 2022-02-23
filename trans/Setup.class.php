@@ -38,6 +38,12 @@ defIfNot('TRANS_SHOW_VOD_BTN', 'auto');
 
 
 /**
+ * Логистична информация в транспортните документи при печат/изпращане
+ */
+defIfNot('TRANS_SHOW_LOG_INFO_IN_DOCUMENTS', 'show');
+
+
+/**
  * Транспорт
  *
  *
@@ -143,6 +149,7 @@ class trans_Setup extends core_ProtoSetup
         'TRANS_CMR_SHOW_BTN' => array('enum(yes=Включено,no=Изключено)','caption=При липса на условие на доставка. Да се показва ли бутона за ЧМР->Избор'),
         'TRANS_DATE_FOR_TRANS_INDICATORS' => array('date', 'caption=От коя дата да се изчисляват индикатори транспортни линии->Дата'),
         'TRANS_SHOW_VOD_BTN' => array('enum(always=Винаги,auto=Условието на доставка + Чужбина ЕС,never=Никога)','caption=Показване на бутон за ВОД към ЕН->Избор'),
+        'TRANS_SHOW_LOG_INFO_IN_DOCUMENTS' => array('enum(show=Показване, hide=Скриване)','caption=Логистична информация в транспортните документи при печат/изпращане->Избор,customizeBy=trans|store|sales|ceo'),
     );
     
     

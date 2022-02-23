@@ -326,11 +326,13 @@ class sales_PrimeCostByDocument extends core_Manager
             $masters[$pRec->containerId] = array(doc_Containers::getDocument($pRec->containerId), $pRec->state, null);
             $masters[$pRec->containerId]['total'] = $pRec->total;
             $masters[$pRec->containerId]['chargeVat'] = $pRec->chargeVat;
-            
-            foreach ($pRec->details['receiptDetails'] as $pdRec){
-                if($pdRec->action != 'sale') continue;
-                $key = "{$pRec->id}000{$pdRec->value}";
-                $posIds[$key] = $key;
+
+            if(is_array($pRec->details['receiptDetails'])){
+                foreach ($pRec->details['receiptDetails'] as $pdRec){
+                    if($pdRec->action != 'sale') continue;
+                    $key = "{$pRec->id}000{$pdRec->value}";
+                    $posIds[$key] = $key;
+                }
             }
         }
         
@@ -765,15 +767,49 @@ class sales_PrimeCostByDocument extends core_Manager
      */
     public static function getPrimeCostInSale($productId, $packagingId, $quantity, $saleRec, $deltaListId)
     {
-        $productRec = cat_Products::fetchField($productId, 'isPublic,code');
-        
+        $productRec = cat_Products::fetch($productId, 'isPublic,code');
+
         // Ако има зададена политика за делта, връща се цената по нея
         if(isset($deltaListId)){
             $primeCost = price_ListRules::getPrice($deltaListId, $productId, $packagingId, $saleRec->valior);
             
             return $primeCost;
         }
-        
+
+        $primeCost = null;
+
+        // Ако договора е обединяващ
+        if(!empty($saleRec->closedDocuments)){
+            $closedSales = keylist::toArray($saleRec->closedDocuments);
+
+            // Гледа се в обединените договори общото к-во и себестойност записана в тях към момента им на активиране
+            foreach ($closedSales as $closedSaleId){
+                $closedSaleContainerId = sales_Sales::fetchField($closedSaleId, 'containerId');
+
+                $totalQuantity = $totalDealAmount = 0;
+                $query = self::getQuery();
+                $query->where("#productId = {$productId} AND #containerId = {$closedSaleContainerId}");
+                $query->where("#primeCost IS NOT NULL");
+                $query->show('quantity,primeCost');
+                while ($cRec = $query->fetch()) {
+                    $totalDealAmount += $cRec->quantity * $cRec->primeCost;
+                    $totalQuantity += $cRec->quantity;
+                }
+
+                if($totalQuantity){
+                    $primeCost += $totalDealAmount;
+                }
+            }
+
+            // Ако има изчислена обща сума на себестойността за к-то в обединените договори
+            if(isset($primeCost) && $quantity){
+                $primeCost /= $quantity;
+
+                return $primeCost;
+            }
+        }
+
+        // Ако няма намерена себестойност
         $primeCost = cat_Products::getPrimeCost($productId, $packagingId, $quantity, $saleRec->valior, price_ListRules::PRICE_LIST_COST);
         if (isset($primeCost)) {
             $costs = sales_Sales::getCalcedTransports($saleRec->threadId);
@@ -781,7 +817,7 @@ class sales_PrimeCostByDocument extends core_Manager
                 $primeCost += $costs[$productId]->fee / $costs[$productId]->quantity;
             }
         }
-        
+
         // Ако артикулът е 'Надценка' няма себестойност
         if ($productRec->code == 'surcharge') {
             $primeCost = 0;

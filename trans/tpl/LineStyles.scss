@@ -92,3 +92,24 @@ td .documentHtml {
 		background-color:#f4f5cf;
 	}
 }
+
+tr .groupremoved{
+	display:none;
+}
+
+.printing .group-by-field-row{
+	color:black !important;
+}
+
+span.lineFeature {
+	border-radius:3px;
+	border:1px solid #bbb;
+	font-size:0.7em;
+	margin-top:2px;
+	margin-bottom:2px;
+	margin-right:2px;
+	padding:4px;
+	background-color:#eee;
+	text-align:center;
+	display:inline-block;
+}

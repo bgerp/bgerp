@@ -5,8 +5,8 @@ use jigarakatidus\Signal;
 /**
  * Местоположение на signal-cli
  */
-defIfNot('PHPSIGNAL_SIGNAL_PATH', EF_ROOT_PATH);
-defIfNot('PHPSIGNAL_SIGNAL_VERSION', '0.9.2');
+defIfNot('PHPSIGNAL_SIGNAL_BIN_PATH', '/usr/local/bin/signal-cli');
+//defIfNot('PHPSIGNAL_SIGNAL_VERSION', '0.9.2');
 defIfNot('PHPSIGNAL_SIGNAL_NUMBER', '+359');
 defIfNot('PHPSIGNAL_SIGNAL_TEST_NUMBER','+359');
 
@@ -63,8 +63,8 @@ class phpsignal_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'PHPSIGNAL_SIGNAL_PATH' => array('varchar', 'mandatory, caption=Настройки signal-cli->Път'),
-        'PHPSIGNAL_SIGNAL_VERSION' => array('varchar', 'mandatory, caption=Настройки signal-cli->Версия'),
+        'PHPSIGNAL_SIGNAL_BIN_PATH' => array('varchar', 'mandatory, caption=Настройки signal-cli->Път изпълним файл'),
+//        'PHPSIGNAL_SIGNAL_VERSION' => array('varchar', 'mandatory, caption=Настройки signal-cli->Версия'),
         'PHPSIGNAL_SIGNAL_NUMBER' => array('varchar(20)', 'mandatory, caption=Настройки клиент->Номер'),
         'PHPSIGNAL_SIGNAL_TEST_NUMBER' => array('varchar(20)', 'caption=Номер за тестово съобщение->стойност'),
     );
@@ -84,23 +84,26 @@ class phpsignal_Setup extends core_ProtoSetup
         }
         
         // Проверка за наличие на cli signal клиент
-        $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/';
+        // $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/';
+        $binPath = phpsignal_Setup::get('SIGNAL_BIN_PATH');
         // Ако няма CLI - го сваляме
-        if (!is_executable($binPath . 'signal-cli')) {
-            $filename = "signal-cli-" . phpsignal_Setup::get('SIGNAL_VERSION') . ".tar.gz";
-            $cmd = "wget -O /tmp/{$filename} https://github.com/AsamK/signal-cli/releases/download/v" . phpsignal_Setup::get('SIGNAL_VERSION') . "/{$filename} -P /tmp/ 2>&1";
-            $outputDwnl = null;
-            exec ($cmd, $outputDwnl);
-            $output = null;
-            $cmd = "tar xf /tmp/{$filename} -C " . phpsignal_Setup::get('SIGNAL_PATH') . " 2>&1";
-            exec ($cmd, $output);
-            if (is_executable($binPath . 'signal-cli')) {
-                $html .= "<li class='debug-new'>Успешно инсталиран signal-cli</li>";
-            } else {
-                $html .= "<li class='debug-error'>Проблем с инсталирането на signal-cli</li>";
-                $html .= "<li class='debug-error'>Резултат сваляне: <pre>" . print_r($outputDwnl, true) . "</pre></li>";
-                $html .= "<li class='debug-error'>Резултат разархивиране: <pre>" . print_r($output, true) . "</pre></li>";
-            }
+        if (!is_executable($binPath)) {
+            $html .= "<li class='debug-error'>{$binPath} не може да се изпълни!</li>";
+            
+//             $filename = "signal-cli-" . phpsignal_Setup::get('SIGNAL_VERSION') . ".tar.gz";
+//             $cmd = "wget -O /tmp/{$filename} https://github.com/AsamK/signal-cli/releases/download/v" . phpsignal_Setup::get('SIGNAL_VERSION') . "/{$filename} -P /tmp/ 2>&1";
+//             $outputDwnl = null;
+//             exec ($cmd, $outputDwnl);
+//             $output = null;
+//             $cmd = "tar xf /tmp/{$filename} -C " . phpsignal_Setup::get('SIGNAL_PATH') . " 2>&1";
+//             exec ($cmd, $output);
+//             if (is_executable($binPath . 'signal-cli')) {
+//                 $html .= "<li class='debug-new'>Успешно инсталиран signal-cli</li>";
+//             } else {
+//                 $html .= "<li class='debug-error'>Проблем с инсталирането на signal-cli</li>";
+//                 $html .= "<li class='debug-error'>Резултат сваляне: <pre>" . print_r($outputDwnl, true) . "</pre></li>";
+//                 $html .= "<li class='debug-error'>Резултат разархивиране: <pre>" . print_r($output, true) . "</pre></li>";
+//             }
         } else {
             $html .= "<li class='debug-info'>Инсталиран от преди това signal-cli</li>";
         }
@@ -119,8 +122,13 @@ class phpsignal_Setup extends core_ProtoSetup
             
             return;
         }
+        $binPath = phpsignal_Setup::get('SIGNAL_BIN_PATH');
+        // Ако няма CLI - го сваляме
+        if (!is_executable($binPath)) {
+            $html .= "<li class='debug-error'>{$binPath} не е изпълним!</li>";
+        }
         if (core_Composer::isInUse()) {
-            $binPath = phpsignal_Setup::get('SIGNAL_PATH') . '/signal-cli-' . phpsignal_Setup::get('SIGNAL_VERSION') . '/bin/signal-cli';
+            $binPath = phpsignal_Setup::get('SIGNAL_BIN_PATH');
             $client = new Signal($binPath, phpsignal_Setup::get('SIGNAL_NUMBER'), Signal::FORMAT_JSON);
         } else {
             return "Не е инсталиран композер!";

@@ -206,7 +206,7 @@ class hr_EmployeeContracts extends core_Master
         $this->FLD('descriptions', 'richtext(bucket=humanResources, shareUsersRoles=hr|ceo)', 'caption=Условия->Допълнителни');
         
         // Споделени потребители
-        $this->FLD('sharedUsers', 'userList(roles=hr|ceo)', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(roles=hr|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
         
         $this->setDbUnique('numId');
     }

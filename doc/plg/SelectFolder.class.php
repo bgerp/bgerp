@@ -141,7 +141,21 @@ class doc_plg_SelectFolder extends core_Plugin
         $coverKeys = implode(',', array_keys($coverArr));
         
         $form->FLD('folderId', 'key2(mvc=doc_Folders, allowEmpty, restrictViewAccess=yes)', 'caption=Папка,class=w100 clearSelect');
-        $form->setFieldTypeParams('folderId', array('where' => "#coverClass IN ({$coverKeys})"));
+
+        // В кои последно 10 папки този потребител е създавал този вид документ?
+        $cu = core_Users::getCurrent();
+        $mQuery = $mvc->getQuery();
+        $mQuery->where("#createdBy = {$cu} AND #state != 'rejected'");
+        $mQuery->orderBy('#createdOn', 'DESC');
+        $mQuery->limit(10);
+        $mQuery->show('folderId');
+        $prefArr = arr::extractValuesFromArray($mQuery->fetchAll(), 'folderId');
+
+        if(count($prefArr)) {
+            $form->setDefault('folderId', key($prefArr));
+        }
+        $form->setFieldTypeParams('folderId', array('where' => "#coverClass IN ({$coverKeys})", 'preferred' => $prefArr));
+ 
         $form->setField('folderId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
         
         $form->title = '|*' . tr('Избор на папка||Select a folder') . ' ' . tr('за създаване на||to create a new') . ' ' . mb_strtolower(tr($mvc->singleTitle));
@@ -176,11 +190,11 @@ class doc_plg_SelectFolder extends core_Plugin
         } */
         
         $defaultFolderId = Request::get('defaultFolderId');
-        
+
         if (!$defaultFolderId) {
             $defaultFolderId = $mvc->getDefaultFolder();
         }
-        
+
         if ($defaultFolderId && $mvc->canAddToFolder($defaultFolderId)) {
             $form->setDefault('folderId', $defaultFolderId);
         }

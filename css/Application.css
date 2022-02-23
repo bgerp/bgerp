@@ -1353,7 +1353,7 @@ a.tUnsighted {
 
 .listTable .change-selected-version td,
 .single-thread .document div.alphabet .tab-page .listTable .change-selected-version td {
-  background-color: #fed7d6; }
+  background-color: #ffff88; }
 
 /*
  * край на стилове при тредове
@@ -7363,4 +7363,30 @@ only screen and (max-width: 320px) {
 
 .workingTimeBlock table.typeTable {
   width: 100%; }
+
+.selectTaskOptions {
+  width: 100%; }
+
+.selectTaskOptions td {
+  padding: 4px; }
+
+.selectTaskOptions tr.selectTaskFromJobRow {
+  background-color: #eeeeee;
+  border: 1px solid #bbbbbb; }
+
+.selectTaskOptions tr.selectTaskFromJobRow td {
+  padding-left: 8px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-weight: bold; }
+
+.selectTaskOptions tr.createAllTasksForJob {
+  font-style: italic; }
+
+.confidential-field {
+  font-size: 0.7em;
+  font-weight: normal;
+  color: #555555;
+  border: 1px solid #cdcdcd;
+  padding: 3px; }
 

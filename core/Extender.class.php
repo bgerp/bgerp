@@ -177,6 +177,7 @@ abstract class core_Extender extends core_Master
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
         $addUrl = $mvc->getListAddUrl();
+
         if(countR($addUrl) && !Request::get('Rejected', 'int')){
             $data->toolbar->addBtn('Нов запис', $addUrl, false, "ef_icon = img/16/star_2.png,title=Добавяне на нов {$mvc->singleTitle}");
         }
@@ -193,14 +194,15 @@ abstract class core_Extender extends core_Master
             $data->toolbar->addBtn('Редакция', $editUrl, 'id=btnEdit', 'ef_icon = img/16/edit-icon.png,title=Редактиране на записа');
         }
     }
-    
-    
+
+
     /**
      * Какво да е дефолтното урл, за добавяне от листовия изглед
      *
+     * @param int|null $userId
      * @return array $addUrl
      */
-    protected function getListAddUrl()
+    public function getListAddUrl($userId = null)
     {
         return array();
     }

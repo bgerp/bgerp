@@ -155,7 +155,7 @@ class purchase_Purchases extends deals_DealMaster
     /**
      * Полета свързани с цени
      */
-    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountBl,amountToPay,amountToDeliver,amountToInvoice';
+    public $priceFields = 'amountDeal,amountDelivered,amountPaid,amountInvoiced,amountBl,amountToPay,amountInvoicedDownpaymentToDeduct,amountInvoicedDownpayment,amountToDeliver,amountToInvoice';
     
     
     /**
@@ -186,11 +186,11 @@ class purchase_Purchases extends deals_DealMaster
         'deliveryTermId' => 'clientCondition|lastDocUser|lastDoc',
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
-        'bankAccountId' => 'lastDocUser|lastDoc',
+        'bankAccountId' => 'defMethod',
         'dealerId' => 'lastDocUser',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
-        'chargeVat' => 'lastDocUser|lastDoc|defMethod',
+        'chargeVat' => 'defMethod',
         'template' => 'lastDocUser|lastDoc|defMethod',
         'shipmentStoreId' => 'clientCondition',
         'oneTimeDelivery' => 'clientCondition'
@@ -296,6 +296,7 @@ class purchase_Purchases extends deals_DealMaster
         $this->setField('deliveryTermId', 'salecondSysId=deliveryTermPurchase');
         $this->setField('paymentMethodId', 'salecondSysId=paymentMethodPurchase');
         $this->setField('oneTimeDelivery', 'salecondSysId=purchaseOneTimeDelivery');
+        $this->setField('chargeVat', 'salecondSysId=purchaseChargeVat');
     }
     
     
@@ -857,5 +858,33 @@ class purchase_Purchases extends deals_DealMaster
                 }
             }
         }
+    }
+
+
+    /**
+     * Дефолтна стойност на полето за банкова сметка
+     *
+     * @param $rec
+     * @return mixed|void|null
+     */
+    public function getDefaultBankAccountId($rec)
+    {
+        $bankAccounts = array();
+
+        // Намиране на последните б. сметки
+        foreach (array('lastDocUser', 'lastDoc') as $strat){
+            $foundAccId = cond_plg_DefaultValues::getDefValueByStrategy($this, $rec, 'bankAccountId', $strat);
+            if(!empty($foundAccId)){
+                $bankAccounts[$foundAccId] = $foundAccId;
+            }
+        }
+
+        // Връща се последната, която не е премахната
+        foreach ($bankAccounts as $bankAccountId){
+            $bAccId = bank_Accounts::fetchField(array("#iban = '[#1#]'", $bankAccountId), 'id');
+            if($bAccId) return $bankAccountId;
+        }
+
+        return null;
     }
 }

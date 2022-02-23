@@ -58,40 +58,51 @@
 			<table class="listTable lineSummary">
 				<thead>
 				<tr>
-					<th>|Общо тегло|*</th>
-					<th>|Общ обем|*</th>
 					<th>|Инкасирано|*, [#baseCurrencyCode#]</th>
 					<th>|Изплатено|*, [#baseCurrencyCode#]</th>
-					<th>|Логистични единици|*</th>
-				</tr>
-				<tr>
-					<th>|Всички|*</th>
-					<th>|Подготвени|*</th>
-					<th>|Инкасирано|*</th>
-					<th>|Изплатено|*</th>
+					<th>|Общо тегло|*</th>
+					<th>|Общ обем|*</th>
+					<th>|Общо ЛЕ|*</th>
+					<th>|Информация|*</th>
 				</tr>
 				</thead>
 				<tr>
+					<td class="centered">[#totalAmount#] <div class="quiet small">( [#totalAmountExpected#] )</div></td>
+					<td class="centered">[#totalAmountReturn#]</td>
 					<td class="centered">[#weight#]</td>
 					<td class="centered">[#volume#]</td>
-					<td class="centered">[#totalAmount#]</td>
-					<td class="centered">[#totalAmountReturn#]</td>
 					<td class="centered">[#transUnitsTotal#]</td>
+					<td class="centered" style="font-size:0.8em;text-align:left">
+						<!--ET_BEGIN defaultCaseId-->
+						<span style='font-weight:normal' class="quiet">|Каса|*</span>: [#defaultCaseId#]<br>
+						<!--ET_END defaultCaseId-->
+						<!--ET_BEGIN cases-->
+						<span style='font-weight:normal' class="quiet">|Каси|*</span>: [#cases#]<br>
+						<!--ET_END cases-->
+						<!--ET_BEGIN stores-->
+						<span style='font-weight:normal' class="quiet">|Складове|*</span>: [#stores#]<br>
+						<!--ET_END stores-->
+						<!--ET_BEGIN countries-->
+						<span style='font-weight:normal' class="quiet">|Държави|*</span>: [#countries#]<br>
+						<!--ET_END countries-->
+						<!--ET_BEGIN places-->
+						<span style='font-weight:normal' class="quiet">|Населени места|*</span>: [#places#]<br>
+						<!--ET_END places-->
+					</td>
 				</tr>
 			</table>
 		</table>
 	</div>
 </div>
 <!--ET_END TOTAL-->
-	<div class='mergedDetailsholder'>
-		<div class='line-detail'>
-			<div class="scrolling-holder">
-				[#trans_LineDetails#]
-			</div>
-		</div>
-		</div>
-		<div class='footerDocBlock'>
-			[#/doc/tpl/Copyright.shtml#]
-		</div>
+<div class='line-detail'>
+	<div class="scrolling-holder">
+		[#trans_LineDetails#]
 	</div>
+</div>
+</div>
+</div>
+<div class='footerDocBlock'>
+	[#/doc/tpl/Copyright.shtml#]
+</div>
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

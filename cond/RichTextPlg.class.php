@@ -57,7 +57,7 @@ class cond_RichTextPlg extends core_Plugin
             $js = "openWindow('{$url}', '{$callbackName}', '{$args}'); return false;";
             
             // Бутон за отвяряне на прозореца
-            $addPassage = new ET("<a class=rtbutton title='" . tr('Добавяне на пасаж ') . "' onclick=\"{$js}\">" . tr('Пасаж') . '</a>');
+            $addPassage = new ET("<a class=rtbutton title='" . tr('Добавяне на пасаж') . "' onclick=\"{$js}\">" . tr('Пасаж') . '</a>');
             
             // JS функцията
             $callback = "function {$callbackName}(passage) {
