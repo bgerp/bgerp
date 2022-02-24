@@ -247,21 +247,29 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
 
             $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-            $shortMeasure = ($rec->productId == $masterRec->productId) ? cat_UoM::getShortName($masterRec->measureId) : cat_UoM::getShortName($info->packagingId);
+            $shortMeasureId = ($rec->productId == $masterRec->productId) ? $masterRec->measureId : $info->packagingId;
+            $shortMeasure = cat_UoM::getShortName($shortMeasureId);
+            $rec->_isKgMeasureId = ($shortMeasureId == cat_UoM::fetchBySinonim('kg')->id);
+
+            $fieldName = 'quantity';
+            if($rec->_isKgMeasureId){
+                $fieldName = 'weight';
+                $form->setField('quantity', 'input=none');
+            }
 
             if($rec->type == 'production' && isset($masterRec->labelPackagingId) && $rec->productId == $masterRec->productId && $masterRec->labelPackagingId != $masterRec->measureId){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->labelPackagingId);
-                $form->setField('quantity', "unit={$unit}");
+                $form->setField($fieldName, "unit={$unit}");
                 $defaultQuantity = $masterRec->labelQuantityInPack;
                 if(!$defaultQuantity){
                     $defaultQuantity = planning_Tasks::getDefaultQuantityInLabelPackagingId($masterRec->productId, $masterRec->measureId, $masterRec->labelPackagingId);
                 }
-                $form->setField('quantity', "placeholder={$defaultQuantity}");
+                $form->setField($fieldName, "placeholder={$defaultQuantity}");
                 $form->rec->_defaultQuantity = $defaultQuantity;
             } else {
                 $unitMeasureId = isset($info->packagingId) ? $info->packagingId : $info->measureId;
                 $unit = cat_UoM::getShortName($unitMeasureId);
-                $form->setField('quantity', "unit={$unit}");
+                $form->setField($fieldName, "unit={$unit}");
             }
         }
         
@@ -361,7 +369,11 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             
             if (!$form->gotErrors()) {
-                $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
+                if($rec->_isKgMeasureId){
+                    $rec->quantity = (!empty($rec->weight)) ? $rec->weight : 1;
+                } else {
+                    $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
+                }
                 
                 $limit = '';
                 if (isset($rec->productId) && $rec->type !== 'production') {
@@ -535,10 +547,12 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        $data->isMeasureKg = ($data->masterData->rec->measureId == cat_UoM::fetchBySinonim('kg')->id);
+
         if (isset($data->masterMvc)) {
             $selectedTerminalId = Mode::get('taskProgressInTerminal');
             $lastRecId = null;
-            
+
             if(!$selectedTerminalId){
                 unset($data->listFields['notes']);
                 unset($data->listFields['productId']);
@@ -547,6 +561,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
                 $data->listTableMvc->FNC('created', 'varchar', 'smartCenter');
                 $data->listTableMvc->setField('weight', 'smartCenter');
+
+                if($data->isMeasureKg){
+                    unset($data->listFields['quantity']);
+                }
             } else {
                 $data->listTableMvc->FNC('quantityExtended', 'varchar', 'tdClass=centerCol');
                 if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
@@ -585,7 +603,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity);
                 $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
             }
-            $row->quantity = "<b>{$row->quantity}</b> {$row->measureId} {$row->scrappedQuantity}";
+
+            if($data->isMeasureKg){
+                $row->weight = "<b>{$row->weight}</b> {$row->measureId} {$row->scrappedQuantity}";
+            } else {
+                $row->quantity = "<b>{$row->quantity}</b> {$row->measureId} {$row->scrappedQuantity}";
+            }
 
             if($id == $lastRecId){
                 $row->ROW_ATTR['class'] .= ' lastRow';
