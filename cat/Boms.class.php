@@ -1751,15 +1751,13 @@ class cat_Boms extends core_Master
 
             foreach ($stageChildren as $cRec){
                 if($cRec->innerClass != $productStepClassId){
-                    while ($cRec = $query2->fetch()) {
-                        $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
-                        if ($quantityS == cat_BomDetails::CALC_ERROR) {
-                            $quantityS = 0;
-                        }
-
-                        $place = ($cRec->type == 'pop') ? 'waste' : 'input';
-                        $obj->products[$place][] = array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
+                    $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+                    if ($quantityS == cat_BomDetails::CALC_ERROR) {
+                        $quantityS = 0;
                     }
+
+                    $place = ($cRec->type == 'pop') ? 'waste' : 'input';
+                    $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
                 }
             }
 
@@ -1767,7 +1765,7 @@ class cat_Boms extends core_Master
             $tasks[] = $obj;
         }
 
-        foreach ($tasks as $defTask){
+        foreach ($tasks as $k => $defTask){
             if(isset($defTask->_dId)){
                 $siblingSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_parentId && $a->position < $defTask->_position;});
                 $childrenSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_dId;});
@@ -1780,7 +1778,7 @@ class cat_Boms extends core_Master
                             $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
                             $foundStepTask = $foundStepArr[key($foundStepArr)];
                             if($foundStepTask){
-                                $defTask->products['input'][] = array('productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
                             }
                         }
                     }
