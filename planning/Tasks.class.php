@@ -1630,27 +1630,35 @@ class planning_Tasks extends core_Master
 
             // Ако ще се клонират всички шаблонни операции
             planning_Tasks::requireRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'));
+            $msgType = 'notice';
+            $msg = 'Операциите са успешно създадени';
 
             $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
             foreach ($defaultTasks as $sysId => $defaultTask){
-                if(planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")) continue;
+                try{
+                    if(planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")) continue;
 
-                unset($defaultTask->products);
-                $newTask = clone $defaultTask;
-                $newTask->originId = $jobRec->containerId;
-                $newTask->systemId = $sysId;
+                    unset($defaultTask->products);
+                    $newTask = clone $defaultTask;
+                    $newTask->originId = $jobRec->containerId;
+                    $newTask->systemId = $sysId;
 
-                // Клонират се в папката на посочения в тях център, ако няма в центъра от заданието, ако и там няма в Неопределения
-                $folderId = isset($defaultTask->centerId) ? planning_Centers::fetchField($defaultTask->centerId, 'folderId') : ((!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : null);
-                if(planning_Tasks::canAddToFolder($folderId)){
-                    $folderId = planning_Centers::getUndefinedFolderId();
+                    // Клонират се в папката на посочения в тях център, ако няма в центъра от заданието, ако и там няма в Неопределения
+                    $folderId = isset($defaultTask->centerId) ? planning_Centers::fetchField($defaultTask->centerId, 'folderId') : ((!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : null);
+                    if(planning_Tasks::canAddToFolder($folderId)){
+                        $folderId = planning_Centers::getUndefinedFolderId();
+                    }
+                    $newTask->folderId = $folderId;
+                    $this->save($newTask);
+                    $this->logWrite('Автоматично създаване от задание', $newTask->id);
+                } catch(core_exception_Expect $e){
+                    reportException($e);
+                    $msg = 'Проблем при създаване на операция';
+                    $msgType = 'error';
                 }
-                $newTask->folderId = $folderId;
-                $this->save($newTask);
-                $this->logWrite('Автоматично създаване от задание', $newTask->id);
             }
 
-            followRetUrl(null, 'Операциите са успешно създадени');
+            followRetUrl(null, $msg, $msgType);
         }
 
         followRetUrl(null, 'Имаше проблем', 'error');
