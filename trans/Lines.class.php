@@ -896,6 +896,8 @@ class trans_Lines extends core_Master
                         $res .= ' ' . plg_Search::normalizeText($tInfo[$fld]);
                     }
                 }
+
+                $res .= ' ' . plg_Search::normalizeText($Document->getVerbal('createdBy'));
             }
         }
     }
