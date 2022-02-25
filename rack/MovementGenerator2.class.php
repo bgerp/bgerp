@@ -328,7 +328,7 @@ class rack_MovementGenerator2 extends core_Manager
                 }
             }
         }
- 
+ // bp($d);
         // Генерираме движенията за всяка група и изисляваме времето, което ще отнеме
         if(is_array($bestMove)){
             foreach($bestMove as $m) {
@@ -491,7 +491,8 @@ class rack_MovementGenerator2 extends core_Manager
                 $rate += $timeZone;
                 $m->zonesTimes[$zI] = $timeZone;
                 if($q != $zQ) {
-                    $rate += self::timeToCount($q, $zQ, $packs);
+                    $rate += ($a = self::timeToCount($q, $zQ, $packs));
+                    $m->zonesCountTimes[$zI] = $a;
                 }
             }
 
@@ -516,22 +517,20 @@ class rack_MovementGenerator2 extends core_Manager
      * 
      */
     private static function timeToCount($s, $d, $packs)
-    {
+    {  
         set_time_limit(5);
 
         expect($pallet >= $q);
-
-        static $sec;
-        if(!isset($sec)) {
-            $sec = rack_Setup::get('TIME_COUNT');
-        }
+        
+        $sec = rack_Setup::get('TIME_COUNT');
 
         krsort($packs);
-        
+         
         $sTemp = $s;
         $dTemp = $d;
         $i = 1;
         $p = $sArr = $dArr = array();
+       
         foreach($packs as $pQ => $pI) {
             $sArr[$i] = (int) ($sTemp / $pQ);
             $sTemp -= $sArr[$i] * $pQ;
@@ -542,7 +541,7 @@ class rack_MovementGenerator2 extends core_Manager
             $pArr[$i] = $pQ;
             $i++;
         }
-
+ 
         if($sTemp > 0 || $dTemp > 0) {
             $sArr[$i] = $sTemp;
             $dArr[$i] = $dTemp;
@@ -553,7 +552,7 @@ class rack_MovementGenerator2 extends core_Manager
 
         $sI = $dI = $i;
 
- // bp($sArr, $dArr, $pArr, $s, $d, $res);
+ //bp($sArr, $dArr, $pArr, $s, $d, $res);
 
         while($sI > 0 && $dI > 0) {
             $sQ = $sArr[$sI] * $pArr[$sI];
@@ -566,7 +565,7 @@ class rack_MovementGenerator2 extends core_Manager
                 $sec = $sec/1.8;
                 $res += $sec * ($m/$pArr[$dI]); 
  
-            
+            //bp($res, $sec, $m, $pArr[$dI]);
                 $sArr[$sI] -= $m/$pArr[$sI];
                 $sArr[$sI] = round($sArr[$sI], 6);
                 $dArr[$dI] -= $m/$pArr[$dI];
@@ -591,7 +590,7 @@ class rack_MovementGenerator2 extends core_Manager
             // if($i++ > 10)  bp($sArr, $dArr, $sI, $dI);
         }
 
-            //    bp($sArr, $dArr, $pArr, $s, $d, $res);
+        //    bp($sArr, $dArr, $pArr, $s, $d, $res);
 
         return $res;
     }
