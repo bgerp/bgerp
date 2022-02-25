@@ -301,7 +301,7 @@ class trans_Lines extends core_Master
 
         if (!$data->toolbar->haveButton('btnClose')) {
             if (self::countDocumentsByState($rec->id, 'draft,pending') && $rec->state == 'active') {
-                $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нев|*!', 'title' => 'Затваряне на транспортна линия'));
+                $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нея|*!', 'title' => 'Затваряне на транспортна линия'));
             }
         }
 
