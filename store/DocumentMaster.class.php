@@ -704,9 +704,9 @@ abstract class store_DocumentMaster extends core_Master
 
             if($lineId = $Doc->fetchField($Doc->lineFieldName)){
                 $lineStart = trans_Lines::fetchField($lineId, 'start');
-                $deliveryTime = !empty($rec->deliveryTime) ? $rec->deliveryTime : $rec->valior;
+                $deliveryTime = !empty($rec->deliveryTime) ? $rec->deliveryTime : (($rec->valior) ? $rec->valior : dt::today());
                 $deliveryTime = (strlen($deliveryTime) == 10) ? "{$deliveryTime} 23:59:59" : $deliveryTime;
-                $docDeliveryTime = !empty($docRec->deliveryTime) ? $docRec->deliveryTime : $docRec->valior;
+                $docDeliveryTime = !empty($docRec->deliveryTime) ? $docRec->deliveryTime : (($docRec->valior) ? $docRec->valior : dt::today());
                 $docDeliveryTime = (strlen($docDeliveryTime) == 10) ? "{$docDeliveryTime} 23:59:59" : $docDeliveryTime;
 
                 // ако датата на документа за връщане е по-голяма или равна от тази на оригиналния документ
