@@ -73,7 +73,7 @@ class rack_Racks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'num=Стелаж,free=Палет-места->Свободни,used,reserved,total,rows,columns';
+    public $listFields = 'num=Стелаж,free=Палет-места->Свободни,used,reserved,total,rows=Редове->До,firstRowTo=Редове->Първи,columns';
     
     
     /**
@@ -126,6 +126,7 @@ class rack_Racks extends core_Master
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
         $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,smartCenter');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
+        $this->FLD('firstRowTo', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Първи ред до,notNull,value=A');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
@@ -365,6 +366,14 @@ class rack_Racks extends core_Master
             $row->free .= ' (' . round(100 * $row->free / $rec->total, 2) . '%)';
             $row->free = "<span style='color:green;'>" . $row->free . '</div>';
         }
+
+        $firstRowTo = array();
+        foreach (arr::make('A,B,C,D,E,F,G,H,I,J,K,L,M', true) as $letter){
+            if($letter <= $rec->firstRowTo){
+                $firstRowTo[] = $letter;
+            }
+        }
+        $row->firstRowTo = implode(',', $firstRowTo);
     }
     
     
@@ -386,9 +395,10 @@ class rack_Racks extends core_Master
         list($movedFrom, $movedTo) = rack_Movements::getExpected();
         
         $hlProdId = $used[$hlFullPos];
-        
+
         while ($row >= 'A') {
-            $res .= '<tr>';
+            $trStyle = ($row <= $rec->firstRowTo) ? 'border:1px solid #2cc3229e;' : '';
+            $res .= "<tr style='{$trStyle}'>";
             
             for ($i = 1; $i <= $rec->columns; $i++) {
                 $attr = array();
@@ -505,7 +515,7 @@ class rack_Racks extends core_Master
             
             $row = chr(ord($row) - 1);
         }
-        
+
         $res = "<table style='border: 1px solid #bbb;margin-bottom:15px;'>{$res}</table>";
         
         return $res;
@@ -755,7 +765,7 @@ class rack_Racks extends core_Master
         $Int = core_Type::getByName('int');
         $rowBefore = (object) array('totalTotal' => $Int->toVerbal($summaryRec->totalTotal), 'usedTotal' => $Int->toVerbal($summaryRec->usedTotal), 'reservedTotal' => $Int->toVerbal($summaryRec->reservedTotal), 'freeTotal' => $Int->toVerbal($summaryRec->totalTotal - $summaryRec->usedTotal - $summaryRec->reservedTotal));
         
-        $rowBeforeTpl = new core_ET("<tr style='background-color:#aaa;color:white;text-align:center;'><td colspan='2'></td><td><b>[#freeTotal#]</b></td><td><b>[#usedTotal#]</b></td><td><b>[#reservedTotal#]</b></td><td><b>[#totalTotal#]</b></td><td colspan='2'></td></tr>");
+        $rowBeforeTpl = new core_ET("<tr style='background-color:#aaa;color:white;text-align:center;'><td colspan='2'></td><td><b>[#freeTotal#]</b></td><td><b>[#usedTotal#]</b></td><td><b>[#reservedTotal#]</b></td><td><b>[#totalTotal#]</b></td><td colspan='3'></td></tr>");
         $rowBeforeTpl->placeObject($rowBefore);
         $tpl->replace($rowBeforeTpl, 'ROW_BEFORE');
     }

@@ -218,7 +218,7 @@ class hr_Leaves extends core_Master
         $this->FLD('alternatePerson', 'key(mvc=crm_Persons,select=name,group=employees, allowEmpty=true)', 'caption=По време на отсъствието->Заместник');
         
         // Споделени потребители
-        $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo)', 'caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList(roles=hrLeaves|ceo, showClosedUsers=no)', 'caption=Споделяне->Потребители');
     }
     
     
@@ -797,8 +797,9 @@ class hr_Leaves extends core_Master
         // Ако ще разпечатваме или ще отворим сингъла от qr-код
         if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
             // ако началната дата на отпуската е по-малка от дата на създаване на документа
+            // или датата на одобрение е по-голяма от  начаната дата на отпуската
             // искаме датите на създаване и одобряване да са преди началната дата
-            if($leaveFromTs <= $createdOnTs) {
+            if($leaveFromTs <= $createdOnTs || $activatedOnTs >= $leaveFromTs ) {
   
                 if($data->rec->state == 'active'){
 
@@ -822,8 +823,8 @@ class hr_Leaves extends core_Master
 
                     // заменяме датат на молбата
                     $row1 = new stdClass();
-                    $rowTpl1 = $tpl->getBlock('createdDate');
-                    $row1->createdDate = dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
+                    $rowTpl1 = $tpl->getBlock('createdDate'); //bp($rowTpl1->createdDate, $data->rec, $row);
+                    $row1->createdDate =  dt::mysql2verbal(dt::addDays(-2, $data->rec->leaveFrom), 'd.m.Y');
                     $rowTpl1->placeObject($row1);
                     $rowTpl1->removeBlocks();
                     $rowTpl1->append2master();

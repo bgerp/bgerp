@@ -25,8 +25,8 @@ class ckeditor_CKeditor extends core_BaseClass
     public function renderHtml($tpl, $attr = array())
     {
         $id = $attr['id'];
-        $tpl = new ET();
-        $tpl->prepend("<style>.ck p {margin:5px;}</style><textarea id=\"{$id}\"></textarea>");
+//        $tpl = new ET();
+//        $tpl->prepend("<style>.ck p {margin:5px;}</style><textarea id=\"{$id}\"></textarea>");
      
           $tpl->appendOnce(
               "\n<script type=\"text/javascript\" src=" .  '/sbf/bgerp/ckeditor/5.0.1/build/ckeditor.js'  . "></script>\n",

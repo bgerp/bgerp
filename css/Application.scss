@@ -8382,7 +8382,9 @@ body.narrow {
 	background-color: #eee;
 	border:1px solid #bbb;
 }
-
+.selectTaskOptions tr.newTaskBtn {
+	display:none;
+}
 .selectTaskOptions tr.selectTaskFromJobRow td {
 	padding-left:8px;
 	padding-top:5px;

@@ -114,7 +114,7 @@ defIfNot('ACC_ALTERNATE_WINDOW', '');
 /**
  * Захранване на стратегия с отрицателни крайни салда
  */
-defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'no');
+defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'yes');
 
 
 /**
@@ -462,9 +462,14 @@ class acc_Setup extends core_ProtoSetup
                         acc_reports_MovementArtRep,acc_reports_TotalRep,acc_reports_UnpaidInvoices,
                         acc_reports_UnactiveContableDocs,acc_reports_NegativeQuantities,acc_reports_InvoicesByContragent, acc_drivers_TotalRepPortal,
                         acc_reports_SoldProductsByPrimeCost';
-    
-    
-    
+
+
+    /**
+     * Дали пакета е системен
+     */
+     public $isSystem = true;
+
+
     /**
      * Зареждане на данни
      */

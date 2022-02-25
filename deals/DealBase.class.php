@@ -810,36 +810,20 @@ abstract class deals_DealBase extends core_Master
         $this->requireRightFor('changerate', $rec);
         
         $form = cls::get('core_Form');
-        $form->title = '|Преизчисляване на курса на документите в|* ' . $this->getHyperlink($rec, true);
+        $form->title = '|Преизчисляване на курса на|* ' . $this->getFormTitleLink($rec);
         $form->info = tr("Стар курс|*: <b>{$rec->currencyRate}</b>");
+
+        if($averageRate =  $this->getAverageRateInThread($rec)){
+            $form->info .= "<br>" . tr("Среден курс|*: <b>{$averageRate}</b>");
+        }
+
         $form->FLD('newRate', 'double', 'caption=Нов курс,mandatory');
         $form->input();
         
         if ($form->isSubmitted()) {
             $fRec = $form->rec;
-            
-            // Рекалкулиране на сделката
-            if ($this instanceof findeals_Deals) {
-                $rec->currencyRate = $fRec->newRate;
-                $this->save($rec);
-                if ($rec->state == 'active') {
-                    acc_Journal::deleteTransaction($this->getClassId(), $rec->id);
-                    acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
-                }
-            } else {
-                deals_Helper::recalcRate($this, $rec->id, $fRec->newRate);
-            }
-            
-            // Рекалкулиране на определени документи в нишката и
-            $dealDocuments = $this->getDescendants($rec->id);
-            $arr = array(cash_Pko::getClassId(), bank_IncomeDocuments::getClassId(), findeals_DebitDocuments::getClassId(), findeals_CreditDocuments::getClassId(), store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId(), acc_ValueCorrections::getClassId());
-            foreach ($dealDocuments as $d) {
-                if (!in_array($d->getClassId(), $arr)) {
-                    continue;
-                }
-                deals_Helper::recalcRate($d->getInstance(), $d->fetch(), $fRec->newRate);
-            }
-            
+            $this->recalcDocumentsWithNewRate($rec, $fRec->newRate);
+
             followRetUrl(null, 'Документите са преизчислени успешно');
         }
         
@@ -848,5 +832,86 @@ abstract class deals_DealBase extends core_Master
         
         // Рендиране на формата
         return $this->renderWrapping($form->renderHtml());
+    }
+
+
+    /**
+     * Реконтира документите в нишката на сделката с посочения нов курс
+     *
+     * @param stdClass $rec
+     * @param double $newRate
+     * @return void
+     */
+    public function recalcDocumentsWithNewRate($rec, $newRate)
+    {
+        // Рекалкулиране на сделката
+        if ($this instanceof findeals_Deals) {
+            $rec->currencyRate = $newRate;
+            $this->save($rec);
+            if ($rec->state == 'active') {
+                acc_Journal::deleteTransaction($this->getClassId(), $rec->id);
+                acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
+            }
+        } else {
+            deals_Helper::recalcRate($this, $rec->id, $newRate);
+        }
+
+        // Рекалкулиране на определени документи в нишката и
+        $dealDocuments = $this->getDescendants($rec->id);
+
+        $arr = array(cash_Pko::getClassId(), bank_IncomeDocuments::getClassId(), findeals_DebitDocuments::getClassId(), findeals_CreditDocuments::getClassId(), store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), sales_Services::getClassId(), purchase_Services::getClassId(), sales_Invoices::getClassId(), purchase_Invoices::getClassId(), acc_ValueCorrections::getClassId());
+        foreach ($dealDocuments as $d) {
+            if (!in_array($d->getClassId(), $arr)) {
+                continue;
+            }
+            deals_Helper::recalcRate($d->getInstance(), $d->fetch(), $newRate);
+        }
+    }
+
+
+    /**
+     * Колко е средния курс в сделката
+     *
+     * @param $rec
+     * @return double|null
+     */
+    private function getAverageRateInThread($rec)
+    {
+        // Ако е платено с  документа
+        $documents = array();
+        $currencyItem = acc_Items::fetchItem('currency_Currencies', currency_Currencies::getIdByCode($rec->currencyId))->id;
+        $actions = type_Set::toArray($rec->contoActions);
+        $amountInCurrency = $amountInBaseCurrency = 0;
+        if(isset($actions['pay'])){
+            $documents[] = doc_Containers::getDocument($rec->containerId);
+        }
+
+        $dealDocuments = $this->getDescendants($rec->id);
+        $documents = array_merge($documents, $dealDocuments);
+
+        // Всички платежни документи към сделката
+        foreach ($documents as $Doc){
+            if(!$Doc->isInstanceOf('deals_PaymentDocument') && !$Doc->isInstanceOf('deals_DocumentMaster') ) continue;
+            $jQuery = acc_JournalDetails::getQuery();
+            $jQuery->EXT('docType', 'acc_Journal', 'externalKey=journalId,externalName=docType');
+            $jQuery->EXT('docId', 'acc_Journal', 'externalKey=journalId,externalName=docId');
+            $jQuery->where("#docType = {$Doc->getClassId()} AND #docId = {$Doc->that}");
+            $side = ($this->className == 'sales_Sales') ? 'credit' : 'debit';
+            $jQuery->where("#{$side}Item3 = {$currencyItem}");
+
+            // Сумира се валутата от сделката и сумата в основна валута колко е
+            while($jRec = $jQuery->fetch()){
+                $amountInCurrency += $jRec->{"{$side}Quantity"};
+                $amountInBaseCurrency += $jRec->amount;
+            }
+        }
+
+        if(!empty($amountInCurrency)) {
+            $newRate = round($amountInBaseCurrency / $amountInCurrency, 5);
+
+            return $newRate;
+        }
+
+        return null;
     }
 }

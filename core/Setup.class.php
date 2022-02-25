@@ -369,7 +369,7 @@ class core_Setup extends core_ProtoSetup
         
         'CORE_SUCCESS_LOGIN_AUTOCOMPLETE' => array('int', 'caption=Запомняне на потребителя при логване от един браузър->Брой логвания'),
         
-        'CORE_ALLOW_PASS_SAVE' => array('enum(yes=Да,no=Не)', 'caption=Запомняне в бразузъра на паролата за логин->Разрешено'),
+        'CORE_ALLOW_PASS_SAVE' => array('enum(yes=Да,no=Не)', 'caption=Запомняне в браузъра на паролата за логин->Разрешено'),
         
         'CORE_LOGIN_LOG_FETCH_DAYS_LIMIT' => array('time(suggestions=1 месец|45 дни|2 месеца|3 месеца)', 'caption=Колко време назад да се търси в лога->Време'),
         

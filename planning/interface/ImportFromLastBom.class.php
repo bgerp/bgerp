@@ -38,28 +38,35 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
         expect($bomId = self::getLastActiveBom($masterRec));
         $form->info = tr('По рецепта') . ' ' . cat_Boms::getHyperlink($bomId, true);
         $firstDoc = doc_Threads::getFirstDocument($masterRec->threadId);
-        
+
+        $form->FLD("forQuantity", 'int', "input,caption=За количество,silent");
+        $form->setDefault('forQuantity', $firstDoc->fetchField('quantity'));
+        $form->input('forQuantity', 'silent');
+
         // Взимате се материалите за производството на к-то от заданието
-        $details = cat_Boms::getBomMaterials($bomId, $firstDoc->fetchField('quantity'), $masterRec->storeId);
+        $details = cat_Boms::getBomMaterials($bomId, $rec->forQuantity, $masterRec->storeId);
         foreach ($details as $dRec) {
             $dRec->caption = cat_Products::getTitleById($dRec->productId);
             $dRec->caption = str_replace(',', ' ', $dRec->caption);
             
             // Подготовка на полетата
-            $key = "{$dRec->productId}|{$dRec->packagingId}";
+            $key = "{$dRec->productId}_{$dRec->packagingId}";
             $shortUom = cat_UoM::getShortName($dRec->packagingId);
 
             $equivalentArr = planning_GenericMapper::getEquivalentProducts($dRec->productId);
             if(countR($equivalentArr) > 1){
                 unset($equivalentArr[$dRec->productId]);
-                $form->FLD("{$key}|replaceId", 'int', "input,caption={$dRec->caption}->Заместител");
-                $form->setOptions("{$key}|replaceId", array('' => '') + $equivalentArr);
+                $form->FLD("{$key}_replaceId", 'int', "input,caption={$dRec->caption}->Заместител");
+                $form->setOptions("{$key}_replaceId", array('' => '') + $equivalentArr);
             }
 
             $form->FLD($key, 'double(Min=0)', "input,caption={$dRec->caption}->К-во,unit={$shortUom}");
             $form->setDefault($key, $dRec->quantity / $dRec->quantityInPack);
             $rec->detailsDef[$key] = $dRec;
         }
+
+        $refreshFields = implode('|', array_keys($rec->detailsDef));
+        $form->setField('forQuantity', "removeAndRefreshForm={$refreshFields}");
     }
     
     
@@ -89,14 +96,14 @@ class planning_interface_ImportFromLastBom extends planning_interface_ImportDriv
                 unset($dRec->id);
                 $dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
 
-                if(!empty($rec->{"{$key}|replaceId"})){
+                if(!empty($rec->{"{$key}_replaceId"})){
                     $originalMeasureId = cat_Products::fetchField($dRec->productId, 'measureId');
-                    $newMeasureId = cat_Products::fetchField($rec->{"{$key}|replaceId"}, 'measureId');
+                    $newMeasureId = cat_Products::fetchField($rec->{"{$key}_replaceId"}, 'measureId');
                     $dRec->packagingId = $newMeasureId;
 
                     $dRec->quantity = cat_Uom::convertValue($dRec->quantity, $originalMeasureId, $newMeasureId);
                     $dRec->quantityInPack = 1;
-                    $dRec->productId = $rec->{"{$key}|replaceId"};
+                    $dRec->productId = $rec->{"{$key}_replaceId"};
                 }
 
                 $dRec->noteId = $rec->{$mvc->masterKey};

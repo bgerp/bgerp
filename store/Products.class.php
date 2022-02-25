@@ -965,4 +965,33 @@ class store_Products extends core_Detail
         
         return $tpl;
     }
+
+
+    /**
+     * Връща наличните количества в посочените складове към датата
+     *
+     * @param int $productId  - ид на артикул
+     * @param date|null $date - към коя дата
+     * @param mixed $stores   - от кои складове
+     * @return array $res     - наличните к-ва по склад
+     */
+    public static function getQuantitiesByStore($productId, $date = null, $stores = null)
+    {
+        $res = array();
+        if(isset($stores)){
+            $storeArr = keylist::isKeylist($stores) ? keylist::toArray($stores) : $stores;
+        } else {
+            $sQuery = store_Stores::getQuery();
+            $sQuery->where("#state != 'rejected' AND #state != 'closed'");
+            $sQuery->show('id');
+            $storeArr = arr::extractValuesFromArray($sQuery->fetchAll());
+        }
+
+        foreach ($storeArr as $storeId){
+            $quantity = store_Products::getQuantities($productId, $storeId, $date)->quantity;
+            $res[$storeId] = $quantity;
+        }
+
+        return $res;
+    }
 }

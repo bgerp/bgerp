@@ -108,7 +108,7 @@ class trans_TransportUnits extends core_Manager
      */
     public static function getAll()
     {
-        return cls::get(get_called_class())->makeArray4Select('pluralName');
+        return cls::get(get_called_class())->makeArray4Select('name');
     }
     
     

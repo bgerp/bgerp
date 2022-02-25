@@ -404,10 +404,21 @@ class planning_Centers extends core_Master
     {
         $options = array();
         if(isset($jobId)){
-            $jobFolderId = planning_Jobs::fetchField($jobId, 'folderId');
-            $Cover = doc_Folders::getCover($jobFolderId);
+            $jobRec = planning_Jobs::fetch($jobId, 'folderId,productId');
+            $Cover = doc_Folders::getCover($jobRec->folderId);
+
+            // Ако артикула може да се създава само в един център остава само той
+            if($Driver = cat_Products::getDriver($jobRec->productId)) {
+                $productionData = $Driver->getProductionData($jobRec->productId);
+                if(isset($productionData['centerId'])){
+                    $options[$jobRec->folderId] = planning_Centers::getTitleById($productionData['centerId'], false);
+
+                    return $options;
+                }
+            }
+
             if($Cover->isInstanceOf('planning_Centers')){
-                $options[$jobFolderId] = $Cover->getRecTitle(false);
+                $options[$jobRec->folderId] = $Cover->getRecTitle(false);
             }
         }
         

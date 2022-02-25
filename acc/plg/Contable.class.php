@@ -165,6 +165,7 @@ class acc_plg_Contable extends core_Plugin
                 $rec->isContable = 'no';
             }
         } catch (acc_journal_Exception $ex) {
+            wp($ex);
             $rec->isContable = 'no';
         }
         
@@ -509,6 +510,7 @@ class acc_plg_Contable extends core_Plugin
         try {
             $result = ($mvc->getValidatedTransaction($rec)) !== false;
         } catch (acc_journal_Exception $ex) {
+            wp($ex);
             $res = $ex->getMessage();
             $result = false;
         }

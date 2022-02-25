@@ -448,6 +448,11 @@ class bgerp_Bookmark extends core_Manager
         if ($rec->type != 'bookmark') {
             $form->setField('url', 'input=none');
         }
+
+        // При създаване на връзка, да не може да се редактира
+        if ($form->rec->url && !$form->rec->id && !$form->cmd) {
+            $form->setReadOnly('url');
+        }
     }
     
     

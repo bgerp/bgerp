@@ -1516,4 +1516,25 @@ class cat_products_Packagings extends core_Detail
 
         return round($volume, 3);
     }
+
+
+    /**
+     * Връща САМО опаковките на артикула
+     *
+     * @param int $productId
+     * @return array $options
+     */
+    public static function getOnlyPacks($productId)
+    {
+        $options = array();
+        $query = static::getQuery();
+        $query->where("#productId = {$productId}");
+        $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        $query->where("#type = 'packaging'");
+        while($rec = $query->fetch()){
+            $options[$rec->packagingId] = cat_UoM::getTitleById($rec->packagingId, false);
+        }
+
+        return $options;
+    }
 }

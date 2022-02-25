@@ -92,7 +92,7 @@ class doc_plg_Close extends core_Plugin
     {
         if ($action == 'close' && isset($rec)) {
             if ($rec->threadId) {
-                if (!doc_Threads::haveRightFor('single', $rec->threadId)) {
+                if (!doc_Threads::haveRightFor('single', $rec->threadId) && !$mvc->haveRightFor('single', $rec)) {
                     $res = 'no_one';
                 }
             } else {

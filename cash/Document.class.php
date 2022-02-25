@@ -572,21 +572,23 @@ abstract class cash_Document extends deals_PaymentDocument
      *               ['locationId']     string|NULL - ид на локация на доставка (ако има)
      *               ['addressInfo']    string|NULL - информация за адреса
      *               ['countryId']      string|NULL - ид на държава
+     *               ['place']          string|NULL - населено място
+     *               ['features']       array       - свойства на адреса
      */
     public function getTransportLineInfo_($rec, $lineId)
     {
         $rec = $this->fetchRec($rec);
-        
+        $lineState = trans_Lines::fetchField($lineId, 'state');
         $sign = ($this->getClassId() == cash_Pko::getClassId()) ? 1 : -1;
         $baseAmount = round($rec->amount * $rec->rate, 4);
         $info = array('state' => $rec->state, 'notes' => $rec->lineNotes, 'currencyId' => currency_Currencies::getCodeById($rec->currencyId), 'amount' => $sign * $rec->amount, 'baseAmount' => $sign * $baseAmount);
         $info['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
-        
+
         $amountVerbal = core_type::getByName('double(decimals=2)')->toVerbal($info['amount']);
         $info['amountVerbal'] = currency_Currencies::decorate($amountVerbal, $rec->currencyId);
         $info['cases'] = array($rec->peroCase);
         $info['stores'] = array();
-        if($this->haveRightFor('conto', $rec)){
+        if($this->haveRightFor('conto', $rec) && $lineState != 'rejected'){
             $contoUrl = $this->getContoUrl($rec->id);
             $warning = $this->getContoWarning($rec->id, $rec->isContable);
             

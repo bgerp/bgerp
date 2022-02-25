@@ -79,3 +79,15 @@ tr .groupremoved {
 .printing .group-by-field-row {
   color: black !important; }
 
+span.lineFeature {
+  border-radius: 3px;
+  border: 1px solid #bbbbbb;
+  font-size: 0.7em;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  margin-right: 2px;
+  padding: 4px;
+  background-color: #eeeeee;
+  text-align: center;
+  display: inline-block; }
+

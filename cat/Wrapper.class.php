@@ -32,11 +32,12 @@ class cat_Wrapper extends plg_ProtoWrapper
         $this->TAB(array('cat_UoM', 'type' => 'uom'), 'Мерки->Основни', 'packEdit,ceo,sales,purchase');
         $this->TAB(array('cat_UoM', 'type' => 'packaging'), 'Мерки->Опаковки', 'packEdit,ceo,sales,purchase');
         $this->TAB('cat_PackParams', 'Мерки->Размери', 'packEdit,ceo,sales,purchase');
-        
+
         $this->TAB('cat_Params', 'Параметри', 'cat,ceo,sales,purchase');
         $this->TAB('cat_ProductTplCache', 'Дебъг->Кеш', 'ceo, debug, cat');
         $this->TAB('cat_Serials', 'Дебъг->Генерирани номера', 'debug');
-        
+        $this->TAB('cat_products_Params', 'Дебъг->Продуктови параметри', 'debug');
+
         $this->title = 'Продукти';
     }
 }
