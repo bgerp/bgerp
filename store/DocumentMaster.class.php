@@ -698,7 +698,7 @@ abstract class store_DocumentMaster extends core_Master
         }
 
         // Ако оригиналния документ е закачен към ТЛ, закача се и този
-        if(empty($rec->id) && isset($rec->reverseContainerId)){
+        if((empty($rec->id) || $rec->_replaceReverseContainerId) && isset($rec->reverseContainerId)){
             $Doc = doc_Containers::getDocument($rec->reverseContainerId);
             $docRec = $Doc->fetch("{$Doc->lineFieldName},deliveryTime,valior");
 
