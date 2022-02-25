@@ -329,7 +329,6 @@ class rack_MovementGenerator2 extends core_Manager
             }
         }
  
- 
         // Генерираме движенията за всяка група и изисляваме времето, което ще отнеме
         if(is_array($bestMove)){
             foreach($bestMove as $m) {
@@ -476,17 +475,21 @@ class rack_MovementGenerator2 extends core_Manager
         // Изчисляваме рейтинга на движенията
         foreach($moves as $m) {
             // Вземане от палета
-            $rate = self::isFirstRow($m->pallet) ? $timeGetA : $timeGet;
+            $rate += ($a = self::isFirstRow($m->pallet) ? $timeGetA : $timeGet);
+            
+            $m->timeTake = $a;
 
             // Броене от палета
             if($m->pQ != $m->quantity) {
-                $rate += self::timeToCount($m->pQ, $m->quantity, $packs);
+                $rate += ($a = self::timeToCount($m->pQ, $m->quantity, $packs));
+                $m->timeCount = $a;
             }
             
             $q = $m->quantity;
             // Оставяне по зоните
             foreach($m->zones as $zI => $zQ) {
                 $rate += $timeZone;
+                $m->zonesTimes[$zI] = $timeZone;
                 if($q != $zQ) {
                     $rate += self::timeToCount($q, $zQ, $packs);
                 }
@@ -495,11 +498,12 @@ class rack_MovementGenerator2 extends core_Manager
             // Връщане
             if($o->ret) {
                 $rate += $timeReturn;
+                $m->timeReturn = $timeReturn;
             }
         }
         
         $o->pallets = $p;
- 
+
         return $moves;
     }
 
