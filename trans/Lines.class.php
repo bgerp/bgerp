@@ -696,20 +696,38 @@ class trans_Lines extends core_Master
      */
     public static function getSelectableLines($folderId = null)
     {
-        $linesArr = array();
         $query = self::getQuery();
-        $query->where("#state = 'pending'");
+        $query->where("#state = 'pending' || #state = 'active'");
         $query->orderBy('id', 'DESC');
         if(isset($folderId)){
             $query->where("#folderId = {$folderId}");
         }
-
         $recs = $query->fetchAll();
-        array_walk($recs, function ($rec) use (&$linesArr) {
-            $linesArr[$rec->id] = trans_Lines::getRecTitle($rec, false);
+
+        $res = $pendings = $active = array();
+
+        // Подготвяне на опциите и групирането им
+        array_walk($recs, function ($rec) use (&$pendings, &$active) {
+            $title = trans_Lines::getRecTitle($rec, false);
+            if($rec->state == 'pending'){
+                $pendings[$rec->id] = $title;
+            } else {
+                $opt = new stdClass();
+                $opt->attr = array('class' => 'state-rejected');
+                $opt->title = $title;
+                $active[$rec->id] = $opt;
+            }
         });
 
-        return $linesArr;
+        if(countR($pendings)){
+            $res = array('p' => (object) array('group' => true, 'title' => tr('Чакащи'))) + $pendings;
+        }
+
+        if(countR($active)){
+            $res += array('a' => (object) array('group' => true, 'title' => tr('Активирани'))) + $active;
+        }
+
+        return $res;
     }
 
 
