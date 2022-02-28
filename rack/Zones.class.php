@@ -1134,7 +1134,7 @@ class rack_Zones extends core_Master
                 $firstZoneId = key($pRec->zones);
                 $groupId = rack_Zones::fetchField($firstZoneId, 'groupId');
 
-                // Кои стилажи са с приоритет при групата на зоните
+                // Кои стелажи са с приоритет при групата на зоните
                 if(!array_key_exists($groupId, static::$cachedRacksByGroup)){
                     $rQuery = rack_Racks::getQuery();
                     $rQuery->where("#storeId = {$storeId}");
@@ -1147,7 +1147,7 @@ class rack_Zones extends core_Master
                     static::$cachedRacksByGroup[$groupId] = arr::extractValuesFromArray($rQuery->fetchAll(), 'num');
                 }
 
-                // Оставяне само на тези палети, които са на тези стилажи
+                // Оставяне само на тези палети, които са на тези стелажи
                 $rackNums = static::$cachedRacksByGroup[$groupId];
                 $onlyPalletsInThoseRacks = array();
                 array_walk($rackNums, function($a) use (&$onlyPalletsInThoseRacks, $pallets){
@@ -1158,7 +1158,7 @@ class rack_Zones extends core_Master
                     }
                 });
 
-                // Ако палетите от приоритетните стилажи са достатъчни за зоната, използват се само те
+                // Ако палетите от приоритетните стелажи са достатъчни за зоната, използват се само те
                 $onPriorityRacks = arr::sumValuesArray($onlyPalletsInThoseRacks, 'quantity');
                 if($onPriorityRacks >= $requiredQuantityOnZones){
                     $pallets = $onlyPalletsInThoseRacks;
