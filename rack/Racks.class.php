@@ -116,19 +116,25 @@ class rack_Racks extends core_Master
      * Шаблон за заглавието
      */
     public $recTitleTpl = '|Стелаж|* [#num#]';
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
-        $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,smartCenter');
+        $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,tdClass=leftCol');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('firstRowTo', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Първи ред до,notNull,value=A');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
+        $this->FLD('groups', 'keylist(mvc=rack_ZoneGroups,select=name,allowEmpty)', 'caption=Приоритетно използване в зони->Групи');
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
         $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter,input=none');
         $this->FLD('reserved', 'int', 'caption=Палет-места->Запазени,smartCenter,input=none');
@@ -200,6 +206,10 @@ class rack_Racks extends core_Master
             }
         } else {
             $form->setReadOnly('num');
+        }
+
+        if(!static::canUsePriorityRacks($rec->storeId)){
+            $form->setField('groups', 'input=none');
         }
     }
     
@@ -331,14 +341,12 @@ class rack_Racks extends core_Master
     public static function recToVerbal_($rec, &$fields = '*')
     {
         $row = parent::recToVerbal_($rec, $fields);
-        
         $row->num = ' №' . $row->num;
         
         $fields = arr::make($fields, true);
-        
         if (isset($fields['-single'])) {
             $storeId = store_Stores::getCurrent();
-            $row->num .= ' / ' . store_Stores::getTitleById($storeId);
+            $row->num .= ' / ' . store_Stores::getHyperlink($storeId);
         }
         
         return $row;
@@ -354,6 +362,15 @@ class rack_Racks extends core_Master
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
+        if(static::canUsePriorityRacks($rec->storeId)){
+            $row->groups = $mvc->getFieldType('groups')->toVerbal($rec->groups);
+            if (isset($fields['-list'])) {
+                $row->num .= " <br><small>{$row->groups}</small>";
+            }
+        } else {
+            unset($row->groups);
+        }
+
         if ($fields['-single']) {
             $row->places = self::renderRack($rec);
             $row->comment .= "<div style='font-size:0.8em;color:999;'>" .
@@ -804,5 +821,23 @@ class rack_Racks extends core_Master
         }
 
         return $options;
+    }
+
+
+    /**
+     * Могат ли да се използват приоритетни стелажи в склада
+     *
+     * @param int $storeId
+     * @return mixed
+     */
+    public static function canUsePriorityRacks($storeId)
+    {
+        if(!array_key_exists($storeId, static::$cache)){
+            $prioritizeRackGroups = store_Stores::fetchField($storeId, 'prioritizeRackGroups');
+            $prioritizeRackGroups = !empty($prioritizeRackGroups) ? $prioritizeRackGroups : rack_Setup::get('ENABLE_PRIORITY_RACKS');
+            static::$cache[$storeId] = $prioritizeRackGroups;
+        }
+
+        return (static::$cache[$storeId] == 'yes');
     }
 }
