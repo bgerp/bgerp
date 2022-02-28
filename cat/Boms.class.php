@@ -1650,6 +1650,7 @@ class cat_Boms extends core_Master
         expect($rec = self::fetchRec($id));
         $pName = cat_Products::getTitleById($rec->productId, false);
         $Details = cls::get('cat_BomDetails');
+        $productStepClassId = planning_interface_StepProductDriver::getClassId();
 
         // За основния артикул подготвяме задача
         // В която самия той е за произвеждане
@@ -1665,9 +1666,12 @@ class cat_Boms extends core_Master
         
         // Намираме неговите деца от първо ниво те ще бъдат артикулите за влагане/отпадък
         $dQuery = cat_BomDetails::getQuery();
+        $dQuery->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $dQuery->where("#bomId = {$rec->id}");
         $dQuery->where('#parentId IS NULL');
         while ($detRec = $dQuery->fetch()) {
+            if($detRec->innerClass == $productStepClassId) continue;
+
             $detRec->params['$T'] = $quantity;
             $quantityE = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
             if ($quantityE == cat_BomDetails::CALC_ERROR) {
@@ -1681,7 +1685,6 @@ class cat_Boms extends core_Master
         // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
         // А неговите подетапи са за влагане/отпадък
         $onlySteps = $allStages = array();
-        $productStepClassId = planning_interface_StepProductDriver::getClassId();
         $query = cat_BomDetails::getQuery();
         $query->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $query->where("#bomId = {$rec->id}");
@@ -1766,20 +1769,18 @@ class cat_Boms extends core_Master
         }
 
         foreach ($tasks as $k => $defTask){
-            if(isset($defTask->_dId)){
-                $siblingSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_parentId && $a->position < $defTask->_position;});
-                $childrenSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_dId;});
+            $siblingSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_parentId && $a->position < $defTask->_position;});
+            $childrenSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_dId;});
 
-                foreach (array($siblingSteps, $childrenSteps) as $arr){
-                    if(countR($arr)){
-                        arr::sortObjects($arr, 'position', 'DESC');
-                        $foundStepId = key($arr);
-                        if($foundStepId){
-                            $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
-                            $foundStepTask = $foundStepArr[key($foundStepArr)];
-                            if($foundStepTask){
-                                $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
-                            }
+            foreach (array($siblingSteps, $childrenSteps) as $arr){
+                if(countR($arr)){
+                    arr::sortObjects($arr, 'position', 'DESC');
+                    $foundStepId = key($arr);
+                    if($foundStepId){
+                        $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
+                        $foundStepTask = $foundStepArr[key($foundStepArr)];
+                        if($foundStepTask){
+                            $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
                         }
                     }
                 }
