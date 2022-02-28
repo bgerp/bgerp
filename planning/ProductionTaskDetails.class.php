@@ -370,7 +370,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             if (!$form->gotErrors()) {
                 if($rec->_isKgMeasureId){
-                    $rec->quantity = (!empty($rec->weight)) ? $rec->weight : 1;
+                    $rec->quantity = (!empty($rec->weight)) ? $rec->weight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
+                    $rec->weight = $rec->quantity;
                 } else {
                     $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
                 }
