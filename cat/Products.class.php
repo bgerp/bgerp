@@ -722,10 +722,14 @@ class cat_Products extends embed_Manager
         
         $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
         $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
+        $sharedType = 'keylist(mvc=doc_Folders,select=title)';
         $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)';
-        
+
+        $sharedFolderSuggestions = doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf');
+
         $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => $categoryType);
         $fields['Groups'] = array('caption' => 'Допълнителен избор->Групи', 'notColumn' => true, 'type' => $groupType);
+        $fields['_sharedFolders'] = array('caption' => 'Допълнителен избор->Достъпно в', 'notColumn' => true, 'type' => $sharedType, 'suggestions' => $sharedFolderSuggestions);
         $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => true, 'type' => $metaType);
         
         if (!$mvc->fields['Category']) {
@@ -896,6 +900,10 @@ class cat_Products extends embed_Manager
         $category = ($rec->csv_category) ? $rec->csv_category : $rec->Category;
         
         $mvc->routePublicProduct($category, $rec);
+
+        if(!empty($rec->sharedFolders)){
+            //$rec->_sharedFolders = $rec->sharedFolders;
+        }
     }
     
     
@@ -1359,6 +1367,15 @@ class cat_Products extends embed_Manager
         // Ако артикула е редактиран, преизчислява се транспорта
         if ($rec->_isEditedFromForm === true) {
             sales_TransportValues::recalcTransportByProductId($rec->id);
+        }
+
+        // Ако има споделени папки импортират се и те
+        if(!empty($rec->_sharedFolders)){
+            $sharedFolders = keylist::toArray($rec->_sharedFolders);
+            foreach ($sharedFolders as $folderId){
+                $sharedRec = (object)array('productId' => $rec->id, 'folderId' => $folderId);
+                cat_products_SharedInFolders::save($sharedRec);
+            }
         }
     }
     
