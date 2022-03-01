@@ -900,10 +900,6 @@ class cat_Products extends embed_Manager
         $category = ($rec->csv_category) ? $rec->csv_category : $rec->Category;
         
         $mvc->routePublicProduct($category, $rec);
-
-        if(!empty($rec->sharedFolders)){
-            //$rec->_sharedFolders = $rec->sharedFolders;
-        }
     }
     
     
