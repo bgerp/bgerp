@@ -657,7 +657,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $data->listSummary = (object)array('mvc' => clone $this, 'query' => $summaryQuery);
             $data->listSummary->mvc->FNC('amountDealNoVat', 'varchar', 'caption=Поръчано (без ДДС),input=none,summary=amount');
             $data->listSummary->mvc->FNC('amountDeliveredNoVat', 'varchar', 'caption=Доставено (без ДДС),input=none,summary=amount');
-            $data->listSummary->mvc->FNC('amountPaidNoVat', 'varchar', 'caption=СПлатено (без ДДС),input=none,summary=amount');
+            $data->listSummary->mvc->FNC('amountPaidNoVat', 'varchar', 'caption=Платено (без ДДС),input=none,summary=amount');
             $data->listSummary->mvc->FNC('amountInvoicedNoVat', 'varchar', 'caption=Фактурирано (без ДДС),input=none,summary=amount');
             $data->listSummary->mvc->FNC('amountBlNoVat', 'varchar', 'caption=Крайно салдо,input=none,summary=amount');
         }
