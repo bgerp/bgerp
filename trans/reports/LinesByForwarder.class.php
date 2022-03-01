@@ -125,8 +125,6 @@
          
          $query->EXT('start', 'trans_Lines', 'externalName=start,externalKey=lineId');
          
-         $query->EXT('createdOn', 'trans_Lines', 'externalName=createdOn,externalKey=lineId');
-         
          $query->where('#forwarderPersonId IS NOT NULL');
          
          $query->where("#status != 'removed'");
