@@ -66,15 +66,9 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Поле за начало на търсенето
+     * Да се скрива ли филтъра по дата от лист изгледа
      */
-    public $filterFieldDateFrom = 'timeStart';
-    
-    
-    /**
-     * Поле за крайна дата на търсене
-     */
-    public $filterFieldDateTo = 'timeEnd';
+    public $hidePeriodFilter = true;
     
     
     /**
@@ -205,14 +199,6 @@ class planning_Tasks extends core_Master
      * Интерфейси, поддържани от този мениджър
      */
     public $interfaces = 'barcode_SearchIntf,label_SequenceIntf=planning_interface_TaskLabel';
-    
-    
-    /**
-     * Да се показват ли във филтъра по дата и NULL записите
-     * 
-     * @see acc_plg_DocumentSummary
-     */
-    public $showNullDateFields = true;
 
 
     /**
@@ -502,6 +488,15 @@ class planning_Tasks extends core_Master
         return $row;
     }
 
+
+    /**
+     * Какво е дефолтното количество в опаковката за етикетиране
+     *
+     * @param int $productId
+     * @param int $measureId
+     * @param int $labelPackagingId
+     * @return float|int $quantityInPackDefault
+     */
     public static function getDefaultQuantityInLabelPackagingId($productId, $measureId, $labelPackagingId)
     {
         $packRec = cat_products_Packagings::getPack($productId, $labelPackagingId);
@@ -1199,12 +1194,33 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
-        $data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
-        $data->listFilter->showFields .= ',assetId';
-        $data->listFilter->input('assetId');
-        
-        if ($assetId = $data->listFilter->rec->assetId) {
-            $data->query->where("LOCATE('|{$assetId}|', #fixedAssets)");
+        $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
+
+        // Добавят се за избор само използваните в ПО оборудвания
+        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
+        if(countR($assetInTasks)){
+            $data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
+            $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
+            $data->listFilter->showFields .= ',assetId';
+            $data->listFilter->input('assetId');
+        }
+
+        $folderCacheKey = 'taskLastFilteredFolderId' . $mvc->className . core_Users::getCurrent();
+        if ($lastFolderId = core_Permanent::get($folderCacheKey)) {
+            $data->listFilter->setDefault('folder', $lastFolderId);
+        }
+
+        if($filter = $data->listFilter->rec){
+
+            // Филтър по оборудване
+            if ($assetId = $filter->assetId) {
+                $data->query->where("LOCATE('|{$assetId}|', #fixedAssets)");
+            }
+
+            // Кеш на избраната папка
+            if ($filter->folder != $lastFolderId) {
+                core_Permanent::set($folderCacheKey, $filter->folder, 24 * 60 * 100);
+            }
         }
         
         // Показване на полето за филтриране

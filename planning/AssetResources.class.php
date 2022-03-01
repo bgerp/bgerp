@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -824,5 +824,26 @@ class planning_AssetResources extends core_Master
         if ($type == 'nonMaterial') {
             $mvc->currentTab = 'Ресурси->Нематериални';
         }
+    }
+
+
+    /**
+     * Кои са използваните в операции ресурси
+     *
+     * @return array $options
+     */
+    public static function getUsedAssetsInTasks()
+    {
+        $options = array();
+        $assetQuery = planning_AssetResources::getQuery();
+        $assetQuery->where("#state != 'closed'");
+        $assetQuery->show('id');
+        while($aRec = $assetQuery->fetch()){
+            if(planning_Tasks::fetchField("LOCATE('|{$aRec->id}|', #fixedAssets)")){
+                $options[$aRec->id] = planning_AssetResources::getTitleById($aRec->id, false);
+            }
+        }
+
+        return $options;
     }
 }
