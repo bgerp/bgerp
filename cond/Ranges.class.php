@@ -9,7 +9,7 @@
  * @package   cond
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.11
@@ -93,18 +93,20 @@ class cond_Ranges extends core_Manager
         $this->setDbUnique('class,min,max');
         $this->setDbUnique('systemId');
     }
-    
-    
+
+
     /**
      * Добавя нов диапазон за документа
-     * 
-     * @param mixed $class
-     * @param int $min
-     * @param int $max
-     * @param string|null $systemId
-     * @param boolean $updateExisting
-     * 
+     *
+     * @param mixed $class - клас
+     * @param int $min   - минимален номер
+     * @param int $max   - максимален номер
+     * @param mixed $users - потребители
+     * @param mixed $roles - роли
+     * @param int|null $systemId - систем ид
+     * @param boolean $updateExisting - да се обновява ли съществуващия
      * @return int
+     * @throws core_exception_Expect
      */
     public static function add($class, $min, $max, $users = null, $roles = null, $systemId = null, $updateExisting = true)
     {
@@ -469,14 +471,18 @@ class cond_Ranges extends core_Manager
      * Показване на диапазона
      * 
      * @param int $id
-     * 
      * @return string $res
      */
     public static function displayRange($id)
     {
         $rec = self::fetchRec($id);
+        $Class = cls::get($rec->class);
+        if($Class instanceof deals_InvoiceMaster){
+            $rec->min = str_pad($rec->min, 10, '0', STR_PAD_LEFT);
+            $rec->max = str_pad($rec->max, 10, '0', STR_PAD_LEFT);
+        }
         $res = "{$rec->min} - {$rec->max}";
-        
+
         return $res;
     }
 }
