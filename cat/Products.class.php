@@ -370,7 +370,7 @@ class cat_Products extends embed_Manager
         $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('generic', 'enum(yes=Да,no=Не)', 'input=none,notNull,value=no');
-        $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Свойства->Списък,columns=2,mandatory');
+        $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Свойства,columns=2,mandatory');
         
         $this->setDbIndex('isPublic');
         $this->setDbIndex('canSell');
