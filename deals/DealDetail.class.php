@@ -701,7 +701,7 @@ abstract class deals_DealDetail extends doc_Detail
         }
         
         // Добавяне на тулбар
-        $form->toolbar->addSbBtn('Импорт', 'save', 'ef_icon = img/16/import.png, title = Импорт');
+        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Импорт');
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
         
         // Рендиране на опаковката
@@ -751,7 +751,7 @@ abstract class deals_DealDetail extends doc_Detail
             }
 
             $caption = '|' . $title . '|*';
-            $caption .= ' |' . cat_UoM::getShortName($lRec->packagingId);
+            $caption .= ': | ' . cat_UoM::getShortName($lRec->packagingId);
             
             // Проверка дали вече не просъства в продажбата
             $res = array_filter($recs, function (&$e) use ($lRec) {
