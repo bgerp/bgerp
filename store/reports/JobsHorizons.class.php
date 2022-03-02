@@ -209,7 +209,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
             $quantity = store_Products::getQuantities($sRec->productId);
             $planned = store_Products::getQuantities($sRec->productId,$rec->date,$rec->storeId);
-         //  bp($quantity,$planned);
+           //bp($quantity,$planned);
 
                 // bp($sRec);
 
@@ -247,7 +247,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
+            $fld->FLD('reserved', 'varchar', 'caption=Количество->Запазено,smartCenter');
+            $fld->FLD('expected', 'varchar', 'caption=Количество->Очаквано,smartCenter');
+            $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
 
 
         }
