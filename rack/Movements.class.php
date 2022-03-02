@@ -749,11 +749,11 @@ class rack_Movements extends rack_MovementAbstract
 
             // Ако записа в изтрит не се прави нищо
             if(!$this->fetchField($rec->id, 'id', false)){
+                wp('Опит за промяна на изтрит запис', $rec);
                 $errorMsg = 'Движението вече е изтрито';
             }
 
             if (!empty($errorMsg)) {
-                wp('Опит за промяна на изтрит запис', $rec);
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
                     core_Statuses::newStatus($errorMsg, 'error');
