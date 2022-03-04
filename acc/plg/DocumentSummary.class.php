@@ -265,7 +265,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
 
         if(!$mvc->hidePeriodFilter){
-            $data->listFilter->showFields .= ',from, to' . $showFilterDateField;
+            $data->listFilter->showFields .=  ((!empty($data->listFilter->showFields) ? ',' : '')) . 'from, to' . $showFilterDateField;
         }
         
         if ($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)) {
