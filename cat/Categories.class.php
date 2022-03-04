@@ -558,10 +558,10 @@ class cat_Categories extends core_Master
             } elseif(!isset($metasArr['canConvert'])){
                 $error = "Артикулът е етап от производство и трябва да остане вложим|*!";
             } elseif(isset($productId)) {
-                $canStore = cat_Products::fetchField($productId, 'planning_Steps_canStore');
-                if($canStore == 'yes' && !isset($metasArr['canStore'])){
+                $pRec = cat_Products::fetch($productId);
+                if($pRec->planning_Steps_canStore == 'yes' && !isset($metasArr['canStore'])){
                     $error = "Артикулът е складируем етап от производство и трябва да остане складируем|*!";
-                } elseif($canStore != 'yes' && isset($metasArr['canStore'])){
+                } elseif($pRec->planning_Steps_canStore != 'yes' && isset($metasArr['canStore'])){
                     $error = "Артикулът е нескладируем етап от производство и не може да стане складируем|*!";
                 }
 
