@@ -650,6 +650,11 @@ class crm_Profiles extends core_Master
      */
     public function act_ChangePassword()
     {
+        if (!haveRole('powerUser') && (haveRole('partner'))) {
+
+            return new Redirect(array('cms_Profiles', 'changePassword'));
+        }
+
         requireRole('powerUser');
         
         $form = $this->prepareChangePassword();
