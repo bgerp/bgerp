@@ -301,12 +301,12 @@ class trans_Lines extends core_Master
 
         if (!$data->toolbar->haveButton('btnClose')) {
             if (self::countDocumentsByState($rec->id, 'draft,pending') && $rec->state == 'active') {
-                $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нев|*!', 'title' => 'Затваряне на транспортна линия'));
+                $data->toolbar->addBtn('Затваряне', array(), false, array('error' => 'Линията не може да бъде затворена докато има неактивирани документи към нея|*!', 'title' => 'Затваряне на транспортна линия'));
             }
         }
 
         if (!$data->toolbar->haveButton('btnActivate')) {
-            if (self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
+            if (in_array($rec->state, array('draft', 'pending')) && self::countDocumentsByState($rec->id, 'pending,draft', 'store_iface_DocumentIntf')) {
                 $data->toolbar->addBtn('Активиране', array(), false, array('error' => 'В транспортната линия има заявки, чернови или оттеглени експедиционни документи|*!', 'ef_icon' => 'img/16/lightning.png', 'title' => 'Активиране на транспортната линия'));
             }
         }
@@ -696,20 +696,38 @@ class trans_Lines extends core_Master
      */
     public static function getSelectableLines($folderId = null)
     {
-        $linesArr = array();
         $query = self::getQuery();
-        $query->where("#state = 'pending'");
+        $query->where("#state = 'pending' || #state = 'active'");
         $query->orderBy('id', 'DESC');
         if(isset($folderId)){
             $query->where("#folderId = {$folderId}");
         }
-
         $recs = $query->fetchAll();
-        array_walk($recs, function ($rec) use (&$linesArr) {
-            $linesArr[$rec->id] = trans_Lines::getRecTitle($rec, false);
+
+        $res = $pendings = $active = array();
+
+        // Подготвяне на опциите и групирането им
+        array_walk($recs, function ($rec) use (&$pendings, &$active) {
+            $title = trans_Lines::getRecTitle($rec, false);
+            if($rec->state == 'pending'){
+                $pendings[$rec->id] = $title;
+            } else {
+                $opt = new stdClass();
+                $opt->attr = array('class' => 'state-rejected');
+                $opt->title = $title;
+                $active[$rec->id] = $opt;
+            }
         });
 
-        return $linesArr;
+        if(countR($pendings)){
+            $res = array('p' => (object) array('group' => true, 'title' => tr('Чакащи'))) + $pendings;
+        }
+
+        if(countR($active)){
+            $res += array('a' => (object) array('group' => true, 'title' => tr('Активирани'))) + $active;
+        }
+
+        return $res;
     }
 
 
@@ -878,6 +896,8 @@ class trans_Lines extends core_Master
                         $res .= ' ' . plg_Search::normalizeText($tInfo[$fld]);
                     }
                 }
+
+                $res .= ' ' . plg_Search::normalizeText($Document->getVerbal('createdBy'));
             }
         }
     }

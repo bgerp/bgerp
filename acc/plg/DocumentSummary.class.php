@@ -452,10 +452,10 @@ class acc_plg_DocumentSummary extends core_Plugin
         // Ще се преброяват всички неоттеглени документи
         $data->listSummary->query->where("#state != 'rejected' OR #state IS NULL");
         $data->listSummary->summary = array();
-        
+
         // Кои полета трябва да се обобщят
-        $fieldsArr = $mvc->selectFields('#summary');
-        
+        $fieldsArr = $data->listSummary->mvc->selectFields('#summary');
+
         // Основната валута за периода
         $baseCurrency = acc_Periods::getBaseCurrencyCode();
         

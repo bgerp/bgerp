@@ -726,19 +726,40 @@ class rack_Movements extends rack_MovementAbstract
 
         $msg = null;
         if(in_array($action, array('load', 'unload'))){
-            $this->save($rec);
+
+            // Ако записа вече е изтрит не се прави нищо и се показва статус
+            if(!$this->fetchField($rec->id, 'id', false)){
+                wp('Опит за промяна на изтрит запис', $rec);
+                core_Locks::release("movement{$rec->id}");
+                if($ajaxMode){
+                    core_Statuses::newStatus('Движението вече е изтрито', 'error');
+                    return status_Messages::returnStatusesArray();
+                } else {
+                followretUrl(null, 'Движението вече е изтрито', 'error');
+            }
+        }
+        $this->save($rec);
+
         } else {
             // Проверка може ли транзакцията да мине
             $transaction = $this->getTransaction($rec, $reverse);
             $transaction = $this->validateTransaction($transaction);
 
-            if (!empty($transaction->errors)) {
+            $errorMsg = $transaction->errors;
+
+            // Ако записа в изтрит не се прави нищо
+            if(!$this->fetchField($rec->id, 'id', false)){
+                $errorMsg = 'Движението вече е изтрито';
+            }
+
+            if (!empty($errorMsg)) {
+                wp('Опит за промяна на изтрит запис', $rec);
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
-                    core_Statuses::newStatus($transaction->errors, 'error');
+                    core_Statuses::newStatus($errorMsg, 'error');
                     return status_Messages::returnStatusesArray();
                 } else {
-                    followretUrl(null, $transaction->errors, 'error');
+                    followretUrl(null, $errorMsg, 'error');
                 }
             }
 

@@ -1,5 +1,6 @@
 <?php 
 
+
 /**
  * Документ "Изглед"
  *
@@ -15,6 +16,8 @@
  */
 class doc_View extends core_Master
 {
+
+
     /**
      * Поддържани интерфейси
      */
@@ -82,7 +85,7 @@ class doc_View extends core_Master
     
     
     /**
-     * @todo Чака за документация...
+     * Кой може да разглежда сингъла на документа
      */
     public $canSingle = 'powerUser';
     
@@ -125,8 +128,10 @@ class doc_View extends core_Master
     {
         $this->FLD('clsId', 'class', 'caption=Клас, input=hidden, silent');
         $this->FLD('dataId', 'int', 'caption=Документ, input=hidden, silent');
-        $this->FLD('tplId', 'key(mvc=doc_TplManager, select=name)', 'caption=Изглед, silent');
+        $this->FLD('tplId', 'key(mvc=doc_TplManager, select=name)', 'caption=Изглед, silent, removeAndRefreshForm=docHtml');
         $this->FLD('body', 'blob(serialize,compress)', 'caption=Изглед,input=none');
+
+        $this->FNC('docHtml', 'html(rows=10)', 'caption=Преглед, input');
     }
     
     
@@ -138,6 +143,7 @@ class doc_View extends core_Master
      */
     public static function canAddToFolder($folderId)
     {
+
         return false;
     }
     
@@ -192,18 +198,186 @@ class doc_View extends core_Master
     protected static function on_AfterPrepareEditForm($mvc, &$res, $data)
     {
         $rec = $data->form->rec;
-        
+        $form = $data->form;
+
         $tplArr = doc_TplManager::getTemplates($rec->clsId);
         
         expect($tplArr || cls::get($rec->clsId)->createView);
-        
+
         if (empty($tplArr)) {
             $data->form->setField('tplId', 'input=none');
         } else {
             $data->form->setOptions('tplId', $tplArr);
         }
+
+        $force = false;
+        if ($form->rec->id) {
+            $oRec = $mvc->fetch($form->rec->id);
+
+            $data->form->input('tplId', true);
+            if ($oRec->tplId != $form->rec->tplId) {
+                $force = true;
+            }
+        }
+
+        if ($form->rec->id && !$force) {
+            $form->rec->docHtml = $form->rec->body;
+        } else {
+            $form->setDefault('tplId', key($tplArr));
+
+            $clsInst = cls::get($form->rec->clsId);
+            Mode::push('docView', true);
+            Mode::push('text', 'xhtml');
+            Mode::push('noBlank', true);
+
+            $tplManagerLg = false;
+            if ($form->rec->tplId) {
+                $lg = doc_TplManager::fetchField($form->rec->tplId, 'lang');
+
+                if ($lg) {
+                    Mode::push('tplManagerLg', $lg);
+                    $tplManagerLg = true;
+                    core_Lg::push($lg);
+                }
+            }
+
+            $options = null;
+            if ($form->rec->dataId) {
+                $dRec = $clsInst->fetch($form->rec->dataId);
+                $dRec->template = $form->rec->tplId;
+                $options = new stdClass();
+                $options->rec = $dRec;
+            }
+
+            $dData = $clsInst->prepareDocument($form->rec->dataId, $options);
+
+            $dData->rec->template = $form->rec->tplId;
+
+            $dData->noToolbar = true;
+
+            $res = $clsInst->renderDocument($form->rec->dataId, $dData);
+
+            $html = $res->getContent();
+
+            $css = doc_PdfCreator::getCssStr($html);
+            $html = doc_PdfCreator::removeFormAttr($html);
+            $html = '<div id="begin">' . $html . '<div id="end">';
+            $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
+            $html = $CssToInlineInst->convert($html , $css);
+            $html = str::cut($html, '<div id="begin">', '<div id="end">');
+
+            $form->rec->docHtml  = $html;
+
+            if ($tplManagerLg) {
+                core_Lg::pop();
+                Mode::pop('tplManagerLg');
+            }
+
+            Mode::pop('noBlank');
+            Mode::pop('text');
+            Mode::pop('docView');
+        }
+
+        $haveRightForOrigin = false;
+        if ($form->rec->clsId) {
+            $clsInst = cls::get($form->rec->clsId);
+            if ($clsInst->haveRightFor('single', $form->rec->dataId)) {
+                $haveRightForOrigin = true;
+            }
+        }
+
+
+        if (($oRec && $mvc->haveRightFor('edit', $oRec)) || $haveRightForOrigin) {
+            $data->form->toolbar->addSbBtn('Цял екран', 'fullView', 'id=fullView, order=10.00029', 'ef_icon = img/16/doc_resize.png,title=Запис и редакция на изгледа');
+        }
     }
-    
+
+
+    /**
+     * Извиква се преди запис в модела
+     *
+     * @param core_Mvc     $mvc     Мениджър, в който възниква събитието
+     * @param int          $id      Тук се връща първичния ключ на записа, след като бъде направен
+     * @param stdClass     $rec     Съдържащ стойностите, които трябва да бъдат записани
+     * @param string|array $fields  Имена на полетата, които трябва да бъдат записани
+     * @param string       $mode    Режим на записа: replace, ignore
+     */
+    public static function on_BeforeSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    {
+        if (isset($rec->docHtml)) {
+            $rec->body = $rec->docHtml;
+        }
+    }
+
+
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        if ($data->form->rec->_toFullView) {
+            $data->retUrl = toUrl(array($mvc, 'editDocument', $data->form->rec->id));
+        }
+    }
+
+
+    /**
+     * Екшън за редактиране на HTML файл
+     *
+     * @return Redirect|core_ET
+     */
+    public function act_editDocument()
+    {
+        $id = Request::get('id', 'int');
+
+        expect($id);
+
+        $rec = $this->fetch($id);
+
+        expect($rec && $this->haveRightFor('single', $rec));
+
+        $retUrl = getRetUrl();
+
+        if (empty($retUrl)) {
+            $retUrl = array($this, 'single', $id);
+        }
+
+        $data = Request::get('data');
+        if ($data) {
+            expect($this->haveRightFor('edit', $rec));
+
+            $rec->docHtml = $data;
+
+            $this->save($rec);
+
+            return new Redirect($retUrl, 'Успешно обновихте документа');
+        }
+
+        $form = cls::get('core_Form');
+
+        $html = 'html(tinyToolbars=fullscreen print, tinyFullScreen)';
+
+        if ($this->haveRightFor('edit', $rec)) {
+            $urlArr = array($this, 'editDocument', $id);
+            $localUrl = toUrl($urlArr, 'local');
+            $localUrl = urlencode($localUrl);
+            $html = "html(tinyToolbars=fullscreen print save, tinyFullScreen, tinySaveCallback={$localUrl})";
+        }
+
+        $form->FNC('html', $html, 'input, caption=HTML', array('attr' => array('id' => 'editor')));
+        $form->setDefault('html', $rec->body);
+
+        $form->toolbar->addBtn('Отказ', $retUrl, 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+        $form->title = 'Редактиране на HTML файл';
+
+        // Сменяма wrapper'а да е празна страница
+        Mode::set('wrapper', 'page_Empty');
+
+        // Връщаме съдържанието
+        return $form->renderHtml();
+    }
+
     
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
@@ -214,50 +388,15 @@ class doc_View extends core_Master
     public static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
-            $clsInst = cls::get($form->rec->clsId);
-            expect($clsInst->haveRightFor('single', $form->rec->dataId));
-            
-            Mode::push('docView', true);
-            Mode::push('text', 'xhtml');
-            Mode::push('noBlank', true);
-            
-            $tplManagerLg = false;
-            if ($form->rec->tplId) {
-                $lg = doc_TplManager::fetchField($form->rec->tplId, 'lang');
-                
-                if ($lg) {
-                    Mode::push('tplManagerLg', $lg);
-                    $tplManagerLg = true;
-                    core_Lg::push($lg);
+            if ($form->cmd == 'fullView') {
+                $form->rec->_toFullView = true;
+
+                if (!$form->rec->id) {
+                    status_Messages::newStatus('Документът е записан');
+                } else {
+                    status_Messages::newStatus('Документът е обновен');
                 }
             }
-            
-            $options = null;
-            if ($form->rec->dataId) {
-                $dRec = $clsInst->fetch($form->rec->dataId);
-                $dRec->template = $form->rec->tplId;
-                $options = new stdClass();
-                $options->rec = $dRec;
-            }
-            
-            $data = $clsInst->prepareDocument($form->rec->dataId, $options);
-            
-            $data->rec->template = $form->rec->tplId;
-            
-            $data->noToolbar = true;
-            
-            $res = $clsInst->renderDocument($form->rec->dataId, $data);
-            
-            $form->rec->body = $res->getContent();
-            
-            if ($tplManagerLg) {
-                core_Lg::pop();
-                Mode::pop('tplManagerLg');
-            }
-            
-            Mode::pop('noBlank');
-            Mode::pop('text');
-            Mode::pop('docView');
         }
     }
     

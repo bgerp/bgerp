@@ -216,12 +216,12 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         
         // Стойности
-        $mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none,summary=amount'); // Сумата на договорената стока
-        $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none,summary=amount'); // Сумата на доставената стока
-        $mvc->FLD('amountBl', 'double(decimals=2)', 'caption=Стойности->Крайно салдо,input=none,summary=amount');
-        $mvc->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none,summary=amount'); // Сумата която е платена
-        $mvc->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none,summary=amount'); // Сумата която е платена
-        
+        $mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none');
+        $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none');
+        $mvc->FLD('amountBl', 'double(decimals=2)', 'caption=Стойности->Крайно салдо,input=none');
+        $mvc->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none');
+        $mvc->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none');
+
         $mvc->FLD('amountInvoicedDownpayment', 'double(decimals=2)', 'caption=Стойности->Фактуриран аванс,input=none');
         $mvc->FLD('amountInvoicedDownpaymentToDeduct', 'double(decimals=2)', 'caption=Стойности->Аванс за приспадане,input=none');
         
@@ -637,9 +637,32 @@ abstract class deals_DealMaster extends deals_DealBase
             unset($data->listFields['createdBy']);
             unset($data->listFields['createdOn']);
         }
+
+
     }
-    
-    
+
+    /**
+     * Рендира заявката за създаване на резюме
+     */
+    public function prepareListSummary_(&$data)
+    {
+        if(!Request::get('Rejected')){
+            $summaryQuery = clone $data->query;
+            $summaryQuery->XPR('amountDealNoVat', 'double', 'ROUND((#amountDeal - #amountVat), 2)');
+            $summaryQuery->XPR('amountDeliveredNoVat', 'double', 'ROUND((#amountDelivered / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
+            $summaryQuery->XPR('amountPaidNoVat', 'double', 'ROUND((#amountPaid / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
+            $summaryQuery->XPR('amountBlNoVat', 'double', 'ROUND((#amountBl / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
+            $summaryQuery->XPR('amountInvoicedNoVat', 'double', 'ROUND((#amountInvoiced / (1 + #amountVat / (#amountDeal - #amountVat))), 2)');
+
+            $data->listSummary = (object)array('mvc' => clone $this, 'query' => $summaryQuery);
+            $data->listSummary->mvc->FNC('amountDealNoVat', 'varchar', 'caption=Поръчано (без ДДС),input=none,summary=amount');
+            $data->listSummary->mvc->FNC('amountDeliveredNoVat', 'varchar', 'caption=Доставено (без ДДС),input=none,summary=amount');
+            $data->listSummary->mvc->FNC('amountPaidNoVat', 'varchar', 'caption=Платено (без ДДС),input=none,summary=amount');
+            $data->listSummary->mvc->FNC('amountInvoicedNoVat', 'varchar', 'caption=Фактурирано (без ДДС),input=none,summary=amount');
+            $data->listSummary->mvc->FNC('amountBlNoVat', 'varchar', 'caption=Крайно салдо,input=none,summary=amount');
+        }
+    }
+
     /**
      * Подготвя данните (в обекта $data) необходими за единичния изглед
      */

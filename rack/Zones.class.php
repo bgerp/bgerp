@@ -156,6 +156,12 @@ class rack_Zones extends core_Master
 
 
     /**
+     * Работен кеш
+     */
+    protected static $cachedRacksByGroup = array();
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1099,7 +1105,7 @@ class rack_Zones extends core_Master
      * @param array|null $productIds - ид-та на артикули
      * @param boolean $deletePendingSystemMovementsInZoneFirst - да се изтрият ли първи системните движения
      */
-    private static function  pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true)
+    private static function pickupOrder($storeId, $zoneIds = null, $workerId = null, $productIds = null, $deletePendingSystemMovementsInZoneFirst = true)
     {
         // Ако се иска да се изтрият движенията към зоната
         if($deletePendingSystemMovementsInZoneFirst){
@@ -1119,11 +1125,48 @@ class rack_Zones extends core_Master
 
             // Какви са наличните палети за избор (запазените се приспадат)
             $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true, true);
-
-            $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
 
+            // Ако е склада се използват приоритетни стелажи
+            if(rack_Racks::canUsePriorityRacks($storeId)){
+
+                // Коя е групата на първата зона, очаква се че всички зони са от една група!
+                $firstZoneId = key($pRec->zones);
+                $groupId = rack_Zones::fetchField($firstZoneId, 'groupId');
+
+                // Кои стелажи са с приоритет при групата на зоните
+                if(!array_key_exists($groupId, static::$cachedRacksByGroup)){
+                    $rQuery = rack_Racks::getQuery();
+                    $rQuery->where("#storeId = {$storeId}");
+                    if($groupId){
+                        $rQuery->where("LOCATE('|{$groupId}|', #groups)");
+                    } else {
+                        $rQuery->where("#groups IS NULL");
+                    }
+                    $rQuery->show('num');
+                    static::$cachedRacksByGroup[$groupId] = arr::extractValuesFromArray($rQuery->fetchAll(), 'num');
+                }
+
+                // Оставяне само на тези палети, които са на тези стелажи
+                $rackNums = static::$cachedRacksByGroup[$groupId];
+                $onlyPalletsInThoseRacks = array();
+                array_walk($rackNums, function($a) use (&$onlyPalletsInThoseRacks, $pallets){
+                    foreach ($pallets as $k => $palletRec){
+                        if(strpos($palletRec->position, "{$a}-") !== false){
+                            $onlyPalletsInThoseRacks[$k] = $palletRec;
+                        }
+                    }
+                });
+
+                // Ако палетите от приоритетните стелажи са достатъчни за зоната, използват се само те
+                $onPriorityRacks = arr::sumValuesArray($onlyPalletsInThoseRacks, 'quantity');
+                if($onPriorityRacks >= $requiredQuantityOnZones){
+                    $pallets = $onlyPalletsInThoseRacks;
+                }
+            }
+
             // Ако к-то по палети е достатъчно за изпълнение, не се добавя ПОД-а, @TODO да се изнесе в mainP2Q
+            $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             if ($quantityOnPallets < $requiredQuantityOnZones) {
                 $floorQuantity = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
                 $floorWaitingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'waiting');

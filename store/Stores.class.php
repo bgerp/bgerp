@@ -213,6 +213,7 @@ class store_Stores extends core_Master
 
         $this->FLD('samePosPallets', 'enum(,no=Не,yes=Да)', 'caption=Различни палети на една позиция->Разрешаване,maxRadio=2,placeholder=Автоматично');
         $this->FLD('closeCombinedMovementsAtOnce', 'enum(,yes=Еднократно за цялото движение,no=Зона по зона)', 'caption=Приключване на комбинирани движения в терминала->Приключване,maxRadio=2,placeholder=Автоматично');
+        $this->FLD('prioritizeRackGroups', 'enum(,yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване,maxRadio=2,placeholder=Автоматично');
 
         $this->setDbUnique('name');
     }
@@ -286,6 +287,7 @@ class store_Stores extends core_Master
         if(!core_Packs::isInstalled('rack')){
             $data->form->setField('samePosPallets', 'input=none');
             $data->form->setField('closeCombinedMovementsAtOnce', 'input=none');
+            $data->form->setField('prioritizeRackGroups', 'input=none');
         }
     }
     
@@ -338,6 +340,11 @@ class store_Stores extends core_Master
                 if(empty($rec->closeCombinedMovementsAtOnce)){
                     $row->closeCombinedMovementsAtOnce = $mvc->getFieldType('closeCombinedMovementsAtOnce')->toVerbal(rack_Setup::get('CLOSE_COMBINED_MOVEMENTS_AT_ONCE'));
                     $row->closeCombinedMovementsAtOnce = ht::createHint($row->closeCombinedMovementsAtOnce, 'Автоматично за системата', 'notice', false);
+                }
+
+                if(empty($rec->prioritizeRackGroups)){
+                    $row->prioritizeRackGroups = $mvc->getFieldType('prioritizeRackGroups')->toVerbal(rack_Setup::get('ENABLE_PRIORITY_RACKS'));
+                    $row->prioritizeRackGroups = ht::createHint($row->prioritizeRackGroups, 'Автоматично за системата', 'notice', false);
                 }
             }
 

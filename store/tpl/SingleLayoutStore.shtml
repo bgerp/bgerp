@@ -70,6 +70,13 @@
                                 <td>[#closeCombinedMovementsAtOnce#]</td>
                             </tr>
                             <!--ET_END closeCombinedMovementsAtOnce-->
+
+                            <!--ET_BEGIN prioritizeRackGroups-->
+                            <tr>
+                                <td class='dt'>|Използване на приоритетни стелажи|*:</td>
+                                <td>[#prioritizeRackGroups#]</td>
+                            </tr>
+                            <!--ET_END prioritizeRackGroups-->
                         </table>
                     </div>
                 </fieldset>
