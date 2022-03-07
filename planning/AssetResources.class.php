@@ -558,6 +558,7 @@ class planning_AssetResources extends core_Master
             }
         }
 
+
         // Ако ще се търсят опции
         if(!$noOptions){
             $fQuery = planning_AssetResourceFolders::getQuery();

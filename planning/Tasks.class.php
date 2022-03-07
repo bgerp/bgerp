@@ -1085,14 +1085,16 @@ class planning_Tasks extends core_Master
         }
 
         // Добавяне на наличните за избор оборудвания
-        $fixedAssetOptions = countR($fixedAssetOptions) ? $fixedAssetOptions : planning_AssetResources::getByFolderId($rec->folderId, $rec->assetId, 'planning_Tasks', true);
         $countAssets = countR($fixedAssetOptions);
+        $fixedAssetOptions = $countAssets ? $fixedAssetOptions : planning_AssetResources::getByFolderId($rec->folderId, $rec->assetId, 'planning_Tasks', true);
         if($countAssets){
             $form->setField('assetId', 'input');
             $form->setOptions('assetId', array('' => '') + $fixedAssetOptions);
             if($countAssets == 1){
                 $form->setDefault('assetId', key($fixedAssetOptions));
             }
+        } else {
+            $form->setField('assetId', 'input=none');
         }
 
         // Добавяне на достъпните за избор оператори
@@ -1100,6 +1102,8 @@ class planning_Tasks extends core_Master
         if(countR($employees)){
             $form->setField('employees', 'input');
             $form->setSuggestions('employees', $employees);
+        } else {
+            $form->setField('employees', 'input=none');
         }
 
         if (isset($rec->id)) {
