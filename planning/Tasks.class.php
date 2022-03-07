@@ -576,7 +576,7 @@ class planning_Tasks extends core_Master
 
             if($form->cmd == 'active' || $rec->state == 'active'){
                 if(empty($rec->timeDuration) && empty($rec->assetId)){
-                    $form->setWarning('timeDuration,assetId', "Не сте посочили продължителност или оборъдване. Операцията ще премине в чакащо състояние|*!");
+                    $form->setWarning('timeDuration,assetId', "Не сте посочили продължителност или оборудване. Операцията ще премине в чакащо състояние|*!");
                 }
             }
         }
@@ -640,6 +640,36 @@ class planning_Tasks extends core_Master
 
         if(isset($rec->indPackagingId) && !empty($rec->indTime)){
             $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->indPackagingId})")->toVerbal($rec->indTime);
+        }
+
+        if($Driver = cat_Products::getDriver($rec->productId)){
+
+            // Има ли параметри за планиране
+            $productionData = $Driver->getProductionData($rec->productId);
+            if(is_array($productionData['planningParams'])){
+                $jobRec = doc_Containers::getDocument($rec->originId);
+                $jobProductId = $jobRec->fetchField('productId');
+                $productParams = cat_Products::getParams($jobProductId, null, true);
+                $displayParams = array_intersect_key($productParams, $productionData['planningParams']);
+
+                // Има ли от параметрите на артикула за задание, такива които да се покажат
+                if(countR($displayParams)){
+                    $resArr['params'] = array('name' => tr('От') . " " . cat_Products::getHyperlink($jobProductId, true));
+                    $displayParamsHtml = "<table>";
+
+                    // Ако има показват се
+                    foreach ($displayParams as $pId => $pVal){
+                        $pName = tr(cat_Params::getTitleById($pId));
+                        $pSuffix = tr(cat_Params::getVerbal($pId, 'suffix'));
+                        if(!empty($pSuffix)){
+                            $pVal = "{$pVal} {$pSuffix}";
+                        }
+                        $displayParamsHtml .= "<tr><td style='font-weight:normal'>{$pName}:</td><td>{$pVal}</td></tr>";
+                    }
+                    $displayParamsHtml .= "</table>";
+                    $resArr['params']['val'] = $displayParamsHtml;
+                }
+            }
         }
     }
     
@@ -1804,7 +1834,11 @@ class planning_Tasks extends core_Master
             $jobParams = cat_Products::getParams($jobProductId, null, true);
             $displayParams = array_intersect_key($jobParams, $data->listFieldsParams);
             foreach ($displayParams as $pId => $pValue){
+                $pSuffix = cat_Params::getVerbal($pId, 'suffix');
                 $row->{"param_{$pId}"} = $pValue;
+                if(!empty($pSuffix)){
+                    $row->{"param_{$pId}"} .= " {$pSuffix}";
+                }
             }
         }
     }

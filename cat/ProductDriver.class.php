@@ -1000,6 +1000,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      *          double|null ['labelQuantityInPack']  - к-во в опаковка за етикет
      *          string|null ['labelType']            - тип на етикета
      *          int|null    ['labelTemplate']        - шаблон за етикет
+     *          array|null  ['planningParams']       - параметри за планиране
      */
     public function getProductionData($productId)
     {
