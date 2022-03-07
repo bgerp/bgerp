@@ -654,7 +654,7 @@ class planning_Tasks extends core_Master
 
                 // Има ли от параметрите на артикула за задание, такива които да се покажат
                 if(countR($displayParams)){
-                    $resArr['params'] = array('name' => tr('От') . " " . cat_Products::getHyperlink($jobProductId, true));
+                    $resArr['params'] = array('name' => tr('От') . ": " . cat_Products::getHyperlink($jobProductId));
                     $displayParamsHtml = "<table>";
 
                     // Ако има показват се
