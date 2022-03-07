@@ -1230,17 +1230,17 @@ class planning_Tasks extends core_Master
         }
         
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->setOptions('state', array('' => '') + arr::make('activeAndWaiting=Чакащи + Активни,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо', true));
+            $data->listFilter->setOptions('state', array('' => '') + arr::make('activeAndWaiting=Чакащи + Активни,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,all=Всички', true));
             $data->listFilter->setField('state', 'placeholder=Всички,formOrder=1000');
             $data->listFilter->showFields .= ',state';
             $data->listFilter->input('state');
             $data->listFilter->setDefault('state', 'activeAndWaiting');
 
             if ($state = $data->listFilter->rec->state) {
-                if ($state != 'activeAndWaiting') {
-                    $data->query->where("#state = '{$state}'");
-                } else {
+                if ($state == 'activeAndWaiting') {
                     $data->query->where("#state = 'active' OR #state = 'waiting'");
+                } elseif($state != 'all') {
+                    $data->query->where("#state = '{$state}'");
                 }
             }
         }
@@ -1766,5 +1766,46 @@ class planning_Tasks extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Преди рендиране на таблицата
+     */
+    protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
+    {
+        $rows = &$data->rows;
+        if (!countR($rows)) return;
+
+        // Ако е филтрирано по център на дейност
+        if ($data->listFilter->rec->folder) {
+            $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
+            if($Cover->isInstanceOf('planning_Centers')){
+                $data->listFieldsParams = keylist::toArray($Cover->fetchField('planningParams'));
+
+                // и той има избрани параметри за планиране, добавят се в таблицата
+                foreach ($data->listFieldsParams as $paramId) {
+                    $data->listFields["param_{$paramId}"] = "Параметри за планиране->|*<small>" . cat_Params::getVerbal($paramId, 'typeExt') . "</small>";
+                    $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'smartCenter');
+                }
+            }
+        }
+
+        // Ако няма параметри за планиране не се прави нищо
+        if(!countR($data->listFieldsParams)) return;
+
+        foreach ($rows as $id => $row) {
+            $rec = $data->recs[$id];
+
+            // От ПО се намира артикула от заданието ѝ, извличат се неговите параметри
+            // които са посочени за филтриране от центъра и се показват в таблицата
+            $origin = doc_Containers::getDocument($rec->originId);
+            $jobProductId = $origin->fetchField('productId');
+            $jobParams = cat_Products::getParams($jobProductId, null, true);
+            $displayParams = array_intersect_key($jobParams, $data->listFieldsParams);
+            foreach ($displayParams as $pId => $pValue){
+                $row->{"param_{$pId}"} = $pValue;
+            }
+        }
     }
 }
