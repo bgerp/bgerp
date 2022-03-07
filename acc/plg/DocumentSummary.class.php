@@ -101,6 +101,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->hidePeriodFilter, false);
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
+        setIfNot($mvc->rememberListFilterFolderId, false);
         if(isset($mvc->fields['createdBy'])) {
             setIfNot($mvc->filterFieldUsers, 'createdBy');
         }
@@ -308,6 +309,12 @@ class acc_plg_DocumentSummary extends core_Plugin
                 
                 $data->listFilter->showFields .= ',users';
             }
+
+            if($mvc->rememberListFilterFolderId) {
+                if ($lastFolderId = core_Permanent::get('folderFilter' . $cKey)) {
+                    $data->listFilter->setDefault('folder', $lastFolderId);
+                }
+            }
         }
         
         // Активиране на филтъра
@@ -437,7 +444,13 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
 
             if (isset($filter->folder)) {
+                unset($data->listFields['folderId']);
                 $data->query->where("#folderId = '{$filter->folder}'");
+                if($mvc->rememberListFilterFolderId) {
+                    if ($filter->folder != $lastFolderId) {
+                        core_Permanent::set('folderFilter' . $cKey, $filter->folder, 24 * 60 * 100);
+                    }
+                }
             }
         }
     }

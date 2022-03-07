@@ -274,10 +274,6 @@ class trans_Lines extends core_Master
                 }
             }
 
-            if (isset($filterRec->folder)) {
-                unset($data->listFields['folderId']);
-            }
-
             if (isset($filterRec->countryId)) {
                 $data->query->where("LOCATE('|{$filterRec->countryId}|', #countries)");
             }
