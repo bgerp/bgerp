@@ -1085,8 +1085,8 @@ class planning_Tasks extends core_Master
         }
 
         // Добавяне на наличните за избор оборудвания
-        $countAssets = countR($fixedAssetOptions);
         $fixedAssetOptions = $countAssets ? $fixedAssetOptions : planning_AssetResources::getByFolderId($rec->folderId, $rec->assetId, 'planning_Tasks', true);
+        $countAssets = countR($fixedAssetOptions);
         if($countAssets){
             $form->setField('assetId', 'input');
             $form->setOptions('assetId', array('' => '') + $fixedAssetOptions);
@@ -1818,10 +1818,12 @@ class planning_Tasks extends core_Master
                 $data->listFieldsParams = keylist::toArray($Cover->fetchField('planningParams'));
 
                 // и той има избрани параметри за планиране, добавят се в таблицата
+                $paramFields = array();
                 foreach ($data->listFieldsParams as $paramId) {
-                    $data->listFields["param_{$paramId}"] = "Параметри за планиране->|*<small>" . cat_Params::getVerbal($paramId, 'typeExt') . "</small>";
+                    $paramFields["param_{$paramId}"] = "Параметри за планиране->|*<small>" . cat_Params::getVerbal($paramId, 'typeExt') . "</small>";
                     $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'smartCenter');
                 }
+                arr::placeInAssocArray($data->listFields, $paramFields, null, 'progress');
             }
         }
 
