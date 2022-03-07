@@ -181,18 +181,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
         
         // Ако в мастъра са посочени машини, задават се като опции
-        if (isset($masterRec->fixedAssets)) {
-            $keylist = $masterRec->fixedAssets;
-            $arr = keylist::toArray($keylist);
-            foreach ($arr as $key => &$value) {
-                $value = planning_AssetResources::getTitleById($key, false);
-            }
-            
-            $assetOptions = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $arr;
+        if (isset($masterRec->assetId)) {
+            $assetOptions = array($masterRec->assetId => planning_AssetResources::getTitleById($masterRec->assetId, false));
+            $assetOptions = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $assetOptions;
             $form->setOptions('fixedAsset', $assetOptions);
             $form->setField('fixedAsset', 'input,mandatory');
-            if(countR($arr) == 1 && !Mode::is('terminalProgressForm')){
-                $form->setReadOnly('fixedAsset', key($arr));
+            if(!Mode::is('terminalProgressForm')){
+                $form->setReadOnly('fixedAsset', $masterRec->assetId);
+                $form->setDefault('fixedAsset', $masterRec->assetId);
             }
         } else {
             $form->setField('fixedAsset', 'input=none');
@@ -385,6 +381,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
                 
                 $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
+
                 if (isset($info->indTime)) {
                     $rec->norm = $info->indTime;
                 }
@@ -787,7 +784,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             return ;
         }
-        
+
+        $data->listFilter->showFields .= 'search';
         $data->listFilter->setField('type', 'input=none');
         $data->listFilter->class = 'simpleForm';
         if (isset($data->masterMvc)) {
@@ -803,22 +801,18 @@ class planning_ProductionTaskDetails extends doc_Detail
             $data->groupByField = '_createdDate';
         } else {
             unset($data->listFields['_createdDate']);
-        }
-        
-        $data->listFilter->showFields = 'search';
-        
-        // Ако има използвани оператори, добавят се за филтриране
-        $usedFixedAssets = self::getResourcesInDetails($data->masterId, 'fixedAsset');
-        if(countR($usedFixedAssets)){
-            $data->listFilter->setOptions('fixedAsset', array('' => '') + $usedFixedAssets);
-            $data->listFilter->showFields .= ",fixedAsset";
-        }
-        
-        // Ако има използвани оператори, добавят се за филтриране
-        $usedEmployeeIds = self::getResourcesInDetails($data->masterId, 'employees');
-        if(countR($usedEmployeeIds)){
-            $data->listFilter->setOptions('employees', array('' => '') + $usedEmployeeIds);
-            $data->listFilter->showFields .= ",employees";
+
+            $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
+            if(countR($assetInTasks)){
+                $data->listFilter->setOptions('fixedAsset', array('' => '') + $assetInTasks);
+                $data->listFilter->showFields .= ",fixedAsset";
+            }
+
+            $employees = planning_Hr::getByFolderId();
+            if(countR($employees)){
+                $data->listFilter->setSuggestions('employees', array('' => '') + $employees);
+                $data->listFilter->showFields .= ",employees";
+            }
         }
 
         $caption = isset($data->masterMvc) ? '' : 'Филтрирай';
@@ -842,52 +836,13 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     
     /**
-     * Извлича използваните ресурси в детайлите
-     * 
-     * @param int|null $taskId
-     * @param string $type
-     * @return array $array
-     */
-    private static function getResourcesInDetails($taskId, $type)
-    {
-        expect(in_array($type, array('fixedAsset', 'employees')));
-        $query = self::getQuery();
-        $query->where("#{$type} IS NOT NULL AND #{$type} != ''");
-        if(!empty($taskId)){
-            $query->where("#taskId = {$taskId}");
-        }
-        $query->show($type);
-        $recs = $query->fetchAll();
-        
-        // Обединяват се всички записи
-        $keylist = '';
-        array_walk($recs, function ($obj) use (&$keylist, $type) {
-            $keylist = keylist::merge($keylist, $obj->{$type});
-        });
-        
-        // Вербализирането на опциите
-        $array = array();
-        $keylist = keylist::toArray($keylist);
-        foreach ($keylist as $key){
-            if(!array_key_exists($key, $array)){
-                $value = ($type == 'fixedAsset') ? planning_AssetResources::getTitleById($key) : (crm_Persons::getVerbal($key, 'name') . " ($key)");
-                $array[$key] = $value;
-            }
-        }
-        
-        return $array;
-    }
-    
-    
-    /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'reject' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
             $state = $mvc->Master->fetchField($rec->taskId, 'state');
-            
-            if ($state != 'active' && $state != 'waiting' && $state != 'wakeup') {
+            if ($state != 'active' && $state != 'wakeup') {
                 $requiredRoles = 'no_one';
             }
         }
@@ -1084,11 +1039,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $rec->weight = $params['weight'];
         }
         
-        if(!empty($taskRec->fixedAssets)){
-            $taskAssets = keylist::toArray($taskRec->fixedAssets);
-            if(countR($taskAssets) && empty($rec->fixedAsset)){
-                expect(!empty($rec->fixedAsset), 'Задължително трябва да е избрано оборудване');
-            }
+        if(!empty($taskRec->assetId)){
+            expect(!empty($rec->fixedAsset), 'Задължително трябва да е избрано оборудване');
         }
         
         if(!empty($taskRec->employees) && empty($rec->employees)){

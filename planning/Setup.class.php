@@ -190,6 +190,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Points',
         'planning_GenericMapper',
         'migrate::updatePlanningStages1',
+        'migrate::updateTaskAssets'
     );
     
     
@@ -302,6 +303,30 @@ class planning_Setup extends core_ProtoSetup
 
         if(countR($update)){
             $Steps->saveArray($update, 'id,centerId');
+        }
+    }
+
+
+    /**
+     * Обновяване на полета за оборудване
+     */
+    public function updateTaskAssets()
+    {
+        $arr = array();
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+        $query = $Tasks->getQuery();
+        $query->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Производство->Оборудване');
+        $query->where("#fixedAssets IS NOT NULL");
+        $query->show('id,fixedAssets');
+        while($rec = $query->fetch()){
+            $assetId = key(keylist::toArray($rec->fixedAssets));
+            $rec->assetId = $assetId;
+            $arr[] = $rec;
+        }
+
+        if(countR($arr)){
+            $Tasks->saveArray($arr, 'id,assetId');
         }
     }
 }

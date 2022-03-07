@@ -1,7 +1,7 @@
-Машини,material
-Съоръжения,material
-Автомобили,material
-Камиони,material
-Сгради,material
-Софтуерен компонент,nonMaterial
-Процедура,nonMaterial
+Машини,material,yes
+Съоръжения,material,no
+Автомобили,material,no
+Камиони,material,no
+Сгради,material,no
+Софтуерен компонент,nonMaterial,no
+Процедура,nonMaterial,no

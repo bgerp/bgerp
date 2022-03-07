@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -61,7 +61,7 @@ class planning_AssetGroups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Вид, type, createdOn,createdBy,state';
+    public $listFields = 'name=Вид,type,showInPlanningTasks, createdOn,createdBy,state';
     
     
     /**
@@ -95,6 +95,7 @@ class planning_AssetGroups extends core_Master
     {
         $this->FLD('name', 'varchar(64,ci)', 'caption=Име, mandatory');
         $this->FLD('type', 'enum(material=Материален, nonMaterial=Нематериален)', 'caption=Тип, mandatory, notNull');
+        $this->FLD('showInPlanningTasks', 'enum(yes=Да,no=Не)', 'caption=Производствени операции->Допустимост, mandatory,notNull,value=no');
         $this->setDbUnique('name');
     }
     
@@ -109,32 +110,6 @@ class planning_AssetGroups extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
-    }
-    
-    
-    /**
-     * Дали оборудванията са от една и съща група
-     *
-     * @param array|string $assets - ид-та на оборудвания
-     *
-     * @return bool
-     */
-    public static function haveSameGroup($assets)
-    {
-        $assets = is_array($assets) ? $assets : keylist::toArray($assets);
-        if (!countR($assets)) {
-            
-            return true;
-        }
-        
-        $aQuery = planning_AssetResources::getQuery();
-        $aQuery->in('id', $assets);
-        $aQuery->show('groupId');
-        $aQuery->groupBy('groupId');
-        $found = $aQuery->fetchAll();
-        $found = is_array($aQuery->fetchAll()) ? $aQuery->fetchAll() : array();
-        
-        return countR($found) == 1;
     }
     
     
@@ -173,27 +148,6 @@ class planning_AssetGroups extends core_Master
     
     
     /**
-     * Каква е нормата на артикула в групата
-     *
-     * @param mixed    $assets    - списък от оборудвания
-     * @param int|NULL $productId - ид на артикул
-     *
-     * @return array $result      - намерените норми
-     */
-    public static function getNorm($assets, $productId = null)
-    {
-        $result = array();
-        if (!$groupId = planning_AssetResources::getGroupId($assets)) {
-
-            return $result;
-        }
-        $result = planning_AssetResourcesNorms::fetchNormRec('planning_AssetGroups', $groupId, $productId);
-        
-        return $result;
-    }
-    
-    
-    /**
      * Извиква се след SetUp-а на таблицата за модела
      */
     public function loadSetupData()
@@ -205,6 +159,7 @@ class planning_AssetGroups extends core_Master
         $fields = array(
             0 => 'name',
             1 => 'type',
+            2 => 'showInPlanningTasks',
         );
         
         // Импортираме данните от CSV файла.

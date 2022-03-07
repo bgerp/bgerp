@@ -277,20 +277,16 @@ class planning_AssetResourcesNorms extends core_Manager
     /**
      * Връща опциите за избор на действия за оборудването
      *
-     * @param mixed      $assets - списък с оборудвания
+     * @param int      $assetId  - списък с оборудвания
      * @param array|NULL $notIn  - ид-та на артикули, които да се игнорират
      *
      * @return array $options   - имена на действия, групирани по оборудвания
      */
-    public static function getNormOptions($assets, $notIn = null)
+    public static function getNormOptions($assetId, $notIn = null)
     {
         $options = array();
-        
-        // Извличат се нормите от групата
-        if (!$groupId = planning_AssetResources::getGroupId($assets)) {
-            
-            return $options;
-        }
+
+        $groupId = planning_AssetResources::fetchField($assetId, 'groupId');
         $groupAssets = self::fetchNormRec('planning_AssetGroups', $groupId, null, $notIn);
         $notIn += arr::make(array_keys($groupAssets), true);
         
@@ -303,19 +299,15 @@ class planning_AssetResourcesNorms extends core_Manager
             }
             $options += $arr;
         }
-        
-        // За всяко оборудване, добавят се неговите специфични действия, които ги няма в групата му
-        foreach ($assets as $assetId) {
-            $assetArr = array();
-            $assetNorms = self::fetchNormRec('planning_AssetResources', $assetId, null, $notIn);
-            foreach ($assetNorms as $productId => $rec1) {
-                $assetArr[$rec1->productId] = cat_Products::getTitleById($productId, false);
-            }
-            
-            if (countR($assetArr)) {
-                $assetName = planning_AssetResources::getTitleById($assetId, false);
-                $options += array("a{$assetId}" => (object) array('group' => true, 'title' => $assetName)) + $assetArr;
-            }
+
+        $assetArr = array();
+        $assetNorms = self::fetchNormRec('planning_AssetResources', $assetId, null, $notIn);
+        foreach ($assetNorms as $productId => $rec1) {
+            $assetArr[$rec1->productId] = cat_Products::getTitleById($productId, false);
+        }
+        if (countR($assetArr)) {
+            $assetName = planning_AssetResources::getTitleById($assetId, false);
+            $options += array("a{$assetId}" => (object) array('group' => true, 'title' => $assetName)) + $assetArr;
         }
         
         // Връщане на готовите опции

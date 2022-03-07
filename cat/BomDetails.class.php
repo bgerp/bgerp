@@ -307,7 +307,7 @@ class cat_BomDetails extends doc_Detail
                     $form->setField('employees', 'input');
 
                     // Налични оборудвания от избрания център
-                    $fixedAssets = planning_AssetResources::getByFolderId($folderId, $rec->fixedAssets, true);
+                    $fixedAssets = planning_AssetResources::getByFolderId($folderId, $rec->fixedAssets, 'planning_Tasks', true);
                     $form->setSuggestions("fixedAssets", $fixedAssets);
 
                     // Наличните човешки ресурси от избрания център
@@ -571,12 +571,6 @@ class cat_BomDetails extends doc_Detail
             if ($rec->type == 'stage') {
                 if ($mvc->fetchField("#bomId = {$rec->bomId} AND #type = 'stage' AND #resourceId = '{$rec->resourceId}' AND #id != '{$rec->id}'")) {
                     $form->setError('resourceId', 'Един етап може да се среща само веднъж в рецептата');
-                }
-
-                if (!empty($rec->fixedAssets)) {
-                    if (!planning_AssetGroups::haveSameGroup($rec->fixedAssets)) {
-                        $form->setError('fixedAssets', 'Оборудванията са от различни групи');
-                    }
                 }
             }
             
