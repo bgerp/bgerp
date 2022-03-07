@@ -208,6 +208,15 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Дали да се помни последно избраната папка в лист изгледа
+     *
+     * @see acc_plg_DocumentSummary
+     * @var bool
+     */
+    public $rememberListFilterFolderId = true;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1057,7 +1066,7 @@ class planning_Tasks extends core_Master
         }
 
         // Добавяне на достъпните за избор оператори
-        $employees = planning_AssetResources::getByFolderId($rec->folderId, $rec->assetId, true);
+        $employees = planning_Hr::getByFolderId($rec->folderId, $rec->assetId);
         if(countR($employees)){
             $form->setField('employees', 'input');
             $form->setSuggestions('employees', $employees);
@@ -1208,19 +1217,9 @@ class planning_Tasks extends core_Master
             $data->listFilter->input('assetId');
         }
 
-        $folderCacheKey = 'taskLastFilteredFolderId' . $mvc->className . core_Users::getCurrent();
-        if ($lastFolderId = core_Permanent::get($folderCacheKey)) {
-            $data->listFilter->setDefault('folder', $lastFolderId);
-        }
-
         if($filter = $data->listFilter->rec){
             if (isset($filter->assetId)) {
                 $data->query->where("#assetId = {$filter->assetId}");
-            }
-
-            // Кеш на избраната папка
-            if ($filter->folder != $lastFolderId) {
-                core_Permanent::set($folderCacheKey, $filter->folder, 24 * 60 * 100);
             }
         }
         
