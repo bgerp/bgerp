@@ -69,8 +69,14 @@ abstract class deals_DealBase extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
+
+
+    /**
+     * Кеш на дийл интерфейса
+     */
+    protected $cacheDealInfo = array();
+
+
     /**
      * Извиква се след описанието на модела
      *
@@ -126,31 +132,34 @@ abstract class deals_DealBase extends core_Master
     public function getAggregateDealInfo($id)
     {
         $dealRec = $this->fetchRec($id);
-        
-        $dealDocuments = $this->getDescendants($dealRec->id);
-        
-        $aggregateInfo = new bgerp_iface_DealAggregator;
-        
-        // Извличаме dealInfo от самата сделка
-        $this->pushDealInfo($dealRec->id, $aggregateInfo);
-        
-        foreach ($dealDocuments as $d) {
-            $dState = $d->rec('state');
-            if ($dState == 'draft' || $dState == 'rejected') {
-                // Игнорираме черновите и оттеглените документи
-                continue;
-            }
-            
-            if ($d->haveInterface('bgerp_DealIntf')) {
-                try {
-                    $d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
-                } catch (core_exception_Expect $e) {
-                    reportException($e);
+
+        if(!array_key_exists($dealRec->containerId, $this->cacheDealInfo)){
+            $dealDocuments = $this->getDescendants($dealRec->id);
+            $aggregateInfo = new bgerp_iface_DealAggregator;
+
+            // Извличаме dealInfo от самата сделка
+            $this->pushDealInfo($dealRec->id, $aggregateInfo);
+
+            foreach ($dealDocuments as $d) {
+                $dState = $d->rec('state');
+                if ($dState == 'draft' || $dState == 'rejected') {
+                    // Игнорираме черновите и оттеглените документи
+                    continue;
+                }
+
+                if ($d->haveInterface('bgerp_DealIntf')) {
+                    try {
+                        $d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
+                    } catch (core_exception_Expect $e) {
+                        reportException($e);
+                    }
                 }
             }
+
+            $this->cacheDealInfo[$dealRec->containerId] = $aggregateInfo;
         }
-        
-        return $aggregateInfo;
+
+        return $this->cacheDealInfo[$dealRec->containerId];
     }
     
     
