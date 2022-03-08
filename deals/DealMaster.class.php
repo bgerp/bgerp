@@ -111,9 +111,10 @@ abstract class deals_DealMaster extends deals_DealBase
      * Какво е платежното състояние на сделката
      *
      * @param mixed $rec - ид или запис
+     * @param null|bgerp_iface_DealAggregator $aggregator
      * @return string
      */
-    public function getPaymentState($rec)
+    public function getPaymentState($rec, $aggregator = null)
     {
         $rec = $this->fetchRec($rec);
         $notInvoicedAmount = core_Math::roundNumber($rec->amountDelivered) - core_Math::roundNumber($rec->amountInvoiced);
@@ -162,7 +163,7 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         } else {
             // Ако няма фактури, гледаме имали платежен план
-            $aggregateDealInfo = $this->getAggregateDealInfo($rec->id);
+            $aggregateDealInfo = !isset($aggregator) ? $this->getAggregateDealInfo($rec->id) : $aggregator;
             $methodId = $aggregateDealInfo->get('paymentMethodId');
             if (!empty($methodId)) {
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
@@ -1384,7 +1385,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->amountInvoicedDownpaymentToDeduct += $downpaymentInvoicedToDeductAmount;
         }
         
-        $rec->paymentState = $mvc->getPaymentState($rec);
+        $rec->paymentState = $mvc->getPaymentState($rec, $aggregateDealInfo);
         $rec->modifiedOn = dt::now();
         
         $cRec = doc_Containers::fetch($rec->containerId);
