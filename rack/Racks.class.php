@@ -128,12 +128,13 @@ class rack_Racks extends core_Master
      */
     public function description()
     {
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,silent,input=hidden');
         $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,tdClass=leftCol');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('firstRowTo', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Първи ред до,notNull,value=A');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
+        $this->FLD('useGroups', 'enum(yes=Групи,no=Без групи)', 'caption=Приоритетно използване в зони->Избор,silent,removeAndRefreshForm=groups');
         $this->FLD('groups', 'keylist(mvc=rack_ZoneGroups,select=name,allowEmpty)', 'caption=Приоритетно използване в зони->Групи');
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
         $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter,input=none');
@@ -189,7 +190,8 @@ class rack_Racks extends core_Master
     {
         $form = $data->form;
         $rec = &$form->rec;
-        
+        $form->setDefault('useGroups', 'yes');
+
         if (!$rec->id) {
             $storeId = store_Stores::getCurrent();
             $form->setDefault('storeId', $storeId);
@@ -209,6 +211,9 @@ class rack_Racks extends core_Master
         }
 
         if(!static::canUsePriorityRacks($rec->storeId)){
+            $form->setField('useGroups', 'input=none');
+            $form->setField('groups', 'input=none');
+        } if($rec->useGroups == 'no'){
             $form->setField('groups', 'input=none');
         }
     }
@@ -363,8 +368,12 @@ class rack_Racks extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         if(static::canUsePriorityRacks($rec->storeId)){
-            $row->groups = $mvc->getFieldType('groups')->toVerbal($rec->groups);
-            if (isset($fields['-list'])) {
+            if($rec->useGroups == 'no'){
+                $row->groups = "« " . tr("Без група") . " »";
+            } else {
+                $row->groups = $mvc->getFieldType('groups')->toVerbal($rec->groups);
+            }
+            if (isset($fields['-list']) && !empty($row->groups)) {
                 $row->num .= " <br><small>{$row->groups}</small>";
             }
         } else {
