@@ -1137,7 +1137,7 @@ class rack_Zones extends core_Master
                     if($groupId){
                         $rQuery->where("LOCATE('|{$groupId}|', #groups)");
                     } else {
-                        $rQuery->where("#groups IS NULL");
+                        $rQuery->where("#useGroups = 'no'");
                     }
                     $rQuery->show('num');
                     static::$cachedRacksByGroup[$groupId] = arr::extractValuesFromArray($rQuery->fetchAll(), 'num');
