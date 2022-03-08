@@ -1384,7 +1384,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->amountInvoicedDownpaymentToDeduct += $downpaymentInvoicedToDeductAmount;
         }
         
-        $rec->paymentState = $mvc->getPaymentState($rec->id);
+        $rec->paymentState = $mvc->getPaymentState($rec);
         $rec->modifiedOn = dt::now();
         
         $cRec = doc_Containers::fetch($rec->containerId);
