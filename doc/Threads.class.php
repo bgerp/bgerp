@@ -3321,4 +3321,20 @@ class doc_Threads extends core_Manager
         
         return $res;
     }
+
+
+    /**
+     * На коя дата е последно добавения документ в нишката
+     *
+     * @param $threadId - ид на нишка
+     * @return datetime - последната дата на която е добавен документ в нишката
+     */
+    public static function getLastCreatedOnInThread($threadId)
+    {
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#threadId = {$threadId}");
+        $cQuery->XPR("maxCreatedOn", 'datetime', 'MAX(#createdOn)');
+
+        return $cQuery->fetch()->maxCreatedOn;
+    }
 }

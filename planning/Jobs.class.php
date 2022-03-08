@@ -1936,4 +1936,35 @@ class planning_Jobs extends core_Master
 
         return $usedDocs;
     }
+
+
+    /**
+     * Затваря активните+събудените задания само ако произведеното е над 90%
+     *
+     * @param int $productId    - ид на артикул
+     * @param double $tolerance - над колко % произведено (включително)
+     * @return int $count       - колко са приключените задания
+     */
+    public static function closeCompleted($productId, $tolerance = 0.9)
+    {
+        $me = cls::get(get_called_class());
+        $query = static::getQuery();
+        $query->where("#productId = {$productId} AND #state IN ('active', 'wakeup')");
+        $query->XPR('completed', 'percent', 'round(#quantityProduced / #quantity, 2)');
+        $query->where("#completed >= {$tolerance}");
+
+        $count = 0;
+        while($rec = $query->fetch()){
+            $rec->brState = $rec->state;
+            $rec->state = 'closed';
+            $rec->timeClosed = dt::now();
+            $count++;
+            if ($me->save($rec, 'brState,state,timeClosed')) {
+                $me->logWrite("Приключване след затваряне на артикула", $rec->id);
+                $me->invoke('AfterChangeState', array(&$rec, $rec->state));
+            }
+        }
+
+        return $count;
+    }
 }

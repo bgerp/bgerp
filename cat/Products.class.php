@@ -1373,6 +1373,14 @@ class cat_Products extends embed_Manager
                 cat_products_SharedInFolders::save($sharedRec);
             }
         }
+
+
+        // Ако се затваря артикула затварят се и готовите задания
+        if($rec->state == 'closed' && $rec->brState == 'active'){
+            if($closedCount = planning_Jobs::closeCompleted($rec->id)){
+                core_Statuses::newStatus($closedCount);
+            }
+        }
     }
     
     
@@ -2663,6 +2671,7 @@ class cat_Products extends embed_Manager
     public function cron_closePrivateProducts()
     {
         $now = dt::now();
+        $oneMonthAgo = dt::addMonths(-1, $now);
         $this->closeItems = array();
         
         $checFolders = keylist::toArray(cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS'));
@@ -2751,6 +2760,17 @@ class cat_Products extends embed_Manager
                 }
             }
 
+            // Ако към артикула има активни задания, в които не са добавяни документи в последния месец - не се затваря артикула
+            $jQuery = planning_Jobs::getQuery();
+            $jQuery->where("#productId = {$pRec->id} AND #state IN ('active', 'wakeup')");
+            $jQuery->show('threadId');
+            while($jRec = $jQuery->fetch()){
+                $lastCreatedOn = doc_Threads::getLastCreatedOnInThread($jRec->threadId);
+                if($lastCreatedOn >= $oneMonthAgo){
+                    $close = false;
+                    break;
+                }
+            }
 
             // Ако нестандартния артикул отговаря на условията за затваряне затваря се
             if($close){
@@ -2790,6 +2810,9 @@ class cat_Products extends embed_Manager
         $this->saveArray($saveArr, 'id,state,brState,modifiedOn,modifiedBy');
         foreach ($saveArr as $sd) {
             $this->logWrite('Автоматично затваряне', $sd->id);
+
+            // Затваряне и на активините задания с произведено над 0.9 процента
+            planning_Jobs::closeCompleted($sd->id);
         }
         log_System::add('cat_Products', 'Products Private not used' . countR($saveArr), null, 'info', 17);
     }
