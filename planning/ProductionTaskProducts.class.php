@@ -373,8 +373,8 @@ class planning_ProductionTaskProducts extends core_Detail
             $usedProducts[$rec->productId] = $rec->productId;
         }
         
-        if ($type == 'input') {
-            
+        if ($type == 'input' && $taskRec->allowedInputProducts != 'no') {
+
             // Всички избрани вложими артикули от задачи към същото задание
             $tQuery = planning_Tasks::getQuery();
             $tQuery->notIn('productId', array_keys($options));
