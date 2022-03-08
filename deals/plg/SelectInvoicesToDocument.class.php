@@ -162,25 +162,8 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
      */
     public static function on_AfterGetReasonContainerOptions($mvc, &$res, $rec)
     {
-        $threadsArr = array($rec->threadId => $rec->threadId);
-
-        // Ако в документа е разрешено да се показват ф-те към обединените сделки
-        if($firstDocument = doc_Threads::getFirstDocument($rec->threadId)){
-            $firstDocumentRec = $firstDocument->fetch('closedDocuments,closeWith');
-
-            $closedDocuments = keylist::toArray($firstDocumentRec->closedDocuments);
-            if(countR($closedDocuments)){
-                $docQuery = $firstDocument->getQuery();
-                $docQuery->in('id', $closedDocuments);
-                $docQuery->show('threadId');
-                $threadsArr += arr::extractValuesFromArray($docQuery->fetchAll(), 'threadId');
-            } elseif(isset($firstDocumentRec->closeWith)){
-                $closedWithThreadId = $firstDocument->getInstance()->fetchField($firstDocumentRec->closeWith, 'threadId');
-                $threadsArr += array($closedWithThreadId => $closedWithThreadId);
-            }
-        }
-
         $res = array();
+        $threadsArr = deals_Helper::getCombinedThreads($rec->threadId);
         $iArr = ($rec->isReverse == 'yes') ? deals_Helper::getInvoicesInThread($threadsArr, null, false, false, true) : deals_Helper::getInvoicesInThread($threadsArr, null, true, true, false);
         foreach ($iArr as $k => $number){
             $iRec = doc_Containers::getDocument($k)->fetch();
