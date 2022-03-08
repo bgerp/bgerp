@@ -785,14 +785,15 @@ class planning_ProductionTaskDetails extends doc_Detail
             return ;
         }
 
-        $data->listFilter->showFields .= 'search';
+        $data->listFilter->showFields .= 'search,threadId';
         $data->listFilter->setField('type', 'input=none');
         $data->listFilter->class = 'simpleForm';
         if (isset($data->masterMvc)) {
             $data->showRejectedRows = true;
             $data->listFilter->FLD('threadId', 'int', 'silent,input=hidden');
             $data->listFilter->view = 'horizontal';
-            $data->listFilter->input(null, 'silent');
+            $data->listFilter->input('threadId', 'silent');
+
             unset($data->listFields['taskId']);
             unset($data->listFields['createdOn']);
             unset($data->listFields['createdBy']);

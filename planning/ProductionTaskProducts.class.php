@@ -156,13 +156,14 @@ class planning_ProductionTaskProducts extends core_Detail
                 
                 if ($rec->type == 'input') {
                     $form->setField('limit', 'input');
-                    if (isset($masterRec->assetId) && empty($rec->id)) {
+                    if (isset($masterRec->assetId)) {
                         
                         // Задаване на дефолтен лимит ако има
                         $normRec = planning_AssetResources::getNormRec($masterRec->assetId, $rec->productId);
                         if (is_object($normRec)) {
                             $form->setDefault('limit', $normRec->limit);
                             $form->setDefault('indTime', $normRec->indTime);
+                            $form->setField('indTime', 'mandatory');
                         }
                     }
                 }
@@ -539,7 +540,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $normRec = planning_AssetResources::getNormRec($taskRec->assetId, $rec->productId);
             if (!empty($normRec->indTime)) {
                 if ($rec->indTime != $normRec->indTime) {
-                    $defaultIndTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($norm[$rec->productId]->indTime);
+                    $defaultIndTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($normRec->indTime);
                     $msg = "Нормата се различава от очакваната|* <b>{$defaultIndTime}</b>";
                     $error = 'FALSE';
                     
