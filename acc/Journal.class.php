@@ -787,7 +787,7 @@ class acc_Journal extends core_Master
     {
         $Document = cls::get($docType);
         if(empty($valior)){
-            $valior = $Document->fetchField($docId, $Document->valiorFLd);
+            $valior = $Document->fetchField($docId, $Document->valiorFld);
         }
 
         // Ако е в затворен период, пропускаме го

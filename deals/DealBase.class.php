@@ -845,15 +845,21 @@ abstract class deals_DealBase extends core_Master
     public function recalcDocumentsWithNewRate($rec, $newRate)
     {
         // Рекалкулиране на сделката
-        if ($this instanceof findeals_Deals) {
-            $rec->currencyRate = $newRate;
-            $this->save($rec);
-            if ($rec->state == 'active') {
-                acc_Journal::deleteTransaction($this->getClassId(), $rec->id);
-                acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
+        $valior = $rec->{$this->valiorFld};
+        $periodState = acc_Periods::fetchByDate($valior)->state;
+
+        // Рекалкулиране на курса на сделката, само ако не е в затворен период
+        if($periodState != 'closed') {
+            if ($this instanceof findeals_Deals) {
+                $rec->currencyRate = $newRate;
+                $this->save($rec);
+                if ($rec->state == 'active') {
+                    acc_Journal::deleteTransaction($this->getClassId(), $rec->id);
+                    acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
+                }
+            } else {
+                deals_Helper::recalcRate($this, $rec->id, $newRate);
             }
-        } else {
-            deals_Helper::recalcRate($this, $rec->id, $newRate);
         }
 
         // Рекалкулиране на определени документи в нишката и
@@ -864,6 +870,12 @@ abstract class deals_DealBase extends core_Master
             if (!in_array($d->getClassId(), $arr)) {
                 continue;
             }
+
+            // Ако вальора е в затворен период - пропуска се
+            $valior = $d->fetchField($d->valiorFld);
+            $periodState = acc_Periods::fetchByDate($valior)->state;
+            if ($periodState == 'closed') continue;
+
             deals_Helper::recalcRate($d->getInstance(), $d->fetch(), $newRate);
         }
     }
