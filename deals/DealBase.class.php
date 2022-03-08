@@ -72,12 +72,6 @@ abstract class deals_DealBase extends core_Master
 
 
     /**
-     * Кеш на дийл интерфейса
-     */
-    protected $cacheDealInfo = array();
-
-
-    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -133,33 +127,29 @@ abstract class deals_DealBase extends core_Master
     {
         $dealRec = $this->fetchRec($id);
 
-        if(!array_key_exists($dealRec->containerId, $this->cacheDealInfo)){
-            $dealDocuments = $this->getDescendants($dealRec->id);
-            $aggregateInfo = new bgerp_iface_DealAggregator;
+        $dealDocuments = $this->getDescendants($dealRec->id);
+        $aggregateInfo = new bgerp_iface_DealAggregator;
 
-            // Извличаме dealInfo от самата сделка
-            $this->pushDealInfo($dealRec->id, $aggregateInfo);
+        // Извличаме dealInfo от самата сделка
+        $this->pushDealInfo($dealRec->id, $aggregateInfo);
 
-            foreach ($dealDocuments as $d) {
-                $dState = $d->rec('state');
-                if ($dState == 'draft' || $dState == 'rejected') {
-                    // Игнорираме черновите и оттеглените документи
-                    continue;
-                }
-
-                if ($d->haveInterface('bgerp_DealIntf')) {
-                    try {
-                        $d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
-                    } catch (core_exception_Expect $e) {
-                        reportException($e);
-                    }
-                }
+        foreach ($dealDocuments as $d) {
+            $dState = $d->rec('state');
+            if ($dState == 'draft' || $dState == 'rejected') {
+                // Игнорираме черновите и оттеглените документи
+                continue;
             }
 
-            $this->cacheDealInfo[$dealRec->containerId] = $aggregateInfo;
+            if ($d->haveInterface('bgerp_DealIntf')) {
+                try {
+                    $d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
+                } catch (core_exception_Expect $e) {
+                    reportException($e);
+                }
+            }
         }
 
-        return $this->cacheDealInfo[$dealRec->containerId];
+        return $aggregateInfo;
     }
     
     
