@@ -256,9 +256,17 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
             $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
 
-
+        }else{
+            $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
+            $fld->FLD('reserved', 'varchar', 'caption=Количество->Запазено,smartCenter');
+            $fld->FLD('expected', 'varchar', 'caption=Количество->Очаквано,smartCenter');
+            $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
 
         }
+
+
         return $fld;
     }
 
