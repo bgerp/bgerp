@@ -118,6 +118,7 @@ class speedy_Adapter {
                     $msg = 'Неуспешно логване';
                 }
             }
+            log_System::logErr($msg);
 
             $result->errorMsg = $msg;
         }
