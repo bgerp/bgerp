@@ -333,7 +333,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                                         <!--ET_BEGIN groups--><div>|Наблюдавани групи|*: [#groups#]</div><!--ET_END groups-->
                                         <!--ET_BEGIN date--><div>|Хоризонт|*: [#date#]</div><!--ET_END date-->
                                         <!--ET_BEGIN ariculsData--><div>|Брой артикули|*: [#ariculsData#]</div><!--ET_END ariculsData-->
-                                        <!--ET_BEGIN storeId--><div>|Складове|*: [#storeId#]</div><!--ET_END storeId-->
+                                        <!--ET_BEGIN stores--><div>|Складове|*: [#stores#]</div><!--ET_END stores-->
                                     </div>
                                 
                                  </fieldset><!--ET_END BLOCK-->"));
@@ -360,23 +360,23 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         }
 
 
-        if (isset($data->rec->storeId)) {
+        if (isset($data->rec->stores)) {
 
             $marker = 0;
-            foreach (type_Keylist::toArray($data->rec->storeId) as $store) {
+            foreach (type_Keylist::toArray($data->rec->stores) as $store) {
                 $marker++;
 
                 $storeIdVerb .= (store_Stores::getTitleById($store));
 
-                if ((countR(type_Keylist::toArray($data->rec->storeId))) - $marker != 0) {
+                if ((countR(type_Keylist::toArray($data->rec->stores))) - $marker != 0) {
                     $storeIdVerb .= ', ';
                 }
 
             }
 
-            $fieldTpl->append('<b>' . $storeIdVerb . '</b>', 'storeId');
+            $fieldTpl->append('<b>' . $storeIdVerb . '</b>', 'stores');
         } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'storeId');
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'stores');
         }
 
         $data->rec->ariculsData = countR($data->rec->data->recs);
