@@ -205,7 +205,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
             $storeArr =keylist::toArray($rec->storeId);
 
-            $Quantities = store_Products::getQuantities($sRec->productId,$storeArr,$rec->date);
+            $Quantities = store_Products::getQuantities($sRec->productId,$rec->stores,$rec->date);
             $quantity = $Quantities->quantity;
             $reserved = $Quantities->reserved;
             $expected = $Quantities->expected;
