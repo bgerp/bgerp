@@ -939,7 +939,7 @@ class planning_Tasks extends core_Master
         $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
         $form->setDefault('labelType', 'both');
 
-        if (isset($rec->systemId, $tasks[$rec->systemId])) {
+        if (isset($rec->systemId, $tasks[$rec->systemId]) && empty($rec->id)) {
             $taskData = (array)$tasks[$rec->systemId];
             unset($taskData['products']);
             foreach ($taskData as $fieldName => $defaultValue) {
@@ -953,7 +953,6 @@ class planning_Tasks extends core_Master
         
         if (isset($rec->productId)) {
             $productRec = cat_Products::fetch($rec->productId, 'canConvert,canStore,measureId');
-
             if(core_Packs::isInstalled('batch')){
                 if(batch_Defs::getBatchDef($rec->productId)){
                     $form->setField('followBatchesForFinalProduct', 'input');
@@ -985,7 +984,7 @@ class planning_Tasks extends core_Master
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
 
             // Ако не е системна, взима се дефолта от драйвера
-            if(empty($rec->systemId)){
+            if(empty($rec->systemId) && empty($rec->id)){
                 if($Driver = cat_Products::getDriver($rec->productId)){
                     $productionData = $Driver->getProductionData($rec->productId);
                     $defFields = arr::make(array('employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate'), true);
