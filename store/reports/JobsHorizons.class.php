@@ -293,10 +293,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->reserved = ht::styleIfNegative($row->reserved, $dRec->reserved);
 
         $row->expected = $Double->toVerbal($dRec->expected);
-        $row->expected = ht::styleIfNegative($row->reserved, $dRec->expected);
+        $row->expected = ht::styleIfNegative($row->expected, $dRec->expected);
 
         $row->free = $Double->toVerbal($dRec->free);
-        $row->free = ht::styleIfNegative($row->reserved, $dRec->free);
+        $row->free = ht::styleIfNegative($row->free, $dRec->free);
 
         $row->delrow = '';
         $row->delrow .= ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
