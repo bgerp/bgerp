@@ -1149,7 +1149,8 @@ class rack_Zones extends core_Master
                 $onlyPalletsInThoseRacks = array();
                 array_walk($rackNums, function($a) use (&$onlyPalletsInThoseRacks, $pallets){
                     foreach ($pallets as $k => $palletRec){
-                        if(strpos($palletRec->position, "{$a}-") !== false){
+                        list($n,,) = rack_PositionType::toArray($palletRec->position);
+                        if($n == $a){
                             $onlyPalletsInThoseRacks[$k] = $palletRec;
                         }
                     }
