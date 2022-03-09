@@ -179,14 +179,14 @@
              $employees = $tRec->employees;
              
              $counter = ($rec->typeOfReport == 'short') ? keylist::toArray($tRec->employees):array($id => $id);
-             
+
              if ($rec->employees && $rec->typeOfReport == 'short') {
                  $counter = array_intersect($counter, keylist::toArray($rec->employees));
              }
-             
+
              foreach ($counter as $val) {
                  $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
-                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,packagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity');
+                 $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity');
 
                  if(!empty($iRec->indTime)){
                      $iRec->indTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $iRec->quantityInPack);
@@ -200,6 +200,7 @@
 
                      $employees = $val;
                  }
+
                  if ($divisor){
 
                      $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
@@ -210,7 +211,7 @@
                  }
 
                  $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
-                 
+
                  // Запис в масива
                  if (!array_key_exists($id, $recs)) {
                      $recs[$id] = (object) array(
@@ -232,7 +233,7 @@
                          'quantity' => $tRec->quantity,
                          'scrap' => $tRec->scrappedQuantity,
                          
-                         'labelMeasure' => $iRec->packagingId,
+                         'labelMeasure' => $iRec->labelPackagingId,
                          'labelQuantity' => $labelQuantity,
                          
                          'weight' => $tRec->weight,
@@ -274,14 +275,14 @@
                          if ($rec->resultsOn == 'usersMachines') {
                              $id = $val->taskId.'|'.$val->productId.'|'.'|'.$v.'|'.'|'.$val->assetResources;
                          }
-                         
+
                          if ($divisor){
                              $timeAlocation = ($clone->indTimeAllocation == 'common') ? 1 / $divisor : 1;
                              $indTimeSum = $timeAlocation * $clone->indTime;
                          }else{
                              $indTimeSum = 0;
                          }
-                         
+
                          $clone = clone $val;
                          
                          if (!array_key_exists($id, $recs)) {
@@ -323,11 +324,11 @@
                      unset($recs[$key]);
                  }
              }
-             
+
              arr::sortObjects($recs, 'taskId', 'asc');
          }
          
-        
+
          return $recs;
      }
      
@@ -408,7 +409,7 @@
          $Double = cls::get('type_Double');
          $Double->params['decimals'] = 2;
          $row = new stdClass();
-         
+
          $row->taskId = planning_Tasks::getHyperlink($dRec->taskId, true);
          $row->article = cat_Products::getHyperlink($dRec->productId, true);
          
@@ -443,9 +444,8 @@
          }
 
          $indTimeSumm = ($dRec->indTime * $row->labelQuantity);
-         
          //$row->min = $Time->toVerbal($indTimeSumm);
-         $row->min =$Double->toVerbal($dRec->indTimeSum/60);
+         $row->min =$Double->toVerbal($indTimeSumm/60);
          return $row;
      }
      
