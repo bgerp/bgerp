@@ -109,7 +109,7 @@ class planning_ProductionTaskProducts extends core_Detail
     public function description()
     {
         $this->FLD('taskId', 'key(mvc=planning_Tasks)', 'input=hidden,silent,mandatory,caption=Операция');
-        $this->FLD('type', 'enum(input=Влагане,waste=Отпадък,production=Произвеждане)', 'caption=За,remember,silent,input=hidden');
+        $this->FLD('type', 'enum(input=Влагане,waste=Отпадък,production=Произвеждане)', 'caption=Операция,remember,silent,input=hidden');
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=10,forceAjax,titleFld=name)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|limit|indTime,tdClass=productCell leftCol wrap');
         $this->FLD('packagingId', 'key(mvc=cat_UoM,select=shortName)', 'mandatory,caption=Пр. единица,tdClass=small-field nowrap,silent,removeAndRefreshForm');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано к-во');
@@ -276,6 +276,12 @@ class planning_ProductionTaskProducts extends core_Detail
             $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($rec->indTime);
         } else {
             $row->indTime = "<span class='quiet'>N/A</span>";
+        }
+
+        $row->plannedQuantity = "<span class='green'>{$row->plannedQuantity}</span>";
+        if($rec->totalQuantity > $rec->plannedQuantity){
+            $row->totalQuantity = "<span class='red'>{$row->totalQuantity}</span>";
+            $row->totalQuantity = ht::createHint($row->totalQuantity, 'Изпълнено е повече от планираното', 'warning', false);
         }
     }
     
