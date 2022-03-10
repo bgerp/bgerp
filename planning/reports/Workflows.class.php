@@ -171,10 +171,10 @@
              
              $query->in('fixedAsset', $assetArr);
          }
-         
+
          while ($tRec = $query->fetch()) {
              $id = self::breakdownBy($tRec, $rec);
-             
+
              $labelQuantity = 1;
              $employees = $tRec->employees;
              
@@ -268,7 +268,15 @@
                          if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees))) {
                              continue;
                          }
-                         
+
+                         if ($rec->resultsOn == 'arts') {
+                             $id = $val->taskId.'|'.$val->productId.'|';
+                         }
+
+                         if ($rec->resultsOn == 'machines') {
+                              $id = $val->taskId.'|'.$val->productId.'|'.'|'.$val->assetResources.'|';
+                         }
+
                          if ($rec->resultsOn == 'users') {
                              $id = $val->taskId.'|'.$val->productId.'|'.'|'.$v.'|';
                          }
@@ -284,7 +292,7 @@
                          }
 
                          $clone = clone $val;
-                         
+
                          if (!array_key_exists($id, $recs)) {
                              $recs[$id] = (object) array(
                                  
