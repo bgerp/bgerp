@@ -307,7 +307,7 @@ class cat_Products extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'originId, code, name, nameEn, isPublic';
+    public $fieldsNotToClone = 'originId, isPublic';
     
     
     /**
