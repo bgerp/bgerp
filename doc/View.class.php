@@ -131,7 +131,7 @@ class doc_View extends core_Master
         $this->FLD('tplId', 'key(mvc=doc_TplManager, select=name)', 'caption=Изглед, silent, removeAndRefreshForm=docHtml');
         $this->FLD('body', 'blob(serialize,compress)', 'caption=Изглед,input=none');
 
-        $this->FNC('docHtml', 'html(rows=10)', 'caption=Преглед, input');
+        $this->FNC('docHtml', 'html(rows=10, size=1000000)', 'caption=Преглед, input');
     }
     
     
