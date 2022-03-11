@@ -787,10 +787,11 @@ class planning_ProductionTaskDetails extends doc_Detail
             return ;
         }
 
-        $data->listFilter->showFields .= 'search,threadId';
+        $data->listFilter->showFields .= 'search';
         $data->listFilter->setField('type', 'input=none');
         $data->listFilter->class = 'simpleForm';
         if (isset($data->masterMvc)) {
+            $data->listFilter->showFields .= ",threadId";
             $data->showRejectedRows = true;
             $data->listFilter->FLD('threadId', 'int', 'silent,input=hidden');
             $data->listFilter->view = 'horizontal';
