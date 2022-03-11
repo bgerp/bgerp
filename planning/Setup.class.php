@@ -98,13 +98,13 @@ defIfNot('PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID', '');
 
 
 /**
- * Автоматично затваряне на активни задания към затворени артикули->При Заскладено / Планирано
+ * Автоматично приключване на активни задания към затворени артикули->При Заскладено / Планирано
  */
 defIfNot('PLANNING_AUTO_CLOSE_JOBS_COMPLETED_TOLERANCE', 0.9);
 
 
 /**
- * Автоматично затваряне на активни задания към затворени артикули->Без нови документи за
+ * Автоматично приключване на активни задания към затворени артикули->Без нови документи за
  */
 defIfNot('PLANNING_AUTO_CLOSE_JOBS_NO_NEW_DOCUMENTS_IN', dt::SECONDS_IN_MONTH);
 
@@ -173,8 +173,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
         'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
-        'PLANNING_AUTO_CLOSE_JOBS_COMPLETED_TOLERANCE' => array('percent', 'caption=Автоматично затваряне на активни задания към затворени артикули->При Заскладено/Планирано над'),
-        'PLANNING_AUTO_CLOSE_JOBS_NO_NEW_DOCUMENTS_IN' => array('time', 'caption=Автоматично затваряне на активни задания към затворени артикули->Без нови контиращи документи в нишката'),
+        'PLANNING_AUTO_CLOSE_JOBS_COMPLETED_TOLERANCE' => array('percent', 'caption=Автоматично приключване на активни задания към затворени артикули->При Заскладено/Планирано над'),
+        'PLANNING_AUTO_CLOSE_JOBS_NO_NEW_DOCUMENTS_IN' => array('time', 'caption=Автоматично приключване на активни задания към затворени артикули->Без нови контиращи документи в нишката'),
     );
 
 
