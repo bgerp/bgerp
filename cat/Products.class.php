@@ -2811,7 +2811,7 @@ class cat_Products extends embed_Manager
             $this->logWrite('Автоматично затваряне', $sd->id);
 
             // Затваряне и на активните задания с произведено над 0.9 процента
-            planning_Jobs::closeActiveJobs(planning_Setup::get('AUTO_CLOSE_JOBS_COMPLETED_TOLERANCE'), $sd->id, planning_Setup::get('AUTO_CLOSE_JOBS_NO_NEW_DOCUMENTS_IN'));
+            planning_Jobs::closeActiveJobs(planning_Setup::get('AUTO_CLOSE_JOBS_COMPLETED_TOLERANCE'), $sd->id);
         }
         log_System::add('cat_Products', 'Products Private not used' . countR($saveArr), null, 'info', 17);
     }
