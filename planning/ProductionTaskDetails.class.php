@@ -350,10 +350,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                 // Ако артикулът е действие към оборудването
                 if ($productRec->canStore != 'yes' && $rec->type == 'input') {
                     $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
-                    $inInputTask = planning_Tasks::fetchField("#originId = {$masterRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
-
                     // Подсигуряване че трябва да има норма
-                    if (empty($inTp) && empty($inInputTask)) {
+                    if (empty($inTp)) {
                         if (!planning_AssetResources::getNormRec($rec->fixedAsset, $rec->productId)) {
                             $form->setError('productId,fixedAsset', 'Изберете оборудване, което има норма за действието');
                         }
@@ -1075,10 +1073,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         if($rec->type == 'input' && $canStore != 'yes') {
             $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
-            $inInputTask = planning_Tasks::fetchField("#originId = {$taskRec->originId} AND #inputInTask = {$rec->taskId} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending' AND #productId = {$rec->productId}");
-            
             // Подсигуряване че трябва да има норма
-            if (empty($inTp) && empty($inInputTask)) {
+            if (empty($inTp)) {
                 expect(planning_AssetResources::getNormRec($rec->fixedAsset, $rec->productId), 'Изберете оборудване, което има норма за действието');
             }
         }

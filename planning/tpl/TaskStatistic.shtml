@@ -31,9 +31,6 @@
                   <!--ET_BEGIN batch-->
                   <span style='font-weight:normal'>|Партида|*</span>: [#batch#]<br>
                   <!--ET_END batch-->
-                  <!--ET_BEGIN inputInTask-->
-                  <span style='font-weight:normal'>|Влагане в|*</span>: [#inputInTask#]<br>
-                  <!--ET_END inputInTask-->
                   <!--ET_BEGIN storeId-->
                   <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->

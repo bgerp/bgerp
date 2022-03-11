@@ -382,22 +382,6 @@ class planning_ProductionTaskProducts extends core_Detail
         
         if ($type == 'input' && $taskRec->allowedInputProducts != 'no') {
 
-            // Всички избрани вложими артикули от задачи към същото задание
-            $tQuery = planning_Tasks::getQuery();
-            $tQuery->notIn('productId', array_keys($options));
-            $tQuery->where("#originId = {$taskRec->originId} AND #inputInTask = {$taskRec->id} AND #state != 'draft' AND #state != 'rejected' AND #state != 'pending'");
-            $tQuery->show('productId');
-            
-            $taskOptions = array();
-            while ($tRec = $tQuery->fetch()) {
-                $taskOptions[$tRec->productId] = cat_Products::getTitleById($tRec->productId, false);
-                $usedProducts[$tRec->productId] = $tRec->productId;
-            }
-            
-            if (countR($taskOptions)) {
-                $options += array('t' => (object) array('group' => true, 'title' => tr('Задачи'))) + $taskOptions;
-            }
-            
             // Ако има избрано оборудване
             if (!empty($taskRec->assetId)) {
                 $norms = planning_AssetResourcesNorms::getNormOptions($taskRec->assetId, $usedProducts);
@@ -449,18 +433,6 @@ class planning_ProductionTaskProducts extends core_Detail
         if ($rec = $query->fetch()) {
 
             return $rec;
-        }
-
-        // Ако е влагане и артикула в избран като вложим за тая операция, връща се оттам
-        if ($type == 'input') {
-            $tQuery = planning_Tasks::getQuery();
-            $tQuery->where("#productId = {$productId} AND #inputInTask = {$taskRec->id} AND #state != 'rejected' AND #state != 'closed' AND #state != 'draft' AND #state != 'pending'");
-            $tQuery->show('productId,labelPackagingId,plannedQuantity,totalQuantity');
-            if ($tRec = $tQuery->fetch()) {
-                $tRec->totalQuantity = (!empty($tRec->totalQuantity)) ? $tRec->totalQuantity : 0;
-
-                return $tRec;
-            }
         }
 
         if (isset($assetId)) {
@@ -553,16 +525,6 @@ class planning_ProductionTaskProducts extends core_Detail
                     return false;
                 }
             }
-        }
-        
-        // Ако е избран да се влага от друга задача
-        $inTaskId = planning_Tasks::fetchField("#inputInTask = {$taskRec->id} AND #productId = {$rec->productId} AND (#state = 'active' || #state = 'wakeup' || #state = 'stopped' || #state = 'closed')");
-        if (!empty($inTaskId)) {
-            $inTaskId = planning_Tasks::getLink($inTaskId, 0);
-            $msg = "Артикулът е избран да се влага в операцията от|* <b>{$inTaskId}</b>";
-            $error = 'FALSE';
-            
-            return false;
         }
         
         return true;
