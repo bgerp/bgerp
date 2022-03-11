@@ -1959,9 +1959,6 @@ class planning_Jobs extends core_Master
         // Ако ще се гледат само за един артикул - за него, иначе за всички задания към затворени артикули
         if(isset($productId)){
             $query->where("#productId = {$productId}");
-        } else {
-            $query->EXT('pState', 'cat_Products', 'externalName=state,externalKey=productId');
-            $query->where("#pState = 'closed'");
         }
 
         $count = 0;
