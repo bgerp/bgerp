@@ -439,25 +439,27 @@ class plg_StructureAndOrder extends core_Plugin
         
         return $orderedItems;
     }
-    
-    
+
+
     /**
      * Сортира масив с елементи
      */
-    private static function sortItems(&$items)
+    public static function sortItems(&$items, $field = 'saoOrder')
     {
-        uasort($items, function ($a, $b) {
-            if ($a->saoOrder == $b->saoOrder) {
-                
+        uasort($items, function ($a, $b) use ($field){
+
+            if ($a->{$field} == $b->{$field}) {
+
                 return 0;
             }
-            
-            if (!$a->saoOrder || $a->saoOrder > $b->saoOrder) {
-                
+
+            if (!$a->{$field} || $a->{$field} > $b->{$field}) {
+
                 return 1;
             }
-            if (!$b->saoOrder || $a->saoOrder < $b->saoOrder) {
-                
+
+            if (!$b->{$field} || $a->{$field} < $b->{$field}) {
+
                 return -1;
             }
         });
