@@ -1374,11 +1374,10 @@ class cat_Products extends embed_Manager
             }
         }
 
-
         // Ако се затваря артикула затварят се и готовите задания
         if($rec->state == 'closed' && $rec->brState == 'active'){
-            if($closedCount = planning_Jobs::closeCompleted($rec->id)){
-                core_Statuses::newStatus($closedCount);
+            if($closedCount = planning_Jobs::closeActiveJobs(planning_Setup::get('AUTO_CLOSE_JOBS_COMPLETED_TOLERANCE'), $rec->id, planning_Setup::get('AUTO_CLOSE_JOBS_NO_NEW_DOCUMENTS_IN'))){
+                core_Statuses::newStatus("Затврорени активни/събудени задания: {$closedCount}");
             }
         }
     }
@@ -2765,7 +2764,7 @@ class cat_Products extends embed_Manager
             $jQuery->where("#productId = {$pRec->id} AND #state IN ('active', 'wakeup')");
             $jQuery->show('threadId');
             while($jRec = $jQuery->fetch()){
-                $lastCreatedOn = doc_Threads::getLastCreatedOnInThread($jRec->threadId);
+                $lastCreatedOn = doc_Threads::getLastCreatedOnInThread($jRec->threadId, 'acc_TransactionSourceIntf');
                 if($lastCreatedOn >= $oneMonthAgo){
                     $close = false;
                     break;
@@ -2811,8 +2810,8 @@ class cat_Products extends embed_Manager
         foreach ($saveArr as $sd) {
             $this->logWrite('Автоматично затваряне', $sd->id);
 
-            // Затваряне и на активините задания с произведено над 0.9 процента
-            planning_Jobs::closeCompleted($sd->id);
+            // Затваряне и на активните задания с произведено над 0.9 процента
+            planning_Jobs::closeActiveJobs(planning_Setup::get('AUTO_CLOSE_JOBS_COMPLETED_TOLERANCE'), $sd->id, planning_Setup::get('AUTO_CLOSE_JOBS_NO_NEW_DOCUMENTS_IN'));
         }
         log_System::add('cat_Products', 'Products Private not used' . countR($saveArr), null, 'info', 17);
     }

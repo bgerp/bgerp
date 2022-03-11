@@ -3324,17 +3324,25 @@ class doc_Threads extends core_Manager
 
 
     /**
-     * На коя дата е последно добавения документ в нишката
+     * На коя дата е последно добавения документ в нишката, с посочения интерфейс
      *
-     * @param $threadId - ид на нишка
-     * @return datetime - последната дата на която е добавен документ в нишката
+     * @param int $threadId    - ид на нишка
+     * @param mixed $interface - интерфейс, по който да се търси последно създадения документ (null за всички)
+     * @return datetime        - последната дата на която е добавен документ в нишката
      */
-    public static function getLastCreatedOnInThread($threadId)
+    public static function getLastCreatedOnInThread($threadId, $interface = null)
     {
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId}");
         $cQuery->XPR("maxCreatedOn", 'datetime', 'MAX(#createdOn)');
 
+        // Ако има посочен интерфейс, търси се последно създадения документ в нишката с този интерфейс
+        if(isset($interface)){
+            $classesWithInterface = array_keys(core_Classes::getOptionsByInterface($interface));
+            $cQuery->in('docClass', $classesWithInterface);
+        }
+
+        // Връща се последната дата на която има създаден документ
         return $cQuery->fetch()->maxCreatedOn;
     }
 }
