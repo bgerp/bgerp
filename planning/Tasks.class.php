@@ -1060,7 +1060,8 @@ class planning_Tasks extends core_Master
                 if ($toProduce > 0) {
                     $packRec = cat_products_Packagings::getPack($rec->productId, $rec->measureId);
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                    $form->setDefault('plannedQuantity', $toProduce / $quantityInPack);
+                    $round = cat_UoM::fetchField($rec->measureId, 'round');
+                    $form->setDefault('plannedQuantity', round($toProduce / $quantityInPack, $round));
                 }
             }
 
