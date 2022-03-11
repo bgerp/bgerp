@@ -3335,6 +3335,7 @@ class doc_Threads extends core_Manager
         $cQuery = doc_Containers::getQuery();
         $cQuery->where("#threadId = {$threadId}");
         $cQuery->XPR("maxCreatedOn", 'datetime', 'MAX(#createdOn)');
+        $cQuery->show('maxCreatedOn');
 
         // Ако има посочен интерфейс, търси се последно създадения документ в нишката с този интерфейс
         if(isset($interface)){
