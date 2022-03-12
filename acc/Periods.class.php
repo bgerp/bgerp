@@ -488,7 +488,7 @@ class acc_Periods extends core_Manager
         }
 
         // @todo докато не открием по-добър начин
-        if(haveRole('no_one')){
+        if(haveRole('debug') && haveRole('accMaster')){
             $data->form->setField('state', 'input');
         }
     }
