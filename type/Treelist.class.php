@@ -205,5 +205,37 @@ class type_Treelist extends type_Keylist
 
         return $haveItem;
     }
+
+
+    /**
+     * Връща вербалната стойност на k
+     */
+    public function getVerbal($k)
+    {
+        if (!round($k) > 0) {
+
+            return '';
+        }
+
+        if ($this->params['mvc']) {
+
+            $mvc = &cls::get($this->params['mvc']);
+
+            if (($part = $this->getSelectFld()) && $part != '*') {
+                if (!($rec = $mvc->fetch($k))) {
+                    $value = '???';
+                } else {
+                    $value = $mvc->getVerbal($rec, $part);
+                }
+            } else {
+                $value = $mvc->getTitleById($k);
+            }
+        } elseif ($this->params['function']) {
+        } elseif ($this->suggestions) {
+            $value = $this->suggestions[$k];
+        }
+
+        return $value;
+    }
     
  }
