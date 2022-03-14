@@ -370,7 +370,7 @@ class cat_Products extends embed_Manager
         $this->FLD('fixedAsset', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('canManifacture', 'enum(yes=Да,no=Не)', 'input=none');
         $this->FLD('generic', 'enum(yes=Да,no=Не)', 'input=none,notNull,value=no');
-        $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Свойства->Списък,columns=2,mandatory');
+        $this->FLD('meta', 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)', 'caption=Свойства,columns=2,mandatory');
         
         $this->setDbIndex('isPublic');
         $this->setDbIndex('canSell');
@@ -620,7 +620,7 @@ class cat_Products extends embed_Manager
             }
             
             $metaError = null;
-            if (!cat_Categories::checkMetas($rec->meta, $rec->id, $metaError)) {
+            if (!cat_Categories::checkMetas($rec->meta, $rec->innerClass, $rec->id, $metaError)) {
                 $form->setError('meta', $metaError);
             }
         }
@@ -722,10 +722,14 @@ class cat_Products extends embed_Manager
         
         $categoryType = 'key(mvc=cat_Categories,select=name,allowEmpty)';
         $groupType = 'keylist(mvc=cat_Groups, select=name, makeLinks)';
+        $sharedType = 'keylist(mvc=doc_Folders,select=title)';
         $metaType = 'set(canSell=Продаваем,canBuy=Купуваем,canStore=Складируем,canConvert=Вложим,fixedAsset=Дълготраен актив,canManifacture=Производим,generic=Генеричен)';
-        
+
+        $sharedFolderSuggestions = doc_Folders::getOptionsByCoverInterface('crm_ContragentAccRegIntf');
+
         $fields['Category'] = array('caption' => 'Допълнителен избор->Категория', 'mandatory' => 'mandatory', 'notColumn' => true, 'type' => $categoryType);
         $fields['Groups'] = array('caption' => 'Допълнителен избор->Групи', 'notColumn' => true, 'type' => $groupType);
+        $fields['_sharedFolders'] = array('caption' => 'Допълнителен избор->Достъпно в', 'notColumn' => true, 'type' => $sharedType, 'suggestions' => $sharedFolderSuggestions);
         $fields['Meta'] = array('caption' => 'Допълнителен избор->Свойства', 'notColumn' => true, 'type' => $metaType);
         
         if (!$mvc->fields['Category']) {
@@ -1100,8 +1104,26 @@ class cat_Products extends embed_Manager
         
         return $result;
     }
-    
-    
+
+
+    /**
+     * Възможност за подредба по код
+     * Добавя допълнително поле и подрежда по него
+     *
+     * @param core_Query $query
+     * @param string|bool $order - ако е false - не подрежда, а само добавя полето. Може да е `DESC` или `ASC`
+     * @param string $prefix - префикс, когато няма код се използва `id`, а този префикс се добавя преди него. Може и да е празен стринг
+     */
+    public static function setCodeToQuery(&$query, $order = 'DESC', $prefix = 'Art')
+    {
+        $query->XPR('calcCode', 'varchar', "IF((#code IS NULL OR #code = ''), CONCAT('{$prefix}', #id), #code)");
+
+        if ($order !== false) {
+            $query->orderBy('calcCode', $order);
+        }
+    }
+
+
     /**
      * Задава код на артикула ако няма
      *
@@ -1341,6 +1363,24 @@ class cat_Products extends embed_Manager
         // Ако артикула е редактиран, преизчислява се транспорта
         if ($rec->_isEditedFromForm === true) {
             sales_TransportValues::recalcTransportByProductId($rec->id);
+        }
+
+        // Ако има споделени папки импортират се и те
+        if(!empty($rec->_sharedFolders)){
+            $sharedFolders = keylist::toArray($rec->_sharedFolders);
+            foreach ($sharedFolders as $folderId){
+                $sharedRec = (object)array('productId' => $rec->id, 'folderId' => $folderId);
+                cat_products_SharedInFolders::save($sharedRec);
+            }
+        }
+
+        // Ако се затваря артикула затварят се и готовите задания
+        if($rec->state == 'closed' && $rec->brState == 'active'){
+            if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')){
+                if($closedCount = planning_Jobs::closeActiveJobs($completeJobTolerance, $rec->id, planning_Setup::get('JOB_AUTO_COMPLETION_DELAY'))){
+                    core_Statuses::newStatus("Затворени активни/събудени задания: {$closedCount}");
+                }
+            }
         }
     }
     
@@ -2632,6 +2672,7 @@ class cat_Products extends embed_Manager
     public function cron_closePrivateProducts()
     {
         $now = dt::now();
+        $oneMonthAgo = dt::addMonths(-1, $now);
         $this->closeItems = array();
         
         $checFolders = keylist::toArray(cat_Setup::get('CLOSE_UNUSED_PUBLIC_PRODUCTS_FOLDERS'));
@@ -2720,6 +2761,17 @@ class cat_Products extends embed_Manager
                 }
             }
 
+            // Ако към артикула има активни задания, в които не са добавяни документи в последния месец - не се затваря артикула
+            $jQuery = planning_Jobs::getQuery();
+            $jQuery->where("#productId = {$pRec->id} AND #state IN ('active', 'wakeup')");
+            $jQuery->show('threadId');
+            while($jRec = $jQuery->fetch()){
+                $lastCreatedOn = doc_Threads::getLastCreatedOnInThread($jRec->threadId, 'acc_TransactionSourceIntf');
+                if($lastCreatedOn >= $oneMonthAgo){
+                    $close = false;
+                    break;
+                }
+            }
 
             // Ако нестандартния артикул отговаря на условията за затваряне затваря се
             if($close){
@@ -2757,9 +2809,16 @@ class cat_Products extends embed_Manager
 
         // Затварят се нестандартните артикули без пера създадени преди X месеца
         $this->saveArray($saveArr, 'id,state,brState,modifiedOn,modifiedBy');
+
         foreach ($saveArr as $sd) {
             $this->logWrite('Автоматично затваряне', $sd->id);
+
+            // Затваряне и на активните задания с произведено над 0.9 процента
+            if($completeJobTolerance = planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT')) {
+                planning_Jobs::closeActiveJobs(planning_Setup::get($completeJobTolerance, $sd->id));
+            }
         }
+
         log_System::add('cat_Products', 'Products Private not used' . countR($saveArr), null, 'info', 17);
     }
     
@@ -3243,6 +3302,10 @@ class cat_Products extends embed_Manager
      *               o weightDeviationWarning         - какво да е отклонението на теглото за предупреждение
      *               o weightDeviationAverageWarning  - какво да е отклонението спрямо средното
      *               o description                    - забележки
+     *               o labelPackagingId               - ид на опаковка за етикетиране
+     *               o labelQuantityInPack            - к-во в опаковката
+     *               o labelType                      - как да се въвежда етикета
+     *               o labelTemplate                  - ид на шаблон за етикет
      *
      *               - array input        - масив отматериали за влагане
      *                  o productId      - ид на материал

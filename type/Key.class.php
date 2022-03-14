@@ -330,6 +330,19 @@ class type_Key extends type_Int
                     }
                 }
             }
+
+            // Изкарваме най-отпред предпочитаните опции
+            if(isset($this->params['preferred']) && is_array($this->params['preferred'])) {
+                $prefArr = array();
+                foreach($this->params['preferred'] as $idPref) {
+                    if(isset($options[$idPref])) {
+                        $optPref = $options[$idPref];
+                        unset($options[$idPref]);
+                        $prefArr[$idPref] = $optPref;
+                    }
+                }
+                $options = $prefArr + $options;
+            }
             
             // Правим титлите на опциите да са уникални и изчисляваме най-дългото заглавие
             if (is_array($options)) {

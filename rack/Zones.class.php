@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -26,6 +26,7 @@ class rack_Zones extends core_Master
      * Единично заглавие
      */
     public $singleTitle = 'Зона';
+
 
     /**
      * Плъгини за зареждане
@@ -941,7 +942,6 @@ class rack_Zones extends core_Master
         }
 
         $nonClosedRecs = array_filter(self::$movementCache[$zoneId], function ($a) { return $a->state != 'closed';});
-
         if (!countR($nonClosedRecs)) {
             self::$movementCache[$zoneId] = array();
         }
@@ -985,8 +985,6 @@ class rack_Zones extends core_Master
 
     /**
      * Избор на зона в документ
-     *
-     * @return void|core_ET
      */
     public function act_Orderpickup()
     {
@@ -1005,7 +1003,9 @@ class rack_Zones extends core_Master
     /**
      * Генериране на всички движения за склада
      *
-     * @param int $storeId - ид на склад
+     * @param int $storeId            - ид на склад
+     * @param int|null $defaultUserId - ид на дефолтен потребител (ако има)
+     * @param int|null $productIds    - ид-та на артикули (null за всички)
      * @param void
      */
     public static function pickupAll($storeId, $defaultUserId = null, $productIds = null)

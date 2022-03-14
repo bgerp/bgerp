@@ -109,42 +109,46 @@ abstract class deals_DealMaster extends deals_DealBase
     
     /**
      * Какво е платежното състояние на сделката
+     *
+     * @param mixed $rec - ид или запис
+     * @param null|bgerp_iface_DealAggregator $aggregator
+     * @return string
      */
-    public function getPaymentState($aggregateDealInfo)
+    public function getPaymentState($rec, $aggregator = null)
     {
-        $amountPaid = $aggregateDealInfo->get('amountPaid');
-        $amountBl = $aggregateDealInfo->get('blAmount');
-        $amountDelivered = $aggregateDealInfo->get('deliveryAmount');
-        $amountInvoiced = $aggregateDealInfo->get('invoicedAmount');
-        $notInvoicedAmount = core_Math::roundNumber($amountDelivered) - core_Math::roundNumber($amountInvoiced);
+        $rec = $this->fetchRec($rec);
+        $notInvoicedAmount = core_Math::roundNumber($rec->amountDelivered) - core_Math::roundNumber($rec->amountInvoiced);
         
-        // Добавяме 0 за да елиминираме -0 ако се получи при изчислението
+        // Добавне на 0 за да елиминираме -0 ако се получи при изчислението
         $notInvoicedAmount += 0;
-        
-        $diff = round($amountDelivered - $amountPaid, 4);
-        
+        $diff = round($rec->amountDelivered - $rec->amountPaid, 4);
+
+        // Кои са фактурите в сделката
+        $threads = deals_Helper::getCombinedThreads($rec->threadId);
+        $invoices = deals_Helper::getInvoicesInThread($threads);
+
         // Ако имаме фактури към сделката
-        if (countR($aggregateDealInfo->invoices)) {
+        if (countR($invoices)) {
             $today = dt::today();
-            $invoices = $aggregateDealInfo->invoices;
-            
+
             // Намираме непадежиралите фактури, тези с вальор >= на днес
             $sum = 0;
-            array_filter($invoices, function (&$e) use ($today, &$sum) {
-                if ($e['dueDate'] >= $today && $e['total'] > 0) {
-                    $sum += $e['total'];
-                    
-                    return true;
+            array_walk($invoices, function ($v, $k) use ($today, &$sum) {
+                $Doc = doc_Containers::getDocument($k);
+                $iRec = $Doc->fetch('dealValue,vatAmount,discountAmount,type,date,dueDate');
+                $total = $iRec->dealValue + $iRec->vatAmount - $iRec->discountAmount;
+                $total = ($iRec->type == 'credit_note') ? -1 * $total : $total;
+                $dueDate = !empty($iRec->dueDate) ? $iRec->dueDate : $iRec->date;
+                if ($dueDate >= $today && $total > 0) {
+                    $sum += $total;
                 }
-                
-                return false;
             });
-            
+
             // Ще сравняваме салдото със сумата на непадежиралите фактури + нефактурираното
             $valueToCompare = $sum + $notInvoicedAmount;
-            $balance = $amountBl;
-            
+
             // За покупката гледаме баланса с обратен знак
+            $balance = $rec->amountBl;
             if ($this instanceof purchase_Purchases) {
                 $balance = -1 * $balance;
             }
@@ -152,14 +156,14 @@ abstract class deals_DealMaster extends deals_DealBase
             $balance = round($balance, 4);
             $valueToCompare = round($valueToCompare, 4);
             $difference = $balance - $valueToCompare;
-            
+
             if ($balance > $valueToCompare && ($difference < -5 || $difference > 5)) {
-                
+
                 return 'overdue';
             }
         } else {
-            
             // Ако няма фактури, гледаме имали платежен план
+            $aggregateDealInfo = !isset($aggregator) ? $this->getAggregateDealInfo($rec->id) : $aggregator;
             $methodId = $aggregateDealInfo->get('paymentMethodId');
             if (!empty($methodId)) {
                 // За дата на платежния план приемаме първата фактура, ако няма първото експедиране, ако няма вальора на договора
@@ -174,11 +178,11 @@ abstract class deals_DealMaster extends deals_DealBase
                 }
             }
         }
-        
+
         // Ако имаме доставено или платено
-        $amountBl = round($amountBl, 4);
+        $amountBl = round($rec->amountBl, 4);
         $tolerancePercent = deals_Setup::get('BALANCE_TOLERANCE');
-        $tolerance = $amountDelivered * $tolerancePercent;
+        $tolerance = $rec->amountDelivered * $tolerancePercent;
         
         // Ако салдото е в рамките на толеранса приемаме че е 0
         if (abs($amountBl) <= abs($tolerance)) {
@@ -1381,7 +1385,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $rec->amountInvoicedDownpaymentToDeduct += $downpaymentInvoicedToDeductAmount;
         }
         
-        $rec->paymentState = $mvc->getPaymentState($aggregateDealInfo);
+        $rec->paymentState = $mvc->getPaymentState($rec, $aggregateDealInfo);
         $rec->modifiedOn = dt::now();
         
         $cRec = doc_Containers::fetch($rec->containerId);
@@ -1752,12 +1756,10 @@ abstract class deals_DealMaster extends deals_DealBase
         $query = $Class->getQuery();
         $query->where("#state = 'active'");
         $query->where("ADDDATE(#modifiedOn, INTERVAL {$overdueDelay} SECOND) <= '{$now}'");
-        $query->show('id,amountDeal,amountPaid,amountDelivered,paymentState');
         
         while ($rec = $query->fetch()) {
             try {
-                $dealInfo = $Class->getAggregateDealInfo($rec->id);
-                $rec->paymentState = $Class->getPaymentState($dealInfo);
+                $rec->paymentState = $Class->getPaymentState($rec->id);
                 $Class->save_($rec, 'paymentState');
             } catch (core_exception_Expect $e) {
                 reportException($e);

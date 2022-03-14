@@ -26,3 +26,4 @@
 Край онлайн продажби,cond_type_Date,,endSales,,yes,active,"time=yes",no
 Твърдения в ДС,cond_type_Keylist,,decStatements,,no,active,"class=dec_Statements,select=title",no
 Оборудване,cond_type_Keylist,,planningAssets,,no,active,"class=planning_AssetResources,select=name",no
+Грамаж,cond_type_Double,г/м2,densityGm2,,no,active,,yes

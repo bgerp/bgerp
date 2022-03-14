@@ -56,10 +56,16 @@
                     </tr>
                     <!--ET_BEGIN storeId-->
                     <tr>
-                        <td class='quiet' style='text-align: left'>|Склад|*:</td>
+                        <td class='quiet' style='text-align: left'>|Произвеждане в|*:</td>
                         <td>[#storeId#]</td>
                     </tr>
                     <!--ET_END storeId-->
+                    <!--ET_BEGIN inputStores-->
+                    <tr>
+                        <td class='quiet' style='text-align: left'>|Влагане от|*:</td>
+                        <td>[#inputStores#]</td>
+                    </tr>
+                    <!--ET_END inputStores-->
                     <!--ET_BEGIN tolerance-->
                     <tr>
                         <td class='quiet' style='text-align: left'>|Толеранс|*:</td>

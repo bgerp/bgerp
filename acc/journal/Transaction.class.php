@@ -127,6 +127,7 @@ class acc_journal_Transaction
                 try {
                     $entry->check();
                 } catch (acc_journal_Exception $ex) {
+                    wp($ex);
                     throw new acc_journal_Exception('Невалиден ред на транзакция: ' . $ex->getMessage());
                 }
             }

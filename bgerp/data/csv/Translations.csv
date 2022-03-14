@@ -2974,3 +2974,7 @@ en,Други опасни вещества,Other dangerous substances
 en,Съгласно офериране,According to auction
 en,"Невалидно потребителско име. Трябва да започва с буква", "Invalid nick. It must start with a letter"
 en,"Може да съдържа малки и големи букви, цифри, долна черта и точка", "It may contain small and big letters, digits, underscore or a dot"
+en,"Изберете, поставете (Ctrl+V) или провлачете файл", "Select, paste (Ctrl+V) or drop file"
+en,Този потребител е блокиран, This user is blocked
+en,Може да го активирате от тук, You can activate it from here
+en,На имейла от регистрацията е изпратена информация и инструкция за ре-активация, We sent information for reactivation to email from registration

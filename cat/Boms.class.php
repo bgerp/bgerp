@@ -524,11 +524,6 @@ class cat_Boms extends core_Master
             $productId = (isset($rec->productId)) ? $rec->productId : $mvc->fetchField($rec->id, 'productId');
             cat_Products::touchRec($productId);
         }
-        
-        // @todo да се махне след като се провери дали някой не записва документа докато е активен
-        if(isset($rec->state) && $rec->state == $rec->brState && $rec->state != 'draft'){
-            wp('cat_Boms::afterSaveActive', $rec);
-        }
     }
     
     
@@ -536,7 +531,6 @@ class cat_Boms extends core_Master
      * Обновява данни в мастъра
      *
      * @param int $id първичен ключ на статия
-     *
      * @return int $id ид-то на обновения запис
      */
     public function updateMaster_($id)
@@ -732,6 +726,8 @@ class cat_Boms extends core_Master
      * Връща информация с ресурсите използвани в технологичната рецепта
      *
      * @param mixed $id - ид или запис
+     * @param double $quantity - ид или запис
+     * @param datetime $date - ид или запис
      *
      * @return array $res - Информация за рецептата
      *               ->quantity - к-во
@@ -799,14 +795,14 @@ class cat_Boms extends core_Master
      * Ф-я за добавяне на нова рецепта към артикул
      *
      * @param mixed   $productId - ид или запис на производим артикул
-     * @param int   $quantity  - количество за което е рецептата
-     * @param array $details   - масив с обекти за детайли
-     *                         ->resourceId   - ид на ресурс
-     *                         ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
-     *                         ->stageId      - опционално, към кой производствен етап е детайла
-     *                         ->baseQuantity - начално количество на ресурса
-     *                         ->propQuantity - пропорционално количество на ресурса
-     * @param string  $notes     - забележки
+     * @param int   $quantity    - количество за което е рецептата
+     * @param array $details     - масив с обекти за детайли
+     *                        ->resourceId   - ид на ресурс
+     *                        ->type         - действие с ресурса: влагане/отпадък, ако не е подаден значи е влагане
+     *                        ->stageId      - опционално, към кой производствен етап е детайла
+     *                        ->baseQuantity - начално количество на ресурса
+     *                        ->propQuantity - пропорционално количество на ресурса
+     * @param string  $notes   - забележки
      * @param float $expenses  - процент режийни разходи
      *
      * @return int $id         - ид на новосъздадената рецепта
@@ -1041,7 +1037,6 @@ class cat_Boms extends core_Master
      * Рендиране на рецептите на един артикул
      *
      * @param stdClass $data
-     *
      * @return core_ET
      */
     public function renderBoms($data)
@@ -1132,8 +1127,7 @@ class cat_Boms extends core_Master
     /**
      * Връща допустимите параметри за формулите
      *
-     * @param stdClass $rec - запис
-     *
+     * @param int $productId - запис
      * @return array - допустимите параметри с техните стойностти
      */
     public static function getProductParams($productId)
@@ -1194,7 +1188,6 @@ class cat_Boms extends core_Master
      * Връща контекста на параметрите
      *
      * @param array $params
-     *
      * @return array $scope
      */
     public static function getScope($params)
@@ -1655,45 +1648,56 @@ class cat_Boms extends core_Master
     public static function getTasksFromBom($id, $quantity = 1)
     {
         expect($rec = self::fetchRec($id));
-        $tasks = array();
         $pName = cat_Products::getTitleById($rec->productId, false);
-        
+        $Details = cls::get('cat_BomDetails');
+        $productStepClassId = planning_interface_StepProductDriver::getClassId();
+
         // За основния артикул подготвяме задача
         // В която самия той е за произвеждане
         $tasks = array(1 => (object) array('title' => $pName,
-            'plannedQuantity' => $quantity,
-            'quantityInPack' => 1,
-            'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'),
-            'productId' => $rec->productId,
-            'products' => array('input' => array(),'waste' => array())));
+                                           'plannedQuantity' => $quantity,
+                                           'quantityInPack' => 1,
+                                           '_dId' => null,
+                                           '_parentId' => null,
+                                           '_position' => null,
+                                           'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'),
+                                           'productId' => $rec->productId,
+                                           'products' => array('input' => array(),'waste' => array())));
         
         // Намираме неговите деца от първо ниво те ще бъдат артикулите за влагане/отпадък
         $dQuery = cat_BomDetails::getQuery();
+        $dQuery->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $dQuery->where("#bomId = {$rec->id}");
         $dQuery->where('#parentId IS NULL');
         while ($detRec = $dQuery->fetch()) {
+            if($detRec->innerClass == $productStepClassId) continue;
+
             $detRec->params['$T'] = $quantity;
             $quantityE = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
             if ($quantityE == cat_BomDetails::CALC_ERROR) {
                 $quantityE = 0;
             }
             $quantityE = ($quantityE / $rec->quantity) * $quantity;
-            
             $place = ($detRec->type == 'pop') ? 'waste' : 'input';
             $tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantityE / $quantity, 'quantityInPack' => $detRec->quantityInPack);
         }
-        
+
         // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
         // А неговите подетапи са за влагане/отпадък
+        $onlySteps = $allStages = array();
         $query = cat_BomDetails::getQuery();
+        $query->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $query->where("#bomId = {$rec->id}");
         $query->where("#type = 'stage'");
-        
+        while($dRec1 = $query->fetch()){
+            $allStages[$dRec1->id] = $dRec1;
+            if($dRec1->innerClass == $productStepClassId){
+                $onlySteps[$dRec1->id] = $dRec1;
+            }
+        }
+
         // За всеки етап намираме подетапите му
-        while ($dRec = $query->fetch()) {
-            $query2 = cat_BomDetails::getQuery();
-            $query2->where("#parentId = {$dRec->id}");
-            
+        foreach ($allStages as $dRec) {
             $quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
             if ($quantityP == cat_BomDetails::CALC_ERROR) {
                 $quantityP = 0;
@@ -1708,12 +1712,14 @@ class cat_Boms extends core_Master
                 $quantityP *= $q;
                 $parent = $pRec->parentId;
             }
-            
-            $quantityP = ($quantityP / $rec->quantity) * $quantity;
+
+            $quantityP = (($quantityP) / $rec) * $quantity;
+            $q1 = round($quantityP * $dRec->quantityInPack, 5);
 
             // Подготвяне задачата за етапа, с него за производим
-            $arr = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
-                'plannedQuantity' => $quantityP,
+            $obj = (object) array('title' => $pName . ' / ' . cat_Products::getTitleById($dRec->resourceId, false),
+                'plannedQuantity' => $q1,
+                'measureId' => cat_Products::fetchField($dRec->resourceId, 'measureId'),
                 'productId' => $dRec->resourceId,
                 'packagingId' => $dRec->packagingId,
                 'quantityInPack' => $dRec->quantityInPack,
@@ -1722,22 +1728,63 @@ class cat_Boms extends core_Master
                 'fixedAssets' => $dRec->fixedAssets,
                 'employees' => $dRec->employees,
                 'indTime' => $dRec->norm,
+                '_dId' => $dRec->id,
+                '_parentId' => $dRec->parentId,
+                '_position' => $dRec->position,
                 'description' =>  $dRec->description,
+                'labelPackagingId' => $dRec->labelPackagingId,
+                'labelQuantityInPack' => $dRec->labelQuantityInPack,
+                'labelType' => $dRec->labelType,
+                'labelTemplate' => $dRec->labelTemplate,
+                'params' => array(),
                 'products' => array('input' => array(), 'waste' => array()));
-            
-            // Добавяме директните наследници на етапа като материали за влагане/отпадък
-            while ($cRec = $query2->fetch()) {
-                $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
-                if ($quantityS == cat_BomDetails::CALC_ERROR) {
-                    $quantityS = 0;
-                }
-                
-                $place = ($cRec->type == 'pop') ? 'waste' : 'input';
-                $arr->products[$place][] = array('productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
+
+            $pQuery = cat_products_Params::getQuery();
+            $pQuery->where("#classId = '{$Details->getClassId()}' AND #productId = {$dRec->id}");
+            $pQuery->show('paramId,paramValue');
+            while($pRec = $pQuery->fetch()){
+                $obj->params[$pRec->paramId] = $pRec->paramValue;
             }
-            
+
+            // Добавяме директните наследници на етапа като материали за влагане/отпадък
+            $query2 = cat_BomDetails::getQuery();
+            $query2->where("#parentId = {$dRec->id}");
+            $query2->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
+            $stageChildren = $query2->fetchAll();
+
+            foreach ($stageChildren as $cRec){
+                if($cRec->innerClass != $productStepClassId){
+                    $quantityS = cat_BomDetails::calcExpr($cRec->propQuantity, $cRec->params);
+                    if ($quantityS == cat_BomDetails::CALC_ERROR) {
+                        $quantityS = 0;
+                    }
+
+                    $place = ($cRec->type == 'pop') ? 'waste' : 'input';
+                    $obj->products[$place][] = array('productName' => cat_Products::getTitleById($cRec->resourceId), 'productId' => $cRec->resourceId, 'packagingId' => $cRec->packagingId, 'packQuantity' => $quantityS, 'quantityInPack' => $cRec->quantityInPack);
+                }
+            }
+
             // Събираме задачите
-            $tasks[] = $arr;
+            $tasks[] = $obj;
+        }
+
+        foreach ($tasks as $k => $defTask){
+            $siblingSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_parentId && $a->position < $defTask->_position;});
+            $childrenSteps = array_filter($onlySteps, function($a) use ($defTask) { return $a->parentId == $defTask->_dId;});
+
+            foreach (array($siblingSteps, $childrenSteps) as $arr){
+                if(countR($arr)){
+                    arr::sortObjects($arr, 'position', 'DESC');
+                    $foundStepId = key($arr);
+                    if($foundStepId){
+                        $foundStepArr = array_filter($tasks, function($b) use ($foundStepId) { return $b->_dId == $foundStepId;});
+                        $foundStepTask = $foundStepArr[key($foundStepArr)];
+                        if($foundStepTask){
+                            $defTask->products['input'][] = array('productName' => cat_Products::getTitleById($foundStepTask->productId), 'productId' => $foundStepTask->productId, 'packagingId' => $foundStepTask->packagingId, 'packQuantity' => $foundStepTask->plannedQuantity, 'quantityInPack' => $foundStepTask->quantityInPack);
+                        }
+                    }
+                }
+            }
         }
 
         // Връщаме масива с готовите задачи

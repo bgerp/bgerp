@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg> и Yusein Yuseinov <yyuseinov@gmail.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -379,8 +379,7 @@ class planning_AssetResources extends core_Master
                     if (doc_Folders::haveRightFor('single', $f['folderId'])) {
                         $pQuery = planning_Tasks::getQuery();
                         $pQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
-                        $pQuery->likeKeylist('fixedAssets', $rec->id);
-                        $pQuery->where("#state != 'rejected'");
+                        $pQuery->where("#assetId = {$rec->id} AND #state != 'rejected'");
                         $pQuery->orderBy('state', 'ASC');
                         $pQuery->orderBy('modifiedOn', 'DESC');
                         $pQuery->limit($limitForDocs);
@@ -541,14 +540,16 @@ class planning_AssetResources extends core_Master
      *
      * @param int|null $folderId       - ид на папка, или null за всички папки
      * @param mixed $exIds             - ид-та които да се добавят към опциите
+     * @param mixed $forMvc            - за кой клас
      * @param boolean $useSimultaneity - да се пропускат ли тези с нулева едновременност
      *
      * @return array $options    - налично оборудване
      */
-    public static function getByFolderId($folderId = null, $exIds = null, $useSimultaneity = false)
+    public static function getByFolderId($folderId = null, $exIds = null, $forMvc = null, $useSimultaneity = false)
     {
         $options = array();
         $noOptions = false;
+        $forMvc = isset($forMvc) ? cls::get($forMvc) : null;
 
         // Ако папката не поддържа ресурси оборудване да не се връща нищо
         if (isset($folderId)) {
@@ -556,6 +557,7 @@ class planning_AssetResources extends core_Master
                 $noOptions = true;
             }
         }
+
 
         // Ако ще се търсят опции
         if(!$noOptions){
@@ -569,6 +571,10 @@ class planning_AssetResources extends core_Master
                 if ($rec = self::fetch($fRec->objectId)) {
                     if ($rec->state == 'rejected' || $rec->state == 'closed') continue;
                     if($useSimultaneity && $rec->simultaneity == 0) continue;
+                    if($forMvc instanceof planning_Tasks){
+                        $showInPlanningTasks = planning_AssetGroups::fetchField($rec->groupId, 'showInPlanningTasks');
+                        if($showInPlanningTasks != 'yes') continue;
+                    }
 
                     $options[$rec->id] = self::getRecTitle($rec, false);
                 }
@@ -599,6 +605,7 @@ class planning_AssetResources extends core_Master
         // Подготовка на записите
         $query = self::getQuery();
         $query->where("#groupId = {$data->masterId}");
+        $query->orderBy('state', 'ASC');
         $data->recs = $data->rows = array();
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
@@ -651,10 +658,7 @@ class planning_AssetResources extends core_Master
      */
     public static function getNormRec($id, $productId)
     {
-        if (empty($id)) {
-            
-            return false;
-        }
+        if (empty($id)) return false;
         
         // Имали конкретна норма за артикула
         $aNorm = planning_AssetResourcesNorms::fetchNormRec('planning_AssetResources', $id, $productId);
@@ -672,26 +676,6 @@ class planning_AssetResources extends core_Master
         }
         
         return false;
-    }
-    
-    
-    /**
-     * Извлича общата група на оборудванията
-     *
-     * @param mixed $assets - списък с оборудвания
-     *
-     * @return int|FALSE $groupId - намерената група или FALSE ако са от различни групи
-     */
-    public static function getGroupId(&$assets)
-    {
-        $assets = is_array($assets) ? $assets : keylist::toArray($assets);
-        if (!planning_AssetGroups::haveSameGroup($assets)) {
-            
-            return false;
-        }
-        $groupId = planning_AssetResources::fetchField(key($assets), 'groupId');
-        
-        return (!empty($groupId)) ? $groupId : false;
     }
     
     
@@ -824,5 +808,25 @@ class planning_AssetResources extends core_Master
         if ($type == 'nonMaterial') {
             $mvc->currentTab = 'Ресурси->Нематериални';
         }
+    }
+
+
+    /**
+     * Кои са използваните в операции ресурси
+     *
+     * @return array $options
+     */
+    public static function getUsedAssetsInTasks()
+    {
+        $options = array();
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->XPR('assets', 'varchar', 'GROUP_CONCAT(DISTINCT #assetId)');
+        $tQuery->show('assets');
+        $assets = explode(',', $tQuery->fetch()->assets);
+        foreach ($assets as $assetId){
+            $options[$assetId] = planning_AssetResources::getTitleById($assetId, false);
+        }
+
+        return $options;
     }
 }

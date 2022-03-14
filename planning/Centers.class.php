@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -170,13 +170,13 @@ class planning_Centers extends core_Master
                                  brigade=Бригада,
                                  shift=Смяна,
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
-        
+        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
+        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри за планиране->Списък');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', 'caption=Служители->Щат, input=none');
         $this->FLD('employmentOccupied', 'int', 'caption=Служители->Назначени, input=none');
         $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', 'caption=Работен график->Цикъл,mandatory');
         $this->FLD('startingOn', 'datetime', 'caption=Работен график->От');
-        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
         
         $this->setDbUnique('name');
@@ -404,10 +404,21 @@ class planning_Centers extends core_Master
     {
         $options = array();
         if(isset($jobId)){
-            $jobFolderId = planning_Jobs::fetchField($jobId, 'folderId');
-            $Cover = doc_Folders::getCover($jobFolderId);
+            $jobRec = planning_Jobs::fetch($jobId, 'folderId,productId');
+            $Cover = doc_Folders::getCover($jobRec->folderId);
+
+            // Ако артикула може да се създава само в един център остава само той
+            if($Driver = cat_Products::getDriver($jobRec->productId)) {
+                $productionData = $Driver->getProductionData($jobRec->productId);
+                if(isset($productionData['centerId'])){
+                    $options[$jobRec->folderId] = planning_Centers::getTitleById($productionData['centerId'], false);
+
+                    return $options;
+                }
+            }
+
             if($Cover->isInstanceOf('planning_Centers')){
-                $options[$jobFolderId] = $Cover->getRecTitle(false);
+                $options[$jobRec->folderId] = $Cover->getRecTitle(false);
             }
         }
         

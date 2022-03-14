@@ -166,6 +166,9 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $state = $sRec->state;
             $brState = $sRec->brState;
 
+            //номер на фактурата
+            $number = str_pad($sRec->number, 10, "0", STR_PAD_LEFT);
+
             //Код на контрагента, така както е експортиран в БН. В случая folderId  на контрагента
             $contragentClassName = core_Classes::getName($sRec->contragentClassId);
             $contragentCode = $contragentClassName::fetch($sRec->contragentId)->folderId;
@@ -197,7 +200,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
 
                         'type' => $rec->docType,
                         'dealType' => $rec->dealType,
-                        'number' => $sRec->number,
+                        'number' => $number,
                         'date' => $sRec->date,
                         'contragentVatNo' => $contragentVatNo,
                         'contragentNo' => $contragentNo,
@@ -225,7 +228,7 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                     'id' => $id,
                     'type' => $rec->docType,
                     'dealType' => $rec->dealType,
-                    'number' => $sRec->number,
+                    'number' => $number,
                     'date' => $sRec->date,
                     'contragentVatNo' => $contragentVatNo,
                     'contragentNo' => $contragentNo,
@@ -428,8 +431,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
                 $dRec->invoice->dealValue = $dRec->quantity = $dRec->price = $dRec->detAmount = $dRec->vat = 0;
             }
 
-            $number = str_pad($dRec->invoice->number, 10, "0", STR_PAD_LEFT);
-
             $row->type = $dRec->invoice->type;
             $row->dealType = $dRec->invoice->dealType;
             $row->number = $number;
@@ -457,7 +458,6 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             if ($dRec->state == 'rejected') {
                 $dRec->dealValue = $dRec->quantity = $dRec->price = $dRec->detAmount = $dRec->vat = 0;
             }
-            $number = str_pad($dRec->number, 10, "0", STR_PAD_LEFT);
 
             $row->type = $dRec->type;
             $row->dealType = $dRec->dealType;
@@ -504,6 +504,12 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
         $row = new stdClass();
 
         if ($dRec->invoice) {
+
+            //нулираме стойностите на анулираните фактури
+            if ($dRec->invoice->state == 'rejected') {
+                $dRec->invoice->dealValue = $dRec->quantity = $dRec->price = $dRec->detAmount = $dRec->vat = 0;
+            }
+
             $res->type = $dRec->invoice->type;
             $res->dealType = $dRec->invoice->dealType;
             $res->number = $dRec->invoice->number;
@@ -518,14 +524,19 @@ class bnav_bnavExport_SalesInvoicesExport extends frame2_driver_TableData
             $res->dealValue = ($dRec->invoice->dealValue);
             $res->prodCode = $dRec->prodCode;
             $res->group = cat_Groups::getTitleById($dRec->group);
-            $res->quantity = ($dRec->quantity);
-            $res->price = ($dRec->price);
-            $res->detAmount = ($dRec->detAmount);
+            $res->quantity = $dRec->quantity;
+            $res->price = $dRec->price;
+            $res->detAmount = $dRec->detAmount;
             $res->measure = $dRec->measure;
             $res->vat = $dRec->vat;
             $res->paymentType = $dRec->invoice->paymentType;
             $res->bankAccount = bank_Accounts::getTitleById($dRec->invoice->accountId);
         } else {
+            //нулираме стойностите на анулираните фактури
+            if ($dRec->state == 'rejected') {
+                $dRec->dealValue = $dRec->quantity = $dRec->price = $dRec->detAmount = $dRec->vat = 0;
+            }
+
             $res->bankAccount = bank_Accounts::getTitleById($dRec->accountId);
         }
     }

@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -186,10 +186,10 @@ class planning_Jobs extends core_Master
      * @see planning_plg_StateManager
      */
     public $notifyActionNamesArr = array('active' => 'Активиране',
-        'closed' => 'Приключване',
-        'wakeup' => 'Събуждане',
-        'stopped' => 'Спиране',
-        'rejected' => 'Оттегляне');
+                                         'closed' => 'Приключване',
+                                         'wakeup' => 'Събуждане',
+                                         'stopped' => 'Спиране',
+                                         'rejected' => 'Оттегляне');
     
     
     /**
@@ -248,7 +248,8 @@ class planning_Jobs extends core_Master
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
         $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане в');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLinks)', 'caption=Влагане от,after=storeId');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Забележки');
 
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
@@ -748,6 +749,7 @@ class planning_Jobs extends core_Master
         if (isset($rec->productId) && empty($fields['__isDetail'])) {
             $rec->quantityFromTasks = planning_Tasks::getProducedQuantityForJob($rec);
             $rec->quantityFromTasks /= $rec->quantityInPack;
+            $rec->quantityFromTasks = round($rec->quantityFromTasks, 5);
             $row->quantityFromTasks = $Double->toVerbal($rec->quantityFromTasks);
         }
 
@@ -1169,7 +1171,6 @@ class planning_Jobs extends core_Master
      * Преизчисляваме какво количество е произведено по заданието
      *
      * @param int $containerId - ид на запис
-     *
      * @return void
      */
     public static function updateProducedQuantity($containerId)
@@ -1224,29 +1225,23 @@ class planning_Jobs extends core_Master
 
         $form = cls::get('core_Form');
         $form->title = 'Създаване на производствени операция към|* <b>' . self::getHyperlink($jobRec->id, true) . '</b>';
-
-        $checkedImgNo = ht::createImg(array('src' => sbf('img/16/checked-not-green.png', '')))->getContent();
-        $checkedImg = ht::createImg(array('src' => sbf('img/16/checked-green.png', '')))->getContent();
-
         $form->info = getTplFromFile('planning/tpl/SelectTaskInJobForm.shtml');
         $options = array();
 
         $defaultTasks = cat_Products::getDefaultProductionTasks($jobRec, $jobRec->quantity);
         if(countR($defaultTasks)){
-            $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Шаблонни операции за артикула'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
+            $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Шаблонни операции за артикула'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
 
             if(planning_Tasks::haveRightFor('createjobtasks', (object)array('jobId' => $jobRec->id, 'type' => 'all'))){
-                $img = $checkedImgNo;
                 $title = tr('Несъздадените шаблонни операции');
                 $createAllUrl = array('planning_Tasks', 'createjobtasks', 'type' => 'all', 'jobId' => $jobRec->id, 'ret_url' => true);
-                $urlLink = ht::createBtn('Създаване', $createAllUrl, 'Наистина ли желаете да създадете наведнъж всички останали шаблонни операции|*?', false, 'title=Създаване на всички шаблонни операции за артикула');
-                $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CHECKED' => $img, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
+                $urlLink = ht::createBtn('Създаване', $createAllUrl, 'Наистина ли желаете да създадете наведнъж всички останали шаблонни операции|*?', false, 'title=Създаване на всички шаблонни операции за артикула,ef_icon=img/16/add.png');
+                $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_TR_CLASS' => 'createAllTasksForJob', 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
 
             // Показване на наличните дефолтни операции
             foreach ($defaultTasks as $sysId => $defTask){
                 $title = $defTask->title;
-                $img = $checkedImgNo;
                 $warning = false;
                 if($taskId = planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #systemId = {$sysId} AND #state != 'rejected'")){
                     $warning = 'Наистина ли желаете да създадете отново шаблонна операция|*?';
@@ -1254,7 +1249,6 @@ class planning_Jobs extends core_Master
                         $title = ht::createLinkRef($title, planning_Tasks::getSingleUrlArray($taskId), false, 'title=Преглед на производствената операция');
                     }
                     $title = "<span class='quiet'>{$title}</span>";
-                    $img = $checkedImg;
                 }
 
                 $folderId = isset($defTask->centerId) ? planning_Centers::fetchField($defTask->centerId, 'folderId') : $folderId;
@@ -1263,8 +1257,8 @@ class planning_Jobs extends core_Master
                     $urlAdd = array('planning_Tasks', 'add', 'folderId' => $folderId, 'originId' => $jobRec->containerId, 'title' => $defTask->title, 'ret_url' => true, 'systemId' => $sysId);
                 }
 
-                $urlLink = ht::createBtn('Създаване', $urlAdd, $warning, false, 'title=Създаване на производствена операция');
-                $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CHECKED' => $img, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
+                $urlLink = ht::createBtn('Създаване', $urlAdd, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/add.png');
+                $options[] = (object)array('DEFAULT_TASK_CAPTION' => $title, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
             }
         }
 
@@ -1274,14 +1268,13 @@ class planning_Jobs extends core_Master
             if (countR($oldTasks)) {
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('От предишно задание') . planning_Jobs::getLink($jobRec->oldJobId, 0), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
                 foreach ($oldTasks as $k1 => $oldTitle) {
-                    $img = $checkedImgNo;
+                    $oldTitle = ht::createLink($oldTitle, planning_Tasks::getSingleUrlArray($k1));
                     $warning = false;
                     if($taskId = planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #clonedFromId = {$k1} AND #state != 'rejected'")){
                         if(planning_Tasks::haveRightFor('single', $taskId)){
                             $oldTitle = ht::createLinkRef($oldTitle, planning_Tasks::getSingleUrlArray($taskId), false, 'title=Преглед на производствената операция');
                         }
                         $oldTitle = "<span class='quiet'>{$oldTitle}</span>";
-                        $img = $checkedImg;
                         $warning = 'Наистина ли желаете да клониране отново операцията от предходното задание|*?';
                     }
 
@@ -1290,15 +1283,21 @@ class planning_Jobs extends core_Master
                         $urlClone = array('planning_Tasks', 'createjobtasks', 'type' => 'clone', 'cloneId' => $k1, 'jobId' => $jobRec->id, 'ret_url' => true);
                     }
 
-                    $urlLink = ht::createBtn('Клониране', $urlClone, $warning, false, 'title=Създаване на производствена операция');
-                    $options[] = (object)array('DEFAULT_TASK_CAPTION' => $oldTitle, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CHECKED' => $img, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
+                    $urlLink = ht::createBtn('Клониране', $urlClone, $warning, false, 'title=Създаване на производствена операция,ef_icon=img/16/clone.png');
+                    $options[] = (object)array('DEFAULT_TASK_CAPTION' => $oldTitle, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
                 }
             }
         }
 
         // Създаване на нови ПО към наличните департаменти за избор
+        $readyOptions = countR($options);
         $departments = planning_Centers::getCentersForTasks($jobRec->id);
-        $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Нова операция в център на дейност'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
+        $caption = tr('Нова операция в център на дейност');
+        if($readyOptions){
+            $caption .= "&nbsp; <a id= 'btnShowTasks' href=\"javascript:toggleDisplayByClass('btnShowTasks', 'newTaskBtn')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>";
+        }
+        $options[] = (object)array('DEFAULT_TASK_CAPTION' => $caption, 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
+
         if(countR($departments)){
             foreach ($departments as $depFolderId => $dName) {
                 $urlNewTask = array();
@@ -1306,12 +1305,13 @@ class planning_Jobs extends core_Master
                     $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId);
                 }
 
-                $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, 'title=Създаване на нова производствена операция в избрания център');
+                $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, 'title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png');
                 $dName = doc_Folders::recToVerbal($depFolderId)->title;
-                $options[] = (object)array('DEFAULT_TASK_CAPTION' => $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CHECKED' => null, 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
+                $trClass = ($readyOptions) ? 'newTaskBtn' : null;
+                $options[] = (object)array('DEFAULT_TASK_CAPTION' => $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1, 'DEFAULT_TASK_TR_CLASS' => $trClass);
             }
         } else {
-            $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Няма налични центрове'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => null, 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
+            $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('Няма налични центрове'), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => null, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1);
         }
 
         // Всяка опция се добавя във формата
@@ -1325,6 +1325,7 @@ class planning_Jobs extends core_Master
         $form->toolbar->addBtn('Назад', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Назад към заданието');
         $form->layout = $form->renderLayout();
 
+        // Рендиране на заданието под формата
         if(planning_Jobs::haveRightFor('single', $jobRec->id)){
             $tpl = new ET("<div class='preview-holder planning_Jobs'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Оригинален документ') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
             $docHtml = $this->getInlineDocumentBody($jobRec);
@@ -1333,8 +1334,6 @@ class planning_Jobs extends core_Master
         }
 
         $tpl = $this->renderWrapping($form->renderHtml());
-
-        core_Form::preventDoubleSubmission($tpl, $form);
         
         return $tpl;
     }
@@ -1527,11 +1526,11 @@ class planning_Jobs extends core_Master
             if($productRec->canStore == 'yes') {
                 // Записване на очакваното количество за производство
                 $res[] = (object)array('storeId'          => $rec->storeId,
-                                           'productId'        => $rec->productId,
-                                           'date'             => $date,
-                                           'quantityIn'       => $quantityToProduce,
-                                           'quantityOut'      => null,
-                                           'genericProductId' => $genericProductId);
+                                       'productId'        => $rec->productId,
+                                       'date'             => $date,
+                                       'quantityIn'       => $quantityToProduce,
+                                       'quantityOut'      => null,
+                                       'genericProductId' => $genericProductId);
             }
 
             // Ако има активна рецепта
@@ -1594,7 +1593,15 @@ class planning_Jobs extends core_Master
                         }
 
                         if($remainingQuantity > 0){
-                            $res[] = (object)array('storeId'          => $rec->storeId,
+                            if(isset($rec->inputStores)){
+                                $quantities = store_Products::getQuantitiesByStore($materialRec->productId, null, $rec->inputStores);
+                                arsort($quantities);
+                                $inputStoreId = key($quantities);
+                            } else {
+                                $inputStoreId = null;
+                            }
+
+                            $res[] = (object)array('storeId'          => $inputStoreId,
                                                    'productId'        => $materialRec->productId,
                                                    'date'             => $date,
                                                    'quantityIn'       => null,
@@ -1635,37 +1642,12 @@ class planning_Jobs extends core_Master
 
         // Да не са променяни от
         $delay = planning_Setup::get('JOB_AUTO_COMPLETION_DELAY');
-        $fromDate = dt::addSecs(-1 * $delay);
-
         $isSystemUser = core_Users::isSystemUser();
         if(!$isSystemUser){
             core_Users::forceSystemUser();
         }
 
-        // Намиране на всички задания готови над посочения процент
-        $now = dt::now();
-        $query = planning_Jobs::getQuery();
-        $query->XPR('progress', 'date', 'ROUND((#quantityProduced / #quantity), 2)');
-        $query->in("state", array('active', 'wakeup', 'stopped'));
-        $query->where("#modifiedOn < '{$fromDate}' AND #progress >= {$percent}");
-        $query->limit(50);
-
-        // Всяко едно се приключва
-        Mode::push('preventNotifications', true);
-        while($rec = $query->fetch()){
-
-            // Ако има документ на заявка в нишката, няма да се приключва заданието
-            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) continue;
-
-            $rec->brState = $rec->state;
-            $rec->state = 'closed';
-            $rec->timeClosed = $now;
-
-            $this->save($rec);
-            $this->invoke('AfterChangeState', array(&$rec,  $rec->state));
-            $this->logWrite('Автоматично приключване', $rec->id);
-        }
-        Mode::pop();
+        static::closeActiveJobs(planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT'), null, $delay);
 
         if(!$isSystemUser){
             core_Users::cancelSystemUser();
@@ -1928,5 +1910,55 @@ class planning_Jobs extends core_Master
         $usedDocs[$rec->productId] = cat_Products::fetchField($rec->productId, 'containerId');
 
         return $usedDocs;
+    }
+
+
+    /**
+     * Затваря активните + събудените задания само ако произведеното е над $tolerance и няма нови контиращи документи
+     * в последните $noNewDocumentsInMonths месеца
+     *
+     * @param double $tolerance          - над колко % произведено (включително)
+     * @param int|null $productId        - ид на артикул
+     * @param int|null $noNewDocumentsIn - за колко време назад да се гледа да няма нови контиращи документи в нишката
+     * @return int $count                - колко са приключените задания
+     */
+    public static function closeActiveJobs($tolerance, $productId = null, $noNewDocumentsIn = null)
+    {
+        $thresholdDate = ($noNewDocumentsIn) ? dt::addSecs(-1 * $noNewDocumentsIn, dt::now()) : null;
+        $me = cls::get(get_called_class());
+        $query = static::getQuery();
+        $query->where("#state IN ('active', 'wakeup')");
+        $query->XPR('completed', 'percent', 'round(#quantityProduced / #quantity, 2)');
+        $query->where("#completed >= {$tolerance}");
+
+        // Ако ще се гледат само за един артикул - за него, иначе за всички задания към затворени артикули
+        if(isset($productId)){
+            $query->where("#productId = {$productId}");
+        }
+
+        $count = 0;
+        while($rec = $query->fetch()){
+
+            // Ако има документ на заявка в нишката, няма да се приключва заданието
+            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) continue;
+
+            // Ако е указано да няма нови документи в нишката в последните X време да се пропуска
+            if(isset($thresholdDate)){
+                $lastCreatedOn = doc_Threads::getLastCreatedOnInThread($rec->threadId, 'acc_TransactionSourceIntf');
+                if($lastCreatedOn >= $thresholdDate) continue;
+            }
+
+            // Затваряне на артикула
+            $rec->brState = $rec->state;
+            $rec->state = 'closed';
+            $rec->timeClosed = dt::now();
+            $count++;
+            if ($me->save($rec, 'brState,state,timeClosed')) {
+                $me->logWrite("Автоматично приключване", $rec->id);
+                $me->invoke('AfterChangeState', array(&$rec, $rec->state));
+            }
+        }
+
+        return $count;
     }
 }

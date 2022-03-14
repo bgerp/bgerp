@@ -269,7 +269,7 @@ class bgerp_plg_Import extends core_Plugin
         if ($driverId) {
             $Driver = cls::get($driverId, array('mvc' => $exp->mvc));
             $fieldsArr = $Driver->getFields();
-            
+
             // Поставяне на възможност да се направи мачване на
             // полетата от модела и полетата от csv-то
             foreach ($fieldsArr as $name => $fld) {
@@ -285,9 +285,9 @@ class bgerp_plg_Import extends core_Plugin
                 } elseif(isset($fld['default'])){
 
                     $exp->ASSUME("#col{$name}", "setdefault('{$fld['default']}')");
-                    //bp();
+                } elseif(isset($fld['suggestions'])){
+                    $exp->SUGGESTIONS("#col{$name}", $fld['suggestions']);
                 }
-
                 
                 $qFields .= ($qFields ? ',' : '') . "#col{$name}";
             }

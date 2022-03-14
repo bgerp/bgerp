@@ -114,7 +114,7 @@ defIfNot('ACC_ALTERNATE_WINDOW', '');
 /**
  * Захранване на стратегия с отрицателни крайни салда
  */
-defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'no');
+defIfNot('ACC_FEED_STRATEGY_WITH_NEGATIVE_QUANTITY', 'yes');
 
 
 /**

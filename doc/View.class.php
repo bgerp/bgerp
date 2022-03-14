@@ -185,6 +185,74 @@ class doc_View extends core_Master
     protected static function on_BeforePrepareEditForm($mvc, &$res, $data)
     {
         Request::setProtected(array('clsId', 'dataId'));
+
+        // Да не се рендира оригиналния документ
+        Mode::set('stopRenderOrigin', true);
+    }
+
+
+    /**
+     * Рендира изгледа на документа за шаблона
+     *
+     * @param $classId
+     * @param $dataId
+     * @param $tplId
+     *
+     * @return false|string
+     */
+    protected static function getDocumentContentFor($classId, $dataId, $tplId)
+    {
+        $clsInst = cls::get($classId);
+        Mode::push('docView', true);
+        Mode::push('text', 'xhtml');
+        Mode::push('noBlank', true);
+
+        $tplManagerLg = false;
+        if ($tplId) {
+            $lg = doc_TplManager::fetchField($tplId, 'lang');
+
+            if ($lg) {
+                Mode::push('tplManagerLg', $lg);
+                $tplManagerLg = true;
+                core_Lg::push($lg);
+            }
+        }
+
+        $options = null;
+        if ($dataId) {
+            $dRec = $clsInst->fetch($dataId);
+            $dRec->template = $tplId;
+            $options = new stdClass();
+            $options->rec = $dRec;
+        }
+
+        $dData = $clsInst->prepareDocument($dataId, $options);
+
+        $dData->rec->template = $tplId;
+
+        $dData->noToolbar = true;
+
+        $res = $clsInst->renderDocument($dataId, $dData);
+
+        $html = $res->getContent();
+
+        $css = doc_PdfCreator::getCssStr($html);
+        $html = doc_PdfCreator::removeFormAttr($html);
+        $html = '<div id="begin">' . $html . '<div id="end">';
+        $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
+        $html = $CssToInlineInst->convert($html , $css);
+        $html = str::cut($html, '<div id="begin">', '<div id="end">');
+
+        if ($tplManagerLg) {
+            core_Lg::pop();
+            Mode::pop('tplManagerLg');
+        }
+
+        Mode::pop('noBlank');
+        Mode::pop('text');
+        Mode::pop('docView');
+
+        return $html;
     }
     
     
@@ -210,7 +278,7 @@ class doc_View extends core_Master
             $data->form->setOptions('tplId', $tplArr);
         }
 
-        $force = false;
+        $oRec = $force = false;
         if ($form->rec->id) {
             $oRec = $mvc->fetch($form->rec->id);
 
@@ -225,57 +293,22 @@ class doc_View extends core_Master
         } else {
             $form->setDefault('tplId', key($tplArr));
 
-            $clsInst = cls::get($form->rec->clsId);
-            Mode::push('docView', true);
-            Mode::push('text', 'xhtml');
-            Mode::push('noBlank', true);
+            $form->rec->docHtml = $mvc->getDocumentContentFor($form->rec->clsId, $form->rec->dataId, $form->rec->tplId);
+        }
 
-            $tplManagerLg = false;
-            if ($form->rec->tplId) {
-                $lg = doc_TplManager::fetchField($form->rec->tplId, 'lang');
-
-                if ($lg) {
-                    Mode::push('tplManagerLg', $lg);
-                    $tplManagerLg = true;
-                    core_Lg::push($lg);
-                }
+        if ($form->rec->docHtml && !$form->rec->id) {
+            // Добавяме клас, за да може формата да застане до привюто на документа/файла
+            $className = '';
+            if (Mode::is('screenMode', 'wide')) {
+                $className = ' floatedElement ';
             }
 
-            $options = null;
-            if ($form->rec->dataId) {
-                $dRec = $clsInst->fetch($form->rec->dataId);
-                $dRec->template = $form->rec->tplId;
-                $options = new stdClass();
-                $options->rec = $dRec;
-            }
+            $data->form->layout = $data->form->renderLayout();
+            $tpl = new ET("<div class='preview-holder{$className}'><div style='margin-top:20px; margin-bottom:-10px; padding:5px;'><b>" . tr('Преглед') . "</b></div><div class='scrolling-holder'>[#DOCUMENT#]</div></div><div class='clearfix21'></div>");
 
-            $dData = $clsInst->prepareDocument($form->rec->dataId, $options);
+            $tpl->append($form->rec->docHtml, 'DOCUMENT');
 
-            $dData->rec->template = $form->rec->tplId;
-
-            $dData->noToolbar = true;
-
-            $res = $clsInst->renderDocument($form->rec->dataId, $dData);
-
-            $html = $res->getContent();
-
-            $css = doc_PdfCreator::getCssStr($html);
-            $html = doc_PdfCreator::removeFormAttr($html);
-            $html = '<div id="begin">' . $html . '<div id="end">';
-            $CssToInlineInst = cls::get(csstoinline_Setup::get('CONVERTER_CLASS'));
-            $html = $CssToInlineInst->convert($html , $css);
-            $html = str::cut($html, '<div id="begin">', '<div id="end">');
-
-            $form->rec->docHtml  = $html;
-
-            if ($tplManagerLg) {
-                core_Lg::pop();
-                Mode::pop('tplManagerLg');
-            }
-
-            Mode::pop('noBlank');
-            Mode::pop('text');
-            Mode::pop('docView');
+            $data->form->layout->append($tpl);
         }
 
         $haveRightForOrigin = false;
@@ -286,9 +319,14 @@ class doc_View extends core_Master
             }
         }
 
+        $btnName = 'Цял екран';
+        if (!$rec->id) {
+            $data->form->setField('docHtml', 'input=hidden');
+            $btnName = 'Редактиране';
+        }
 
         if (($oRec && $mvc->haveRightFor('edit', $oRec)) || $haveRightForOrigin) {
-            $data->form->toolbar->addSbBtn('Цял екран', 'fullView', 'id=fullView, order=10.00029', 'ef_icon = img/16/doc_resize.png,title=Запис и редакция на изгледа');
+            $data->form->toolbar->addSbBtn($btnName, 'fullView', 'id=fullView, order=10.00029', 'ef_icon = img/16/doc_resize.png,title=Запис и редакция на изгледа');
         }
     }
 

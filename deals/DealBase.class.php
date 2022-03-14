@@ -69,8 +69,8 @@ abstract class deals_DealBase extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
+
+
     /**
      * Извиква се след описанието на модела
      *
@@ -126,21 +126,20 @@ abstract class deals_DealBase extends core_Master
     public function getAggregateDealInfo($id)
     {
         $dealRec = $this->fetchRec($id);
-        
+
         $dealDocuments = $this->getDescendants($dealRec->id);
-        
         $aggregateInfo = new bgerp_iface_DealAggregator;
-        
+
         // Извличаме dealInfo от самата сделка
         $this->pushDealInfo($dealRec->id, $aggregateInfo);
-        
+
         foreach ($dealDocuments as $d) {
             $dState = $d->rec('state');
             if ($dState == 'draft' || $dState == 'rejected') {
                 // Игнорираме черновите и оттеглените документи
                 continue;
             }
-            
+
             if ($d->haveInterface('bgerp_DealIntf')) {
                 try {
                     $d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
@@ -149,7 +148,7 @@ abstract class deals_DealBase extends core_Master
                 }
             }
         }
-        
+
         return $aggregateInfo;
     }
     
@@ -810,7 +809,7 @@ abstract class deals_DealBase extends core_Master
         $this->requireRightFor('changerate', $rec);
         
         $form = cls::get('core_Form');
-        $form->title = '|Преизчисляване на курса на документите в|* ' . $this->getHyperlink($rec, true);
+        $form->title = '|Преизчисляване на курса на|* ' . $this->getFormTitleLink($rec);
         $form->info = tr("Стар курс|*: <b>{$rec->currencyRate}</b>");
 
         if($averageRate =  $this->getAverageRateInThread($rec)){

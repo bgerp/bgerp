@@ -273,10 +273,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $originPackId = $originRec->packagingId;
                 $form->setDefault('jobQuantity', $originRec->quantity);
                 $quantityFromTasks = planning_Tasks::getProducedQuantityForJob($originRec->id);
-
                 $quantityToStore = $quantityFromTasks - $originRec->quantityProduced;
                 if ($quantityToStore > 0) {
-                    $form->setDefault('packQuantity', $quantityToStore / $originRec->quantityInPack);
+                    $form->setDefault('packQuantity', round($quantityToStore / $originRec->quantityInPack, 5));
                 }
             } else {
 
@@ -286,11 +285,16 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
-                $producedQuantity = $originDoc->fetchField('producedQuantity');
-                $info->totalQuantity -= $producedQuantity;
-                $originPackId = $info->packagingId;
+                $originRec = $originDoc->fetch('productId,producedQuantity,measureId');
+                if($rec->productId == $originRec->productId){
+                    $producedQuantity = $originDoc->fetchField('producedQuantity');
+                    $info->totalQuantity -= $producedQuantity;
+                    $originPackId = $originRec->measureId;
+                } else {
+                    $originPackId = $info->packagingId;
+                }
 
-                $form->setDefault('packagingId', $info->packagingId);
+                $form->setDefault('packagingId', $originPackId);
                 if ($info->totalQuantity > 0) {
                     $form->setDefault('packQuantity', $info->totalQuantity);
                 }
