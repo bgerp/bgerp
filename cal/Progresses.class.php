@@ -286,9 +286,9 @@ class cal_Progresses extends core_Mvc
             if ($tDoc->instance instanceof cal_Tasks && isset($progress)) {
                 $tRec = $tDoc->fetch();
                 $oldProgress = $tRec->progress;
-                
+
                 // Ако има промяна в прогреса
-                if ($oldProgress != $progress) {
+                if (($oldProgress != $progress) || ($progress == 1)) {
                     $tRec->progress = $progress;
                     
                     $saveArr['progress'] = 'progress';
@@ -308,14 +308,14 @@ class cal_Progresses extends core_Mvc
                         }
                         
                         // Ако връщаме прогреса - връщаме и предишното състояние
-                        if ($oldProgress == 1) {
+                        if (($oldProgress == 1) && ($progress != 1)) {
                             $tRec->brState = $tRec->state;
                             $tRec->state = 'wakeup';
                             $saveArr['state'] = 'state';
                             $saveArr['brState'] = 'state';
                         }
                     }
-                    
+
                     if (!empty($saveArr)) {
                         $tDoc->instance->save($tRec, $saveArr);
                     }

@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -228,27 +228,29 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
      */
     public function doImport(core_Manager $mvc, $rec)
     {
-        if (!is_array($rec->importRecs)) {
+        if (!is_array($rec->importRecs)) return;
+
+        foreach ($rec->importRecs as $iRec) {
+            expect($iRec->productId, 'Липсва продукт ид');
+            expect(cat_Products::fetchField($iRec->productId), 'Няма такъв артикул');
+            expect($iRec->packagingId, 'Няма опаковка');
+            expect(cat_UoM::fetchField($iRec->packagingId), 'Несъществуваща опаковка');
+            expect($iRec->{$mvc->masterKey}, 'Няма мастър кей');
+            expect($mvc->Master->fetch($iRec->{$mvc->masterKey}), 'Няма такъв запис на мастъра');
+            expect($mvc->haveRightFor('add', (object) array($mvc->masterKey => $iRec->{$mvc->masterKey})), 'Към този мастър не може да се добавя артикул');
             
-            return;
-        }
-        
-        foreach ($rec->importRecs as $rec) {
-            expect($rec->productId, 'Липсва продукт ид');
-            expect(cat_Products::fetchField($rec->productId), 'Няма такъв артикул');
-            expect($rec->packagingId, 'Няма опаковка');
-            expect(cat_UoM::fetchField($rec->packagingId), 'Несъществуваща опаковка');
-            expect($rec->{$mvc->masterKey}, 'Няма мастър кей');
-            expect($mvc->Master->fetch($rec->{$mvc->masterKey}), 'Няма такъв запис на мастъра');
-            expect($mvc->haveRightFor('add', (object) array($mvc->masterKey => $rec->{$mvc->masterKey})), 'Към този мастър не може да се добавя артикул');
-            
-            $exRec = deals_Helper::fetchExistingDetail($mvc, $rec->{$mvc->masterKey}, $rec->id, $rec->productId, $rec->packagingId, $rec->price, $rec->discount, null, null, $rec->batch, $rec->expenseItemId, $rec->notes);
+            $exRec = deals_Helper::fetchExistingDetail($mvc, $iRec->{$mvc->masterKey}, $iRec->id, $iRec->productId, $iRec->packagingId, $iRec->price, $iRec->discount, null, null, $iRec->batch, $iRec->expenseItemId, $iRec->notes);
             if ($exRec) {
                 core_Statuses::newStatus('Записът не е импортиран, защото има дублиране', 'warning');
                 continue;
             }
             
-            $mvc->save($rec);
+            $mvc->save($iRec);
         }
+
+        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+        $masterRec->reverseContainerId = $rec->doc;
+        $masterRec->_replaceReverseContainerId = true;
+        $mvc->Master->save($masterRec);
     }
 }

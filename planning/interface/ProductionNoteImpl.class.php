@@ -286,4 +286,16 @@ class planning_interface_ProductionNoteImpl
         
         return $rec->packQuantity;
     }
+
+
+    /**
+     * Кой е дефолтния шаблон за печат към обекта
+     *
+     * @param $id
+     * @return int|null
+     */
+    public function getDefaultLabelTemplateId($id)
+    {
+        return null;
+    }
 }

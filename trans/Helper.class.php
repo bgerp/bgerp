@@ -110,31 +110,37 @@ abstract class trans_Helper
      * Показва транспортните единици в документа
      *
      * @param mixed $transUnits
-     * @param mixed $transUnitsTable
-     * @param bool  $newLines
      *
      * @return string
      */
-    public static function displayTransUnits($transUnits, $transUnitsTable = array(), $newLines = false)
+    public static function displayTransUnits($transUnits)
     {
-        $str = '';
-        $delimeter = ($newLines) ? '<br>' : ' + ';
         $transUnits = empty($transUnits) ? array() : $transUnits;
-        $transUnitsTable = empty($transUnitsTable) ? array() : $transUnitsTable;
-        $combined = self::getCombinedTransUnits($transUnits, $transUnitsTable);
-        
-        foreach ($combined as $unitId => $quantity) {
-            if (empty($quantity)) {
-                continue;
-            }
-            $strPart = trans_TransportUnits::display($unitId, $quantity);
-            if (array_key_exists($unitId, $transUnitsTable) && !Mode::isReadOnly()) {
-                $strPart = ht::createHint($strPart, 'Зададено е ръчно');
-            }
-            
-            $str .= "{$strPart} {$delimeter} ";
+
+        $displayArr = $combined = array();
+        foreach ($transUnits as $unitId => $quantity) {
+            if (empty($quantity)) continue;
+
+            // Сумиране на ЛЕ по първата част от името на ЛЕ
+            $unitId = ($unitId) ? $unitId : self::fetchIdByName('load');
+            $uRec = trans_TransportUnits::fetch($unitId, 'name,pluralName');
+            $nameArr = explode(' [', $uRec->name);
+            $pluralNameArr = explode(' [', $uRec->pluralName);
+            $nameArr[0] = tr(mb_strtolower($nameArr[0]));
+            $pluralNameArr[0] = tr(mb_strtolower($pluralNameArr[0]));
+            $key = "{$nameArr[0]}|{$pluralNameArr[0]}";
+            $combined[$key] += $quantity;
         }
-        $str = trim($str, " {$delimeter} ");
+
+        // Вербализиране на к-то спрямо числото на обединената ЛЕ
+        foreach ($combined as $key => $quantity) {
+            $unitNameArr = explode('|', $key);
+            $unitName = ($quantity == 1) ? $unitNameArr[0] : $unitNameArr[1];
+            $quantity = core_Type::getByName('int')->toVerbal($quantity);
+            $displayArr[] = "{$quantity} {$unitName}";
+        }
+
+        $str = implode(' + ', $displayArr);
         
         return $str;
     }

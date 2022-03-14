@@ -190,7 +190,7 @@ class acc_Periods extends core_Manager
         }
 
         if ($docId = acc_ClosePeriods::fetchField("#periodId = {$rec->id} AND #state = 'active'", 'id')) {
-            $row->close .= acc_ClosePeriods::getLink($docId, 0);
+            $row->close .= acc_ClosePeriods::getLink($docId, 0)->getContent();
         }
     }
     
@@ -485,6 +485,11 @@ class acc_Periods extends core_Manager
             }
         } else {
             $data->form->setReadOnly('end');
+        }
+
+        // @todo докато не открием по-добър начин
+        if(haveRole('debug') && haveRole('accMaster')){
+            $data->form->setField('state', 'input');
         }
     }
     

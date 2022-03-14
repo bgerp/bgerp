@@ -312,32 +312,13 @@ class cat_products_Usage extends core_Manager
         
         // Проверяваме можем ли да добавяме нови задания
         if ($data->Jobs->haveRightFor('add', (object) array('productId' => $data->masterId))) {
-            $defaultFolderId = $this->getJobDefaultFolder($data->masterId);
-            $data->addUrl = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'defaultFolderId' => $defaultFolderId, 'ret_url' => true);
-        }
-    }
-
-
-    /**
-     * Коя е дефолтната папка за ново задание
-     *
-     * @param int $productId
-     * @return int|null
-     */
-    private function getJobDefaultFolder($productId)
-    {
-        // Дефолтната папка е последната в която е създадено задание от потребителя
-        $query = planning_Jobs::getQuery();
-        $query->where("#productId = '{$productId}' AND #department IS NOT NULL");
-        $query->orderBy('createdOn', 'DESC');
-
-        while($rec = $query->fetch()){
-            if(doc_Folders::haveRightToFolder($rec->folderId)){
-
-                return $rec->folderId;
+            $data->addUrl = array('planning_Jobs', 'add', 'productId' => $data->masterId, 'foreignId' => $masterRec->containerId, 'ret_url' => true);
+            if($Driver = cat_Products::getDriver($data->masterId)) {
+                $productionData = $Driver->getProductionData($data->masterId);
+                if(isset($productionData['centerId'])){
+                    $data->addUrl['folderId'] = planning_Centers::fetchField($productionData['centerId'], 'folderId');
+                }
             }
         }
-
-        return null;
     }
 }

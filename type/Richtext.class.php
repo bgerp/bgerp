@@ -145,7 +145,7 @@ class type_Richtext extends type_Blob
         foreach ($toolbarArr as $link) {
             $tpl->append($link->html, $link->place);
         }
-        
+
         // Ако е зададено да се аппендва маркирания текст, като цитата
         if ($this->params['appendQuote']) {
             $line = is_numeric($this->params['appendQuote']) ? $this->params['appendQuote'] : 0;
@@ -154,16 +154,16 @@ class type_Richtext extends type_Blob
             jquery_Jquery::run($tpl, "appendQuote('{$attr['id']}', {$line});");
         }
         
-        jquery_Jquery::run($tpl, 'hideRichtextEditGroups();');
-        
-        jquery_Jquery::run($tpl, 'prepareRichtextAddElements();');
-        
-        jquery_Jquery::run($tpl, "getEO().saveSelTextInTextarea('{$attr['id']}');");
-        
-        jquery_Jquery::run($tpl, "bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'));");
-        
+        jquery_Jquery::run($tpl, 'hideRichtextEditGroups();', true);
+
+        jquery_Jquery::run($tpl, 'prepareRichtextAddElements();', true);
+
+        jquery_Jquery::run($tpl, "getEO().saveSelTextInTextarea('{$attr['id']}');", true);
+
+        jquery_Jquery::run($tpl, "bindEnterOnRicheditTableForm(document.getElementById('{$attr['id']}'));", true);
+
         if (Mode::is('screenMode', 'wide')) {
-            jquery_Jquery::run($tpl, "setRicheditWidth('{$attr['id']}');");
+            jquery_Jquery::run($tpl, "setRicheditWidth('{$attr['id']}');", true);
         }
         
         return $tpl;
@@ -1500,7 +1500,7 @@ class type_Richtext extends type_Blob
         }
         
         $this->invoke('AfterGetToolbar', array(&$toolbarArr, &$attr));
-        
+
         return $toolbarArr;
     }
     

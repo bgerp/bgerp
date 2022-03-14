@@ -2,19 +2,19 @@
 
 
 /**
- * Мениджър на отчети за налични количества
+ * Мениджър на отчети за хоризонти на заданията
  *
  * @category  bgerp
  * @package   store
  *
  * @author    Angel Trifonov angel.trifonoff@gmail.com
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Склад » Артикули наличности и лимити
+ * @title     Склад » Хоризонти на заданията
  */
-class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
+class store_reports_JobsHorizons extends frame2_driver_TableData
 {
 
     /**
@@ -30,7 +30,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields = 'quantity';
+    protected $summaryListFields ;
 
 
     /**
@@ -44,7 +44,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,debug,manager,store,planning,purchase,cat,acc';
+    public $canSelectDriver = 'debug';
 
     /**
      * Плъгини за зареждане
@@ -71,7 +71,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields = 'typeOfQuantity,additional,storeId,groupId,orderBy,limits,date,seeByStores';
+    protected $changeableFields = 'date,stores,groups';
 
 
     /**
@@ -81,35 +81,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('limits', 'enum(no=Без лимити,yes=С лимити)', 'caption=Вид,removeAndRefreshForm,after=title,silent');
 
-        $fieldset->FLD('typeOfQuantity', 'enum(available=Налично,free=Разполагаемо)', 'caption=Количество,removeAndRefreshForm,single=none,silent,after=limits');
+        $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,silent,single=none');
 
-        $fieldset->FLD('date', 'date', 'caption=Към дата,after=typeOfQuantity,input=none,silent,single=none');
-
-        $fieldset->FLD('storeId', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=date');
+        $fieldset->FLD('stores', 'keylist(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,single=none,after=date');
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,mandatory,silent,single=none');
-
-        $fieldset->FLD('orderBy', 'enum(conditionQuantity=Състояние,code=Код)', 'caption=Подреди по,maxRadio=2,columns=2,after=groups,silent');
-
-        $fieldset->FLD('filters', 'enum(condQuantity=Състояние, no=Без филтри)', 'caption=Филтър->Филтри,removeAndRefreshForm,after=orderBy,silent');
-
-        $fieldset->FLD('condFilter', 'set(1|под Мин.=Под минимум,3|над Макс.=Над максимум, 2|Отриц.=Отрицателни, 4|ок=ОК)', 'caption=Филтър->По състояние,columns=4,after=filters,input=none,silent');
-
-        $fieldset->FLD('seeByStores', 'set(yes = )', 'caption=Настройки->Детайли по склад,after=condFilter,single=none');
-
-        $fieldset->FLD('artLimits', 'blob(serialize)', 'after=seeByStores,input=none,single=none');
-
-        $fieldset->FLD('arhGroups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,input=none,silent,single=none');
-
-        $fieldset->FLD('orderLimit', 'double', 'caption=Настройки->% за поръчка, unit=%-а от максималното количество,input,single=none');
-
-
-        $fieldset->FNC('button', 'varchar', 'caption=Бутон,input=none,single=none');
-        $fieldset->FNC('exportFilter', 'varchar', 'caption=Експорт филтър,input=none,single=none');
-        $fieldset->FNC('grFilter', 'varchar', 'caption=Филтър по група,input=none,single=none');
-
 
     }
 
@@ -126,40 +103,40 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-        $rec->flag = true;
+       // $rec->flag = true;
 
-        $form->setDefault('orderBy', 'conditionQuantity');
+       // $form->setDefault('orderBy', 'conditionQuantity');
 
-        $form->setDefault('typeOfQuantity', 'free');
+      //  $form->setDefault('typeOfQuantity', 'free');
 
-        $form->setDefault('filters', 'no');
+      //  $form->setDefault('filters', 'no');
 
-        $form->setDefault('condFilter', '');
+      //  $form->setDefault('condFilter', '');
 
-        $form->setDefault('orderLimit', 80);
+      //  $form->setDefault('orderLimit', 80);
 
-        if ($rec->arhGroups) {
-            $rec->groups = $rec->arhGroups;
-        }
+//        if ($rec->arhGroups) {
+//            $rec->groups = $rec->arhGroups;
+//        }
 
-        if ($rec->limits == 'no') {
+//        if ($rec->limits == 'no') {
+//
+//            unset($rec->orderBy);
+//            unset($rec->groupsChecked);
+//            $form->setField('orderBy', 'input=none');
+//            $form->setField('orderLimit', 'input=hidden');
+//        }
 
-            unset($rec->orderBy);
-            unset($rec->groupsChecked);
-            $form->setField('orderBy', 'input=none');
-            $form->setField('orderLimit', 'input=hidden');
-        }
+//        if ($rec->typeOfQuantity == 'free') {
+//            $form->setField('date', 'input');
+//        }
 
-        if ($rec->typeOfQuantity == 'free') {
-            $form->setField('date', 'input');
-        }
+//        if ($rec->filters == 'condQuantity') {
+//            $form->setField('condFilter', 'input');
+//        }
 
-        if ($rec->filters == 'condQuantity') {
-            $form->setField('condFilter', 'input');
-        }
-
-        $suggestions = array('' => '', '50' => 50, '60' => 60, '70' => 70, '80' => 80);
-        $form->setSuggestions('orderLimit', $suggestions);
+//        $suggestions = array('' => '', '50' => 50, '60' => 60, '70' => 70, '80' => 80);
+//        $form->setSuggestions('orderLimit', $suggestions);
 
     }
 
@@ -176,12 +153,12 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
     {
 
         $rec = $form->rec;
-        if ($form->isSubmitted()) {
-
-            $rec->arhGroups = $rec->groups;
-            unset($rec->grFilter);
-
-        }
+//        if ($form->isSubmitted()) {
+//
+//            $rec->arhGroups = $rec->groups;
+//            unset($rec->grFilter);
+//
+//        }
     }
 
     /**
@@ -194,17 +171,10 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
+
+
+
         $recs = $storesQuatity = $artLimitsArr = array();
-
-        $tempArrRec = frame2_Reports::fetch($rec->id);
-
-        $tempArr = $tempArrRec->artLimits;
-
-        if (is_array($tempArr) && !empty($tempArr)) {
-            $artLimitsArr = frame2_Reports::fetch($rec->id)->artLimits;
-        }
-
-        $codes = array();
 
         // Подготвяме заявката за извличането на записите от store_Products
 
@@ -212,139 +182,51 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $sQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
         $sQuery->EXT('measureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
-        $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');;
+        $sQuery->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
         //Филтър по групи артикули
         $sQuery->likeKeylist('groups', $rec->groups);
 
         // Филтриране по склад, ако е зададено
-        if (isset($rec->storeId)) {
-            $storArr = keylist::toArray($rec->storeId);
-            $sQuery->in('storeId', $storArr);
-        }
+//        if (isset($rec->storeId)) {
+//            $storArr = keylist::toArray($rec->storeId);
+//            $sQuery->in('storeId', $storArr);
+//        }
 
-        while ($recProduct = $sQuery->fetch()) {
+        $arr = arr::extractValuesFromArray($sQuery->fetchAll(), 'id');
 
-            $productId = $recProduct->productId;
+        $resArr = store_StockPlanning::getPlannedQuantities($rec->date,$arr);
 
-            if ($rec->typeOfQuantity == 'free') {
+        //bp($resArr,$arr,$sQuery->fetchAll());
 
-                // Гледаме разполагаемото количество
-                $date = ($rec->date) ? $rec->date : dt::today();
-                $quantity = store_Products::getQuantities($productId, $recProduct->storeId, $date)->free;
+        while ($sRec = $sQuery->fetch()){
 
-            } else {
+            $id = $sRec->productId;
 
-                // Гледаме наличното количество
-                $quantity = $recProduct->quantity;
+            $storeArr =keylist::toArray($rec->storeId);
 
-            }
+            $Quantities = store_Products::getQuantities($sRec->productId,$rec->stores,$rec->date);
+            $quantity = $Quantities->quantity;
+            $reserved = $Quantities->reserved;
+            $expected = $Quantities->expected;
+            $free = $Quantities->free;
 
-            if ($recProduct->storeId && $productId) {
-                $stKey = $productId . '|' . $recProduct->storeId;
-                $storesQuatity[$stKey] += $quantity;
-            }
+            $code = ($sRec->code) ?: 'Art' . $sRec->productId;
 
-            if ($obj = &$recs[$productId]) {
-                $obj->quantity += $quantity;
-            } else {
+            $recs[$id] = (object)array(
+                'productId' => $sRec->productId,
+                'measure' => $sRec->measureId,
+                'quantity'=> $quantity,
+                'reserved' => $reserved,
+                'expected' => $expected,
+                'free' => $free,
+                'code' => $code,
 
-                if (!in_array($productId, array_keys($artLimitsArr))) {
-                    $artLimitsArr[$productId] = array('minQuantity' => 0, 'maxQuantity' => 0, 'orderMeasure' => 0, 'minOrder' => 0);
-                    $minQuantity = 0;
-                    $maxQuantity = 0;
-                    $orderMeasure = 0;
-                    $minOrder = 0;
-
-                } else {
-                    $minQuantity = $artLimitsArr[$productId]['minQuantity'];
-                    $maxQuantity = $artLimitsArr[$productId]['maxQuantity'];
-                    $orderMeasure = $artLimitsArr[$productId]['orderMeasure'];
-                    $minOrder = $artLimitsArr[$productId]['minOrder'];
-                }
-
-                $code = ($recProduct->code) ?: 'Art' . $productId;
-                $recs[$productId] = (object)array(
-                    'measure' => $recProduct->measureId,
-                    'productId' => $productId,
-                    'storesQuatity' => 0,
-                    'quantity' => $quantity,
-                    'minQuantity' => $minQuantity,
-                    'maxQuantity' => $maxQuantity,
-                    'orderMeasure' => $orderMeasure,
-                    'minOrder' => $minOrder,
-                    'code' => $code,
-                    'groups' => $recProduct->groups,
-                );
-            }
-        }
-        $rec->artLimits = $artLimitsArr;
-
-        if (!is_null($recs)) {
-            arr::sortObjects($recs, 'code', 'asc');
-        }
-
-        //Разпределяне по складове
-        $temp = array();
-        foreach ($storesQuatity as $key => $val) {
-
-            list($newKey, $stId) = explode('|', $key);
-            if (!in_array($newKey, array_keys($temp))) {
-                $temp[$newKey] = array($stId . '|' . $val);
-            } else {
-                array_push($temp[$newKey], $stId . '|' . $val);
-
-            }
-        }
-
-        // Определяне на индикаторите за "свръх наличност" и "под минимум";
-        foreach ($recs as $productId => $prodRec) {
-
-            $prodRec->storesQuatity = $temp[$productId];
-
-            $prodRec->conditionQuantity = '4|ок';
-            $prodRec->conditionColor = 'green';
-            if ($prodRec->maxQuantity == 0 && $prodRec->minQuantity == 0 && $prodRec->minQuantity != '0') {
-                //  continue;
-            }
-
-
-            if ($prodRec->quantity > $prodRec->maxQuantity && ($prodRec->maxQuantity != 0)) {
-                $prodRec->conditionQuantity = '3|над Макс.';
-                $prodRec->conditionColor = 'blue';
-            } elseif ($prodRec->quantity < $prodRec->minQuantity) {
-                $prodRec->conditionQuantity = '1|под Мин.';
-                $prodRec->conditionColor = 'red';
-            }
-            if ($prodRec->quantity < 0) {
-                $prodRec->conditionQuantity = '2|Отриц.';
-                $prodRec->conditionColor = 'red';
-            }
-        }
-
-        //Филтри за показване
-        //Филтър по състояние
-        if ($rec->filters == 'condQuantity') {
-
-            $condFilter = $rec->condFilter;
-            foreach ($recs as $key => $oneRec) {
-                if (!in_array($oneRec->conditionQuantity, explode(',', $condFilter))) {
-                    unset($recs[$key]);
-                }
-
-            }
+            );
 
 
         }
 
-
-        if (!is_null($recs)) {
-            if ($rec->orderBy) {
-                arr::sortObjects($recs, $rec->orderBy, 'asc');
-            } else {
-                arr::sortObjects($recs, 'quantity', 'desc');
-            }
-        }
 
         return $recs;
     }
@@ -368,28 +250,23 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество,smartCenter');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
+            $fld->FLD('reserved', 'varchar', 'caption=Количество->Запазено,smartCenter');
+            $fld->FLD('expected', 'varchar', 'caption=Количество->Очаквано,smartCenter');
+            $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
+            $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
 
-
-            if ($rec->limits == 'yes') {
-                $fld->FLD('minQuantity', 'double(smartRound,decimals=3)', 'caption=Лимит->Мин.,smartCenter');
-                $fld->FLD('maxQuantity', 'double(smartRound,decimals=3)', 'caption=Лимит->Макс.,smartCenter');
-                $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
-                $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
-            }
-            if (haveRole('debug')) {
-//                $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
-//                $fld->FLD('minOrder', 'varchar', 'caption=За поръчка->Мин опаковки,smartCenter');
-//                $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
-            }
-        } else {
-            $fld->FLD('code', 'varchar', 'caption=Код');
+        }else{
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-//            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-//            $fld->FLD('suggQuantity', 'varchar', 'caption=Количество->За поръчка,smartCenter');
-            $fld->FLD('orderMeasure', 'varchar', 'caption=За поръчка->Мярка,tdClass=centered');
-            $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
+            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
+            $fld->FLD('reserved', 'varchar', 'caption=Количество->Запазено,smartCenter');
+            $fld->FLD('expected', 'varchar', 'caption=Количество->Очаквано,smartCenter');
+            $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
+
         }
+
+
         return $fld;
     }
 
@@ -406,67 +283,32 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected function detailRecToVerbal($rec, &$dRec)
     {
+        $Date = cls::get('type_Date');
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 3;
         $Double->params['smartRound'] = 'smartRound';
 
         $row = new stdClass();
+
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
-        if ($rec->seeByStores != 'yes') {
-            if (isset($dRec->quantity)) {
+        $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
 
-                $row->quantity = $Double->toVerbal($dRec->quantity);
-                $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
-            }
-        } else {
+        $row->quantity = $Double->toVerbal($dRec->quantity);
+        $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
 
-            $row->quantity = '<b>' . 'Общо: ' . $Double->toVerbal($dRec->quantity) . '</b>' . "</br>";
+        $row->reserved = $Double->toVerbal($dRec->reserved);
+        $row->reserved = ht::styleIfNegative($row->reserved, $dRec->reserved);
 
-            foreach ($dRec->storesQuatity as $val) {
+        $row->expected = $Double->toVerbal($dRec->expected);
+        $row->expected = ht::styleIfNegative($row->expected, $dRec->expected);
 
-                list($storeId, $stQuantity) = explode('|', $val);
-                $row->quantity .= store_Stores::getTitleById($storeId) . ': ' . ($stQuantity) . "</br>";
-                $row->quantity = ht::styleIfNegative($row->quantity, $stQuantity);
-            }
-        }
+        $row->free = $Double->toVerbal($dRec->free);
+        $row->free = ht::styleIfNegative($row->free, $dRec->free);
 
-        if (isset($dRec->measure)) {
-            $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
-        }
-
-        if (isset($dRec->orderMeasure)) {
-            $row->orderMeasure = cat_UoM::fetchField($dRec->orderMeasure, 'shortName');
-        }
-
-        if (isset($dRec->minOrder)) {
-            $row->minOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->minOrder);
-
-        }
-
-        $orderArr = self::getPacksForOrder($dRec, $rec);
-
-        $row->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->packOrder);
-
-        if (isset($dRec->minQuantity)) {
-            $t = core_Type::getByName('double(smartRound,decimals=3)');
-            $row->minQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->minQuantity);
-
-        }
-
-        if (isset($dRec->maxQuantity)) {
-
-            $row->maxQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($dRec->maxQuantity);
-        }
-
-        if ((isset($dRec->conditionQuantity))) {
-            list($a, $conditionQuantity) = explode('|', $dRec->conditionQuantity);
-
-            $row->conditionQuantity = "<span style='color: $dRec->conditionColor'>$conditionQuantity</span>";
-        }
         $row->delrow = '';
-        //$row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'delRow', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/delete.png");
-        $row->delrow .= ht::createLink('', array('store_reports_ProductAvailableQuantity1', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
+        $row->delrow .= ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
+
 
 
         return $row;
@@ -483,56 +325,61 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected static function on_AfterRenderSingle(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$tpl, $data)
     {
+        $Date = cls::get('type_Date');
 
         $fieldTpl = new core_ET(tr("|*<!--ET_BEGIN BLOCK-->[#BLOCK#]
                                 <fieldset class='detail-info'><legend class='groupTitle'><small><b>|Филтър|*</b></small></legend>
                                     <div class='small'>
-                                        <!--ET_BEGIN arhGroups--><div>|Наблюдавани групи|*: [#arhGroups#]</div><!--ET_END arhGroups-->
+                                        <!--ET_BEGIN groups--><div>|Наблюдавани групи|*: [#groups#]</div><!--ET_END groups-->
+                                        <!--ET_BEGIN date--><div>|Хоризонт|*: [#date#]</div><!--ET_END date-->
                                         <!--ET_BEGIN ariculsData--><div>|Брой артикули|*: [#ariculsData#]</div><!--ET_END ariculsData-->
-                                        <!--ET_BEGIN storeId--><div>|Складове|*: [#storeId#]</div><!--ET_END storeId-->
-                                        <!--ET_BEGIN typeOfQuantity--><div>|Количество|*: [#typeOfQuantity#]</div><!--ET_END typeOfQuantity-->
-                                        <!--ET_BEGIN grFilter--><div>|Филтър по група |*: [#grFilter#]</div><!--ET_END grFilter-->
-                                        <!--ET_BEGIN button--><div>|Филтри |*: [#button#]</div><!--ET_END button-->
+                                        <!--ET_BEGIN stores--><div>|Складове|*: [#stores#]</div><!--ET_END stores-->
                                     </div>
                                 
                                  </fieldset><!--ET_END BLOCK-->"));
 
 
-        if (isset($data->rec->arhGroups)) {
+        if (isset($data->rec->groups)) {
             $marker = 0;
-            foreach (keylist::toArray($data->rec->arhGroups) as $group) {
+            foreach (keylist::toArray($data->rec->groups) as $group) {
                 $marker++;
 
                 $groupVerb .= cat_Groups::fetch($group)->name;
 
-                if ((countR(keylist::toArray($data->rec->arhGroups))) - $marker != 0) {
+                if ((countR(keylist::toArray($data->rec->groups))) - $marker != 0) {
                     $groupVerb .= ', ';
                 }
             }
 
-            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'arhGroups');
+            $fieldTpl->append('<b>' . $groupVerb . '</b>', 'groups');
         }
 
-        if (isset($data->rec->storeId)) {
+        if (isset($data->rec->date)) {
+
+            $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->date) . '</b>', 'date');
+        }
+
+
+        if (isset($data->rec->stores)) {
 
             $marker = 0;
-            foreach (type_Keylist::toArray($data->rec->storeId) as $store) {
+            foreach (type_Keylist::toArray($data->rec->stores) as $store) {
                 $marker++;
 
                 $storeIdVerb .= (store_Stores::getTitleById($store));
 
-                if ((countR(type_Keylist::toArray($data->rec->storeId))) - $marker != 0) {
+                if ((countR(type_Keylist::toArray($data->rec->stores))) - $marker != 0) {
                     $storeIdVerb .= ', ';
                 }
 
             }
 
-            $fieldTpl->append('<b>' . $storeIdVerb . '</b>', 'storeId');
+            $fieldTpl->append('<b>' . $storeIdVerb . '</b>', 'stores');
         } else {
-            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'storeId');
+            $fieldTpl->append('<b>' . 'Всички' . '</b>', 'stores');
         }
 
-        $data->rec->ariculsData = countR($data->rec->data->recs) - 1;
+        $data->rec->ariculsData = countR($data->rec->data->recs);
 
         if (isset($data->rec->ariculsData)) {
             $fieldTpl->append('<b>' . $data->rec->ariculsData . '</b>', 'ariculsData');
@@ -618,7 +465,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-       
+
         $orderArr = self::getPacksForOrder($dRec, $rec);
 
         $pRec = (cat_Products::fetch($dRec->productId));
@@ -715,15 +562,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
-        //Пакетажите на артикула за избор
+        //Пакетажите на артикула
         $prodPackArr = arr::extractValuesFromArray(cat_Products::getProductInfo($productId)->packagings, 'packagingId');
-        $productRec = cat_Products::getProductInfo($productId)->productRec;
-
-        //Добавяме възможност за избор освен пакетажа и основната мярка
-        $prodPackArr[$productRec->measureId] = $productRec->measureId;
 
         $q = cat_UoM::getQuery();
-       // $q->where("#type = 'packaging'");
+        $q->where("#type = 'packaging'");
         $q->in('id', $prodPackArr);
 
         while ($qRec = $q->fetch()) {
@@ -1031,6 +874,76 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         return $orderArr;
 
     }
+
+//    /**
+//     * Показва информация за резервираните количества
+//     */
+//    public function act_ShowReservedDocs()
+//    {
+//        requireRole('powerUser');
+//        $id = Request::get('id', 'int');
+//        $field = Request::get('field', 'varchar');
+//        $toDate = Request::get('date', 'date');
+//        expect($rec = self::fetch($id));
+//        $today = dt::today();
+//
+//        $end = "{$toDate} 23:59:59";
+//        $query = store_StockPlanning::getQuery();
+//        $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date <= '{$end}'");
+//        $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
+//        $query->where("#{$quantityField} IS NOT NULL");
+//        $query->EXT('measureId', 'cat_Products', 'externalKey=productId');
+//        $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId');
+//
+//        $links = '';
+//        while($dRec = $query->fetch()){
+//            $Source = cls::get($dRec->sourceClassId);
+//            $row = (object)array('date' => dt::mysql2verbal($dRec->date));
+//
+//            $uom = cat_UoM::getShortName($dRec->measureId);
+//            $quantity = setIfNot($dRec->quantityOut, $dRec->quantityIn);
+//            $quantityVerbal = core_Type::getByName('double(smartRound)')->toVerbal($quantity);
+//
+//            // Ако източника е документ - показват се данните му
+//            if($Source->hasPlugin('doc_DocumentPlg')){
+//                $row->link = $Source->getLink($dRec->sourceId, 0);
+//                $docRec = $Source->fetch($dRec->sourceId, 'createdBy,folderId,state');
+//                $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
+//                $folderId = doc_Folders::recToVerbal(doc_Folders::fetch($docRec->folderId))->title;
+//                $row->createdBy = " {$quantityVerbal} {$uom} | {$folderId} | {$row->createdBy}";
+//            } else {
+//                // Ако източника не е документ
+//                $row->link = $Source->getHyperlink($dRec->sourceId, true);
+//                $docRec = $Source->fetch($dRec->sourceId, 'createdBy,state');
+//                $row->createdBy = crm_Profiles::createLink($docRec->createdBy);
+//                $row->createdBy .= " | {$quantityVerbal} {$uom}";
+//            }
+//
+//            $state = $docRec->state;
+//
+//            $row->link = "<span class='state-{$state} document-handler'>{$row->link}</span>";
+//            if($dRec->date < $today) {
+//                $row->link = ht::createHint($row->link, 'Датата е в миналото', 'warning', false);
+//            }
+//
+//            // Подготвяне на реда с информация
+//            $link = new core_ET("<div style='float:left;padding-bottom:2px;padding-top: 2px;'>[#link#]<!--ET_BEGIN date--> | [#date#]<!--ET_END date-->| [#createdBy#]</div>");
+//            $link->placeObject($row);
+//            $links .= $link->getContent();
+//        }
+//
+//        $tpl = new core_ET($links);
+//
+//        if (Request::get('ajax_mode')) {
+//            $resObj = new stdClass();
+//            $resObj->func = 'html';
+//            $resObj->arg = array('id' => "{$field}{$id}", 'html' => $tpl->getContent(), 'replace' => true);
+//
+//            return array($resObj);
+//        }
+//
+//        return $tpl;
+//    }
 
 
 }

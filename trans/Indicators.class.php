@@ -238,5 +238,4 @@ class trans_Indicators extends core_BaseClass
         
         return $result;
     }
-   
 }

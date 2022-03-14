@@ -79,7 +79,14 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         if ($rec->state != 'rejected') {
             if ($mvc->haveRightFor('changeline', $rec)) {
-                $data->toolbar->addBtn('Транспорт', array($mvc, 'changeline', $rec->id, 'ret_url' => true), 'ef_icon=img/16/lorry_go.png, title = Промяна на транспортната информация');
+                $attr = arr::make('ef_icon=img/16/lorry_go.png, title = Промяна на логистичните данни на документа');
+                if(isset($rec->{$mvc->lineFieldName})){
+                    $lineState = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'state');
+                    if(in_array($lineState, array('active', 'closed'))){
+                        $attr['warning'] = "Документът е включен в Активирана/Приключена Транспортна линия! Сигурни ли сте, че искате да промените Логистичните данни?";
+                    }
+                }
+                $data->toolbar->addBtn('Транспорт', array($mvc, 'changeline', $rec->id, 'ret_url' => true), $attr);
             }
         }
 
@@ -107,34 +114,54 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         $exLineId = $rec->lineId;
         $form = cls::get('core_Form');
-        
+        $form->setAction(getCurrentUrl());
         $form->title = core_Detail::getEditTitle($mvc, $id, 'транспорт', $rec->id);
-        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Транспорт');
-        $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Забележки,after=volume');
-        $linesArr = trans_Lines::getSelectableLines();
-        if(isset($exLineId) && !array_key_exists($exLineId, $linesArr)){
-            $linesArr[$exLineId] = trans_Lines::getRecTitle($exLineId, false);
+        $form->FLD('id', 'int', 'input=hidden,silent,caption=№');
+        $form->FLD('lineFolderId', 'int', 'caption=Избор на Транспортна линия->От папка,silent,removeAndRefreshForm=lineId');
+        $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Избор на Транспортна линия->Транспорт');
+        $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Логистична информация->Забележки,after=volume');
+        $form->setFieldTypeParams('lineFolderId', array('restrictViewAccess' => 'yes', 'containingDocumentIds' => trans_Lines::getClassId()));
+        $form->input(null, 'silent');
+
+        $folderOptions = trans_Lines::getSelectableFolderOptions();
+        // Ако има избрана линия за избрана папка е избраната на линията
+        if(isset($rec->{$mvc->lineFieldName})){
+            $lineFolderId = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'folderId');
+
+            $form->setDefault('lineFolderId', $lineFolderId);
+            $form->setDefault('lineId', $rec->{$mvc->lineFieldName});
+            if(!array_key_exists($lineFolderId, $folderOptions)){
+                $folderOptions[$lineFolderId] = doc_Folders::getTitleById($lineFolderId, false);
+            }
+            $form->setDefault('lineFolderId', key($folderOptions));
+        } else {
+            $form->setDefault('lineFolderId', cls::get('trans_Lines')->getDefaultFolder());
         }
+
+        $linesArr = trans_Lines::getSelectableLines($form->rec->lineFolderId);
+        if(isset($rec->{$mvc->lineFieldName}) && !array_key_exists($rec->{$mvc->lineFieldName}, $linesArr)){
+            $linesArr[$rec->{$mvc->lineFieldName}] = trans_Lines::getTitleById($rec->{$mvc->lineFieldName}, false);
+        }
+        $form->setOptions('lineId', array('' => '') + $linesArr);
 
         if(!countR($linesArr)){
-            $form->info = tr("Няма транспортни линии на заявка с бъдеща дата");
+            $form->info = tr("Няма транспортни линии на заявка с бъдеща дата в избраната папка");
         }
 
-        $form->setOptions('lineId', array('' => '') + $linesArr);
-        $form->setDefault('lineId', $rec->{$mvc->lineFieldName});
         $form->setDefault('lineNotes', $rec->lineNotes);
-        
+        $form->setOptions('lineFolderId', $folderOptions);
+
+        // Ако е складов документ показват се и полета за складова информация
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $form->FLD('weight', 'cat_type_Weight', 'caption=Тегло');
-            $form->FLD('volume', 'cat_type_Volume', 'caption=Обем');
+            $form->FLD('weight', 'cat_type_Weight', 'caption=Логистична информация->Тегло');
+            $form->FLD('volume', 'cat_type_Volume', 'caption=Логистична информация->Обем');
             
             $rec->transUnitsInput = trans_Helper::convertToUnitTableArr($rec->transUnitsInput);
             trans_LineDetails::setTransUnitField($form, $rec->transUnitsInput);
             $form->setDefault('weight', $rec->weightInput);
             $form->setDefault('volume', $rec->volumeInput);
         }
-        
-        $form->input(null, 'silent');
+
         $form->input();
         
         if ($form->isSubmitted()) {
@@ -222,7 +249,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Подготовка на съобщението
         $handle = $mvc->getHandle($rec);
-        $notificationUrl = array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $handle, 'editTrans' => true);
+        $lineRec = isset($rec->lineId) ? trans_Lines::fetch($rec->lineId) : null;
         $currentUserNick = core_Users::getCurrent('nick');
 
         // Оставят се само потребителите различни от посочения, които са редактирали транспорта
@@ -230,8 +257,19 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         // Изпращане на нотификация, ако все още имат достъп до документа
         foreach ($editorsArr as $editorUserId){
-            if($mvc->haveRightFor('single', $rec->id, $editorUserId)){
-                bgerp_Notifications::add("|*{$currentUserNick} |промени информацията за транспорта на|* #{$handle}", $notificationUrl, $editorUserId);
+            $url = null;
+
+            // Ако документа е към ТЛ и има достъп до нея - линка сочи на там, иначе към сингъла на документа
+            if(is_object($lineRec) && trans_Lines::haveRightFor('single', $lineRec, $editorUserId)){
+                $url = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $handle, 'editTrans' => true);
+            } elseif($mvc->haveRightFor('single', $rec->id, $editorUserId)){
+                $url = array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $handle, 'editTrans' => true);
+            }
+
+            if(is_array($url)){
+                $customUrl = $url;
+                unset($customUrl['#']);
+                bgerp_Notifications::add("|*{$currentUserNick} |промени информацията за транспорта на|* #{$handle}", $customUrl, $editorUserId, null, $url);
             }
         }
     }
@@ -257,9 +295,9 @@ class trans_plg_LinesPlugin extends core_Plugin
             }
         }
         
-        if ($action == 'changeline' && isset($rec->lineId)) {
-            $lineState = trans_Lines::fetchField($rec->lineId, 'state');
-            if ($lineState != 'pending') {
+        if ($action == 'changeline' && isset($rec->{$mvc->lineFieldName})) {
+            $lineState = trans_Lines::fetchField($rec->{$mvc->lineFieldName}, 'state');
+            if (!in_array($lineState, array('pending', 'active', 'closed'))) {
                 $requiredRoles = 'no_one';
             }
         }
@@ -275,34 +313,38 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         if (isset($rec->lineId)) {
 
+            $showTransInfo = trans_Setup::get('SHOW_LOG_INFO_IN_DOCUMENTS');
+            if($showTransInfo == 'show' || ($showTransInfo == 'hide' && !Mode::isReadOnly())){
+                $lineRec = trans_Lines::fetch($rec->lineId);
+                $row->lineId = '';
+                if(isset($mvc->termDateFld) && $lineRec->start != $rec->{$mvc->termDateFld}){
+                    $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
+                    $row->lineId .= $lineDate . '/';
+                }
+                $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
+                if(!Mode::is('printing') && doc_Threads::haveRightFor('single', $lineRec->threadId)){
+                    $lineSingleUrl = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $mvc->getHandle($rec));
+                    $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
+                }
 
-            $lineRec = trans_Lines::fetch($rec->lineId);
-            $row->lineId = '';
-            if(isset($mvc->termDateFld) && $lineRec->start != $rec->{$mvc->termDateFld}){
-                $lineDate = str_replace(' 00:00', '', dt::mysql2verbal($lineRec->start, 'd.m.Y H:i'));
-                $row->lineId .= $lineDate . '/';
-            }
-            $row->lineId .= trans_Lines::getVerbal($lineRec, 'title');
-            if(!Mode::is('printing') && doc_Threads::haveRightFor('single', $lineRec->threadId)){
-                $lineSingleUrl = array('doc_Containers', 'list', 'threadId' => $lineRec->threadId, '#' => $mvc->getHandle($rec));
-                $row->lineId = ht::createLink($row->lineId, $lineSingleUrl, false, 'ef_icon=img/16/lorry_go.png,title=Разглеждане на транспортната линия');
-            }
+                if(!Mode::is('printing')){
+                    $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
+                }
 
-            if(!Mode::is('printing')){
-                $row->lineId = "<span class='document-handler state-{$lineRec->state}'>{$row->lineId}</span>";
-            }
+                if(!empty($lineRec->forwarderId)){
+                    $row->lineForwarderId = crm_Companies::getHyperlink($lineRec->forwarderId);
+                }
 
-            if(!empty($lineRec->forwarderId)){
-                $row->lineForwarderId = crm_Companies::getHyperlink($lineRec->forwarderId);
-            }
-
-            if(!empty($lineRec->vehicle)){
-                $row->lineVehicleId = core_Type::getByName('varchar')->toVerbal($lineRec->vehicle);
-                if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))) {
-                    if(!empty($vehicleRec->number)){
-                        $row->lineVehicleId = trans_Vehicles::getVerbal($vehicleRec, 'number');
+                if(!empty($lineRec->vehicle)){
+                    $row->lineVehicleId = core_Type::getByName('varchar')->toVerbal($lineRec->vehicle);
+                    if ($vehicleRec = trans_Vehicles::fetch(array("#name = '[#1#]'", $lineRec->vehicle))) {
+                        if(!empty($vehicleRec->number)){
+                            $row->lineVehicleId = trans_Vehicles::getVerbal($vehicleRec, 'number');
+                        }
                     }
                 }
+            } else {
+                unset($row->lineId);
             }
         }
         

@@ -178,8 +178,14 @@ class store_Receipts extends store_DocumentMaster
      * @see plg_Clone
      */
     public $cloneDetails = 'store_ReceiptDetails';
-    
-    
+
+
+    /**
+     * Огледален клас за обратната операция
+     */
+    public $reverseClassName = 'store_ShipmentOrders';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -217,8 +223,8 @@ class store_Receipts extends store_DocumentMaster
             $rec->isReverse = (isset($operation['reverse'])) ? 'yes' : 'no';
         }
     }
-    
-    
+
+
     /**
      * Преди показване на форма за добавяне/промяна
      */

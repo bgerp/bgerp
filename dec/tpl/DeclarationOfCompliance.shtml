@@ -24,7 +24,7 @@
             <!--ET_BEGIN contragentCompanyVatNo-->with VAT ID <b>[#contragentCompanyVatNo#]</b>,<!--ET_END contragentCompanyVatNo--> <!--ET_BEGIN contragentUicId--> UIC [#contragentUicId#],<!--ET_END contragentUicId-->
         </div>
         <br>
-        <div class='indent'><p><b>are manufactures from:</b></p>
+        <div class='indent'><p><b>are manufactured from:</b></p>
 
         <!--ET_BEGIN material-->
         <ul> [#material#]</ul>

@@ -541,18 +541,37 @@ class cat_Categories extends core_Master
      * Добавена проверка на различните комбинации от свойства
      * 
      * @param mixed $metasArr
+     * @param int|null $driverId
      * @param int|null $productId
      * @param string|null $error
      * @return boolean
      */
-    public static function checkMetas($metasArr, $productId, &$error)
+    public static function checkMetas($metasArr, $driverId, $productId, &$error)
     {
         $metasArr = is_array($metasArr) ? $metasArr : type_Set::toArray($metasArr);
         $exMeta = (isset($productId)) ? type_Set::toArray(cat_Products::fetchField($productId, 'meta')) : array();
-        
+
+        $Driver = cls::get($driverId);
+        if($Driver instanceof planning_interface_StepProductDriver){
+            if(!isset($metasArr['canManifacture'])){
+                $error = "Артикулът е етап от производство и трябва да остане производим|*!";
+            } elseif(!isset($metasArr['canConvert'])){
+                $error = "Артикулът е етап от производство и трябва да остане вложим|*!";
+            } elseif(isset($productId)) {
+                $pRec = cat_Products::fetch($productId);
+                if($pRec->planning_Steps_canStore == 'yes' && !isset($metasArr['canStore'])){
+                    $error = "Артикулът е складируем етап от производство и трябва да остане складируем|*!";
+                } elseif($pRec->planning_Steps_canStore != 'yes' && isset($metasArr['canStore'])){
+                    $error = "Артикулът е нескладируем етап от производство и не може да стане складируем|*!";
+                }
+
+                if(!empty($error)) return false;
+            }
+        }
+
         if(isset($metasArr['generic'])) {
              if(isset($metasArr['canBuy']) || isset($metasArr['canSell']) || isset($metasArr['fixedAsset']) || isset($metasArr['canManifacture'])){
-                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА|*";
+                $error = "Генеричният артикул не може да е Продаваем, Купуваем, Производим или ДА|*!";
              } elseif(!isset($metasArr['canConvert'])){
                  $error = "Генеричният артикул трябва да е и Вложим|*!";
              } elseif(isset($productId) && !haveRole('debug')){

@@ -75,7 +75,8 @@ class core_Cls
             // Ако се използва съкратено име, то името на приложението
             // се прибавя като приставка и долна черта отпред
             if (($last = strrpos($className, '_')) === false) {
-                if(is_dir(getFullPath(strtolower($className)))) {
+                $fPath = rtrim(getFullPath(strtolower($className)), '/');
+                if (is_dir($fPath) && (($className && file_exists($fPath . '/Index.class.php')) || !$className)) {
                     $className = strtolower($className) . '_Index';
                 } else {
                     $className = EF_APP_CODE_NAME . '_' . $className;
@@ -92,7 +93,7 @@ class core_Cls
             
             $classNames[$cln] = $className;
         }
-        
+
         return $classNames[$cln];
     }
     

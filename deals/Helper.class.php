@@ -841,7 +841,7 @@ abstract class deals_Helper
         // Проверка дали има минимално разполагаемо
         $firstCheck = false;
         if(isset($minQuantityDate) && $date <= $minQuantityDate){
-            if(($state == 'pending' && $freeQuantityMin < 0)){
+            if(($state == 'pending' && $freeQuantityMin < 0) || (($mvc instanceof sales_SalesDetails) && $state == 'draft' && $quantity > $freeQuantityMin)){
                 if($showNegativeWarning){
                     if(isset($date) && $date != dt::today()){
                         $minDateVerbal = dt::mysql2verbal($minQuantityDate, 'd.m.Y');
@@ -1577,37 +1577,31 @@ abstract class deals_Helper
         
         return $invoices;
     }
-    
-    
+
+
     /**
-     * Помощен метод връщащ разпределението на плащанията по фактури
+     * Връща нишките, които обединява или са обединени от дадена нишка
      *
-     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
-     * @param datetime|NULL $valior            - към коя дата
-     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
-     *
-     * @return array $paid      - масив с разпределените плащания
+     * @param int $threadId
+     * @return array
      */
-    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
+    public static function getCombinedThreads($threadId)
     {
-        expect($threadId);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if (!$firstDoc->isInstanceOf('deals_DealBase')) {
-            return array();
-        }
-        
+        if (!$firstDoc->isInstanceOf('deals_DealBase')) return array();
+
         // Ако сделката е приключена, проверява се дали не е приключена с друга сделка
         if ($firstDoc->fetchField('state') == 'closed') {
             $dQuery = $firstDoc->getInstance()->getQuery();
             $dQuery->where("LOCATE('|{$firstDoc->that}|', #closedDocuments)");
-            
+
             // Ако е подменя се треда с този на обединяващата сделка, защото тя ще се използва за основа
             if ($combinedThread = $dQuery->fetch()->threadId) {
                 $firstDoc = doc_Threads::getFirstDocument($combinedThread);
                 $threadId = $combinedThread;
             }
         }
-        
+
         // Ако сделката е обединяваща взимат се всички нишки, които обединява
         $threads = array($threadId => $threadId);
         $closedDocs = $firstDoc->fetchField('closedDocuments');
@@ -1619,13 +1613,30 @@ abstract class deals_Helper
                 }
             }
         }
-        
+
+        return $threads;
+    }
+
+
+    /**
+     * Помощен метод връщащ разпределението на плащанията по фактури
+     *
+     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
+     * @param datetime|NULL $valior            - към коя дата
+     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
+     *
+     * @return array $paid      - масив с разпределените плащания
+     */
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
+    {
         // Всички ф-ри в посочената нишка/нишки
+        $threads = static::getCombinedThreads($threadId);
+        if(!countR($threads)) return array();
+
+        // Кои са фактурите в посочената нишка/нишки
         $invoicesArr = self::getInvoicesInThread($threads, $valior, true, true, true);
-        if (!countR($invoicesArr)) {
-            return array();
-        }
-        
+        if (!countR($invoicesArr)) return array();
+
         $newInvoiceArr = $invMap = $payArr = array();
         foreach ($invoicesArr as $containerId => $handler) {
             $Document = doc_Containers::getDocument($containerId);
@@ -1698,7 +1709,7 @@ abstract class deals_Helper
             }
 
             while ($dRec = $dQuery->fetch()) {
-                $amount = $dRec->amountDeal;
+                $amount = round($dRec->amountDeal / $dRec->currencyRate, 6);
                 $payArr[$dRec->containerId] = (object) array('containerId' => $dRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => null, 'paymentType' => 'cash', 'isReverse' => false);
             }
         }

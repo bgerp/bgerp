@@ -353,7 +353,7 @@ class rack_MovementGenerator extends core_Manager
      */
     public static function isFirstRow($pos)
     {
-        return stripos($pos, 'a') || stripos($pos, 'а');
+        return rack_MovementGenerator2::isFirstRow($pos);
     }
     
     

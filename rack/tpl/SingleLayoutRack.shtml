@@ -1,6 +1,6 @@
 <div class="singleView">
     [#SingleToolbar#]
-    <h2>|Стелаж|* [#num#]</h2>
+    <h2><b style="color:green">|Стелаж|* [#num#]</b><!--ET_BEGIN groups--><br><small><span class="quiet">|Групи зони|*</span>: [#groups#]</small><!--ET_END groups--></h2>
     <div class='scrolling-holder'>
         [#places#]
         <table class="styled-table">

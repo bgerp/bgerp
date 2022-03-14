@@ -14,6 +14,9 @@
 	                <!--ET_END departmentId-->
 	                <div>|Тип|*: <b>[#type#]</b></div>
 	                <!--ET_END type-->
+					<!--ET_BEGIN planningParams-->
+					<div>|Параметри за планиране|*: <b>[#planningParams#]</b></div>
+					<!--ET_END planningParams-->
 	                <!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
 	                <!--ET_END nkid-->

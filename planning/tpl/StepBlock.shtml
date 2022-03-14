@@ -27,26 +27,66 @@
 			<td>[#planning_Steps_storeIn#]</td>
 		</tr>
 		<!--ET_END planning_Steps_storeIn-->
-
-		<!--ET_BEGIN planning_Steps_employees-->
-		<tr>
-			<td class='quiet'>|Оператори|*:</td>
-			<td>[#planning_Steps_employees#]</td>
-		</tr>
-		<!--ET_END planning_Steps_employees-->
-
 		<!--ET_BEGIN planning_Steps_fixedAssets-->
 		<tr>
 			<td class='quiet'>|Оборудване|*:</td>
 			<td>[#planning_Steps_fixedAssets#]</td>
 		</tr>
 		<!--ET_END planning_Steps_fixedAssets-->
-
+		<!--ET_BEGIN planning_Steps_employees-->
+		<tr>
+			<td class='quiet'>|Оператори|*:</td>
+			<td>[#planning_Steps_employees#]</td>
+		</tr>
+		<!--ET_END planning_Steps_employees-->
 		<!--ET_BEGIN planning_Steps_norm-->
 		<tr>
 			<td class='quiet'>|Норма|*:</td>
 			<td>[#planning_Steps_norm#]</td>
 		</tr>
 		<!--ET_END planning_Steps_norm-->
+
+		<!--ET_BEGIN planning_Steps_planningParams-->
+		<tr>
+			<td class='quiet'>|Планиране (Параметри)|*:</td>
+			<td>[#planning_Steps_planningParams#]</td>
+		</tr>
+		<!--ET_END planning_Steps_planningParams-->
+
     </table>
 </fieldset>
+<!--ET_BEGIN LABELS-->
+<fieldset class="detail-info">
+	[#LABELS#]
+	<legend class="groupTitle">|Етикиране в производствена операция|*</legend>
+	<table>
+		<!--ET_BEGIN planning_Steps_labelPackagingId-->
+		<tr>
+			<td class='quiet'>|Опаковка|*:</td>
+			<td>[#planning_Steps_labelPackagingId#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelPackagingId-->
+
+		<!--ET_BEGIN planning_Steps_labelQuantityInPack-->
+		<tr>
+			<td class='quiet'>|В опаковка|*:</td>
+			<td>[#planning_Steps_labelQuantityInPack#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelQuantityInPack-->
+
+		<!--ET_BEGIN planning_Steps_labelType-->
+		<tr>
+			<td class='quiet'>|Производ. №|*:</td>
+			<td>[#planning_Steps_labelType#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelType-->
+
+		<!--ET_BEGIN planning_Steps_labelTemplate-->
+		<tr>
+			<td class='quiet'>|Шаблон|*:</td>
+			<td>[#planning_Steps_labelTemplate#]</td>
+		</tr>
+		<!--ET_END planning_Steps_labelTemplate-->
+	</table>
+</fieldset>
+<!--ET_END LABELS-->

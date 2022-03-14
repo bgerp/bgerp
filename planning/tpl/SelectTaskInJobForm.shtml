@@ -3,9 +3,6 @@
     <!--ET_BEGIN DEFAULT_TASK_BLOCK-->
     [#DEFAULT_TASK_BLOCK#]
     <tr class="[#DEFAULT_TASK_TR_CLASS#]">
-        <!--ET_BEGIN DEFAULT_TASK_CHECKED-->
-        <td style="width:1%">[#DEFAULT_TASK_CHECKED#]</td>
-        <!--ET_END DEFAULT_TASK_CHECKED-->
         <td colspan="[#DEFAULT_TASK_CAPTION_COLSPAN#]">[#DEFAULT_TASK_CAPTION#]</td>
         <!--ET_BEGIN DEFAULT_TASK_LINK-->
         <td style="text-align:right">[#DEFAULT_TASK_LINK#]</td>

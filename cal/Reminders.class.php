@@ -228,7 +228,7 @@ class cal_Reminders extends core_Master
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,mandatory,width=100%, changable,silent');
         
-        $this->FLD('description', 'richtext(bucket=calReminders)', 'caption=Описание,changable,silent');
+        $this->FLD('description', 'richtext(bucket=calReminders,passage)', 'caption=Описание,changable,silent');
         
         // Споделяне
         $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители,changable,silent');

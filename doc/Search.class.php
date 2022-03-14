@@ -104,16 +104,19 @@ class doc_Search extends core_Manager
         $data->listFilter->FNC('withMe', 'enum(,shared_with_me=Споделени с мен, liked_from_me=Харесани от мен)', 'caption=Само, placeholder=Всички');
         $data->listFilter->FNC('toDateHorizon', 'time', 'silent');
 
-        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички');
+        $data->listFilter->FNC('tags', 'keylist(mvc=tags_Tags, select=name)', 'caption=Таг, placeholder=Всички, silent');
         $data->listFilter->getField('state')->type->options = array('all' => 'Всички') + $data->listFilter->getField('state')->type->options;
         $data->listFilter->setField('search', 'caption=Ключови думи');
         $data->listFilter->setField('docClass', 'caption=Вид документ,placeholder=Всички');
         
         $data->listFilter->setDefault('author', 'all_users');
-        
+
         $data->listFilter->showFields = 'search, scopeFolderId, docClass,  author, withMe, tags, state, fromDate, toDate';
         $data->listFilter->toolbar->addSbBtn('Търсене', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        
+
+        $tagsArr = tags_Tags::getTagsOptions();
+        $data->listFilter->setSuggestions('tags', $tagsArr['all']);
+
         $data->listFilter->input(null, 'silent');
 
         if($toDateHorizon = Request::get('toDateHorizon', 'time')){
@@ -121,9 +124,6 @@ class doc_Search extends core_Manager
         }
 
         $filterRec = $data->listFilter->rec;
-
-        $tagsArr = tags_Tags::getTagsOptions();
-        $data->listFilter->setSuggestions('tags', $tagsArr['all']);
 
         $isFiltered =
         !empty($filterRec->search) ||

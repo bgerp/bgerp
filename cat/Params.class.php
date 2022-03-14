@@ -152,6 +152,7 @@ class cat_Params extends bgerp_ProtoParam
         core_Lg::push($lg);
         $name = tr($rec->name) . ((!empty($rec->suffix)) ? ' (' . tr($rec->suffix) . ')': '');
         $name = preg_replace('/\s+/', '_', $name);
+        $name = str_replace('/', '_', $name);
         $name = ($upperCase) ? mb_strtoupper($name) : mb_strtolower($name);
         core_Lg::pop();
         

@@ -108,7 +108,7 @@ class trans_TransportUnits extends core_Manager
      */
     public static function getAll()
     {
-        return cls::get(get_called_class())->makeArray4Select('pluralName');
+        return cls::get(get_called_class())->makeArray4Select('name');
     }
     
     
@@ -250,7 +250,7 @@ class trans_TransportUnits extends core_Manager
                 $pQuery = planning_ProductionTaskDetails::getQuery();
                 $pQuery->EXT('measureId', 'planning_Tasks', 'externalName=measureId,externalKey=taskId');
                 $pQuery->EXT('tState', 'planning_Tasks', 'externalName=state,externalKey=taskId');
-                $pQuery->EXT('packagingId', 'planning_Tasks', 'externalName=packagingId,externalKey=taskId');
+                $pQuery->EXT('packagingId', 'planning_Tasks', 'externalName=labelPackagingId,externalKey=taskId');
 
                 $pQuery->where("#productId = {$productId} AND #type = 'production' AND (#tState IN ('closed', 'active', 'wakeup', 'stopped')) AND #packagingId = {$transPackagingId} AND #quantity != {$transQuantityInPack}");
                 $pQuery->orderBy('createdOn', "DESC");

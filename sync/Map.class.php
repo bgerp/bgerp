@@ -189,7 +189,7 @@ class sync_Map extends core_Manager
                 foreach ($kArr as $fId) {
                     $fn = fileman::idToFh($fId);
                     try {
-                        $kArrN[] = fileman_Download::getDownloadUrl($$fn);
+                        $kArrN[] = fileman_Download::getDownloadUrl($fn);
                     } catch (core_exception_Expect $e) {
 //                         wp($e);
                     }

@@ -2346,7 +2346,7 @@ class fileman_Files extends core_Master
             $webdrvArr = fileman_Indexes::getDriver($ext, $rec->name);
             
             $canPrint = false;
-            
+
             foreach ($webdrvArr as $drv) {
                 if (!$drv) {
                     continue;
@@ -2355,7 +2355,7 @@ class fileman_Files extends core_Master
                 if (!cls::load($drv, true)) {
                     continue;
                 }
-                
+
                 if ($drv::$defaultTab == 'preview') {
                     if ($activeProcessing) {
                         $drv->startProcessing($rec);
@@ -2405,12 +2405,11 @@ class fileman_Files extends core_Master
         if ($mvc->haveRightFor('regenerate', $data->rec->id)) {
             $data->toolbar->addBtn('Регенериране', array($mvc, 'Regenerate', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btn-regenerate', 'ef_icon = img/16/recycle.png, title=Повторна обработка на файла, order=19.99, row=2');
         }
-        
-        if ($printAttr = $this->checkForPrintBtn($mvc, $data->rec, true)) {
-            $warning = $printAttr['warning'] ? ',warning = ' . $printAttr['warning'] : '';
-            $data->toolbar->addBtn('Печат', array($mvc, 'PrintFiles', 'fileHnd' => $data->rec->fileHnd, 'ret_url' => true), 'id=btnPrint, target=_blank', "ef_icon = img/16/printer.png, title=Печат на документа{$printAttr['disabled']}{$warning}");
+
+        if ($mvc->haveRightFor('printfiles', $data->rec->id)) {
+            $data->toolbar->addBtn('Печат', array($mvc, 'PrintFrame', 'fileHnd' => $data->rec->fileHnd, 'currentTab' => Request::get('currentTab'), 'ret_url' => true), 'id=btnPrint, target=_blank', "ef_icon = img/16/printer.png, title=Печат на изгледа");
         }
-        
+
         // Очакваме да има такъв файл
         expect($fRec = $data->rec);
         
@@ -2554,6 +2553,57 @@ class fileman_Files extends core_Master
             return $preview;
         }
     }
+
+
+    /**
+     * Отпечатване на изгледа
+     *
+     * @return mixed
+     */
+    function act_PrintFrame()
+    {
+        // Очакваме да има права за виждане
+        $this->requireRightFor('printfiles');
+
+        $fileHnd = Request::get('fileHnd');
+
+        expect($fileHnd);
+
+        // Вземаме записа за файла
+        $fRec = fileman_Files::fetchByFh($fileHnd);
+
+        expect($fRec);
+
+        // Очакваме да има права за разглеждане на записа
+        $this->requireRightFor('printfiles', $fRec);
+
+        $currentTab = Request::get('currentTab');
+
+        $data = new stdClass();
+
+        // Текущия таб
+        $data->currentTab = Request::get('currentTab');
+
+        // Рендираме табовете
+        fileman_Indexes::prepare($data, $fileHnd);
+        $fileInfo = fileman_Indexes::render($data);
+
+        Mode::set('wrapper', 'page_Print');
+        Mode::set('printing');
+
+        if (stripos($fileInfo, '<iframe') !== false) {
+            $fileInfo->append("document.getElementsByTagName('iframe')[0].contentWindow.print();", 'SCRIPTS');
+            $fileInfo->append(".webdrvFieldset, .webdrvTabBody, .tab-page, .tab-control, .printing {width: 100% !important; height: 100% !important;}", 'STYLES');
+
+            Mode::set('runPrinting', false);
+        }
+
+        $fileInfo->append(".row-holder, .legend {display: none !important;}", 'STYLES');
+        $fileInfo->append(".webdrvFieldset {margin: 0 !important; padding: 0 !important; box-shadow: none !important; border: none !important;}", 'STYLES');
+        $fileInfo->append(".webdrvTabBody {top: 0px !important;}", 'STYLES');
+
+        return $fileInfo;
+    }
     
     
     /**
@@ -2583,8 +2633,14 @@ class fileman_Files extends core_Master
         
         return new Redirect($retUrl, '|Стартирано регенериране на индексите за файла');
     }
-    
-    
+
+
+    /**
+     * След подготвяне на филтъра
+     *
+     * @param fileman_Files $mvc
+     * @param stdClass $data
+     */
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('fileman/tpl/FilesFilterForm.shtml')));

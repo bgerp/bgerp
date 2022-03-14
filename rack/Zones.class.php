@@ -9,7 +9,7 @@
  * @package   rack
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -26,6 +26,7 @@ class rack_Zones extends core_Master
      * Единично заглавие
      */
     public $singleTitle = 'Зона';
+
 
     /**
      * Плъгини за зареждане
@@ -147,6 +148,18 @@ class rack_Zones extends core_Master
      * Кои линии да се обновят на шътдаун
      */
     protected $syncLinesOnShutdown = array();
+
+
+    /**
+     * Работен кеш
+     */
+    protected static $cache = array();
+
+
+    /**
+     * Работен кеш
+     */
+    protected static $cachedRacksByGroup = array();
 
 
     /**
@@ -929,7 +942,6 @@ class rack_Zones extends core_Master
         }
 
         $nonClosedRecs = array_filter(self::$movementCache[$zoneId], function ($a) { return $a->state != 'closed';});
-
         if (!countR($nonClosedRecs)) {
             self::$movementCache[$zoneId] = array();
         }
@@ -973,8 +985,6 @@ class rack_Zones extends core_Master
 
     /**
      * Избор на зона в документ
-     *
-     * @return void|core_ET
      */
     public function act_Orderpickup()
     {
@@ -993,7 +1003,9 @@ class rack_Zones extends core_Master
     /**
      * Генериране на всички движения за склада
      *
-     * @param int $storeId - ид на склад
+     * @param int $storeId            - ид на склад
+     * @param int|null $defaultUserId - ид на дефолтен потребител (ако има)
+     * @param int|null $productIds    - ид-та на артикули (null за всички)
      * @param void
      */
     public static function pickupAll($storeId, $defaultUserId = null, $productIds = null)
@@ -1109,11 +1121,46 @@ class rack_Zones extends core_Master
 
             // Какви са наличните палети за избор (запазените се приспадат)
             $pallets = rack_Pallets::getAvailablePallets($pRec->productId, $storeId, $batch, true, true);
-
-            $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             $requiredQuantityOnZones = array_sum($pRec->zones);
 
+            // Ако е склада се използват приоритетни стелажи
+            if(rack_Racks::canUsePriorityRacks($storeId)){
+
+                // Коя е групата на първата зона, очаква се че всички зони са от една група!
+                $firstZoneId = key($pRec->zones);
+                $groupId = rack_Zones::fetchField($firstZoneId, 'groupId');
+
+                // Кои стелажи са с приоритет при групата на зоните
+                if(!array_key_exists($groupId, static::$cachedRacksByGroup)){
+                    $rQuery = rack_Racks::getQuery();
+                    $rQuery->where("#storeId = {$storeId}");
+                    $groupId = isset($groupId) ? $groupId : '-1';
+                    $rQuery->where("LOCATE('|{$groupId}|', #groups)");
+                    $rQuery->show('num');
+                    static::$cachedRacksByGroup[$groupId] = arr::extractValuesFromArray($rQuery->fetchAll(), 'num');
+                }
+
+                // Оставяне само на тези палети, които са на тези стелажи
+                $rackNums = static::$cachedRacksByGroup[$groupId];
+                $onlyPalletsInThoseRacks = array();
+                array_walk($rackNums, function($a) use (&$onlyPalletsInThoseRacks, $pallets){
+                    foreach ($pallets as $k => $palletRec){
+                        list($n,,) = rack_PositionType::toArray($palletRec->position);
+                        if($n == $a){
+                            $onlyPalletsInThoseRacks[$k] = $palletRec;
+                        }
+                    }
+                });
+
+                // Ако палетите от приоритетните стелажи са достатъчни за зоната, използват се само те
+                $onPriorityRacks = arr::sumValuesArray($onlyPalletsInThoseRacks, 'quantity');
+                if($onPriorityRacks >= $requiredQuantityOnZones){
+                    $pallets = $onlyPalletsInThoseRacks;
+                }
+            }
+
             // Ако к-то по палети е достатъчно за изпълнение, не се добавя ПОД-а, @TODO да се изнесе в mainP2Q
+            $quantityOnPallets = arr::sumValuesArray($pallets, 'quantity');
             if ($quantityOnPallets < $requiredQuantityOnZones) {
                 $floorQuantity = rack_Products::getFloorQuantity($pRec->productId, $batch, $storeId);
                 $floorWaitingQuantity = rack_Pallets::getSumInZoneMovements($pRec->productId, $batch, null, 'waiting');
@@ -1135,13 +1182,36 @@ class rack_Zones extends core_Master
 
             // Какво е разпределянето на палетите
             if(rack_Setup::get('PICKUP_STRATEGY') == 'ver2') {
-                $packQuery = cat_products_Packagings::getQuery();
-                $packagings = array();
-                while($packRec = $packQuery->fetch("#productId = {$pRec->productId}")) {
-                    $packagings[] = $packRec;
+
+                // Извличане само на опаковките на артикула + основната мярка
+                if(!array_key_exists($pRec->productId, static::$cache)){
+                    $packQuery = cat_products_Packagings::getQuery();
+                    $packQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+                    $packQuery->where("#productId = {$pRec->productId} AND #type = 'packaging'");
+                    $packQuery->show('quantity,packagingId');
+                    $packagings = array();
+                    while($packRec = $packQuery->fetch()) {
+                        $packagings[] = $packRec;
+                    }
+
+                    // Ако артикула няма опаковка палет намира се к-то на най-големия палет в системата
+                    $palletId = cat_UoM::fetchBySinonim('pallet')->id;
+                    if(!array_key_exists($palletId, $packagings)){
+                        $maxPalletQuantity = max(array_map(function($o) { return $o->quantity;}, $pallets));
+                        if($maxPalletQuantity){
+                            $packagings[] = (object)array('packagingId' => $palletId, 'quantity' => $maxPalletQuantity);
+                        }
+                    }
+
+                    if(!countR($packagings)){
+                        $measureId = cat_Products::fetchField($pRec->productId, 'measureId');
+                        $packagings[] = (object)array('packagingId' => $measureId, 'quantity' => 1);
+                    }
+
+                    static::$cache[$pRec->productId] = $packagings;
                 }
 
-                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, $packagings);
+                $allocatedPallets = rack_MovementGenerator2::mainP2Q($pallets, $pRec->zones, static::$cache[$pRec->productId]);
             } else {
                 $allocatedPallets = rack_MovementGenerator::mainP2Q($palletsArr, $pRec->zones);
             }

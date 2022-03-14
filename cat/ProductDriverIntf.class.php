@@ -645,19 +645,24 @@ class cat_ProductDriverIntf extends embed_DriverIntf
 
 
     /**
-     * Връща информация за данните от производствения етап
+     * Връща информация за данните за производството на артикула
      *
      * @param int $productId
      * @return array
-     *          int|null   ['centerId']    - ид на център на дейност
-     *          int|null   ['storeIn']     - ид на склад за засклаждане (ако е складируем)
-     *          int|null   ['storeInput']  - ид на склад за влагане (ако е складируем)
-     *          array|null ['fixedAssets'] - масив от ид-та на оборудвания (@see planning_AssetResources)
-     *          array|null ['employees']   - масив от ид-та на оператори (@see planning_Hr)
-     *          int|null   ['norm']        - норма за производство
+     *          int|null    ['centerId']             - ид на център на дейност
+     *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
+     *          int|null    ['storeInput']           - ид на склад за влагане (ако е складируем)
+     *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
+     *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
+     *          int|null    ['norm']                 - норма за производство
+     *          int|null    ['labelPackagingId']     - ид на опаковка за етикет
+     *          double|null ['labelQuantityInPack']  - к-во в опаковка за етикет
+     *          string|null ['labelType']            - тип на етикета
+     *          int|null    ['labelTemplate']        - шаблон за етикет
+     *          array|null  ['planningParams']       - параметри за планиране
      */
-    public function getProductionStepData($productId)
+    public function getProductionData($productId)
     {
-        return $this->class->getProductionStepData($productId);
+        return $this->class->getProductionData($productId);
     }
 }

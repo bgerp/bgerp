@@ -52,20 +52,6 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
     
     
     /**
-     * Подготвяне на вербалните стойности
-     *
-     * @param cal_Progresses $Driver
-     * @param doc_Comments   $mvc
-     * @param stdClass       $row
-     * @param stdClass       $rec
-     */
-    protected function on_AfterRecToVerbal(cat_ProductDriver $Driver, $mvc, $row, $rec)
-    {
-        unset($row->editMetaBtn);
-    }
-    
-    
-    /**
      * Връща дефолтната дефиниция за шаблон на партидна дефиниция
      *
      * @param mixed $id - ид или запис на артикул
@@ -137,23 +123,35 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
 
 
     /**
-     * Връща информация за данните от производствения етап
+     * Връща информация за данните за производството на артикула
      *
      * @param int $productId
      * @return array
-     *          int|null   ['centerId']    - ид на център на дейност
-     *          int|null   ['storeIn']     - ид на склад за засклаждане (ако е складируем)
-     *          int|null   ['storeInput']  - ид на склад за влагане (ако е складируем)
-     *          array|null ['fixedAssets'] - масив от ид-та на оборудвания (@see planning_AssetResources)
-     *          array|null ['employees']   - масив от ид-та на оператори (@see planning_Hr)
-     *          int|null   ['norm']        - норма за производство
+     *          int|null    ['centerId']             - ид на център на дейност
+     *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
+     *          int|null    ['storeInput']           - ид на склад за влагане (ако е складируем)
+     *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
+     *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
+     *          int|null    ['norm']                 - норма за производство
+     *          int|null    ['labelPackagingId']     - ид на опаковка за етикет
+     *          double|null ['labelQuantityInPack']  - к-во в опаковка за етикет
+     *          string|null ['labelType']            - тип на етикета
+     *          int|null    ['labelTemplate']        - шаблон за етикет
+     *          array|null  ['planningParams']       - параметри за планиране
      */
-    public function getProductionStepData($productId)
+    public function getProductionData($productId)
     {
         $rec = cat_Products::fetch($productId);
         $res = array('centerId' => $rec->planning_Steps_centerId, 'storeIn' => $rec->planning_Steps_storeIn, 'storeInput' => $rec->planning_Steps_storeInput, 'norm' => $rec->planning_Steps_norm);
         $res['fixedAssets'] = !empty($rec->planning_Steps_fixedAssets) ? keylist::toArray($rec->planning_Steps_fixedAssets) : null;
         $res['employees'] = !empty($rec->planning_Steps_employees) ? keylist::toArray($rec->planning_Steps_employees) : null;
+        $res['planningParams'] = !empty($rec->planning_Steps_planningParams) ? keylist::toArray($rec->planning_Steps_planningParams) : null;
+        if($rec->canStore == 'yes'){
+            $res['labelPackagingId'] = $rec->planning_Steps_labelPackagingId;
+            $res['labelQuantityInPack'] = $rec->planning_Steps_labelQuantityInPack;
+            $res['labelType'] = $rec->planning_Steps_labelType;
+            $res['labelTemplate'] = $rec->planning_Steps_labelTemplate;
+        }
 
         return $res;
     }

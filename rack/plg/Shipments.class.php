@@ -208,11 +208,19 @@ class rack_plg_Shipments extends core_Plugin
     public static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        $readiness = rack_Zones::fetchField("#containerId = {$rec->containerId}", 'readiness');
-        if(isset($readiness)){
-            if($readiness != 1){
-                core_Statuses::newStatus('Документът не може да се контира. Не е нагласен в зоните на палетния склад', 'error');
-                
+        $zoneRec = rack_Zones::fetch("#containerId = {$rec->containerId}", 'id,readiness');
+        if(is_object($zoneRec)){
+            if(isset($zoneRec->readiness)){
+                if($zoneRec->readiness != 1){
+                    core_Statuses::newStatus('Документът не може да се контира. Не е нагласен в зоните на палетния склад|*!', 'error');
+
+                    return false;
+                }
+            }
+
+            if(rack_Movements::fetchField("LOCATE('|{$zoneRec->id}|', #zoneList) AND (#state = 'active' OR #state = 'waiting')")){
+                core_Statuses::newStatus('Документът не може да се контира. Има започнати и/или запазени движения към зоната в която е закачен|*!', 'error');
+
                 return false;
             }
         }

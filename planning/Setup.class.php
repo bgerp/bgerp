@@ -68,15 +68,15 @@ defIfNot('PLANNING_PRODUCTION_PRODUCT_EQUALIZING_PRIME_COST', 'yes');
 
 
 /**
- * Автоматично приключване на задание, изпълнени над
+ * Автоматично приключване на активни задания към затворени артикули->При Заскладено/Планирано
  */
 defIfNot('PLANNING_JOB_AUTO_COMPLETION_PERCENT', '');
 
 
 /**
- * Автоматично приключване на задание, да не са модифицирани от
+ * Автоматично приключване на активни задания към затворени артикули->Без нови контиращи документи в нишката
  */
-defIfNot('PLANNING_JOB_AUTO_COMPLETION_DELAY', '21600');
+defIfNot('PLANNING_JOB_AUTO_COMPLETION_DELAY', dt::SECONDS_IN_MONTH);
 
 
 /**
@@ -156,14 +156,14 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_TASK_WEIGHT_TOLERANCE_WARNING' => array('percent(Min=0,Max=1)', 'caption=Отчитане на теглото в ПО->Предупреждение'),
         'PLANNING_TASK_WEIGHT_MODE' => array('enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото в ПО->Режим'),
 
-        'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на заданието->Изпълнени над,callOnChange=planning_Setup::setJobAutoClose'),
-        'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на заданието->Без модификации от'),
+        'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на Задание без нови контиращи документи->Повече от'),
+        'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на Задание без нови контиращи документи->И Заскладено над,callOnChange=planning_Setup::setJobAutoClose'),
         'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
         'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
     );
-    
-    
+
+
     /**
      * Списък с мениджърите, които съдържа пакета
      */
@@ -190,6 +190,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_Points',
         'planning_GenericMapper',
         'migrate::updatePlanningStages1',
+        'migrate::updateTaskAssets'
     );
     
     
@@ -302,6 +303,30 @@ class planning_Setup extends core_ProtoSetup
 
         if(countR($update)){
             $Steps->saveArray($update, 'id,centerId');
+        }
+    }
+
+
+    /**
+     * Обновяване на полета за оборудване
+     */
+    public function updateTaskAssets()
+    {
+        $arr = array();
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+        $query = $Tasks->getQuery();
+        $query->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Производство->Оборудване');
+        $query->where("#fixedAssets IS NOT NULL");
+        $query->show('id,fixedAssets');
+        while($rec = $query->fetch()){
+            $assetId = key(keylist::toArray($rec->fixedAssets));
+            $rec->assetId = $assetId;
+            $arr[] = $rec;
+        }
+
+        if(countR($arr)){
+            $Tasks->saveArray($arr, 'id,assetId');
         }
     }
 }

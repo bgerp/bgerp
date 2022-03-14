@@ -1091,6 +1091,8 @@ class cat_products_Packagings extends core_Detail
         $mvc = cls::get($mvc);
 
         $notMatchArr = array();
+        if($mvc->dontCheckQuantityInPack === true) return $notMatchArr;
+
         if (!$mvc->fields['packagingId'] && !$rec->quantityInPack && !$rec->packagingId) {
             $dArr = arr::make($mvc->details);
             foreach ($dArr as $detail) {
@@ -1119,6 +1121,7 @@ class cat_products_Packagings extends core_Detail
         } else {
             if ($rec->packagingId && $rec->productId) {
                 $quantity = self::fetchField(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $rec->productId, $rec->packagingId), 'quantity');
+
                 if (isset($quantity)) {
                     if ($quantity != $rec->quantityInPack) {
                         $notMatchArr[$rec->productId] = $quantity;
@@ -1240,10 +1243,12 @@ class cat_products_Packagings extends core_Detail
                 $dQuery->where(array("#productId = '[#1#]' AND #action = 'sale|code' AND #value = '[#2#]'", $productId, $uomId));
             } elseif($Detail == 'planning_Jobs'){
                 $dQuery->where(array("#productId = '[#1#]' AND (#packagingId = '[#2#]' OR #secondMeasureId = '[#2#]')", $productId, $uomId));
-            } elseif ($Detail == 'cat_BomDetails') {
+            } elseif ($Detail == 'cat_BomDetails') {//bp();
                 $dQuery->where(array("#resourceId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             } elseif ($Detail == 'store_TransfersDetails') {
                 $dQuery->where(array("#newProductId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
+            } elseif ($Detail == 'planning_Tasks') {
+                $dQuery->where(array("#productId = '[#1#]' AND #labelPackagingId = '[#2#]'", $productId, $uomId));
             } else {
                 $dQuery->where(array("#productId = '[#1#]' AND #packagingId = '[#2#]'", $productId, $uomId));
             }
@@ -1510,5 +1515,26 @@ class cat_products_Packagings extends core_Detail
         $volume = $brutoVolume * $quantity;
 
         return round($volume, 3);
+    }
+
+
+    /**
+     * Връща САМО опаковките на артикула
+     *
+     * @param int $productId
+     * @return array $options
+     */
+    public static function getOnlyPacks($productId)
+    {
+        $options = array();
+        $query = static::getQuery();
+        $query->where("#productId = {$productId}");
+        $query->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
+        $query->where("#type = 'packaging'");
+        while($rec = $query->fetch()){
+            $options[$rec->packagingId] = cat_UoM::getTitleById($rec->packagingId, false);
+        }
+
+        return $options;
     }
 }

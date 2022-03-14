@@ -7374,6 +7374,9 @@ only screen and (max-width: 320px) {
   background-color: #eeeeee;
   border: 1px solid #bbbbbb; }
 
+.selectTaskOptions tr.newTaskBtn {
+  display: none; }
+
 .selectTaskOptions tr.selectTaskFromJobRow td {
   padding-left: 8px;
   padding-top: 5px;
@@ -7389,4 +7392,7 @@ only screen and (max-width: 320px) {
   color: #555555;
   border: 1px solid #cdcdcd;
   padding: 3px; }
+
+table.bomProductionStepTable td {
+  border: 0px !important; }
 

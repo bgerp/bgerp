@@ -1958,10 +1958,22 @@ function setRicheditWidth(el) {
  * Ако имаме 6 бутона в richedit, да излизат в 2 колони
  */
 function prepareRichtextAddElements(){
-    if($('.richedit-toolbar .addElements').length && $('.richedit-toolbar .addElements').children().length == 6) {
-        $( "<span class='clearfix21'></span>" ).insertAfter( '.richedit-toolbar .addElements a:odd' );
-        $('.richedit-toolbar .addElements a' ).css('display', 'table-cell');
+
+    if (!$('.richEdit') || !$('.richedit-toolbar .addElements').length) {
+
+        return ;
     }
+
+    $('.richEdit').each(function() {
+        var len = $(this).find('.richedit-toolbar .addElements').children().length;
+        if ((len < 6) || (len % 2 == 1)) {
+
+            return ;
+        }
+
+        $(this).find('.richedit-toolbar .addElements a:odd').after("<span class='clearfix21'></span>");
+        $(this).find('.richedit-toolbar .addElements a').css('display', 'table-cell');
+    });
 }
 
 

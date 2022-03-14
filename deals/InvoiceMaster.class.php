@@ -142,7 +142,7 @@ abstract class deals_InvoiceMaster extends core_Master
         $mvc->FLD('vatReason', 'varchar(255)', 'caption=Данъчни параметри->Основание,recently,Основание за размера на ДДС');
         $mvc->FLD('vatDate', 'date(format=d.m.Y)', 'caption=Данъчни параметри->Дата на ДС,hint=Дата на възникване на данъчното събитие');
         $mvc->FLD('vatRate', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=Данъчни параметри->ДДС,input=hidden');
-        $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6, passage=Общи)', 'caption=Допълнително->Бележки');
+        $mvc->FLD('additionalInfo', 'richtext(bucket=Notes, rows=6, passage)', 'caption=Допълнително->Бележки');
         $mvc->FNC('dealValueWithoutDiscount', 'double(decimals=2)', 'caption=Дан. основа,summary=amount');
         $mvc->FLD('dealValue', 'double(decimals=2)', 'caption=Без ДДС, input=hidden');
         $mvc->FLD('vatAmount', 'double(decimals=2)', 'caption=ДДС, input=none,summary=amount');
