@@ -767,13 +767,26 @@ class email_Mime extends core_BaseClass
                 $nl = $c;
             }
         }
-        
-        // Отделяме хедърите
-        $headerStr = mb_strcut($data, 0, $bestPos);
-        
-        // Отделяме данните
-        $data = mb_strcut($data,$bestPos);
-        
+
+        $headerStr = '';
+        $headerDelim = "\n\r";
+        if ($nl != $headerDelim) {
+            $headerStrArr = explode($headerDelim, $data, 2);
+            if (countR($headerStrArr) > 1) {
+                $headerStr = trim($headerStrArr[0]);
+                $data = trim($headerStrArr[1]);
+            }
+        }
+
+        if (!$headerStr) {
+
+            // Отделяме хедърите
+            $headerStr = mb_strcut($data, 0, $bestPos);
+
+            // Отделяме данните
+            $data = mb_strcut($data,$bestPos);
+        }
+
         $p = &$this->parts[$index];
         
         if (!is_object($p)) {
