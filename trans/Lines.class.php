@@ -448,7 +448,6 @@ class trans_Lines extends core_Master
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         if (isset($fields['-list'])) {
             $row->start = str_replace(' ', '<br>', $row->start);
-
             if (!empty($rec->stores)) {
                 $row->stores = $mvc->getVerbal($rec, 'stores');
                 $row->handler .= "<div class='small'>" . tr('Складове') . ": {$row->stores}</div>";
@@ -458,11 +457,10 @@ class trans_Lines extends core_Master
                 $row->cases = $mvc->getVerbal($rec, 'cases');
                 $row->handler .= "<div class='small'> " . tr('Каси') . ": {$row->cases}</div>";
             }
-
             $transUnitsTotal = $rec->transUnitsTotal;
         }
 
-        $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal);
+        $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal, false, '<br>');
     }
 
 

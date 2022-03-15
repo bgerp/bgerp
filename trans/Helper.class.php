@@ -104,16 +104,17 @@ abstract class trans_Helper
         
         return $combined;
     }
-    
-    
+
+
     /**
      * Показва транспортните единици в документа
      *
-     * @param mixed $transUnits
-     *
-     * @return string
+     * @param array $transUnits      - масив с логистичните еденици и техните к-ва
+     * @param boolean $combineByName - дали да се групират по име или да са подробни
+     * @param string $divider        - разделител
+     * @return string $str           - готовия стринг за показване
      */
-    public static function displayTransUnits($transUnits)
+    public static function displayTransUnits($transUnits, $combineByName = true, $divider = ' + ')
     {
         $transUnits = empty($transUnits) ? array() : $transUnits;
 
@@ -121,14 +122,21 @@ abstract class trans_Helper
         foreach ($transUnits as $unitId => $quantity) {
             if (empty($quantity)) continue;
 
-            // Сумиране на ЛЕ по първата част от името на ЛЕ
             $unitId = ($unitId) ? $unitId : self::fetchIdByName('load');
             $uRec = trans_TransportUnits::fetch($unitId, 'name,pluralName');
-            $nameArr = explode(' [', $uRec->name);
-            $pluralNameArr = explode(' [', $uRec->pluralName);
-            $nameArr[0] = tr(mb_strtolower($nameArr[0]));
-            $pluralNameArr[0] = tr(mb_strtolower($pluralNameArr[0]));
-            $key = "{$nameArr[0]}|{$pluralNameArr[0]}";
+
+            if($combineByName){
+                $nameArr = explode(' [', $uRec->name);
+                $pluralNameArr = explode(' [', $uRec->pluralName);
+                $nameArr[0] = tr(mb_strtolower($nameArr[0]));
+                $pluralNameArr[0] = tr(mb_strtolower($pluralNameArr[0]));
+                $key = "{$nameArr[0]}|{$pluralNameArr[0]}";
+            } else {
+                $name = tr(mb_strtolower($uRec->name));
+                $pluralName = tr(mb_strtolower($uRec->pluralName));
+                $key = "{$name}|{$pluralName}";
+            }
+
             $combined[$key] += $quantity;
         }
 
@@ -140,7 +148,7 @@ abstract class trans_Helper
             $displayArr[] = "{$quantity} {$unitName}";
         }
 
-        $str = implode(' + ', $displayArr);
+        $str = implode($divider, $displayArr);
         
         return $str;
     }
