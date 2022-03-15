@@ -242,7 +242,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Производство->Склад,input=none');
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Производство->Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|allowedInputProducts');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Производство->Оператори');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Производство->Оператори');
         $this->FNC('startAfter', 'varchar', 'caption=Производство->Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Производство->Отчитане,input=none');
@@ -497,19 +497,21 @@ class planning_Tasks extends core_Master
             }
         }
 
+        // Ако има избрано оборудване
         if(isset($rec->assetId)){
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+
+            // Показва се след коя ще започне
+            $startAfter = $mvc->getStartAfter($rec);
+            if(isset($startAfter)){
+                $row->startAfter = $mvc->getHyperlink($startAfter, true);
+            } else {
+                $row->startAfter = tr('Първа за оборудването');
+            }
         }
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
         $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
-
-        $startAfter = $mvc->getStartAfter($rec);
-        if(isset($startAfter)){
-            $row->startAfter = $mvc->getHyperlink($startAfter, true);
-        } else {
-            $row->startAfter = tr('Първа за оборудването');
-        }
 
         return $row;
     }
@@ -1137,7 +1139,7 @@ class planning_Tasks extends core_Master
         }
 
         // Добавяне на достъпните за избор оператори
-        $employees = planning_Hr::getByFolderId($rec->folderId, $rec->assetId);
+        $employees = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
         if(countR($employees)){
             $form->setField('employees', 'input');
             $form->setSuggestions('employees', $employees);
