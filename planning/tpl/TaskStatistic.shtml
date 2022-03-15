@@ -37,7 +37,9 @@
                   <!--ET_BEGIN assetId-->
                   <span style='font-weight:normal'>|Оборудване|*</span>: [#assetId#]<br>
                   <!--ET_END assetId-->
-                  
+                  <!--ET_BEGIN startAfter-->
+                  <span style='font-weight:normal'>|Започва след|*</span>: [#startAfter#]<br>
+                  <!--ET_END startAfter-->
                   <!--ET_BEGIN employees-->
                   <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
                   <!--ET_END employees-->
