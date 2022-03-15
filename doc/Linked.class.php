@@ -160,7 +160,7 @@ class doc_Linked extends core_Manager
      *
      * @return array
      */
-    public static function getRecsForType($type, $id, $showRejecte = true, $limit = 1000, $Pager = null)
+    public static function getRecsForType($type, $id, $showRejecte = true, $limit = 100, $Pager = null)
     {
         $query = self::getQuery();
         
