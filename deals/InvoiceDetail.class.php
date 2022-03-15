@@ -60,8 +60,14 @@ abstract class deals_InvoiceDetail extends doc_Detail
      * Да се показва ли кода като в отделна колона
      */
     public $showCodeColumn = true;
-    
-    
+
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     */
+    public $fieldsNotToClone = 'invoiceParamInfo';
+
+
     /**
      * Извиква се след описанието на модела
      *
@@ -79,6 +85,10 @@ abstract class deals_InvoiceDetail extends doc_Detail
         $mvc->FLD('discount', 'percent(min=0,max=1,suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.3)', 'caption=Отстъпка,smartCenter');
         $mvc->FLD('notes', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Забележки,formOrder=110001');
         $mvc->FLD('clonedFromDetailId', "int", 'caption=От кое поле е клонирано,input=none');
+        if(isset($mvc->productInvoiceInfoParamName)) {
+            $mvc->FLD('invoiceParamInfo', 'varchar', 'caption=Информация за фактура, input=none');
+        }
+
         $mvc->setDbIndex('productId,packagingId');
     }
     
@@ -305,7 +315,22 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Ако под артикула ще се показва текста за ф-ра добавя се
             if(isset($mvc->productInvoiceInfoParamName)) {
                 if(isset($rec->productId)){
-                    $invoiceInfoVerbal = cat_Products::getParams($rec->productId, 'invoiceInfo', true);
+                    if(!empty($rec->invoiceParamInfo)){
+
+                        // Показване на текста за фактура такъв какъвто е
+                        $invoiceInfoVerbal = $mvc->getFieldType('invoiceParamInfo')->toVerbal($rec->invoiceParamInfo);
+                    } elseif($masterRec->state == 'draft') {
+
+                        // Показване на текста за фактура live
+                        $invoiceInfoVerbal = cat_Products::getParams($rec->productId, $mvc->productInvoiceInfoParamName, true);
+                        if(!empty($invoiceInfoVerbal)){
+                            if(!Mode::isReadOnly()){
+                                $invoiceInfoVerbal = "<span style='color:blue'>{$invoiceInfoVerbal}</span>";
+                                $invoiceInfoVerbal = ht::createHint($invoiceInfoVerbal, 'Стойността ще се запише при активиране');
+                            }
+                        }
+                    }
+
                     if (!empty($invoiceInfoVerbal) ) {
                         if ($row1->productId instanceof core_ET) {
                             $row1->productId->append("<div class='classInvoiceParam small'>{$invoiceInfoVerbal}</div>");

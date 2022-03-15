@@ -1789,6 +1789,28 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
+
+        // Ако има посочен параметър за информация към фактурата от артикула
+        $Detail = cls::get($mvc->mainDetail);
+        if(isset($Detail->productInvoiceInfoParamName)) {
+            $saveRecs = array();
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #invoiceParamInfo IS NULL");
+            $dQuery->show('productId');
+            while($dRec = $dQuery->fetch()){
+
+                // Кешира се текущата му стойност към момента на активиране
+                $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
+                if(!empty($invoiceInfo)){
+                    $dRec->invoiceParamInfo = $invoiceInfo;
+                    $saveRecs[] = $dRec;
+                }
+            }
+
+            if(countR($saveRecs)){
+                $Detail->saveArray($saveRecs, 'id,invoiceParamInfo');
+            }
+        }
     }
 
 
