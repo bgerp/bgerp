@@ -46,6 +46,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo,debug,manager,store,planning,purchase,cat,acc';
 
+    /**
+     * Плъгини за зареждане
+     */
+    public $loadList = 'plg_PrevAndNext';
+
 
     /**
      * Брой записи на страница
@@ -245,11 +250,11 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
             } else {
 
                 if (!in_array($productId, array_keys($artLimitsArr))) {
-                    $artLimitsArr[$productId] = array('minQuantity' => '', 'maxQuantity' => '', 'orderMeasure' => '', 'minOrder' => '');
-                    $minQuantity = '';
-                    $maxQuantity = '';
-                    $orderMeasure = '';
-                    $minOrder = '';
+                    $artLimitsArr[$productId] = array('minQuantity' => 0, 'maxQuantity' => 0, 'orderMeasure' => 0, 'minOrder' => 0);
+                    $minQuantity = 0;
+                    $maxQuantity = 0;
+                    $orderMeasure = 0;
+                    $minOrder = 0;
 
                 } else {
                     $minQuantity = $artLimitsArr[$productId]['minQuantity'];
@@ -262,7 +267,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 $recs[$productId] = (object)array(
                     'measure' => $recProduct->measureId,
                     'productId' => $productId,
-                    'storesQuatity' => '',
+                    'storesQuatity' => 0,
                     'quantity' => $quantity,
                     'minQuantity' => $minQuantity,
                     'maxQuantity' => $maxQuantity,
@@ -380,9 +385,9 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
-            $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('suggQuantity', 'varchar', 'caption=Количество->За поръчка,smartCenter');
-            $fld->FLD('orderMeasure', 'key(mvc=cat_UoM,select=name)', 'caption=За поръчка->Мярка,tdClass=centered');
+//            $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
+//            $fld->FLD('suggQuantity', 'varchar', 'caption=Количество->За поръчка,smartCenter');
+            $fld->FLD('orderMeasure', 'varchar', 'caption=За поръчка->Мярка,tdClass=centered');
             $fld->FLD('packOrder', 'varchar', 'caption=За поръчка->Опаковки,smartCenter');
         }
         return $fld;
@@ -404,6 +409,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
         $Int = cls::get('type_Int');
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 3;
+        $Double->params['smartRound'] = 'smartRound';
 
         $row = new stdClass();
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
@@ -612,9 +618,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        $Double = cls::get('type_Double');
-        $Double->params['decimals'] = 2;
-
+       
         $orderArr = self::getPacksForOrder($dRec, $rec);
 
         $pRec = (cat_Products::fetch($dRec->productId));
@@ -623,10 +627,18 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
 
-        $res->suggQuantity = $Double->toVerbal($orderArr->suggQuantity);
+        $res->suggQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->suggQuantity);
 
-        $res->packOrder = $Double->toVerbal($orderArr->packOrder);
+        $res->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->packOrder);
 
+        if ($dRec->orderMeasure){
+            $res->orderMeasure = cat_UoM::fetchField($dRec->orderMeasure, 'shortName');
+        }else{
+            $res->orderMeasure = cat_UoM::fetchField($dRec->measure, 'shortName');
+        }
+        if ($dRec->orderMeasure) {
+            $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
+        }
     }
 
     /**
@@ -703,11 +715,15 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
 
         $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png');
 
-        //Пакетажите на артикула
+        //Пакетажите на артикула за избор
         $prodPackArr = arr::extractValuesFromArray(cat_Products::getProductInfo($productId)->packagings, 'packagingId');
+        $productRec = cat_Products::getProductInfo($productId)->productRec;
+
+        //Добавяме възможност за избор освен пакетажа и основната мярка
+        $prodPackArr[$productRec->measureId] = $productRec->measureId;
 
         $q = cat_UoM::getQuery();
-        $q->where("#type = 'packaging'");
+       // $q->where("#type = 'packaging'");
         $q->in('id', $prodPackArr);
 
         while ($qRec = $q->fetch()) {

@@ -195,12 +195,22 @@ class export_Export extends core_Mvc
             $form->setReadOnly('type');
             
             $form->toolbar->addBtn('Затваряне', $retUrl, 'ef_icon = img/16/close-red.png, title=' . tr('Връщане към документа') . ', class=fright');
-            
+
             // Добавяме необходимите бутони от интерфейсите
             $intfArr = core_Classes::getOptionsByInterface('export_FileActionIntf');
             foreach ($intfArr as $cls) {
                 $intfCls = cls::getInterface('export_FileActionIntf', $cls);
                 $intfCls->addActionBtn($form, $eRes);
+            }
+
+            if (!empty($intfArr) && $eRes) {
+                if ((strlen($eRes) == FILEMAN_HANDLER_LEN) || !defined('FILEMAN_HANDLER_LEN')) {
+                    if ($fRec = fileman::fetchByFh($eRes)) {
+                        if ($dRec->containerId && $fRec->id) {
+                            doc_Linked::add($dRec->containerId, $fRec->id, 'doc', 'file', tr('Експортиране'));
+                        }
+                    }
+                }
             }
         } else {
             $form->toolbar->addSbBtn('Генериране', 'save', 'ef_icon = img/16/world_link.png, title = ' . tr('Генериране на линк за сваляне'));
