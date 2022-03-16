@@ -431,6 +431,10 @@ class planning_Jobs extends core_Master
                 }
             }
         }
+
+        if($data->action == 'clone'){
+            $form->setReadOnly('department');
+        }
     }
     
     
