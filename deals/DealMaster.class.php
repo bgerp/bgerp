@@ -2212,7 +2212,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $info = $this->getAggregateDealInfo($rec);
         $products = $info->get('shippedProducts');
         $agreed = $info->get('products');
-        $invoiced = arr::make($info->get('invoicedProducts'));
         $packs = $info->get('shippedPacks');
 
         if($strategy == 'onlyFromDeal') {
@@ -2229,30 +2228,32 @@ abstract class deals_DealMaster extends deals_DealBase
         if (!countR($products)) return $details;
 
         // Ако сделката е обединяваща
+        $invoicedAll = array();
+        $invoicedAll[] = arr::make($info->get('invoicedProducts'));
         if(!empty($rec->closedDocuments)){
             $closedDocuments = keylist::toArray($rec->closedDocuments);
             foreach ($closedDocuments as $closedDealId){
 
                 // Сумира всичко фактурирано от договорите по нея
                 $closedAggregator = $this->getAggregateDealInfo($closedDealId);
-                $invoicedClosed = arr::make($closedAggregator->get('invoicedProducts'));
-                array_walk($invoicedClosed, function ($a) use (&$invoiced){
-                    $foundArr = array_filter($invoiced, function($b) use ($a) {return $a->productId == $b->productId;});
-                    if(!countR($foundArr)){
-                        $invoiced[] = $a;
-                    }
-                });
+                $invoicedAll[] = arr::make($closedAggregator->get('invoicedProducts'));
+            }
+        }
+
+        $invoiced = array();
+        foreach ($invoicedAll as $invArr){
+            foreach ($invArr as $iProduct){
+                if(!array_key_exists($iProduct->productId, $invoiced)){
+                    $invoiced[$iProduct->productId] = 0;
+                }
+                $invoiced[$iProduct->productId] += $iProduct->quantity;
             }
         }
 
         // Приспадане на фактурираното, ако има
         foreach ($products as $product) {
             $quantity = $product->quantity;
-            foreach ($invoiced as $inv) {
-                if ($inv->productId != $product->productId) continue;
-                $quantity -= $inv->quantity;
-            }
-            
+            $quantity -= $invoiced[$product->productId];
             if ($quantity <= 0) continue;
             
             // Ако няма информация за експедираните опаковки, взимаме основната опаковка
