@@ -37,6 +37,10 @@ class support_TaskType extends core_Mvc
         $fieldset->FLD('ip', 'ip', 'caption=Ип,input=none');
         $fieldset->FLD('brid', 'varchar(8)', 'caption=Браузър,input=none');
         $fieldset->FLD('file', 'fileman_FileType(bucket=Support)', 'caption=Файл, input=none');
+
+        if ($this->Embedder) {
+            $this->Embedder->getContragentDataFromLastDoc = false;
+        }
     }
     
     
