@@ -1302,7 +1302,7 @@ class planning_Jobs extends core_Master
             foreach ($departments as $depFolderId => $dName) {
                 $urlNewTask = array();
                 if(planning_Tasks::haveRightFor('add', (object)array('originId' => $jobRec->containerId, 'folderId' => $depFolderId))){
-                    $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId);
+                    $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId, 'ret_url' => true);
                 }
 
                 $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, 'title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png');
