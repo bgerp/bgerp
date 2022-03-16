@@ -1795,20 +1795,20 @@ abstract class deals_InvoiceMaster extends core_Master
         if(isset($Detail->productInvoiceInfoParamName)) {
             $saveRecs = array();
             $dQuery = $Detail->getQuery();
-            $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #invoiceParamInfo IS NULL");
-            $dQuery->show('productId');
+            $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+            $dQuery->show('productId,notes');
             while($dRec = $dQuery->fetch()){
-
-                // Кешира се текущата му стойност към момента на активиране
                 $invoiceInfo = cat_Products::getParams($dRec->productId, $Detail->productInvoiceInfoParamName);
                 if(!empty($invoiceInfo)){
-                    $dRec->invoiceParamInfo = $invoiceInfo;
-                    $saveRecs[] = $dRec;
+                    if (strpos($dRec->notes, "{$invoiceInfo}") === false) {
+                        $dRec->notes = $invoiceInfo . ((!empty($dRec->notes) ? "\n" : '') . $dRec->notes);
+                        $saveRecs[] = $dRec;
+                    }
                 }
             }
 
             if(countR($saveRecs)){
-                $Detail->saveArray($saveRecs, 'id,invoiceParamInfo');
+                $Detail->saveArray($saveRecs, 'id,notes');
             }
         }
     }
