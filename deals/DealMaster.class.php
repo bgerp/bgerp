@@ -2212,7 +2212,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $info = $this->getAggregateDealInfo($rec);
         $products = $info->get('shippedProducts');
         $agreed = $info->get('products');
-        $invoiced = $info->get('invoicedProducts');
+        $invoiced = arr::make($info->get('invoicedProducts'));
         $packs = $info->get('shippedPacks');
 
         if($strategy == 'onlyFromDeal') {
@@ -2226,23 +2226,34 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
-        if (!countR($products)) {
+        if (!countR($products)) return $details;
 
-            return $details;
+        // Ако сделката е обединяваща
+        if(!empty($rec->closedDocuments)){
+            $closedDocuments = keylist::toArray($rec->closedDocuments);
+            foreach ($closedDocuments as $closedDealId){
+
+                // Сумира всичко фактурирано от договорите по нея
+                $closedAggregator = $this->getAggregateDealInfo($closedDealId);
+                $invoicedClosed = arr::make($closedAggregator->get('invoicedProducts'));
+                array_walk($invoicedClosed, function ($a) use (&$invoiced){
+                    $foundArr = array_filter($invoiced, function($b) use ($a) {return $a->productId == $b->productId;});
+                    if(!countR($foundArr)){
+                        $invoiced[] = $a;
+                    }
+                });
+            }
         }
-        
+
+        // Приспадане на фактурираното, ако има
         foreach ($products as $product) {
             $quantity = $product->quantity;
-            foreach ((array) $invoiced as $inv) {
-                if ($inv->productId != $product->productId) {
-                    continue;
-                }
+            foreach ($invoiced as $inv) {
+                if ($inv->productId != $product->productId) continue;
                 $quantity -= $inv->quantity;
             }
             
-            if ($quantity <= 0) {
-                continue;
-            }
+            if ($quantity <= 0) continue;
             
             // Ако няма информация за експедираните опаковки, взимаме основната опаковка
             if (!isset($packs[$product->productId])) {
