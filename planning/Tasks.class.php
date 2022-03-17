@@ -1806,7 +1806,7 @@ class planning_Tasks extends core_Master
 
                     // Клонират се в папката на посочения в тях център, ако няма в центъра от заданието, ако и там няма в Неопределения
                     $folderId = isset($defaultTask->centerId) ? planning_Centers::fetchField($defaultTask->centerId, 'folderId') : ((!empty($jobRec->department)) ? planning_Centers::fetchField($jobRec->department, 'folderId') : null);
-                    if(planning_Tasks::canAddToFolder($folderId)){
+                    if(!planning_Tasks::canAddToFolder($folderId)){
                         $folderId = planning_Centers::getUndefinedFolderId();
                     }
                     $newTask->folderId = $folderId;
