@@ -473,7 +473,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->{$mvc->masterKey})) {
+        if (($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'import') && isset($rec->{$mvc->masterKey})) {
             $hasType = $mvc->Master->getField('type', false);
             
             if (empty($hasType) || (isset($hasType) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'invoice')) {
