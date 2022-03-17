@@ -165,6 +165,12 @@ class purchase_Purchases extends deals_DealMaster
 
 
     /**
+     * Огледален клас за обратната операция
+     */
+    public $reverseClassName = 'store_ShipmentOrders';
+
+
+    /**
      * До потребители с кои роли може да се споделя документа
      *
      * @var string

@@ -2815,4 +2815,22 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
     }
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед
+     */
+    public static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        $rec = &$data->rec;
+
+        // Ако е експедирано с договора, бутон за връщане
+        $ReverseClass = cls::get($mvc->reverseClassName);
+        $contoActions = type_Set::toArray($rec->contoActions);
+        if($contoActions['ship']){
+            if ($ReverseClass->haveRightFor('add', (object) array('threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId))) {
+                $data->toolbar->addBtn('Връщане', array($ReverseClass, 'add', 'threadId' => $rec->threadId, 'reverseContainerId' => $rec->containerId, 'ret_url' => true), "title=Създаване на документ за връщане,ef_icon={$ReverseClass->singleIcon},row=2");
+            }
+        }
+    }
 }
