@@ -356,7 +356,7 @@ class cat_Products extends embed_Manager
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field');
         $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes)', 'caption=Описание');
-        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,notSorting,smartCenter');
+        $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,silent,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
         $this->FLD('groups', 'keylist(mvc=cat_Groups, select=name, makeLinks)', 'caption=Групи,maxColumns=2,remember');
         $this->FLD('isPublic', 'enum(no=Частен,yes=Публичен)', 'input=none');
@@ -543,7 +543,9 @@ class cat_Products extends embed_Manager
                 
                 // Ако артикулът е използван, мярката му не може да бъде сменена
                 if ($isUsed === true) {
-                    $form->setReadOnly('measureId');
+                    if(!haveRole('no_one')){
+                        $form->setReadOnly('measureId');
+                    }
                 }
             }
         }
@@ -667,7 +669,15 @@ class cat_Products extends embed_Manager
         }
         
         $rec->code = ($rec->code == '') ? null : $rec->code;
+
+        if(isset($rec->id)){
+            $exMeasureId = $mvc->fetchField($rec->id, 'measureId', false);
+            if($rec->measureId != $exMeasureId){
+                wp('Промяна на мярката на артикул', $rec->measureId, $exMeasureId);
+            }
+        }
     }
+
     
     
     /**

@@ -60,8 +60,8 @@ abstract class deals_InvoiceDetail extends doc_Detail
      * Да се показва ли кода като в отделна колона
      */
     public $showCodeColumn = true;
-    
-    
+
+
     /**
      * Извиква се след описанието на модела
      *
@@ -305,12 +305,21 @@ abstract class deals_InvoiceDetail extends doc_Detail
             // Ако под артикула ще се показва текста за ф-ра добавя се
             if(isset($mvc->productInvoiceInfoParamName)) {
                 if(isset($rec->productId)){
-                    $invoiceInfoVerbal = cat_Products::getParams($rec->productId, 'invoiceInfo', true);
-                    if (!empty($invoiceInfoVerbal) ) {
-                        if ($row1->productId instanceof core_ET) {
-                            $row1->productId->append("<div class='classInvoiceParam small'>{$invoiceInfoVerbal}</div>");
-                        } else {
-                            $row1->productId .= "<div class='classInvoiceParam small'>{$invoiceInfoVerbal}</div>";
+                    if($masterRec->state != 'active') {
+
+                        // Показване на параметъра за информация за фактура лайв
+                        $invoiceInfoVerbal = cat_Products::getParams($rec->productId, $mvc->productInvoiceInfoParamName, true);
+                        if(!empty($invoiceInfoVerbal)){
+                            if(!Mode::isReadOnly()){
+                                $invoiceInfoVerbal = "<span style='color:blue'>{$invoiceInfoVerbal}</span>";
+                                $invoiceInfoVerbal = ht::createHint($invoiceInfoVerbal, 'Стойността ще се добави в забележката при контиране|*!');
+                            }
+                            if ($row1->productId instanceof core_ET) {
+                                $row1->productId->append("<div class='classInvoiceParam small'>{$invoiceInfoVerbal}</div>");
+                            } else {
+                                $row1->productId .= "<div class='classInvoiceParam small'>{$invoiceInfoVerbal}</div>";
+                            }
+
                         }
                     }
                 }
@@ -464,7 +473,7 @@ abstract class deals_InvoiceDetail extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->{$mvc->masterKey})) {
+        if (($action == 'add' || $action == 'edit' || $action == 'delete' || $action == 'import') && isset($rec->{$mvc->masterKey})) {
             $hasType = $mvc->Master->getField('type', false);
             
             if (empty($hasType) || (isset($hasType) && $mvc->Master->fetchField($rec->{$mvc->masterKey}, 'type') == 'invoice')) {

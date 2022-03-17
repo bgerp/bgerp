@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     0.12
@@ -107,10 +107,6 @@ class planning_Hr extends core_Master
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,mandatory,caption=Оператор');
         $this->FLD('code', 'varchar', 'caption=Код');
         $this->FNC('centers', 'keylist(mvc=doc_Folders,select=title)', 'mandatory, input, caption=Центрове на дейност');
-        
-        // TODO - ще се премахне след като минат миграциите
-        $this->FLD('folders', 'keylist(mvc=doc_Folders,select=title)', 'caption=Папки,mandatory,oldFieldName=departments, input=none, column=none, single=none');
-        
         $this->setDbIndex('code');
         $this->setDbUnique('personId');
     }
@@ -245,8 +241,6 @@ class planning_Hr extends core_Master
                 $data->addExtUrl = array($this, 'add', 'personId' => $data->masterId, 'ret_url' => true);
             }
         }
-
-
     }
     
     
@@ -254,7 +248,6 @@ class planning_Hr extends core_Master
      * Рендира информацията
      *
      * @param stdClass $data
-     *
      * @return core_ET $tpl;
      */
     public function renderData($data)
@@ -308,7 +301,7 @@ class planning_Hr extends core_Master
      * @param int|null $folderId - ид на папка, NULL за всички
      * @param mixed $exIds       - ид-та които да се добавят към опциите
      *
-     * @return array $options    - opcii za izbor
+     * @return array $options    - опции за избор
      */
     public static function getByFolderId($folderId = null, $exIds = null)
     {
@@ -356,7 +349,7 @@ class planning_Hr extends core_Master
         if(isset($exIds)) {
             $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
             foreach ($exOptions as $eId) {
-                if (!array_key_exists($eId, $options)) {
+                if (!array_key_exists($eId, $options)) { bp($options, $exIds, $eId, crm_Persons::fetch($eId));
                     $options[$eId] = static::fetchField("#personId = {$eId}", 'code');
                 }
             }

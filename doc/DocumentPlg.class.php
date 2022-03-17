@@ -2220,7 +2220,7 @@ class doc_DocumentPlg extends core_Plugin
             }
         }
         
-        $saveBtnName = (haveRole('powerUser') && !(($mvc->canEditActivated === true && ($rec->state == 'active' || $rec->state == 'waiting')))) ? 'Чернова' : 'Запис';
+        $saveBtnName = (haveRole('powerUser') && !(($mvc->canEditActivated === true && in_array($rec->state, array('active', 'waiting', 'wakeup'))))) ? 'Чернова' : 'Запис';
         $form->toolbar->renameBtn('save', $saveBtnName);
         
         if ($rec->state == 'pending') {
@@ -2568,7 +2568,7 @@ class doc_DocumentPlg extends core_Plugin
             if ($action == 'delete') {
                 $requiredRoles = 'no_one';
             } elseif (($action == 'edit') && ($oRec->state != 'draft' && $oRec->state != 'pending')) {
-                if (!(($oRec->state == 'active' || $oRec->state == 'template' || $oRec->state == 'waiting') && $mvc->canEditActivated === true)) {
+                if (!(in_array($oRec->state, array('active', 'template', 'waiting', 'wakeup')) && $mvc->canEditActivated === true)) {
                     $requiredRoles = 'no_one';
                 } else {
                     // Ако потребителя няма достъп до сингъла, той не може и да редактира записа
