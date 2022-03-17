@@ -669,7 +669,15 @@ class cat_Products extends embed_Manager
         }
         
         $rec->code = ($rec->code == '') ? null : $rec->code;
+
+        if(isset($rec->id)){
+            $exMeasureId = $mvc->fetchField($rec->id, 'measureId', false);
+            if($rec->measureId != $exMeasureId){
+                wp('Промяна на мярката на артикул', $rec->measureId, $exMeasureId);
+            }
+        }
     }
+
     
     
     /**

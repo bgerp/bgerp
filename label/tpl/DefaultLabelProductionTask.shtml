@@ -77,11 +77,6 @@
             <td colspan="2" class="top-descr no-border-top bold">
                 [#NAME#]
             </td>
-            <td rowspan="4" class="no-border-top" width="17%" align="center" valign="middle">
-                <div class="barcode-holder">
-                    [#SERIAL#]
-                </div>
-            </td>
         </tr>
         <tr>
             <td class="top-descr no-border-left bold">

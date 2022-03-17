@@ -829,4 +829,59 @@ class planning_AssetResources extends core_Master
 
         return $options;
     }
+
+
+    /**
+     * Преподреждане на операциите към оборудването
+     *
+     * @param int $assetId
+     * @return void
+     */
+    public static function reOrderTasks($assetId)
+    {
+        $assetTasks = static::getAssetTaskOptions($assetId, true);
+
+        $i = 1;
+        $tasksToUpdate = array();
+        foreach ($assetTasks as &$t) {
+            if ($t->orderByAssetId != $i) {
+                $t->orderByAssetId = $i;
+                $tasksToUpdate[$t->id] = $t;
+            }
+            $i++;
+        }
+
+        if(countR($tasksToUpdate)){
+            cls::get('planning_Tasks')->saveArray($tasksToUpdate, 'id,orderByAssetId');
+        }
+    }
+
+
+    /**
+     * Връща опциите за избор на операциите от обордуването
+     *
+     * @param int $assetId      - ид на оборудване
+     * @param boolean $onlyIds  - опции или само масив с ид-та
+     * @param string $order     - подредба
+     * @return array $res       - желания масив
+     */
+    public static function getAssetTaskOptions($assetId, $onlyIds = false, $order = 'ASC')
+    {
+        $res = array();
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#orderByAssetId IS NOT NULL AND #assetId = {$assetId}");
+        $tQuery->show('id,orderByAssetId');
+        $tQuery->orderBy('orderByAssetId,id', $order);
+        $taskRecs = $tQuery->fetchAll();
+
+        if($onlyIds){
+            $res = $taskRecs;
+        } else {
+            foreach ($taskRecs as $tRec){
+                $res[$tRec->id] = planning_Tasks::getTitleById($tRec->id, false);
+            }
+        }
+
+        return $res;
+    }
 }
