@@ -204,7 +204,8 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
         if (isset($masterId)) {
             $masterFields = ($mvc->Master instanceof store_DocumentMaster) ? 'isReverse,threadId' : 'threadId';
             $masterRec = $mvc->Master->fetchRec($masterId, $masterFields);
-            if (isset($masterFields->isReverse) && $masterRec->isReverse != 'yes') {
+
+            if (isset($masterRec->isReverse) && $masterRec->isReverse != 'yes') {
 
                 return false;
             }
@@ -253,6 +254,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
             $masterRec->reverseContainerId = $rec->doc;
             $masterRec->_replaceReverseContainerId = true;
+
             $mvc->Master->save($masterRec);
         }
     }
