@@ -215,7 +215,10 @@ class cat_products_VatGroups extends core_Detail
     public static function getCurrentGroup($productId, $date = null)
     {
         $date = (!empty($date)) ? $date : dt::now();
-        
+        if (strlen($date) == 10) {
+            $date .= ' 23:59:59';
+        }
+
         // Кешираме активната данъчна група на артикула в текущия хит
         $query = cat_products_VatGroups::getQuery();
         $query->where("#productId = {$productId}");
