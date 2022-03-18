@@ -829,7 +829,7 @@ class trans_Lines extends core_Master
             // Затварят се активните и заявките, на които им е изтекло времето
             if ($rec->state == 'active') {
                 $date = !empty($rec->activatedOn) ? $rec->activatedOn : $rec->modifiedOn;
-                if ($date <= $activeFrom) {
+                if ($date < $activeFrom) {
                     $rec->state = 'closed';
                     $rec->brState = 'active';
                     $this->save($rec, 'state,brState,modifiedOn,modifiedBy');
@@ -838,7 +838,7 @@ class trans_Lines extends core_Master
             } else {
 
                 // Ако началото е в миналото, и не е бутана дълго време
-                if ($rec->start <= $now && $rec->modifiedOn <= $pendingFrom) {
+                if ($rec->start < $now && $rec->modifiedOn < $pendingFrom) {
                     $rec->state = 'closed';
                     $rec->brState = 'pending';
                     $this->save($rec, 'state,brState,modifiedOn,modifiedBy');
