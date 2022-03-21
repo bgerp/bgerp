@@ -123,7 +123,7 @@ class cal_ReminderSnoozes extends core_Detail
             if ($masterRec->timeStart > $form->rec->timeStart) {
                 $form->setWarning('timeStart', '|Въвели сте дата по-малка от началната. Сигурни ли сте, че искате да продължите?');
             } elseif ($masterRec->timeStart == $form->rec->timeStart) {
-                $form->setWarning('timeStart', '|Въвели сте дата равен на предишната. Сигурни ли сте, че искате да продължите?');
+                $form->setWarning('timeStart', '|Въвели сте дата равна на предишната. Сигурни ли сте, че искате да продължите?');
             }
         }
     }
