@@ -824,7 +824,7 @@ class trans_Lines extends core_Master
         $query->where("#state = 'active' || #state = 'pending'");
 
         while ($rec = $query->fetch()) {
-            //if (self::countDocumentsByState($rec->id, 'draft,pending')) continue;
+            if (self::countDocumentsByState($rec->id, 'draft,pending')) continue;
 
             // Затварят се активните и заявките, на които им е изтекло времето
             if ($rec->state == 'active') {
