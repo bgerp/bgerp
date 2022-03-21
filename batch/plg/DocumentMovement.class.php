@@ -159,12 +159,13 @@ class batch_plg_DocumentMovement extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = null)
     {
+        // Ако документа се променя от бутона за промяна да не се дублират партидите
+        if($rec->__isBeingChanged) return;
+
         if ($rec->state == 'active') {
             if ($mvc->hasPlugin('acc_plg_Contable')) {
-                if (isset($saveFileds)) {
-                    
-                    return;
-                }
+
+                if (isset($saveFileds)) return;
             }
             
             $containerId = (isset($rec->containerId)) ? $rec->containerId : $mvc->fetchField($rec->id, 'containerId');
