@@ -572,7 +572,7 @@ class core_Roles extends core_Manager
     /**
      * Изпълнява се след запис/промяна на роля
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->haveChanges();
     }

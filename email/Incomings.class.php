@@ -2316,9 +2316,9 @@ class email_Incomings extends core_Master
      * @param email_Incomings $mvc
      * @param int|NULL        $id
      * @param stdClass        $rec
-     * @param mixed           $saveFileds
+     * @param mixed           $saveFields
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_BeforeSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->calcAllToAndCc($rec, false);
         
@@ -2332,9 +2332,9 @@ class email_Incomings extends core_Master
      * @param email_Incomings $mvc
      * @param int|NULL        $id
      * @param stdClass        $rec
-     * @param mixed           $saveFileds
+     * @param mixed           $saveFields
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         static::needFields($rec, 'fromEml, toBox, date, containerId,threadId, accId');
         

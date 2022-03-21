@@ -253,7 +253,7 @@ class hr_Leaves extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateRequestsToCalendar($rec->id);
     }

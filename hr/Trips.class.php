@@ -203,7 +203,7 @@ class hr_Trips extends core_Master
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateTripsToCalendar($rec->id);
     }

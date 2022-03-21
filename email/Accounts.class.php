@@ -524,7 +524,7 @@ class email_Accounts extends core_Master
     /**
      * Когато се създава акаунт, към него се съзадава и входяща пощенска кутия
      */
-    public function on_BeforeSave($mvc, &$id, $rec, $saveFileds = null)
+    public function on_BeforeSave($mvc, &$id, $rec, $saveFields = null)
     {
         // Вдигаме флаг, да се създаде корпоративен имейл на всички потребители с определена роля
         // Ако се добавя активна корпоративна сметка или се сменя домейна
@@ -545,7 +545,7 @@ class email_Accounts extends core_Master
     /**
      * Когато се създава акаунт, към него се съзадава и входяща пощенска кутия
      */
-    public function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         if (email_Inboxes::fetch("#email = '{$rec->email}'")) {
             

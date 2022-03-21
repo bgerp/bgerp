@@ -1304,32 +1304,29 @@ class cat_Products extends embed_Manager
     /**
      * Връща ДДС на даден продукт
      *
-     * @param int      $productId - Ид на продукт
-     * @param DateTime $date      - Дата към която начисляваме ДДС-то
+     * @param int        - $productId - Ид на продукт
+     * @param date $date - dата към която начисляваме ДДС-то
      *
-     * @return float $vat - ДДС-то на продукта:
-     *               Ако има параметър ДДС за продукта го връщаме, впротивен случай
-     *               връщаме ДДС-то от периода
+     * @return double $vat - ДДС-то на артикула kym datata
      *
      */
     public static function getVat($productId, $date = null)
     {
         expect(static::fetchField($productId), 'Няма такъв артикул');
         if (!$date) {
-            $date = dt::now();
+            $date = dt::today();
         }
-        
+
+        // Ако има валидна ДДС група към датата - нея
         if ($groupRec = cat_products_VatGroups::getCurrentGroup($productId, $date)) {
             return $groupRec->vat;
         }
 
-        // Връщаме ДДС-то от периода
+        // Ако няма взема се ДДС групата от периода
         $period = acc_Periods::fetchByDate($date);
 
-        if(!is_object($period)){
-
-            return (string)acc_Setup::get('DEFAULT_VAT_RATE');
-        }
+        // Ако няма период връща се дефолтната ДДС група
+        if(!is_object($period)) return (string)acc_Setup::get('DEFAULT_VAT_RATE');
 
         return $period->vatRate;
     }
