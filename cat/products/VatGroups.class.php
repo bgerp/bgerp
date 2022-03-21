@@ -87,7 +87,7 @@ class cat_products_VatGroups extends core_Detail
             if ($validFrom < $today) {
                 $form->setError('validFrom', 'Групата не може да се сменя с минала дата');
             } elseif($validFrom == $today){
-                $form->setError('validFrom', 'Ще се отрази на вече създадените документи с този и следващи вальори|*!');
+                $form->setWarning('validFrom', 'Ще се отрази на вече създадените документи с този и следващи вальори|*!');
             }
 
             if(static::fetchField("#productId = {$rec->productId} AND #validFrom = '{$rec->validFrom}'")){
