@@ -138,6 +138,8 @@ class price_interface_ListRulesImport extends core_Manager
      */
     public function import($rows, $fields)
     {
+        $ignoreArr = array();
+
         $added = $skipped = 0;
         core_Debug::startTimer('import');
 
@@ -159,6 +161,10 @@ class price_interface_ListRulesImport extends core_Manager
             $productRec = cat_Products::getByCode($rec->productId);
             if(empty($productRec->productId)){
                 $skipped++;
+
+                $ignoreArr[] = array_merge($row, array('Няма артикул'));
+                self::logNotice('Няма артикул при импорт');
+
                 continue;
             } else {
                 $productId = $productRec->productId;
@@ -166,8 +172,16 @@ class price_interface_ListRulesImport extends core_Manager
                 $productRec = cat_Products::fetch($productId, 'state,canSell');
                 if($productRec->canSell != 'yes'){
                     $skipped++;
+
+                    $ignoreArr[] = array_merge($row, array('Не е продаваемо'));
+                    self::logNotice('Не е продаваемо при импорт');
+
                     continue;
                 } elseif($productRec->state == 'rejected'){
+
+                    $ignoreArr[] = array_merge($row, array('Оттеглен артикул'));
+                    self::logNotice('Оттеглен артикул при импорт');
+
                     $skipped++;
                     continue;
                 }
@@ -176,6 +190,10 @@ class price_interface_ListRulesImport extends core_Manager
             $Double = core_Type::getByName('double');
             if (!$price = $Double->fromVerbal($rec->price)) {
                 $skipped++;
+
+                $ignoreArr[] = array_merge($row, array('Няма цена'));
+                self::logNotice('Няма цена при импорт');
+
                 continue;
             }
 
@@ -184,7 +202,27 @@ class price_interface_ListRulesImport extends core_Manager
             $added++;
         }
 
+        if (!empty($ignoreArr)) {
+
+            $nCsv = '';
+            foreach ($ignoreArr as $errStr) {
+                $nCsv .= ($nCsv) ? "\n" : '';
+                $nCsv .= csv_Lib::getCsvLine($errStr, '|', '"');
+            }
+
+            $fh = fileman::absorbStr($nCsv, 'exportCsv', 'ImportErr.csv');
+
+            $errCnt = countR($ignoreArr);
+            if ($errCnt == 1) {
+                $errCntW = '1 |запис|. |Записан е в|*: ';
+            } else {
+                $errCntW = $errCnt . ' |записа|. |Записани са в|*: ';
+            }
+            status_Messages::newStatus('|Грешка в|* ' . $errCntW . fileman::getLinkToSingle($fh), 'warning');
+        }
+
         $msg = "{$added} нови правила са добавени. Пропуснати са {$skipped}";
+
         return $msg;
     }
 
