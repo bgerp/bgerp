@@ -94,9 +94,9 @@ class callcenter_AdditionalNumbersPlg extends core_Plugin
      * @param core_Mvc      $mvc
      * @param int|null      $id
      * @param stdClass      $rec
-     * @param string|NULL   $saveFileds
+     * @param string|NULL   $saveFields
      */
-    protected static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    protected static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         // Подсигуряваме се, че е целия запис
         $rec = $mvc->fetch($rec->id);

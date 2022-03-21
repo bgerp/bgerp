@@ -338,7 +338,7 @@ class cal_TaskProgresses extends core_Detail
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $tRec = cal_Tasks::fetch($rec->taskId);
         $now = dt::now();

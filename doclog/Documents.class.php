@@ -2122,7 +2122,7 @@ class doclog_Documents extends core_Manager
      * @param int              $id  key(mvc=doclog_Documents)
      * @param stdClass         $rec запис на модела, който е бил записан в БД
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         if ((!$rec->threadId) && ($rec->containerId)) {
             $rec->threadId = doc_Containers::fetchField($rec->containerId, 'threadId');

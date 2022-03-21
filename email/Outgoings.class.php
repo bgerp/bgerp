@@ -1346,7 +1346,7 @@ class email_Outgoings extends core_Master
     /**
      * Изпълнява се след запис на имейла, като дава възможност за моменталното му изпращане
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         if ($mvc->flagSendIt || $mvc->flagSendItFax) {
             $options = array();

@@ -1076,7 +1076,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_BeforeSave($mvc, &$id, $rec, $saveFields = null)
     {
         if (!$rec->{$mvc->driverClassField}) {
             $rec->{$mvc->driverClassField} = cal_TaskType::getClassId();
@@ -1111,7 +1111,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Извиква се след вкарване на запис в таблицата на модела
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateTaskToCalendar($rec->id);
 
