@@ -111,9 +111,9 @@ class cal_Progresses extends core_Mvc
      * @param doc_Comments   $mvc
      * @param int            $id
      * @param stdClass       $rec
-     * @param NULL|array     $saveFileds
+     * @param NULL|array     $saveFields
      */
-    public static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFields = null)
     {
         if ($rec->originId) {
             $tDoc = doc_Containers::getDocument($rec->originId);

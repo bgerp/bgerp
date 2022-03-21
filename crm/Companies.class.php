@@ -999,9 +999,9 @@ class crm_Companies extends core_Master
      * @param crm_Companies $mvc
      * @param int           $id
      * @param stdClass      $rec
-     * @param string|NULL   $saveFileds
+     * @param string|NULL   $saveFields
      */
-    protected static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFileds = null)
+    protected static function on_AfterSave(crm_Companies $mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateGroupsCnt = true;
         

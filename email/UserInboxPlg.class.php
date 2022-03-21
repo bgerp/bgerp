@@ -61,7 +61,7 @@ class email_UserInboxPlg extends core_Plugin
     /**
      * Извиква се след вкарване на запис в таблицата на модела users
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         // Ако трябва да се създава корпоративна сметка
         if (isset($rec->CorporateAccId)) {

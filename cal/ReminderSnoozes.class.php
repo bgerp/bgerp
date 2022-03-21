@@ -123,7 +123,7 @@ class cal_ReminderSnoozes extends core_Detail
             if ($masterRec->timeStart > $form->rec->timeStart) {
                 $form->setWarning('timeStart', '|Въвели сте дата по-малка от началната. Сигурни ли сте, че искате да продължите?');
             } elseif ($masterRec->timeStart == $form->rec->timeStart) {
-                $form->setWarning('timeStart', '|Въвели сте дата равен на предишната. Сигурни ли сте, че искате да продължите?');
+                $form->setWarning('timeStart', '|Въвели сте дата равна на предишната. Сигурни ли сте, че искате да продължите?');
             }
         }
     }
@@ -218,7 +218,7 @@ class cal_ReminderSnoozes extends core_Detail
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $remRec = cal_Reminders::fetch($rec->remId);
         $now = dt::now();

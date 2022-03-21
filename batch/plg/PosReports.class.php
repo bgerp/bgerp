@@ -47,7 +47,7 @@ class batch_plg_PosReports extends core_Plugin
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFields = null)
     {
         if ($rec->state == 'active') {
             $mvc->saveMovementsOnShutdown[$rec->id] = $rec;

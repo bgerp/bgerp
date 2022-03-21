@@ -217,7 +217,7 @@ class doc_AssignPlg extends core_Plugin
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_BeforeSave($mvc, &$id, $rec, $saveFields = null)
     {
         if ($rec->assign) {
             if (!isset($rec->assignedOn) && !isset($rec->assignedBy)) {

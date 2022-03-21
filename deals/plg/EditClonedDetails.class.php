@@ -195,7 +195,7 @@ class deals_plg_EditClonedDetails extends core_Plugin
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFields = null)
     {
         $Detail = cls::get($mvc->mainDetail);
         $detailClassId = $Detail->getClassId();
