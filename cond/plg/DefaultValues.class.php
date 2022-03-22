@@ -47,6 +47,7 @@ class cond_plg_DefaultValues extends core_Plugin
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
+        setIfNot($mvc->dontReloadDefaultsOnRefresh, true);
     }
     
     
@@ -112,9 +113,9 @@ class cond_plg_DefaultValues extends core_Plugin
                 // За всяко поле със стратегия, му се намира стойността
                 foreach ($mvc::$defaultStrategies as $name => $strat) {
                     $value = self::getDefValueByStrategy($mvc, $rec, $name, $strat);
-                    if ($form->cmd != 'refresh') {
-                        $form->setDefault($name, $value);
-                    }
+                    if($form->cmd == 'refresh' && $mvc->dontReloadDefaultsOnRefresh) continue;
+
+                    $form->setDefault($name, $value);
                 }
             }
         }
@@ -437,7 +438,7 @@ class cond_plg_DefaultValues extends core_Plugin
         }
     }
     
-    
+
     /**
      * Извиква се след успешен запис в модела
      *
