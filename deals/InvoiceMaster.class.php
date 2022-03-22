@@ -1904,4 +1904,20 @@ abstract class deals_InvoiceMaster extends core_Master
             }
         }
     }
+
+
+    /**
+     * Кои полета да се ъпдейтнат във визитката след промяна
+     */
+    public function getContragentCoverFieldsToUpdate($rec)
+    {
+        $Cover = doc_Folders::getCover($rec->folderId);
+        Mode::push('htmlEntity', 'none');
+        $name = $Cover->getVerbal('name');
+        Mode::pop('htmlEntity');
+
+        if($name != $rec->contragentName) return array();
+
+        return arr::make(static::$updateContragentdataField, true);
+    }
 }
