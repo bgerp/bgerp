@@ -64,8 +64,14 @@ class purchase_Invoices extends deals_InvoiceMaster
      * Детайла, на модела
      */
     public $details = 'purchase_InvoiceDetails';
-    
-    
+
+
+    /**
+     * Кои полета ако не са попълнени във визитката на контрагента да се попълнят след запис
+     */
+    public static $updateContragentdataField = array();
+
+
     /**
      * Кой има право да променя?
      */

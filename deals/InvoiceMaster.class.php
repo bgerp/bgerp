@@ -1911,8 +1911,6 @@ abstract class deals_InvoiceMaster extends core_Master
      */
     public function getContragentCoverFieldsToUpdate($rec)
     {
-        if(!static::$updateContragentdataField) return array();
-
         $Cover = doc_Folders::getCover($rec->folderId);
         Mode::push('htmlEntity', 'none');
         $name = $Cover->getVerbal('name');
