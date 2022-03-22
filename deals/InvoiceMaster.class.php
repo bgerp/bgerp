@@ -380,8 +380,8 @@ abstract class deals_InvoiceMaster extends core_Master
     protected function populateNoteFromInvoice(core_Form &$form, core_ObjectReference $origin)
     {
         if ($this instanceof purchase_Invoices) {
-            $form->setField('contragentSource', 'input=none');
-            $form->setField('selectedContragentId', 'input=none');
+            $form->setField('displayContragentClassId', 'input=none');
+            $form->setField('displayContragentId', 'input=none');
         }
         
         $invArr = (array) $origin->fetch();
