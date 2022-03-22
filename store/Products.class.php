@@ -487,11 +487,11 @@ class store_Products extends core_Detail
      * Връща запис за наличното,запазеното,очакваното и разполагаемото за даден артикул
      *
      * @param $productId          - артикул
-     * @param null|int $storeId   - склад или null за всички складове
+     * @param mixed $stores       - един или няколко склада или null за всички
      * @param null|datetime $date - към коя дата
      * @return object $res
      */
-    public static function getQuantities($productId, $storeId = null, $date = null)
+    public static function getQuantities($productId, $stores = null, $date = null)
     {
         // Какви са наличностите
         $query = self::getQuery();
@@ -501,8 +501,9 @@ class store_Products extends core_Detail
         $query->XPR('expectedTotalMin', 'double', 'SUM(#expectedQuantityMin)');
         $query->show('quantityTotal,reservedTotalMin,expectedTotalMin');
 
-        if (isset($storeId)) {
-            $query->where("#storeId = {$storeId}");
+        $storesArr = isset($stores) ? arr::make($stores, true) : null;
+        if(isset($stores) && countR($storesArr)){
+            $query->in("storeId", $storesArr);
         }
 
         $rec = $query->fetch();
@@ -516,7 +517,7 @@ class store_Products extends core_Detail
             $res->expected = 0;
 
             // Ако е посочена дата се взимат очакваното и запазеното към нея
-            $planned = store_StockPlanning::getPlannedQuantities($date, $productId, $storeId);
+            $planned = store_StockPlanning::getPlannedQuantities($date, $productId, $storesArr);
             foreach ($planned as $storeId => $storeArr){
                 array_walk($storeArr, function($o) use ($res){$res->reserved += $o->reserved; $res->expected += $o->expected;});
             }

@@ -91,7 +91,7 @@ class tags_Tags extends core_Manager
         $colorType = cls::get('color_Type');
         $colorType->tdClass = null;
         $this->FLD('color', $colorType, 'caption=Цвят');
-        $this->FLD('classes', 'classes(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Класове, mandatory');
+        $this->FLD('classes', 'classes(interface=doc_DocumentIntf,select=title,allowEmpty)', 'caption=Класове');
 
         $this->setDbUnique('name');
     }

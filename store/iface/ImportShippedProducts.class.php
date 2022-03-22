@@ -202,12 +202,14 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
     public function canSelectDriver(core_Manager $mvc, $masterId = null, $userId = null)
     {
         if (isset($masterId)) {
-            $masterRec = $mvc->Master->fetchRec($masterId, 'isReverse,threadId');
-            if ($masterRec->isReverse != 'yes') {
-                
+            $masterFields = ($mvc->Master instanceof store_DocumentMaster) ? 'isReverse,threadId' : 'threadId';
+            $masterRec = $mvc->Master->fetchRec($masterId, $masterFields);
+
+            if (isset($masterRec->isReverse) && $masterRec->isReverse != 'yes') {
+
                 return false;
             }
-            
+
             $docs = $this->getShippedDocuments($mvc, $masterRec, 1);
             if (!countR($docs)) {
                 
@@ -244,13 +246,16 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
                 core_Statuses::newStatus('Записът не е импортиран, защото има дублиране', 'warning');
                 continue;
             }
-            
+
             $mvc->save($iRec);
         }
 
-        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
-        $masterRec->reverseContainerId = $rec->doc;
-        $masterRec->_replaceReverseContainerId = true;
-        $mvc->Master->save($masterRec);
+        if($mvc->Master instanceof store_DocumentMaster){
+            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+            $masterRec->reverseContainerId = $rec->doc;
+            $masterRec->_replaceReverseContainerId = true;
+
+            $mvc->Master->save($masterRec);
+        }
     }
 }

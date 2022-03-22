@@ -903,4 +903,18 @@ class type_Keylist extends core_Type
         
         return $this->params['select'];
     }
+
+
+    /**
+     * Връща възможните стойности за ключа
+     *
+     * @param string $value
+     *
+     * @return array
+     */
+    public function getAllowedKeyVal($id)
+    {
+
+        return $this->toArray($id);
+    }
 }

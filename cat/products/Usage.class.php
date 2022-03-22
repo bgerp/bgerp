@@ -41,9 +41,12 @@ class cat_products_Usage extends core_Manager
         $data->jobData->Jobs = cls::get('planning_Jobs');
         $this->prepareJobs($data->jobData);
 
-        $data->taskData = clone $data;
-        $data->taskData->_useMasterField = 'productId';
-        $this->prepareDocuments('planning_Tasks', 'planning_ProductionTaskProducts', $data->taskData);
+
+        if(haveRole('ceo,planning,job')){
+            $data->taskData = clone $data;
+            $data->taskData->_useMasterField = 'productId';
+            $this->prepareDocuments('planning_Tasks', 'planning_ProductionTaskProducts', $data->taskData);
+        }
 
         // Промяна на таба взависимост дали артикула е стандартен или не
         if ($data->isPublic === true) {
@@ -70,7 +73,7 @@ class cat_products_Usage extends core_Manager
                 return;
             }
         }
-        
+
         // Ако артикула е нестандартен тогава се показват и документите, в които се използват
         if ($data->isPublic === false) {
             $data->saleData = clone $data;

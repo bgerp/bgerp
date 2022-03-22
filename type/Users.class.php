@@ -428,4 +428,18 @@ class type_Users extends type_Keylist
         
         return $firstTeamUser;
     }
+
+
+    /**
+     * Връща възможните стойности за ключа
+     *
+     * @param int $id
+     *
+     * @return array
+     */
+    public function getAllowedKeyVal($id)
+    {
+
+        return array();
+    }
 }

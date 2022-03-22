@@ -1035,7 +1035,13 @@ abstract class deals_Helper
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
             $cData = $ContragentClass->getContragentData($contragentId);
-            $res['contragentName'] = isset($contragentName) ? $contragentName : (($cData->personVerb) ? $cData->personVerb : $cData->companyVerb);
+            $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
+            $res['contragentName'] = isset($contragentName) ? $contragentName : $cName;
+            if($res['contragentName'] != $cName){
+                if(!Mode::isReadOnly()){
+                    $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+                }
+            }
             $res['inlineContragentName'] = $res['contragentName'];
 
             $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
@@ -1577,37 +1583,31 @@ abstract class deals_Helper
         
         return $invoices;
     }
-    
-    
+
+
     /**
-     * Помощен метод връщащ разпределението на плащанията по фактури
+     * Връща нишките, които обединява или са обединени от дадена нишка
      *
-     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
-     * @param datetime|NULL $valior            - към коя дата
-     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
-     *
-     * @return array $paid      - масив с разпределените плащания
+     * @param int $threadId
+     * @return array
      */
-    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
+    public static function getCombinedThreads($threadId)
     {
-        expect($threadId);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if (!$firstDoc->isInstanceOf('deals_DealBase')) {
-            return array();
-        }
-        
+        if (!$firstDoc->isInstanceOf('deals_DealBase')) return array();
+
         // Ако сделката е приключена, проверява се дали не е приключена с друга сделка
         if ($firstDoc->fetchField('state') == 'closed') {
             $dQuery = $firstDoc->getInstance()->getQuery();
             $dQuery->where("LOCATE('|{$firstDoc->that}|', #closedDocuments)");
-            
+
             // Ако е подменя се треда с този на обединяващата сделка, защото тя ще се използва за основа
             if ($combinedThread = $dQuery->fetch()->threadId) {
                 $firstDoc = doc_Threads::getFirstDocument($combinedThread);
                 $threadId = $combinedThread;
             }
         }
-        
+
         // Ако сделката е обединяваща взимат се всички нишки, които обединява
         $threads = array($threadId => $threadId);
         $closedDocs = $firstDoc->fetchField('closedDocuments');
@@ -1619,12 +1619,29 @@ abstract class deals_Helper
                 }
             }
         }
-        
+
+        return $threads;
+    }
+
+
+    /**
+     * Помощен метод връщащ разпределението на плащанията по фактури
+     *
+     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
+     * @param datetime|NULL $valior            - към коя дата
+     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
+     *
+     * @return array $paid      - масив с разпределените плащания
+     */
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
+    {
         // Всички ф-ри в посочената нишка/нишки
+        $threads = static::getCombinedThreads($threadId);
+        if(!countR($threads)) return array();
+
+        // Кои са фактурите в посочената нишка/нишки
         $invoicesArr = self::getInvoicesInThread($threads, $valior, true, true, true);
-        if (!countR($invoicesArr)) {
-            return array();
-        }
+        if (!countR($invoicesArr)) return array();
 
         $newInvoiceArr = $invMap = $payArr = array();
         foreach ($invoicesArr as $containerId => $handler) {

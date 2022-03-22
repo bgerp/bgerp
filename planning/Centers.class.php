@@ -8,7 +8,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2019 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -170,13 +170,13 @@ class planning_Centers extends core_Master
                                  brigade=Бригада,
                                  shift=Смяна,
                                  organization=Учреждение)', 'caption=Тип, mandatory,width=100%');
-        
+        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
+        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Параметри за планиране->Списък');
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', 'caption=Служители->Щат, input=none');
         $this->FLD('employmentOccupied', 'int', 'caption=Служители->Назначени, input=none');
         $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', 'caption=Работен график->Цикъл,mandatory');
         $this->FLD('startingOn', 'datetime', 'caption=Работен график->От');
-        $this->FLD('departmentId', 'key(mvc=hr_Departments,select=name)', 'caption=В състава на,silent');
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
         
         $this->setDbUnique('name');

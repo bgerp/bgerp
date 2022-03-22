@@ -1346,7 +1346,7 @@ class email_Outgoings extends core_Master
     /**
      * Изпълнява се след запис на имейла, като дава възможност за моменталното му изпращане
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         if ($mvc->flagSendIt || $mvc->flagSendItFax) {
             $options = array();
@@ -1988,22 +1988,6 @@ class email_Outgoings extends core_Master
 
         if (!$isForwarding) {
 
-            if ($rec->originId) {
-                $contragentData = self::getContragentDataForSameDocument($rec->originId, $rec->folderId);
-                if ($contragentData) {
-
-                    return $contragentData;
-                }
-            } else {
-                if ($rec->threadId) {
-                    $contragentData = doc_Threads::getContragentData($rec->threadId);
-                    if ($contragentData) {
-
-                        return $contragentData;
-                    }
-                }
-            }
-
             if ($rec->threadId) {
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
             }
@@ -2102,6 +2086,27 @@ class email_Outgoings extends core_Master
                     $contragentData->company = $contrData->company;
                     $contragentData->companyId = $contrData->companyId;
                 }
+            }
+        }
+
+        if (!$isForwarding) {
+            $contragentDataDoc = null;
+            if ($rec->originId) {
+                $contragentDataDoc = self::getContragentDataForSameDocument($rec->originId, $rec->folderId);
+            } else {
+                if ($rec->threadId) {
+                    $contragentDataDoc = doc_Threads::getContragentData($rec->threadId);
+                }
+            }
+
+            if ($contragentDataDoc) {
+
+                if ($contragentData->groupEmails) {
+                    $contragentDataDoc->groupEmails .= ($contragentDataDoc->groupEmails) ? ', ' : '';
+                    $contragentDataDoc->groupEmails .= $contragentData->groupEmails;
+                }
+
+                return $contragentDataDoc;
             }
         }
 

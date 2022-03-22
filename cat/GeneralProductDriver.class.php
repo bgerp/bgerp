@@ -94,8 +94,12 @@ class cat_GeneralProductDriver extends cat_ProductDriver
                 } else {
                     $caption = "Параметри->{$name}";
                 }
-                
-                $form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,before=meta");
+
+                $position = "before=InfoInt";
+                if($Driver instanceof planning_interface_StepProductDriver){
+                    $position = "after=planning_Steps_labelTemplate";
+                }
+                $form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,{$position}");
                 $form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id, $Embedder, $rec->id));
 
                 // Ако параметъра има суфикс, добавяме го след полето

@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,storeInput,storeIn,fixedAssets,employees,labelPackagingId,labelQuantityInPack,labelType,labelTemplate';
+    protected $extenderFields = 'centerId,name,canStore,norm,storeInput,storeIn,fixedAssets,planningParams,employees,labelPackagingId,labelQuantityInPack,labelType,labelTemplate';
     
     
     /**
@@ -97,6 +97,7 @@ class planning_Steps extends core_Extender
         $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад приемане');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
+        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване в производството->Планиране (Параметри)');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
@@ -145,7 +146,7 @@ class planning_Steps extends core_Extender
         if(isset($rec->{"{$mvc->className}_centerId"})){
             $folderId = planning_Centers::fetchField($rec->{"{$mvc->className}_centerId"}, 'folderId');
             $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($folderId, $rec->{"{$mvc->className}_employees"}));
-            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($folderId, $rec->{"{$mvc->className}_fixedAssets"}, true));
+            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($folderId, $rec->{"{$mvc->className}_fixedAssets"}, 'planning_Tasks',true));
         }
 
         if(isset($rec->measureId)){

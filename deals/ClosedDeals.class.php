@@ -385,10 +385,9 @@ abstract class deals_ClosedDeals extends core_Master
     /**
      * Изпълнява се след запис
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         // При активация на документа
-        $oldRec = clone $rec;
         $rec = $mvc->fetch($id);
 
         if ($rec->state == 'active') {
@@ -401,7 +400,7 @@ abstract class deals_ClosedDeals extends core_Master
             $firstRec->modifiedOn = dt::now();
             $DocClass->save($firstRec, 'modifiedOn,state,closedOn');
 
-            if (empty($saveFileds)) {
+            if (empty($saveFields)) {
                 $rec->amount = $mvc->getClosedDealAmount($rec->threadId);
                 $mvc->save($rec, 'amount');
             }

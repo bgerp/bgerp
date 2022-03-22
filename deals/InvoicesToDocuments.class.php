@@ -392,10 +392,16 @@ class deals_InvoicesToDocuments extends core_Manager
                 if($count == 1 && isset($data->btn)){
                     $data->rows[$key]->invoiceBtn = $data->btn;
                 }
+                if(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+                    $data->rows[$key]->amount = doc_plg_HidePrices::getBuriedElement();
+                }
             }
 
             if(round($unallocated, 2) > 0 && !Mode::isReadOnly()){
                 $data->rows['u'] = (object)array('documentName' => tr('Неразпределени'), 'currencyId' => $currencyCode, 'amount' => core_Type::getByName('double(decimals=2)')->toVerbal($unallocated));
+                if(!doc_plg_HidePrices::canSeePriceFields($data->masterData->rec)) {
+                    $data->rows['u']->amount = doc_plg_HidePrices::getBuriedElement();
+                }
             }
 
             if(isset($data->masterData->rec->tplLang)){

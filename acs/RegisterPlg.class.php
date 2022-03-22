@@ -23,9 +23,9 @@ class acs_RegisterPlg extends core_Plugin
      * @param core_Mvc $mvc
      * @param int      $id  първичния ключ на направения запис
      * @param stdClass $rec всички полета, които току-що са били записани
-     * @param null|mixed $saveFileds
+     * @param null|mixed $saveFields
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFields = null)
     {
         $stateMap = array('0' => 'unknownId', '1' => 'allowed', '2' => 'authErr', '3' => 'denied', '4' => 'authErr');
 

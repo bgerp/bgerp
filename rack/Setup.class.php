@@ -68,6 +68,12 @@ defIfNot('RACK_CLOSE_COMBINED_MOVEMENTS_AT_ONCE', 'no');
 
 
 /**
+ * Използване на приоритетни стелажи
+ */
+defIfNot('RACK_ENABLE_PRIORITY_RACKS', 'no');
+
+
+/**
  * class rack_Setup
  *
  * Инсталиране/Деинсталиране на пакета за палетния склад
@@ -225,6 +231,7 @@ class rack_Setup extends core_ProtoSetup
         'RACK_TIME_ZONE' => array('int', 'caption=Средни времена по операции->Оставяне'),
         'RACK_TIME_RETURN' => array('int', 'caption=Средни времена по операции->Връщане'),
         'RACK_TIME_COUNT' => array('int', 'caption=Средни времена по операции->Броене'),
+        'RACK_ENABLE_PRIORITY_RACKS' => array('enum(yes=Да,no=Не)', 'caption=Използване на приоритетни стелажи->Разрешаване'),
     );
 
 

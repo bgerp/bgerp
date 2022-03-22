@@ -45,6 +45,14 @@
 			<td>[#planning_Steps_norm#]</td>
 		</tr>
 		<!--ET_END planning_Steps_norm-->
+
+		<!--ET_BEGIN planning_Steps_planningParams-->
+		<tr>
+			<td class='quiet'>|Планиране (Параметри)|*:</td>
+			<td>[#planning_Steps_planningParams#]</td>
+		</tr>
+		<!--ET_END planning_Steps_planningParams-->
+
     </table>
 </fieldset>
 <!--ET_BEGIN LABELS-->

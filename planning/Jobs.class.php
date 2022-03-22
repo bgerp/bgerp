@@ -431,6 +431,10 @@ class planning_Jobs extends core_Master
                 }
             }
         }
+
+        if($data->action == 'clone'){
+            $form->setReadOnly('department');
+        }
     }
     
     
@@ -1302,7 +1306,7 @@ class planning_Jobs extends core_Master
             foreach ($departments as $depFolderId => $dName) {
                 $urlNewTask = array();
                 if(planning_Tasks::haveRightFor('add', (object)array('originId' => $jobRec->containerId, 'folderId' => $depFolderId))){
-                    $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId);
+                    $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId, 'ret_url' => true);
                 }
 
                 $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, 'title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png');
@@ -1642,37 +1646,12 @@ class planning_Jobs extends core_Master
 
         // Да не са променяни от
         $delay = planning_Setup::get('JOB_AUTO_COMPLETION_DELAY');
-        $fromDate = dt::addSecs(-1 * $delay);
-
         $isSystemUser = core_Users::isSystemUser();
         if(!$isSystemUser){
             core_Users::forceSystemUser();
         }
 
-        // Намиране на всички задания готови над посочения процент
-        $now = dt::now();
-        $query = planning_Jobs::getQuery();
-        $query->XPR('progress', 'date', 'ROUND((#quantityProduced / #quantity), 2)');
-        $query->in("state", array('active', 'wakeup', 'stopped'));
-        $query->where("#modifiedOn < '{$fromDate}' AND #progress >= {$percent}");
-        $query->limit(50);
-
-        // Всяко едно се приключва
-        Mode::push('preventNotifications', true);
-        while($rec = $query->fetch()){
-
-            // Ако има документ на заявка в нишката, няма да се приключва заданието
-            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) continue;
-
-            $rec->brState = $rec->state;
-            $rec->state = 'closed';
-            $rec->timeClosed = $now;
-
-            $this->save($rec);
-            $this->invoke('AfterChangeState', array(&$rec,  $rec->state));
-            $this->logWrite('Автоматично приключване', $rec->id);
-        }
-        Mode::pop();
+        static::closeActiveJobs(planning_Setup::get('JOB_AUTO_COMPLETION_PERCENT'), null, $delay);
 
         if(!$isSystemUser){
             core_Users::cancelSystemUser();
@@ -1935,5 +1914,55 @@ class planning_Jobs extends core_Master
         $usedDocs[$rec->productId] = cat_Products::fetchField($rec->productId, 'containerId');
 
         return $usedDocs;
+    }
+
+
+    /**
+     * Затваря активните + събудените задания само ако произведеното е над $tolerance и няма нови контиращи документи
+     * в последните $noNewDocumentsInMonths месеца
+     *
+     * @param double $tolerance          - над колко % произведено (включително)
+     * @param int|null $productId        - ид на артикул
+     * @param int|null $noNewDocumentsIn - за колко време назад да се гледа да няма нови контиращи документи в нишката
+     * @return int $count                - колко са приключените задания
+     */
+    public static function closeActiveJobs($tolerance, $productId = null, $noNewDocumentsIn = null)
+    {
+        $thresholdDate = ($noNewDocumentsIn) ? dt::addSecs(-1 * $noNewDocumentsIn, dt::now()) : null;
+        $me = cls::get(get_called_class());
+        $query = static::getQuery();
+        $query->where("#state IN ('active', 'wakeup')");
+        $query->XPR('completed', 'percent', 'round(#quantityProduced / #quantity, 2)');
+        $query->where("#completed >= {$tolerance}");
+
+        // Ако ще се гледат само за един артикул - за него, иначе за всички задания към затворени артикули
+        if(isset($productId)){
+            $query->where("#productId = {$productId}");
+        }
+
+        $count = 0;
+        while($rec = $query->fetch()){
+
+            // Ако има документ на заявка в нишката, няма да се приключва заданието
+            if(doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) continue;
+
+            // Ако е указано да няма нови документи в нишката в последните X време да се пропуска
+            if(isset($thresholdDate)){
+                $lastCreatedOn = doc_Threads::getLastCreatedOnInThread($rec->threadId, 'acc_TransactionSourceIntf');
+                if($lastCreatedOn >= $thresholdDate) continue;
+            }
+
+            // Затваряне на артикула
+            $rec->brState = $rec->state;
+            $rec->state = 'closed';
+            $rec->timeClosed = dt::now();
+            $count++;
+            if ($me->save($rec, 'brState,state,timeClosed')) {
+                $me->logWrite("Автоматично приключване", $rec->id);
+                $me->invoke('AfterChangeState', array(&$rec, $rec->state));
+            }
+        }
+
+        return $count;
     }
 }

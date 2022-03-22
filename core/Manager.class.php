@@ -542,6 +542,8 @@ class core_Manager extends core_Mvc
                 // Клонираме заявката
                 $data->listSummary->query = clone $data->query;
             }
+
+            setIfNot($data->listSummary->mvc, clone $this);
         }
     }
     
