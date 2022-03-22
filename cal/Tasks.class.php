@@ -1184,7 +1184,7 @@ class cal_Tasks extends embed_Manager
         }
 
         if (($action == 'activate') && $rec) {
-            if ($rec->state != 'draft') {
+            if (($rec->state != 'draft') && ($rec->state != 'pending')) {
                 $now = dt::verbal2mysql();
                 $canActivate = $mvc->canActivateTask($rec);
                 if (!$canActivate || ($now < $canActivate)) {
