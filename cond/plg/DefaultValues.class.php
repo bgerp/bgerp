@@ -445,7 +445,10 @@ class cond_plg_DefaultValues extends core_Plugin
     public static function on_AfterGetContragentCoverFieldsToUpdate($mvc, &$res, $rec)
     {
         if(!$res){
-            $res = arr::make($mvc::$updateContragentdataField, true);
+            $res = array();
+            if(isset($mvc::$updateContragentdataField)){
+                $res = arr::make($mvc::$updateContragentdataField, true);
+            }
         }
     }
 
