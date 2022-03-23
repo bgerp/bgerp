@@ -68,7 +68,12 @@ class core_Backup extends core_Mvc
             
             return;
         }
-        
+
+        $file = self::getTempPath('log.txt');
+        if(file_exists($file)) {
+            unlink($file);
+        }
+
         core_App::setTimeLimit(120);
         
         // Мета-данни за бекъпа
@@ -111,7 +116,7 @@ class core_Backup extends core_Mvc
             }
             $instArr[$mvc->dbTableName] = $mvc;
             $this->lmt[$mvc->dbTableName] = $lmt;
-            $lockTables .= ",`{$mvc->dbTableName}` WRITE";
+            $lockTables .= ",`{$mvc->dbTableName}` READ";
         }
         
         uksort($instArr, array($this, 'compLmt'));
@@ -120,6 +125,7 @@ class core_Backup extends core_Mvc
         $tables = array();
         $this->exportTables($instArr, $tables, time() - 3600);
         
+       
         // Пускаме завесата
         $lockTables = trim($lockTables, ',');
         core_SystemLock::block('Процес на архивиране на данните', 600); // 10 мин.
@@ -151,7 +157,8 @@ class core_Backup extends core_Mvc
         $dbStructure = '';
         
         // Запазваме структурата на базата със всички таблици
-        debug::log('Генериране SQL за структурата на базата');
+        debug::log($msg = 'Генериране SQL за структурата на базата');
+        self::fLog($msg);
         foreach ($instArr as $table => $inst) {
             $query = "SHOW CREATE TABLE `{$table}`";
             $dbRes = $this->db->query($query);
@@ -166,7 +173,8 @@ class core_Backup extends core_Mvc
             $dest = $backDir . $file . '.zip';
             if (!file_exists($dest)) {
                 file_put_contents($path, $dbStructure);
-                debug::log('Компресиране на ' . basename($dest));
+                debug::log($msg = ('Компресиране на ' . basename($dest)));
+                self::fLog($msg);
                 archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
             }
             $description['dbStruct'] = $file . '.zip';
@@ -223,7 +231,8 @@ class core_Backup extends core_Mvc
             $dest = $backDir . $file . '.zip';
             if (!file_exists($dest)) {
                 file_put_contents($path, $descriptionStr);
-                debug::log('Компресиране на ' . basename($dest));
+                debug::log($msg = ('Компресиране на ' . basename($dest)));
+                self::fLog($msg);
                 archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
             }
         }
@@ -293,6 +302,8 @@ class core_Backup extends core_Mvc
      */
     public function exportTables($instArr, &$tables, $maxLmt = null)
     {
+        self::fLog("Начало на експортирането на таблиците");
+
         if(!isset($maxLmt)) {
             $maxLmt = time();
         }
@@ -368,19 +379,30 @@ class core_Backup extends core_Mvc
         $fileName = "{$table}.{$suffix}";
         $path = self::getTempPath($fileName . '.csv');
         $dest = self::getBackupPath($fileName . '.csv.zip');
-        
+        $tmpCsv = "{$path}.tmp";
 
-        if (file_exists($dest) && filesize($dest)) {
-            debug::log("Таблица `{$fileName}` вече съществува като zip файл");
-            
+        if (file_exists($dest)) {
+            debug::log($msg = "Таблица `{$fileName}` вече съществува като zip файл");
+            self::fLog($msg);
+
             return;
         }
         
-        if (file_exists($path) && filesize($path)) {
-            debug::log("Таблица `{$fileName}` вече съществува като csv файл");
-            
+        if (file_exists($path)) {
+            debug::log($msg = "Таблица `{$fileName}` вече съществува като csv файл");
+            self::fLog($msg);
+
             return;
         }
+
+        if (file_exists($tmpCsv)) {
+            debug::log($msg = "Таблица `{$fileName}` вече съществува като tmp файл");
+            self::fLog($msg);
+
+            return;
+        }
+
+        
 
         $className = cls::getClassName($inst);
 
@@ -401,8 +423,10 @@ class core_Backup extends core_Mvc
         $app = EF_APP_NAME;
         $ctr = 'core_Backup';
         $act = 'doBackupTable';
+        
 
-        core_Os::startCmd("php.exe {$cmd} {$app} {$ctr} {$act} " . escapeshellarg($processFile));  
+        core_Os::startCmd($msg = "php {$cmd} {$app} {$ctr} {$act} " . escapeshellarg($processFile));
+        self::fLog($msg);
     }
     
 
@@ -415,7 +439,7 @@ class core_Backup extends core_Mvc
 
         $processFile = $argv[4];
         $params = file_get_contents($processFile);
-        self::$tempDir = dirname($processFile);
+        self::$tempDir = dirname($processFile) .'/';
         list($className, $table, $suffix, $limit) = explode('|', $params);
         
         $inst = cls::get($className);
@@ -424,25 +448,29 @@ class core_Backup extends core_Mvc
         $fileName = "{$table}.{$suffix}";
         $path = self::getTempPath($fileName . '.csv');
         $dest = self::getBackupPath($fileName . '.csv.zip');
-        
+        $tmpCsv = "{$path}.tmp";
+
         // Вземаме паролата
         $pass = core_Setup::get('BACKUP_PASS');
 
 
-        if (file_exists($dest) && filesize($dest)) {
-            debug::log("Таблица `{$fileName}` вече съществува като zip файл");
-            
+        if (file_exists($dest)) {
+            debug::log($msg = "Таблица `{$dest}` вече съществува като zip файл");
+            self::fLog($msg);
             exit(0);
         }
         
-        if (file_exists($path) && filesize($path)) {
-            debug::log("Таблица `{$fileName}` вече съществува като csv файл");
-            
+        if (file_exists($tmpCsv)) {
+            debug::log($msg = "Таблица `{$fileName}` вече съществува като tmp файл");
+            self::fLog($msg);
             exit(0);
         }
+
+        debug::log($msg = "Експорт в CSV на таблица `{$fileName}`");
+        self::fLog($msg); 
         
         // Отваряме файла за писане
-        $out = fopen("{$path}.tmp", 'w');
+        $out = fopen($tmpCsv, 'w');
 
         // Извличаме информация за колоните
         $cols = '';
@@ -475,14 +503,14 @@ class core_Backup extends core_Mvc
 
         fclose($out);
         rename("{$path}.tmp", $path);
-        debug::log("Експорт в CSV на таблица `{$fileName}`");
 
-        debug::log('Компресиране на ' . basename($dest));
+        self::fLog('Компресиране на ' . basename($dest));
         archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
+        self::fLog('Край на компресиране на ' . basename($dest));
 
         unlink($processFile);
 
-        exit(0);
+        die;
     }
     
     
@@ -610,17 +638,20 @@ class core_Backup extends core_Mvc
             $sql = file_get_contents($path);
             unlink($path);
             
-            $log[] = 'msg: Създаване на структурата на таблиците';
-            
+            $log[] = $msg = 'msg: Създаване на структурата на таблиците';
+            self::fLog($msg);
+
             $db->multyQuery($sql);
             
             // Наливаме съдържанието от всички налични CSV файлове
             // Извличаме от CSV последователно всички таблици
             $tablesCnt = countR($description->files);
-            $log[] = 'msg: Извличанне на ' . $tablesCnt . ' таблици';
+            $log[] = $msg = 'msg: Извличанне на ' . $tablesCnt . ' таблици';
+            self::fLog($msg);
             foreach ($description->files as $file) {
                 self::runRestoreTable($file, $sess);
-                $log[] = 'msg: Възстановяване на: ' . $file;
+                $log[] = $msg = 'msg: Възстановяване на: ' . $file;
+                self::fLog($msg);
                 do {
                     $runned = self::getRuningProcess($tempRestoreDir);
                     $runnedCnt = countR($runned);
@@ -647,7 +678,8 @@ class core_Backup extends core_Mvc
                 core_App::setTimeLimit(120);
                 $dest = self::unzipToTemp($src, $pass, $log);
                 $sql = file_get_contents($dest);
-                $log[] = 'msg: Прилагане на ' . basename($src);
+                $log[] = $msg = 'msg: Прилагане на ' . basename($src);
+                self::fLog($msg);
                 core_SystemLock::block('Възстановяване на ' . basename($src), ($cnt--) * 2 + 30);
                 
                 $db->multyQuery($sql);
@@ -655,7 +687,9 @@ class core_Backup extends core_Mvc
                 unlink($dest);
             }
             
-            $log[] = 'msg: Възстановяването завърши успешно за ' . (time() - $start) . ' секунди';
+            $log[] = $msg = 'msg: Възстановяването завърши успешно за ' . (time() - $start) . ' секунди';
+            self::fLog($msg);
+
             core_SystemLock::remove();
   
             
@@ -683,8 +717,10 @@ class core_Backup extends core_Mvc
         if(!is_dir($tempRestoreDir)) return;
         // Създаваме файл инфикатор, че процесът е започнал
         $logFile = $tempRestoreDir . $file . '.prc';
-        file_put_contents($logFile, "Starting restore" . PHP_EOL , FILE_APPEND);
-        
+        $err = "Starting restore {$file}";
+        file_put_contents($logFile,  $err . PHP_EOL , FILE_APPEND);
+        self::fLog($err);
+
         $src = $dir . $file;
         core_App::setTimeLimit(1200);
         list($table, ) = explode('.', $file);
@@ -692,7 +728,9 @@ class core_Backup extends core_Mvc
         $dest = self::unzipToTemp($src, $pass, $log);
         
         if(!$dest) {
-            file_put_contents($logFile, "Usuccesfull unzipToTemp {$src}".PHP_EOL , FILE_APPEND);
+            $err = "Usuccesfull unzipToTemp {$src}";
+            file_put_contents($logFile, $err . PHP_EOL , FILE_APPEND);
+            self::fLog($err);
         }
 
         $res = self::importTable($db, $table, $dest);
@@ -703,7 +741,8 @@ class core_Backup extends core_Mvc
         
         // rename($logFile, $tempRestoreDir . $file . '.OK');
         unlink($logFile);
-     
+
+        self::fLog("Importing {$file} has finished.");
         die;
     }
     
@@ -785,7 +824,8 @@ class core_Backup extends core_Mvc
                     } catch (Exception $e) {
                         fclose($handle);
                         $res = "err: Грешка при изпълняване на `INSERT INTO `{$table}` ({$cols}) VALUES  (" . implode(') (', array_slice($query, 0, 3)) .')`';
-                        
+                        self::fLog($res);
+
                         return $res;
                     }
                 }
@@ -794,9 +834,11 @@ class core_Backup extends core_Mvc
             } while ($line !== false);
             fclose($handle);
             $res = 'msg: Импортиране на ' . $table . ' с общо ' . $linesCnt . ' линии';
+            self::fLog($res);
         } else {
             // Не може да се отвори файла
             $res = "err: Не може да се отвори файла `{$dest}`";
+            self::fLog($res);
         }
         
         gc_collect_cycles();
@@ -845,6 +887,9 @@ class core_Backup extends core_Mvc
     {
         if(!isset(self::$tempDir)) {
             self::$tempDir = core_Os::normalizeDir(EF_TEMP_PATH) . '/backup/';
+            if (!file_exists(rtrim(self::$tempDir, '/'))) {
+                mkdir(self::$tempDir, 0744, true);
+            }
         }
         
         return self::$tempDir . $filename;
@@ -862,6 +907,9 @@ class core_Backup extends core_Mvc
     {
         if(!isset(self::$backupDir)) {
             self::$backupDir = core_Os::normalizeDir(EF_UPLOADS_PATH) . '/backup/';
+            if (!file_exists(rtrim(self::$backupDir, '/'))) {
+                mkdir(self::$backupDir, 0744, true);
+            }
         }
         
         return self::$backupDir . $filename;
@@ -1001,5 +1049,16 @@ class core_Backup extends core_Mvc
         });
         
         return $res;
+    }
+
+
+    /**
+     * Добавя към лог файл съобщението
+     */
+    static function fLog($msg)
+    {
+        $file = self::getTempPath('log.txt');
+        $msg = date('Y-m-d H:i:s') . ' ' . $msg . PHP_EOL;
+        file_put_contents($file, $msg, FILE_APPEND);
     }
 }
