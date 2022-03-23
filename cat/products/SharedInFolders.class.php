@@ -99,8 +99,26 @@ class cat_products_SharedInFolders extends core_Manager
         
         $this->setDbUnique('productId,folderId');
     }
-    
-    
+
+
+    /**
+     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
+     *
+     * @param core_Mvc  $mvc
+     * @param core_Form $form
+     */
+    public static function on_AfterInputEditForm($mvc, &$form)
+    {
+        if ($form->isSubmitted()) {
+            $rec = $form->rec;
+            $productRec = cat_Products::fetch($rec->productId, 'folderId,isPublic');
+            if ($productRec->isPublic == 'no' && $productRec->folderId == $rec->folderId) {
+                $form->setError('folderId', 'Не може да споделите нестандартния артикул в неговата папка. Той по-подразбиране е споделен в нея!');
+            }
+        }
+    }
+
+
     /**
      * Клонира споделените папки от един артикул на друг
      *
@@ -119,24 +137,6 @@ class cat_products_SharedInFolders extends core_Manager
             unset($rec->id);
             $rec->productId = $toProductId;
             self::save($rec);
-        }
-    }
-    
-    
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            $rec = $form->rec;
-            $productFolderId = cat_Products::fetchField($rec->productId, 'folderId');
-            if ($productFolderId == $rec->folderId) {
-                $form->setError('folderId', 'Вече съществува запис със същите данни');
-            }
         }
     }
     
@@ -200,12 +200,12 @@ class cat_products_SharedInFolders extends core_Manager
         
         $data->recs = $data->rows = array();
         if ($data->isProto !== true && $masterRec->isPublic != 'yes') {
-            $data->recs[0] = (object) array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id);
+            $data->recs[$masterRec->folderId] = (object) array('folderId' => $masterRec->folderId, 'productId' => $masterRec->id);
         }
         $query = self::getQuery();
         $query->where("#productId = {$masterRec->id}");
         while ($rec = $query->fetch()) {
-            $data->recs[$rec->id] = $rec;
+            $data->recs[$rec->folderId] = $rec;
         }
         
         foreach ($data->recs as $id => $rec) {
