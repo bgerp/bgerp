@@ -250,12 +250,20 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             $mvc->save($iRec);
         }
 
+        $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
         if($mvc->Master instanceof store_DocumentMaster){
-            $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
             $masterRec->reverseContainerId = $rec->doc;
             $masterRec->_replaceReverseContainerId = true;
-
             $mvc->Master->save($masterRec);
+        } elseif($mvc->Master instanceof deals_InvoiceMaster){
+
+            // Добавяне на импортирания документ в забележките
+            $Doc = doc_Containers::getDocument($rec->doc);
+            $handle = "#" . $Doc->getHandle();
+            if(strpos($masterRec->additionalInfo, $handle) === false){
+                $masterRec->additionalInfo .= "\n" . $handle;
+                $mvc->Master->save_($masterRec, 'additionalInfo');
+            }
         }
     }
 }

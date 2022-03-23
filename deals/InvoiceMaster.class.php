@@ -606,6 +606,11 @@ abstract class deals_InvoiceMaster extends core_Master
         if($rec->importProducts){
             if($rec->importProducts == 'fromSource'){
                 $Source = doc_Containers::getDocument($rec->sourceContainerId);
+                $handle = "#" . $Source->getHandle();
+                if(strpos($rec->additionalInfo, $handle) === false){
+                    $rec->additionalInfo .= "\n" . $handle;
+                    $mvc->save_($rec, 'additionalInfo');
+                }
             } else {
                 $Source = static::getOrigin($rec);
             }
