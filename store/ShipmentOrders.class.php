@@ -556,10 +556,16 @@ class store_ShipmentOrders extends store_DocumentMaster
                 if(store_ShipmentOrderDetails::count("#shipmentId = {$rec->id}")){
                     $iQuery = sales_Invoices::getQuery();
                     $iQuery->where("#threadId = {$rec->threadId} AND #state = 'draft' AND #type = 'invoice'");
-                    $iQuery->show('id');
+                    $iQuery->show('id,additionalInfo');
                     while($iRec = $iQuery->fetch()){
+                        $invWarning = '';
+                        $handle = "#" . $mvc->getHandle($rec->id);
+                        if(strpos($iRec->additionalInfo, $handle) !== false){
+                            $invWarning = 'Експедиционното нареждане вече е било добавено към фактурата. Наистина ли желаете да го добавите отново|*?';
+                        }
+
                         if(sales_InvoiceDetails::haveRightFor('add', (object)array('invoiceId' => $iRec->id))){
-                            $data->toolbar->addBtn("Към|* " .  sales_Invoices::getHandle($iRec->id), array('sales_InvoiceDetails', 'addFromShipmentDocument', "invoiceId" => $iRec->id, 'originId' => $rec->containerId, 'ret_url' => true), "title=Добавяне на артикулите към фактурата,ef_icon=img/16/add.png,row=2");
+                            $data->toolbar->addBtn("Към|* " .  sales_Invoices::getHandle($iRec->id), array('sales_InvoiceDetails', 'addFromShipmentDocument', "invoiceId" => $iRec->id, 'originId' => $rec->containerId, 'ret_url' => true), "title=Добавяне на артикулите към фактурата,ef_icon=img/16/add.png,row=2,warning={$invWarning}");
                         }
                     }
                 }
