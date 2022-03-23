@@ -416,7 +416,7 @@ class core_Backup extends core_Mvc
         } while(count($processes) >= BACKUP_MAX_THREAD);
            
         $url = toUrl(array('Index', 'default', 'SetupKey' => setupKey(), 'step' => "backup-{$params}"), 'absolute-force');
-        $processFile = self::getTempPath("{$table}.bpr");
+        $processFile = self::getTempPath("{$table}.{$suffix}.bpr");
         file_put_contents($processFile, $params, FILE_APPEND);
         
         $cmd = escapeshellarg(EF_INDEX_PATH . '/index.php');
