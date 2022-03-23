@@ -44,7 +44,7 @@ class planning_Tasks extends core_Master
     /**
      * На колко време да се рефрешва лист изгледа
      */
-    public $refreshRowsTime = 30000000000000000000;
+    public $refreshRowsTime = 3000;
 
 
     /**
@@ -2001,9 +2001,7 @@ class planning_Tasks extends core_Master
                 } elseif(in_array($rec->state, array('waiting', 'active', 'wakeup')) && $rec->brState == 'rejected'){
 
                     // При възстановяване в намърдва се най-накрая
-                    if(empty($rec->startAfter)){
-                        $rec->startAfter = $mvc->getStartAfter($rec);
-                    }
+                    $rec->startAfter = $mvc->getStartAfter($rec);
                 }
             }
 
