@@ -111,8 +111,21 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
      */
     public function checkImportForm($mvc, core_FieldSet $form)
     {
+        $rec = &$form->rec;
         if ($form->isSubmitted()) {
-            $form->rec->importRecs = $this->getImportRecs($mvc, $form->rec);
+            if(isset($rec->doc) && $mvc instanceof sales_InvoiceDetails){
+                $masterRec = $mvc->Master->fetch($rec->{$mvc->masterKey});
+
+                $Doc = doc_Containers::getDocument($rec->doc);
+                $handle = "#" . $Doc->getHandle();
+                if(strpos($masterRec->additionalInfo, $handle) !== false){
+                    $form->setWarning('doc', 'Документа вече е бил импортиран във фактурата. Наистина ли желаете да го добавите отново|*?');
+                }
+            }
+
+            if(!$form->gotErrors()){
+                $rec->importRecs = $this->getImportRecs($mvc, $rec);
+            }
         }
     }
     
@@ -243,6 +256,11 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             
             $exRec = deals_Helper::fetchExistingDetail($mvc, $iRec->{$mvc->masterKey}, $iRec->id, $iRec->productId, $iRec->packagingId, $iRec->price, $iRec->discount, null, null, $iRec->batch, $iRec->expenseItemId, $iRec->notes);
             if ($exRec) {
+                if($mvc instanceof sales_InvoiceDetails){
+                    $exRec->quantity += $iRec->quantity;
+                    $mvc->save_($exRec, 'quantity');
+                    continue;
+                }
                 core_Statuses::newStatus('Записът не е импортиран, защото има дублиране', 'warning');
                 continue;
             }
