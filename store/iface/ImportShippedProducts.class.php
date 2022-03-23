@@ -151,12 +151,18 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             
             return $recs;
         }
+
         foreach ($rec->detailsDef as $key => $dRec) {
-            
+
             // Ако има въведено количество записва се
             if (!empty($rec->{$key})) {
                 unset($dRec->id);
-                $dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
+                if($mvc instanceof sales_InvoiceDetails){
+                    $dRec->quantity = $rec->{$key};
+                } else {
+                    $dRec->quantity = $rec->{$key} * $dRec->quantityInPack;
+                }
+
                 $dRec->{$mvc->masterKey} = $rec->{$mvc->masterKey};
                 $dRec->isEdited = true;
                 $recs[] = $dRec;
@@ -253,7 +259,7 @@ class store_iface_ImportShippedProducts extends import2_AbstractDriver
             expect($iRec->{$mvc->masterKey}, 'Няма мастър кей');
             expect($mvc->Master->fetch($iRec->{$mvc->masterKey}), 'Няма такъв запис на мастъра');
             expect($mvc->haveRightFor('add', (object) array($mvc->masterKey => $iRec->{$mvc->masterKey})), 'Към този мастър не може да се добавя артикул');
-            
+
             $exRec = deals_Helper::fetchExistingDetail($mvc, $iRec->{$mvc->masterKey}, $iRec->id, $iRec->productId, $iRec->packagingId, $iRec->price, $iRec->discount, null, null, $iRec->batch, $iRec->expenseItemId, $iRec->notes);
             if ($exRec) {
                 if($mvc instanceof sales_InvoiceDetails){

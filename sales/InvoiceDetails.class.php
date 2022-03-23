@@ -176,6 +176,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
             unset($oRec->id);
             $oRec->invoiceId = $invoiceId;
             $exRec = deals_Helper::fetchExistingDetail($this, $oRec->invoiceId, $oRec->id, $oRec->productId, $oRec->packagingId, $oRec->price, $oRec->discount, null, null, $oRec->batch, $oRec->expenseItemId, $oRec->notes);
+            $oRec->quantity = $oRec->packQuantity;
             if ($exRec) {
                 $exRec->quantity += $oRec->quantity;
                 $this->save($exRec, 'quantity');
