@@ -161,12 +161,12 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
     {
         $this->requireRightFor('add');
         expect($invoiceId = Request::get('invoiceId', 'int'));
-        expect(sales_Invoices::fetch($invoiceId));
+        expect($invoiceRec = sales_Invoices::fetch($invoiceId));
         expect($originId = Request::get('originId', 'int'));
         expect($origin  = doc_Containers::getDocument($originId));
         expect($origin->isInstanceOf('store_ShipmentOrders'));
         $this->requireRightFor('add', (object)array('invoiceId' => $invoiceId));
-        $added = $skipped = 0;
+        $added = $updated = 0;
 
         // Прехвърляне на детайлите на ЕН-то към фактурата
         $OriginDetail = cls::get($origin->mainDetail);
@@ -177,14 +177,24 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
             $oRec->invoiceId = $invoiceId;
             $exRec = deals_Helper::fetchExistingDetail($this, $oRec->invoiceId, $oRec->id, $oRec->productId, $oRec->packagingId, $oRec->price, $oRec->discount, null, null, $oRec->batch, $oRec->expenseItemId, $oRec->notes);
             if ($exRec) {
-                $skipped++;
-                continue;
+                $exRec->quantity += $oRec->quantity;
+                $this->save($exRec, 'quantity');
+                $updated++;
+            } else {
+                $this->save($oRec);
+                $added++;
             }
-            $added++;
-            $this->save($oRec);
         }
 
-        $msg = "Добавени|*: {$added}. |Пропуснати поради дублиране|*: {$skipped}. |към фактурата|*";
+        $msg = "Добавени|*: {$added}. |Обновени|*: {$updated}!";
+        $handle = "#{$origin->getHandle()}";
+
+        // Добавяне в забележките
+        if(strpos($invoiceRec->additionalInfo, $handle) === false){
+            $invoiceRec->additionalInfo .= "\n" . $handle;
+            $this->Master->save_($invoiceRec, 'additionalInfo');
+        }
+
         followRetUrl(null, $msg);
     }
 }
