@@ -102,24 +102,6 @@ class cat_products_SharedInFolders extends core_Manager
 
 
     /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        if ($form->isSubmitted()) {
-            $rec = $form->rec;
-            $productRec = cat_Products::fetch($rec->productId, 'folderId,isPublic');
-            if ($productRec->isPublic == 'no' && $productRec->folderId == $rec->folderId) {
-                $form->setError('folderId', 'Не може да споделите нестандартния артикул в неговата папка. Той по-подразбиране е споделен в нея!');
-            }
-        }
-    }
-
-
-    /**
      * Клонира споделените папки от един артикул на друг
      *
      * @param int $fromProductId - ид на артикула от който ще се клонира
