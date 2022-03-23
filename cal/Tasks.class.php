@@ -1182,6 +1182,16 @@ class cal_Tasks extends embed_Manager
                 $requiredRoles = 'no_one';
             }
         }
+
+        if (($action == 'activate') && $rec) {
+            if (isset($rec->state) && ($rec->state != 'draft') && ($rec->state != 'pending')) {
+                $now = dt::verbal2mysql();
+                $canActivate = $mvc->canActivateTask($rec);
+                if (!$canActivate || ($now < $canActivate)) {
+                    $requiredRoles = 'no_one';
+                }
+            }
+        }
     }
     
     
