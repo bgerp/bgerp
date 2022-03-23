@@ -44,7 +44,7 @@ class planning_Tasks extends core_Master
     /**
      * На колко време да се рефрешва лист изгледа
      */
-    public $refreshRowsTime = 3000;
+    public $refreshRowsTime = 30000000000000000000;
 
 
     /**
@@ -1986,12 +1986,14 @@ class planning_Tasks extends core_Master
         if(isset($rec->assetId)){
 
             // Ако не е минато през формата
-            if(!$rec->_fromForm){
+            if(!$rec->_fromForm && !$rec->_isDragAndDrop){
 
                 // Ако няма начало изчислява се да започне след последната
                 if($rec->state == 'active' && $rec->brState == 'draft'){
                     // При активиране от чернова - намърдва се най-накрая
-                    $rec->startAfter = $mvc->getStartAfter($rec);
+                    if(empty($rec->startAfter)){
+                        $rec->startAfter = $mvc->getStartAfter($rec);
+                    }
                 } elseif($rec->state == 'rejected'){
 
                     // При оттегляне изчезва от номерацията
@@ -1999,7 +2001,9 @@ class planning_Tasks extends core_Master
                 } elseif(in_array($rec->state, array('waiting', 'active', 'wakeup')) && $rec->brState == 'rejected'){
 
                     // При възстановяване в намърдва се най-накрая
-                    $rec->startAfter = $mvc->getStartAfter($rec);
+                    if(empty($rec->startAfter)){
+                        $rec->startAfter = $mvc->getStartAfter($rec);
+                    }
                 }
             }
 
@@ -2078,6 +2082,7 @@ class planning_Tasks extends core_Master
         $rec->startAfter = Request::get('startAfter', 'int');
         $rec->modifiedOn = dt::now();
         $rec->modifiedBy = core_Users::getCurrent();
+
         if(!$this->haveRightFor('reordertask', $rec)){
             $errorMsg = '|Нямате права|*!';
         }
@@ -2089,7 +2094,9 @@ class planning_Tasks extends core_Master
         }
 
         // Обновяване на записа и преподреждане на ПО
+        $rec->_isDragAndDrop = true;
         $this->save($rec, 'orderByAssetId,modifiedOn,modifiedBy');
+
         planning_AssetResources::reOrderTasks($rec->assetId);
         unset($this->reorderTasksInAssetId[$rec->assetId]);
 
