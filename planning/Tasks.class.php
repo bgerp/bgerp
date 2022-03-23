@@ -1991,9 +1991,7 @@ class planning_Tasks extends core_Master
                 // Ако няма начало изчислява се да започне след последната
                 if($rec->state == 'active' && $rec->brState == 'draft'){
                     // При активиране от чернова - намърдва се най-накрая
-                    if(empty($rec->startAfter)){
-                        $rec->startAfter = $mvc->getStartAfter($rec);
-                    }
+                    $rec->startAfter = $mvc->getStartAfter($rec);
                 } elseif($rec->state == 'rejected'){
 
                     // При оттегляне изчезва от номерацията
