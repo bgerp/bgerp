@@ -548,8 +548,21 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
 
             if (deals_Helper::showInvoiceBtn($rec->threadId) && in_array($rec->state, array('draft', 'active', 'pending'))) {
+
+                // Ако има ф-ра на чернова показва се бутон за добавяне на артикулите към нея
+                if(store_ShipmentOrderDetails::count("#shipmentId = {$rec->id}")){
+                    $iQuery = sales_Invoices::getQuery();
+                    $iQuery->where("#threadId = {$rec->threadId} AND #state = 'draft' AND #type = 'invoice'");
+                    $iQuery->show('id');
+                    while($iRec = $iQuery->fetch()){
+                        if(sales_InvoiceDetails::haveRightFor('add', (object)array('invoiceId' => $iRec->id))){
+                            $data->toolbar->addBtn("Към|* " .  sales_Invoices::getHandle($iRec->id), array('sales_InvoiceDetails', 'addFromShipmentDocument', "invoiceId" => $iRec->id, 'originId' => $rec->containerId, 'ret_url' => true), "title=Добавяне на артикулите към фактурата,ef_icon=img/16/add.png,row=2,warning=Наистина ли желаете да включите артикулите от експедиционното към фактурата|*?");
+                        }
+                    }
+                }
+
                 if (sales_Invoices::haveRightFor('add', (object) array('threadId' => $rec->threadId, 'sourceContainerId' => $rec->containerId))) {
-                    $data->toolbar->addBtn('Фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => true), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
+                    $data->toolbar->addBtn('Нова фактура', array('sales_Invoices', 'add', 'originId' => $rec->originId, 'sourceContainerId' => $rec->containerId, 'ret_url' => true), 'title=Създаване на фактура към експедиционното нареждане,ef_icon=img/16/invoice.png,row=2');
                 }
             }
         }

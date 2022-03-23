@@ -149,4 +149,42 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
             }
         }
     }
+
+
+    /**
+     * Екшън за добавяне на артикулите от ЕН-то към фактурата
+     *
+     * @return void
+     * @throws core_exception_Expect
+     */
+    function act_addFromShipmentDocument()
+    {
+        $this->requireRightFor('add');
+        expect($invoiceId = Request::get('invoiceId', 'int'));
+        expect(sales_Invoices::fetch($invoiceId));
+        expect($originId = Request::get('originId', 'int'));
+        expect($origin  = doc_Containers::getDocument($originId));
+        expect($origin->isInstanceOf('store_ShipmentOrders'));
+        $this->requireRightFor('add', (object)array('invoiceId' => $invoiceId));
+        $added = $skipped = 0;
+
+        // Прехвърляне на детайлите на ЕН-то към фактурата
+        $OriginDetail = cls::get($origin->mainDetail);
+        $odQuery = $OriginDetail->getQuery();
+        $odQuery->where("#{$OriginDetail->masterKey} = {$origin->that}");
+        while($oRec = $odQuery->fetch()){
+            unset($oRec->id);
+            $oRec->invoiceId = $invoiceId;
+            $exRec = deals_Helper::fetchExistingDetail($this, $oRec->invoiceId, $oRec->id, $oRec->productId, $oRec->packagingId, $oRec->price, $oRec->discount, null, null, $oRec->batch, $oRec->expenseItemId, $oRec->notes);
+            if ($exRec) {
+                $skipped++;
+                continue;
+            }
+            $added++;
+            $this->save($oRec);
+        }
+
+        $msg = "Добавени|*: {$added}. |Пропуснати поради дублиране|*: {$skipped}. |към фактурата|*";
+        followRetUrl(null, $msg);
+    }
 }
