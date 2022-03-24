@@ -201,6 +201,7 @@ class store_Stores extends core_Master
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
         $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка за показване на наличностите,notNull,value=productMeasureId');
+        $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди Експедиция->Време');
 
         $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители,mandatory');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
@@ -289,6 +290,9 @@ class store_Stores extends core_Master
             $data->form->setField('closeCombinedMovementsAtOnce', 'input=none');
             $data->form->setField('prioritizeRackGroups', 'input=none');
         }
+
+        $preparationShipmentPlaceholder = $mvc->getFieldType('preparationBeforeShipment')->toVerbal(store_Setup::get('PREPARATION_BEFORE_SHIPMENT'));
+        $data->form->setField('preparationBeforeShipment', "placeholder={$preparationShipmentPlaceholder}");
     }
     
     
@@ -329,6 +333,15 @@ class store_Stores extends core_Master
         if ($fields['-single']) {
             if ($rec->locationId) {
                 $row->locationId = crm_Locations::getHyperLink($rec->locationId, true);
+            }
+
+            if(!isset($rec->preparationBeforeShipment)){
+                if($defaultBeforeShipmentTime = store_Setup::get('PREPARATION_BEFORE_SHIPMENT')){
+                    $row->preparationBeforeShipment = $mvc->getFieldType('preparationBeforeShipment')->toVerbal($defaultBeforeShipmentTime);
+                    $row->preparationBeforeShipment = ht::createHint($row->preparationBeforeShipment, 'По подразбиране от пакета', 'notice', false);
+                } else {
+                    $row->preparationBeforeShipment = tr("Няма");
+                }
             }
 
             if(core_Packs::isInstalled('rack')){

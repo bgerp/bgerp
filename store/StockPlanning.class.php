@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -508,7 +508,7 @@ class store_StockPlanning extends core_Manager
                 }
 
                 // Ако крайното разполагаемо удовлетворява нужното количество, отбелязва се че артикула е готов
-                if($finalQuantity >= $neededQuantity){
+                if(round($finalQuantity, 4) >= round($neededQuantity, 4)){
                     $ok++;
                 }
             }
