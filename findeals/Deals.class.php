@@ -225,7 +225,7 @@ class findeals_Deals extends deals_DealBase
         
         $this->FLD('baseAccountId', 'acc_type_Account(regInterfaces=none,allowEmpty)', 'silent,caption=Начално салдо->Сметка (коресп.),input=none,before=description');
         $this->FLD('baseAmount', 'double(decimals=2, Min=0)', 'caption=Начално салдо->Сума,input=none,before=description');
-        $this->FLD('baseAmountType', 'enum(debit=дебита,credit=кредита)', 'caption=Начално салдо->Салдото е по,input=none,before=description', "unit=|на основната сметка");
+        $this->FLD('baseAmountType', 'enum(debit=дебит,credit=кредит)', 'caption=Начално салдо->Салдото е по,input=none,before=description', "unit=|-а на основната сметка");
         
         $this->FLD('secondContragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=none');
         $this->FLD('secondContragentId', 'int', 'input=none');
