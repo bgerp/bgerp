@@ -62,7 +62,9 @@ class store_reports_Documents extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=title');
+        $fieldset->FLD('typeOfWorker', 'enum(stWorker=Складов работник,logWorker=Логистик)', 'caption=Тип потребител,removeAndRefreshForm,silent,after=title');
+
+        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,after=typeOfWorker');
         $fieldset->FLD('documentType', 'class(select=title)', 'caption=Документи,placeholder=Всички,after=storeId');
         $fieldset->FLD('horizon', 'time', 'caption=Хоризонт,after=documentType');
     }
@@ -78,7 +80,13 @@ class store_reports_Documents extends frame2_driver_TableData
     protected static function on_AfterPrepareEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$data)
     {
         $form = &$data->form;
-        
+
+        $form->setDefault('typeOfWorker', 'stWorker');
+        $cu = (!empty($form->rec->createdBy)) ? $form->rec->createdBy : core_Users::getCurrent();
+        if (!haveRole('trans',$cu)){
+            $form->setReadOnly('typeOfWorker');
+        }
+
         $stores = self::getContableStores($form->rec);
         $form->setOptions('storeId', array('' => '') + $stores);
         $documents = array('planning_ConsumptionNotes', 'planning_ReturnNotes', 'store_Transfers', 'store_ShipmentOrders', 'store_Receipts', 'planning_DirectProductionNote', 'store_ConsignmentProtocols');
@@ -105,7 +113,9 @@ class store_reports_Documents extends frame2_driver_TableData
         $sQuery = store_Stores::getQuery();
         $sQuery->where("#state != 'rejected'");
         while ($sRec = $sQuery->fetch()) {
-            if (bgerp_plg_FLB::canUse('store_Stores', $sRec, $cu)) {
+            if ($rec->typeOfWorker == 'stWorker' && bgerp_plg_FLB::canUse('store_Stores', $sRec, $cu)) {
+                $res[$sRec->id] = store_Stores::getTitleById($sRec->id, false);
+            }else{
                 $res[$sRec->id] = store_Stores::getTitleById($sRec->id, false);
             }
         }
