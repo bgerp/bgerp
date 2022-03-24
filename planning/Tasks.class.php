@@ -1332,6 +1332,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
+        $data->listFilter->FLD('reorder', 'enum(no=Не,yes=Да)', 'caption=Преподреждане');
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
@@ -1339,13 +1340,14 @@ class planning_Tasks extends core_Master
             $data->listFilter->setField('assetId', 'caption=Оборудване');
             $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
             $data->listFilter->showFields .= ',assetId';
-            $data->listFilter->input('assetId');
+            $data->listFilter->input('assetId,reorder');
         }
 
         if($filter = $data->listFilter->rec){
             if (isset($filter->assetId)) {
                 $data->query->where("#assetId = {$filter->assetId}");
                 $data->query->orderBy("orderByAssetId", "ASC");
+                $data->listFilter->showFields .= ',reorder';
             } else {
                 unset($data->listFields['orderByAssetId']);
             }
@@ -1984,7 +1986,7 @@ class planning_Tasks extends core_Master
         if(isset($rec->assetId)){
 
             // Ако не е минато през формата
-            if(!$rec->_fromForm){
+            if(!$rec->_fromForm && !$rec->_isDragAndDrop){
 
                 // Ако няма начало изчислява се да започне след последната
                 if($rec->state == 'active' && $rec->brState == 'draft'){
@@ -2047,7 +2049,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         // Включване на драг и дроп ако има избрано оборудване
-        if(isset($data->listFilter->rec->assetId)){
+        if(isset($data->listFilter->rec->assetId) && $data->listFilter->rec->reorder == 'yes'){
             jqueryui_Ui::enable($tpl);
             $tpl->push('planning/js/Tasks.js', 'JS');
             jquery_Jquery::run($tpl, 'listTasks();');
@@ -2076,6 +2078,7 @@ class planning_Tasks extends core_Master
         $rec->startAfter = Request::get('startAfter', 'int');
         $rec->modifiedOn = dt::now();
         $rec->modifiedBy = core_Users::getCurrent();
+
         if(!$this->haveRightFor('reordertask', $rec)){
             $errorMsg = '|Нямате права|*!';
         }
@@ -2087,7 +2090,9 @@ class planning_Tasks extends core_Master
         }
 
         // Обновяване на записа и преподреждане на ПО
+        $rec->_isDragAndDrop = true;
         $this->save($rec, 'orderByAssetId,modifiedOn,modifiedBy');
+
         planning_AssetResources::reOrderTasks($rec->assetId);
         unset($this->reorderTasksInAssetId[$rec->assetId]);
 

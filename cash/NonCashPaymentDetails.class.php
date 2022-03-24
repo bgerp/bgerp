@@ -82,13 +82,17 @@ class cash_NonCashPaymentDetails extends core_Manager
         $query->where("#documentId = {$data->masterId}");
         $restAmount = $data->masterData->rec->amount;
         $toCurrencyCode = currency_Currencies::getCodeById($data->masterData->rec->currencyId);
-        
+        $canSeePrices = doc_plg_HidePrices::canSeePriceFields($data->masterData->rec);
+
         // Извличане на записите
         $data->recs = $data->rows = array();
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $data->rows[$rec->id] = $this->recToVerbal($rec);
-            
+            if(!$canSeePrices) {
+                $data->rows[$rec->id]->amount = doc_plg_HidePrices::getBuriedElement();
+            }
+
             $amount = cond_Payments::toBaseCurrency($rec->paymentId, $rec->amount, $data->masterData->rec->valior, $toCurrencyCode);
             $restAmount -= $amount;
         }
@@ -98,6 +102,9 @@ class cash_NonCashPaymentDetails extends core_Manager
             $data->recs[] = $r;
             $row = $this->recToVerbal($r);
             $row->paymentId .= ", {$toCurrencyCode}";
+            if(!$canSeePrices) {
+                $row->amount = doc_plg_HidePrices::getBuriedElement();
+            }
             $data->rows[] = $row;
         }
         

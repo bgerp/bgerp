@@ -35,7 +35,7 @@ class core_Os
      */
     public static function isWindows()
     {
-        return stristr(PHP_OS, 'WIN');
+        return stripos(PHP_OS, 'WIN') === 0;
     }
     
     
@@ -652,6 +652,7 @@ class core_Os
     {
         $val = trim($val);
         $last = strtolower($val[strlen($val) - 1]);
+        $val = substr($val, 0, strlen($val)-1);
         switch ($last) {
             // The 'G' modifier is available since PHP 5.1.0
             case 'g':
@@ -752,5 +753,19 @@ class core_Os
                     
             return "Директорията `{$dir}` не е записваема * ";
         }
+    }
+    
+
+    /**
+     * Стартира шел команда, без да чака изпълнението и
+     */
+    public static function startCmd($cmd)
+    {
+        if (self::isWindows()){
+            $h = popen("start \"php\" /B ". $cmd . ' 2>nul >nul', "r");
+            pclose($h); 
+        } else { 
+            exec($cmd . " > /dev/null &"); 
+        }   
     }
 }

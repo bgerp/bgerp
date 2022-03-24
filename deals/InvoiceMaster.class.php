@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -111,12 +111,22 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Да се рефрешват ли дефолтните данни при рефреш
+     */
+    public $dontReloadDefaultsOnRefresh = false;
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
     {
         $mvc->FLD('date', 'date(format=d.m.Y)', 'caption=Дата,  notNull, mandatory');
         $mvc->FLD('place', 'varchar(64)', 'caption=Място, class=contactData');
+
+        $mvc->FNC('displayContragentClassId', 'enum(crm_Companies=Фирма,crm_Persons=Лице,newCompany=Нова фирма)', 'input,silent,removeAndRefreshForm=displayContragentId|selectInvoiceText,caption=Друг контрагент->Източник');
+        $mvc->FNC('displayContragentId', 'int', 'input=none,silent,removeAndRefreshForm=contragentName|contragentCountryId|contragentVatNo|contragentEori|uicNo|contragentPCode|additionalInfo|contragentPlace|contragentAddress,caption=Друг контрагент->Избор');
+
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент,silent');
         $mvc->FLD('contragentId', 'int', 'input=hidden,silent');
         $mvc->FLD('contragentName', 'varchar', 'caption=Контрагент->Име, mandatory, class=contactData');
@@ -370,8 +380,8 @@ abstract class deals_InvoiceMaster extends core_Master
     protected function populateNoteFromInvoice(core_Form &$form, core_ObjectReference $origin)
     {
         if ($this instanceof purchase_Invoices) {
-            $form->setField('contragentSource', 'input=none');
-            $form->setField('selectedContragentId', 'input=none');
+            $form->setField('displayContragentClassId', 'input=none');
+            $form->setField('displayContragentId', 'input=none');
         }
         
         $invArr = (array) $origin->fetch();
@@ -413,7 +423,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         // Копиране на повечето от полетата на фактурата
         foreach ($invArr as $field => $value) {
-            $form->setDefault($field, $value);
+            $form->rec->{$field} = $value;
         }
         
         $form->setDefault('date', dt::today());
@@ -596,6 +606,11 @@ abstract class deals_InvoiceMaster extends core_Master
         if($rec->importProducts){
             if($rec->importProducts == 'fromSource'){
                 $Source = doc_Containers::getDocument($rec->sourceContainerId);
+                $handle = "#" . $Source->getHandle();
+                if(strpos($rec->additionalInfo, $handle) === false){
+                    $rec->additionalInfo .= "\n" . $handle;
+                    $mvc->save_($rec, 'additionalInfo');
+                }
             } else {
                 $Source = static::getOrigin($rec);
             }
@@ -696,7 +711,31 @@ abstract class deals_InvoiceMaster extends core_Master
             $form->rec->contragentClassId = doc_Folders::fetchCoverClassId($form->rec->folderId);
             $form->rec->contragentId = doc_Folders::fetchCoverId($form->rec->folderId);
         }
-        
+
+        // Ако ф-та не е към служебен аванс не искаме да се сменя контрагента
+        $firstDocument = doc_Threads::getFirstDocument($form->rec->threadId);
+        $form->setDefault('displayContragentClassId', 'crm_Companies');
+        if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
+            if($form->cmd != 'refresh'){
+                $form->setField('displayContragentClassId', 'autohide=any');
+                $form->setField('displayContragentId', 'autohide=any');
+            }
+        } else {
+            if (isset($rec->displayContragentClassId) && empty($rec->displayContragentId)) {
+                foreach (array('contragentName', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
+                    $form->setReadOnly($fld);
+                }
+            }
+        }
+
+        // Ако има избрано поле за източник на контрагента
+        if (isset($rec->displayContragentClassId)) {
+            if (in_array($rec->displayContragentClassId, array('crm_Companies', 'crm_Persons'))) {
+                $form->setField('displayContragentId', 'input');
+                $form->setFieldType('displayContragentId', core_Type::getByName("key2(mvc={$rec->displayContragentClassId},select=name,allowEmpty)"));
+            }
+        }
+
         // При създаване на нова ф-ра зареждаме полетата на формата с разумни стойности по подразбиране.
         expect($firstDocument = doc_Threads::getFirstDocument($form->rec->threadId), $form->rec);
         $coverClass = doc_Folders::fetchCoverClassName($form->rec->folderId);
@@ -714,10 +753,31 @@ abstract class deals_InvoiceMaster extends core_Master
             core_Lg::pop();
         }
 
+        if ($form->cmd == 'refresh') {
+
+            $arr = array();
+
+            // Ако е избран контрагент замества ме му данните
+            if (isset($rec->displayContragentId)) {
+                if (in_array($rec->displayContragentClassId, array('crm_Companies', 'crm_Persons'))) {
+                    $cData = cls::get($rec->displayContragentClassId)->getContragentData($rec->displayContragentId);
+                    $nameField = ($rec->displayContragentClassId == 'crm_Companies') ? 'company' : 'person';
+                    foreach (array('contragentName' => $nameField, 'contragentCountryId' => 'countryId', 'contragentVatNo' => 'vatNo', 'uicNo' => 'uicId', 'contragentPCode' => 'pCode', 'contragentPlace' => 'place', 'contragentAddress' => 'address') as $k => $v) {
+                        $arr[$k] = $cData->{$v};
+                    }
+                }
+
+                if (countR($arr)) {
+                    foreach (array('contragentName', 'contragentCountryId', 'contragentVatNo', 'uicNo', 'contragentPCode', 'contragentPlace', 'contragentAddress')  as $fld) {
+                        $form->rec->{$fld} = $arr[$fld];
+                    }
+                }
+            }
+        }
+
         $form->setFieldType('uicNo', 'drdata_type_Uic');
         if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
-            $className = doc_Folders::fetchCoverClassName($form->rec->folderId);
-            if ($className == 'crm_Persons') {
+            if(($rec->displayContragentClassId == 'crm_Persons' && isset($rec->displayContragentId)) || doc_Folders::fetchCoverClassName($form->rec->folderId) == 'crm_Persons'){
                 $form->setField('uicNo', 'caption=Контрагент->ЕГН');
                 $form->setFieldType('uicNo', 'bglocal_EgnType');
             }
@@ -856,6 +916,14 @@ abstract class deals_InvoiceMaster extends core_Master
             if (!empty($rec->contragentVatNo)) {
                 if (!preg_match('/^[a-zA-Zа-яА-Я0-9_]*$/iu', $rec->contragentVatNo)) {
                     $form->setError('contragentVatNo', 'Лоши символи в номера');
+                }
+            }
+
+            if ($rec->displayContragentClassId == 'newCompany') {
+                $cRec = (object) array('name' => $rec->contragentName, 'country' => $rec->contragentCountryId, 'vatId' => $rec->contragentVatNo, 'uicId' => $rec->uicNo, 'pCode' => $rec->contragentPCode, 'place' => $rec->contragentPlace, 'address' => $rec->contragentAddress);
+                $resStr = crm_Companies::getSimilarWarningStr($cRec);
+                if ($resStr) {
+                    $form->setWarning('contragentName,contragentCountryId,contragentVatNo,uicNo,contragentPCode,contragentPlace,contragentAddress', $resStr);
                 }
             }
 
@@ -1034,6 +1102,15 @@ abstract class deals_InvoiceMaster extends core_Master
         // Първоначално изчислен начин на плащане
         if (empty($rec->id)) {
             $rec->autoPaymentType = cls::get(get_called_class())->getAutoPaymentType($rec, false);
+        }
+
+        // Форсиране на нова фирма, ако е указано
+        if ($rec->state == 'draft') {
+            if ($rec->displayContragentClassId == 'newCompany') {
+                $cRec = (object) array('name' => $rec->contragentName, 'country' => $rec->contragentCountryId, 'vatId' => $rec->contragentVatNo, 'uicId' => $rec->uicNo, 'pCode' => $rec->contragentPCode, 'place' => $rec->contragentPlace, 'address' => $rec->contragentAddress);
+                crm_Companies::save($cRec);
+                core_Statuses::newStatus("Добавена е нова фирма|* '{$rec->contragentName}'");
+            }
         }
     }
     
@@ -1831,5 +1908,21 @@ abstract class deals_InvoiceMaster extends core_Master
                 }
             }
         }
+    }
+
+
+    /**
+     * Кои полета да се ъпдейтнат във визитката след промяна
+     */
+    public function getContragentCoverFieldsToUpdate($rec)
+    {
+        $Cover = doc_Folders::getCover($rec->folderId);
+        Mode::push('htmlEntity', 'none');
+        $name = $Cover->getVerbal('name');
+        Mode::pop('htmlEntity');
+
+        if($name != $rec->contragentName) return array();
+
+        return arr::make(static::$updateContragentdataField, true);
     }
 }
