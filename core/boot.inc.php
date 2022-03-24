@@ -47,6 +47,32 @@ require_once(EF_APP_PATH . '/core/Html.class.php');
 // Прихващаме грешките
 core_Debug::setErrorWaching();
 
+
+// Ако заявката е по cli обработваме я по различен начин
+if(php_sapi_name() == 'cli') {
+    defIfNot('EF_APP_NAME', $argv[1]);
+    
+    defIfNot('EF_HTTPS', false);
+
+    // Инициализиране на системата
+    core_App::initSystem();
+
+    // Зарежда конфигурационните константи
+    core_App::loadConfig();
+
+    $ctr = $argv[2];
+    $act = 'cli_' . $argv[3];
+
+    $ctr = cls::get($ctr);
+
+    $res = $ctr->{$act}();
+
+    $res = $res ? $res : 0;
+
+    exit($res);
+}
+
+
 // Подсигуряваме $_GET['virtual_url']
 if(!$_GET['virtual_url']) $_GET['virtual_url'] = $_SERVER['REQUEST_URI'];
 

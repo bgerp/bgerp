@@ -1035,7 +1035,13 @@ abstract class deals_Helper
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
             $cData = $ContragentClass->getContragentData($contragentId);
-            $res['contragentName'] = isset($contragentName) ? $contragentName : (($cData->personVerb) ? $cData->personVerb : $cData->companyVerb);
+            $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
+            $res['contragentName'] = isset($contragentName) ? $contragentName : $cName;
+            if($res['contragentName'] != $cName){
+                if(!Mode::isReadOnly()){
+                    $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+                }
+            }
             $res['inlineContragentName'] = $res['contragentName'];
 
             $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
