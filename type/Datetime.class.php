@@ -116,8 +116,12 @@ class type_Datetime extends type_Date
         }
 
         if(isset($timePlaceholder)){
-            list($h, $m) = explode(':', $timePlaceholder);
-            $timePlaceholder = "{$h}:{$m}";
+            if(empty($date)){
+                list($h, $m) = explode(':', $timePlaceholder);
+                $timePlaceholder = "{$h}:{$m}";
+            } else {
+                $timePlaceholder = null;
+            }
         }
         $attr['placeholder'] = $timePlaceholder;
         $timeInput = ht::createCombo($name . '[t]', $time, $attr, $ts);
