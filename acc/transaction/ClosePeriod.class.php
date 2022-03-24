@@ -63,7 +63,7 @@ class acc_transaction_ClosePeriod extends acc_DocumentTransactionSource
      */
     public function getTransaction($id)
     {
-        set_time_limit(600);
+        core_App::setTimeLimit(1200);
         
         // Извличане на мастър-записа
         expect($rec = $this->class->fetchRec($id));
