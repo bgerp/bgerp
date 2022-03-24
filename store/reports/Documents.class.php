@@ -115,7 +115,7 @@ class store_reports_Documents extends frame2_driver_TableData
         while ($sRec = $sQuery->fetch()) {
             if ($rec->typeOfWorker == 'stWorker' && bgerp_plg_FLB::canUse('store_Stores', $sRec, $cu)) {
                 $res[$sRec->id] = store_Stores::getTitleById($sRec->id, false);
-            }else{
+            }elseif ($rec->typeOfWorker == 'logWorker'){
                 $res[$sRec->id] = store_Stores::getTitleById($sRec->id, false);
             }
         }
