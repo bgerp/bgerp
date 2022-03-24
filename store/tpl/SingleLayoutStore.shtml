@@ -40,6 +40,10 @@
                                 </td>
                             </tr>
                             <!--ET_END creation-->
+                            <tr>
+                                <td class='dt'>|Подготовка преди експедиция|*:</td>
+                                <td>[#preparationBeforeShipment#]</td>
+                            </tr>
                             <!--ET_BEGIN CloseTime-->
                             <tr>
                                 <td class='dt'>|Затваряне на нишките|*:</td>
