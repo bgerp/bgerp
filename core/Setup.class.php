@@ -420,6 +420,7 @@ class core_Setup extends core_ProtoSetup
         'core_Forwards',
         'core_Updates',
         'core_Permanent',
+        'migrate::clearCallOnTimeBadData2212',
         'migrate::repairSearchKeywords31920',
         'migrate::setBGERPUNIQId3020'
     );
@@ -846,5 +847,14 @@ class core_Setup extends core_ProtoSetup
     function setBGERPUNIQId3020()
     {
         $this->setBGERPUniqId(true);
+    }
+
+
+    /**
+     * Изчиства лошите данни от core_CallOnTime
+     */
+    function clearCallOnTimeBadData2212()
+    {
+        core_CallOnTime::delete(array("#callOn < '[#1#]' AND #state = 'pending' AND #methodName = 'repairSerchKeywords'", dt::subtractSecs(30 * 86400)));
     }
 }

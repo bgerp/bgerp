@@ -74,6 +74,9 @@ class core_Backup extends core_Mvc
             unlink($file);
         }
 
+        // Изчистваме стари процесорни индикатори
+        $processes = glob(self::getTempPath() . '*.bpr');
+
         core_App::setTimeLimit(120);
         
         // Мета-данни за бекъпа
@@ -94,6 +97,7 @@ class core_Backup extends core_Mvc
         
         foreach ($mvcArr as $className) {
             if (!cls::load($className, true)) {
+                self::fLog("Липсва клас `{$className}`");
                 continue;
             }
             
@@ -102,23 +106,47 @@ class core_Backup extends core_Mvc
             
             // Пропускаме класовете, които имат модели в други бази данни
             if (!self::hasEqualDb($this, $mvc)) {
+                self::fLog("DB е различна за `{$className}`");
                 continue;
             }
             
             if ($mvc->dbTableName) {
                 list($exists, $cnt, $lmt) = $this->getTableInfo($mvc);
                 if ($exists && !isset($instArr[$mvc->dbTableName])) {
-                    $instArr[$mvc->dbTableName] = null;
+                  //  $instArr[$mvc->dbTableName] = null;
                 }
             }
-            if (!$mvc->dbTableName || (isset($mvc->doReplication) && !$mvc->doReplication) || !$exists || !$cnt || isset($instArr[$mvc->dbTableName])) {
+
+            if (!$mvc->dbTableName) {
+                self::fLog("Липсва dbTabeName за `{$className}`");
                 continue;
             }
+
+            if (isset($mvc->doReplication) && !$mvc->doReplication) {
+                self::fLog("Изключен бекъп за `{$className}`");
+                continue;
+            }
+
+            if (!$exists) {
+                self::fLog("Липсва таблица в DB за `{$className}`");
+                continue;
+            }
+            
+            if (!$cnt) {
+                self::fLog("Липват записи за `{$className}`");
+                continue;
+            }
+
+            if (isset($instArr[$mvc->dbTableName])) {
+                self::fLog("Повтарящ се клас клас `{$className}`");
+                continue;
+            }
+
             $instArr[$mvc->dbTableName] = $mvc;
             $this->lmt[$mvc->dbTableName] = $lmt;
             $lockTables .= ",`{$mvc->dbTableName}` READ";
         }
-        
+       
         uksort($instArr, array($this, 'compLmt'));
         
         // Правим пробно експортиране на всички таблици, без заключване
@@ -302,19 +330,19 @@ class core_Backup extends core_Mvc
      */
     public function exportTables($instArr, &$tables, $maxLmt = null)
     {
-        self::fLog("Начало на експортирането на таблиците");
+        self::fLog("Начало на експортирането на таблиците общо " . count($instArr) . ' бр');
 
         if(!isset($maxLmt)) {
-            $maxLmt = time();
+            $maxLmt = time() + 1000000;
         }
 
-        // Изчистваме останали процесни инфикатори
-        $processes = glob(self::getTempPath() . '*.bpr');
+        // Изчистваме останали процесни индикатори
         if(is_array($processes)) {
             foreach($processes as $file) {
                 unlink($file);
             }
         }
+
         $pass = core_Setup::get('BACKUP_PASS');
         $addCrc32 = crc32(EF_SALT . $pass);
         
@@ -322,12 +350,19 @@ class core_Backup extends core_Mvc
             core_App::setTimeLimit(120);
             
             if ($inst === null) {
+                self::fLog("Таблицата {$table} има null за инстанция");
+
                 continue;
             }
             
             list($exists, $cnt, $lmt) = $this->getTableInfo($inst);
-            
-            if($lmt > $maxLmt) continue;
+            self::fLog("Таблицата {$table} съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
+
+
+            if($lmt > $maxLmt) {
+                self::fLog("Таблицата {$table} {$lmt} > {$maxLmt} е последно модифицирана след " .  date('m/d/Y H:i:s', $maxLmt));
+                continue;
+            }
 
             if (isset($inst->backupMaxRows, $inst->backupDiffFields)) {
                 $maxId = $inst->db->getNextId($table);
@@ -401,8 +436,6 @@ class core_Backup extends core_Mvc
 
             return;
         }
-
-        
 
         $className = cls::getClassName($inst);
 
@@ -1058,7 +1091,7 @@ class core_Backup extends core_Mvc
     static function fLog($msg)
     {
         $file = self::getTempPath('log.txt');
-        $msg = date('Y-m-d H:i:s') . ' ' . $msg . PHP_EOL;
-        file_put_contents($file, $msg, FILE_APPEND);
+        $msg = date('Y-m-d H:i:s') . ' ' . $msg .  ' ;' . PHP_EOL;
+        file_put_contents($file, $msg, FILE_APPEND | LOCK_EX);
     }
 }
