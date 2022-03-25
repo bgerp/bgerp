@@ -2421,4 +2421,42 @@ abstract class deals_Helper
 
         return empty($count);
     }
+
+
+    /**
+     * Сумира артикулите с техните количества в модела
+     *
+     * @param mixed $detail           - детайл
+     * @param int $masterId           - ид на мастъра
+     * @param boolean $onlyStorable   - дали да са само складируеми
+     * @param string $productFldName  - име на полето с ид-то на артикула
+     * @param string $quantityFldName - име на полето с к-то на артикула
+     *
+     * @return array $products
+     */
+    public static function sumProductsByQuantity($detail, $masterId, $onlyStorable = false, $productFldName = 'productId', $quantityFldName = 'quantity')
+    {
+        $Detail = cls::get($detail);
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$masterId}");
+        $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey={$productFldName}");
+        if($Detail instanceof store_InternalDocumentDetail){
+            $dQuery->XPR('totalQuantity', 'double', "SUM(#packQuantity * #quantityInPack)");
+        } else {
+            $dQuery->XPR('totalQuantity', 'double', "SUM(#{$quantityFldName})");
+        }
+
+        if($onlyStorable){
+            $dQuery->where("#canStore = 'yes'");
+        }
+        $dQuery->groupBy($productFldName);
+        $dQuery->show("{$productFldName},totalQuantity");
+        $products = array();
+        while($dRec = $dQuery->fetch()){
+            $products[$dRec->{$productFldName}] = $dRec->totalQuantity;
+        }
+
+        return $products;
+    }
+
 }

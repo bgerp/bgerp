@@ -423,4 +423,20 @@ class store_Stores extends core_Master
     {
         $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
     }
+
+
+    /**
+     * На коя дата стоката ще е готова да напусне склада
+     *
+     * @param int $storeId - ид на склад
+     * @param $date        - крайна дата
+     * @return datetime    - крайната дата с приспаднато времето за предварителна подготовка в склада
+     */
+    public static function getDefaultLoadingDate($storeId, $date)
+    {
+        $storeBeforeShipmentTime = store_Stores::fetchField($storeId, 'preparationBeforeShipment');
+        $storeBeforeShipmentTime = ($storeBeforeShipmentTime) ? $storeBeforeShipmentTime : store_Setup::get('PREPARATION_BEFORE_SHIPMENT');
+
+        return dt::addSecs(-1 * $storeBeforeShipmentTime, $date);
+    }
 }

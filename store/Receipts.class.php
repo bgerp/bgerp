@@ -366,4 +366,46 @@ class store_Receipts extends store_DocumentMaster
             core_Lg::pop();
         }
     }
+
+
+    /**
+     * Kои са полетата за датите за експедирането
+     *
+     * @param mixed $rec
+     * @return array $res
+     */
+    public function getShipmentDateFields($rec = null)
+    {
+        $res = array('loadingOn'   => array('caption' => 'Натоварване', 'type' => 'datetime', 'alias' => 'deliveryOn'),
+                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => 'datetime', 'alias' => 'unloadingOn', 'readOnlyIfActive' => true),);
+
+        return $res;
+    }
+
+
+    /**
+     * Връща датите на които ще има действия с документа
+     *
+     * @param int|stdClass $rec
+     * @return array
+     *          ['readyOn']    - готовност на
+     *          ['shipmentOn'] - експедиране на
+     *          ['loadingOn']  - натоварване на
+     *          ['unloadingOn']  - натоварване на
+     *          ['deliveryOn'] - доставка на
+     *          ['valior']     - вальор на
+     */
+    public function getCalcedDates($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+
+        $res  = array();
+        $res['valior'] = $rec->valior;
+        $res['unloadingOn'] = !empty($rec->deliveryTime) ? $rec->deliveryTime : (!empty($res['unloadingOn']) ? $firstDoc->fetchField('deliveryTime') : null);
+        $res['loadingOn'] = !empty($rec->loadingOn) ? $rec->loadingOn : null;
+
+        return $res;
+    }
 }
+

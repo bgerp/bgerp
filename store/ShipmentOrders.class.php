@@ -742,4 +742,65 @@ class store_ShipmentOrders extends store_DocumentMaster
             $mvc->save_($rec, 'additionalConditions');
         }
     }
+
+
+    /**
+     * Връща датите на които ще има действия с документа
+     *
+     * @param int|stdClass $rec
+     * @return array
+     *          ['readyOn']    - готовност на
+     *          ['shipmentOn'] - експедиране на
+     *          ['loadingOn']  - натоварване на
+     *          ['unloadingOn']  - натоварване на
+     *          ['deliveryOn'] - доставка на
+     *          ['valior']     - вальор на
+     */
+    public function getCalcedDates($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+
+        $res  = array('deliveryOn' => !empty($rec->deliveryOn) ? $rec->deliveryOn : $firstDoc->fetchField('deliveryTime'));
+        $res['valior'] = $rec->valior;
+        $res['loadingOn'] = !empty($rec->deliveryTime) ? $rec->deliveryTime : (!empty($res['deliveryOn']) ? store_Stores::getDefaultLoadingDate($rec->storeId, $res['deliveryOn']) : null);
+        $res['shipmentOn'] = !empty($rec->shipmentOn) ? $rec->shipmentOn : $rec->valior;
+        $lineAddedOn = isset($rec->lineId) ? trans_LineDetails::fetchField("#containerId = {$rec->containerId} AND #lineId = {$rec->lineId}", 'createdOn') : null;
+        setIfNot($res['shipmentOn'],$rec->valior, $lineAddedOn,$rec->activatedOn);
+        $res['readyOn'] = !empty($rec->readyOn) ? $rec->readyOn : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+
+        return $res;
+    }
+
+
+    /**
+     * Коя е най-ранната дата на която са налични всички документи
+     *
+     * @param $rec
+     * @return date|null
+     */
+    public function getEarliestDateAllProductsAreAvailableInStore($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $products = deals_Helper::sumProductsByQuantity('store_ShipmentOrderDetails', $rec->id, true);
+
+        return store_StockPlanning::getEarliestDateAllAreAvailable($rec->storeId, $products);
+    }
+
+
+    /**
+     * Kои са полетата за датите за експедирането
+     *
+     * @param mixed $rec
+     * @return array $res
+     */
+    public function getShipmentDateFields($rec = null)
+    {
+        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'alias' => 'readyOn', 'readOnlyIfActive' => true),
+                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime', 'alias' => 'loadingOn', 'readOnlyIfActive' => true),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime', 'alias' => 'shipmentOn', 'readOnlyIfActive' => false),
+                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime', 'alias' => 'deliveryOn', 'readOnlyIfActive' => false),);
+
+        return $res;
+    }
 }

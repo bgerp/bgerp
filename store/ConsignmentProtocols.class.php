@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -173,8 +173,8 @@ class store_ConsignmentProtocols extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,modifiedOn';
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -669,5 +669,66 @@ class store_ConsignmentProtocols extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Kои са полетата за датите за експедирането
+     *
+     * @param mixed $rec
+     * @return array $res
+     */
+    public function getShipmentDateFields($rec = null)
+    {
+        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'alias' => 'readyOn', 'readOnlyIfActive' => true),
+                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime', 'alias' => 'loadingOn', 'readOnlyIfActive' => true),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime', 'alias' => 'shipmentOn', 'readOnlyIfActive' => false),
+                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime', 'alias' => 'deliveryOn', 'readOnlyIfActive' => false),);
+
+        return $res;
+    }
+
+
+    /**
+     * Връща датите на които ще има действия с документа
+     *
+     * @param int|stdClass $rec
+     * @return array
+     *          ['readyOn']    - готовност на
+     *          ['shipmentOn'] - експедиране на
+     *          ['loadingOn']  - натоварване на
+     *          ['unloadingOn']  - натоварване на
+     *          ['deliveryOn'] - доставка на
+     *          ['valior']     - вальор на
+     */
+    public function getCalcedDates($rec)
+    {
+        $rec = $this->fetchRec($rec);
+
+        $res  = array('deliveryOn' => !empty($rec->deliveryOn) ? $rec->deliveryOn : null);
+        $res['valior'] = $rec->valior;
+        $res['loadingOn'] = !empty($rec->deliveryTime) ? $rec->deliveryTime : (!empty($res['deliveryOn']) ? store_Stores::getDefaultLoadingDate($rec->fromStore, $res['deliveryOn']) : null);
+        $res['shipmentOn'] = !empty($rec->shipmentOn) ? $rec->shipmentOn : $rec->valior;
+        $lineAddedOn = isset($rec->lineId) ? trans_LineDetails::fetchField("#containerId = {$rec->containerId} AND #lineId = {$rec->lineId}", 'createdOn') : null;
+        setIfNot($res['shipmentOn'],$rec->valior, $lineAddedOn,$rec->activatedOn);
+        $res['readyOn'] = !empty($rec->readyOn) ? $rec->readyOn : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+
+        return $res;
+    }
+
+
+    /**
+     * Коя е най-ранната дата на която са налични всички документи
+     *
+     * @param $rec
+     * @return date|null
+     */
+    public function getEarliestDateAllProductsAreAvailableInStore($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $detail = ($rec->productType == 'ours') ? 'store_ConsignmentProtocolDetailsSend' : 'store_ConsignmentProtocolDetailsReceived';
+        $products = deals_Helper::sumProductsByQuantity($detail, $rec->id, true);
+
+        return store_StockPlanning::getEarliestDateAllAreAvailable($rec->storeId, $products);
     }
 }
