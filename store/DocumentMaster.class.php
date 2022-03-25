@@ -178,7 +178,9 @@ abstract class store_DocumentMaster extends core_Master
 
         $deliveryTimeDefault = $dealInfo->get('deliveryTime');
         if(!empty($rec->storeId) && $origin->isInstanceOf('sales_Sales')){
-            $deliveryTimeDefault = store_Stores::getDefaultLoadingDate($rec->storeId, $dealInfo->get('deliveryTime'));
+            if($dealInfo->get('deliveryTime')){
+                $deliveryTimeDefault = store_Stores::getDefaultLoadingDate($rec->storeId, $dealInfo->get('deliveryTime'));
+            }
         }
 
         $form->setDefault('deliveryTime', $deliveryTimeDefault);
