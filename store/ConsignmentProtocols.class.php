@@ -186,6 +186,8 @@ class store_ConsignmentProtocols extends core_Master
         
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
+        $this->FLD('deliveryTime', 'datetime','caption=Натоварване');
+        $this->FLD('deliveryOn', 'datetime','caption=Доставка');
         $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
 
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
@@ -680,38 +682,15 @@ class store_ConsignmentProtocols extends core_Master
      */
     public function getShipmentDateFields($rec = null)
     {
-        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'alias' => 'readyOn', 'readOnlyIfActive' => true),
-                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime', 'alias' => 'loadingOn', 'readOnlyIfActive' => true),
-                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime', 'alias' => 'shipmentOn', 'readOnlyIfActive' => false),
-                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime', 'alias' => 'deliveryOn', 'readOnlyIfActive' => false),);
+        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
+                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime', 'readOnlyIfActive' => true, "input" => "input"),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input=hidden"),
+                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input"));
 
-        return $res;
-    }
-
-
-    /**
-     * Връща датите на които ще има действия с документа
-     *
-     * @param int|stdClass $rec
-     * @return array
-     *          ['readyOn']    - готовност на
-     *          ['shipmentOn'] - експедиране на
-     *          ['loadingOn']  - натоварване на
-     *          ['unloadingOn']  - натоварване на
-     *          ['deliveryOn'] - доставка на
-     *          ['valior']     - вальор на
-     */
-    public function getCalcedDates($rec)
-    {
-        $rec = $this->fetchRec($rec);
-
-        $res  = array('deliveryOn' => !empty($rec->deliveryOn) ? $rec->deliveryOn : null);
-        $res['valior'] = $rec->valior;
-        $res['loadingOn'] = !empty($rec->deliveryTime) ? $rec->deliveryTime : (!empty($res['deliveryOn']) ? store_Stores::getDefaultLoadingDate($rec->fromStore, $res['deliveryOn']) : null);
-        $res['shipmentOn'] = !empty($rec->shipmentOn) ? $rec->shipmentOn : $rec->valior;
-        $lineAddedOn = isset($rec->lineId) ? trans_LineDetails::fetchField("#containerId = {$rec->containerId} AND #lineId = {$rec->lineId}", 'createdOn') : null;
-        setIfNot($res['shipmentOn'],$rec->valior, $lineAddedOn,$rec->activatedOn);
-        $res['readyOn'] = !empty($rec->readyOn) ? $rec->readyOn : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+        if(isset($rec)){
+            $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['shipmentOn']['placeholder'] = trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+        }
 
         return $res;
     }

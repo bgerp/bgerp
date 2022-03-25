@@ -2458,5 +2458,4 @@ abstract class deals_Helper
 
         return $products;
     }
-
 }

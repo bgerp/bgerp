@@ -202,4 +202,22 @@ abstract class trans_Helper
         
         return (serialize($arr1) == serialize($arr2));
     }
+
+
+    /**
+     * Коя от датите ще се използва за експедиране
+     *
+     * @param date $valior          - вальор
+     * @param int $lineId           - ид на транспортна линия (ако има)
+     * @param datetime $activatedOn - дата на активиране
+     * @return datetime|null        - изчислената дата за експедиране
+     */
+    public static function calcShippedOnDate($valior, $lineId, $activatedOn)
+    {
+        if(!empty($valior)) return $valior;
+
+        if(isset($lineId)) return trans_Lines::fetchField($lineId, 'start');
+
+        return $activatedOn;
+    }
 }

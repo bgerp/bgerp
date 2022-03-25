@@ -69,7 +69,7 @@ class trans_plg_LinesPlugin extends core_Plugin
 
             $dateFields = $mvc->getShipmentDateFields();
             foreach ($dateFields as $dateField => $dateObj){
-                $mvc->FLD($dateField, $dateObj['type'], "input=hidden,caption={$dateObj['caption']},forceField");
+                $mvc->FLD($dateField, $dateObj['type'], "{$dateObj['input']},caption={$dateObj['caption']},forceField");
             }
         }
     }
@@ -130,18 +130,17 @@ class trans_plg_LinesPlugin extends core_Plugin
         $lineDateFields = null;
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
             $lineDateFields = $mvc->getShipmentDateFields($rec);
-            $calcedDates = $mvc->getCalcedDates($rec);
             foreach ($lineDateFields as $dateField => $dateObj){
                 $form->FLD($dateField, $dateObj['type'], "caption=Времена->{$dateObj['caption']},forceField");
                 $form->setDefault($dateField, $rec->{$dateField});
                 if(!in_array($rec->state, array('draft', 'pending'))){
                     if($dateObj['readOnlyIfActive']){
                         $form->setReadOnly($dateField);
-                        unset($calcedDates[$dateObj['alias']]);
                     }
                 }
-                if(isset($calcedDates[$dateObj['alias']])){
-                    $placeholder = $form->getFieldType($dateField)->toVerbal($calcedDates[$dateObj['alias']]);
+
+                if(isset($dateObj['placeholder'])){
+                    $placeholder = $form->getFieldType($dateField)->toVerbal($dateObj['placeholder']);
                     $form->setField($dateField, "placeholder={$placeholder}");
                 }
             }

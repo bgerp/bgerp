@@ -104,7 +104,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('valior', 'date', 'caption=Дата');
         $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута,smartCenter');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
-        $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory');
+        $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory,silent,removeAndRefreshForm=deliveryTime');
         $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=ДДС,input=hidden');
         
         $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено->Сума,input=none,summary=amount,smartCenter'); // Сумата на доставената стока
@@ -175,7 +175,14 @@ abstract class store_DocumentMaster extends core_Master
         $form->setDefault('currencyId', $dealInfo->get('currency'));
         $form->setDefault('currencyRate', $dealInfo->get('rate'));
         $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
-        $form->setDefault('deliveryTime', $dealInfo->get('deliveryTime'));
+
+        $deliveryTimeDefault = $dealInfo->get('deliveryTime');
+        if(!empty($rec->storeId) && $origin->isInstanceOf('sales_Sales')){
+            $deliveryTimeDefault = store_Stores::getDefaultLoadingDate($rec->storeId, $dealInfo->get('deliveryTime'));
+        }
+
+        $form->setDefault('deliveryTime', $deliveryTimeDefault);
+        $form->setDefault('deliveryOn', $dealInfo->get('deliveryTime'));
         $form->setDefault('chargeVat', $dealInfo->get('vatType'));
         $form->setDefault('storeId', $dealInfo->get('storeId'));
 

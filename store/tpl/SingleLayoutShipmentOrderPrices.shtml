@@ -84,6 +84,19 @@
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
+                  <!--ET_BEGIN shipmentOn-->
+                  <tr>
+                     <td class='quiet nowrap aright' style="width: 1%">|Експедиране|*:</td>
+                     <td>[#shipmentOn#]</td>
+                  </tr>
+                  <!--ET_END shipmentOn-->
+
+                  <!--ET_BEGIN deliveryOn-->
+                  <tr>
+                     <td class='quiet nowrap aright' style="width: 1%">|Доставка|*:</td>
+                     <td>[#deliveryOn#]</td>
+                  </tr>
+                  <!--ET_END deliveryOn-->
                   <!--ET_BEGIN deliveryAddressBlock-->
                   [#deliveryAddressBlock#]
                   <tr>

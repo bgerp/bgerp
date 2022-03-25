@@ -23,24 +23,6 @@ class store_iface_DocumentIntf
 
 
     /**
-     * Връща датите на които ще има действия с документа
-     *
-     * @param int|stdClass $rec
-     * @return array
-     *          ['readyOn']    - готовност на
-     *          ['shipmentOn'] - експедиране на
-     *          ['loadingOn']  - натоварване на
-     *          ['unloadingOn']  - натоварване на
-     *          ['deliveryOn'] - доставка на
-     *          ['valior']     - вальор на
-     */
-    public function getCalcedDates($rec)
-    {
-        return $this->class->getCalcedDates($rec);
-    }
-
-
-    /**
      * Kои са полетата за датите за експедирането
      *
      * @param mixed $rec

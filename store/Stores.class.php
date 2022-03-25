@@ -436,6 +436,7 @@ class store_Stores extends core_Master
     {
         $storeBeforeShipmentTime = store_Stores::fetchField($storeId, 'preparationBeforeShipment');
         $storeBeforeShipmentTime = ($storeBeforeShipmentTime) ? $storeBeforeShipmentTime : store_Setup::get('PREPARATION_BEFORE_SHIPMENT');
+        $storeBeforeShipmentTime = empty($storeBeforeShipmentTime) ? 0 : $storeBeforeShipmentTime;
 
         return dt::addSecs(-1 * $storeBeforeShipmentTime, $date);
     }

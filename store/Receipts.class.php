@@ -193,8 +193,8 @@ class store_Receipts extends store_DocumentMaster
     {
         parent::setDocFields($this);
         $this->setField('storeId', 'caption=В склад');
-        $this->setField('deliveryTime', 'caption=Разтоварване');
-
+        $this->FLD('loadingOn', 'datetime','caption=Натоварване,after=locationId');
+        $this->setField('deliveryTime', 'caption=Разтоварване,after=loadingOn');
         $this->setField('prevShipment', 'caption=Адрес за натоварване->Избор');
         $this->setField('company', 'caption=Адрес за натоварване->Фирма');
         $this->setField('person', 'caption=Адрес за натоварване->Име');
@@ -376,34 +376,8 @@ class store_Receipts extends store_DocumentMaster
      */
     public function getShipmentDateFields($rec = null)
     {
-        $res = array('loadingOn'   => array('caption' => 'Натоварване', 'type' => 'datetime', 'alias' => 'deliveryOn'),
-                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => 'datetime', 'alias' => 'unloadingOn', 'readOnlyIfActive' => true),);
-
-        return $res;
-    }
-
-
-    /**
-     * Връща датите на които ще има действия с документа
-     *
-     * @param int|stdClass $rec
-     * @return array
-     *          ['readyOn']    - готовност на
-     *          ['shipmentOn'] - експедиране на
-     *          ['loadingOn']  - натоварване на
-     *          ['unloadingOn']  - натоварване на
-     *          ['deliveryOn'] - доставка на
-     *          ['valior']     - вальор на
-     */
-    public function getCalcedDates($rec)
-    {
-        $rec = $this->fetchRec($rec);
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-
-        $res  = array();
-        $res['valior'] = $rec->valior;
-        $res['unloadingOn'] = !empty($rec->deliveryTime) ? $rec->deliveryTime : (!empty($res['unloadingOn']) ? $firstDoc->fetchField('deliveryTime') : null);
-        $res['loadingOn'] = !empty($rec->loadingOn) ? $rec->loadingOn : null;
+        $res = array('loadingOn'   => array('caption' => 'Натоварване', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input"),
+                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => 'datetime', 'readOnlyIfActive' => true, "input" => "input"),);
 
         return $res;
     }

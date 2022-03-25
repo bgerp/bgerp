@@ -233,8 +233,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-
-        $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryTime');
+        $this->FLD('deliveryOn', 'datetime', 'input,caption=Доставка до,after=deliveryTime');
+        $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
         $this->setField('deliveryTime', 'caption=Натоварване');
@@ -254,6 +254,7 @@ class store_ShipmentOrders extends store_DocumentMaster
             expect($origin = static::getOrigin($rec), $rec);
             if ($origin->isInstanceOf('sales_Sales')) {
                 $data->form->FNC('importProducts', 'enum(notshipped=Неекспедирани (Всички),stocked=Неекспедирани и налични,notshippedstorable=Неекспедирани (Складируеми),notshippedservices=Неекспедирани (Услуги),services=Услуги (Всички),all=Всички)', 'caption=Артикули, input,after=responsible');
+
             }
         }
     }
@@ -745,35 +746,6 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
-     * Връща датите на които ще има действия с документа
-     *
-     * @param int|stdClass $rec
-     * @return array
-     *          ['readyOn']    - готовност на
-     *          ['shipmentOn'] - експедиране на
-     *          ['loadingOn']  - натоварване на
-     *          ['unloadingOn']  - натоварване на
-     *          ['deliveryOn'] - доставка на
-     *          ['valior']     - вальор на
-     */
-    public function getCalcedDates($rec)
-    {
-        $rec = $this->fetchRec($rec);
-        $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
-
-        $res  = array('deliveryOn' => !empty($rec->deliveryOn) ? $rec->deliveryOn : $firstDoc->fetchField('deliveryTime'));
-        $res['valior'] = $rec->valior;
-        $res['loadingOn'] = !empty($rec->deliveryTime) ? $rec->deliveryTime : (!empty($res['deliveryOn']) ? store_Stores::getDefaultLoadingDate($rec->storeId, $res['deliveryOn']) : null);
-        $res['shipmentOn'] = !empty($rec->shipmentOn) ? $rec->shipmentOn : $rec->valior;
-        $lineAddedOn = isset($rec->lineId) ? trans_LineDetails::fetchField("#containerId = {$rec->containerId} AND #lineId = {$rec->lineId}", 'createdOn') : null;
-        setIfNot($res['shipmentOn'],$rec->valior, $lineAddedOn,$rec->activatedOn);
-        $res['readyOn'] = !empty($rec->readyOn) ? $rec->readyOn : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
-
-        return $res;
-    }
-
-
-    /**
      * Коя е най-ранната дата на която са налични всички документи
      *
      * @param $rec
@@ -796,10 +768,15 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public function getShipmentDateFields($rec = null)
     {
-        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'alias' => 'readyOn', 'readOnlyIfActive' => true),
-                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime', 'alias' => 'loadingOn', 'readOnlyIfActive' => true),
-                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime', 'alias' => 'shipmentOn', 'readOnlyIfActive' => false),
-                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime', 'alias' => 'deliveryOn', 'readOnlyIfActive' => false),);
+        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
+                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime', 'readOnlyIfActive' => true, "input" => "input"),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input=hidden"),
+                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input"));
+
+        if(isset($rec)){
+            $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['shipmentOn']['placeholder'] = trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+        }
 
         return $res;
     }
