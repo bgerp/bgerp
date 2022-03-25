@@ -660,7 +660,6 @@ abstract class store_DocumentMaster extends core_Master
             $aggregator->setIfNot('deliveryLocation', $rec->locationId);
         }
 
-        $aggregator->setIfNot('deliveryTime', $rec->deliveryTime);
         $aggregator->setIfNot('storeId', $rec->storeId);
         $aggregator->setIfNot('shippedValior', $rec->valior);
         
