@@ -75,7 +75,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('firstMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 1,after=compare,removeAndRefreshForm,single=none,input=none,silent');
         $fieldset->FLD('secondMonth', 'key(mvc=acc_Periods,select=title)', 'caption=Месец 2,after=firstMonth,removeAndRefreshForm,single=none,input=none,silent');
         
-        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,after=to,mandatory');
+        $fieldset->FLD('dealers', 'users(rolesForAll=ceo|repAllGlobal, rolesForTeams=ceo|manager|repAll|repAllGlobal)', 'caption=Търговци,single=none,input=none,after=to,silent,mandatory');
         
         $fieldset->FLD('contragent', 'keylist(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагенти->Контрагент,placeholder=Всички,single=none,after=dealers');
         $fieldset->FLD('crmGroup', 'keylist(mvc=crm_Groups,select=name)', 'caption=Контрагенти->Група контрагенти,placeholder=Всички,after=contragent,single=none');
@@ -85,7 +85,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $fieldset->FLD('group', 'keylist(mvc=cat_Groups,select=name)', 'caption=Артикули->Групи артикули,after=category,removeAndRefreshForm,placeholder=Всички,silent,single=none');
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули->Артикули,placeholder=Всички,after=group,single=none,input=none,class=w100');
         $fieldset->FLD('articleType', 'enum(yes=Стандартни,no=Нестандартни,all=Всички)', 'caption=Артикули->Тип артикули,maxRadio=3,columns=3,after=productId,single=none');
-        $fieldset->FLD('quantityType', 'enum(shipped=Експедирани, ordered=Поръчани)', 'caption=Артикули->Количества,maxRadio=2,columns=2,after=articleType');
+        $fieldset->FLD('quantityType', 'enum(shipped=Експедирани, ordered=Поръчани,invoiced=Фактурирано)', 'caption=Артикули->Количества,removeAndRefreshForm,silent,after=articleType');
         
         //Покаване на резултата
         $fieldset->FLD('grouping', 'enum(yes=По групи, no=По артикули)', 'caption=Показване->Вид,removeAndRefreshForm,after=quantityType');
@@ -133,7 +133,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                                   За да сравнявате периоди по-големи от 1 година, използвайте сравнение с "предходен" период');
                 }
             }
-            
+
             //Проверка за правилна подредба
             if (($form->rec->orderBy == 'code') && ($form->rec->grouping == 'yes')) {
                 $form->setError('orderBy', 'При ГРУПИРАНО показване не може да има подредба по КОД.');
@@ -248,7 +248,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $form->setDefault('order', 'desc');
         
         $form->setDefault('quantityType', 'shipped');
-        
+
+        if ($rec->quantityType != 'invoiced'){
+
+            $form->setField('dealers', 'input');
+        }
+
         if ($rec->seeByContragent == 'yes') {
             $form->setField('products', 'input');
             
@@ -394,22 +399,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         //Подготвяме масив с фактурираните артикули през избрания период
         //разбити по контрагент
         if ($rec->seeByContragent == 'yes') {
-            $invDetQuery = sales_InvoiceDetails::getQuery();
 
-            $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
+            $invDetQuery =self::getInvoicedProducts($rec);
 
-            $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
-            
-            $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
-            
-            $invDetQuery->EXT('currencyId', 'sales_Invoices', 'externalName=currencyId,externalKey=invoiceId');
-            
-            $invDetQuery->EXT('date', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
-            
-            $invDetQuery->EXT('type', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
-            
-            $invDetQuery->EXT('folderId', 'sales_Invoices', 'externalName=folderId,externalKey=invoiceId');
-            
             $invDetQuery->where("#state = 'active'");
             
             $invDetQuery->where(array("#date >= '[#1#]' AND #date <= '[#2#]'",$rec->from, $rec->to));
@@ -464,7 +456,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             
             //не е бърза продажба//
             $query->where('#sellCost IS NOT NULL');
-        } else {
+        } elseif ($rec->quantityType == 'ordered') {
 
             //За заявени количества
             $query = sales_SalesDetails::getQuery();
@@ -478,8 +470,14 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $query->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
             
             $query->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+
+        }elseif ($rec->quantityType == 'invoiced'){
+
+            $query =self::getInvoicedProducts($rec);
+         // bp($rec,$query->fetchAll());
+
         }
-        
+
         $query->EXT('groupMat', 'cat_Products', 'externalName=groups,externalKey=productId');
         
         $query->EXT('prodFolderId', 'cat_Products', 'externalName=folderId,externalKey=productId');
@@ -487,7 +485,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $query->EXT('category', 'doc_Folders', 'externalName=coverId,externalKey=prodFolderId');
         
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
-        
+
         $query->in('state', array('rejected','stopped'), true);
         
         //Когато е БЕЗ СРАВНЕНИЕ
@@ -1025,6 +1023,39 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         array_unshift($recs, $totalArr['total']);
 
         return $recs;
+    }
+
+    /**
+     * Връща детайлите по фактурите
+     *
+     * @return array $invDetQuery
+     */
+    public static function getInvoicedProducts($rec)
+    {
+        $invDetQuery = array();
+
+        $invDetQuery = sales_InvoiceDetails::getQuery();
+
+        $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
+
+        $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
+
+        $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
+
+        $invDetQuery->EXT('currencyId', 'sales_Invoices', 'externalName=currencyId,externalKey=invoiceId');
+
+        $invDetQuery->EXT('date', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
+
+        $invDetQuery->EXT('valior', 'sales_Invoices', 'externalName=date,externalKey=invoiceId');
+
+        $invDetQuery->EXT('type', 'sales_Invoices', 'externalName=type,externalKey=invoiceId');
+
+        $invDetQuery->EXT('folderId', 'sales_Invoices', 'externalName=folderId,externalKey=invoiceId');
+
+        $invDetQuery->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
+
+        return $invDetQuery;
+
     }
     
     
