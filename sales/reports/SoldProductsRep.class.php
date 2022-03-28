@@ -486,7 +486,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
-        $query->in('state', array('rejected','stopped'), true);
+        $query->in('state', array('rejected','stopped','draft'), true);
         
         //Когато е БЕЗ СРАВНЕНИЕ
         if (($rec->compare) == 'no') {
