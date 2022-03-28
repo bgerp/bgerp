@@ -453,7 +453,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         if ($rec->quantityType == 'shipped') {
             $query = sales_PrimeCostByDocument::getQuery();
-            
+
             //не е бърза продажба//
             $query->where('#sellCost IS NOT NULL');
         } elseif ($rec->quantityType == 'ordered') {
@@ -474,7 +474,6 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }elseif ($rec->quantityType == 'invoiced'){
 
             $query =self::getInvoicedProducts($rec);
-         // bp($rec,$query->fetchAll());
 
         }
 
@@ -487,53 +486,53 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $query->EXT('code', 'cat_Products', 'externalName=code,externalKey=productId');
 
         $query->in('state', array('rejected','stopped','draft'), true);
-        
+
         //Когато е БЕЗ СРАВНЕНИЕ
         if (($rec->compare) == 'no') {
             $query->where("#valior >= '{$rec->from}' AND #valior <= '{$rec->to}'");
         }
-        
+
         // сравнение с ПРЕДХОДЕН ПЕРИОД  или ПО МЕСЕЦИ
         if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
             if (($rec->compare == 'previous')) {
                 $daysInPeriod = dt::daysBetween($rec->to, $rec->from) + 1;
-                
+
                 $fromPreviuos = dt::addDays(-$daysInPeriod, $rec->from, false);
-                
+
                 $toPreviuos = dt::addDays(-$daysInPeriod, $rec->to, false);
             }
-            
+
             if (($rec->compare == 'month')) {
                 $rec->from = (acc_Periods::fetch($rec->firstMonth)->start);
-                
+
                 $rec->to = (acc_Periods::fetch($rec->firstMonth)->end);
-                
+
                 $fromPreviuos = (acc_Periods::fetch($rec->secondMonth)->start);
-                
+
                 $toPreviuos = (acc_Periods::fetch($rec->secondMonth)->end);
             }
-            
+
             $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromPreviuos}' AND #valior <= '{$toPreviuos}')");
         }
-        
+
         // сравнение с ПРЕДХОДНА ГОДИНА
         if (($rec->compare) == 'year') {
             $fromLastYear = dt::addDays(-365, $rec->from);
             $toLastYear = dt::addDays(-365, $rec->to);
-            
+
             $query->where("(#valior >= '{$rec->from}' AND #valior <= '{$rec->to}') OR (#valior >= '{$fromLastYear}' AND #valior <= '{$toLastYear}')");
         }
-        
-        
+
+
         //Филтър за ДИЛЪР
-        if (isset($rec->dealers)) {
+        if ($rec->quantityType != 'invoiced' && isset($rec->dealers)) {
             if ((min(array_keys(keylist::toArray($rec->dealers))) >= 1)) {
                 $dealers = keylist::toArray($rec->dealers);
                 
                 $query->in('dealerId', $dealers);
             }
         }
-        
+
         //Филтър за КОНТРАГЕНТ и ГРУПИ КОНТРАГЕНТИ
         if ($rec->contragent || $rec->crmGroup) {
             $contragentsArr = array();
@@ -563,7 +562,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $query->in('folderId', $foldersInGroups);
             }
         }
-        
+
         //Филтър за АРТИКУЛ и ГРУПИ АРТИКУЛИ
         
         if ($rec->typeOfGroups == 'art') {
@@ -598,34 +597,37 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $query->orLikeKeylist($checkFieldName, $rec->$filterGroupsType);
             }
         }
-        
+
         //Филтър за стандартни артикули
         if ($rec->articleType != 'all') {
             $query->where("#isPublic = '{$rec->articleType}'");
         }
-        
+
         // Синхронизира таймлимита с броя записи
         $rec->count = $query->count();
-        
+
         $timeLimit = $query->count() * 0.05;
-        
+
         if ($timeLimit >= 30) {
             core_App::setTimeLimit($timeLimit);
         }
-        
+
         while ($recPrime = $query->fetch()) {
             $quantity = $primeCost = $delta = 0;
             $quantityPrevious = $primeCostPrevious = $deltaPrevious = 0;
             $quantityLastYear = $primeCostLastYear = $deltaLastYear = 0;
-            
+
             if ($rec->quantityType == 'shipped') {
                 $DetClass = cls::get($recPrime->detailClassId);
                 $price = 'sellCost';
-            } else {
+            } elseif ($rec->quantityType == 'ordered') {
                 $DetClass = cls::get('sales_SalesDetails');
                 $price = 'price';
+            }elseif ($rec->quantityType == 'invoiced') {
+                $DetClass = cls::get('sales_InvoiceDetails');
+
             }
-            
+
             $categoryId = doc_Folders::fetch($recPrime->prodFolderId)->coverId;
             
             //Ключ на масива
@@ -640,14 +642,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             //Данни за ПРЕДХОДЕН ПЕРИОД или МЕСЕЦ
             if (($rec->compare == 'previous') || ($rec->compare == 'month')) {
                 if ($recPrime->valior >= $fromPreviuos && $recPrime->valior <= $toPreviuos) {
+
                     if ($DetClass instanceof store_ReceiptDetails || $DetClass instanceof purchase_ServicesDetails) {
                         $quantityPrevious = (-1) * $recPrime->quantity;
                         $primeCostPrevious = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
                         $deltaPrevious = (-1) * $recPrime->delta;
-                    } else {
+                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails) {
                         $quantityPrevious = $recPrime->quantity;
                         $primeCostPrevious = $recPrime->{"${price}"} * $recPrime->quantity;
                         $deltaPrevious = $recPrime->delta;
+                    }elseif ($DetClass instanceof sales_InvoiceDetails) {
+
+                        $quantityPrevious = $recPrime->quantity * $recPrime->quantityInPack;
+                        $discount = $recPrime->price * $quantityPrevious * $recPrime->discount;
+                        $primeCostPrevious = ($recPrime->price * $quantityPrevious) - $discount;
+
                     }
                 }
             }
@@ -659,10 +668,16 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $quantityLastYear = (-1) * $recPrime->quantity;
                         $primeCostLastYear = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
                         $deltaLastYear = (-1) * $recPrime->delta;
-                    } else {
+                    } elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails) {
                         $quantityLastYear = $recPrime->quantity;
                         $primeCostLastYear = $recPrime->{"${price}"} * $recPrime->quantity;
                         $deltaLastYear = $recPrime->delta;
+                    }elseif ($DetClass instanceof sales_InvoiceDetails) {
+
+                        $quantityLastYear = $recPrime->quantity * $recPrime->quantityInPack;
+                        $discount = $recPrime->price * $quantityLastYear * $recPrime->discount;
+                        $primeCostLastYear = ($recPrime->price * $quantityLastYear) - $discount;
+
                     }
                 }
             }
@@ -675,15 +690,22 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $primeCost = (-1) * $recPrime->{"${price}"} * $recPrime->quantity;
                     
                     $delta = (-1) * $recPrime->delta;
-                } else {
+
+                }  elseif ($DetClass instanceof sales_SalesDetails || $DetClass instanceof store_ShipmentOrderDetails) {
                     $quantity = $recPrime->quantity;
                     
                     $primeCost = $recPrime->{"${price}"} * $recPrime->quantity;
                     
                     $delta = $recPrime->delta;
+                }elseif ($DetClass instanceof sales_InvoiceDetails) {
+
+                    $quantity = $recPrime->quantity * $recPrime->quantityInPack;
+                    $discount = $recPrime->price * $quantity * $recPrime->discount;
+                    $primeCost = ($recPrime->price * $quantity) - $discount;
+
                 }
             }
-            
+
             //Ако има избрана валута и тя е различна от основната преизчислява сумите
             if ($rec->currency && ($rec->currency != $baseCurrencyId)) {
                 $checkedCurrencyCode = currency_Currencies::getCodeById($rec->currency);
@@ -700,8 +722,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $invProd[$id]->invAmount *= $rate;
                 }
             }
-            
-            
+
             // Запис в масива
             if (!array_key_exists($id, $recs)) {
                 $recs[$id] = (object) array(
@@ -749,7 +770,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $obj->deltaLastYear += $deltaLastYear;
             }
         }
-        
+
         //Изчисляване на промяната в стойността на продажбите и делтите за артикул
         //добавя в масива пропъртита:
         //changePrimeCostPrevious,changeDeltaPrevious,changePrimeCostLastYear,changeDeltaLastYear
