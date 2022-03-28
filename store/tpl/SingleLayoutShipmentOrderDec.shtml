@@ -80,6 +80,12 @@
                <!--ET_BEGIN delivery_table-->
                [#delivery_table#]
                <table class='shipment-table' style='width: 100%'>
+                  <!--ET_BEGIN readyOn-->
+                  <tr>
+                     <td class='quiet nowrap aright' style="width: 1%">|Готовност|*:</td>
+                     <td>[#readyOn#]</td>
+                  </tr>
+                  <!--ET_END readyOn-->
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
                      <td class='quiet nowrap aright' style='width:1%'>|Натоварване|*:</td>

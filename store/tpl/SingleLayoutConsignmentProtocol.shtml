@@ -70,6 +70,12 @@
                                     <td>[#storeId#]</td>
                                 </tr>
                                 <!--ET_END storeId-->
+                                <!--ET_BEGIN readyOn-->
+                                <tr>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Готовност|*:</td>
+                                    <td>[#readyOn#]</td>
+                                </tr>
+                                <!--ET_END readyOn-->
                                 <!--ET_BEGIN deliveryTime-->
                                 <tr>
                                     <td class='quiet nowrap aright' style="width: 1%">|Натоварване|*:</td>

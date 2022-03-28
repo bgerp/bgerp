@@ -83,6 +83,12 @@
             <tr>
                 <td class="topCell first vtop"  style="width:50%">
                    <table class='shipment-table' style="width:100%">
+                       <!--ET_BEGIN readyOn-->
+                       <tr>
+                           <td class='quiet nowrap aright' style="width: 1%">Ready on:</td>
+                           <td>[#readyOn#]</td>
+                       </tr>
+                       <!--ET_END readyOn-->
                         <!--ET_BEGIN deliveryTime-->
                         <tr>
                             <td class='nowrap quiet aright' style="width:1%">Loading time:</td>
