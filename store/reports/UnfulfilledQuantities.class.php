@@ -129,8 +129,6 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $saleDetRecs = array();
         $shipDetRecs = array();
         $recs = array();
-
-        core_App::setTimeLimit(600);
         
         //Продажби
         $querySaleDetails = sales_SalesDetails::getQuery();
@@ -160,7 +158,14 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $querySaleDetails->where("#isPublic = 'yes'");
         
         $querySaleDetails->show('id,saleId,contragentClassId,contragentId,productId,threadId,folderId,quantity,createdOn');
-        
+
+        // Синхронизира таймлимита с броя записи
+        $timeLimit = $querySaleDetails->count() * 0.2;
+
+        if ($timeLimit >= 30) {
+            core_App::setTimeLimit($timeLimit);
+        }
+
         while ($saleArt = $querySaleDetails->fetch()) {
             $saleThreadsIds[] = $saleArt->threadId;
             $saleKey = $saleArt->threadId.'|'.$saleArt->productId;
