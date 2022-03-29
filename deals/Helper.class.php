@@ -261,7 +261,6 @@ abstract class deals_Helper
     {
         // Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
         $arr = array();
-        
         $values = (array) $values;
         $arr['currencyId'] = $currencyId;                          // Валута на документа
         
@@ -305,17 +304,12 @@ abstract class deals_Helper
             }
         }
         
-        if ($invoice) { // ако е фактура
-            //$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
-            //$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода
+        if ($invoice) {
             $arr['baseAmount'] = $arr['total'] * $currencyRate; // Данъчната основа
             $arr['baseAmount'] = ($arr['baseAmount']) ? $arr['baseAmount'] : "<span class='quiet'>0" . $pointSign . '00</span>';
             $arr['baseCurrencyId'] = $baseCurrency; 			// Валутата на данъчната основа е тази на периода
-        }   // ако не е фактура
-            //$arr['vatAmount'] = $values['vat']; 		// ДДС-то
-            //$arr['vatCurrencyId'] = $currencyId; 		// Валутата на ддс-то е тази на документа
-        
-        
+        }
+
         if (!$invoice && $chargeVat != 'separate') { 				 // ако документа не е фактура и не е с отделно ддс
             //unset($arr['vatAmount'], $arr['vatCurrencyId']); // не се показват данни за ддс-то
         } else { // ако е фактура или е сотделно ддс
@@ -330,14 +324,20 @@ abstract class deals_Helper
             $arr['sayWords'] = $SpellNumber->asCurrency($arr['total'], $lang, false, $currencyId);
             $arr['sayWords'] = str::mbUcfirst($arr['sayWords']);
         }
-        
+
+        if($arr['value'] != 0){
+            $arr['sayWordsValue'] = $SpellNumber->asCurrency($arr['value'], $lang, false, $currencyId);
+            $arr['sayWordsValue'] = str::mbUcfirst($arr['sayWordsValue']);
+        }
+
+        if($arr['neto'] != 0){
+            $arr['sayWordsNetto'] = $SpellNumber->asCurrency($arr['neto'], $lang, false, $currencyId);
+            $arr['sayWordsNetto'] = str::mbUcfirst($arr['sayWordsNetto']);
+        }
+
         $arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0" . $pointSign . '00</span>';
         $arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0" . $pointSign . '00</span>';
-        
-        if (!$arr['vatAmount'] && ($invoice || $chargeVat == 'separate')) {
-            //$arr['vatAmount'] = "<span class='quiet'>0" . $pointSign . "00</span>";
-        }
-        
+
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         
