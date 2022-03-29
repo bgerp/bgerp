@@ -1259,8 +1259,9 @@ abstract class deals_DealMaster extends deals_DealBase
             
             if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
                 $deliveryTermTime = $mvc->calcDeliveryTime($rec->id);
-                if ($deliveryTermTime) {
+                if (isset($deliveryTermTime)) {
                     $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
+                    $deliveryTermTime = "<span style='color:blue'>{$deliveryTermTime}</span>";
                     $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
                 }
             }
@@ -1321,7 +1322,7 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Най-големия срок на доставка
      *
-     * @param int $id
+     * @param int|stdClass $id
      * @return int|NULL
      */
     public function calcDeliveryTime($id)
