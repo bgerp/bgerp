@@ -765,7 +765,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     {
         $unsetFields = array($mvc->lineFieldName, $mvc->lineNoteFieldName);
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $unsetFields = array_merge($unsetFields, array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName));
+            $unsetFields = array_merge($unsetFields, array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName), array_keys($mvc->getShipmentDateFields()));
         }
 
         foreach ($unsetFields as $fld){

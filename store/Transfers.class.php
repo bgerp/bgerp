@@ -835,6 +835,11 @@ class store_Transfers extends core_Master
                      'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input"));
 
         if(isset($rec)){
+            if(isset($rec->deliveryOn)){
+                $preparationTime = store_Stores::getShipmentPreparationTime($rec->fromStore);
+                $res['deliveryTime']['placeholder'] = dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+            }
+
             $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec, $cache);
             $res['shipmentOn']['placeholder'] = trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
         }
