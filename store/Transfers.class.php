@@ -702,7 +702,7 @@ class store_Transfers extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
 
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+        $date = $this->getPlannedQuantityDate($rec);
         $Detail = cls::get('store_TransfersDetails');
 
         $dQuery = $Detail->getQuery();
@@ -845,5 +845,22 @@ class store_Transfers extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * За коя дата се заплануват наличностите
+     *
+     * @param stdClass $rec - запис
+     * @return datetime     - дата, за която се заплануват наличностите
+     */
+    public function getPlannedQuantityDate_($rec)
+    {
+        // Ако има ръчно въведена дата на доставка, връща се тя
+        if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
+
+        $preparationTime = store_Stores::getShipmentPreparationTime($rec->fromStore);
+
+        return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
     }
 }
