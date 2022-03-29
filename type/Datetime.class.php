@@ -67,8 +67,18 @@ class type_Datetime extends type_Date
         if (strlen($time) && strpos($this->params['defaultTime'], $time) === 0) {
             $time = '';
         }
-        
+
+        $datePlaceholder = $timePlaceholder = null;
+        if(isset($attr['placeholder'])){
+            list($datePlaceholder, $timePlaceholder) = explode(' ', $attr['placeholder']);
+        }
+
         $attr['value'] = $date;
+        if(isset($datePlaceholder)){
+            $datePlaceholder = dt::mysql2verbal($datePlaceholder, 'd.m.Y', null, false);
+        }
+
+        $attr['placeholder'] = $datePlaceholder;
         $input = $this->dt->renderInput($name . '[d]', null, $attr);
         $input->append('&nbsp;');
         
@@ -104,9 +114,18 @@ class type_Datetime extends type_Date
         } else {
             $ts = array('' => '', $time => $time);
         }
-        
+
+        if(isset($timePlaceholder)){
+            if(empty($date)){
+                list($h, $m) = explode(':', $timePlaceholder);
+                $timePlaceholder = "{$h}:{$m}";
+            } else {
+                $timePlaceholder = null;
+            }
+        }
+        $attr['placeholder'] = $timePlaceholder;
         $timeInput = ht::createCombo($name . '[t]', $time, $attr, $ts);
-        
+
         $input->append($timeInput);
         
         return $input;

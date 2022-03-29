@@ -66,6 +66,11 @@ class trans_plg_LinesPlugin extends core_Plugin
             $mvc->FLD('volumeInput', 'cat_type_Volume', 'input=none');
             $mvc->FLD('transUnits', 'blob(serialize, compress)', 'input=none');
             $mvc->FLD('transUnitsInput', 'blob(serialize, compress)', 'input=none');
+
+            $dateFields = $mvc->getShipmentDateFields();
+            foreach ($dateFields as $dateField => $dateObj){
+                $mvc->FLD($dateField, $dateObj['type'], "{$dateObj['input']},caption={$dateObj['caption']},forceField");
+            }
         }
     }
     
@@ -76,7 +81,8 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        
+        $row = $data->row;
+
         if ($rec->state != 'rejected') {
             if ($mvc->haveRightFor('changeline', $rec)) {
                 $attr = arr::make('ef_icon=img/16/lorry_go.png, title = Промяна на логистичните данни на документа');
@@ -92,6 +98,49 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         if (Request::get('editTrans')) {
             bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $mvc->getHandle($rec->id), 'editTrans' => true), '*');
+        }
+
+        if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
+            $dateFields = !in_array($rec->state, array('draft', 'pending')) ? $mvc->getShipmentDateFields() : $mvc->getShipmentDateFields($rec, true);
+            $datesArr = array();
+
+            // За дефолтните дати
+            foreach ($dateFields as $dateFld => $dateObj){
+                if(isset($dateObj['placeholder']) && empty($rec->{$dateFld})){
+                    $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
+                    if(!Mode::isReadOnly()){
+                        $row->{$dateFld} = "<span style='color:blue;'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
+                    }
+                    $datesArr[$dateFld] = $dateObj['placeholder'];
+                } elseif(isset($rec->{$dateFld})) {
+                    $datesArr[$dateFld] = $rec->{$dateFld};
+                }
+            }
+
+            // Ако не не са във възходящ ред да се оцветят в червено
+            if(!Mode::isReadOnly()){
+                $makeRed = false;
+                $firstVal = $datesArr[key($datesArr)];
+                foreach ($datesArr as $val){
+                    if($val < $firstVal) {
+                        $makeRed = true;
+                    }
+                }
+
+                $now = dt::now();
+                foreach ($datesArr as $dateFld => $dateVal){
+                    if($makeRed){
+                        $row->{$dateFld} = "<span class='red'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Има несъответствие между датите|*!', 'warning');
+                    }
+
+                    if(in_array($rec->state, array('draft', 'pending')) && $dateVal < $now){
+                        $row->{$dateFld} = "<span class='red'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Датата е в миналото|*!', 'warning');
+                    }
+                }
+            }
         }
     }
     
@@ -120,6 +169,27 @@ class trans_plg_LinesPlugin extends core_Plugin
         $form->FLD('lineFolderId', 'int', 'caption=Избор на Транспортна линия->От папка,silent,removeAndRefreshForm=lineId');
         $form->FLD('lineId', 'key(mvc=trans_Lines,select=title)', 'caption=Избор на Транспортна линия->Транспорт');
         $form->FLD('lineNotes', 'richtext(rows=2, bucket=Notes)', 'caption=Логистична информация->Забележки,after=volume');
+
+        // Показване на полетата за датите
+        $lineDateFields = null;
+        if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
+            $lineDateFields = $mvc->getShipmentDateFields($rec);
+            foreach ($lineDateFields as $dateField => $dateObj){
+                $form->FLD($dateField, $dateObj['type'], "caption=Времена->{$dateObj['caption']},forceField");
+                $form->setDefault($dateField, $rec->{$dateField});
+                if(!in_array($rec->state, array('draft', 'pending'))){
+                    if($dateObj['readOnlyIfActive']){
+                        $form->setReadOnly($dateField);
+                    }
+                }
+
+                if(isset($dateObj['placeholder'])){
+                    $placeholder = $form->getFieldType($dateField)->toVerbal($dateObj['placeholder']);
+                    $form->setField($dateField, "placeholder={$placeholder}");
+                }
+            }
+        }
+
         $form->setFieldTypeParams('lineFolderId', array('restrictViewAccess' => 'yes', 'containingDocumentIds' => trans_Lines::getClassId()));
         $form->input(null, 'silent');
 
@@ -166,7 +236,6 @@ class trans_plg_LinesPlugin extends core_Plugin
         
         if ($form->isSubmitted()) {
             $formRec = $form->rec;
-            
             if (isset($formRec->lineId)) {
                 
                 // Ако има избрана линия, проверка трябва ли задължително да има МОЛ
@@ -183,7 +252,15 @@ class trans_plg_LinesPlugin extends core_Plugin
             if (!$form->gotErrors()) {
                 $rec->lineNotes = $formRec->lineNotes;
                 $rec->{$mvc->lineFieldName} = $formRec->lineId;
-                
+                if(is_array($lineDateFields)){
+                    foreach ($lineDateFields as $dateFld => $dateObj){
+                        if(!in_array($rec->state, array('draft', 'pending'))) {
+                            if ($dateObj['readOnlyIfActive']) continue;
+                        }
+                        $rec->{$dateFld} = $formRec->{$dateFld};
+                    }
+                }
+
                 if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
                     
                     // Обновяваме в мастъра информацията за общото тегло/обем и избраната линия
@@ -197,6 +274,8 @@ class trans_plg_LinesPlugin extends core_Plugin
                         }
                     }
                 }
+
+
                 $rec->_changeLine = true;
                 $mvc->save($rec);
                 $mvc->updateMaster($rec);
@@ -686,7 +765,7 @@ class trans_plg_LinesPlugin extends core_Plugin
     {
         $unsetFields = array($mvc->lineFieldName, $mvc->lineNoteFieldName);
         if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $unsetFields = array_merge($unsetFields, array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName));
+            $unsetFields = array_merge($unsetFields, array('weightInput', 'volumeInput', 'transUnits', 'transUnitsInput', $mvc->totalWeightFieldName, $mvc->totalVolumeFieldName), array_keys($mvc->getShipmentDateFields()));
         }
 
         foreach ($unsetFields as $fld){

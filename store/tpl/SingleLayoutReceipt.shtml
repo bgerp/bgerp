@@ -74,6 +74,12 @@
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->
+                  <!--ET_BEGIN deliveryOn-->
+                  <tr>
+                     <td class='quiet aright small-field'>Доставка:</td>
+                     <td>[#deliveryOn#]</td>
+                  </tr>
+                  <!--ET_END deliveryOn-->
                   <!--ET_BEGIN deliveryAddressBlock-->
                   [#deliveryAddressBlock#]
                   <tr>

@@ -500,14 +500,16 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('allowedPaymentOperations', $this->getPaymentOperations($rec));
         $result->set('allowedShipmentOperations', $this->getShipmentOperations($rec));
         $result->set('involvedContragents', array((object) array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
-        
+
+        $deliveryTime = !empty($rec->deliveryTermTime) ? dt::addSecs($rec->deliveryTermTime, $rec->valior) : $rec->deliveryTime;
+        $result->setIfNot('deliveryTime', $deliveryTime);
+
         $result->setIfNot('amount', $rec->amountDeal);
         $result->setIfNot('currency', $rec->currencyId);
         $result->setIfNot('rate', $rec->currencyRate);
         $result->setIfNot('vatType', $rec->chargeVat);
         $result->setIfNot('agreedValior', $rec->valior);
         $result->setIfNot('deliveryLocation', $rec->deliveryLocationId);
-        $result->setIfNot('deliveryTime', $rec->deliveryTime);
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
