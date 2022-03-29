@@ -63,10 +63,6 @@ class price_AutoDiscounts extends core_Manager
         $discount = round($in * 0.01, 2);
         $discount = min($discount, 0.9);
         
-        if(haveRole('debug')){
-            core_Statuses::newStatus("{$totalWithoutDiscount}-{$masterRec->amountDeal}-{$masterRec->amountVat}-{$masterRec->amountDiscount}", 'error');
-        }
-        
         return $discount;
     }
 }
