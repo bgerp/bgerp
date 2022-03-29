@@ -13,7 +13,7 @@ defIfNot('RESTORE_MAX_THREAD', 10);
 /**
  * Максимална дължина на експортираните данни (ориентировъчно)
  */
-defIfNot('BACKUP_MAX_CHUNK_SIZE', 50000000);
+defIfNot('BACKUP_MAX_CHUNK_SIZE', 30000000);
 
 /**
  * Клас 'core_Backup' - добавя бекъп възможности към ядрото
@@ -433,7 +433,7 @@ class core_Backup extends core_Mvc
 
 
     /**
-     * извиква по http процес, който бекъпва съдържанието на една таблица
+     * извиква по cli процес, който бекъпва съдържанието на една таблица
      */
     public function runBackupTable($inst, $table, $suffix, $limit = '')
     {
