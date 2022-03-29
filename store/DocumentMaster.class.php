@@ -176,14 +176,6 @@ abstract class store_DocumentMaster extends core_Master
         $form->setDefault('currencyRate', $dealInfo->get('rate'));
         $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
 
-        $deliveryTimeDefault = $dealInfo->get('deliveryTime');
-        if(!empty($rec->storeId) && $origin->isInstanceOf('sales_Sales')){
-            if($dealInfo->get('deliveryTime')){
-                $deliveryTimeDefault = store_Stores::getDefaultLoadingDate($rec->storeId, $dealInfo->get('deliveryTime'));
-            }
-        }
-
-        $form->setDefault('deliveryTime', $deliveryTimeDefault);
         $form->setDefault('deliveryOn', $dealInfo->get('deliveryTime'));
         $form->setDefault('chargeVat', $dealInfo->get('vatType'));
         $form->setDefault('storeId', $dealInfo->get('storeId'));

@@ -48,7 +48,7 @@ class store_Receipts extends store_DocumentMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, sales_plg_CalcPriceDelta,store_plg_Request, plg_Sorting,purchase_plg_ExtractPurchasesData,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
     /**
@@ -371,10 +371,11 @@ class store_Receipts extends store_DocumentMaster
     /**
      * Kои са полетата за датите за експедирането
      *
-     * @param mixed $rec
-     * @return array $res
+     * @param mixed $rec     - ид или запис
+     * @param boolean $cache - дали да се използват кеширани данни
+     * @return array $res    - масив с резултат
      */
-    public function getShipmentDateFields($rec = null)
+    public function getShipmentDateFields($rec = null, $cache = false)
     {
         $res = array('loadingOn'   => array('caption' => 'Натоварване', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input"),
                      'deliveryTime' => array('caption' => 'Разтоварване', 'type' => 'datetime', 'readOnlyIfActive' => true, "input" => "input"),);

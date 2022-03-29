@@ -81,7 +81,8 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-        
+        $row = $data->row;
+
         if ($rec->state != 'rejected') {
             if ($mvc->haveRightFor('changeline', $rec)) {
                 $attr = arr::make('ef_icon=img/16/lorry_go.png, title = Промяна на логистичните данни на документа');
@@ -97,6 +98,49 @@ class trans_plg_LinesPlugin extends core_Plugin
 
         if (Request::get('editTrans')) {
             bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $mvc->getHandle($rec->id), 'editTrans' => true), '*');
+        }
+
+        if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
+            $dateFields = !in_array($rec->state, array('draft', 'pending')) ? $mvc->getShipmentDateFields() : $mvc->getShipmentDateFields($rec, true);
+            $datesArr = array();
+
+            // За дефолтните дати
+            foreach ($dateFields as $dateFld => $dateObj){
+                if(isset($dateObj['placeholder']) && empty($rec->{$dateFld})){
+                    $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
+                    if(!Mode::isReadOnly()){
+                        $row->{$dateFld} = "<span style='color:blue'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
+                    }
+                    $datesArr[$dateFld] = $dateObj['placeholder'];
+                } elseif(isset($rec->{$dateFld})) {
+                    $datesArr[$dateFld] = $rec->{$dateFld};
+                }
+            }
+
+            // Ако не не са във възходящ ред да се оцветят в червено
+            if(!Mode::isReadOnly()){
+                $makeRed = false;
+                $firstVal = $datesArr[key($datesArr)];
+                foreach ($datesArr as $val){
+                    if($val < $firstVal) {
+                        $makeRed = true;
+                    }
+                }
+
+                $now = dt::now();
+                foreach ($datesArr as $dateFld => $dateVal){
+                    if($makeRed){
+                        $row->{$dateFld} = "<span class='red'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Има несъответствие между датите|*!', 'warning');
+                    }
+
+                    if(in_array($rec->state, array('draft', 'pending')) && $dateVal < $now){
+                        $row->{$dateFld} = "<span class='red'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Датата е в миналото|*!', 'warning');
+                    }
+                }
+            }
         }
     }
     

@@ -25,10 +25,11 @@ class store_iface_DocumentIntf
     /**
      * Kои са полетата за датите за експедирането
      *
-     * @param mixed $rec
-     * @return array $res
+     * @param mixed $rec     - ид или запис
+     * @param boolean $cache - дали да се използват кеширани данни
+     * @return array $res    - масив с резултат
      */
-    public function getShipmentDateFields($rec = null)
+    public function getShipmentDateFields($rec = null, $cache = false)
     {
         return $this->class->getShipmentDateFields($rec);
     }

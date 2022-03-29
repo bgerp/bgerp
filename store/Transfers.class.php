@@ -37,7 +37,7 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, plg_Sorting, plg_Printing, store_plg_Request, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
 
 
     /**
@@ -799,34 +799,43 @@ class store_Transfers extends core_Master
     /**
      * Коя е най-ранната дата на която са налични всички документи
      *
-     * @param $rec
+     * @param stdClass $rec
+     * @param boolean $cache
      * @return date|null
      */
-    public function getEarliestDateAllProductsAreAvailableInStore($rec)
+    public function getEarliestDateAllProductsAreAvailableInStore($rec, $cache = false)
     {
         $rec = $this->fetchRec($rec);
-        $products = deals_Helper::sumProductsByQuantity('store_TransfersDetails', true, $rec->id, 'newProductId');
+        if($cache){
+            $res = core_Cache::get($this->className, "earliestDateAllAvailable{$rec->containerId}");
+        }
 
-        return store_StockPlanning::getEarliestDateAllAreAvailable($rec->fromStore, $products);
+        if(!$cache || $res === false){
+            $products = deals_Helper::sumProductsByQuantity('store_TransfersDetails', true, $rec->id, 'newProductId');
+            $res = store_StockPlanning::getEarliestDateAllAreAvailable($rec->fromStore, $products);
+            core_Cache::set($this->className, "earliestDateAllAvailable{$rec->containerId}", $res, 10);
+        }
+
+        return $res;
     }
 
 
     /**
      * Kои са полетата за датите за експедирането
      *
-     * @param mixed $rec
-     * @return array $res
+     * @param mixed $rec     - ид или запис
+     * @param boolean $cache - дали да се използват кеширани данни
+     * @return array $res    - масив с резултат
      */
-    public function getShipmentDateFields($rec = null)
+    public function getShipmentDateFields($rec = null, $cache = false)
     {
         $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
                      'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime', 'readOnlyIfActive' => true, "input" => "input"),
                      'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input=hidden"),
-                     'unloadingOn'  => array('caption' => 'Разтоварване', 'type' => 'datetime', 'readOnlyIfActive' => true, "input" => "input"),
                      'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input"));
 
         if(isset($rec)){
-            $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec, $cache);
             $res['shipmentOn']['placeholder'] = trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
         }
 

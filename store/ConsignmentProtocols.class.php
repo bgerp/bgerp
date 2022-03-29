@@ -677,10 +677,11 @@ class store_ConsignmentProtocols extends core_Master
     /**
      * Kои са полетата за датите за експедирането
      *
-     * @param mixed $rec
-     * @return array $res
+     * @param mixed $rec     - ид или запис
+     * @param boolean $cache - дали да се използват кеширани данни
+     * @return array $res    - масив с резултат
      */
-    public function getShipmentDateFields($rec = null)
+    public function getShipmentDateFields($rec = null, $cache = false)
     {
         $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
                      'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime', 'readOnlyIfActive' => true, "input" => "input"),
