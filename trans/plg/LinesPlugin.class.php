@@ -109,7 +109,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if(isset($dateObj['placeholder']) && empty($rec->{$dateFld})){
                     $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
                     if(!Mode::isReadOnly()){
-                        $row->{$dateFld} = "<span style='color:blue'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = "<span style='color:blue;'>{$row->{$dateFld}}</span>";
                         $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
                     }
                     $datesArr[$dateFld] = $dateObj['placeholder'];

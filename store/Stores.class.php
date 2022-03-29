@@ -426,18 +426,16 @@ class store_Stores extends core_Master
 
 
     /**
-     * На коя дата стоката ще е готова да напусне склада
+     * Колко време е нужна за подготовка на склада преди експедиция
      *
      * @param int $storeId - ид на склад
-     * @param $date        - крайна дата
-     * @return datetime    - крайната дата с приспаднато времето за предварителна подготовка в склада
+     * @return int         - нужното време за подговотка в секунди
      */
-    public static function getDefaultLoadingDate($storeId, $date)
+    public static function getShipmentPreparationTime($storeId)
     {
         $storeBeforeShipmentTime = store_Stores::fetchField($storeId, 'preparationBeforeShipment');
         $storeBeforeShipmentTime = ($storeBeforeShipmentTime) ? $storeBeforeShipmentTime : store_Setup::get('PREPARATION_BEFORE_SHIPMENT');
-        $storeBeforeShipmentTime = empty($storeBeforeShipmentTime) ? 0 : $storeBeforeShipmentTime;
 
-        return dt::addSecs(-1 * $storeBeforeShipmentTime, $date);
+        return empty($storeBeforeShipmentTime) ? 0 : $storeBeforeShipmentTime;
     }
 }

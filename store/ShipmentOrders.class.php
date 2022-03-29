@@ -836,7 +836,8 @@ class store_ShipmentOrders extends store_DocumentMaster
                 }
             }
 
-            $res = store_Stores::getDefaultLoadingDate($rec->storeId, $deliveryDate);
+            $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
+            $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
             core_Cache::set($this->className, "loadingDate{$rec->containerId}", $res, 10);
         }
 
