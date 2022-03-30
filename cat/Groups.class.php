@@ -99,6 +99,13 @@ class cat_Groups extends core_Master
      */
     public $tableRowTpl = "[#ROW#]";
 
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'cat,ceo';
+
+
     /**
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
