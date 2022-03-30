@@ -122,7 +122,8 @@ class trans_plg_LinesPlugin extends core_Plugin
             if(!Mode::isReadOnly()){
                 $makeRed = false;
                 $firstVal = $datesArr[key($datesArr)];
-                foreach ($datesArr as $val){
+                foreach ($datesArr as &$val){
+                    $val = (strlen($val) == 10) ? "{$val} 23:59:59" : $val;
                     if($val < $firstVal) {
                         $makeRed = true;
                     }
