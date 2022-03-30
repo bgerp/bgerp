@@ -750,7 +750,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $discount = $recPrime->price * $quantity * $recPrime->discount;
                         $primeCost = ($recPrime->price * $quantity) - $discount;
 
-                    }elseif ($recPrime->type == 'dc_note') {
+                    } elseif ($recPrime->type == 'dc_note') {
                         $correctionArray = self::dcNoteCorrection($recPrime);
 
                         if (empty($correctionArray)) {
@@ -827,6 +827,58 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                 $obj->deltaLastYear += $deltaLastYear;
             }
         }
+
+        //Отчитане на ДИ и КИ без детайли
+        //За сега работи само когато намери такова ИЗВЕСТИЕ в рамките на периода
+        //и то коригира фактура която е от периода
+
+        //iQuery ДИ и КИ влизащи в периода и коригиращи обща сума(без детайли)
+        $iQuery = sales_Invoices::getQuery();
+        $iQuery->where("#type = 'dc_note'");
+        $iQuery->where("#date >= '{$rec->from}' AND #date <= '{$rec->to}'");
+        $iQuery->where("#changeAmount IS NOT NULL");
+        while ($iRec = $iQuery->fetch()) {
+
+            $correctionArr = array();
+
+            //$originRec rec-a  на фактурата към която е издадено кредитното
+            $originId = doc_Containers::getDocument($iRec->originId)->that;
+            $originRec = sales_Invoices::fetch($originId);
+
+            //Ако фактурата към която е издадено известието влиза в периода
+            // изваждаме нейните детайли в масив с ключ productId-то
+            if ($originRec->date >= $rec->from && $originRec->date <= $rec->to) {
+
+                $dcAllInvQuery = sales_InvoiceDetails::getQuery();
+
+                $dcAllInvQuery->where("#invoiceId = $originRec->id");
+
+                //сумира стойностите на всички детайли във origin фактурата
+                $amountsArr = arr::extractValuesFromArray($dcAllInvQuery->fetchAll(), 'amount');
+                $sumAmounts = array_sum($amountsArr);
+
+            }
+            while ($originDetRec = $dcAllInvQuery->fetch()) {
+
+                //Каква част от общата стойност е стойността на този ред
+                $partOfAmount = $originDetRec->amount / $sumAmounts;
+
+                //Масив с ключ productId и стойностите с които трябва да се коригира стойността на артикула в recs-a
+                $correctionArr[$originDetRec->productId] = round($iRec->changeAmount * $partOfAmount, 2);
+
+            }
+        }
+
+        //Коригираме стоността на артикула в масива recs
+        if (!empty($correctionArr) && !empty($recs)) {
+            foreach ($correctionArr as $productId => $correctionAmount) {
+
+                $recs[$productId]->primeCost = $recs[$productId]->primeCost + $correctionAmount;
+
+            }
+
+        }
+
 
         //Изчисляване на промяната в стойността на продажбите и делтите за артикул
         //добавя в масива пропъртита:
@@ -1143,7 +1195,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     public static function dcNoteCorrection($dcRec)
     {
-        $originQuantity=$changeQuatity=$changePrice=$invQuantity=$invAmount=0;
+        $originQuantity = $changeQuatity = $changePrice = $invQuantity = $invAmount = 0;
 
         $res = array();
         $originId = doc_Containers::getDocument($dcRec->originId)->that;
