@@ -110,7 +110,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
                     if(!Mode::isReadOnly()){
                         $row->{$dateFld} = "<span style='color:blue;'>{$row->{$dateFld}}</span>";
-                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!', 'notice', false);
                     }
                     $datesArr[$dateFld] = $dateObj['placeholder'];
                 } elseif(isset($rec->{$dateFld})) {
@@ -132,12 +132,12 @@ class trans_plg_LinesPlugin extends core_Plugin
                 foreach ($datesArr as $dateFld => $dateVal){
                     if($makeRed){
                         $row->{$dateFld} = "<span class='red'>{$row->{$dateFld}}</span>";
-                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Има несъответствие между датите|*!', 'warning');
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Има несъответствие между датите|*!', 'warning', false);
                     }
 
                     if(in_array($rec->state, array('draft', 'pending')) && $dateVal < $now){
                         $row->{$dateFld} = "<span class='red'>{$row->{$dateFld}}</span>";
-                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Датата е в миналото|*!', 'warning');
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Датата е в миналото|*!', 'warning', false);
                     }
                 }
             }
