@@ -9,12 +9,12 @@
  * @package   cat
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class cat_Groups extends core_Manager
+class cat_Groups extends core_Master
 {
     /**
      * Заглавие
@@ -89,10 +89,34 @@ class cat_Groups extends core_Manager
 
 
     /**
+     * Икона за единичен изглед
+     */
+    public $singleIcon = 'img/16/grouping1.png';
+
+
+    /**
      * Отделния ред в листовия изглед да е отгоре
      */
     public $tableRowTpl = "[#ROW#]";
-    
+
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'name';
+
+
+    /**
+     * Клас за елемента на обграждащия <div>
+     */
+    public $cssClass = 'folder-cover';
+
+
+    /**
+     * Нов темплейт за показване
+     */
+    public $singleLayoutFile = 'cat/tpl/SingleLayoutGroup.shtml';
+
+
     /**
      * Кое поле е за името на английски?
      */
@@ -173,8 +197,12 @@ class cat_Groups extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-list'] && cat_Products::haveRightFor('list')) {
-            $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+        if(cat_Products::haveRightFor('list')){
+            if ($fields['-list']) {
+                $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+            } else {
+                $row->productCnt = ht::createLink($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+            }
         }
     }
     
@@ -240,7 +268,6 @@ class cat_Groups extends core_Manager
      * Връща кейлист от систем ид-та на групите
      *
      * @param mixed $sysIds - масив със систем ид-та
-     *
      * @return string
      */
     public static function getKeylistBySysIds($sysIds)
@@ -265,7 +292,7 @@ class cat_Groups extends core_Manager
      * Форсира група (маркер) от каталога
      *
      * @param string $name     Име на групата. Съдържа целия път
-     * @param int    $parentId Id на родител
+     * @param int|null    $parentId Id на родител
      * @param bool   $force
      *
      * @return int|NULL id на групата
@@ -335,16 +362,17 @@ class cat_Groups extends core_Manager
             return $res;
         }
         
-        $makeLink = (cat_Products::haveRightFor('list') && !Mode::isReadOnly()) ? true : false;
+        $makeLink = (cat_Products::haveRightFor('list') && !Mode::isReadOnly());
         foreach ($groups as $grId) {
+            $groupTitle = self::getVerbal($grId, 'name');
             if ($makeLink === true) {
                 $listUrl = array('cat_Products', 'list', 'groupId' => $grId);
+                $classAttr = "class={$class}";
+                $groupLink = ht::createLink($groupTitle, $listUrl, false, "{$classAttr},title=Филтриране на артикули по група|* '{$groupTitle}'");
+                $groupTitle = $groupLink->getContent();
             }
-            
-            $classAttr = "class={$class}";
-            $groupTitle = self::getVerbal($grId, 'name');
-            $groupLink = ht::createLink($groupTitle, $listUrl, false, "{$classAttr},title=Филтриране на артикули по група|* '{$groupTitle}'");
-            $res[] = $groupLink->getContent();
+
+            $res[] = $groupTitle;
         }
         
         return $res;
