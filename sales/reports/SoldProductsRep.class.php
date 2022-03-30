@@ -1190,6 +1190,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
     /**
      * Преизчислява стойностите и количествата на фактурите, към които има КИ и ДИ
+     * когато те коригират реда по количество или стойност
      *
      * @return array $res
      */
