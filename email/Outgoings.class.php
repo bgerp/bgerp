@@ -1964,7 +1964,7 @@ class email_Outgoings extends core_Master
                 $contrData->place = $rec->place;
                 $contrData->address = $rec->address;
                 $contrData->email = $rec->email;
-                $contrData->emailCc = $rec->emailCc;
+                $contrData->sameEmailCc = $rec->emailCc;
 
                 break;
             }
@@ -2150,8 +2150,8 @@ class email_Outgoings extends core_Master
             $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
         }
 
-        if ($contragentData->emailCc) {
-            $rec->emailCc = $contragentData->emailCc;
+        if ($contragentData->sameEmailCc) {
+            $rec->emailCc = $contragentData->sameEmailCc;
         }
     }
     
@@ -3007,7 +3007,6 @@ class email_Outgoings extends core_Master
                 if (!$lRec->data->to) {
                     continue;
                 }
-                
                 
                 $sendedTo .= ($sendedTo) ? ', ' . $lRec->data->to : $lRec->data->to;
             }

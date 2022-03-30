@@ -645,7 +645,7 @@ class store_ConsignmentProtocols extends core_Master
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+        $date = $this->getPlannedQuantityDate($rec);
 
         $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
@@ -715,5 +715,22 @@ class store_ConsignmentProtocols extends core_Master
         $products = deals_Helper::sumProductsByQuantity($detail, $rec->id, true);
 
         return store_StockPlanning::getEarliestDateAllAreAvailable($rec->storeId, $products);
+    }
+
+
+    /**
+     * За коя дата се заплануват наличностите
+     *
+     * @param stdClass $rec - запис
+     * @return datetime     - дата, за която се заплануват наличностите
+     */
+    public function getPlannedQuantityDate_($rec)
+    {
+        // Ако има ръчно въведена дата на натоварване, връща се тя
+        if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
+
+        $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
+
+        return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
     }
 }
