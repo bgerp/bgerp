@@ -37,7 +37,7 @@ class price_Updates extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'id, name=Правило,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Сб-ст,appliedOn,updateMode=Обновяване';
+    public $listFields = 'id, name=Правило,type=За,sourceClass1,sourceClass2,sourceClass3,costAdd,costValue=Сб-ст,appliedOn,updateMode=Обновяване';
     
     /**
      * Кой може да го промени?
@@ -75,7 +75,7 @@ class price_Updates extends core_Manager
     public function description()
     {
         $this->FLD('objectId', 'int', 'caption=Обект,silent,mandatory');
-        $this->FLD('type', 'enum(category,product,group)', 'caption=Обект вид,input=hidden,silent,mandatory');
+        $this->FLD('type', 'enum(category=Категория,product=Артикул,group=Група)', 'caption=Обект вид,input=hidden,silent,mandatory');
         
         $this->FLD('sourceClass1', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 1, mandatory');
         $this->FLD('sourceClass2', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 2');
