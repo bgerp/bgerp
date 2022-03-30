@@ -9,7 +9,7 @@
  * @package   price
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -31,7 +31,7 @@ class price_Updates extends core_Manager
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper';
+    public $loadList = 'plg_Created, plg_RowTools2, price_Wrapper, plg_Sorting';
     
     
     /**
@@ -75,7 +75,7 @@ class price_Updates extends core_Manager
     public function description()
     {
         $this->FLD('objectId', 'int', 'caption=Обект,silent,mandatory');
-        $this->FLD('type', 'enum(category,product)', 'caption=Обект вид,input=hidden,silent,mandatory');
+        $this->FLD('type', 'enum(category,product,group)', 'caption=Обект вид,input=hidden,silent,mandatory');
         
         $this->FLD('sourceClass1', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 1, mandatory');
         $this->FLD('sourceClass2', 'class(interface=price_CostPolicyIntf,select=title,allowEmpty)', 'caption=Източник 2');
@@ -127,10 +127,13 @@ class price_Updates extends core_Manager
         $form->setOptions('sourceClass1', $policyOptions);
         $form->setOptions('sourceClass2', $policyOptions);
         $form->setOptions('sourceClass3', $policyOptions);
-        
+
         if ($rec->type == 'category') {
             $form->setField('objectId', 'caption=Категория');
             $form->setOptions('objectId', array($rec->objectId => cat_Categories::getTitleById($rec->objectId)));
+        } elseif($rec->type == 'group') {
+            $form->setField('objectId', 'caption=Група');
+            $form->setOptions('objectId', array($rec->objectId => cat_Groups::getTitleById($rec->objectId)));
         } else {
             $form->setField('objectId', 'caption=Артикул');
             $form->setOptions('objectId', array($rec->objectId => cat_Products::getTitleById($rec->objectId)));
@@ -248,7 +251,7 @@ class price_Updates extends core_Manager
                 $requiredRoles = 'no_one';
             } else {
                 // Ако потребителя няма достъп до обекта, не може да модифицира
-                $masterMvc = ($rec->type == 'product') ? 'cat_Products' : 'cat_Categories';
+                $masterMvc = ($rec->type == 'product') ? 'cat_Products' : (($rec->type == 'group') ? 'cat_Groups' : 'cat_Categories');
                 if (!$masterMvc::haveRightFor('single', $rec->objectId)) {
                     $requiredRoles = 'no_one';
                 }
@@ -304,18 +307,38 @@ class price_Updates extends core_Manager
         // Ако е избран продукт, ще обновим само неговата себестойност
         if ($rec->type == 'product') {
             $products[$rec->objectId] = $rec->objectId;
+        } elseif($rec->type == 'group') {
+
+            // Ако е правило за група, обновява се само на артикулите от нея, отговарящи на условията
+            $pQuery = cat_Products::getQuery();
+            $pQuery->where("LOCATE('|{$rec->objectId}|', #groups)");
+            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
+            $pQuery->show('id');
+            while ($pRec = $pQuery->fetch()) {
+
+                // Ако за артикула има експлицитно правило - пропуска се
+                if ($this->fetchField("#objectId = {$pRec->id} AND #type = 'product'")) continue;
+                $products[$pRec->id] = $pRec->id;
+            }
         } else {
-            
             // Ако е категория, всички артикули в папката на категорията
             $folderId = cat_Categories::fetchField($rec->objectId, 'folderId');
             $pQuery = cat_Products::getQuery();
+            $pQuery->where("#state = 'active' AND #isPublic = 'yes' AND #canStore = 'yes' AND (#canBuy = 'yes' OR #canManifacture = 'yes')");
             $pQuery->where("#folderId = {$folderId}");
-            $pQuery->show('id');
+            $pQuery->show('id,groups');
             
             while ($pRec = $pQuery->fetch()) {
-                if ($this->fetchField("#objectId = {$pRec->id} AND #type = 'product'")) {
-                    continue;
+                $groups = keylist::toArray($pRec->groups);
+                $where = "#objectId = {$pRec->id} AND #type = 'product'";
+                if(countR($groups)){
+                    $groups = implode(',', $groups);
+                    $where = "({$where}) OR (#type = 'group' AND #objectId IN ({$groups}))";
                 }
+
+                // Ако правилото е за категория, обновяват се
+                // само тези за които няма експлицитни или правила за някоя от техните групи
+                if ($this->fetchField($where)) continue;
                 
                 $products[$pRec->id] = $pRec->id;
             }
@@ -500,7 +523,7 @@ class price_Updates extends core_Manager
                 if (!$this->canBeApplied($rec, $now)) continue;
 
                 // Ще обновяваме себестойностите в модела, освен за записите на които ръчно ще трябва да се обнови
-                $saveInPriceList = ($rec->updateMode == 'manual') ? false : true;
+                $saveInPriceList = !(($rec->updateMode == 'manual'));
                 $updateRules[$rec->id] = $rec;
 
                 // Изчисляваме и записваме себестойностите
@@ -610,54 +633,160 @@ class price_Updates extends core_Manager
             $data->toolbar->addBtn('Обновяване', $url, 'title=Обновяване на себестойностите,ef_icon=img/16/arrow_refresh.png,target=cronjob');
         }
     }
-    
-    
+
+
+    /**
+     * Подготовка на детайл
+     */
+    public function prepareDetail($data)
+    {
+        $data->recs = array();
+        $type = ($data->masterMvc instanceof cat_Categories) ? 'category' : (($data->masterMvc instanceof cat_Groups) ? 'group' : 'product');
+
+        if($type == 'product'){
+            if($uRec = price_Updates::fetch("#type = 'product' AND #objectId = {$data->masterId}")){
+                $data->recs[$uRec->id] = $uRec;
+            }
+
+            // Ако няма експлицитно правило, добавям правилата за обновяване от групите му ако има
+            if(!countR($data->recs)){
+                $groups = keylist::toArray($data->masterData->rec->groups);
+                if(countR($groups)) {
+                    $uQuery = price_Updates::getQuery();
+                    $uQuery->where("#type = 'group'");
+                    $uQuery->in("objectId", $groups);
+                    $data->recs = $uQuery->fetchAll();
+                }
+            }
+
+            // Ако няма експлицитно правило или правила от групите, добавя се правилото от категорията му, ако има
+            if(!countR($data->recs)){
+                $Cover = doc_Folders::getCover($data->masterData->rec->folderId);
+                if($Cover->isInstanceOf('cat_Categories')){
+                    if($uRec = price_Updates::fetch("#type = 'category' AND #objectId = {$Cover->that}")){
+                        $data->recs[$uRec->id] = $uRec;
+                    }
+                }
+            }
+        } else {
+            if($uRec = price_Updates::fetch("#type = '{$type}' AND #objectId = {$data->masterId}")){
+                $data->recs[$uRec->id] = $uRec;
+            }
+        }
+
+        if (price_Updates::haveRightFor('add', (object) array('type' => $type, 'objectId' => $data->masterId))) {
+            $btnTitle = ($type == 'product') ? 'Задаване' : '';
+            $btnIcon = ($type == 'product') ? 'img/16/arrow_refresh.png' : 'img/16/add.png';
+            $data->updateCostBtn = ht::createLink($btnTitle, array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => true), false, "title=Създаване на ново правило за обновяване,ef_icon={$btnIcon}");
+        }
+    }
+
+
+    /**
+     * Изпълнява се след опаковане на детайла от мениджъра
+     *
+     * @param stdClass $data
+     */
+    public function renderDetail($data)
+    {
+        $tpl = new core_ET("<div><div>[#title#]</div>[#RULES#]<!--ET_BEGIN RULE--><div style='margin:5px;text-align:center;'>[#RULE#]</div><!--ET_END RULE--></div>");
+
+        $tpl->append($data->info);
+        $isFromProduct = $data->masterMvc instanceof cat_Products;
+
+        if(countR($data->recs)){
+            foreach ($data->recs as $rec){
+                if($isFromProduct){
+                    $rec->_fromProduct = true;
+                }
+
+                $dTpl = $this->displayUpdateRuleTpl($rec);
+
+                $bTpl = clone $tpl->getBlock('RULE');
+                $bTpl->replace($dTpl, 'RULE');
+                $bTpl->removeBlocksAndPlaces();
+                $tpl->append($bTpl, 'RULES');
+            }
+        } else {
+            $style = (!($data->masterMvc instanceof cat_Products)) ? '' : 'text-align:center;';
+            $tpl->append("<div class='quiet' style='{$style}'>" . tr("Няма зададено правило за обновяване на себестойност") . "</div>", 'RULES');
+        }
+
+        $btnPlaceholder = 'title';
+        if(!($data->masterMvc instanceof cat_Products)){
+            $tpl->removeBlocksAndPlaces();
+            $finalTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+            $finalTpl->replace($tpl, 'content');
+            $finalTpl->append(tr('Обновяване на себестойности'), 'title');
+            $tpl = $finalTpl;
+        } else {
+            $btnPlaceholder = 'updateRuleBtn';
+            if(isset($data->updateCostBtn)) {
+                $tpl->append(tr('Правила за обновяване на себестойност'), 'updateInfoTitle');
+            }
+        }
+
+        if(isset($data->updateCostBtn)) {
+            $tpl->append($data->updateCostBtn, $btnPlaceholder);
+        }
+
+        return $tpl;
+    }
+
+
     /**
      * Връща шаблон с правилото за обновяване
      * 
      * @param stdClass $rec
-     * 
      * @return core_ET $tpl
      */
-    public static function getUpdateTpl($rec)
+    private function displayUpdateRuleTpl($rec)
     {
         $uRow = price_Updates::recToVerbal($rec);
         $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('При изчисление'));
-        
-        $fromCategoryStr = 'От категорията|* ';
-        if(!$rec->_fromCategory){
-            $fromCategoryStr = '';
+
+        $tools = null;
+        $source = $fromCategoryStr = '';
+        if($rec->_fromProduct){
+            if($rec->type == 'group'){
+                $fromCategoryStr = 'От група|* " <b>' . cat_Groups::getTitleById($rec->objectId) . '"</b>: ';
+            } elseif($rec->type == 'category') {
+                $fromCategoryStr = 'От категория|* " <b>' . cat_Categories::getTitleById($rec->objectId) . '"</b>: ';
+            } else {
+                core_RowToolbar::createIfNotExists($uRow->_rowTools);
+                $tools = $uRow->_rowTools->renderHtml(2);
+            }
+        } else {
             core_RowToolbar::createIfNotExists($uRow->_rowTools);
             $tools = $uRow->_rowTools->renderHtml(2);
         }
-        
-        $type = '';
+
         $tpl = new core_ET(tr("{$fromCategoryStr}|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#]"));
-        
         foreach (array($uRow->sourceClass1, $uRow->sourceClass2, $uRow->sourceClass3) as $cost) {
             if (isset($cost)) {
-                $type .= '<b>' . $cost . '</b>, ';
+                $source .= '<b>' . $cost . '</b>, ';
             }
         }
-        
-        $type = rtrim($type, ', ');
+
+        $source = rtrim($source, ', ');
         $tpl->append($arr[$rec->updateMode], 'updateMode');
         $tpl->append($tools, 'tools');
         $surcharge = $uRow->costAdd;
         if(!empty($rec->costAddAmount)){
             $surcharge .= ((!empty($surcharge)) ? tr('|* |и|* ') : '') . $uRow->costAddAmount . " BGN";
         }
+
         if(!empty($surcharge)){
             $tpl->append($surcharge, 'surcharge');
         }
-        
-        $tpl->append($type, 'type');
-        
-        if($rec->_fromCategory){
+
+        $tpl->append($source, 'type');
+        if($rec->_fromProduct && $rec->type != 'product'){
             $tpl->prepend("<span class='quiet'>");
             $tpl->append("</span>");
         }
-        
+        $tpl->removeBlocksAndPlaces();
+
         return $tpl;
     }
     

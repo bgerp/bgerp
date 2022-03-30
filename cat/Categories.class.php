@@ -56,8 +56,14 @@ class cat_Categories extends core_Master
      * Полета по които се прави пълнотекстово търсене от плъгина plg_Search
      */
     public $searchFields = 'sysId, name, productCnt, info';
-    
-    
+
+
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'price_Updates';
+
+
     /**
      * Да се създаде папка при създаване на нов запис
      */
@@ -231,10 +237,8 @@ class cat_Categories extends core_Master
         if ($fields['-list']) {
             $row->name .= " {$row->folder}";
             $count = cat_Products::count("#folderId = '{$rec->folderId}'");
-            
             $row->count = cls::get('type_Int')->toVerbal($count);
             $row->count = "<span style='float:right'>{$row->count}</span>";
-            
             if (empty($rec->useAsProto)) {
                 $row->useAsProto = $mvc->getFieldType('useAsProto')->toVerbal('no');
             }
@@ -243,17 +247,6 @@ class cat_Categories extends core_Master
         if ($fields['-single']) {
             if ($rec->useAsProto == 'yes') {
                 $row->protoFolder = tr('Всички артикули в папката са шаблони');
-            }
-            
-            $uRec = price_Updates::fetch("#type = 'category' AND #objectId = {$rec->id}");
-            if(is_object($uRec)){
-                $row->updateCostsInfo = price_Updates::getUpdateTpl($uRec);
-            } else {
-                $row->updateCostsInfo = tr('Все още няма зададени правила за обновяване');
-            }
-            
-            if (price_Updates::haveRightFor('add', (object) array('type' => 'category', 'objectId' => $rec->id))) {
-                $row->updateCostBtn = ht::createLink('', array('price_Updates', 'add', 'type' => 'category', 'objectId' => $rec->id, 'ret_url' => true), false, 'title=Създаване на ново правило за обновяване,ef_icon=img/16/add.png');
             }
         }
     }

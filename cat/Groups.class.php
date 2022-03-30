@@ -121,8 +121,14 @@ class cat_Groups extends core_Master
      * Кое поле е за името на английски?
      */
     public $nameFieldEn = 'nameEn';
-    
-    
+
+
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'price_Updates';
+
+
     /**
      * Описание на модела
      */
@@ -200,13 +206,15 @@ class cat_Groups extends core_Master
         if(cat_Products::haveRightFor('list')){
             if ($fields['-list']) {
                 $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
-            } else {
+            }
+
+            if ($fields['-single']) {
                 $row->productCnt = ht::createLink($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *

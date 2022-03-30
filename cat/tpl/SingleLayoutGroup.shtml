@@ -34,6 +34,9 @@
             <div class="groupList">[#meta#]</div>
         </fieldset>
         <!--ET_END meta-->
+        <div style="margin-top:10px">
+            [#price_Updates#]
+        </div>
         [#DETAILS#]
     </div>
 </div>
