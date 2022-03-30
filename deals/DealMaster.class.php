@@ -1351,10 +1351,8 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
-        // Към най-големия срок се добавят дните за подготовка от склада, ако има избран такъв
-        if(isset($rec->shipmentStoreId)){
-            $maxDeliveryTime += store_Stores::getShipmentPreparationTime($rec->shipmentStoreId);
-        }
+        // Към най-големия срок се добавят дните за подготовка от склада, ако няма склад - колкото е настроено глобално
+        $maxDeliveryTime += store_Stores::getShipmentPreparationTime($rec->shipmentStoreId);
 
         return $maxDeliveryTime;
     }

@@ -428,14 +428,17 @@ class store_Stores extends core_Master
     /**
      * Колко време е нужна за подготовка на склада преди експедиция
      *
-     * @param int $storeId - ид на склад
-     * @return int         - нужното време за подговотка в секунди
+     * @param int|null $storeId - ид на склад, или null ако няма
+     * @return int     $secs    - времето за подготовка в секунди
      */
-    public static function getShipmentPreparationTime($storeId)
+    public static function getShipmentPreparationTime($storeId = null)
     {
-        $storeBeforeShipmentTime = store_Stores::fetchField($storeId, 'preparationBeforeShipment');
-        $storeBeforeShipmentTime = ($storeBeforeShipmentTime) ? $storeBeforeShipmentTime : store_Setup::get('PREPARATION_BEFORE_SHIPMENT');
+        $secs = store_Setup::get('PREPARATION_BEFORE_SHIPMENT');
+        if(isset($storeId)){
+            $storeBeforeShipmentTimeSecs = store_Stores::fetchField($storeId, 'preparationBeforeShipment');
+            $secs = ($storeBeforeShipmentTimeSecs) ? $storeBeforeShipmentTimeSecs : $secs;
+        }
 
-        return empty($storeBeforeShipmentTime) ? 0 : $storeBeforeShipmentTime;
+        return $secs;
     }
 }
