@@ -1257,7 +1257,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $row->username = core_Lg::transliterate($row->username);
             $row->responsible = core_Lg::transliterate($row->responsible);
             
-            if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
+            if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime) && in_array($rec->state, array('draft', 'pending')) ) {
                 $deliveryTermTime = $mvc->calcDeliveryTime($rec->id);
                 if (isset($deliveryTermTime)) {
                     $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
@@ -1334,7 +1334,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
         if(is_object($Calculator)){
             $logisticData = $this->getLogisticData($rec);
-            $deliveryData = $rec->deliveryData + array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
+            $deliveryData = is_array($rec->deliveryData) ? $rec->deliveryData : array();
+            $deliveryData += array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
             $maxDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryData);
         }
 
