@@ -84,6 +84,30 @@ class core_Backup extends core_Mvc
 
         // Изчистваме стари процесорни индикатори
         $processes = glob(self::getTempPath() . '*.bpr');
+        // Изчистваме останали процесни индикатори
+        if(is_array($processes)) {
+            foreach($processes as $file) {
+                unlink($file);
+            }
+        }
+
+        // Изчистваме стари темплейт индикатори
+        $tplFiles = glob(self::getTempPath() . '*.tmp');
+        // Изчистваме останали процесни индикатори
+        if(is_array($tplFiles)) {
+            foreach($tplFiles as $file) {
+                unlink($file);
+            }
+        }
+
+        // Изчистваме стари csv файлове
+        $csvFiles = glob(self::getTempPath() . '*.csv');
+        // Изчистваме останали процесни индикатори
+        if(is_array($csvFiles)) {
+            foreach($csvFiles as $file) {
+                unlink($file);
+            }
+        }
 
         core_App::setTimeLimit(120);
         
@@ -149,7 +173,8 @@ class core_Backup extends core_Mvc
 
             $instArr[$mvc->dbTableName] = $mvc;
             $this->lmt[$mvc->dbTableName] = $lmt;
-            $this->chunks[$mvc->dbTableName] = pow(4, floor(log($cnt * BACKUP_MAX_CHUNK_SIZE / $size, 4)));
+            $maxChunk = ($mvc->dbTableName == 'cat_product_tpl_cache') ? 5000000 : BACKUP_MAX_CHUNK_SIZE;
+            $this->chunks[$mvc->dbTableName] = pow(4, floor(log($maxChunk * BACKUP_MAX_CHUNK_SIZE / $size, 4)));
             $lockTables .= ",`{$mvc->dbTableName}` READ";
         }
  
@@ -342,13 +367,6 @@ class core_Backup extends core_Mvc
             $maxLmt = time() + 1000000;
         }
 
-        // Изчистваме останали процесни индикатори
-        if(is_array($processes)) {
-            foreach($processes as $file) {
-                unlink($file);
-            }
-        }
-
         $pass = core_Setup::get('BACKUP_PASS');
         $addCrc32 = crc32(EF_SALT . $pass);
         
@@ -482,7 +500,6 @@ class core_Backup extends core_Mvc
         $app = EF_APP_NAME;
         $ctr = 'core_Backup';
         $act = 'doBackupTable';
-        
 
         core_Os::startCmd($msg = "php {$cmd} {$app} {$ctr} {$act} " . escapeshellarg($processFile));
         self::fLog($msg);
@@ -496,80 +513,103 @@ class core_Backup extends core_Mvc
     {
         // Спираме логването в core_Debug
         core_Debug::$isLogging = false;
-
+ 
         global $argv;
-
-        $processFile = $argv[4];
-        $params = file_get_contents($processFile);
-        self::$tempDir = dirname($processFile) .'/';
-        list($className, $table, $suffix, $limit) = explode('|', $params);
         
-        $inst = cls::get($className);
+        try {
+            $processFile = $argv[4];
+            $params = file_get_contents($processFile);
+            self::$tempDir = dirname($processFile) .'/';
+            list($className, $table, $suffix, $limit) = explode('|', $params);
+            
+            $inst = cls::get($className);
 
-        // Подготвяме пътищата
-        $fileName = "{$table}.{$suffix}";
-        $path = self::getTempPath($fileName . '.csv');
-        $dest = self::getBackupPath($fileName . '.csv.zip');
-        $tmpCsv = "{$path}.tmp";
+            // Подготвяме пътищата
+            $fileName = "{$table}.{$suffix}";
+            $path = self::getTempPath($fileName . '.csv');
+            $dest = self::getBackupPath($fileName . '.csv.zip');
+            $tmpCsv = "{$path}.tmp";
 
-        // Вземаме паролата
-        $pass = core_Setup::get('BACKUP_PASS');
+            // Вземаме паролата
+            $pass = core_Setup::get('BACKUP_PASS');
 
 
-        if (file_exists($dest)) {
-            self::fLog("Таблица `{$dest}` вече съществува като zip файл");
-            exit(0);
-        }
-        
-        if (file_exists($tmpCsv)) {
-            self::fLog("Таблица `{$fileName}` вече съществува като tmp файл");
-            exit(0);
-        }
-
-        self::fLog("Експорт в CSV на таблица `{$fileName}`"); 
-        
-        // Отваряме файла за писане
-        $out = fopen($tmpCsv, 'w');
-
-        // Извличаме информация за колоните
-        $cols = '';
-        $i = 0;
-        $fields = $inst->db->getFields($table);
-        foreach ($fields as $fRec) {
-            list($type, ) = explode('(', $fRec->Type);
-            if (strpos('|tinyint|smallint|mediumint|int|integer|bigint|float|double|double precision|real|decimal|', '|' . strtolower($type) . '|') === false) {
-                $mustEscape[$i] = true;
+            if (file_exists($dest)) {
+                self::fLog("Таблица `{$dest}` вече съществува като zip файл");
+                exit(0);
             }
-            $cols .= ($cols ? ',' : '') . '`' . $fRec->Field . '`';
-            $i++;
-        }
-        
-        $dbRes = $inst->db->query("SELECT * FROM `{$table}`{$limit}");
-        
-        fwrite($out, $cols);
-        while ($row = $inst->db->fetchArray($dbRes, MYSQLI_NUM)) {
-            $vals = '';
-            foreach ($row as $i => &$f) {
-                if ($f === null) {
-                    $f = '\\N';
-                } elseif ($mustEscape[$i]) {
-                    $f = '"' . $inst->db->escape($f) . '"';
+            
+            if (file_exists($tmpCsv)) {
+                self::fLog("Таблица `{$fileName}` вече съществува като tmp файл");
+                exit(0);
+            }
+
+            self::fLog("Експорт в CSV на таблица `{$fileName}`"); 
+            
+            // Отваряме файла за писане
+            $out = fopen($tmpCsv, 'w');
+
+            // Извличаме информация за колоните
+            $cols = '';
+            $i = 0;
+            $fields = $inst->db->getFields($table);
+            foreach ($fields as $fRec) {
+                list($type, ) = explode('(', $fRec->Type);
+                if (strpos('|tinyint|smallint|mediumint|int|integer|bigint|float|double|double precision|real|decimal|', '|' . strtolower($type) . '|') === false) {
+                    $mustEscape[$i] = true;
                 }
+                $cols .= ($cols ? ',' : '') . '`' . $fRec->Field . '`';
+                $i++;
             }
-            $vals = implode(',', $row);
-            fwrite($out, "\n" . $vals);
+
+            $link = $inst->db->connect();
+            $q = "SELECT * FROM `{$table}` ORDER BY `id`{$limit}";
+            $dbRes = $link->query($q);
+            
+            if(!$dbRes) {
+                self::fLog('DB Error: ' . $q . ' => ' . $link->error);
+                unlink($processFile);
+                @fclose($out);
+                @unlink($tmpCsv);
+                @unlink($path);
+                die;
+            }
+
+            fwrite($out, $cols);
+            while ($row = $inst->db->fetchArray($dbRes, MYSQLI_NUM)) {
+                $vals = '';
+                foreach ($row as $i => $f) {
+                    if($vals) {
+                        $vals .= ',';
+                    }
+                    if ($f === null) {
+                        $vals .= '\\N';
+                    } elseif ($mustEscape[$i]) {
+                        $vals .= '"' . $inst->db->escape($f) . '"';
+                    } else {
+                        $vals .= $f;
+                    }
+                }
+
+                fwrite($out, "\n" . $vals);
+            }
+
+            fclose($out);
+            rename("{$path}.tmp", $path);
+
+            self::fLog('Компресиране на ' . basename($dest));
+            archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
+            self::fLog('Край на компресиране на ' . basename($dest));
+
+            unlink($processFile);
+        }  catch (Throwable $e) {
+            self::fLog('Exception: ' . $e->getMessage());
+            unlink($processFile);
+            @fclose($out);
+            @unlink($tmpCsv);
+            @unlink($path);
+            die;
         }
-
-        fclose($out);
-        rename("{$path}.tmp", $path);
-
-        self::fLog('Компресиране на ' . basename($dest));
-        archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
-        self::fLog('Край на компресиране на ' . basename($dest));
-
-        unlink($processFile);
-
-        die;
     }
     
     
