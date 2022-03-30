@@ -680,7 +680,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                                 continue;
                             }
 
-                            $quantityPrevious = $correctionArray['quanttity'];
+                            $quantityPrevious = $correctionArray['quantity'];
                             $primeCostPrevious = $correctionArray['amount'];
 
                         }
@@ -718,7 +718,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                             if (empty($correctionArray)) {
                                 continue;
                             }
-                            $quantityLastYear = $correctionArray['quanttity'];
+                            $quantityLastYear = $correctionArray['quantity'];
                             $primeCostLastYear = $correctionArray['amount'];
 
                         }
@@ -756,7 +756,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         if (empty($correctionArray)) {
                             continue;
                         }
-                        $quantity = $correctionArray['quanttity'];
+                        $quantity = $correctionArray['quantity'];
                         $primeCost = $correctionArray['amount'];
 
                     }
@@ -1143,11 +1143,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
      */
     public static function dcNoteCorrection($dcRec)
     {
+        $originQuantity=$changeQuatity=$changePrice=$invQuantity=$invAmount=0;
+
         $res = array();
         $originId = doc_Containers::getDocument($dcRec->originId)->that;
         $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$dcRec->productId}");
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
-        $changeQuatity = $dcRec - $originQuantity;
+        $changeQuatity = $dcRec->quantity - $originQuantity;
         $changePrice = $dcRec->price - $originDetRec->price;
 
         if ($changeQuatity == 0 && $changePrice == 0) {
