@@ -751,6 +751,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $primeCost = ($recPrime->price * $quantity) - $discount;
 
                     } elseif ($recPrime->type == 'dc_note') {
+
                         $correctionArray = self::dcNoteCorrection($recPrime);
 
                         if (empty($correctionArray)) {
@@ -1173,6 +1174,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
 
+        $invDetQuery->EXT('number', 'sales_Invoices', 'externalName=number,externalKey=invoiceId');
+
         $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
 
         $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
@@ -1205,8 +1208,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $res = array();
         $originId = doc_Containers::getDocument($dcRec->originId)->that;
-        $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$dcRec->productId}");
-        $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;//bp($dcRec,$originDetRec,$originQuantity);
+        $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$dcRec->productId} AND
+                                                           #packagingId = {$dcRec->packagingId} AND #quantity != {$dcRec->quantity}");
+        $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
         $changeQuatity = $dcRec->quantity*$dcRec->quantityInPack - $originQuantity;
         $changePrice = $dcRec->price - $originDetRec->price;
 
