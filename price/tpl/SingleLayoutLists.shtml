@@ -3,7 +3,7 @@
     <table class="styled-table" style='min-width:300px'>
     	<tr>
             <td class="title-style">|Заглавие|*</td>
-            <th>[#title#]</th>
+            <td class="boldText">[#title#]</td>
         </tr>
         <!--ET_BEGIN parent-->
         <tr>
