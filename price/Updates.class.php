@@ -147,7 +147,7 @@ class price_Updates extends core_Manager
     protected static function on_AfterPrepareEditTitle($mvc, &$res, &$data)
     {
         $rec = $data->form->rec;
-        $objectClass = ($rec->type == 'category') ? cat_Categories::getClassId() : cat_Products::getClassId();
+        $objectClass = ($rec->type == 'category') ? 'cat_Categories' : (($rec->type == 'group') ? 'cat_Groups' : 'cat_Products');
         $data->form->title = core_Detail::getEditTitle($objectClass, $rec->objectId, $mvc->singleTitle, $rec->id);
     }
     
@@ -269,6 +269,17 @@ class price_Updates extends core_Manager
                 if ($pRec->state != 'active' || $pRec->canStore != 'yes' || $pRec->isPublic != 'yes' || !($pRec->canBuy = 'yes' || $pRec->canManifacture = 'yes')) {
                     $requiredRoles = 'no_one';
                 }
+            } elseif($rec->type == 'group'){
+
+                // Ако е групово правило, трябва групата или някой от бащите и да е посочен като позволяващ
+                // децата да имат правила
+                $defaultGroups = keylist::toArray(cat_Setup::get('GROUPS_WITH_PRICE_UPDATE_RULES'));
+                $groupParentId = cat_Groups::fetchField($rec->objectId, 'parentId');
+                $parentsArr = cls::get('cat_Groups')->getParentsArray($groupParentId);
+                $intersectedParents = array_intersect_key($defaultGroups, $parentsArr);
+                if(!array_key_exists($rec->objectId, $defaultGroups) && !countR($intersectedParents)) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -353,11 +364,11 @@ class price_Updates extends core_Manager
     /**
      * Обновява всички себестойностти според записа
      *
-     * @param stdClass $rec             - запис
-     * @param bool     $saveInPriceList - искаме ли да запишем изчислената себестойност в 'Себестойности'
-     * @param int|null      $productId  - ид на артикул
+     * @param stdClass  $rec             - запис
+     * @param bool      $saveInPriceList - искаме ли да запишем изчислената себестойност в 'Себестойности'
+     * @param int|null  $productId       - ид на артикул
      *
-     * @return null|int                 - ид-то на записа в себестойности или null ако не е имало обновяване
+     * @return null|int                  - ид-то на записа в себестойности или null ако не е имало обновяване
      */
     private function savePrimeCost($rec, $saveInPriceList = true, $productId = null)
     {
@@ -670,6 +681,18 @@ class price_Updates extends core_Manager
                 }
             }
         } else {
+            if($type == 'group'){
+
+                // Ако е група, която не е посочвена директно, както и никой от бащите ѝ - не се показва
+                $defaultGroups = keylist::toArray(cat_Setup::get('GROUPS_WITH_PRICE_UPDATE_RULES'));
+                $parentsArr = $data->masterMvc->getParentsArray($data->masterData->rec->parentId);
+                $intersectedParents = array_intersect_key($defaultGroups, $parentsArr);
+                if(!array_key_exists($data->masterId, $defaultGroups) && !countR($intersectedParents)) {
+                    $data->hide = true;
+                    return;
+                }
+            }
+
             if($uRec = price_Updates::fetch("#type = '{$type}' AND #objectId = {$data->masterId}")){
                 $data->recs[$uRec->id] = $uRec;
             }
@@ -688,9 +711,9 @@ class price_Updates extends core_Manager
      */
     public function renderDetail($data)
     {
-        $tpl = new core_ET("<div><div>[#title#]</div>[#RULES#]<!--ET_BEGIN RULE--><div style='margin:5px;text-align:center;'>[#RULE#]</div><!--ET_END RULE--></div>");
+        if($data->hide) return new core_ET("");
 
-        $tpl->append($data->info);
+        $tpl = new core_ET("<div><div>[#title#]</div>[#RULES#]<!--ET_BEGIN RULE--><div style='margin:5px;text-align:center;'>[#RULE#]</div><!--ET_END RULE--></div>");
         $isFromProduct = $data->masterMvc instanceof cat_Products;
 
         if(countR($data->recs)){

@@ -158,21 +158,48 @@ class cat_Groups extends core_Master
         $this->setDbUnique('sysId');
         $this->setDbIndex('parentId');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $form->setField('parentId', 'caption=Настройки->В състава на');
+        $form->setField('orderProductBy', 'caption=Настройки->Сортиране по');
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        
+
         if ($form->isSubmitted()) {
             $condition = "#name = '[#1#]' AND #id != '{$rec->id}' AND ";
             $condition .= isset($rec->parentId) ? "#parentId = {$rec->parentId}" : ' #parentId IS NULL';
             
             if ($mvc->fetchField(array($condition, $rec->name))) {
                 $form->setError('name,parentId', 'Вече съществува запис със същите данни');
+            }
+
+            if(isset($rec->id)){
+                $exParentId = $mvc->fetchField($rec->id, 'parentId', false);
+                if($rec->parentId != $exParentId){
+
+                    // Група с правило не може да бъде преместена към група без правила
+                    if(price_Updates::fetch("#type = 'group' AND #objectId = {$rec->id}")){
+                        $defaultGroups = keylist::toArray(cat_Setup::get('GROUPS_WITH_PRICE_UPDATE_RULES'));
+                        $parentsArr = cls::get('cat_Groups')->getParentsArray($rec->parentId);
+                        $intersectedParents = array_intersect_key($defaultGroups, $parentsArr);
+                        if(!array_key_exists($rec->id, $defaultGroups) && !countR($intersectedParents)) {
+                            $form->setError('parentId', 'Групата има зададено правило за обновяване на себестойностти и трябва да остане в състава на група, на чиите поднива може да се задават правила за обновяване|*!');
+                        }
+                    }
+                }
             }
         }
     }
@@ -216,7 +243,9 @@ class cat_Groups extends core_Master
             }
 
             if ($fields['-single']) {
-                $row->productCnt = ht::createLink($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+                $productCount = (isset($rec->productCn)) ? $rec->productCn : 0;
+                $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
+                $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
         }
     }
