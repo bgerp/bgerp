@@ -1210,7 +1210,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $res = array();
         $originId = doc_Containers::getDocument($dcRec->originId)->that;
         $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$dcRec->productId} AND
-                                                           #packagingId = {$dcRec->packagingId} AND #quantity != {$dcRec->quantity}");
+                                                           #packagingId = {$dcRec->packagingId} AND 
+                                                           (#quantity != {$dcRec->quantity} OR #price != {$dcRec->price})");
+
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
         $changeQuatity = $dcRec->quantity * $dcRec->quantityInPack - $originQuantity;
         $changePrice = $dcRec->price - $originDetRec->price;
@@ -1218,8 +1220,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         if (($changeQuatity == 0 && $changePrice == 0) || !$originDetRec) {
             return $res;
         }
+
         $invQuantity = $changeQuatity != 0 ? $changeQuatity : 0;
         $invAmount = $changeQuatity == 0 ? $changePrice * $dcRec->quantity * $dcRec->quantityInPack : $dcRec->price * $invQuantity;
+
         if ($dcRec->discount) {
             $invAmount = $invAmount * (1 - $dcRec->discount);
         }
