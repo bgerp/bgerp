@@ -98,9 +98,10 @@ class acc_plg_DocumentSummary extends core_Plugin
         static::checkApplicability($mvc);
         
         setIfNot($mvc->canViewpsingle, 'powerUser');
-        
+        setIfNot($mvc->hidePeriodFilter, false);
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
+        setIfNot($mvc->rememberListFilterFolderId, false);
         if(isset($mvc->fields['createdBy'])) {
             setIfNot($mvc->filterFieldUsers, 'createdBy');
         }
@@ -129,7 +130,9 @@ class acc_plg_DocumentSummary extends core_Plugin
         $mvc->filterRolesForAll = implode('|', $rolesForAllArr);
         
         setIfNot($mvc->filterAutoDate, true);
-        $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
+        if(!$mvc->hidePeriodFilter){
+            $mvc->_plugins = arr::combine(array('Избор на период' => cls::get('plg_SelectPeriod')), $mvc->_plugins);
+        }
 
         if (!$mvc->fields['createdOn']) {
             $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created->На, notNull, input=none');
@@ -202,7 +205,8 @@ class acc_plg_DocumentSummary extends core_Plugin
         
         return true;
     }
-    
+
+
     /**
      * Подготовка на филтър формата
      */
@@ -210,54 +214,60 @@ class acc_plg_DocumentSummary extends core_Plugin
     {
         $data->listFilter->layout = new ET(tr('|*' . getFileContent('acc/plg/tpl/FilterForm.shtml')));
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
-        $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
-        $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
-        
-        $dateFields = arr::make($mvc->filterDateField, true);
-        $userFields = arr::make($mvc->filterFieldUsers, true);
-        $userFields = (countR($userFields) && array_key_exists('createdBy', $userFields)) ? array() : $userFields;
-        if(countR($userFields) && isset($mvc->fields['createdBy']) && !array_key_exists('createdBy', $userFields)){
-            $userFields['createdBy'] = 'createdBy';
-        }
-        
-        $flds = $dateFields + $userFields;
 
-        if (countR($flds)) {
-            $opt = array();
-            $defaultFilterDateField = null;
-            foreach ($flds as $f) {
-                if (!$defaultFilterDateField) {
-                    $defaultFilterDateField = $f;
-                }
-                $caption = $mvc->getField($f)->caption;
-                if (strpos($caption, '->')) {
-                    list($l, $r) = explode('->', $caption);
-                    $caption = tr($l) . ' » ' . tr($r);
-                }
-                $opt[] = $f . '=' . $caption;
+        if(!$mvc->hidePeriodFilter){
+            $data->listFilter->FNC('from', 'date', 'width=6em,caption=От,silent');
+            $data->listFilter->FNC('to', 'date', 'width=6em,caption=До,silent');
+
+            $dateFields = arr::make($mvc->filterDateField, true);
+            $userFields = arr::make($mvc->filterFieldUsers, true);
+            $userFields = (countR($userFields) && array_key_exists('createdBy', $userFields)) ? array() : $userFields;
+            if(countR($userFields) && isset($mvc->fields['createdBy']) && !array_key_exists('createdBy', $userFields)){
+                $userFields['createdBy'] = 'createdBy';
             }
-            $data->listFilter->FLD('filterDateField', 'enum(' . implode(',', $opt) . ')', 'width=6em,caption=Филтър по||Filter by,silent,input');
-            $showFilterDateField = ',filterDateField';
-        } else {
-            $showFilterDateField = null;
-        }
-        
-        if (!isset($data->listFilter->fields['Rejected'])) {
-            $data->listFilter->FNC('Rejected', 'int', 'input=hidden');
-        }
-        $data->listFilter->setDefault('Rejected', Request::get('Rejected', 'int'));
-        
-        if ($mvc->filterAutoDate === true) {
-            $data->listFilter->setDefault('from', date('Y-m-01'));
-            $data->listFilter->setDefault('to', date('Y-m-t', strtotime(dt::now())));
+
+            $flds = $dateFields + $userFields;
+
+            if (countR($flds)) {
+                $opt = array();
+                $defaultFilterDateField = null;
+                foreach ($flds as $f) {
+                    if (!$defaultFilterDateField) {
+                        $defaultFilterDateField = $f;
+                    }
+                    $caption = $mvc->getField($f)->caption;
+                    if (strpos($caption, '->')) {
+                        list($l, $r) = explode('->', $caption);
+                        $caption = tr($l) . ' » ' . tr($r);
+                    }
+                    $opt[] = $f . '=' . $caption;
+                }
+                $data->listFilter->FLD('filterDateField', 'enum(' . implode(',', $opt) . ')', 'width=6em,caption=Филтър по||Filter by,silent,input');
+                $showFilterDateField = ',filterDateField';
+            } else {
+                $showFilterDateField = null;
+            }
+
+            if (!isset($data->listFilter->fields['Rejected'])) {
+                $data->listFilter->FNC('Rejected', 'int', 'input=hidden');
+            }
+            $data->listFilter->setDefault('Rejected', Request::get('Rejected', 'int'));
+
+            if ($mvc->filterAutoDate === true) {
+                $data->listFilter->setDefault('from', date('Y-m-01'));
+                $data->listFilter->setDefault('to', date('Y-m-t', strtotime(dt::now())));
+            }
         }
         
         $fields = $data->listFilter->selectFields();
         
         if (isset($fields['search'])) {
-            $data->listFilter->showFields .= 'search,';
+            $data->listFilter->showFields .= 'search';
         }
-        $data->listFilter->showFields .= 'from, to' . $showFilterDateField;
+
+        if(!$mvc->hidePeriodFilter){
+            $data->listFilter->showFields .=  ((!empty($data->listFilter->showFields) ? ',' : '')) . 'from, to' . $showFilterDateField;
+        }
         
         if ($isDocument = cls::haveInterface('doc_DocumentIntf', $mvc)) {
             $data->listFilter->FNC('users', "users(rolesForAll={$mvc->filterRolesForAll},rolesForTeams={$mvc->filterRolesForTeam}, showClosedGroups)", 'caption=Потребители,silent,autoFilter,remember');
@@ -278,13 +288,15 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                 }
             }
-            
-            if ($lastPeriod = core_Permanent::get('periodFilter' . $cKey)) {
-                if (!Request::get('selectPeriod')) {
-                    Request::push(array('selectPeriod' => $lastPeriod));
-                    list($from, $to) = plg_SelectPeriod::getFromTo($lastPeriod);
-                    $data->listFilter->rec->from = $from;
-                    $data->listFilter->rec->to = $to;
+
+            if(!$mvc->hidePeriodFilter){
+                if ($lastPeriod = core_Permanent::get('periodFilter' . $cKey)) {
+                    if (!Request::get('selectPeriod')) {
+                        Request::push(array('selectPeriod' => $lastPeriod));
+                        list($from, $to) = plg_SelectPeriod::getFromTo($lastPeriod);
+                        $data->listFilter->rec->from = $from;
+                        $data->listFilter->rec->to = $to;
+                    }
                 }
             }
             
@@ -296,6 +308,12 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
                 
                 $data->listFilter->showFields .= ',users';
+            }
+
+            if($mvc->rememberListFilterFolderId) {
+                if ($lastFolderId = core_Permanent::get('folderFilter' . $cKey)) {
+                    $data->listFilter->setDefault('folder', $lastFolderId);
+                }
             }
         }
         
@@ -426,7 +444,13 @@ class acc_plg_DocumentSummary extends core_Plugin
             }
 
             if (isset($filter->folder)) {
+                unset($data->listFields['folderId']);
                 $data->query->where("#folderId = '{$filter->folder}'");
+                if($mvc->rememberListFilterFolderId) {
+                    if ($filter->folder != $lastFolderId) {
+                        core_Permanent::set('folderFilter' . $cKey, $filter->folder, 24 * 60 * 100);
+                    }
+                }
             }
         }
     }

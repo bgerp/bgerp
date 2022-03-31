@@ -866,7 +866,7 @@ class email_Outgoings extends core_Master
         
         // Ако има originId
         if (($data->rec->originId) && ($data->rec->forward != 'yes')) {
-            
+
             // Контрагент данните от контейнера
             $contrData = doc_Containers::getContragentData($data->rec->originId);
         } else {
@@ -1347,7 +1347,7 @@ class email_Outgoings extends core_Master
     /**
      * Изпълнява се след запис на имейла, като дава възможност за моменталното му изпращане
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         if ($mvc->flagSendIt || $mvc->flagSendItFax) {
             $options = array();
@@ -1894,7 +1894,86 @@ class email_Outgoings extends core_Master
             $data->form->addAttr('subject', $langAttrArr);
         }
     }
-    
+
+
+    /**
+     * Взема контрагент данните от предишния имейл, който е създаден за същия тип документ в папката
+     *
+     * @param integer $originId
+     * @param integer $folderId
+     *
+     * @return stdClass|null
+     */
+    protected static function getContragentDataForSameDocument($originId, $folderId)
+    {
+        if ((!$originId) || (!$folderId)) {
+
+            return ;
+        }
+
+        $oDoc = doc_Containers::getDocument($originId);
+
+        if (!$oDoc) {
+
+            return ;
+        }
+
+        if ($oDoc->getContragentDataFromLastDoc === false) {
+
+            return ;
+        }
+
+        if ($oDoc && $oDoc->that) {
+            $oContrData = $oDoc->getContragentData($oDoc->that);
+            if ($oContrData && $oContrData->_getContragentDataFromLastDoc === false) {
+
+                return ;
+            }
+        }
+
+        $docClsName = $oDoc->className;
+
+        $query = self::getQuery();
+        $query->where(array("#folderId = '[#1#]'", $folderId));
+        $query->where("#originId IS NOT NULL");
+        $query->where("#state = 'closed'");
+        $query->orderBy('modifiedOn', 'DESC');
+        $contrData = null;
+        while ($rec = $query->fetch()) {
+            if (!$rec->originId) {
+
+                continue ;
+            }
+
+            $recODoc = doc_Containers::getDocument($rec->originId);
+
+            if (!$recODoc) {
+
+                continue ;
+            }
+
+            if ($docClsName == $recODoc->className) {
+
+                $contrData = new stdClass;
+
+                $contrData->company = $rec->recipient;
+                $contrData->person = $rec->attn;
+                $contrData->tel = $rec->tel;
+                $contrData->fax = $rec->fax;
+                $contrData->country = $rec->country;
+                $contrData->pCode = $rec->pcode;
+                $contrData->place = $rec->place;
+                $contrData->address = $rec->address;
+                $contrData->email = $rec->email;
+                $contrData->sameEmailCc = $rec->emailCc;
+
+                break;
+            }
+        }
+
+        return $contrData;
+    }
+
     
     /**
      * Прави опит да определи контрагент данните и връща резултат за тях
@@ -1909,6 +1988,7 @@ class email_Outgoings extends core_Master
         $contragentData = null;
 
         if (!$isForwarding) {
+
             if ($rec->threadId) {
                 $contragentData = doc_Threads::getContragentData($rec->threadId);
             }
@@ -1954,7 +2034,6 @@ class email_Outgoings extends core_Master
                     $contragentData->groupEmails .= ($contragentData->groupEmails) ? ', ' : '';
                     $contragentData->groupEmails .= $oContragentData->groupEmails;
                 }
-
             }
         }
 
@@ -2011,6 +2090,27 @@ class email_Outgoings extends core_Master
             }
         }
 
+        if (!$isForwarding) {
+            $contragentDataDoc = null;
+            if ($rec->originId) {
+                $contragentDataDoc = self::getContragentDataForSameDocument($rec->originId, $rec->folderId);
+            } else {
+                if ($rec->threadId) {
+                    $contragentDataDoc = doc_Threads::getContragentData($rec->threadId);
+                }
+            }
+
+            if ($contragentDataDoc) {
+
+                if ($contragentData->groupEmails) {
+                    $contragentDataDoc->groupEmails .= ($contragentDataDoc->groupEmails) ? ', ' : '';
+                    $contragentDataDoc->groupEmails .= $contragentData->groupEmails;
+                }
+
+                return $contragentDataDoc;
+            }
+        }
+
         return $contragentData;
     }
     
@@ -2049,6 +2149,10 @@ class email_Outgoings extends core_Master
             $rec->email = email_Mime::getAllEmailsFromStr($contragentData->replyToEmail);
         } else {
             $rec->email = $contragentData->email ? $contragentData->email : $contragentData->pEmail;
+        }
+
+        if ($contragentData->sameEmailCc) {
+            $rec->emailCc = $contragentData->sameEmailCc;
         }
     }
     
@@ -2904,7 +3008,6 @@ class email_Outgoings extends core_Master
                 if (!$lRec->data->to) {
                     continue;
                 }
-                
                 
                 $sendedTo .= ($sendedTo) ? ', ' . $lRec->data->to : $lRec->data->to;
             }

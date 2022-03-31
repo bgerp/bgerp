@@ -18,6 +18,13 @@ class email_Incomings extends core_Master
 
 
     /**
+     * Масив със състояниято на документа
+     * @see getThreadState()
+     */
+    protected $threadState = array();
+
+
+    /**
      * Път до бланката към документа
      */
     public $blankImage = '/email/img/IncomingsBlank.png';
@@ -212,7 +219,13 @@ class email_Incomings extends core_Master
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn';
-    
+
+
+    /**
+     * Дали да взема контрагент данните от последния документ в папката
+     */
+    public $getContragentDataFromLastDoc = false;
+
 
     /**
      * Описание на модела
@@ -551,15 +564,32 @@ class email_Incomings extends core_Master
                             reportException($exp);
                             continue;
                         }
-                        
+
                         if (isset($status)) {
                             break;
                         }
                     }
                 }
 
-                if (!isset($status) || is_array($status)) {
-                    $this->process($mime, $accId, $uid, $status['preroute'], $status['spam']);
+                if ((!isset($status) || is_array($status)) && ($status != 'ignored')) {
+                    $sId = $this->process($mime, $accId, $uid, $status['preroute'], $status['spam']);
+
+                    if ($sId) {
+                        if (is_array($status)) {
+                            if ($status['closeThread']) {
+                                $this->threadState[$sId] = false;
+                            }
+
+                            if ($status['rejectThread']) {
+                                $sRec = $this->fetch($sId);
+
+                                $sRec->state = 'rejected';
+
+                                $this->save($sRec, 'state');
+                            }
+                        }
+                    }
+
                     $status = 'incoming';
                 }
             }
@@ -568,7 +598,7 @@ class email_Incomings extends core_Master
             $status = 'error';
             reportException($exp);
         }
-        
+
         $status = strtolower($status);
         
         // Записваме в отпечатъка на това писмо, както и статуса му на сваляне
@@ -2286,9 +2316,9 @@ class email_Incomings extends core_Master
      * @param email_Incomings $mvc
      * @param int|NULL        $id
      * @param stdClass        $rec
-     * @param mixed           $saveFileds
+     * @param mixed           $saveFields
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_BeforeSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->calcAllToAndCc($rec, false);
         
@@ -2302,9 +2332,9 @@ class email_Incomings extends core_Master
      * @param email_Incomings $mvc
      * @param int|NULL        $id
      * @param stdClass        $rec
-     * @param mixed           $saveFileds
+     * @param mixed           $saveFields
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         static::needFields($rec, 'fromEml, toBox, date, containerId,threadId, accId');
         
@@ -2738,7 +2768,19 @@ class email_Incomings extends core_Master
      */
     public static function getThreadState($id)
     {
-        return 'opened';
+        $me = cls::get(get_called_class());
+
+        $res = 'opened';
+
+        if (isset($me->threadState[$id])) {
+            $res = $me->threadState[$id];
+
+            if ($me->threadState[$id] === false) {
+                $res = null;
+            }
+        }
+
+        return $res;
     }
     
     
@@ -2857,7 +2899,7 @@ class email_Incomings extends core_Master
 
         if (email_ServiceRules::haveRightFor('add')) {
 
-            $url = array('email_ServiceRules', 'add', 'email' => $rec->fromEml, 'subject' => $rec->subject, 'ret_url' => true);
+            $url = array('email_ServiceRules', 'add', 'email' => $data->rec->fromEml, 'subject' => $data->rec->subject, 'ret_url' => true);
 
             $data->toolbar->addBtn('Правило', $url, 'ef_icon=img/16/page_lightning-new.png, title=Създаване на правило, row=2, order=19');
         }

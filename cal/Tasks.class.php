@@ -815,7 +815,7 @@ class cal_Tasks extends embed_Manager
             
             $query = self::getQuery();
             $link = $mvc->prepareQueryForTimeIntersection($rec);
-            
+
             if ($link !== false) {
                 $form->setWarning('timeStart, timeDuration, timeEnd', "|Засичане по време с|*: {$link}");
             }
@@ -1001,7 +1001,7 @@ class cal_Tasks extends embed_Manager
         $cQuery = cal_Calendar::getQuery();
         
         $cQuery->likeKeylist('users', $rec->assign);
-        
+
         $cQuery->where(array("#time >= '[#1#]' AND #timeEnd <= '[#1#]'", $tStart));
         $cQuery->orWhere(array("#time <= '[#1#]' AND #timeEnd >= '[#1#]'", $tEnd));
         $cQuery->orWhere(array("#time <= '[#1#]' AND #timeEnd >= '[#2#]' AND #timeEnd <= '[#1#]' AND #time >= '[#2#]'", $tEnd, $tStart));
@@ -1016,7 +1016,7 @@ class cal_Tasks extends embed_Manager
         $cQuery->orderBy('type', 'ASC');
         $cQuery->orderBy('time', 'DESC');
         $cQuery->groupBy('url');
-        
+
         $haveRes = false;
         $link = new ET('|*');
         while ($cRec = $cQuery->fetch()) {
@@ -1047,7 +1047,7 @@ class cal_Tasks extends embed_Manager
                     }
                 }
             }
-            
+
             if ($limit > 0) {
                 $link->append('<div>');
                 $link->append(cal_Calendar::recToVerbal($cRec)->event);
@@ -1059,7 +1059,7 @@ class cal_Tasks extends embed_Manager
                     break;
                 }
             }
-            
+
             $limit--;
         }
         
@@ -1076,7 +1076,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Извиква се преди вкарване на запис в таблицата на модела
      */
-    public static function on_BeforeSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_BeforeSave($mvc, &$id, $rec, $saveFields = null)
     {
         if (!$rec->{$mvc->driverClassField}) {
             $rec->{$mvc->driverClassField} = cal_TaskType::getClassId();
@@ -1111,7 +1111,7 @@ class cal_Tasks extends embed_Manager
     /**
      * Извиква се след вкарване на запис в таблицата на модела
      */
-    public static function on_AfterSave($mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($mvc, &$id, $rec, $saveFields = null)
     {
         $mvc->updateTaskToCalendar($rec->id);
 
@@ -1180,6 +1180,16 @@ class cal_Tasks extends embed_Manager
             }
             if (!isset($oState) || ($oState == 'pending')) {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if (($action == 'activate') && $rec) {
+            if (isset($rec->state) && ($rec->state != 'draft') && ($rec->state != 'pending')) {
+                $now = dt::verbal2mysql();
+                $canActivate = $mvc->canActivateTask($rec);
+                if (!$canActivate || ($now < $canActivate)) {
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -1697,7 +1707,13 @@ class cal_Tasks extends embed_Manager
                 $events[] = $calRec;
             }
         }
-        
+
+        // Премахваме оттеглените задачи от календар
+        if ($rec->state == 'rejected') {
+            cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix . '-Start', true);
+            cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix . '-End', true);
+        }
+
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix, $onlyDel);
     }
     

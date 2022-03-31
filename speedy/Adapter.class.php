@@ -88,10 +88,10 @@ class speedy_Adapter {
         
         $userName = speedy_Setup::get('DEFAULT_ACCOUNT_USERNAME', false, $this->userId);
         $password = speedy_Setup::get('DEFAULT_ACCOUNT_PASSWORD', false, $this->userId);
-        
+
         if(empty($userName) || empty($password)){
             $result->success = false;
-            $result->errorMsg = tr("Не са настроени парола и акаунт на Спиди");
+            $result->errorMsg = tr("Не са настроени парола и акаунт на Speedy|*!");
             
             return $result;
         }
@@ -103,14 +103,22 @@ class speedy_Adapter {
             $this->accountName = $userName;
         } catch (ServerException $e){
             reportException($e);
-            
             $result->success = false;
-            $result->errorMsg = tr("Проблем при логване");
 
+            // Мапване на грешката при логване
             $msg = $e->getMessage();
-            if(!haveRole('debug')){
-                $msg = ($msg == 'Service Unavailable') ? 'Недостъпна услуга. Моля опитайте по-късно|*!' : ((strpos($msg, 'InvalidUsernameOrPasswordException') !== false) ? 'Невалидно потребителско име и/или парола|*!' : 'Проблем при логване');
+            if($msg == 'Service Unavailable'){
+                $msg = 'Недостъпна услуга. Моля опитайте по-късно|*!';
+            } elseif(strpos($msg, 'InvalidUsernameOrPasswordException') !== false){
+                $msg = 'Невалидно потребителско име и/или парола|*!';
+            } elseif(strpos($msg, 'NoUserPermissionsException') !== false){
+                $msg = 'Потребителският акаунт няма права за ползване на услугата|*! |Свържете се със Speedy|*!';
+            } else {
+                if(!haveRole('admin')){
+                    $msg = 'Неуспешно логване';
+                }
             }
+            log_System::logErr($msg);
 
             $result->errorMsg = $msg;
         }

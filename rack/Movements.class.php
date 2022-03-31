@@ -749,11 +749,11 @@ class rack_Movements extends rack_MovementAbstract
 
             // Ако записа в изтрит не се прави нищо
             if(!$this->fetchField($rec->id, 'id', false)){
+                wp('Опит за промяна на изтрит запис', $rec);
                 $errorMsg = 'Движението вече е изтрито';
             }
 
             if (!empty($errorMsg)) {
-                wp('Опит за промяна на изтрит запис', $rec);
                 core_Locks::release("movement{$rec->id}");
                 if($ajaxMode){
                     core_Statuses::newStatus($errorMsg, 'error');
@@ -890,6 +890,8 @@ class rack_Movements extends rack_MovementAbstract
 
                 // Отделя се само к-то за тази зона, като ново приключено движение
                 $this->save_($newRec);
+                rack_OldMovements::sync($newRec);
+                rack_Logs::add($newRec->storeId, $newRec->productId, 'create', $newRec->positionTo, $newRec->id, "Отделяне на движение #{$newRec->id} от #{$rec->id}");
                 rack_Logs::add($newRec->storeId, $newRec->productId, 'close', $newRec->positionTo, $newRec->id, "Приключване на движение #{$newRec->id}");
 
                 // Оригиналното движение се редактира, премахвайки тази част, която е отделена като ново
@@ -898,6 +900,7 @@ class rack_Movements extends rack_MovementAbstract
                 $rec->documents = keylist::removeKey($rec->documents, $zoneDocumentContainerId);
                 $rec->quantity -= $quantityToRemove;
                 $this->save_($rec);
+                rack_OldMovements::sync($rec);
 
                 $skip = true;
             }
@@ -1373,7 +1376,7 @@ class rack_Movements extends rack_MovementAbstract
             $row->_rowTools->addLink('Приключване', $doneUrl, array('warning' => $doneWarning, 'id' => "start{$rec->id}", 'ef_icon' => 'img/16/gray-close.png', 'title' => 'Приключване на движението'));
             if($fields['-inline'] && !isset($fields['-inline-single'])){
                 $doneUrl = toUrl($doneUrl, 'local');
-                $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Започване на движението', 'ef_icon' => 'img/16/gray-close.png'));
+                $row->rightColBtns .= ht::createFnBtn('Приключване', '', $doneWarning, array('class' => 'toggle-movement', 'data-url' => $doneUrl, 'title' => 'Приключване на движението', 'ef_icon' => 'img/16/gray-close.png'));
             } else {
                 $img = ht::createImg(array('src' => sbf('img/16/gray-close.png', '')));
                 $row->rightColBtns .= ht::createLink($img, $doneUrl, $doneWarning, 'title=Приключване на движението');

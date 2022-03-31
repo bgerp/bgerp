@@ -622,9 +622,9 @@ class deals_plg_ImportDealDetailProduct extends core_Plugin
         $error = '';
         if ($mvc->haveRightFor('import', (object) array("{$mvc->masterKey}" => $masterRec->id))) {
             $data->toolbar->addBtn(
-                'Импортиране',
+                'Импортиране (CSV)',
                 array($mvc, 'import', "{$mvc->masterKey}" => $masterRec->id, 'ret_url' => true),
-            "id=btnAdd-import,title=Импортиране на артикули",
+            "id=btnAdd-import,title=Импортиране на артикули от CSV",
                 "ef_icon = img/16/import.png,order=15,{$error}"
             );
         }

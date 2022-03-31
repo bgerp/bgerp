@@ -8382,7 +8382,9 @@ body.narrow {
 	background-color: #eee;
 	border:1px solid #bbb;
 }
-
+.selectTaskOptions tr.newTaskBtn {
+	display:none;
+}
 .selectTaskOptions tr.selectTaskFromJobRow td {
 	padding-left:8px;
 	padding-top:5px;
@@ -8400,5 +8402,9 @@ body.narrow {
 	color:#555;
 	border:1px solid #cdcdcd;
 	padding:3px;
+}
+
+table.bomProductionStepTable td{
+	border:0px !important;
 }
 

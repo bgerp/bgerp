@@ -279,13 +279,14 @@ class price_Updates extends core_Manager
         $this->requireRightFor('saveprimecost');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
+        $productId = Request::get('id', 'int');
         $this->requireRightFor('saveprimecost', $rec);
-        
+
         // Записва себестойността
-        $this->savePrimeCost($rec);
+        $this->savePrimeCost($rec, true, $productId);
         
         // Редирект към списъчния изглед
-        return followRetUrl(null, 'Себестойността е променена успешно');
+        return followRetUrl(null, 'Себестойността е променена успешно|*!');
     }
     
     
@@ -330,14 +331,19 @@ class price_Updates extends core_Manager
      *
      * @param stdClass $rec             - запис
      * @param bool     $saveInPriceList - искаме ли да запишем изчислената себестойност в 'Себестойности'
+     * @param int      $productId       - ид на артикул
      *
      * @return void
      */
-    private function savePrimeCost($rec, $saveInPriceList = true)
+    private function savePrimeCost($rec, $saveInPriceList = true, $productId = null)
     {
         // На кои продукти ще обновяваме себестойностите
-        $products = $this->getProductsToUpdatePrimeCost($rec);
-        
+        if(isset($productId)){
+            $products = array($productId => $productId);
+        } else {
+            $products = $this->getProductsToUpdatePrimeCost($rec);
+        }
+
         // Подготвяме датата от която ще е валиден записа
         $validFrom = $this->getValidFromDate($rec->updateMode);
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($validFrom);

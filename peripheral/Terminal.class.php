@@ -105,9 +105,9 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
      * @param peripheral_Devices $mvc
      * @param int                $id
      * @param stdClass           $rec
-     * @param NULL|array         $saveFileds
+     * @param NULL|array         $saveFields
      */
-    public static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFileds = null)
+    public static function on_AfterSave($Driver, $mvc, &$id, $rec, $saveFields = null)
     {
         $nameField = $Driver->nameField;
         $clsName = $Driver->clsName;

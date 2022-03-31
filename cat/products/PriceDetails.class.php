@@ -189,7 +189,11 @@ class cat_products_PriceDetails extends core_Manager
                 if (isset($uRec)) {
                     if (price_Updates::haveRightFor('saveprimecost', $uRec)) {
                         if ($hideIcons === false) {
-                            $btns .= "<div style='text-align:left'>" . ht::createLink('Обновяване', array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => true), false, 'title=Обновяване на себестойността според зададеното правило'). '</div>';
+                            $url = array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => true);
+                            if($uRec->_fromCategory){
+                                $url['productId'] = $data->masterId;
+                            }
+                            $btns .= "<div style='text-align:left'>" . ht::createLink('Обновяване', $url, false, 'title=Обновяване на себестойността според зададеното правило'). '</div>';
                         }
                     }
                 }

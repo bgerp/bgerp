@@ -81,8 +81,8 @@ class sales_Sales extends deals_DealMaster
      * Кой има право да добавя?
      */
     public $canAdd = 'ceo,sales';
-    
-    
+
+
     /**
      * Кои роли могат да филтрират потребителите по екип в листовия изглед
      */
@@ -217,8 +217,14 @@ class sales_Sales extends deals_DealMaster
      * @see bgerp_plg_CsvExport
      */
     public $exportableCsvFields = 'valior,id,folderId,currencyId,paymentMethodId,amountDeal,amountDelivered,amountPaid,amountInvoiced,invoices=Фактури';
-    
-    
+
+
+    /**
+     * Огледален клас за обратната операция
+     */
+    public $reverseClassName = 'store_Receipts';
+
+
     /**
      * Стратегии за дефолт стойностти
      */
@@ -863,13 +869,13 @@ class sales_Sales extends deals_DealMaster
     protected function setTemplates(&$res)
     {
         $tplArr = array();
-        $tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/Sale.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/SaleNarrow.shtml');
-        $tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/Manufacturing.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrow.shtml');
-        $tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ServiceNarrow.shtml');
-        $tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/SaleNarrowEN.shtml');
-        $tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrowEN.shtml');
-        $tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ServiceNarrowEN.shtml');
-        $tplArr[] = array('name' => 'Договор за транспорт',   'content' => 'sales/tpl/sales/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/TransportNarrow.shtml');
+        $tplArr[] = array('name' => 'Договор за продажба',    'content' => 'sales/tpl/sales/Sale.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/SaleNarrow.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Договор за изработка',   'content' => 'sales/tpl/sales/Manufacturing.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrow.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Договор за услуга',      'content' => 'sales/tpl/sales/Service.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/ServiceNarrow.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Sales contract',         'content' => 'sales/tpl/sales/SaleEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/SaleNarrowEN.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Manufacturing contract', 'content' => 'sales/tpl/sales/ManufacturingEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ManufacturingNarrowEN.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Service contract',       'content' => 'sales/tpl/sales/ServiceEN.shtml', 'lang' => 'en', 'narrowContent' => 'sales/tpl/sales/ServiceNarrowEN.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+        $tplArr[] = array('name' => 'Договор за транспорт',   'content' => 'sales/tpl/sales/Transport.shtml', 'lang' => 'bg', 'narrowContent' => 'sales/tpl/sales/TransportNarrow.shtml', 'toggleFields' => array('masterFld' => null, 'sales_SalesDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
         
         
         $res .= doc_TplManager::addOnce($this, $tplArr);
@@ -1921,7 +1927,9 @@ class sales_Sales extends deals_DealMaster
                 
                 $contrData->email = $cartRec->email;
                 $contrData->priority = 20;
-                
+
+                $contrData->_getContragentDataFromLastDoc = false;
+
                 return $contrData;
             }
         }

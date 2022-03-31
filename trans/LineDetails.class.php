@@ -293,7 +293,7 @@ class trans_LineDetails extends doc_Detail
             // Подготовка на логистичната информация за документа
             $logisticArr = array();
             if(!empty($transportInfo['transportUnits'])){
-                $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits']);
+                $transUnits = trans_helper::displayTransUnits($transportInfo['transportUnits'], false, '<br>');
                 $logisticArr[] = $transUnits;
             } elseif(isset($transportInfo['volume'])){
                 $logisticArr[] = core_Type::getByName('cat_type_Volume')->toVerbal($transportInfo['volume']);

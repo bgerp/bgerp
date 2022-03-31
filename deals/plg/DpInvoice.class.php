@@ -25,7 +25,7 @@ class deals_plg_DpInvoice extends core_Plugin
         if ($mvc instanceof sales_Invoices || $mvc instanceof purchase_Invoices || $mvc instanceof sales_Proformas) {
             
             // Сума на авансовото плащане (ако има)
-            $mvc->FLD('dpAmount', 'double', 'caption=Авансово плащане->Сума,input=none,before=contragentName');
+            $mvc->FLD('dpAmount', 'double', 'caption=Авансово плащане->Сума,input=none,before=displayContragentClassId');
             
             // Операция с авансовото плащане начисляване/намаляване
             $mvc->FLD('dpOperation', 'enum(accrued=Начисляване, deducted=Приспадане, none=Няма)', 'caption=Авансово плащане->Операция,input=none,before=contragentName');

@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -38,7 +38,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'productId=Продукт №, paramId, paramValue';
+    public $listFields = 'id,productId=Обект, paramId, paramValue';
     
     
     /**
@@ -68,7 +68,7 @@ class cat_products_Params extends doc_Detail
     /**
      * Кой може да листва
      */
-    public $canList = 'ceo,cat';
+    public $canList = 'debug';
     
     
     /**
@@ -93,15 +93,23 @@ class cat_products_Params extends doc_Detail
      * Предлог в формата за добавяне/редактиране
      */
     public $formTitlePreposition = 'на';
-    
-    
+
+
+    /**
+     * Брой записи на страница
+     *
+     * @var int
+     */
+    public $listItemsPerPage = 20;
+
+
     /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         $this->FLD('classId', 'class', 'input=hidden,silent');
-        $this->FLD('productId', 'int', 'input=hidden,silent');
+        $this->FLD('productId', 'int', 'input=hidden,silent,tdClass=leftCol');
         $this->FLD('paramId', 'key(mvc=cat_Params,select=typeExt,forceOpen)', 'input,caption=Параметър,mandatory,silent');
         $this->FLD('paramValue', 'text', 'input=none,caption=Стойност,mandatory');
         
@@ -129,7 +137,7 @@ class cat_products_Params extends doc_Detail
      * @param stdClass $row Това ще се покаже
      * @param stdClass $rec Това е записа в машинно представяне
      */
-    protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
+    protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $paramRec = cat_Params::fetch($rec->paramId);
         $paramRec->name = tr($paramRec->name);
@@ -144,6 +152,15 @@ class cat_products_Params extends doc_Detail
         if (!empty($paramRec->suffix)) {
             $suffix = cat_Params::getVerbal($paramRec, 'suffix');
             $row->paramValue .= ' ' . tr($suffix);
+        }
+
+        if(isset($fields['-list'])){
+            $Class = cls::get($rec->classId);
+            if($Class instanceof core_Master){
+                $row->productId = $Class->getHyperlink($rec->productId, true);
+            } elseif($Class instanceof core_Detail) {
+                $row->productId = $Class->Master->getHyperlink($Class->fetchField($rec->productId, $Class->masterKey), true);
+            }
         }
     }
     
@@ -235,7 +252,14 @@ class cat_products_Params extends doc_Detail
     {
         $rec = $data->form->rec;
         if (isset($rec->classId, $rec->productId)) {
-            $data->form->title = core_Detail::getEditTitle($rec->classId, $rec->productId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
+            $titleClass = $rec->classId;
+            $titleId = $rec->productId;
+            if($rec->classId == cat_BomDetails::getClassId()){
+                $titleClass = cat_Boms::getClassId();
+                $titleId = cat_BomDetails::fetchField($titleId, 'bomId');
+            }
+
+            $data->form->title = core_Detail::getEditTitle($titleClass, $titleId, $mvc->singleTitle, $rec->id, $mvc->formTitlePreposition);
         }
         
         if (isset($data->form->paramOptions) && countR($data->form->paramOptions) <= 1) {
@@ -400,28 +424,30 @@ class cat_products_Params extends doc_Detail
                     if ($isPublic == 'yes') {
                         $requiredRoles = 'catEdit,ceo';
                     }
+                } elseif ($rec->classId == cat_BomDetails::getClassId()) {
+                    $requiredRoles = cat_BomDetails::getRequiredRoles($action, $rec->productId, $userId);
                 }
             }
         }
         
         if (isset($rec->productId, $rec->classId)) {
-            if (isset($rec->classId)) {
-                $pRec = cls::get($rec->classId)->fetch($rec->productId);
-                
-                if ($action == 'add' && $rec->classId == cat_Products::getClassId()) {
+            $Class = cls::get($rec->classId);
+            $pRec = $Class->fetch($rec->productId);
+            if($rec->classId == cat_Products::getClassId()){
+                if ($action == 'add') {
                     $InnerClass = cls::load($pRec->innerClass, true);
-                    if ($InnerClass && ($InnerClass instanceof cat_GeneralProductDriver)) {
-                        
+                    if ($InnerClass instanceof cat_GeneralProductDriver) {
+
                         // Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
                         $requiredRoles = 'no_one';
                     }
                 }
-                
+
                 if ($pRec->state != 'active' && $pRec->state != 'draft' && $pRec->state != 'template') {
                     $requiredRoles = 'no_one';
                 }
-                
-                if (!cat_Products::haveRightFor('single', $rec->productId)) {
+
+                if (!$Class->haveRightFor('single', $rec->productId)) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -590,6 +616,120 @@ class cat_products_Params extends doc_Detail
         }
 
         return $rec;
+    }
+
+
+    /**
+     * Добавяне на параметри за редактиране във формата на обект
+     *
+     * @param $classId
+     * @param $objectId
+     * @param $productId
+     * @param $form
+     * @param $onlyTaskParams
+     * @param $mandatoryValues
+     * @return void
+     */
+    public static function addProductParamsToForm($classId, $objectId, $productId, &$form , $onlyTaskParams = true, $mandatoryValues = true)
+    {
+        // Показване на параметрите за задача във формата, като задължителни полета
+        $params = cat_Products::getParams($productId);
+        if($onlyTaskParams){
+            $taskParams = cat_Params::getTaskParamIds();
+            $params = array_intersect_key($params, $taskParams);;
+        }
+
+        $class = cls::get($classId);
+        foreach ($params as $pId => $v) {
+            $paramRec = cat_Params::fetch($pId);
+            $name = cat_Params::getVerbal($paramRec, 'name');
+            $form->FLD("paramcat{$pId}", 'double', "caption=Параметри за производство->{$name},before=description");
+            if($mandatoryValues){
+                $form->setField("paramcat{$pId}", 'mandatory');
+            }
+
+            $ParamType = cat_Params::getTypeInstance($pId, $class->getClassId(), $objectId);
+            $form->setFieldType("paramcat{$pId}", $ParamType);
+
+            if (!empty($paramRec->suffix)) {
+                $suffix = cat_Params::getVerbal($paramRec, 'suffix');
+                $form->setField("paramcat{$pId}", "unit={$suffix}");
+            }
+
+            if (isset($v)) {
+                if (($ParamType instanceof fileman_FileType)) {
+                    $form->setDefault("paramcat{$pId}", $v);
+                }else {
+                    if(cat_Params::haveDriver($paramRec, 'cond_type_Keylist')){
+                        $defaults = keylist::toArray($v);
+                        $v = array_intersect_key($ParamType->getSuggestions(), $defaults);
+                    } else {
+                        $v = array('' => '', "{$v}" => "{$v}");
+                    }
+                    $form->setSuggestions("paramcat{$pId}", $v);
+                }
+            }
+
+            $form->rec->_params["paramcat{$pId}"] = (object) array('paramId' => $pId);
+        }
+    }
+
+
+    /**
+     * Записване на параметрите от подадения обект
+     *
+     * @param $class
+     * @param $rec
+     * @param $paramField
+     * @return void
+     */
+    public static function saveParams($class, $rec, $paramField = '_params')
+    {
+        $Class = cls::get($class);
+        foreach ($rec->{$paramField} as $k => $o) {
+            if (!isset($rec->{$k})) continue;
+
+            $nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $Class->getClassId(), 'productId' => $rec->id);
+            if ($id = cat_products_Params::fetchField("#classId = {$Class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')) {
+                $nRec->id = $id;
+            }
+
+            cat_products_Params::save($nRec, null, 'REPLACE');
+        }
+    }
+
+
+    /**
+     * Подготвя параметрите на обекта
+     *
+     * @param $class
+     * @param $objectRec
+     * @return stdClass
+     */
+    public static function prepareClassObjectParams($class, $objectRec)
+    {
+        $d = new stdClass();
+        $d->masterId = $objectRec->id;
+        $d->masterClassId = $class::getClassId();
+        if($class instanceof cat_BomDetails){
+            if($objectRec->state != 'draft'){
+                $d->noChange = true;
+            }
+        }elseif ($objectRec->state == 'closed' || $objectRec->state == 'stopped' || $objectRec->state == 'rejected') {
+            $d->noChange = true;
+        }
+        cat_products_Params::prepareParams($d);
+
+        return $d;
+    }
+
+
+    /**
+     * Подготовка на филтър формата
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->query->orderBy('id', 'DESC');
     }
 }
 

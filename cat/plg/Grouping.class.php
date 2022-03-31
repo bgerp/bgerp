@@ -155,8 +155,9 @@ class cat_plg_Grouping extends core_Plugin
                     $obj = new stdClass();
                     $obj->id = $id;
                     $obj->meta = $rec->meta;
-                    
-                    if(!cat_Categories::checkMetas($rec->meta, $id, $metaError)){
+
+                    $driverClassId = cat_Products::fetchField($id, 'innerClass');
+                    if(!cat_Categories::checkMetas($rec->meta, $driverClassId, $id, $metaError)){
                         $form->setError('meta', $metaError);
                     }
                     
@@ -168,11 +169,11 @@ class cat_plg_Grouping extends core_Plugin
                 } else {
                     foreach ($selArr as $id) {
                         $exGroups = $groups = type_Set::toArray($mvc->fetchField($id, 'meta'));
-                        
+
+                        $driverClassId = cat_Products::fetchField($id, 'innerClass');
                         $groups = array_merge($groups, arr::make($rec->addMetas, true));
                         $groups = array_diff($groups, arr::make($rec->delMetas, true));
-                        
-                        if(!cat_Categories::checkMetas($groups, $id, $metaError)){
+                        if(!cat_Categories::checkMetas($groups, $driverClassId, $id, $metaError)){
                             $form->setError('addMetas', $metaError);
                         }
                         

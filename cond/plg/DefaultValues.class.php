@@ -47,6 +47,7 @@ class cond_plg_DefaultValues extends core_Plugin
     {
         // Проверка за приложимост на плъгина към зададения $mvc
         static::checkApplicability($mvc);
+        setIfNot($mvc->dontReloadDefaultsOnRefresh, true);
     }
     
     
@@ -112,9 +113,9 @@ class cond_plg_DefaultValues extends core_Plugin
                 // За всяко поле със стратегия, му се намира стойността
                 foreach ($mvc::$defaultStrategies as $name => $strat) {
                     $value = self::getDefValueByStrategy($mvc, $rec, $name, $strat);
-                    if ($form->cmd != 'refresh') {
-                        $form->setDefault($name, $value);
-                    }
+                    if($form->cmd == 'refresh' && $mvc->dontReloadDefaultsOnRefresh) continue;
+
+                    $form->setDefault($name, $value);
                 }
             }
         }
@@ -436,8 +437,22 @@ class cond_plg_DefaultValues extends core_Plugin
             $rec->folderId = doc_Threads::fetchField($rec->threadId, 'folderId');
         }
     }
-    
-    
+
+
+    /**
+     * Кои полета да се ъпдейтват при промяна с тези от визитката
+     */
+    public static function on_AfterGetContragentCoverFieldsToUpdate($mvc, &$res, $rec)
+    {
+        if(!$res){
+            $res = array();
+            if(isset($mvc::$updateContragentdataField)){
+                $res = arr::make($mvc::$updateContragentdataField, true);
+            }
+        }
+    }
+
+
     /**
      * Извиква се след успешен запис в модела
      *
@@ -448,16 +463,17 @@ class cond_plg_DefaultValues extends core_Plugin
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $fields = array())
     {
         if ($rec->folderId) {
-            if (isset($mvc::$updateContragentdataField) && countR($mvc::$updateContragentdataField) && ($mvc::$defaultStrategies) && countR($mvc::$defaultStrategies)) {
+            $updateFields = $mvc->getContragentCoverFieldsToUpdate($rec);
+
+            if (countR($updateFields) && isset($mvc::$defaultStrategies) && countR($mvc::$defaultStrategies)) {
                 $fRec = doc_Folders::fetch($rec->folderId);
                 
                 if ($fRec && $fRec->coverClass && $fRec->coverId) {
                     if (cls::load($fRec->coverClass, true) && ($inst = cls::get($fRec->coverClass)) && $inst->haveRightFor('edit', $fRec->coverId)) {
                         $changedRecArr = array();
-                        
                         $fContrData = $inst->fetch($fRec->coverId);
                         
-                        foreach ($mvc::$updateContragentdataField as $cName => $name) {
+                        foreach ($updateFields as $cName => $name) {
                             if (!trim($rec->{$name})) {
                                 continue;
                             }
@@ -470,10 +486,9 @@ class cond_plg_DefaultValues extends core_Plugin
                                 $changedRecArr[$cName] = $rec->{$name};
                             }
                         }
-                        
+
                         if (!(empty($changedRecArr))) {
                             Request::setProtected('AutoChangeFields');
-                            
                             $updateLink = ht::createLink(tr('обновяване'), array($inst, 'edit', $fRec->coverId, 'AutoChangeFields' => serialize($changedRecArr), 'ret_url' => array($mvc, 'single', $rec->id)));
                             
                             status_Messages::newStatus("|Контактните данни се различават от тези във визитката. Ако желаете, направете|* {$updateLink}");

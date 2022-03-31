@@ -10,7 +10,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2020 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -54,8 +54,14 @@ class sales_SalesDetails extends deals_DealDetail
      * @var string
      */
     public $menuPage = 'Търговия:Продажби';
-    
-    
+
+
+    /**
+     * Полета за скриване/показване от шаблоните
+     */
+    public $toggleFields = 'packagingId=Опаковка,packQuantity=Количество,packPrice=Цена,discount=Отстъпка,amount=Сума';
+
+
     /**
      * Кой има право да променя?
      *

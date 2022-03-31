@@ -8,8 +8,8 @@
  * @category  bgerp
  * @package   rack
  *
- * @author    Ts. Mihaylov <tsvetanm@ep-bags.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -128,13 +128,13 @@ class rack_Racks extends core_Master
      */
     public function description()
     {
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,input=hidden');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name)', 'caption=Склад,silent,input=hidden');
         $this->FLD('num', 'int(max=1000)', 'caption=Номер,mandatory,tdClass=leftCol');
         $this->FLD('rows', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Редове,mandatory,smartCenter');
         $this->FLD('firstRowTo', 'enum(A,B,C,D,E,F,G,H,I,J,K,L,M)', 'caption=Първи ред до,notNull,value=A');
         $this->FLD('columns', 'int(max=100)', 'caption=Колони,mandatory,smartCenter');
         $this->FLD('comment', 'richtext(rows=5, bucket=Comments)', 'caption=Коментар');
-        $this->FLD('groups', 'keylist(mvc=rack_ZoneGroups,select=name,allowEmpty)', 'caption=Приоритетно използване в зони->Групи');
+        $this->FLD('groups', 'text', 'caption=Приоритетно използване в зони->Групи,input=none');
         $this->FLD('total', 'int', 'caption=Палет-места->Общо,smartCenter,input=none');
         $this->FLD('used', 'int', 'caption=Палет-места->Използвани,smartCenter,input=none');
         $this->FLD('reserved', 'int', 'caption=Палет-места->Запазени,smartCenter,input=none');
@@ -189,7 +189,8 @@ class rack_Racks extends core_Master
     {
         $form = $data->form;
         $rec = &$form->rec;
-        
+        $form->setDefault('useGroups', 'yes');
+
         if (!$rec->id) {
             $storeId = store_Stores::getCurrent();
             $form->setDefault('storeId', $storeId);
@@ -208,12 +209,32 @@ class rack_Racks extends core_Master
             $form->setReadOnly('num');
         }
 
-        if(!static::canUsePriorityRacks($rec->storeId)){
-            $form->setField('groups', 'input=none');
+        // Ако може да се задават приоритизирани стелажи
+        if(static::canUsePriorityRacks($rec->storeId)){
+            $form->FNC('groupSet', 'text', 'caption=Приоритетно използване в зони->Групи,input');
+            $form->setFieldType('groupSet', $mvc->getGroupType());
+            $form->setDefault('groupSet', $form->getFieldType('groupSet')->fromVerbal(keylist::toArray($rec->groups)));
         }
     }
-    
-    
+
+
+    /**
+     * Връща типа на полето за група
+     */
+    private function getGroupType()
+    {
+        $options = array();
+        $gQuery = rack_ZoneGroups::getQuery();
+        while($gRec = $gQuery->fetch()){
+            $options[$gRec->id] = $gRec->name;
+        }
+        $options["-1"] = "« " . tr("Без група") . " »";
+        $optionsImploded = arr::fromArray($options);
+
+        return core_Type::getByName("set({$optionsImploded})");
+    }
+
+
     /**
      * Добавя филтър към перата
      *
@@ -321,7 +342,7 @@ class rack_Racks extends core_Master
     {
         if ($form->isSubmitted()) {
             $rec = $form->rec;
-            
+
             $rec->storeId = store_Stores::getCurrent();
             $error = null;
             if (!rack_Pallets::isEmptyOut($rec->num, $rec->rows, $rec->columns, null, $error)) {
@@ -331,6 +352,9 @@ class rack_Racks extends core_Master
             if ($rec->id && rack_RackDetails::fetch("#rackId = {$rec->id} AND (#row > '{$rec->rows}' OR #col > {$rec->columns}) AND #status != 'usable'")) {
                 $form->setWarning('rows,columns', 'Информацията за запазени или неизползваеми места извън новите размери ще бъде изтрита');
             }
+
+            $groups = type_Set::toArray($rec->groupSet);
+            $rec->groups = keylist::fromArray($groups);
         }
     }
     
@@ -363,8 +387,8 @@ class rack_Racks extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = null)
     {
         if(static::canUsePriorityRacks($rec->storeId)){
-            $row->groups = $mvc->getFieldType('groups')->toVerbal($rec->groups);
-            if (isset($fields['-list'])) {
+            $row->groups = $mvc->getGroupType()->toVerbal(implode(',', keylist::toArray($rec->groups)));
+            if (isset($fields['-list']) && !empty($row->groups)) {
                 $row->num .= " <br><small>{$row->groups}</small>";
             }
         } else {
@@ -833,6 +857,8 @@ class rack_Racks extends core_Master
     public static function canUsePriorityRacks($storeId)
     {
         if(!array_key_exists($storeId, static::$cache)){
+
+            // Ако в склада е посочено - взима се от там, ако не е от дефолтната константа
             $prioritizeRackGroups = store_Stores::fetchField($storeId, 'prioritizeRackGroups');
             $prioritizeRackGroups = !empty($prioritizeRackGroups) ? $prioritizeRackGroups : rack_Setup::get('ENABLE_PRIORITY_RACKS');
             static::$cache[$storeId] = $prioritizeRackGroups;

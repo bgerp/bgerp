@@ -261,7 +261,6 @@ abstract class deals_Helper
     {
         // Стойностите на сумата на всеки ред, ддс-то и отстъпката са във валутата на документа
         $arr = array();
-        
         $values = (array) $values;
         $arr['currencyId'] = $currencyId;                          // Валута на документа
         
@@ -305,17 +304,12 @@ abstract class deals_Helper
             }
         }
         
-        if ($invoice) { // ако е фактура
-            //$arr['vatAmount'] = $values['vat'] * $currencyRate; // С-та на ддс-то в основна валута
-            //$arr['vatCurrencyId'] = $baseCurrency; 				// Валутата на ддс-то е основната за периода
+        if ($invoice) {
             $arr['baseAmount'] = $arr['total'] * $currencyRate; // Данъчната основа
             $arr['baseAmount'] = ($arr['baseAmount']) ? $arr['baseAmount'] : "<span class='quiet'>0" . $pointSign . '00</span>';
             $arr['baseCurrencyId'] = $baseCurrency; 			// Валутата на данъчната основа е тази на периода
-        }   // ако не е фактура
-            //$arr['vatAmount'] = $values['vat']; 		// ДДС-то
-            //$arr['vatCurrencyId'] = $currencyId; 		// Валутата на ддс-то е тази на документа
-        
-        
+        }
+
         if (!$invoice && $chargeVat != 'separate') { 				 // ако документа не е фактура и не е с отделно ддс
             //unset($arr['vatAmount'], $arr['vatCurrencyId']); // не се показват данни за ддс-то
         } else { // ако е фактура или е сотделно ддс
@@ -330,14 +324,20 @@ abstract class deals_Helper
             $arr['sayWords'] = $SpellNumber->asCurrency($arr['total'], $lang, false, $currencyId);
             $arr['sayWords'] = str::mbUcfirst($arr['sayWords']);
         }
-        
+
+        if($arr['value'] != 0){
+            $arr['sayWordsValue'] = $SpellNumber->asCurrency($arr['value'], $lang, false, $currencyId);
+            $arr['sayWordsValue'] = str::mbUcfirst($arr['sayWordsValue']);
+        }
+
+        if($arr['neto'] != 0){
+            $arr['sayWordsNetto'] = $SpellNumber->asCurrency($arr['neto'], $lang, false, $currencyId);
+            $arr['sayWordsNetto'] = str::mbUcfirst($arr['sayWordsNetto']);
+        }
+
         $arr['value'] = ($arr['value']) ? $arr['value'] : "<span class='quiet'>0" . $pointSign . '00</span>';
         $arr['total'] = ($arr['total']) ? $arr['total'] : "<span class='quiet'>0" . $pointSign . '00</span>';
-        
-        if (!$arr['vatAmount'] && ($invoice || $chargeVat == 'separate')) {
-            //$arr['vatAmount'] = "<span class='quiet'>0" . $pointSign . "00</span>";
-        }
-        
+
         $Double = cls::get('type_Double');
         $Double->params['decimals'] = 2;
         
@@ -1035,7 +1035,13 @@ abstract class deals_Helper
         if (isset($contragentClass, $contragentId)) {
             $ContragentClass = cls::get($contragentClass);
             $cData = $ContragentClass->getContragentData($contragentId);
-            $res['contragentName'] = isset($contragentName) ? $contragentName : (($cData->personVerb) ? $cData->personVerb : $cData->companyVerb);
+            $cName = ($cData->personVerb) ? $cData->personVerb : $cData->companyVerb;
+            $res['contragentName'] = isset($contragentName) ? $contragentName : $cName;
+            if($res['contragentName'] != $cName){
+                if(!Mode::isReadOnly()){
+                    $res['contragentName'] = ht::createHint($res['contragentName'], 'Името на контрагента е променено в документа|*!', 'warning');
+                }
+            }
             $res['inlineContragentName'] = $res['contragentName'];
 
             $res['eori'] = core_Type::getByName('drdata_type_Eori')->toVerbal($cData->eori);
@@ -1577,37 +1583,31 @@ abstract class deals_Helper
         
         return $invoices;
     }
-    
-    
+
+
     /**
-     * Помощен метод връщащ разпределението на плащанията по фактури
+     * Връща нишките, които обединява или са обединени от дадена нишка
      *
-     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
-     * @param datetime|NULL $valior            - към коя дата
-     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
-     *
-     * @return array $paid      - масив с разпределените плащания
+     * @param int $threadId
+     * @return array
      */
-    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
+    public static function getCombinedThreads($threadId)
     {
-        expect($threadId);
         $firstDoc = doc_Threads::getFirstDocument($threadId);
-        if (!$firstDoc->isInstanceOf('deals_DealBase')) {
-            return array();
-        }
-        
+        if (!$firstDoc->isInstanceOf('deals_DealBase')) return array();
+
         // Ако сделката е приключена, проверява се дали не е приключена с друга сделка
         if ($firstDoc->fetchField('state') == 'closed') {
             $dQuery = $firstDoc->getInstance()->getQuery();
             $dQuery->where("LOCATE('|{$firstDoc->that}|', #closedDocuments)");
-            
+
             // Ако е подменя се треда с този на обединяващата сделка, защото тя ще се използва за основа
             if ($combinedThread = $dQuery->fetch()->threadId) {
                 $firstDoc = doc_Threads::getFirstDocument($combinedThread);
                 $threadId = $combinedThread;
             }
         }
-        
+
         // Ако сделката е обединяваща взимат се всички нишки, които обединява
         $threads = array($threadId => $threadId);
         $closedDocs = $firstDoc->fetchField('closedDocuments');
@@ -1619,13 +1619,30 @@ abstract class deals_Helper
                 }
             }
         }
-        
+
+        return $threads;
+    }
+
+
+    /**
+     * Помощен метод връщащ разпределението на плащанията по фактури
+     *
+     * @param int           $threadId          - ид на тред (ако е на обединена сделка ще се гледа обединението на нишките)
+     * @param datetime|NULL $valior            - към коя дата
+     * @param bool          $onlyExactPayments - дали да са всички плащания или само конкретните към всяка ф-ра
+     *
+     * @return array $paid      - масив с разпределените плащания
+     */
+    public static function getInvoicePayments($threadId, $valior = null, $onlyExactPayments = false)
+    {
         // Всички ф-ри в посочената нишка/нишки
+        $threads = static::getCombinedThreads($threadId);
+        if(!countR($threads)) return array();
+
+        // Кои са фактурите в посочената нишка/нишки
         $invoicesArr = self::getInvoicesInThread($threads, $valior, true, true, true);
-        if (!countR($invoicesArr)) {
-            return array();
-        }
-        
+        if (!countR($invoicesArr)) return array();
+
         $newInvoiceArr = $invMap = $payArr = array();
         foreach ($invoicesArr as $containerId => $handler) {
             $Document = doc_Containers::getDocument($containerId);
@@ -1698,7 +1715,7 @@ abstract class deals_Helper
             }
 
             while ($dRec = $dQuery->fetch()) {
-                $amount = $dRec->amountDeal;
+                $amount = round($dRec->amountDeal / $dRec->currencyRate, 6);
                 $payArr[$dRec->containerId] = (object) array('containerId' => $dRec->containerId, 'amount' => $amount, 'available' => $amount, 'to' => null, 'paymentType' => 'cash', 'isReverse' => false);
             }
         }

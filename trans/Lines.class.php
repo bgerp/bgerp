@@ -274,10 +274,6 @@ class trans_Lines extends core_Master
                 }
             }
 
-            if (isset($filterRec->folder)) {
-                unset($data->listFields['folderId']);
-            }
-
             if (isset($filterRec->countryId)) {
                 $data->query->where("LOCATE('|{$filterRec->countryId}|', #countries)");
             }
@@ -452,7 +448,6 @@ class trans_Lines extends core_Master
         $row->baseCurrencyCode = acc_Periods::getBaseCurrencyCode();
         if (isset($fields['-list'])) {
             $row->start = str_replace(' ', '<br>', $row->start);
-
             if (!empty($rec->stores)) {
                 $row->stores = $mvc->getVerbal($rec, 'stores');
                 $row->handler .= "<div class='small'>" . tr('Складове') . ": {$row->stores}</div>";
@@ -462,11 +457,10 @@ class trans_Lines extends core_Master
                 $row->cases = $mvc->getVerbal($rec, 'cases');
                 $row->handler .= "<div class='small'> " . tr('Каси') . ": {$row->cases}</div>";
             }
-
             $transUnitsTotal = $rec->transUnitsTotal;
         }
 
-        $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal);
+        $row->transUnitsTotal = empty($transUnitsTotal) ? "<span class='quiet'>N/A</span>" : trans_Helper::displayTransUnits($transUnitsTotal, false, '<br>');
     }
 
 
@@ -835,16 +829,20 @@ class trans_Lines extends core_Master
             // Затварят се активните и заявките, на които им е изтекло времето
             if ($rec->state == 'active') {
                 $date = !empty($rec->activatedOn) ? $rec->activatedOn : $rec->modifiedOn;
-                if ($date <= $activeFrom) {
+                if ($date < $activeFrom) {
                     $rec->state = 'closed';
                     $rec->brState = 'active';
                     $this->save($rec, 'state,brState,modifiedOn,modifiedBy');
                     $this->logWrite('Автоматично приключване на активна линия', $rec->id);
                 }
             } else {
+                $start = $rec->start;
+                if (strpos($rec->start, ' 00:00:00')) {
+                    $start = str_replace(' 00:00:00', ' 23:59:59', $rec->start);
+                }
 
                 // Ако началото е в миналото, и не е бутана дълго време
-                if ($rec->start <= $now && $rec->modifiedOn <= $pendingFrom) {
+                if ($start < $now && $rec->modifiedOn < $pendingFrom) {
                     $rec->state = 'closed';
                     $rec->brState = 'pending';
                     $this->save($rec, 'state,brState,modifiedOn,modifiedBy');

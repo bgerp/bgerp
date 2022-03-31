@@ -69,8 +69,8 @@ abstract class deals_DealBase extends core_Master
      * Дали в листовия изглед да се показва бутона за добавяне
      */
     public $listAddBtn = false;
-    
-    
+
+
     /**
      * Извиква се след описанието на модела
      *
@@ -126,21 +126,20 @@ abstract class deals_DealBase extends core_Master
     public function getAggregateDealInfo($id)
     {
         $dealRec = $this->fetchRec($id);
-        
+
         $dealDocuments = $this->getDescendants($dealRec->id);
-        
         $aggregateInfo = new bgerp_iface_DealAggregator;
-        
+
         // Извличаме dealInfo от самата сделка
         $this->pushDealInfo($dealRec->id, $aggregateInfo);
-        
+
         foreach ($dealDocuments as $d) {
             $dState = $d->rec('state');
             if ($dState == 'draft' || $dState == 'rejected') {
                 // Игнорираме черновите и оттеглените документи
                 continue;
             }
-            
+
             if ($d->haveInterface('bgerp_DealIntf')) {
                 try {
                     $d->getInstance()->pushDealInfo($d->that, $aggregateInfo);
@@ -149,7 +148,7 @@ abstract class deals_DealBase extends core_Master
                 }
             }
         }
-        
+
         return $aggregateInfo;
     }
     
@@ -810,7 +809,7 @@ abstract class deals_DealBase extends core_Master
         $this->requireRightFor('changerate', $rec);
         
         $form = cls::get('core_Form');
-        $form->title = '|Преизчисляване на курса на документите в|* ' . $this->getHyperlink($rec, true);
+        $form->title = '|Преизчисляване на курса на|* ' . $this->getFormTitleLink($rec);
         $form->info = tr("Стар курс|*: <b>{$rec->currencyRate}</b>");
 
         if($averageRate =  $this->getAverageRateInThread($rec)){
@@ -845,15 +844,21 @@ abstract class deals_DealBase extends core_Master
     public function recalcDocumentsWithNewRate($rec, $newRate)
     {
         // Рекалкулиране на сделката
-        if ($this instanceof findeals_Deals) {
-            $rec->currencyRate = $newRate;
-            $this->save($rec);
-            if ($rec->state == 'active') {
-                acc_Journal::deleteTransaction($this->getClassId(), $rec->id);
-                acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
+        $valior = $rec->{$this->valiorFld};
+        $periodState = acc_Periods::fetchByDate($valior)->state;
+
+        // Рекалкулиране на курса на сделката, само ако не е в затворен период
+        if($periodState != 'closed') {
+            if ($this instanceof findeals_Deals) {
+                $rec->currencyRate = $newRate;
+                $this->save($rec);
+                if ($rec->state == 'active') {
+                    acc_Journal::deleteTransaction($this->getClassId(), $rec->id);
+                    acc_Journal::saveTransaction($this->getClassId(), $rec->id, false);
+                }
+            } else {
+                deals_Helper::recalcRate($this, $rec->id, $newRate);
             }
-        } else {
-            deals_Helper::recalcRate($this, $rec->id, $newRate);
         }
 
         // Рекалкулиране на определени документи в нишката и
@@ -864,6 +869,12 @@ abstract class deals_DealBase extends core_Master
             if (!in_array($d->getClassId(), $arr)) {
                 continue;
             }
+
+            // Ако вальора е в затворен период - пропуска се
+            $valior = $d->fetchField($d->valiorFld);
+            $periodState = acc_Periods::fetchByDate($valior)->state;
+            if ($periodState == 'closed') continue;
+
             deals_Helper::recalcRate($d->getInstance(), $d->fetch(), $newRate);
         }
     }

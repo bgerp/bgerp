@@ -700,10 +700,11 @@ abstract class store_DocumentMaster extends core_Master
         // Ако оригиналния документ е закачен към ТЛ, закача се и този
         if((empty($rec->id) || $rec->_replaceReverseContainerId) && isset($rec->reverseContainerId)){
             $Doc = doc_Containers::getDocument($rec->reverseContainerId);
-            $docRec = $Doc->fetch("{$Doc->lineFieldName},deliveryTime,valior");
+            $fields = ($Doc->isInstanceOf('deals_DealMaster')) ? 'deliveryTime,valior' : "{$Doc->lineFieldName},deliveryTime,valior";
+            $docRec = $Doc->fetch($fields);
 
-            if($lineId = $Doc->fetchField($Doc->lineFieldName)){
-                $lineStart = trans_Lines::fetchField($lineId, 'start');
+            if($docRec->{$Doc->lineFieldName}){
+                $lineStart = trans_Lines::fetchField($docRec->{$Doc->lineFieldName}, 'start');
                 $deliveryTime = !empty($rec->deliveryTime) ? $rec->deliveryTime : (($rec->valior) ? $rec->valior : dt::today());
                 $deliveryTime = (strlen($deliveryTime) == 10) ? "{$deliveryTime} 23:59:59" : $deliveryTime;
                 $docDeliveryTime = !empty($docRec->deliveryTime) ? $docRec->deliveryTime : (($docRec->valior) ? $docRec->valior : dt::today());
@@ -712,7 +713,7 @@ abstract class store_DocumentMaster extends core_Master
                 // ако датата на документа за връщане е по-голяма или равна от тази на оригиналния документ
                 // и по-малка или равна от тази на ТЛ
                 if($deliveryTime >= $docDeliveryTime && $deliveryTime <= $lineStart){
-                    $rec->{$mvc->lineFieldName} = $lineId;
+                    $rec->{$mvc->lineFieldName} = $docRec->{$Doc->lineFieldName};
                     $rec->_changeLine = true;
                 }
             }
