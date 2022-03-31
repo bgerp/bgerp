@@ -675,7 +675,7 @@ class price_Updates extends core_Manager
         }
 
         if (price_Updates::haveRightFor('add', (object) array('type' => $type, 'objectId' => $data->masterId))) {
-            $data->updateCostBtn = ht::createLink($btnTitle, array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => true), false, "title=Създаване на ново правило за обновяване на себестойност,ef_icon=img/16/add.png");
+            $data->updateCostBtn = ht::createLink('', array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => true), false, "title=Създаване на ново правило за обновяване на себестойност,ef_icon=img/16/add.png");
         }
     }
 
@@ -743,21 +743,18 @@ class price_Updates extends core_Manager
     {
         $uRow = price_Updates::recToVerbal($rec);
         $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('При изчисление'));
+        core_RowToolbar::createIfNotExists($uRow->_rowTools);
 
-        $tools = null;
         $source = $fromCategoryStr = '';
         if($rec->_fromProduct){
             if($rec->type == 'group'){
                 $fromCategoryStr = 'От група|* " <b>' . cat_Groups::getTitleById($rec->objectId) . '"</b>: ';
+                $uRow->_rowTools = new core_RowToolbar();
             } elseif($rec->type == 'category') {
                 $fromCategoryStr = 'От категория|* " <b>' . cat_Categories::getTitleById($rec->objectId) . '"</b>: ';
             } else {
-                core_RowToolbar::createIfNotExists($uRow->_rowTools);
-                $tools = $uRow->_rowTools->renderHtml(2);
+                $uRow->_rowTools = new core_RowToolbar();
             }
-        } else {
-            core_RowToolbar::createIfNotExists($uRow->_rowTools);
-            $tools = $uRow->_rowTools->renderHtml(2);
         }
 
         $tpl = new core_ET(tr("{$fromCategoryStr}|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#][#uBtn#]"));
@@ -779,9 +776,11 @@ class price_Updates extends core_Manager
             if($data->masterMvc instanceof cat_Products){
                 $url['productId'] = $data->masterId;
             }
-            $btns = "<span>" . ht::createLink('', $url, false, "title=Обновяване на себестойността според зададеното правило,ef_icon=img/16/arrow_refresh.png"). '</span>';
-            $tpl->append($btns, 'uBtn');
+
+            $uRow->_rowTools->addLink('', $url, "title=Обновяване на себестойността според зададеното правило,ef_icon=img/16/arrow_refresh.png");
         }
+
+        $tools = $uRow->_rowTools->renderHtml(3);
         $tpl->append($tools, 'tools');
 
         if(!empty($surcharge)){
