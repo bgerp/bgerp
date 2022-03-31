@@ -439,6 +439,6 @@ class store_Stores extends core_Master
             $secs = ($storeBeforeShipmentTimeSecs) ? $storeBeforeShipmentTimeSecs : $secs;
         }
 
-        return $secs;
+        return (int)$secs;
     }
 }
