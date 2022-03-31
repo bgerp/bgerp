@@ -2366,6 +2366,12 @@ pre.document {
 .block-instock .quiet {
   color: white !important; }
 
+.shipmentErrorDateBlock {
+  border-radius: 3px;
+  border: dotted 1px red;
+  display: inline-block;
+  padding: 1px 3px 1px 3px; }
+
 .block-readiness {
   background-color: rgba(173, 62, 42, 0.8);
   color: white;

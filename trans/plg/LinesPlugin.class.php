@@ -106,40 +106,49 @@ class trans_plg_LinesPlugin extends core_Plugin
 
             // За дефолтните дати
             foreach ($dateFields as $dateFld => $dateObj){
+                $value = $rec->{$dateFld};
                 if(isset($dateObj['placeholder']) && empty($rec->{$dateFld})){
                     $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
                     if(!Mode::isReadOnly()){
                         $row->{$dateFld} = "<span style='color:blue;'>{$row->{$dateFld}}</span>";
-                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!', 'notice', false);
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
                     }
-                    $datesArr[$dateFld] = $dateObj['placeholder'];
-                } elseif(isset($rec->{$dateFld})) {
-                    $datesArr[$dateFld] = $rec->{$dateFld};
+                    $value = $dateObj['placeholder'];
+                }
+
+                if(!empty($value)){
+                    $value = (strlen($value) == 10) ? "{$value} 23:59:59" : $value;
+                    $datesArr[] = array('key' => $dateFld, 'value' => $value, 'caption' => $dateObj['caption']);
                 }
             }
 
             // Ако не не са във възходящ ред да се оцветят в червено
             if(!Mode::isReadOnly()){
-                $makeRed = false;
-                $firstVal = $datesArr[key($datesArr)];
-                foreach ($datesArr as &$val){
-                    $val = (strlen($val) == 10) ? "{$val} 23:59:59" : $val;
-                    if($val < $firstVal) {
-                        $makeRed = true;
+
+                // Проверяват се датите
+                $now = dt::now();
+                $warnings = array();
+                foreach ($datesArr as $i => $dObj){
+                    if($i != 0){
+                        if($dObj['value'] < $datesArr[$i-1]['value']){
+                            $warnings[$dObj['key']][] = "Датата е по-малка от|* " . '"|' . $datesArr[$i-1]['caption'] . '|*"';
+                        }
+                    }
+
+                    if(in_array($rec->state, array('draft', 'pending'))){
+                        if($dObj['value'] < $now) {
+                            $warnings[$dObj['key']][] = "Датата е в миналото|*!";
+                        }
                     }
                 }
 
-                $now = dt::now();
-                foreach ($datesArr as $dateFld => $dateVal){
-                    if($makeRed){
-                        $row->{$dateFld} = "<span class='red'>{$row->{$dateFld}}</span>";
-                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Има несъответствие между датите|*!', 'warning', false);
+                // За всяко генерирано предупреждение - датата се разкрасява да се види
+                foreach ($warnings as $warningFld => $fieldWarningArr){
+                    foreach ($fieldWarningArr as $warningMsg){
+                        $row->{$warningFld} = ht::createHint($row->{$warningFld}, $warningMsg, 'warning');
                     }
-
-                    if(in_array($rec->state, array('draft', 'pending')) && $dateVal < $now){
-                        $row->{$dateFld} = "<span class='red'>{$row->{$dateFld}}</span>";
-                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Датата е в миналото|*!', 'warning', false);
-                    }
+                    $row->{$warningFld}->prepend("<div class='shipmentErrorDateBlock'>");
+                    $row->{$warningFld}->prepend("</div>");
                 }
             }
         }
