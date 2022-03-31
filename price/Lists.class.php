@@ -166,9 +166,9 @@ class price_Lists extends core_Master
         $this->FLD('discountCompared', 'key(mvc=price_Lists,select=title,where=#state !\\= \\\'rejected\\\',allowEmpty)', 'caption=Показване на отстъпка в документите спрямо->Ценоразпис');
         $this->FLD('discountComparedShowAbove', 'percent(min=0)', 'caption=Показване на отстъпка в документите->Ако е над,placeholder=1 %');
         $this->FLD('visiblePricesByAnyone', 'enum(no=Само потребители с права,yes=За всички)', 'caption=Видимост на цените->Избор,notNull,value=no');
-        $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне (за избрания вид цени - с/без ДДС; 2/2 за цена Х.хх)->Значещи цифри', "unit= |минимален брой цифри различни от 0");
-        $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне (за избрания вид цени - с/без ДДС; 2/2 за цена Х.хх)->Десет. знаци', "unit= |макс. бр. цифри след десетичната запетая");
-        $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка / Отстъпка по подразбиране->Процент', "unit= |минус (-) за Отстъпка");
+        $this->FLD('significantDigits', 'double(smartRound)', 'caption=Закръгляне за избрания вид (с/без ДДС) цени (стойности 2 и 2 за цена Х.хх)->Значещи цифри', "unit= (|минимален брой цифри различни от|* 0)");
+        $this->FLD('minDecimals', 'double(smartRound)', 'caption=Закръгляне за избрания вид (с/без ДДС) цени (стойности 2 и 2 за цена Х.хх)->Десет. знаци', "unit= (|макс. брой цифри след десетичната запетая|*)");
+        $this->FLD('defaultSurcharge', 'percent(min=-1,max=1)', 'caption=Надценка / Отстъпка по подразбиране->Процент', "unit= |(със знак минус за Отстъпка)");
         
         $this->FLD('minSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Минимална');
         $this->FLD('maxSurcharge', 'percent', 'caption=Надценки за нестандартни продукти->Максимална');
