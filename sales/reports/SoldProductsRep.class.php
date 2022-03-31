@@ -757,6 +757,7 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         if (empty($correctionArray)) {
                             continue;
                         }
+
                         $quantity = $correctionArray['quantity'];
                         $primeCost = $correctionArray['amount'];
 
@@ -862,9 +863,9 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             while ($originDetRec = $dcAllInvQuery->fetch()) {
 
                 //Каква част от общата стойност е стойността на този ред
-                if ($sumAmounts){
+                if ($sumAmounts) {
                     $partOfAmount = $originDetRec->amount / $sumAmounts;
-                }else{
+                } else {
                     $partOfAmount = 1;
                 }
 
@@ -1211,10 +1212,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$dcRec->productId} AND
                                                            #packagingId = {$dcRec->packagingId} AND #quantity != {$dcRec->quantity}");
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
-        $changeQuatity = $dcRec->quantity*$dcRec->quantityInPack - $originQuantity;
+        $changeQuatity = $dcRec->quantity * $dcRec->quantityInPack - $originQuantity;
         $changePrice = $dcRec->price - $originDetRec->price;
 
-        if ($changeQuatity == 0 && $changePrice == 0) {
+        if (($changeQuatity == 0 && $changePrice == 0) || !$originDetRec) {
             return $res;
         }
         $invQuantity = $changeQuatity != 0 ? $changeQuatity : 0;
