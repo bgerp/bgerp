@@ -282,14 +282,15 @@ class price_Updates extends core_Manager
         $this->requireRightFor('saveprimecost');
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
-        $productId = Request::get('id', 'int');
+        $productId = Request::get('productId', 'int');
         $this->requireRightFor('saveprimecost', $rec);
 
-        // Записва себестойността
-        $this->savePrimeCost($rec, true, $productId);
-        
+        // Записва себестойността, ако е имало промяна
+        $id = $this->savePrimeCost($rec, true, $productId);
+        $msg = (!empty($id)) ? 'Себестойността е променена успешно|*!' : 'Себестойността не е променена, защото няма промяна|*!';
+
         // Редирект към списъчния изглед
-        return followRetUrl(null, 'Себестойността е променена успешно|*!');
+        return followRetUrl(null, $msg);
     }
     
     
@@ -354,9 +355,9 @@ class price_Updates extends core_Manager
      *
      * @param stdClass $rec             - запис
      * @param bool     $saveInPriceList - искаме ли да запишем изчислената себестойност в 'Себестойности'
-     * @param int      $productId       - ид на артикул
+     * @param int|null      $productId  - ид на артикул
      *
-     * @return void
+     * @return null|int                 - ид-то на записа в себестойности или null ако не е имало обновяване
      */
     private function savePrimeCost($rec, $saveInPriceList = true, $productId = null)
     {
@@ -401,7 +402,7 @@ class price_Updates extends core_Manager
                 // Ако старата себестойност е различна от новата
                 if (empty($oldPrimeCost) || abs(round($primeCost / $oldPrimeCost - 1, 2)) >= $minChange) {
                     
-                    // Кешираме себестойността, ако правилото не е за категория
+                    // Кеширане на себестойността, ако правилото не е за категория
                     if ($rec->type != 'category') {
                         $rec->costValue = $primeCost;
                         self::save($rec, 'costValue');
@@ -411,7 +412,7 @@ class price_Updates extends core_Manager
                     if ($saveInPriceList === true) {
 
                         // Записваме новата себестойност на продукта
-                        price_ListRules::savePrimeCost($productId, $primeCost, $validFrom, $baseCurrencyCode);
+                        return price_ListRules::savePrimeCost($productId, $primeCost, $validFrom, $baseCurrencyCode);
                     }
                 }
             }
@@ -526,14 +527,14 @@ class price_Updates extends core_Manager
                 $saveInPriceList = !(($rec->updateMode == 'manual'));
                 $updateRules[$rec->id] = $rec;
 
-                // Изчисляваме и записваме себестойностите
+                // Изчисляване и записване на себестойностите
                 $this->savePrimeCost($rec, $saveInPriceList);
             } catch (core_exception_Expect $e) {
                 reportException($e);
             }
         }
 
-        // Обновяване на времето на изпълнение на последните записи
+        // Обновяване на времето на изчисление на последните записи
         if(countR($updateRules)){
             $this->saveArray($updateRules, 'id,appliedOn');
         }
@@ -752,8 +753,6 @@ class price_Updates extends core_Manager
                 $uRow->_rowTools = new core_RowToolbar();
             } elseif($rec->type == 'category') {
                 $fromCategoryStr = 'От категория|* " <b>' . cat_Categories::getTitleById($rec->objectId) . '"</b>: ';
-            } else {
-                $uRow->_rowTools = new core_RowToolbar();
             }
         }
 
