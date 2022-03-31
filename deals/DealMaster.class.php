@@ -1325,7 +1325,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param int|stdClass $id
      * @return int|NULL
      */
-    public function calcDeliveryTime($id)
+    protected function calcDeliveryTime($id)
     {
         $maxDeliveryTime = null;
         $rec = $this->fetchRec($id);
@@ -1352,7 +1352,10 @@ abstract class deals_DealMaster extends deals_DealBase
         }
 
         // Към най-големия срок се добавят дните за подготовка от склада, ако няма склад - колкото е настроено глобално
-        $maxDeliveryTime += store_Stores::getShipmentPreparationTime($rec->shipmentStoreId);
+        $defaultShipmentTime = store_Stores::getShipmentPreparationTime($rec->shipmentStoreId);
+        if(!empty($defaultShipmentTime)){
+            $maxDeliveryTime += $defaultShipmentTime;
+        }
 
         return $maxDeliveryTime;
     }
