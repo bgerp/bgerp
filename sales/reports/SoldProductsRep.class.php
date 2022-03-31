@@ -861,7 +861,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             while ($originDetRec = $dcAllInvQuery->fetch()) {
 
                 //Каква част от общата стойност е стойността на този ред
-                $partOfAmount = $originDetRec->amount / $sumAmounts;
+                if ($sumAmounts){
+                    $partOfAmount = $originDetRec->amount / $sumAmounts;
+                }else{
+                    $partOfAmount = 1;
+                }
+
 
                 //Масив с ключ productId и стойностите с които трябва да се коригира стойността на артикула в recs-a
                 $correctionArr[$originDetRec->productId] = round($iRec->changeAmount * $partOfAmount, 2);
