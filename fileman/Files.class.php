@@ -2598,7 +2598,8 @@ class fileman_Files extends core_Master
         Mode::set('printing');
 
         if (stripos($fileInfo, '<iframe') !== false) {
-            $fileInfo->append("document.getElementsByTagName('iframe')[0].contentWindow.print();", 'SCRIPTS');
+            $fileInfo->append("function runFramePrinting(){document.getElementsByTagName('iframe')[0].contentWindow.print();};", 'SCRIPTS');
+            $fileInfo->append("runOnLoad(runFramePrinting);", 'SCRIPTS');
             $fileInfo->append(".webdrvFieldset, .webdrvTabBody, .tab-page, .tab-control, .printing {width: 100% !important; height: 100% !important;}", 'STYLES');
 
             Mode::set('runPrinting', false);
