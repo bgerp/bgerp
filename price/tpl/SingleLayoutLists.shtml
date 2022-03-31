@@ -92,13 +92,13 @@
         </tr>
         <!--ET_BEGIN significantDigits-->
         <tr>
-            <td class="title-style">|Значещи цифри|*</td>
+            <td class="title-style">|Значещи цифри ≠0 (мин.)|*</td>
             <td>[#significantDigits#]</td>
         </tr>
         <!--ET_END significantDigits-->
         <!--ET_BEGIN minDecimals-->
         <tr>
-            <td class="title-style">|Мин. цифри|*</td>
+            <td class="title-style">|Десетични знаци (макс.)|*</td>
             <td>[#minDecimals#]</td>
         </tr>
         <!--ET_END minDecimals-->
