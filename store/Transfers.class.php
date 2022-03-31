@@ -811,7 +811,7 @@ class store_Transfers extends core_Master
         }
 
         if(!$cache || $res === false){
-            $products = deals_Helper::sumProductsByQuantity('store_TransfersDetails', true, $rec->id, 'newProductId');
+            $products = deals_Helper::sumProductsByQuantity('store_TransfersDetails', $rec->id, true, 'newProductId');
             $res = store_StockPlanning::getEarliestDateAllAreAvailable($rec->fromStore, $products);
             core_Cache::set($this->className, "earliestDateAllAvailable{$rec->containerId}", $res, 10);
         }
