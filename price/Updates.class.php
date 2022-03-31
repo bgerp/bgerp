@@ -675,9 +675,7 @@ class price_Updates extends core_Manager
         }
 
         if (price_Updates::haveRightFor('add', (object) array('type' => $type, 'objectId' => $data->masterId))) {
-            $btnTitle = ($type == 'product') ? 'Задаване' : '';
-            $btnIcon = ($type == 'product') ? 'img/16/arrow_refresh.png' : 'img/16/add.png';
-            $data->updateCostBtn = ht::createLink($btnTitle, array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => true), false, "title=Създаване на ново правило за обновяване,ef_icon={$btnIcon}");
+            $data->updateCostBtn = ht::createLink($btnTitle, array('price_Updates', 'add', 'type' => $type, 'objectId' => $data->masterId, 'ret_url' => true), false, "title=Създаване на ново правило за обновяване на себестойност,ef_icon=img/16/add.png");
         }
     }
 
@@ -700,7 +698,7 @@ class price_Updates extends core_Manager
                     $rec->_fromProduct = true;
                 }
 
-                $dTpl = $this->displayUpdateRuleTpl($rec);
+                $dTpl = $this->displayUpdateRuleTpl($rec, $data);
 
                 $bTpl = clone $tpl->getBlock('RULE');
                 $bTpl->replace($dTpl, 'RULE');
@@ -738,9 +736,10 @@ class price_Updates extends core_Manager
      * Връща шаблон с правилото за обновяване
      * 
      * @param stdClass $rec
+     * @param stdClass $data
      * @return core_ET $tpl
      */
-    private function displayUpdateRuleTpl($rec)
+    private function displayUpdateRuleTpl($rec, $data)
     {
         $uRow = price_Updates::recToVerbal($rec);
         $arr = array('manual' => tr('Ръчно'), 'nextDay' => tr('Дневно'), 'nextWeek' => tr('Седмично'), 'nextMonth' => tr('Месечно'), 'now' => tr('При изчисление'));
@@ -761,7 +760,7 @@ class price_Updates extends core_Manager
             $tools = $uRow->_rowTools->renderHtml(2);
         }
 
-        $tpl = new core_ET(tr("{$fromCategoryStr}|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#]"));
+        $tpl = new core_ET(tr("{$fromCategoryStr}|*<b>[#updateMode#]</b> |обновяване на себестойността, последователно по|* [#type#]  <!--ET_BEGIN surcharge-->|с надценка|* <b>[#surcharge#]</b><!--ET_END surcharge-->[#tools#][#uBtn#]"));
         foreach (array($uRow->sourceClass1, $uRow->sourceClass2, $uRow->sourceClass3) as $cost) {
             if (isset($cost)) {
                 $source .= '<b>' . $cost . '</b>, ';
@@ -770,11 +769,20 @@ class price_Updates extends core_Manager
 
         $source = rtrim($source, ', ');
         $tpl->append($arr[$rec->updateMode], 'updateMode');
-        $tpl->append($tools, 'tools');
         $surcharge = $uRow->costAdd;
         if(!empty($rec->costAddAmount)){
             $surcharge .= ((!empty($surcharge)) ? tr('|* |и|* ') : '') . $uRow->costAddAmount . " BGN";
         }
+
+        if (price_Updates::haveRightFor('saveprimecost', $rec)) {
+            $url = array('price_Updates', 'saveprimecost', $rec->id, 'ret_url' => true);
+            if($data->masterMvc instanceof cat_Products){
+                $url['productId'] = $data->masterId;
+            }
+            $btns = "<span>" . ht::createLink('', $url, false, "title=Обновяване на себестойността според зададеното правило,ef_icon=img/16/arrow_refresh.png"). '</span>';
+            $tpl->append($btns, 'uBtn');
+        }
+        $tpl->append($tools, 'tools');
 
         if(!empty($surcharge)){
             $tpl->append($surcharge, 'surcharge');

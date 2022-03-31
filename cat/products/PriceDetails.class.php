@@ -167,6 +167,7 @@ class cat_products_PriceDetails extends core_Manager
         if (haveRole('priceDealer,ceo')) {
             if (price_ListRules::haveRightFor('add', (object) array('productId' => $data->masterId, 'listId' => $primeCostListId))) {
                 $newCost = null;
+
                 if (isset($uRec->costValue)) {
                     $newCost = $uRec->costValue;
                 }
@@ -176,18 +177,6 @@ class cat_products_PriceDetails extends core_Manager
                 
                 if ($hideIcons === false) {
                     $btns .= "<div style='text-align:left'>" . ht::createLink('Нова себестойност', $data->addPriceUrl, false, 'title=Добавяне на нова мениджърска себестойност') . '</div>';
-                }
-                
-                if (isset($uRec)) {
-                    if (price_Updates::haveRightFor('saveprimecost', $uRec)) {
-                        if ($hideIcons === false) {
-                            $url = array('price_Updates', 'saveprimecost', $uRec->id, 'ret_url' => true);
-                            if($uRec->_fromCategory){
-                                $url['productId'] = $data->masterId;
-                            }
-                            $btns .= "<div style='text-align:left'>" . ht::createLink('Обновяване', $url, false, 'title=Обновяване на себестойността според зададеното правило'). '</div>';
-                        }
-                    }
                 }
                 
                 if (price_Lists::haveRightFor('single', $primeCostListId) && isset($primeCost)) {
