@@ -377,8 +377,8 @@ class store_Receipts extends store_DocumentMaster
      */
     public function getShipmentDateFields($rec = null, $cache = false)
     {
-        $res = array('loadingOn'   => array('caption' => 'Натоварване', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input"),
-                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => 'datetime', 'readOnlyIfActive' => true, "input" => "input"),);
+        $res = array('loadingOn'   => array('caption' => 'Натоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"),
+                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),);
 
         return $res;
     }

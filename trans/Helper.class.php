@@ -214,7 +214,11 @@ abstract class trans_Helper
      */
     public static function calcShippedOnDate($valior, $lineId, $activatedOn)
     {
-        if(!empty($valior)) return $valior;
+        if(!empty($valior)) {
+            $valior = "{$valior} 23:59:59";
+
+            return $valior;
+        }
 
         if(isset($lineId)) return trans_Lines::fetchField($lineId, 'start');
 
