@@ -751,11 +751,13 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                         $primeCost = ($recPrime->price * $quantity) - $discount;
 
                     } elseif ($recPrime->type == 'dc_note') {
+
                         $correctionArray = self::dcNoteCorrection($recPrime);
 
                         if (empty($correctionArray)) {
                             continue;
                         }
+
                         $quantity = $correctionArray['quantity'];
                         $primeCost = $correctionArray['amount'];
 
@@ -829,61 +831,67 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         }
 
         //Отчитане на ДИ и КИ без детайли
-        //За сега работи само когато намери такова ИЗВЕСТИЕ в рамките на периода
-        //и то коригира фактура която е от периода
 
-        //iQuery ДИ и КИ влизащи в периода и коригиращи обща сума(без детайли)
-        $iQuery = sales_Invoices::getQuery();
-        $iQuery->where("#type = 'dc_note'");
-        $iQuery->where("#date >= '{$rec->from}' AND #date <= '{$rec->to}'");
-        $iQuery->where("#changeAmount IS NOT NULL");
-        while ($iRec = $iQuery->fetch()) {
+        if ($rec->quantityType == 'invoiced') {
+            //За сега работи само когато намери такова ИЗВЕСТИЕ в рамките на периода
+            //и то коригира фактура която е от периода
 
-            $correctionArr = array();
+            //iQuery ДИ и КИ влизащи в периода и коригиращи обща сума(без детайли)
+            $iQuery = sales_Invoices::getQuery();
+            $iQuery->where("#type = 'dc_note'");
+            $iQuery->where("#date >= '{$rec->from}' AND #date <= '{$rec->to}'");
+            $iQuery->where("#changeAmount IS NOT NULL");
+            while ($iRec = $iQuery->fetch()) {
 
-            //$originRec rec-a  на фактурата към която е издадено кредитното
-            $originId = doc_Containers::getDocument($iRec->originId)->that;
-            $originRec = sales_Invoices::fetch($originId);
+                $correctionArr = array();
 
-            //Ако фактурата към която е издадено известието влиза в периода
-            // изваждаме нейните детайли в масив с ключ productId-то
-            if ($originRec->date >= $rec->from && $originRec->date <= $rec->to) {
+                //$originRec rec-a  на фактурата към която е издадено кредитното
+                $originId = doc_Containers::getDocument($iRec->originId)->that;
+                $originRec = sales_Invoices::fetch($originId);
 
-                $dcAllInvQuery = sales_InvoiceDetails::getQuery();
+                //Ако фактурата към която е издадено известието влиза в периода
+                // изваждаме нейните детайли в масив с ключ productId-то
+                if ($originRec->date >= $rec->from && $originRec->date <= $rec->to) {
 
-                $dcAllInvQuery->where("#invoiceId = $originRec->id");
+                    $dcAllInvQuery = sales_InvoiceDetails::getQuery();
 
-                //сумира стойностите на всички детайли във origin фактурата
-                $amountsArr = arr::extractValuesFromArray($dcAllInvQuery->fetchAll(), 'amount');
-                $sumAmounts = array_sum($amountsArr);
+                    $dcAllInvQuery->where("#invoiceId = $originRec->id");
 
+                    //сумира стойностите на всички детайли във origin фактурата
+                    $amountsArr = arr::extractValuesFromArray($dcAllInvQuery->fetchAll(), 'amount');
+                    $sumAmounts = array_sum($amountsArr);
+
+                }
+                while ($originDetRec = $dcAllInvQuery->fetch()) {
+
+                    //Каква част от общата стойност е стойността на този ред
+                    if ($sumAmounts) {
+                        $partOfAmount = $originDetRec->amount / $sumAmounts;
+                    } else {
+                        $partOfAmount = 1;
+                    }
+
+
+                    //Масив с ключ productId и стойностите с които трябва да се коригира стойността на артикула в recs-a
+                    $correctionArr[$originDetRec->productId] = round($iRec->changeAmount * $partOfAmount, 2);
+
+                }
             }
-            while ($originDetRec = $dcAllInvQuery->fetch()) {
 
-                //Каква част от общата стойност е стойността на този ред
-                if ($sumAmounts){
-                    $partOfAmount = $originDetRec->amount / $sumAmounts;
-                }else{
-                    $partOfAmount = 1;
+            //Коригираме стоността на артикула в масива recs
+            if (!empty($correctionArr) && !empty($recs)) {
+                foreach ($correctionArr as $productId => $correctionAmount) {
+
+                    if (isset($recs[$productId]->primeCost)) {
+
+                        $recs[$productId]->primeCost += $correctionAmount;
+                    }
+
+
                 }
 
-
-                //Масив с ключ productId и стойностите с които трябва да се коригира стойността на артикула в recs-a
-                $correctionArr[$originDetRec->productId] = round($iRec->changeAmount * $partOfAmount, 2);
-
             }
         }
-
-        //Коригираме стоността на артикула в масива recs
-        if (!empty($correctionArr) && !empty($recs)) {
-            foreach ($correctionArr as $productId => $correctionAmount) {
-
-                $recs[$productId]->primeCost = $recs[$productId]->primeCost + $correctionAmount;
-
-            }
-
-        }
-
 
         //Изчисляване на промяната в стойността на продажбите и делтите за артикул
         //добавя в масива пропъртита:
@@ -1173,6 +1181,8 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $invDetQuery->EXT('state', 'sales_Invoices', 'externalName=state,externalKey=invoiceId');
 
+        $invDetQuery->EXT('number', 'sales_Invoices', 'externalName=number,externalKey=invoiceId');
+
         $invDetQuery->EXT('originId', 'sales_Invoices', 'externalName=originId,externalKey=invoiceId');
 
         $invDetQuery->EXT('changeAmount', 'sales_Invoices', 'externalName=changeAmount,externalKey=invoiceId');
@@ -1205,16 +1215,21 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
 
         $res = array();
         $originId = doc_Containers::getDocument($dcRec->originId)->that;
-        $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$dcRec->productId}");
-        $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;//bp($dcRec,$originDetRec,$originQuantity);
-        $changeQuatity = $dcRec->quantity*$dcRec->quantityInPack - $originQuantity;
+        $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$dcRec->productId} AND
+                                                           #packagingId = {$dcRec->packagingId} AND 
+                                                           (#quantity != {$dcRec->quantity} OR #price != {$dcRec->price})");
+
+        $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
+        $changeQuatity = $dcRec->quantity * $dcRec->quantityInPack - $originQuantity;
         $changePrice = $dcRec->price - $originDetRec->price;
 
-        if ($changeQuatity == 0 && $changePrice == 0) {
+        if (($changeQuatity == 0 && $changePrice == 0) || !$originDetRec) {
             return $res;
         }
+
         $invQuantity = $changeQuatity != 0 ? $changeQuatity : 0;
         $invAmount = $changeQuatity == 0 ? $changePrice * $dcRec->quantity * $dcRec->quantityInPack : $dcRec->price * $invQuantity;
+
         if ($dcRec->discount) {
             $invAmount = $invAmount * (1 - $dcRec->discount);
         }
