@@ -330,7 +330,7 @@ class cat_products_Params extends doc_Detail
             $paramValue = ($paramValue) ? $paramValue : cat_Params::getDefaultValue($paramId, $classId, $productId);
             if ($verbal === true) {
 
-                $paramValue = cat_Params::toVerbal($paramId, $classId, $productId, $paramValue);;
+                $paramValue = cat_Params::toVerbal($paramId, $classId, $productId, $paramValue);
             }
             
             return $paramValue;
