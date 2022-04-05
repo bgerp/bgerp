@@ -611,8 +611,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
 
-                    $aaa[$purchaseInvoices->id] = $fastMarker;
-
                     $invoiceValue = (($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount) / $purchaseInvoices->rate;
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
 
@@ -722,13 +720,14 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                     // масив от фактури в тази нишка //
                     $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $checkDate));
-//bp($pThreadsId,$pThread,$pInvoicePayments);
+
                     if ((is_array($pInvoicePayments))) {
 
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($pInvoicePayments as $pInv => $paydocs) {
 
-                         if (in_array($pInv,$checkedInvoices))continue;
+                         //Проверка дали отчетена вече фактура не се повтаря
+                         if (in_array($pInv,$checkedInvoices)) continue;
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
