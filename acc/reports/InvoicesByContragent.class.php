@@ -729,10 +729,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                             $fastMarker = in_array($purchaseInvoices->threadId, array_keys($fastPur)) ? 0 : 1;
 
-                            // Ако са избрани само неплатените фактури
+                            // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
                             if ($rec->unpaid == 'unpaid') {
-                                if (($invDiff >= -0.01) &&
-                                    ($invDiff <= +0.01)) {
+                                if (($invDiff >= (-1) * $rec->sill) &&
+                                    ($invDiff <= $rec->sill)) {
                                     continue;
                                 }
                             }
