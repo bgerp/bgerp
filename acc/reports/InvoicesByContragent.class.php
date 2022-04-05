@@ -400,6 +400,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
             if (is_array($threadsId)) {
+
+                $checkedSInvoices = array();
+
                 foreach ($threadsId as $thread) {
                     $salesInvoiceNotPaid = 0;
                     $salesInvoiceOverPaid = 0;
@@ -412,6 +415,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($invoicePayments as $inv => $paydocs) {
+
+                            //Проверка дали отчетена вече фактура не се повтаря
+                            if (in_array($inv,$checkedSInvoices)) continue;
+
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
 
@@ -502,6 +509,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'contragent' => $iRec->contragentName
                                 );
                             }
+                            $checkedSInvoices[$inv] = $inv;
                         }
                     }
                 }
@@ -711,7 +719,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
             if (is_array($pThreadsId)) {
-                $checkedInvoices = array();
+                $checkedPInvoices = array();
 
                 foreach ($pThreadsId as $pThread) {
                     $purchaseInvoiceNotPaid = 0;
@@ -727,7 +735,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         foreach ($pInvoicePayments as $pInv => $paydocs) {
 
                          //Проверка дали отчетена вече фактура не се повтаря
-                         if (in_array($pInv,$checkedInvoices)) continue;
+                         if (in_array($pInv,$checkedPInvoices)) continue;
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -813,7 +821,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'contragent' => $iRec->contragentName
                                 );
                             }
-                            $checkedInvoices[$pInv] = $pInv;
+                            $checkedPInvoices[$pInv] = $pInv;
                         }
 
                     }
