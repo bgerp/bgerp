@@ -593,6 +593,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 core_App::setTimeLimit($maxTimeLimit);
             }
 
+            $pThreadsId = array();
+
             // Фактури ПОКУПКИ
             while ($purchaseInvoices = $pQuery->fetch()) {
 
@@ -704,21 +706,29 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     }
                 }
 
-                $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
+                if (!in_array($purchaseInvoices->threadId,$pThreadsId)){
+                    $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
+                }
+
             }
 
             if (is_array($pThreadsId)) {
+                $checkedInvoices = array();
+
                 foreach ($pThreadsId as $pThread) {
                     $purchaseInvoiceNotPaid = 0;
                     $purchaseInvoiceOverDue = 0;
 
+
                     // масив от фактури в тази нишка //
                     $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $checkDate));
-
+//bp($pThreadsId,$pThread,$pInvoicePayments);
                     if ((is_array($pInvoicePayments))) {
 
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($pInvoicePayments as $pInv => $paydocs) {
+
+                         if (in_array($pInv,$checkedInvoices))continue;
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -804,7 +814,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'contragent' => $iRec->contragentName
                                 );
                             }
+                            $checkedInvoices[$pInv] = $pInv;
                         }
+
                     }
                 }
             }
