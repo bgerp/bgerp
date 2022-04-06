@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Счетоводство » Неплатени фактури по контрагент
+ * @title     Счетоводство » Неплатени фактури по контрагент (Стар - извън поддръжка! Да не се използва!)
  */
 class acc_reports_UnpaidInvoices extends frame2_driver_TableData
 {
