@@ -122,6 +122,7 @@ class acc_Journal extends core_Master
         $this->setDbUnique('docType,docId,state');
         $this->setDbIndex('docType,docId');
         $this->setDbIndex('valior');
+        $this->setDbIndex('createdOn');
     }
     
     
