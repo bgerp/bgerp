@@ -319,6 +319,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $CountryType = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)');
         $row->fromCountry = $CountryType->toVerbal($rec->fromCountry);
         $row->toCountry = $CountryType->toVerbal($rec->toCountry);
+        $row->transUnit = type_Varchar::escape(transliterate(tr($rec->transUnit)));
     }
 
 
