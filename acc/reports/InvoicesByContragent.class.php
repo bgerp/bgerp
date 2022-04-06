@@ -416,6 +416,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($invoicePayments as $inv => $paydocs) {
 
+                            $salesInvoiceOverDue = 0;
+
                             //Проверка дали отчетена вече фактура не се повтаря
                             if (in_array($inv,$checkedSInvoices)) continue;
 
