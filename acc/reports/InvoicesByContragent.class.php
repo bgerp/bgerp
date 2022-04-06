@@ -405,8 +405,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 foreach ($threadsId as $thread) {
                     $salesInvoiceNotPaid = 0;
-                    $salesInvoiceOverPaid = 0;
-                    $salesInvoiceOverDue = 0;
+
 
                     // масив от фактури в тази нишка //
                     $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
@@ -416,6 +415,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($invoicePayments as $inv => $paydocs) {
 
+                            $salesInvoiceOverPaid = 0;
                             $salesInvoiceOverDue = 0;
 
                             //Проверка дали отчетена вече фактура не се повтаря
@@ -724,8 +724,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $checkedPInvoices = array();
 
                 foreach ($pThreadsId as $pThread) {
+
                     $purchaseInvoiceNotPaid = 0;
-                    $purchaseInvoiceOverDue = 0;
 
 
                     // масив от фактури в тази нишка //
@@ -735,6 +735,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($pInvoicePayments as $pInv => $paydocs) {
+
                             $purchaseInvoiceOverDue = 0;
 
                          //Проверка дали отчетена вече фактура не се повтаря
