@@ -737,6 +737,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         foreach ($pInvoicePayments as $pInv => $paydocs) {
 
                             $purchaseInvoiceOverDue = 0;
+                            $purchaseInvoiceOverPaid = 0;
 
                          //Проверка дали отчетена вече фактура не се повтаря
                          if (in_array($pInv,$checkedPInvoices)) continue;
@@ -781,6 +782,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $purchaseInvoiceNotPaid = ($invDiff);
                             }
 
+                            if ($invDiff < 0) {
+                                $purchaseInvoiceOverPaid = $invDiff;
+                            }
+
                             if ($iRec->dueDate && ($invDiff) > 0 &&
                                 $iRec->dueDate < $checkDate) {
                                 $purchaseInvoiceOverDue = ($invDiff);
@@ -789,10 +794,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             // Масив с данни за сумите от фактурите  обединени по контрагенти
                             if (!array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
                                 $totalInvoiceContragent[$iRec->contragentName] = (object)array(
-                                    'totalInvoiceValue' => $paydocs->amount * $iRec->rate, //общо стойност на фактурите за контрагента
-                                    'totalInvoicePayout' => $paydocs->payout * $iRec->rate,//плащания по фактурите за контрагента
-                                    'totalInvoiceNotPaid' => $purchaseInvoiceNotPaid * $iRec->rate,//стойност за плащане по фактурите за контрагента
-                                    'totalInvoiceOverDue' => $purchaseInvoiceOverDue * $iRec->rate,//стойност за плащане по просрочените фактури за контрагента
+                                    'totalInvoiceValue' => $paydocs->amount * $iRec->rate,                               //общо стойност на фактурите за контрагента
+                                    'totalInvoicePayout' => $paydocs->payout * $iRec->rate,                              //плащания по фактурите за контрагента
+                                    'totalInvoiceNotPaid' => $purchaseInvoiceNotPaid * $iRec->rate,                      //стойност за плащане по фактурите за контрагента
+                                    'totalInvoiceOverPaid' => $purchaseInvoiceOverPaid * $iRec->rate,                    //стойност на НАДплатените суми по фактурите за контрагента
+                                    'totalInvoiceOverDue' => $purchaseInvoiceOverDue * $iRec->rate,                      //стойност за плащане по просрочените фактури за контрагента
                                 );
                             } else {
                                 $obj = &$totalInvoiceContragent[$iRec->contragentName];
@@ -800,6 +806,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $obj->totalInvoiceValue += $paydocs->amount * $iRec->rate;
                                 $obj->totalInvoicePayout += $paydocs->payout * $iRec->rate;
                                 $obj->totalInvoiceNotPaid += $purchaseInvoiceNotPaid * $iRec->rate;
+                                $obj->totalInvoiceOverPaid += $purchaseInvoiceOverPaid * $iRec->rate;
                                 $obj->totalInvoiceOverDue += $purchaseInvoiceOverDue * $iRec->rate;
                             }
 
