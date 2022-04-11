@@ -49,7 +49,7 @@ class cat_Categories extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name,meta=Свойства,useAsProto=Шаблони,count=Артикули';
+    public $listFields = 'name,meta=Свойства,useAsProto=Шаблони,count=Артикули, createdOn,createdBy';
     
     
     /**
