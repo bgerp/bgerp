@@ -243,7 +243,7 @@ class cat_Groups extends core_Master
             }
 
             if ($fields['-single']) {
-                $productCount = (isset($rec->productCn)) ? $rec->productCn : 0;
+                $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
                 $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
                 $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
             }
