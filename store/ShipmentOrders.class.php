@@ -609,6 +609,50 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
+     * След подготвяне на филтъра
+     *
+     * @param $mvc
+     * @param $data
+     */
+    public static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->showFields = rtrim($data->listFilter->showFields, ',');
+        $data->listFilter->showFields .= $data->listFilter->showFields ? ',' : '';
+
+        $fFEsc = json_encode('deliveryFrom');
+        $fTEsc = json_encode('deliveryTo');
+        $data->listFilter->FNC('deliveryPeriod', 'varchar', 'caption=Доставка до,placeholder=Период', array('attr' => array('onchange' => "spr(this, true, {$fFEsc}, {$fTEsc});")));
+
+        $data->listFilter->FNC('deliveryFrom', 'date', 'caption=Доставка от,placeholder=От', array('rowStyle' => 'display:none'));
+        $data->listFilter->FNC('deliveryTo', 'date', 'caption=Доставка до,placeholder=До', array('rowStyle' => 'display:none'));
+
+        $keySel = null;
+
+        $data->listFilter->input('deliveryFrom, deliveryTo');
+
+        $data->listFilter->setOptions('deliveryPeriod', plg_SelectPeriod::getOptions($keySel, $data->listFilter->rec->deliveryFrom, $data->listFilter->rec->deliveryTo, true));
+
+        if ($keySel) {
+            $data->listFilter->setDefault('deliveryPeriod', $keySel);
+            $data->listFilter->rec->selectPeriod = $keySel;
+            Request::push(array('deliveryPeriod' => $keySel));
+        }
+
+        $data->listFilter->showFields .= 'deliveryPeriod, deliveryFrom, deliveryTo';
+
+        $data->listFilter->input('deliveryPeriod');
+
+        if ($data->listFilter->rec->deliveryPeriod) {
+            list($deliveryFrom, $deliveryTo) = plg_SelectPeriod::getFromTo($data->listFilter->rec->deliveryPeriod);
+
+            if ($deliveryFrom && $deliveryTo) {
+                $data->query->where(array("#deliveryOn >= '[#1#]' AND #deliveryOn <= '[#2#]'", $deliveryFrom . ' 00:00:00', $deliveryTo . ' 23:59:59'));
+            }
+        }
+    }
+
+
+    /**
      * Какво да е предупреждението на бутона за контиране
      *
      * @param int $id - ид
