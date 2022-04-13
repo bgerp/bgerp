@@ -454,8 +454,8 @@ class store_reports_Documents extends frame2_driver_TableData
             $fld->FLD('pallets', 'varchar', 'caption=Палети');
             $fld->FLD('linked', 'varchar', 'caption=Задачи');
             $fld->FLD('folderId', 'key(mvc=doc_Folders,select=title)', 'tdClass=small,caption=Папка');
-            $fld->FLD('createdOn', 'datetime', 'caption=Създаване->На');
-            $fld->FLD('createdBy', 'key(mvc=core_Users,select=nick)', 'caption=Създаване->От');
+            $fld->FLD('createdOn', 'datetime', 'caption=Създаване на');
+            $fld->FLD('createdBy', 'key(mvc=core_Users,select=nick)', 'caption=От');
         }
         
         return $fld;
