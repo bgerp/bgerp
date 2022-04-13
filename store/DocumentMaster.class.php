@@ -79,7 +79,7 @@ abstract class store_DocumentMaster extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'deliveryTime, deliveryOn, valior, createdOn, modifiedOn';
+    public $filterDateField = 'valior, deliveryTime, deliveryOn, createdOn, modifiedOn';
     
     
     /**
