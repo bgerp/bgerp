@@ -233,11 +233,11 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-        $this->FLD('deliveryOn', 'datetime', 'input,caption=Доставка до,after=deliveryTime');
+        $this->FLD('deliveryOn', 'datetime', 'input,caption=Доставка,after=deliveryTime');
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
-        $this->setField('deliveryTime', 'caption=Натоварване');
+        $this->setField('deliveryTime', 'caption=Товарене');
         $this->setDbIndex('createdOn');
     }
 
@@ -780,8 +780,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function getShipmentDateFields($rec = null, $cache = false)
     {
         $res = array('readyOn' => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
-            'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
-            'shipmentOn' => array('caption' => 'Експедиране на', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
+            'deliveryTime' => array('caption' => 'Товарене', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
+            'shipmentOn' => array('caption' => 'Експедиране', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
             'deliveryOn' => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"));
 
         if (isset($rec)) {
