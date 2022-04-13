@@ -635,7 +635,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
-            $data->listFields = 'deliveryTime,valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
+            $data->listFields = 'deliveryTime, deliveryOn, valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
         }
     }
 
