@@ -10,6 +10,10 @@ defIfNot('BACKUP_MAX_THREAD', 20);
  */
 defIfNot('RESTORE_MAX_THREAD', 10);
 
+/**
+ * Максимална дължина на експортираните данни (ориентировъчно)
+ */
+defIfNot('BACKUP_MAX_CHUNK_SIZE', 30000000);
 
 /**
  * Клас 'core_Backup' - добавя бекъп възможности към ядрото
@@ -32,7 +36,11 @@ class core_Backup extends core_Mvc
      */
     public $lmt = array();
     
-    
+    /**
+     * Броя редове в един партишън от таблицата за архивиране
+     */
+    public $chunks = array();
+
     /**
      * Информация за всички таблици
      */
@@ -62,7 +70,7 @@ class core_Backup extends core_Mvc
      */
     public function cron_Create()
     {
-        //core_Debug::$isLogging = false;
+        core_Debug::$isLogging = false;
         
         if (core_Setup::get('BACKUP_ENABLED') != 'yes') {
             
@@ -76,6 +84,30 @@ class core_Backup extends core_Mvc
 
         // Изчистваме стари процесорни индикатори
         $processes = glob(self::getTempPath() . '*.bpr');
+        // Изчистваме останали процесни индикатори
+        if(is_array($processes)) {
+            foreach($processes as $file) {
+                unlink($file);
+            }
+        }
+
+        // Изчистваме стари темплейт индикатори
+        $tplFiles = glob(self::getTempPath() . '*.tmp');
+        // Изчистваме останали процесни индикатори
+        if(is_array($tplFiles)) {
+            foreach($tplFiles as $file) {
+                unlink($file);
+            }
+        }
+
+        // Изчистваме стари csv файлове
+        $csvFiles = glob(self::getTempPath() . '*.csv');
+        // Изчистваме останали процесни индикатори
+        if(is_array($csvFiles)) {
+            foreach($csvFiles as $file) {
+                unlink($file);
+            }
+        }
 
         core_App::setTimeLimit(120);
         
@@ -111,10 +143,7 @@ class core_Backup extends core_Mvc
             }
             
             if ($mvc->dbTableName) {
-                list($exists, $cnt, $lmt) = $this->getTableInfo($mvc);
-                if ($exists && !isset($instArr[$mvc->dbTableName])) {
-                  //  $instArr[$mvc->dbTableName] = null;
-                }
+                list($exists, $cnt, $lmt, $size) = $this->getTableInfo($mvc);
             }
 
             if (!$mvc->dbTableName) {
@@ -144,9 +173,11 @@ class core_Backup extends core_Mvc
 
             $instArr[$mvc->dbTableName] = $mvc;
             $this->lmt[$mvc->dbTableName] = $lmt;
+            $maxChunk = ($mvc->dbTableName == 'cat_product_tpl_cache') ? 5000000 : BACKUP_MAX_CHUNK_SIZE;
+            $this->chunks[$mvc->dbTableName] = pow(4, floor(log($maxChunk * BACKUP_MAX_CHUNK_SIZE / $size, 4)));
             $lockTables .= ",`{$mvc->dbTableName}` READ";
         }
-       
+ 
         uksort($instArr, array($this, 'compLmt'));
         
         // Правим пробно експортиране на всички таблици, без заключване
@@ -336,13 +367,6 @@ class core_Backup extends core_Mvc
             $maxLmt = time() + 1000000;
         }
 
-        // Изчистваме останали процесни индикатори
-        if(is_array($processes)) {
-            foreach($processes as $file) {
-                unlink($file);
-            }
-        }
-
         $pass = core_Setup::get('BACKUP_PASS');
         $addCrc32 = crc32(EF_SALT . $pass);
         
@@ -351,11 +375,10 @@ class core_Backup extends core_Mvc
             
             if ($inst === null) {
                 self::fLog("Таблицата {$table} има null за инстанция");
-
                 continue;
             }
             
-            list($exists, $cnt, $lmt) = $this->getTableInfo($inst);
+            list($exists, $cnt, $lmt, $size) = $this->getTableInfo($inst);
             self::fLog("Таблицата {$table} съдържа {$cnt} записа, последно модифицирани в " . date('m/d/Y H:i:s', $lmt));
 
 
@@ -364,9 +387,30 @@ class core_Backup extends core_Mvc
                 continue;
             }
 
-            if (isset($inst->backupMaxRows, $inst->backupDiffFields)) {
-                $maxId = $inst->db->getNextId($table);
-                $diffFields = arr::make($inst->backupDiffFields);
+            $backupMaxRows = $this->chunks[$table];
+            
+            
+            // Дали да бекъпваме на партишъни
+            if ($backupMaxRows < $cnt) {
+                $diffFields = array();
+                // Ако няма $inst->backupDiffFields правим ги от всички полета, които не са текстови или блоб
+                if(!isset($inst->backupDiffFields)) { 
+                    foreach($inst->fields as $fName => $fRec) {
+                        if($fRec->kind != 'FLD' ||
+                            is_a($fRec->type, 'type_Blob') ||
+                            is_a($fRec->type, 'type_Text') ||
+                            is_a($fRec->type, 'type_Keylist') ||
+                            is_a($fRec->type, 'type_Set')  ) {
+
+                            continue;
+                        }
+
+                        $diffFields[] = $fName;
+                    }
+                } else {
+                    $diffFields = arr::make($inst->backupDiffFields);
+                }
+ 
                 $expr = "CONCAT_WS('|'";
                 foreach ($diffFields as $fld) {
                     $mySqlFld = str::phpToMysqlName($fld);
@@ -374,11 +418,11 @@ class core_Backup extends core_Mvc
                 }
                 $expr = "crc32(${expr}))";
                 
-                for ($i = 0; $i * $inst->backupMaxRows < $cnt; $i++) {
+                for ($i = 0; $i * $backupMaxRows < $cnt; $i++) {
                     core_App::setTimeLimit(120);
                     $key = "{$table}-{$lmt}-" . ($i + 1);
                     if (!isset(self::$crcArr[$key])) {
-                        $len = $inst->backupMaxRows;
+                        $len = $backupMaxRows;
                         $start = $i * $len;
                         $limit = " LIMIT {$start},{$len}";
                         $sql = "SELECT SUM(`_backup`) AS `_crc32backup` FROM  (SELECT  {$expr} AS `_backup` FROM `{$table}` ORDER BY `id`{$limit}) `_backup_table`";
@@ -407,7 +451,7 @@ class core_Backup extends core_Mvc
 
 
     /**
-     * извиква по http процес, който бекъпва съдържанието на една таблица
+     * извиква по cli процес, който бекъпва съдържанието на една таблица
      */
     public function runBackupTable($inst, $table, $suffix, $limit = '')
     {
@@ -456,7 +500,6 @@ class core_Backup extends core_Mvc
         $app = EF_APP_NAME;
         $ctr = 'core_Backup';
         $act = 'doBackupTable';
-        
 
         core_Os::startCmd($msg = "php {$cmd} {$app} {$ctr} {$act} " . escapeshellarg($processFile));
         self::fLog($msg);
@@ -468,82 +511,105 @@ class core_Backup extends core_Mvc
      */
     public static function cli_doBackupTable()
     {
+        // Спираме логването в core_Debug
+        core_Debug::$isLogging = false;
+ 
         global $argv;
-
-        $processFile = $argv[4];
-        $params = file_get_contents($processFile);
-        self::$tempDir = dirname($processFile) .'/';
-        list($className, $table, $suffix, $limit) = explode('|', $params);
         
-        $inst = cls::get($className);
+        try {
+            $processFile = $argv[4];
+            $params = file_get_contents($processFile);
+            self::$tempDir = dirname($processFile) .'/';
+            list($className, $table, $suffix, $limit) = explode('|', $params);
+            
+            $inst = cls::get($className);
 
-        // Подготвяме пътищата
-        $fileName = "{$table}.{$suffix}";
-        $path = self::getTempPath($fileName . '.csv');
-        $dest = self::getBackupPath($fileName . '.csv.zip');
-        $tmpCsv = "{$path}.tmp";
+            // Подготвяме пътищата
+            $fileName = "{$table}.{$suffix}";
+            $path = self::getTempPath($fileName . '.csv');
+            $dest = self::getBackupPath($fileName . '.csv.zip');
+            $tmpCsv = "{$path}.tmp";
 
-        // Вземаме паролата
-        $pass = core_Setup::get('BACKUP_PASS');
+            // Вземаме паролата
+            $pass = core_Setup::get('BACKUP_PASS');
 
 
-        if (file_exists($dest)) {
-            debug::log($msg = "Таблица `{$dest}` вече съществува като zip файл");
-            self::fLog($msg);
-            exit(0);
-        }
-        
-        if (file_exists($tmpCsv)) {
-            debug::log($msg = "Таблица `{$fileName}` вече съществува като tmp файл");
-            self::fLog($msg);
-            exit(0);
-        }
-
-        debug::log($msg = "Експорт в CSV на таблица `{$fileName}`");
-        self::fLog($msg); 
-        
-        // Отваряме файла за писане
-        $out = fopen($tmpCsv, 'w');
-
-        // Извличаме информация за колоните
-        $cols = '';
-        $i = 0;
-        $fields = $inst->db->getFields($table);
-        foreach ($fields as $fRec) {
-            list($type, ) = explode('(', $fRec->Type);
-            if (strpos('|tinyint|smallint|mediumint|int|integer|bigint|float|double|double precision|real|decimal|', '|' . strtolower($type) . '|') === false) {
-                $mustEscape[$i] = true;
+            if (file_exists($dest)) {
+                self::fLog("Таблица `{$dest}` вече съществува като zip файл");
+                exit(0);
             }
-            $cols .= ($cols ? ',' : '') . '`' . $fRec->Field . '`';
-            $i++;
-        }
-        
-        $dbRes = $inst->db->query("SELECT * FROM `{$table}`{$limit}");
-        
-        fwrite($out, $cols);
-        while ($row = $inst->db->fetchArray($dbRes, MYSQLI_NUM)) {
-            $vals = '';
-            foreach ($row as $i => &$f) {
-                if ($f === null) {
-                    $f = '\\N';
-                } elseif ($mustEscape[$i]) {
-                    $f = '"' . $inst->db->escape($f) . '"';
+            
+            if (file_exists($tmpCsv)) {
+                self::fLog("Таблица `{$fileName}` вече съществува като tmp файл");
+                exit(0);
+            }
+
+            self::fLog("Експорт в CSV на таблица `{$fileName}`"); 
+            
+            // Отваряме файла за писане
+            $out = fopen($tmpCsv, 'w');
+
+            // Извличаме информация за колоните
+            $cols = '';
+            $i = 0;
+            $fields = $inst->db->getFields($table);
+            foreach ($fields as $fRec) {
+                list($type, ) = explode('(', $fRec->Type);
+                if (strpos('|tinyint|smallint|mediumint|int|integer|bigint|float|double|double precision|real|decimal|', '|' . strtolower($type) . '|') === false) {
+                    $mustEscape[$i] = true;
                 }
+                $cols .= ($cols ? ',' : '') . '`' . $fRec->Field . '`';
+                $i++;
             }
-            $vals = implode(',', $row);
-            fwrite($out, "\n" . $vals);
+
+            $link = $inst->db->connect();
+            $q = "SELECT * FROM `{$table}` ORDER BY `id`{$limit}";
+            $dbRes = $link->query($q);
+            
+            if(!$dbRes) {
+                self::fLog('DB Error: ' . $q . ' => ' . $link->error);
+                unlink($processFile);
+                @fclose($out);
+                @unlink($tmpCsv);
+                @unlink($path);
+                die;
+            }
+
+            fwrite($out, $cols);
+            while ($row = $inst->db->fetchArray($dbRes, MYSQLI_NUM)) {
+                $vals = '';
+                foreach ($row as $i => $f) {
+                    if($vals) {
+                        $vals .= ',';
+                    }
+                    if ($f === null) {
+                        $vals .= '\\N';
+                    } elseif ($mustEscape[$i]) {
+                        $vals .= '"' . $inst->db->escape($f) . '"';
+                    } else {
+                        $vals .= $f;
+                    }
+                }
+
+                fwrite($out, "\n" . $vals);
+            }
+
+            fclose($out);
+            rename("{$path}.tmp", $path);
+
+            self::fLog('Компресиране на ' . basename($dest));
+            archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
+            self::fLog('Край на компресиране на ' . basename($dest));
+
+            unlink($processFile);
+        }  catch (Throwable $e) {
+            self::fLog('Exception: ' . $e->getMessage());
+            unlink($processFile);
+            @fclose($out);
+            @unlink($tmpCsv);
+            @unlink($path);
+            die;
         }
-
-        fclose($out);
-        rename("{$path}.tmp", $path);
-
-        self::fLog('Компресиране на ' . basename($dest));
-        archive_Adapter::compressFile($path, $dest, $pass, '-sdel');
-        self::fLog('Край на компресиране на ' . basename($dest));
-
-        unlink($processFile);
-
-        die;
     }
     
     
@@ -1021,8 +1087,8 @@ class core_Backup extends core_Mvc
             self::$info[$hash] = array();
             $dbRes = $mvc->db->query("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA LIKE '{$mvc->db->dbName}'");
             while ($row = $mvc->db->fetchArray($dbRes)) {
-                $lmt = $row['UPDATE_TIME'] ? strtotime($row['UPDATE_TIME']) : null;
-                self::$info[$hash][$row['TABLE_NAME']] = array(true, $row['TABLE_ROWS'], $lmt);
+                $lmt = isset($row['UPDATE_TIME']) ? strtotime($row['UPDATE_TIME']) : null;
+                self::$info[$hash][$row['TABLE_NAME']] = array(true, $row['TABLE_ROWS'], $lmt, $row['DATA_LENGTH']);
             }
         }
         

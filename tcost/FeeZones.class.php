@@ -481,7 +481,7 @@ class tcost_FeeZones extends core_Master
     
     
     /**
-     * При упдейт на количката в е-магазина, какво да се  изпълнява
+     * При ъпдейт на количката в е-магазина, какво да се  изпълнява
      *
      * @param stdClass $cartRec
      *
@@ -518,5 +518,21 @@ class tcost_FeeZones extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->deliveryTermId = cond_DeliveryTerms::getHyperlink($rec->deliveryTermId, true);
+    }
+
+
+    /**
+     * Колко е най-голямото време за доставка
+     *
+     * @param int $deliveryTermId - ид на условие на доставка
+     * @param array $params       - параметри за доставка
+     * @return int                - най-голямото време за доставка в секунди
+     */
+    public function getMaxDeliveryTime($deliveryTermId, $params)
+    {
+        $zoneArr = tcost_Zones::getZoneIdAndDeliveryTerm($deliveryTermId, $params['deliveryCountry'], $params['deliveryPCode']);
+        $res = (is_array($zoneArr) && !empty($zoneArr['deliveryTime'])) ? $zoneArr['deliveryTime'] : null;
+
+        return $res;
     }
 }

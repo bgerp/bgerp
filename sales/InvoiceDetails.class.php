@@ -91,6 +91,14 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
 
 
     /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'exportParamValue';
+
+
+    /**
      * Описание на модела
      */
     public function description()
@@ -98,6 +106,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         $this->FLD('invoiceId', 'key(mvc=sales_Invoices)', 'caption=Фактура, input=hidden, silent');
         parent::setInvoiceDetailFields($this);
         $this->FLD('batches', 'text(rows=1)', 'caption=Допълнително->Партиди, input=none, before=notes');
+        $this->FLD('exportParamValue', 'varchar', 'caption=Счетоводен параметър, input=none');
     }
     
     

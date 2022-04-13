@@ -1031,7 +1031,7 @@ abstract class deals_DealMaster extends deals_DealBase
         
         // Записване на най-големия срок на доставка
         if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
-            $rec->deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+            $rec->deliveryTermTime = $mvc->calcDeliveryTime($rec);
             if (isset($rec->deliveryTermTime)) {
                 $update = true;
             }
@@ -1257,11 +1257,12 @@ abstract class deals_DealMaster extends deals_DealBase
             $row->username = core_Lg::transliterate($row->username);
             $row->responsible = core_Lg::transliterate($row->responsible);
             
-            if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
-                $deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
-                if ($deliveryTermTime) {
+            if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime) && in_array($rec->state, array('draft', 'pending')) ) {
+                $deliveryTermTime = $mvc->calcDeliveryTime($rec->id);
+                if (isset($deliveryTermTime)) {
                     $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
-                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
+                    $deliveryTermTime = "<span style='color:blue'>{$deliveryTermTime}</span>";
+                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
                 }
             }
             
@@ -1321,34 +1322,41 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Най-големия срок на доставка
      *
-     * @param int $id
+     * @param int|stdClass $id
      * @return int|NULL
      */
-    public function getMaxDeliveryTime($id)
+    protected function calcDeliveryTime($id)
     {
         $maxDeliveryTime = null;
-        
+        $rec = $this->fetchRec($id);
+
+        // Колко е най-големия срок за доставка до адреса
+        $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
+        if(is_object($Calculator)){
+            $logisticData = $this->getLogisticData($rec);
+            $deliveryData = is_array($rec->deliveryData) ? $rec->deliveryData : array();
+            $deliveryData += array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
+            $maxDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryData);
+        }
+
+        // Гледа се най-големия срок за доставка от артикулите
         $Detail = cls::get($this->mainDetail);
-        $query = $Detail->getQuery();
-        $query->where("#{$Detail->masterKey} = {$id}");
-        $query->show("productId,term,quantity,{$Detail->masterKey}");
-        
-        while ($rec = $query->fetch()) {
-            $term = $rec->term;
-            if (!isset($term)) {
-                $term = cat_Products::getDeliveryTime($rec->productId, $rec->quantity);
-                
-                $cRec = sales_TransportValues::get($this, $rec->{$Detail->masterKey}, $rec->id);
-                if (isset($cRec->deliveryTime)) {
-                    $term = $cRec->deliveryTime + $term;
-                }
-            }
-            
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+        $dQuery->show("productId,term,quantity,{$Detail->masterKey}");
+        while ($dRec = $dQuery->fetch()) {
+            $term = isset($dRec->term) ? $dRec->term : cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity);
             if (isset($term)) {
                 $maxDeliveryTime = max($maxDeliveryTime, $term);
             }
         }
-        
+
+        // Към най-големия срок се добавят дните за подготовка от склада, ако няма склад - колкото е настроено глобално
+        $defaultShipmentTime = store_Stores::getShipmentPreparationTime($rec->shipmentStoreId);
+        if(!empty($defaultShipmentTime)){
+            $maxDeliveryTime += $defaultShipmentTime;
+        }
+
         return $maxDeliveryTime;
     }
     
@@ -2662,8 +2670,8 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * За коя дата се заплануват наличностите
      *
-     * @param $rec - запис
-     * @return date - дата, за която се заплануват наличностите
+     * @param stdClass $rec - запис
+     * @return datetime     - дата, за която се заплануват наличностите
      */
     public function getPlannedQuantityDate_($rec)
     {

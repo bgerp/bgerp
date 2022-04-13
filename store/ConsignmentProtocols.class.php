@@ -11,7 +11,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov<ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -173,8 +173,8 @@ class store_ConsignmentProtocols extends core_Master
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, valior,modifiedOn';
-    
-    
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -186,6 +186,8 @@ class store_ConsignmentProtocols extends core_Master
         
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
+        $this->FLD('deliveryTime', 'datetime','caption=Натоварване');
+        $this->FLD('deliveryOn', 'datetime','caption=Доставка');
         $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
 
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
@@ -643,7 +645,7 @@ class store_ConsignmentProtocols extends core_Master
         $res = array();
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+        $date = $this->getPlannedQuantityDate($rec);
 
         $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
@@ -669,5 +671,66 @@ class store_ConsignmentProtocols extends core_Master
         }
 
         return $res;
+    }
+
+
+    /**
+     * Kои са полетата за датите за експедирането
+     *
+     * @param mixed $rec     - ид или запис
+     * @param boolean $cache - дали да се използват кеширани данни
+     * @return array $res    - масив с резултат
+     */
+    public function getShipmentDateFields($rec = null, $cache = false)
+    {
+        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
+                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
+                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"));
+
+        if(isset($rec)){
+            if(isset($rec->deliveryOn)){
+                $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
+                $res['deliveryTime']['placeholder'] = dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+            }
+
+            $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['shipmentOn']['placeholder'] = trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Коя е най-ранната дата на която са налични всички документи
+     *
+     * @param $rec
+     * @return date|null
+     */
+    public function getEarliestDateAllProductsAreAvailableInStore($rec)
+    {
+        $rec = $this->fetchRec($rec);
+        $detail = ($rec->productType == 'ours') ? 'store_ConsignmentProtocolDetailsSend' : 'store_ConsignmentProtocolDetailsReceived';
+        $products = deals_Helper::sumProductsByQuantity($detail, $rec->id, true);
+
+        return store_StockPlanning::getEarliestDateAllAreAvailable($rec->storeId, $products);
+    }
+
+
+    /**
+     * За коя дата се заплануват наличностите
+     *
+     * @param stdClass $rec - запис
+     * @return datetime     - дата, за която се заплануват наличностите
+     */
+    public function getPlannedQuantityDate_($rec)
+    {
+        // Ако има ръчно въведена дата на натоварване, връща се тя
+        if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
+
+        $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
+
+        return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
     }
 }

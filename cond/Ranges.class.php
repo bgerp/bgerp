@@ -475,13 +475,15 @@ class cond_Ranges extends core_Manager
      */
     public static function displayRange($id)
     {
-        $rec = self::fetchRec($id);
-        $Class = cls::get($rec->class);
-        if($Class instanceof deals_InvoiceMaster){
-            $rec->min = str_pad($rec->min, 10, '0', STR_PAD_LEFT);
-            $rec->max = str_pad($rec->max, 10, '0', STR_PAD_LEFT);
+        $res = null;
+        if($rec = self::fetchRec($id)){
+            $Class = cls::get($rec->class);
+            if($Class instanceof deals_InvoiceMaster){
+                $rec->min = str_pad($rec->min, 10, '0', STR_PAD_LEFT);
+                $rec->max = str_pad($rec->max, 10, '0', STR_PAD_LEFT);
+            }
+            $res = "{$rec->min} - {$rec->max}";
         }
-        $res = "{$rec->min} - {$rec->max}";
 
         return $res;
     }
