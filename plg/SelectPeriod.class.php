@@ -77,7 +77,7 @@ class plg_SelectPeriod extends core_Plugin
         
         $fFEsc = json_encode($fF);
         $fTEsc = json_encode($fT);
-        
+
         $mandatory = ($form->fields[$fF]->mandatory || $form->fields[$fT]->mandatory) ? ',mandatory' : '';
         $form->FLD('selectPeriod', 'varchar', "caption=Период,input,before=from,silent,printListFilter=none,before={$fF}{$mandatory}{$refresh},mustExist", array('attr' => array('onchange' => "spr(this,false, {$fFEsc}, {$fTEsc});")));
         
@@ -503,7 +503,7 @@ class plg_SelectPeriod extends core_Plugin
         
         $v = '.';
         
-        if (strlen("{$d1}{$m1}{$y1}{$d2}{$m3}{$y2}") < 10) {
+        if (strlen("{$d1}{$m1}{$y1}{$d2}{$m2}{$y2}") < 10) {
             if ($m1) {
                 $m1 = dt::getMonth($m1, 'FM');
             }

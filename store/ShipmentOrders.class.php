@@ -126,7 +126,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId, createdOn, createdBy';
+    public $listFields = 'deliveryTime, deliveryOn, valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId, createdOn=Създаване на, createdBy=От';
 
 
     /**
@@ -233,11 +233,11 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-        $this->FLD('deliveryOn', 'datetime', 'input,caption=Доставка до,after=deliveryTime');
+        $this->FLD('deliveryOn', 'datetime', 'input,caption=Доставка,after=deliveryTime');
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
-        $this->setField('deliveryTime', 'caption=Натоварване');
+        $this->setField('deliveryTime', 'caption=Товарене');
         $this->setDbIndex('createdOn');
     }
 
@@ -635,7 +635,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
-            $data->listFields = 'deliveryTime,valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
+            $data->listFields = 'deliveryTime, deliveryOn, valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
         }
     }
 
@@ -780,8 +780,8 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function getShipmentDateFields($rec = null, $cache = false)
     {
         $res = array('readyOn' => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
-            'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
-            'shipmentOn' => array('caption' => 'Експедиране на', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
+            'deliveryTime' => array('caption' => 'Товарене', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
+            'shipmentOn' => array('caption' => 'Експедиране', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
             'deliveryOn' => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"));
 
         if (isset($rec)) {
