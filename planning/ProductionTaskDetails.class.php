@@ -451,7 +451,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $res['type'] = 'existing';
             $res['productId'] = $exRec->productId;
             if($type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
-                $res['error'] = 'Серийния номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
+                $res['error'] = 'Серийният номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
             }
         } else {
             if ($pRec = $Driver->getRecBySerial($serial)) {
@@ -462,7 +462,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $error = '';
         if ($res['productId'] != $productId) {
-            $res['error'] = 'Серийния номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
+            $res['error'] = 'Серийният номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
         }
@@ -1057,7 +1057,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if(!empty($params['serial'])){
-            expect(str::containOnlyDigits($params['serial']), 'Серийния номер може да е само от цифри');
+            expect(str::containOnlyDigits($params['serial']), 'Серийният номер може да е само от цифри');
             $params['serial'] = plg_Search::normalizeText($params['serial']);
             $params['serial'] = str::removeWhiteSpace($params['serial']);
             if ($Driver = cat_Products::getDriver($productId)) {

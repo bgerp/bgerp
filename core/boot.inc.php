@@ -50,6 +50,7 @@ core_Debug::setErrorWaching();
 
 // Ако заявката е по cli обработваме я по различен начин
 if(php_sapi_name() == 'cli') {
+    core_Debug::$isDebug = true;
     defIfNot('EF_APP_NAME', $argv[1]);
     
     defIfNot('EF_HTTPS', false);

@@ -370,10 +370,11 @@ class sales_Quotations extends deals_QuotationMaster
             }
 
             if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
-                $deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
-                if ($deliveryTermTime) {
+                $deliveryTermTime = $mvc->calcDeliveryTime($rec);
+                if (isset($deliveryTermTime)) {
                     $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
-                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова на най-големия срок за доставка от артикулите');
+                    $deliveryTermTime = "<span style='color:blue'>{$deliveryTermTime}</span>";
+                    $row->deliveryTermTime = ht::createHint($deliveryTermTime, 'Времето за доставка се изчислява динамично възоснова мястото за доставка, артикулите в договора и нужното време за подготовка|*!');
                 }
             }
 
@@ -553,7 +554,7 @@ class sales_Quotations extends deals_QuotationMaster
         }
         
         if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
-            $rec->deliveryTermTime = $mvc->getMaxDeliveryTime($rec->id);
+            $rec->deliveryTermTime = $mvc->calcDeliveryTime($rec);
             if (isset($rec->deliveryTermTime)) {
                 $updateFields[] = 'deliveryTermTime';
             }
@@ -730,30 +731,30 @@ class sales_Quotations extends deals_QuotationMaster
     /**
      * Най-големия срок на доставка
      *
-     * @param int $id
-     *
+     * @param int|stdClass $id
      * @return int|NULL
      */
-    protected function getMaxDeliveryTime($id)
+    protected function calcDeliveryTime($id)
     {
         $maxDeliveryTime = null;
+        $rec = $this->fetchRec($id);
+
+        // Добавяне на срока за транспорт към локацията
+        $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
+        if(is_object($Calculator)){
+            $locationId = isset($rec->deliveryPlaceId) ? crm_Locations::fetchField(array("#title = '[#1#]' AND #contragentCls = '{$rec->contragentClassId}' AND #contragentId = '{$rec->contragentId}'", $rec->deliveryPlaceId), 'id') : null;
+            $codeAndCountryArr = sales_TransportValues::getCodeAndCountryId($rec->contragentClassId, $rec->contragentId, $rec->pCode, $rec->contragentCountryId, $locationId ? $locationId : $rec->deliveryAdress);
+            $deliveryParams = array('deliveryCountry' => $codeAndCountryArr['countryId'], 'deliveryPCode' => $codeAndCountryArr['pCode']);
+            $maxDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryParams);
+        }
 
         $Detail = cls::get($this->mainDetail);
-        $query = $Detail->getQuery();
-        $query->where("#{$Detail->masterKey} = {$id} AND #optional = 'no'");
-        $query->show("productId,term,quantity,quotationId");
+        $dQuery = $Detail->getQuery();
+        $dQuery->where("#{$Detail->masterKey} = {$rec->id} AND #optional = 'no'");
+        $dQuery->show("productId,term,quantity,quotationId");
 
-        while ($dRec = $query->fetch()) {
-            $term = $dRec->term;
-            if (!isset($term)) {
-                $term = cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity);
-
-                $cRec = sales_TransportValues::get($this, $dRec->quotationId, $dRec->id);
-                if (isset($cRec->deliveryTime)) {
-                    $term = $cRec->deliveryTime + $term;
-                }
-            }
-
+        while ($dRec = $dQuery->fetch()) {
+            $term = (!isset($term)) ? cat_Products::getDeliveryTime($dRec->productId, $dRec->quantity) : $dRec->term;
             if (isset($term)) {
                 $maxDeliveryTime = max($maxDeliveryTime, $term);
             }

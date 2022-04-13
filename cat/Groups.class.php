@@ -9,12 +9,12 @@
  * @package   cat
  *
  * @author    Stefan Stefanov <stefan.bg@gmail.com>
- * @copyright 2006 - 2017 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
  */
-class cat_Groups extends core_Manager
+class cat_Groups extends core_Master
 {
     /**
      * Заглавие
@@ -89,16 +89,53 @@ class cat_Groups extends core_Manager
 
 
     /**
+     * Икона за единичен изглед
+     */
+    public $singleIcon = 'img/16/grouping1.png';
+
+
+    /**
      * Отделния ред в листовия изглед да е отгоре
      */
     public $tableRowTpl = "[#ROW#]";
-    
+
+
+    /**
+     * Кой може да разглежда сингъла на документите?
+     */
+    public $canSingle = 'cat,ceo';
+
+
+    /**
+     * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
+     */
+    public $rowToolsSingleField = 'name';
+
+
+    /**
+     * Клас за елемента на обграждащия <div>
+     */
+    public $cssClass = 'folder-cover';
+
+
+    /**
+     * Нов темплейт за показване
+     */
+    public $singleLayoutFile = 'cat/tpl/SingleLayoutGroup.shtml';
+
+
     /**
      * Кое поле е за името на английски?
      */
     public $nameFieldEn = 'nameEn';
-    
-    
+
+
+    /**
+     * Детайла, на модела
+     */
+    public $details = 'price_Updates';
+
+
     /**
      * Описание на модела
      */
@@ -121,21 +158,48 @@ class cat_Groups extends core_Manager
         $this->setDbUnique('sysId');
         $this->setDbIndex('parentId');
     }
-    
-    
+
+
+    /**
+     * Преди показване на форма за добавяне/промяна
+     */
+    public static function on_AfterPrepareEditForm($mvc, &$data)
+    {
+        $form = &$data->form;
+        $form->setField('parentId', 'caption=Настройки->В състава на');
+        $form->setField('orderProductBy', 'caption=Настройки->Сортиране по');
+    }
+
+
     /**
      * Извиква се след въвеждането на данните от Request във формата ($form->rec)
      */
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        
+
         if ($form->isSubmitted()) {
             $condition = "#name = '[#1#]' AND #id != '{$rec->id}' AND ";
             $condition .= isset($rec->parentId) ? "#parentId = {$rec->parentId}" : ' #parentId IS NULL';
             
             if ($mvc->fetchField(array($condition, $rec->name))) {
                 $form->setError('name,parentId', 'Вече съществува запис със същите данни');
+            }
+
+            if(isset($rec->id)){
+                $exParentId = $mvc->fetchField($rec->id, 'parentId', false);
+                if($rec->parentId != $exParentId){
+
+                    // Група с правило не може да бъде преместена към група без правила
+                    if(price_Updates::fetch("#type = 'group' AND #objectId = {$rec->id}")){
+                        $defaultGroups = keylist::toArray(cat_Setup::get('GROUPS_WITH_PRICE_UPDATE_RULES'));
+                        $parentsArr = cls::get('cat_Groups')->getParentsArray($rec->parentId);
+                        $intersectedParents = array_intersect_key($defaultGroups, $parentsArr);
+                        if(!array_key_exists($rec->id, $defaultGroups) && !countR($intersectedParents)) {
+                            $form->setError('parentId', 'Групата има зададено правило за обновяване на себестойностти и трябва да остане в състава на група, на чиите поднива може да се задават правила за обновяване|*!');
+                        }
+                    }
+                }
             }
         }
     }
@@ -173,12 +237,20 @@ class cat_Groups extends core_Manager
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
-        if ($fields['-list'] && cat_Products::haveRightFor('list')) {
-            $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+        if(cat_Products::haveRightFor('list')){
+            if ($fields['-list']) {
+                $row->productCnt = ht::createLinkRef($row->productCnt, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+            }
+
+            if ($fields['-single']) {
+                $productCount = (isset($rec->productCnt)) ? $rec->productCnt : 0;
+                $productCountVerbal = $mvc->getFieldType('productCnt')->toVerbal($productCount);
+                $row->productCnt = ht::createLink($productCountVerbal, array('cat_Products', 'list', 'groupId' => $rec->id), false, "title=Филтър на|* \"{$row->name}\"");
+            }
         }
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
@@ -240,7 +312,6 @@ class cat_Groups extends core_Manager
      * Връща кейлист от систем ид-та на групите
      *
      * @param mixed $sysIds - масив със систем ид-та
-     *
      * @return string
      */
     public static function getKeylistBySysIds($sysIds)
@@ -265,7 +336,7 @@ class cat_Groups extends core_Manager
      * Форсира група (маркер) от каталога
      *
      * @param string $name     Име на групата. Съдържа целия път
-     * @param int    $parentId Id на родител
+     * @param int|null    $parentId Id на родител
      * @param bool   $force
      *
      * @return int|NULL id на групата
@@ -335,16 +406,17 @@ class cat_Groups extends core_Manager
             return $res;
         }
         
-        $makeLink = (cat_Products::haveRightFor('list') && !Mode::isReadOnly()) ? true : false;
+        $makeLink = (cat_Products::haveRightFor('list') && !Mode::isReadOnly());
         foreach ($groups as $grId) {
+            $groupTitle = self::getVerbal($grId, 'name');
             if ($makeLink === true) {
                 $listUrl = array('cat_Products', 'list', 'groupId' => $grId);
+                $classAttr = "class={$class}";
+                $groupLink = ht::createLink($groupTitle, $listUrl, false, "{$classAttr},title=Филтриране на артикули по група|* '{$groupTitle}'");
+                $groupTitle = $groupLink->getContent();
             }
-            
-            $classAttr = "class={$class}";
-            $groupTitle = self::getVerbal($grId, 'name');
-            $groupLink = ht::createLink($groupTitle, $listUrl, false, "{$classAttr},title=Филтриране на артикули по група|* '{$groupTitle}'");
-            $res[] = $groupLink->getContent();
+
+            $res[] = $groupTitle;
         }
         
         return $res;

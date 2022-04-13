@@ -1,0 +1,42 @@
+<div class="singleView">
+    [#SingleToolbar#]
+    <div class="no-cover">
+        <h2 style="margin-bottom: 10px">[#SingleIcon#] |Група|* <b style="color:green;">[#name#]</b></h2>
+        <table class='special-table' style='width: 100%;'>
+            <tr>
+                <!--ET_BEGIN productCnt-->
+                <td>
+                    <fieldset class="detail-info half-detail " >
+                        <legend  class="centered">|Артикули|*</legend>
+                        <div class="groupList ">
+                            <div class='counter-link'> [#productCnt#]</div>
+                        </div>
+                    </fieldset>
+                </td>
+                <!--ET_END productCnt-->
+            </tr>
+        </table>
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Информация|*</legend>
+            <!--ET_BEGIN parentId-->
+            <div style="margin-bottom:2px"><span class="quiet">|В състава на|*:</span> [#parentId#]</div>
+            <!--ET_END parentId-->
+            <div style="margin-bottom:2px"><span class="quiet">|Сортиране по|*:</span> [#orderProductBy#]</div>
+            <div style="margin-bottom:2px"><span class="quiet">|Наследниците да бъдат ли счетоводни признаци|*: </span> [#makeDescendantsFeatures#]</div>
+            <div style="margin-bottom:2px"><span class="quiet">|Създаване|*:</span> [#createdBy#], [#createdOn#]</div>
+            <!--ET_BEGIN sysId-->
+            <div style="margin-bottom:2px"><span class="quiet">System Id: </span> [#sysId#]</div>
+            <!--ET_END sysId-->
+        </fieldset>
+        <!--ET_BEGIN meta-->
+        <fieldset class="detail-info">
+            <legend class="groupTitle">|Свойства|*</legend>
+            <div class="groupList">[#meta#]</div>
+        </fieldset>
+        <!--ET_END meta-->
+        <div style="margin-top:10px">
+            [#price_Updates#]
+        </div>
+        [#DETAILS#]
+    </div>
+</div>

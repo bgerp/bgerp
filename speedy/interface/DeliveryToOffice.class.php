@@ -204,7 +204,7 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     
     
     /**
-     * При упдейт на количката в е-магазина, какво да се  изпълнява
+     * При ъпдейт на количката в е-магазина, какво да се  изпълнява
      *
      * @param stdClass $cartRec
      *
@@ -228,5 +228,18 @@ class speedy_interface_DeliveryToOffice extends core_BaseClass
     public function canSelectInEshop(&$rec, $cu = null)
     {
         return true;
+    }
+
+
+    /**
+     * Колко е най-голямото време за доставка
+     *
+     * @param int $deliveryTermId - ид на условие на доставка
+     * @param array $params       - параметри за доставка
+     * @return int                - най-голямото време за доставка в секунди
+     */
+    public function getMaxDeliveryTime($deliveryTermId, $params)
+    {
+        return null;
     }
 }

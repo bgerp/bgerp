@@ -133,29 +133,27 @@ class trans_Indicators extends core_BaseClass
         $result = array();
         $numberOfShipmentsDelivered = hr_IndicatorNames::force('Брой_доставени_пратки', __CLASS__, 2)->id;
         $from = trans_Setup::get('DATE_FOR_TRANS_INDICATORS');
-        
+
         if (empty($from)) return $result;
         
         $details = array();
-        
         $detQuery = trans_LineDetails::getQuery();
-        $detQuery->EXT('modifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
+        $detQuery->EXT('lineModifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
         $detQuery->EXT('start', 'trans_Lines', "externalName=start,externalKey=lineId");
         $detQuery->where("#start >= '{$from}'");
-        $detQuery->where("#modifiedOn >= '{$timeline}'");
-        
+        $detQuery->where("#lineModifiedOn >= '{$timeline}'");
+
         while ($detRec = $detQuery->fetch()) {
             $details[$detRec->id] = $detRec->lineId;
         }
-       
+
         $query = trans_Lines::getQuery();
         $query->where("#start >= '{$from}'");
         $query->where("#modifiedOn >= '{$timeline}'");
         while ($iRec = $query->fetch()) {
-            
             if (empty($iRec->forwarderPersonId)) continue;
 
-            $personId =$iRec->forwarderPersonId;
+            $personId = $iRec->forwarderPersonId;
             $Document = doc_Containers::getDocument($iRec->containerId);
             $docId = $Document->that;
             
@@ -177,7 +175,8 @@ class trans_Indicators extends core_BaseClass
         
         return $result;
     }
-    
+
+
     /**
      * Доставено тегло
      *
@@ -195,10 +194,10 @@ class trans_Indicators extends core_BaseClass
         
         $weights = array();
         $detQuery = trans_LineDetails::getQuery();
-        $detQuery->EXT('modifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
+        $detQuery->EXT('lineModifiedOn', 'trans_Lines', "externalName=modifiedOn,externalKey=lineId");
         $detQuery->EXT('start', 'trans_Lines', "externalName=start,externalKey=lineId");
         $detQuery->where("#start >= '{$from}'");
-        $detQuery->where("#modifiedOn >= '{$timeline}'");
+        $detQuery->where("#lineModifiedOn >= '{$timeline}'");
         
         while ($detRec = $detQuery->fetch()) {
             

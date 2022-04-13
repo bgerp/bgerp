@@ -423,4 +423,22 @@ class store_Stores extends core_Master
     {
         $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
     }
+
+
+    /**
+     * Колко време е нужна за подготовка на склада преди експедиция
+     *
+     * @param int|null $storeId - ид на склад, или null ако няма
+     * @return int     $secs    - времето за подготовка в секунди
+     */
+    public static function getShipmentPreparationTime($storeId = null)
+    {
+        $secs = store_Setup::get('PREPARATION_BEFORE_SHIPMENT');
+        if(isset($storeId)){
+            $storeBeforeShipmentTimeSecs = store_Stores::fetchField($storeId, 'preparationBeforeShipment');
+            $secs = ($storeBeforeShipmentTimeSecs) ? $storeBeforeShipmentTimeSecs : $secs;
+        }
+
+        return (int)$secs;
+    }
 }

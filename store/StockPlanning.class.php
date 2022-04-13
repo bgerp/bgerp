@@ -445,15 +445,16 @@ class store_StockPlanning extends core_Manager
     /**
      * Коя е най-ранната дата, на която са разполагаеми всички количества на посочените артикули
      *
-     * @param int $storeId    - ид на склад
-     * @param array $products - масив от търсените наличностти ['productId' => 'quantity']
-     * @param $daysForward    - колко дни напред да се търси
-     * @return null|date      - най-ранната дата на която са налични или null ако няма
+     * @param int $storeId          - ид на склад
+     * @param array $products       - масив от търсените наличностти ['productId' => 'quantity']
+     * @param int|null $daysForward - колко дни напред да се търси
+     * @return null|date            - най-ранната дата на която са налични или null ако няма
      */
-    public static function getEarliestDateAllAreAvailable($storeId, $products, $daysForward)
+    public static function getEarliestDateAllAreAvailable($storeId, $products, $daysForward = null)
     {
         $productIds = array_keys($products);
         if(!countR($products)) return;
+        $daysForward = isset($daysForward) ? $daysForward : store_Setup::get('EARLIEST_SHIPMENT_READY_IN');
 
         // Коя е крайната дата до която най-късно ще се гледа
         $today = dt::today();

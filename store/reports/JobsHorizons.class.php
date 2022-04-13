@@ -257,6 +257,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
 
         }else{
+            $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
