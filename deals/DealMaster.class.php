@@ -21,11 +21,11 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     private static $contoMap = array(
         'sales' => array('pay' => 'Прието плащане в брой в каса ',
-            'ship' => 'Експедиране на продукти от склад ',
+            'ship' => 'Експедиране на артикули от склад ',
             'service' => 'Изпълнение на услуги'),
         
         'purchase' => array('pay' => 'Направено плащане в брой от каса ',
-            'ship' => 'Вкарване на продукти в склад ',
+            'ship' => 'Засклаждане на артикули в склад ',
             'service' => 'Приемане на услуги')
     );
     
