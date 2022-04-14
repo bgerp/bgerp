@@ -74,14 +74,8 @@ abstract class store_DocumentMaster extends core_Master
      * Нужно ли е да има детайл, за да стане на 'Заявка'
      */
     public $requireDetailForPending = false;
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, modifiedOn, valior, deliveryTime, deliveryOn';
-    
-    
+
+
     /**
      * Полета, които при клониране да не са попълнени
      *
