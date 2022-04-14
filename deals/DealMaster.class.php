@@ -25,7 +25,7 @@ abstract class deals_DealMaster extends deals_DealBase
             'service' => 'Изпълнение на услуги'),
         
         'purchase' => array('pay' => 'Направено плащане в брой от каса ',
-            'ship' => 'Засклаждане на артикули в склад ',
+            'ship' => 'Заприхождаване на артикули в склад ',
             'service' => 'Приемане на услуги')
     );
     
