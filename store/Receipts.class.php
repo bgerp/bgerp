@@ -368,7 +368,9 @@ class store_Receipts extends store_DocumentMaster
     {
         if(isset($fields['-single'])){
             core_Lg::push($rec->tplLang);
-            $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
+            if(!empty($rec->deliveryTime)){
+                $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
+            }
             core_Lg::pop();
         }
     }
