@@ -450,7 +450,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (!empty($exRec)) {
             $res['type'] = 'existing';
             $res['productId'] = $exRec->productId;
-            if($type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
+            if($exRec->state != 'rejected' && $type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
                 $res['error'] = 'Серийният номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
             }
         } else {
