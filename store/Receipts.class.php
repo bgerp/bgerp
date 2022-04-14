@@ -187,6 +187,12 @@ class store_Receipts extends store_DocumentMaster
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, modifiedOn, valior, loadingOn, deliveryTime';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
