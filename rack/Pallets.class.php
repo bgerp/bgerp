@@ -1132,13 +1132,15 @@ class rack_Pallets extends core_Manager
      */
     public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null, $containerId = null)
     {
-        if (store_Stores::getCurrent('id', false) != $storeId || core_Mode::isReadOnly()) {
-            
-            return false;
-        }
+        if (store_Stores::getCurrent('id', false) != $storeId || core_Mode::isReadOnly()) return false;
         
         if (rack_Movements::haveRightFor('add', (object) array('productId' => $productId))){
-            $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'packQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'ret_url' => true);
+            $palletQuantity = $packQuantity;
+            if($defaultPalletQuantity = rack_Pallets::getDefaultQuantity($productId, $storeId)){
+                $palletQuantity = min($defaultPalletQuantity, $packQuantity);
+            }
+
+            $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'packQuantity' => $palletQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'ret_url' => true);
             if(!empty($batch)){
                 $addPalletUrl['batch'] = $batch;
             }
