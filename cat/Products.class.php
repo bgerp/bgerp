@@ -299,7 +299,7 @@ class cat_Products extends embed_Manager
     /**
      * Полета, които могат да бъдат експортирани
      */
-    public $exportableCsvFields = 'code, name, nameEn, measureId, groups, meta, info';
+    public $exportableCsvFields = 'name, nameEn, measureId, groups, meta, info';
     
     
     /**
@@ -307,7 +307,7 @@ class cat_Products extends embed_Manager
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'originId, isPublic';
+    public $fieldsNotToClone = 'code, originId, isPublic';
     
     
     /**
@@ -353,8 +353,8 @@ class cat_Products extends embed_Manager
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
         $this->FLD('code', 'varchar(32, ci)', 'caption=Код,remember=info,width=15em');
-        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field');
-        $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt');
+        $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field,remember');
+        $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes, passage)', 'caption=Описание');
         $this->FLD('measureId', 'key(mvc=cat_UoM, select=name,allowEmpty)', 'caption=Мярка,mandatory,remember,silent,notSorting,smartCenter');
         $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Илюстрация,input=none');
@@ -435,7 +435,7 @@ class cat_Products extends embed_Manager
         if (isset($rec->folderId)) {
             $cover = doc_Folders::getCover($rec->folderId);
             $isTemplate = ($cover->getProductType() == 'template');
-            
+
             $defMetas = array();
             if (isset($rec->proto)) {
                 $defMetas = $mvc->fetchField($rec->proto, 'meta');
@@ -473,7 +473,10 @@ class cat_Products extends embed_Manager
                     if ($code = $cover->getDefaultProductCode()) {
                         $form->setDefault('code', $code);
                     }
-                    
+
+                    if($data->action == 'clone'){
+                        $data->form->setField('code', 'focus');
+                    }
                     $form->setDefault('groups', $CategoryRec->markers);
                     
                     // Ако има избрани мерки, оставяме от всички само тези които са посочени в корицата +
