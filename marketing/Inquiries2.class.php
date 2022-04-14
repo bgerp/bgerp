@@ -472,7 +472,7 @@ class marketing_Inquiries2 extends embed_Manager
         }
         
         if (is_object($Driver)) {
-            $measureId = $Driver->getDefaultUomId();
+            $measureId = $Driver->getDefaultUomId($rec);
         }
         
         if (!$measureId) {

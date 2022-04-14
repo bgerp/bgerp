@@ -522,8 +522,8 @@ class cat_Products extends embed_Manager
         }
         
         // Ако има дефолтна мярка, избираме я
-        if (is_object($Driver) && $Driver->getDefaultUomId()) {
-            $defaultUomId = $Driver->getDefaultUomId();
+        if (is_object($Driver) && $Driver->getDefaultUomId($rec)) {
+            $defaultUomId = $Driver->getDefaultUomId($rec);
             $form->setDefault('measureId', $defaultUomId);
             $form->setField('measureId', 'input=hidden');
         } else {
