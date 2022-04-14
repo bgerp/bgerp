@@ -189,12 +189,6 @@ class store_Transfers extends core_Master
 
 
     /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
-
-
-    /**
      * Полета, които при клониране да не са попълнени
      *
      * @see plg_Clone
@@ -212,6 +206,12 @@ class store_Transfers extends core_Master
      * Поле показващо към кой склад ще е движението
      */
     public $toStoreFieldName = 'toStore';
+
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, deliveryTime, shipmentOn, deliveryOn';
 
 
     /**

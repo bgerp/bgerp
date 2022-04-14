@@ -228,6 +228,12 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, shipmentOn, deliveryTime, deliveryOn';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()

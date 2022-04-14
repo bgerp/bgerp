@@ -187,6 +187,12 @@ class store_Receipts extends store_DocumentMaster
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, modifiedOn, valior, loadingOn, deliveryTime';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -362,7 +368,9 @@ class store_Receipts extends store_DocumentMaster
     {
         if(isset($fields['-single'])){
             core_Lg::push($rec->tplLang);
-            $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
+            if(!empty($rec->deliveryTime)){
+                $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
+            }
             core_Lg::pop();
         }
     }

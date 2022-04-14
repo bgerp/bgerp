@@ -139,8 +139,14 @@ class store_ConsignmentProtocols extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'valior,folderId,note';
-    
-    
+
+
+    /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, deliveryTime, shipmentOn, deliveryOn';
+
+
     /**
      * На кой ред в тулбара да се показва бутона за принтиране
      */
@@ -167,12 +173,6 @@ class store_ConsignmentProtocols extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'valior,snapshot,lineId';
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior,modifiedOn';
 
 
     /**
