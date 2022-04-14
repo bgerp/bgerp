@@ -249,7 +249,7 @@ class cat_plg_CreateProductFromDocument extends core_Plugin
                     $Driver->invoke('AfterPrepareEditForm', array($Products, (object) array('form' => $form, 'action' => $action)));
 
                     $driverUomId = $Driver->getDefaultUomId($form->rec);
-                    core_Statuses::newStatus($driverUomId, 'warning');
+
                     if (isset($driverUomId)) {
                         $form->rec->measureId = $driverUomId;
                         $form->setField('measureId', 'input=hidden');
