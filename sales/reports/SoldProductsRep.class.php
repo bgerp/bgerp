@@ -1214,11 +1214,12 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $originQuantity = $changeQuatity = $changePrice = $invQuantity = $invAmount = 0;
 
         $res = array();
+
         $originId = doc_Containers::getDocument($dcRec->originId)->that;
 
-        $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = $originId AND #productId = $dcRec->productId AND
-                                                           #packagingId = $dcRec->packagingId 
-                                                           AND (#quantity != $dcRec->quantity OR #price != $dcRec->price)");
+        $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = $originId AND #productId = '$dcRec->productId' AND
+                                                           #packagingId = '$dcRec->packagingId'
+                                                           AND (#quantity != '$dcRec->quantity' OR #price != '$dcRec->price')");
 
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
         $changeQuatity = $dcRec->quantity * $dcRec->quantityInPack - $originQuantity;
