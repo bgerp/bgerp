@@ -58,6 +58,7 @@ abstract class rack_MovementAbstract extends core_Manager
         $mvc->FLD('fromIncomingDocument', 'enum(no,yes)', 'input=hidden,silent,notNull,value=no');
         $mvc->FNC('containerId', 'int', 'input=hidden,caption=Документи,silent');
         $mvc->FLD('documents', 'keylist(mvc=doc_Containers,select=id)', 'input=none,caption=Документи');
+        $mvc->FNC('maxPackQuantity', 'double', 'silent,input=hidden');
 
         $mvc->FLD('canceledOn', 'datetime(format=smartTime)', 'caption=Върнато||Returned->На, input=none');
         $mvc->FLD('canceledBy', 'key(mvc=core_Users)', 'caption=Върнато||Returned->От||By, input=none');
