@@ -1423,7 +1423,7 @@ class rack_Movements extends rack_MovementAbstract
 
 
     /**
-     * Какво количество има в чакащи и запазени артикули за артикула
+     * Какво количество има в движения към документа
      *
      * @param int $storeId       - ид на склад
      * @param int $productId     - ид на артикул
@@ -1439,8 +1439,11 @@ class rack_Movements extends rack_MovementAbstract
             $query->where("LOCATE('|{$containerId}|', #documents)");
         }
         $query->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+        $batchDef = batch_Defs::getBatchDef($productId);
         if(!is_null($batch)){
             $query->where("#batch = '{$batch}'");
+        } elseif($batchDef){
+            $query->where("#batch = ''");
         }
         $rec = $query->fetch();
 
