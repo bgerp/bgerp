@@ -810,6 +810,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     function getDefaultLoadingDate($id, $deliveryDate = null, $cache = false)
     {
+        $res = null;
         $rec = $this->fetchRec($id);
         if ($cache) {
             $res = core_Cache::get($this->className, "loadingDate{$rec->containerId}");
@@ -843,8 +844,10 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
 
             $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
-            $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
-            core_Cache::set($this->className, "loadingDate{$rec->containerId}", $res, 10);
+            if(isset($deliveryDate)){
+                $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
+                core_Cache::set($this->className, "loadingDate{$rec->containerId}", $res, 10);
+            }
         }
 
         // От така изчисления срок на доставка се приспадат и нужните за подготовка дни от склада
