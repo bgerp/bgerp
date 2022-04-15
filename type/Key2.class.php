@@ -44,7 +44,17 @@ class type_Key2 extends type_Int
      * Параметър определящ максималната широчина на полето
      */
     public $maxFieldSize = 0;
-    
+
+
+    /**
+     * Инициализиране на типа
+     */
+    public function init($params = array())
+    {
+        setIfNot($params['params']['savePrevSearch'], 'yes');
+        parent::init($params);
+    }
+
     
     /**
      * Конвертира стойността от вербална към (int) - ключ към core_Interfaces
@@ -116,6 +126,24 @@ class type_Key2 extends type_Int
      */
     public function getOptions($limit = null, $search = '', $ids = null, $includeHiddens = false)
     {
+        $sLen = strlen($search);
+        // Ако не се търси по нищо, показваме резултата от предишното търсене
+        if ($this->params['savePrevSearch'] == 'yes') {
+            $params = $this->params;
+            ksort($params);
+            $handler = md5(serialize($params) . '|' . $includeHiddens . '|' . $limit);
+
+            if (($limit != 1) && (!$ids)) {
+                if (!$sLen) {
+                    $resArr = core_Cache::get('key2getOptions', $handler);
+                    if ($resArr) {
+
+                        return $resArr;
+                    }
+                }
+            }
+        }
+
         if (!$this->params['selectSourceArr']) {
             if ($this->params['selectSource']) {
                 $this->params['selectSourceArr'] = explode('::', $this->params['selectSource']);
@@ -137,7 +165,24 @@ class type_Key2 extends type_Int
         expect($this->params['titleFld']);
         
         $resArr = call_user_func($this->params['selectSourceArr'], $this->params, $limit, $search, $ids, $includeHiddens);
-        
+
+        // При търсене, записваме резултата в кеша
+        if ($this->params['savePrevSearch'] == 'yes') {
+            if ($sLen > 1 && $limit != 1) {
+                if ($resArr) {
+                    core_Cache::set('key2getOptions', $handler, $resArr, 60, array($this->params['mvc']));
+                } else {
+                    // Ако няма съвпадение, изчиства кеша
+                    core_Cache::remove('key2getOptions', $handler);
+                }
+            }
+
+            // Ако се търси само една буква, изчистваме кешираните записи
+            if ($sLen == 1) {
+                core_Cache::remove('key2getOptions', $handler);
+            }
+        }
+
         return $resArr;
     }
     
