@@ -186,8 +186,8 @@ class store_ConsignmentProtocols extends core_Master
         
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
-        $this->FLD('deliveryTime', 'datetime','caption=Натоварване');
-        $this->FLD('deliveryOn', 'datetime','caption=Доставка');
+        $this->FLD('deliveryTime', 'datetime(requireTime)','caption=Натоварване');
+        $this->FLD('deliveryOn', 'datetime(requireTime)','caption=Доставка');
         $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
 
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');

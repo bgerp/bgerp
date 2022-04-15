@@ -239,7 +239,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-        $this->FLD('deliveryOn', 'datetime', 'input,caption=Доставка,after=deliveryTime');
+        $this->FLD('deliveryOn', 'datetime(requireTime)', 'input,caption=Доставка,after=deliveryTime');
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
