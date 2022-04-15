@@ -465,13 +465,44 @@ class cat_Products extends embed_Manager
                 if ($isTemplate === false) {
                     $form->setField('code', 'mandatory');
                 }
-                
+
+                // Кой е последно добавения код
+                $lastCode = Mode::get('cat_LastProductCode');
+
+                // При клониране се използва кода на клонирания артикул
+                if($data->action == 'clone'){
+                    if($clonedCode = cat_Products::fetchField($rec->clonedFromId, 'code')){
+                        $lastCode = $clonedCode;
+                    }
+                }
+
+                // Ако има намерен код, прави се опит да се инкрементира, докато се получи свободен код
+                if(!empty($lastCode)){
+                    $newCode = str::increment($lastCode);
+                    if($newCode){
+                        while (cat_Products::getByCode($newCode)) {
+                            if($newCode = str::increment($newCode)){
+                                if (!cat_Products::getByCode($newCode)) {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Ако има намерен такъв код - попълва се
+                    if(!empty($newCode)){
+                        $form->setDefault('code', $newCode);
+                    }
+                }
+
                 if ($cover->isInstanceOf('cat_Categories')) {
                     
-                    // Ако корицата е категория слагаме дефолтен код и мерки
+                    // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
                     $CategoryRec = $cover->rec();
-                    if ($code = $cover->getDefaultProductCode()) {
-                        $form->setDefault('code', $code);
+                    if(empty($rec->code)){
+                        if ($code = $cover->getDefaultProductCode()) {
+                            $form->setDefault('code', $code);
+                        }
                     }
 
                     if($data->action == 'clone'){
@@ -488,17 +519,6 @@ class cat_Products extends embed_Manager
                         }
                         
                         $measureOptions = array_intersect_key($measureOptions, $categoryMeasures);
-                    }
-                }
-                
-                // Запомняме последно добавения код
-                if ($code = Mode::get('cat_LastProductCode')) {
-                    if ($newCode = str::increment($code)) {
-                        
-                        // Проверяваме дали има такъв запис в системата
-                        if (!$mvc->fetch("#code = '${newCode}'")) {
-                            $form->setDefault('code', $newCode);
-                        }
                     }
                 }
             }
@@ -537,7 +557,6 @@ class cat_Products extends embed_Manager
             
             // При редакция ако артикула е използван с тази мярка, тя не може да се променя
             if (isset($rec->id) && $data->action != 'clone') {
-                $isUsed = false;
                 if (cat_products_Packagings::fetch("#productId = {$rec->id}")) {
                     $isUsed = true;
                 } else {
@@ -1410,7 +1429,7 @@ class cat_Products extends embed_Manager
         
         $isPublic = ($rec->isPublic) ? $rec->isPublic : $this->fetchField($rec->id, 'isPublic');
         
-        return ($isPublic == 'yes') ? true : false;
+        return $isPublic == 'yes';
     }
     
     
