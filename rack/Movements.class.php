@@ -31,7 +31,7 @@ class rack_Movements extends rack_MovementAbstract
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_SaveAndNew, plg_State, plg_Sorting,plg_SelectPeriod,plg_Search,plg_AlignDecimals2,plg_Modified';
+    public $loadList = 'plg_RowTools2, plg_Created, rack_Wrapper, plg_Select,plg_SaveAndNew, plg_State, plg_Sorting,plg_SelectPeriod,plg_Search,plg_AlignDecimals2,plg_Modified';
     
     
     /**
@@ -183,6 +183,14 @@ class rack_Movements extends rack_MovementAbstract
                     
                     if(!empty($rec->containerId)){
                         $rec->documents = keylist::addKey($rec->documents, $rec->containerId);
+                    }
+
+                    if($form->cmd == 'save_n_new'){
+                        if(isset($form->rec->liveCounter)){
+                            $form->rec->liveCounter -= $rec->quantity;
+                            $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
+                            Mode::setPermanent($counterKey, $form->rec->liveCounter);
+                        }
                     }
                 }
             }
@@ -399,11 +407,12 @@ class rack_Movements extends rack_MovementAbstract
     {
         $form = $data->form;
         $rec = &$form->rec;
-        
+
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setDefault('fromIncomingDocument', 'no');
         $form->setField('storeId', 'input=hidden');
-        
+        $form->FNC('liveCounter', 'double', 'silent,input=hidden');
+
         $defZones = Request::get('defaultZones', 'varchar');
         if($rec->fromIncomingDocument == 'yes'){
             $form->setReadOnly('productId');
@@ -456,7 +465,12 @@ class rack_Movements extends rack_MovementAbstract
                 $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;
                 $availableQuantity -= $createdByNowQuantity;
             } else {
-                $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch);
+                $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
+                $availableQuantity = Mode::get($counterKey);
+                if(!isset($availableQuantity)){
+                    $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch);
+                }
+                $form->setDefault('liveCounter', $availableQuantity);
             }
 
             if (empty($rec->palletId)) {
@@ -556,9 +570,14 @@ class rack_Movements extends rack_MovementAbstract
                     break;
             }
         }
+
+        if(isset($rec->productId)){
+            $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
+            Mode::setPermanent($counterKey, null);
+        }
     }
-    
-    
+
+
     /**
      * Проверка на таблицата със зоните
      *
@@ -1431,14 +1450,21 @@ class rack_Movements extends rack_MovementAbstract
      * @param int $containerId   - ид на контейнер на документ
      * @return double|null
      */
-    public static function getQuantitiesByContainerId($storeId, $productId, $batch = null, $containerId)
+    public static function getQuantitiesByContainerId($storeId, $productId, $batch = null, $containerId, $states = array())
     {
         $query = rack_Movements::getQuery();
         $query->where("#storeId = {$storeId} AND #productId = {$productId}");
         if(isset($containerId)){
             $query->where("LOCATE('|{$containerId}|', #documents)");
+        } else {
+            $query->where("#documents IS NULL OR #documents = ''");
         }
-        $query->XPR('totalQuantity', 'double', 'SUM(#quantity)');
+
+        if(countR($states)){
+            $states = arr::make($states, true);
+            $query->in("state", $states);
+        }
+        $query->XPR('totalQuantity', 'double', 'ROUND(SUM(#quantity), 4)');
         $batchDef = batch_Defs::getBatchDef($productId);
         if(!is_null($batch)){
             $query->where("#batch = '{$batch}'");
