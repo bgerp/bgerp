@@ -185,6 +185,9 @@ class rack_Movements extends rack_MovementAbstract
                         $rec->documents = keylist::addKey($rec->documents, $rec->containerId);
                     }
 
+                    $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
+                    Mode::setPermanent($counterKey, null);
+
                     if($form->cmd == 'save_n_new'){
                         if(isset($form->rec->liveCounter)){
                             $form->rec->liveCounter -= $rec->quantity;
@@ -569,11 +572,6 @@ class rack_Movements extends rack_MovementAbstract
                     }
                     break;
             }
-        }
-
-        if(isset($rec->productId)){
-            $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
-            Mode::setPermanent($counterKey, null);
         }
     }
 
