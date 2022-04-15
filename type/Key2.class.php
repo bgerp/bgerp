@@ -126,7 +126,7 @@ class type_Key2 extends type_Int
      */
     public function getOptions($limit = null, $search = '', $ids = null, $includeHiddens = false)
     {
-        $sLen = strlen($search);
+        $sLen = mb_strlen($search);
         // Ако не се търси по нищо, показваме резултата от предишното търсене
         if ($this->params['savePrevSearch'] == 'yes') {
             $params = $this->params;
