@@ -60,6 +60,8 @@ class plg_SaveAndNew extends core_Plugin
                     Mode::setPermanent($permanentName, $data->form->rec->{$name});
                 }
             }
+
+            Mode::setPermanent(cls::getClassName($mvc) . '_SAVE_AND_NEW', true);
         } elseif ($data->cmd != 'delete' && $data->form->cmd != 'refresh') {
             if (!$data->form->gotErrors()) {
                 $fields = $data->form->selectFields("#remember == 'info' || #name == 'id'");
@@ -96,14 +98,13 @@ class plg_SaveAndNew extends core_Plugin
                 if ($info) {
                     $info = '<div style="padding:5px; background-color:#ffffcc; border:solid 1px #cc9;">' .
                     tr('Последно добавено') . ": <ul style='margin:5px;padding-left:10px;'>{$info}</ul></div>";
-                    
                     $data->form->info .= $info;
                 }
             }
             
             // Изтриваме от сесията, полетата със запомняне
             $fields = $data->form->selectFields('#remember');
-            
+
             if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
                     $permanentName = cls::getClassName($mvc) . '_' . $name;
@@ -158,6 +159,11 @@ class plg_SaveAndNew extends core_Plugin
                     }
                 }
             }
+        }
+
+        if(Mode::get(cls::getClassName($mvc) . '_SAVE_AND_NEW')){
+            $data->_isSaveAndNew = true;
+            Mode::setPermanent(cls::getClassName($mvc) . '_SAVE_AND_NEW', null);
         }
     }
 }
