@@ -1416,4 +1416,44 @@ class core_App
         
         return $isSecure;
     }
+    
+
+    /**
+     * Проверка дали репликацията е ОК
+     *
+     * @return string
+     */
+    public static function isReplicationOK()
+    {
+        $errors = '';
+        
+        if (defined('SEARCH_DB_NAME') && defined('SEARCH_DB_USER') && defined('SEARCH_DB_PASS') && defined('SEARCH_DB_HOST')) {
+            $conn = mysqli_init();
+            $conn->options(MYSQLI_OPT_CONNECT_TIMEOUT, 1);
+            if (!@$conn->real_connect(SEARCH_DB_HOST, SEARCH_DB_USER, SEARCH_DB_PASS, SEARCH_DB_NAME)) {
+                $errors = mysqli_connect_errno() . ":" . mysqli_connect_error();
+                return ($errors);
+            }
+        
+            $result = $conn->query("show slave status");
+            if (!$result) {
+                $errors = mysqli_errno($conn) . ":" . mysqli_error($conn);
+                return ($errors);
+            }
+            $row = $result->fetch_assoc();
+            if ($row['Slave_IO_Running'] == 'No') {
+                $errors .= "Slave IO not running on " . SEARCH_DB_HOST . "\n";
+                $errors .= "Error number: {$row['Last_IO_Errno']}\n";
+                $errors .= "Error message: {$row['Last_IO_Error']}\n\n";
+            }
+            if ($row['Slave_SQL_Running'] == 'No') {
+                $errors .= "Slave SQL not running on " . SEARCH_DB_HOST . "\n";
+                $errors .= "Error number: {$row['Last_SQL_Errno']}\n";
+                $errors .= "Error message: {$row['Last_SQL_Error']}\n\n";
+            }
+            mysqli_close($conn);
+        }
+        
+        return $errors;
+    }
 }

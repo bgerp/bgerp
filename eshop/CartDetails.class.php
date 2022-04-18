@@ -639,12 +639,8 @@ class eshop_CartDetails extends core_Detail
         $rec->currencyId = isset($rec->currencyId) ? $rec->currencyId : $settings->currencyId;
         
         // Коя е ценовата политика
-        $listId = $oldListId = $settings->listId;
-        
-        if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
-            $Cover = doc_Folders::getCover($lastActiveFolder);
-            $listId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
-        }
+        $oldListId = $settings->listId;
+        $listId = cms_Helper::getCurrentEshopPriceList($settings);
 
         // Ако има взема се цената от нея
         if (isset($listId)) {

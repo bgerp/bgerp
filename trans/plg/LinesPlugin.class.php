@@ -107,7 +107,7 @@ class trans_plg_LinesPlugin extends core_Plugin
             // За дефолтните дати
             foreach ($dateFields as $dateFld => $dateObj){
                 $value = $rec->{$dateFld};
-                if(isset($dateObj['placeholder']) && empty($rec->{$dateFld})){
+                if(!empty($dateObj['placeholder']) && empty($rec->{$dateFld})){
                     $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
                     if(!Mode::isReadOnly()){
                         $row->{$dateFld} = "<span style='color:blue;'>{$row->{$dateFld}}</span>";
@@ -285,6 +285,8 @@ class trans_plg_LinesPlugin extends core_Plugin
                     }
                 }
 
+                core_Cache::remove($mvc->className, "earliestDateAllAvailable{$rec->containerId}");
+                core_Cache::remove($mvc->className, "loadingDate{$rec->containerId}");
 
                 $rec->_changeLine = true;
                 $mvc->save($rec);

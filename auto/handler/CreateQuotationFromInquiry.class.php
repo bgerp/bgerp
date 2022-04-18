@@ -222,8 +222,9 @@ class auto_handler_CreateQuotationFromInquiry
         // Определяме мярката за продукта, ако липсва
         if (!$form->rec->measureId) {
             // Ако има дефолтна мярка, избираме я
-            if (is_object($Driver) && $Driver->getDefaultUomId()) {
-                $form->rec->measureId = $Driver->getDefaultUomId();
+            $driverMeasureId = $Driver->getDefaultUomId($form->rec);
+            if (is_object($Driver) && isset($driverMeasureId)) {
+                $form->rec->measureId = $Driver->getDefaultUomId($driverMeasureId);
             } elseif ($defMeasure = core_Packs::getConfigValue('cat', 'CAT_DEFAULT_MEASURE_ID')) {
                 $form->rec->measureId = $defMeasure;
             }

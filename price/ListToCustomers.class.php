@@ -259,18 +259,27 @@ class price_ListToCustomers extends core_Manager
         
         static::updateStates($rec->cClass, $rec->cId);
     }
-    
-    
+
+
     /**
      * Връща валидните ценови правила за посочения клиент
+     *
+     * @param int           $customerClass - ид на клас
+     * @param int           $customerId    - ид на контрагент
+     * @param datetime|null $datetime      - към коя дата
+     * @param bool          $strict        - само изрично зададено правило
+     * @return int|null
      */
-    public static function getListForCustomer($customerClass, $customerId, &$datetime = null)
+    public static function getListForCustomer($customerClass, $customerId, &$datetime = null, $strict = false)
     {
         $datetime = static::canonizeTime($datetime);
         
         $validRec = self::getValidRec($customerClass, $customerId, $datetime);
-        $listId = ($validRec) ? $validRec->listId : cat_Setup::get('DEFAULT_PRICELIST');
-        
+        $listId = ($validRec) ? $validRec->listId : null;
+        if(empty($listId) && !$strict){
+            $listId = cat_Setup::get('DEFAULT_PRICELIST');
+        }
+
         return $listId;
     }
     

@@ -224,17 +224,20 @@ abstract class cat_ProductDriver extends core_BaseClass
     {
         return false;
     }
-    
-    
+
+
     /**
      * Връща задължителната основна мярка
      *
+     * @param stdClass|null $rec
      * @return int|NULL - ид на мярката, или NULL ако може да е всяка
      */
-    public function getDefaultUomId()
+    public function getDefaultUomId($rec = null)
     {
+        return null;
     }
-    
+
+
     /**
      * Връща материалите, необходими за производството на посоченото количество
      *

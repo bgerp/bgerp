@@ -271,14 +271,15 @@ class transsrv_ProductDrv extends cat_ProductDriver
         
         return $hash;
     }
-    
-    
+
+
     /**
      * Връща задължителната основна мярка
      *
+     * @param stdClass|null $rec
      * @return int|NULL - ид на мярката, или NULL ако може да е всяка
      */
-    public function getDefaultUomId()
+    public function getDefaultUomId($rec = null)
     {
         return cat_UoM::fetchBySinonim($this->uom)->id;
     }
