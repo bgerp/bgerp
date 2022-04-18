@@ -838,9 +838,8 @@ class store_Transfers extends core_Master
             if(isset($rec->deliveryOn)){
                 $preparationTime = store_Stores::getShipmentPreparationTime($rec->fromStore);
                 $deliveryTime = dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
-                if($deliveryTime >= dt::now()){
-                    $res['deliveryTime']['placeholder'] = $deliveryTime;
-                }
+                $deliveryTime = ($deliveryTime < dt::now()) ? dt::now() : $deliveryTime;
+                $res['deliveryTime']['placeholder'] = $deliveryTime;
             }
 
             $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec, $cache);

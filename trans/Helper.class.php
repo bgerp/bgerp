@@ -221,7 +221,7 @@ abstract class trans_Helper
             $shippedDate = trans_Lines::fetchField($lineId, 'start');
         }
 
-        $shippedDate = (!empty($shippedDate) && $shippedDate >= dt::now()) ? $shippedDate : null;
+        $shippedDate = (!empty($shippedDate) && $shippedDate >= dt::now()) ? $shippedDate : dt::now();
 
         return $shippedDate;
     }
