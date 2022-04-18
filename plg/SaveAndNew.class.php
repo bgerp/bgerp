@@ -2,14 +2,14 @@
 
 
 /**
- * Клас 'plg_SaveAndNew' - Инструменти за изтриване и редактиране на ред
+ * Клас 'plg_SaveAndNew' - Плъгин за добавяне на "Запис и Нов"
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -89,7 +89,8 @@ class plg_SaveAndNew extends core_Plugin
                 }
                 
                 if ($mvc->rememberTpl && $id) {
-                    $row = $mvc->recToVerbal($mvc->fetch($id));
+                    $rec = $mvc->fetch($id);
+                    $row = $mvc->recToVerbal($rec);
                     $tpl = new ET($mvc->rememberTpl);
                     $tpl->placeObject($row);
                     $info = $tpl->getContent();
@@ -130,6 +131,7 @@ class plg_SaveAndNew extends core_Plugin
             
             return;
         }
+
         if (empty($data->form->rec->id)) {
             $data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', null, array('id' => 'saveAndNew', 'order' => '9.99965', 'ef_icon' => 'img/16/save_and_new.png', 'title' => 'Запиши документа и създай нов'));
         }
