@@ -143,7 +143,7 @@ class batch_BatchesInDocuments extends core_Manager
             return;
         }
         
-        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote);
+        $showBatchLink = core_Packs::isInstalled('rack') && $rInfo->operation['in'] && ($Class->hasPlugin('rack_plg_IncomingShipmentDetails') || $Class instanceof planning_DirectProductionNote) && $rInfo->state != 'rejected';
         $palletStoreId = isset($rInfo->operation['in']) ? $rInfo->operation['in'] : $storeId;
         $operation = key($rInfo->operation);
         
@@ -186,7 +186,7 @@ class batch_BatchesInDocuments extends core_Manager
                 $q = $rec->quantity / $quantityInPack;
                 $quantity = cls::get('type_Double', array('params' => array('smartRound' => true)))->toVerbal($q);
                 $quantity .= ' ' . cat_UoM::getShortName($rInfo->packagingId);
-                
+
                 if ($showBatchLink) {
                     if ($palletImgLink = rack_Pallets::getFloorToPalletImgLink($palletStoreId, $rInfo->productId, $rInfo->packagingId, $q, $rec->batch, $rInfo->containerId)) {
                        $label = $palletImgLink . $label;

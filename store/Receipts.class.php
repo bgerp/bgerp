@@ -199,7 +199,7 @@ class store_Receipts extends store_DocumentMaster
     {
         parent::setDocFields($this);
         $this->setField('storeId', 'caption=В склад');
-        $this->FLD('loadingOn', 'datetime','caption=Натоварване,after=locationId');
+        $this->FLD('loadingOn', 'datetime(requireTime)','caption=Натоварване,after=locationId');
         $this->setField('deliveryTime', 'caption=Разтоварване,after=loadingOn');
         $this->setField('prevShipment', 'caption=Адрес за натоварване->Избор');
         $this->setField('company', 'caption=Адрес за натоварване->Фирма');

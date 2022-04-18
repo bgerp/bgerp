@@ -230,7 +230,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, shipmentOn, deliveryTime, deliveryOn';
+    public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, deliveryTime, shipmentOn, deliveryOn';
 
 
     /**
@@ -239,7 +239,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-        $this->FLD('deliveryOn', 'datetime', 'input,caption=Доставка,after=deliveryTime');
+        $this->FLD('deliveryOn', 'datetime(requireTime)', 'input,caption=Доставка,after=deliveryTime');
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
@@ -810,6 +810,7 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     function getDefaultLoadingDate($id, $deliveryDate = null, $cache = false)
     {
+        $res = null;
         $rec = $this->fetchRec($id);
         if ($cache) {
             $res = core_Cache::get($this->className, "loadingDate{$rec->containerId}");
@@ -843,8 +844,10 @@ class store_ShipmentOrders extends store_DocumentMaster
             }
 
             $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
-            $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
-            core_Cache::set($this->className, "loadingDate{$rec->containerId}", $res, 10);
+            if(isset($deliveryDate)){
+                $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
+                core_Cache::set($this->className, "loadingDate{$rec->containerId}", $res, 10);
+            }
         }
 
         // От така изчисления срок на доставка се приспадат и нужните за подготовка дни от склада

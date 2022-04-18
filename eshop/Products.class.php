@@ -192,10 +192,10 @@ class eshop_Products extends core_Master
         $uomId = null;
         if (cls::load($rec->coDriver, true)) {
             if ($Driver = cls::get($rec->coDriver)) {
-                $uomId = $Driver->getDefaultUomId();
+                $uomId = $Driver->getDefaultUomId($rec);
             }
         }
-        
+
         return $uomId;
     }
     
@@ -243,7 +243,7 @@ class eshop_Products extends core_Master
                     $form->setDefault('proto', keylist::addKey('', $protoId));
                 }
             }
-            
+
             // Ако мярката идва от драйвера
             if ($mvc->getUomFromDriver($rec)) {
                 $form->setField('measureId', 'input=none');

@@ -21,11 +21,11 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     private static $contoMap = array(
         'sales' => array('pay' => 'Прието плащане в брой в каса ',
-            'ship' => 'Експедиране на продукти от склад ',
+            'ship' => 'Експедиране на артикули от склад ',
             'service' => 'Изпълнение на услуги'),
         
         'purchase' => array('pay' => 'Направено плащане в брой от каса ',
-            'ship' => 'Вкарване на продукти в склад ',
+            'ship' => 'Заприхождаване на артикули в склад ',
             'service' => 'Приемане на услуги')
     );
     
@@ -240,7 +240,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Доставка->Условие,notChangeableByContractor,removeAndRefreshForm=deliveryLocationId|deliveryAdress|deliveryData|deliveryCalcTransport,silent');
         $mvc->FLD('deliveryLocationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Доставка->До,silent,class=contactData,silent,removeAndRefreshForm=deliveryInfo');
         $mvc->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място,notChangeableByContractor');
-        $mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до,notChangeableByContractor');
+        $mvc->FLD('deliveryTime', 'datetime(requireTime)', 'caption=Доставка->Срок до,notChangeableByContractor');
         $mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни,after=deliveryTime,notChangeableByContractor');
         $mvc->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
         $mvc->FLD('oneTimeDelivery', 'enum(no=Не,yes=Да)', 'caption=Доставка->Еднократно,notChangeableByContractor,notNull,value=no');

@@ -184,6 +184,17 @@ class rack_Movements extends rack_MovementAbstract
                     if(!empty($rec->containerId)){
                         $rec->documents = keylist::addKey($rec->documents, $rec->containerId);
                     }
+
+                    $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
+                    Mode::setPermanent($counterKey, null);
+
+                    if($form->cmd == 'save_n_new'){
+                        if(isset($form->rec->liveCounter)){
+                            $form->rec->liveCounter -= $rec->quantity;
+                            $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
+                            Mode::setPermanent($counterKey, $form->rec->liveCounter);
+                        }
+                    }
                 }
             }
         }
@@ -399,11 +410,12 @@ class rack_Movements extends rack_MovementAbstract
     {
         $form = $data->form;
         $rec = &$form->rec;
-        
+
         $form->setDefault('storeId', store_Stores::getCurrent());
         $form->setDefault('fromIncomingDocument', 'no');
         $form->setField('storeId', 'input=hidden');
-        
+        $form->FNC('liveCounter', 'double', 'silent,input=hidden');
+
         $defZones = Request::get('defaultZones', 'varchar');
         if($rec->fromIncomingDocument == 'yes'){
             $form->setReadOnly('productId');
@@ -437,15 +449,38 @@ class rack_Movements extends rack_MovementAbstract
             
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->packagingId);
             $rec->quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-            
-            // Показване на допустимото количество
-            $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch);
-            
+
+            // Ако е от входящ документ
+            if($rec->fromIncomingDocument == 'yes'){
+
+                // Показване колко има заскладено от документа досега
+                $createdByNowQuantity = rack_Movements::getQuantitiesByContainerId($rec->storeId, $rec->productId, $rec->batch, $rec->containerId);
+                $createdByNowQuantity = isset($createdByNowQuantity) ? $createdByNowQuantity : 0;
+                $createdByNowQuantity = $createdByNowQuantity / $rec->quantityInPack;
+                $packName = cat_UoM::getSmartName($rec->packagingId);
+                $quantityStr = str::getPlural($createdByNowQuantity, $packName);
+                if(rack_Movements::haveRightFor('list')){
+                    $quantityStr = ht::createLinkRef($quantityStr, array('rack_Movements', 'list', 'documentHnd' => doc_Containers::getDocument($rec->containerId)->getHandle()));
+                }
+                $form->info = "Създадени движения от документа за сега: <b>{$quantityStr}</b>";
+
+                // Приспадане на създаденото досега от документа
+                $availableQuantity = $rec->maxPackQuantity * $rec->quantityInPack;
+                $availableQuantity -= $createdByNowQuantity;
+            } else {
+                $counterKey = "saveAndNewPalletMovement_" . core_Users::getCurrent() . "_{$rec->productId}";
+                $availableQuantity = Mode::get($counterKey);
+                if(!isset($availableQuantity)){
+                    $availableQuantity = rack_Pallets::getAvailableQuantity($rec->palletId, $rec->productId, $rec->storeId, $rec->batch);
+                }
+                $form->setDefault('liveCounter', $availableQuantity);
+            }
+
             if (empty($rec->palletId)) {
                 if ($defQuantity = rack_Pallets::getDefaultQuantity($rec->productId, $rec->storeId)) {
                     $availableQuantity = min($availableQuantity, $defQuantity);
                 }
-                
+
                 $BatchClass = batch_Defs::getBatchDef($rec->productId);
                 if ($BatchClass) {
                     $form->setField('batch', 'input,placeholder=Без партида');
@@ -539,8 +574,8 @@ class rack_Movements extends rack_MovementAbstract
             }
         }
     }
-    
-    
+
+
     /**
      * Проверка на таблицата със зоните
      *
@@ -1401,5 +1436,41 @@ class rack_Movements extends rack_MovementAbstract
                 $row->_rowTools->addLink('Корекция', $correctUrl, 'ef_icon=img/16/red-back.png,title=Създаване на обратно движение');
             }
         }
+    }
+
+
+    /**
+     * Какво количество има в движения към документа
+     *
+     * @param int $storeId       - ид на склад
+     * @param int $productId     - ид на артикул
+     * @param null|string $batch - партида
+     * @param int $containerId   - ид на контейнер на документ
+     * @return double|null
+     */
+    public static function getQuantitiesByContainerId($storeId, $productId, $batch = null, $containerId, $states = array())
+    {
+        $query = rack_Movements::getQuery();
+        $query->where("#storeId = {$storeId} AND #productId = {$productId}");
+        if(isset($containerId)){
+            $query->where("LOCATE('|{$containerId}|', #documents)");
+        } else {
+            $query->where("#documents IS NULL OR #documents = ''");
+        }
+
+        if(countR($states)){
+            $states = arr::make($states, true);
+            $query->in("state", $states);
+        }
+        $query->XPR('totalQuantity', 'double', 'ROUND(SUM(#quantity), 4)');
+        $batchDef = batch_Defs::getBatchDef($productId);
+        if(!is_null($batch)){
+            $query->where("#batch = '{$batch}'");
+        } elseif($batchDef){
+            $query->where("#batch = ''");
+        }
+        $rec = $query->fetch();
+
+        return is_object($rec) ? $rec->totalQuantity : null;
     }
 }

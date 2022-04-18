@@ -107,7 +107,7 @@ abstract class store_DocumentMaster extends core_Master
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
         $mvc->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
-        $mvc->FLD('deliveryTime', 'datetime');
+        $mvc->FLD('deliveryTime', 'datetime(requireTime)');
         $mvc->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $mvc->FLD('weight', 'cat_type_Weight', 'input=none,caption=Тегло');
         $mvc->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
