@@ -691,7 +691,10 @@ class store_ConsignmentProtocols extends core_Master
         if(isset($rec)){
             if(isset($rec->deliveryOn)){
                 $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
-                $res['deliveryTime']['placeholder'] = dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+                $deliveryTime = dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+                if($deliveryTime >= dt::now()){
+                    $res['deliveryTime']['placeholder'] = $deliveryTime;
+                }
             }
 
             $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec);
