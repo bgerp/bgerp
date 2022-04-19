@@ -684,7 +684,7 @@ class store_ConsignmentProtocols extends core_Master
     public function getShipmentDateFields($rec = null, $cache = false)
     {
         $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
-                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
+                     'deliveryTime' => array('caption' => 'Товарене', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
                      'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
                      'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"));
 

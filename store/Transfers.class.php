@@ -226,7 +226,7 @@ class store_Transfers extends core_Master
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
 
         // Доставка
-        $this->FLD('deliveryTime', 'datetime(requireTime)', 'caption=Натоварване');
+        $this->FLD('deliveryTime', 'datetime(requireTime)', 'caption=Товарене');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
@@ -830,7 +830,7 @@ class store_Transfers extends core_Master
     public function getShipmentDateFields($rec = null, $cache = false)
     {
         $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
-                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
+                     'deliveryTime' => array('caption' => 'Товарене', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
                      'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
                      'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"));
 
