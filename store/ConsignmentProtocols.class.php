@@ -684,14 +684,16 @@ class store_ConsignmentProtocols extends core_Master
     public function getShipmentDateFields($rec = null, $cache = false)
     {
         $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
-                     'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
+                     'deliveryTime' => array('caption' => 'Товарене', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
                      'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
                      'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"));
 
         if(isset($rec)){
             if(isset($rec->deliveryOn)){
                 $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
-                $res['deliveryTime']['placeholder'] = dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+                $deliveryTime = dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+                $deliveryTime = ($deliveryTime < dt::now()) ? dt::now() : $deliveryTime;
+                $res['deliveryTime']['placeholder'] = $deliveryTime;
             }
 
             $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec);

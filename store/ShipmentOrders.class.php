@@ -239,11 +239,14 @@ class store_ShipmentOrders extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
-        $this->FLD('deliveryOn', 'datetime(requireTime)', 'input,caption=Доставка,after=deliveryTime');
+        $endTime = trans_Setup::get('END_WORK_TIME');
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $this->FLD('deliveryOn', "datetime(defaultTime={$endTime})", 'input,caption=Доставка,after=deliveryTime');
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
         $this->setField('deliveryTime', 'caption=Товарене');
+        $this->setFieldTypeParams("deliveryTime", array('defaultTime' => $startTime));
         $this->setDbIndex('createdOn');
     }
 
@@ -785,10 +788,13 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public function getShipmentDateFields($rec = null, $cache = false)
     {
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $endTime = trans_Setup::get('END_WORK_TIME');
+
         $res = array('readyOn' => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
-            'deliveryTime' => array('caption' => 'Товарене', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
-            'shipmentOn' => array('caption' => 'Експедиране', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
-            'deliveryOn' => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"));
+            'deliveryTime' => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => true, "input" => "input"),
+            'shipmentOn' => array('caption' => 'Експедиране', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden"),
+            'deliveryOn' => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input"));
 
         if (isset($rec)) {
             $res['deliveryTime']['placeholder'] = $this->getDefaultLoadingDate($rec, $rec->deliveryOn, $cache);
@@ -846,6 +852,10 @@ class store_ShipmentOrders extends store_DocumentMaster
             $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
             if(isset($deliveryDate)){
                 $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
+                if($res < dt::now()){
+                    $res = dt::today() . " " . trans_Setup::get('END_WORK_TIME') . ":00";
+                }
+
                 core_Cache::set($this->className, "loadingDate{$rec->containerId}", $res, 10);
             }
         }

@@ -64,7 +64,7 @@ class type_Datetime extends type_Date
             }
         }
         
-        if (strlen($time) && strpos($this->params['defaultTime'], $time) === 0) {
+        if (strlen($time) && strpos($this->params['defaultTime'], $time) === 0 && $this->params['defaultTime'] == '00:00:00') {
             $time = '';
         }
 

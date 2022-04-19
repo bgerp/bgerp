@@ -198,8 +198,11 @@ class store_Receipts extends store_DocumentMaster
     public function description()
     {
         parent::setDocFields($this);
+
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $endTime = trans_Setup::get('END_WORK_TIME');
         $this->setField('storeId', 'caption=В склад');
-        $this->FLD('loadingOn', 'datetime(requireTime)','caption=Натоварване,after=locationId');
+        $this->FLD('loadingOn', "datetime(defaultTime={$startTime})",'caption=Натоварване,after=locationId');
         $this->setField('deliveryTime', 'caption=Разтоварване,after=loadingOn');
         $this->setField('prevShipment', 'caption=Адрес за натоварване->Избор');
         $this->setField('company', 'caption=Адрес за натоварване->Фирма');
@@ -210,6 +213,7 @@ class store_Receipts extends store_DocumentMaster
         $this->setField('place', 'caption=Адрес за натоварване->Град/с');
         $this->setField('address', 'caption=Адрес за натоварване->Адрес');
         $this->setField('addressInfo', 'caption=Адрес за натоварване->Особености');
+        $this->setFieldTypeParams("deliveryTime", array('defaultTime' => $endTime));
     }
     
     
@@ -385,8 +389,10 @@ class store_Receipts extends store_DocumentMaster
      */
     public function getShipmentDateFields($rec = null, $cache = false)
     {
-        $res = array('loadingOn'   => array('caption' => 'Натоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"),
-                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),);
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $endTime = trans_Setup::get('END_WORK_TIME');
+        $res = array('loadingOn'   => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input"),
+                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => true, "input" => "input"),);
 
         return $res;
     }

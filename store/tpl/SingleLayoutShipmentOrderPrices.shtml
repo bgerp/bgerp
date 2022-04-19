@@ -86,7 +86,7 @@
                   <!--ET_END readyOn-->
                   <!--ET_BEGIN deliveryTime-->
                   <tr>
-                     <td class='nowrap quiet aright'  style='width:1%;'>|Натоварване|*:</td>
+                     <td class='nowrap quiet aright'  style='width:1%;'>|Товарене|*:</td>
                      <td>[#deliveryTime#]</td>
                   </tr>
                   <!--ET_END deliveryTime-->

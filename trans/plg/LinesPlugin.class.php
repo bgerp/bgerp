@@ -99,59 +99,6 @@ class trans_plg_LinesPlugin extends core_Plugin
         if (Request::get('editTrans')) {
             bgerp_Notifications::clear(array('doc_Containers', 'list', 'threadId' => $rec->threadId, "#" => $mvc->getHandle($rec->id), 'editTrans' => true), '*');
         }
-
-        if(cls::haveInterface('store_iface_DocumentIntf', $mvc)){
-            $dateFields = !in_array($rec->state, array('draft', 'pending')) ? $mvc->getShipmentDateFields() : $mvc->getShipmentDateFields($rec, true);
-            $datesArr = array();
-
-            // За дефолтните дати
-            foreach ($dateFields as $dateFld => $dateObj){
-                $value = $rec->{$dateFld};
-                if(!empty($dateObj['placeholder']) && empty($rec->{$dateFld})){
-                    $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
-                    if(!Mode::isReadOnly()){
-                        $row->{$dateFld} = "<span style='color:blue;'>{$row->{$dateFld}}</span>";
-                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
-                    }
-                    $value = $dateObj['placeholder'];
-                }
-
-                if(!empty($value)){
-                    $value = (strlen($value) == 10) ? "{$value} 23:59:59" : $value;
-                    $datesArr[] = array('key' => $dateFld, 'value' => $value, 'caption' => $dateObj['caption']);
-                }
-            }
-
-            // Ако не не са във възходящ ред да се оцветят в червено
-            if(!Mode::isReadOnly()){
-
-                // Проверяват се датите
-                $now = dt::now();
-                $warnings = array();
-                foreach ($datesArr as $i => $dObj){
-                    if($i != 0){
-                        if($dObj['value'] < $datesArr[$i-1]['value']){
-                            $warnings[$dObj['key']][] = "Датата е по-малка от|* " . '"|' . $datesArr[$i-1]['caption'] . '|*"';
-                        }
-                    }
-
-                    if(in_array($rec->state, array('draft', 'pending'))){
-                        if($dObj['value'] < $now) {
-                            $warnings[$dObj['key']][] = "Датата е в миналото|*!";
-                        }
-                    }
-                }
-
-                // За всяко генерирано предупреждение - датата се разкрасява да се види
-                foreach ($warnings as $warningFld => $fieldWarningArr){
-                    foreach ($fieldWarningArr as $warningMsg){
-                        $row->{$warningFld} = ht::createHint($row->{$warningFld}, $warningMsg, 'warning');
-                    }
-                    $row->{$warningFld}->prepend("<div class='shipmentErrorDateBlock'>");
-                    $row->{$warningFld}->prepend("</div>");
-                }
-            }
-        }
     }
     
     
@@ -510,6 +457,57 @@ class trans_plg_LinesPlugin extends core_Plugin
                     if(empty($rec->transUnitsInput) && empty($rec->transUnits)){
                         $row->logisticInfo = "<span style='color:blue'>{$row->logisticInfo}</span>";
                     }
+                }
+            }
+
+            $dateFields = !in_array($rec->state, array('draft', 'pending')) ? $mvc->getShipmentDateFields() : $mvc->getShipmentDateFields($rec, true);
+            $datesArr = array();
+
+            // За дефолтните дати
+            foreach ($dateFields as $dateFld => $dateObj){
+                $value = $rec->{$dateFld};
+                if(!empty($dateObj['placeholder']) && empty($rec->{$dateFld})){
+                    $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
+                    if(!Mode::isReadOnly()){
+                        $row->{$dateFld} = "<span style='color:blue;'>{$row->{$dateFld}}</span>";
+                        $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
+                    }
+                    $value = $dateObj['placeholder'];
+                }
+
+                if(!empty($value)){
+                    $value = (strlen($value) == 10) ? "{$value} 23:59:59" : $value;
+                    $datesArr[] = array('key' => $dateFld, 'value' => $value, 'caption' => $dateObj['caption']);
+                }
+            }
+
+            // Ако не не са във възходящ ред да се оцветят в червено
+            if(!Mode::isReadOnly()){
+
+                // Проверяват се датите
+                $now = dt::now();
+                $warnings = array();
+                foreach ($datesArr as $i => $dObj){
+                    if($i != 0){
+                        if($dObj['value'] < $datesArr[$i-1]['value']){
+                            $warnings[$dObj['key']][] = "Датата е по-малка от|* " . '"|' . $datesArr[$i-1]['caption'] . '|*"';
+                        }
+                    }
+
+                    if(in_array($rec->state, array('draft', 'pending'))){
+                        if($dObj['value'] < $now) {
+                            $warnings[$dObj['key']][] = "Датата е в миналото|*!";
+                        }
+                    }
+                }
+
+                // За всяко генерирано предупреждение - датата се разкрасява да се види
+                foreach ($warnings as $warningFld => $fieldWarningArr){
+                    foreach ($fieldWarningArr as $warningMsg){
+                        $row->{$warningFld} = ht::createHint($row->{$warningFld}, $warningMsg, 'warning');
+                    }
+                    $row->{$warningFld}->prepend("<div class='shipmentErrorDateBlock'>");
+                    $row->{$warningFld}->prepend("</div>");
                 }
             }
         }
