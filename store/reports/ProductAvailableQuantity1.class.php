@@ -996,6 +996,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                 if ($quantityInPack) {
                     $packOrder = ceil($suggQuantity / $quantityInPack);
                     $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
+                    if (($packOrder*$quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
                 } else {
                     $packOrder = 0;
                 }
@@ -1015,6 +1016,7 @@ class store_reports_ProductAvailableQuantity1 extends frame2_driver_TableData
                     if ($quantityInPack) {
                         $packOrder = ceil($suggQuantity / $quantityInPack);
                         $packOrder = ($dRec->minOrder < $packOrder) ? $packOrder : $dRec->minOrder;
+                        if (($packOrder*$quantityInPack + $dRec->quantity) > $dRec->maxQuantity) $packOrder--;
                     } else {
                         $packOrder = $suggQuantity;
                     }
