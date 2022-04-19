@@ -131,7 +131,7 @@ class type_Key2 extends type_Int
         if ($this->params['savePrevSearch'] == 'yes') {
             $params = $this->params;
             ksort($params);
-            $handler = md5(serialize($params) . '|' . $includeHiddens . '|' . $limit);
+            $handler = md5(serialize($params) . '|' . $includeHiddens . '|' . $limit . '|' . core_Users::getCurrent());
 
             if (($limit != 1) && (!$ids)) {
                 if (!$sLen) {
