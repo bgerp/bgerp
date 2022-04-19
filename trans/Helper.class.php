@@ -216,12 +216,13 @@ abstract class trans_Helper
     {
         $shippedDate = null;
         if(!empty($valior)) {
-            $shippedDate = "{$valior} 23:59:59";
+            $startTime = trans_Setup::get('START_WORK_TIME');
+            $shippedDate = "{$valior} {$startTime}:00";
         } elseif(isset($lineId)){
             $shippedDate = trans_Lines::fetchField($lineId, 'start');
         }
 
-        $shippedDate = (!empty($shippedDate) && $shippedDate >= dt::now()) ? $shippedDate : dt::now();
+        $shippedDate = (!empty($shippedDate) && $shippedDate >= dt::now()) ? $shippedDate :(dt::today() . " " . trans_Setup::get('END_WORK_TIME') . ":00");
 
         return $shippedDate;
     }

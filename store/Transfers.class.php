@@ -226,7 +226,8 @@ class store_Transfers extends core_Master
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
 
         // Доставка
-        $this->FLD('deliveryTime', 'datetime(requireTime)', 'caption=Товарене');
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $this->FLD('deliveryTime', "datetime(defaultTime={$startTime})", 'caption=Товарене');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
@@ -829,10 +830,12 @@ class store_Transfers extends core_Master
      */
     public function getShipmentDateFields($rec = null, $cache = false)
     {
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $endTime = trans_Setup::get('END_WORK_TIME');
         $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
-                     'deliveryTime' => array('caption' => 'Товарене', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input"),
-                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden"),
-                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input"));
+                     'deliveryTime' => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => true, "input" => "input"),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden"),
+                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input"));
 
         if(isset($rec)){
             if(isset($rec->deliveryOn)){
