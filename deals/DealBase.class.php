@@ -918,7 +918,7 @@ abstract class deals_DealBase extends core_Master
         }
 
         if(!empty($amountInCurrency)) {
-            $newRate = round($amountInBaseCurrency / $amountInCurrency, 5);
+            $newRate = round($amountInBaseCurrency / $amountInCurrency, 10);
 
             return $newRate;
         }
