@@ -352,7 +352,7 @@ class cat_Products extends embed_Manager
     {
         $this->FLD('proto', 'key(mvc=cat_Products,allowEmpty,select=name)', 'caption=Шаблон,input=hidden,silent,refreshForm,placeholder=Популярни продукти,groupByDiv=»');
         
-        $this->FLD('code', 'varchar(32, ci)', 'caption=Код,remember=info,width=15em');
+        $this->FLD('code', 'varchar(32, ci)', 'caption=Код,remember=info,width=15em,focus');
         $this->FLD('name', 'varchar', 'caption=Наименование,remember=info,width=100%, translate=field,remember');
         $this->FLD('nameEn', 'varchar', 'caption=Международно,width=100%,after=name, oldFieldName=nameInt,remember');
         $this->FLD('info', 'richtext(rows=4, bucket=Notes, passage)', 'caption=Описание');
@@ -430,7 +430,7 @@ class cat_Products extends embed_Manager
         // Всички позволени мерки
         $measureOptions = cat_UoM::getUomOptions();
         $form->setField($mvc->driverClassField, 'remember,removeAndRefreshForm=proto|measureId|meta|groups');
-        
+
         // Ако е избран драйвер слагаме задъжителните мета данни според корицата и драйвера
         if (isset($rec->folderId)) {
             $cover = doc_Folders::getCover($rec->folderId);
@@ -462,7 +462,7 @@ class cat_Products extends embed_Manager
             if (!$cover->haveInterface('crm_ContragentAccRegIntf')) {
                 
                 // Правим кода на артикула задължителен, ако не е шаблон
-                if ($isTemplate === false) {
+                if ($isTemplate === false || $data->_isSaveAndNew) {
                     $form->setField('code', 'mandatory');
                 }
 
@@ -487,6 +487,9 @@ class cat_Products extends embed_Manager
                                 }
                             }
                         }
+                    } elseif($data->_isSaveAndNew || $data->action == 'clone') {
+                        // Ако все пак има предишен код, който не е инкремениран попълва се той
+                        $newCode = $lastCode;
                     }
 
                     // Ако има намерен такъв код - попълва се
