@@ -131,7 +131,7 @@ class type_Key2 extends type_Int
         if ($this->params['savePrevSearch'] == 'yes') {
             $params = $this->params;
             ksort($params);
-            $handler = md5(serialize($params) . '|' . $includeHiddens . '|' . $limit);
+            $handler = md5(serialize($params) . '|' . $includeHiddens . '|' . $limit . '|' . core_Users::getCurrent());
 
             if (($limit != 1) && (!$ids)) {
                 if (!$sLen) {
@@ -170,7 +170,7 @@ class type_Key2 extends type_Int
         if ($this->params['savePrevSearch'] == 'yes') {
             if ($sLen > 1 && $limit != 1) {
                 if ($resArr) {
-                    core_Cache::set('key2getOptions', $handler, $resArr, 60, array($this->params['mvc']));
+                    core_Cache::set('key2getOptions', $handler, $resArr, 10, array($this->params['mvc']));
                 } else {
                     // Ако няма съвпадение, изчиства кеша
                     core_Cache::remove('key2getOptions', $handler);
