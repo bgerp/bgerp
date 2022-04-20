@@ -466,10 +466,12 @@ class trans_plg_LinesPlugin extends core_Plugin
 
             $dateFields = !in_array($rec->state, array('draft', 'pending')) ? $mvc->getShipmentDateFields() : $mvc->getShipmentDateFields($rec, true);
             $datesArr = array();
+            $showTransInfo = trans_Setup::get('SHOW_LOG_INFO_IN_DOCUMENTS');
 
             // За дефолтните дати
             foreach ($dateFields as $dateFld => $dateObj){
                 $value = $rec->{$dateFld};
+
                 if(!empty($dateObj['placeholder']) && empty($rec->{$dateFld})){
                     $row->{$dateFld} = $mvc->getFieldType($dateFld)->toVerbal($dateObj['placeholder']);
                     if(!Mode::isReadOnly()){
@@ -477,6 +479,12 @@ class trans_plg_LinesPlugin extends core_Plugin
                         $row->{$dateFld} = ht::createHint($row->{$dateFld}, 'Изчислено е автоматично|*!');
                     }
                     $value = $dateObj['placeholder'];
+                }
+
+                if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
+                    if($dateObj['displayExternal'] !== true){
+                        unset($row->{$dateFld});
+                    }
                 }
 
                 if(!empty($value)){
