@@ -832,10 +832,10 @@ class store_Transfers extends core_Master
     {
         $startTime = trans_Setup::get('START_WORK_TIME');
         $endTime = trans_Setup::get('END_WORK_TIME');
-        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
-                     'deliveryTime' => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => true, "input" => "input"),
-                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden"),
-                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input"));
+        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden", 'autoCalcFieldName' => 'readyOnCalc', 'displayExternal' => true),
+                     'deliveryTime' => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => true, "input" => "input", 'autoCalcFieldName' => 'deliveryTimeCalc', 'displayExternal' => true),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden", 'autoCalcFieldName' => 'shipmentOnCalc', 'displayExternal' => true),
+                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
 
         if(isset($rec)){
             if(isset($rec->deliveryOn)){
@@ -845,8 +845,8 @@ class store_Transfers extends core_Master
                 $res['deliveryTime']['placeholder'] = $deliveryTime;
             }
 
-            $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec, $cache);
-            $res['shipmentOn']['placeholder'] = trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+            $res['readyOn']['placeholder'] = ($cache) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['shipmentOn']['placeholder'] = ($cache) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
         }
 
         return $res;
