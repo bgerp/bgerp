@@ -58,7 +58,7 @@ defIfNot('DEALS_TEST_VAT_CALC', 'no');
 /**
  * Допустим % "Недоставено" за автоматично приключване на сделка
  */
-defIfNot('DEALS_CLOSE_UNDELIVERED_OVER', '1');
+defIfNot('DEALS_CLOSE_UNDELIVERED_OVER', '0.99');
 
 
 /**

@@ -53,7 +53,7 @@ class core_App
             
             // Генерираме съдържанието
             $content = core_Request::forward();
-            
+
             // Опакова съдържанието
             $Wrapper = core_Cls::get('core_page_Wrapper');
             $Wrapper->render($content);
@@ -1192,22 +1192,30 @@ class core_App
      *
      * @return array
      */
-    public static function getRepos()
+    public static function getRepos($usePrivate = true)
     {
         static $repos;
-        
+
+        static $sRepos;
+
         static $havePrivate = false;
-        
+
         if (!is_array($repos)) {
             $repos = array();
             $repos = self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
+            $sRepos = $repos;
         }
-        
+
+        if (!$usePrivate) {
+
+            return $sRepos;
+        }
+
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
             $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : (defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null)) + $repos;
             $havePrivate = true;
         }
-        
+
         return $repos;
     }
     
@@ -1255,12 +1263,12 @@ class core_App
      * Файла се търси в EF_PRIVATE_PATH, EF_APP_PATH
      * Ако не бъде открит, се връща FALSE
      */
-    public static function getFullPath($shortPath)
+    public static function getFullPath($shortPath, $usePrivate = true)
     {
         // Не може да има връщане назад, в името на файла
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
         
-        $repos = self::getRepos();
+        $repos = self::getRepos($usePrivate);
         
         foreach (array_keys($repos) as $base) {
             $fullPath = $base . '/' . $shortPath;

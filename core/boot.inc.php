@@ -454,9 +454,9 @@ function logHitState($debugCode = '200', $state = array())
  * Файла се търси в EF_APP_PATH, EF_PRIVATE_PATH
  * Ако не бъде открит, се връща FALSE
  */
-function getFullPath($shortPath)
+function getFullPath($shortPath, $usePrivate = true)
 {
-    return core_App::getFullPath($shortPath);
+    return core_App::getFullPath($shortPath, $usePrivate);
 }
 
 

@@ -149,7 +149,7 @@ class accda_Da extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'info,origin,location,gpsCoords,image,title';
+    public $changableFields = 'info,origin,location,gpsCoords,image,title,amortNorm';
     
     
     /**
