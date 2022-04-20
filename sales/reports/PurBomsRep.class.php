@@ -159,7 +159,7 @@ class sales_reports_PurBomsRep extends frame2_driver_TableData
             
             $delTime = (!empty($sRec->deliveryTime)) ? $sRec->deliveryTime : (!empty($sRec->deliveryTermTime) ?  dt::addSecs($sRec->deliveryTermTime, $sRec->valior) : null);
             if (empty($delTime)) {
-                $delTime = $Sales->getMaxDeliveryTime($sRec->id);
+                $delTime = $Sales->calcDeliveryTime($sRec->id);
                 $delTime = ($delTime) ? dt::addSecs($delTime, $sRec->valior) : $sRec->valior;
             }
             

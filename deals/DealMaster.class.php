@@ -1325,7 +1325,7 @@ abstract class deals_DealMaster extends deals_DealBase
      * @param int|stdClass $id
      * @return int|NULL
      */
-    protected function calcDeliveryTime($id)
+    public function calcDeliveryTime($id)
     {
         $maxDeliveryTime = null;
         $rec = $this->fetchRec($id);
