@@ -490,7 +490,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 foreach ($datesArr as $i => $dObj){
                     if($i != 0){
                         if($dObj['value'] < $datesArr[$i-1]['value']){
-                            $warnings[$dObj['key']][] = "Датата е по-малка от|* " . '"|' . $datesArr[$i-1]['caption'] . '|*"';
+                            $warnings[$dObj['key']][] = "Датата е преди|* " . '"|' . $datesArr[$i-1]['caption'] . '|*"';
                         }
                     }
 
