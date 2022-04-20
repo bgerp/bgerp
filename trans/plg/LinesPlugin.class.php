@@ -488,7 +488,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 }
 
                 if(!empty($value)){
-                    $value = (strlen($value) == 10) ? "{$value} 23:59:59" : $value;
+                    $value = (strlen($value) == 10) ? "{$value} 00:00:00" : $value;
                     $datesArr[] = array('key' => $dateFld, 'value' => $value, 'caption' => $dateObj['caption']);
                 }
             }
