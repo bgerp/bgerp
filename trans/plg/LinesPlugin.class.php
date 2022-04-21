@@ -822,16 +822,14 @@ class trans_plg_LinesPlugin extends core_Plugin
             // Ако има лайв изчислена записва се в река
             if(isset($obj['autoCalcFieldName']) && !empty($obj['placeholder'])){
                 $rec->{$obj['autoCalcFieldName']} = $obj['placeholder'];
-                $updateFields[$dateFld] = $dateFld;
+                $updateFields[$obj['autoCalcFieldName']] = $obj['autoCalcFieldName'];
             }
         }
 
         $res = false;
         if(countR($updateFields)){
-
-            // Ако се иска да се обновис сега записа - обновява се
+            // Ако се иска да се обнови сега записа - обновява се
             if($save){
-                $updateFields = array('id' => 'id') + $updateFields;
                 $mvc->save_($rec, $updateFields);
             }
             $res = true;
