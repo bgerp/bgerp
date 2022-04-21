@@ -501,7 +501,7 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('allowedShipmentOperations', $this->getShipmentOperations($rec));
         $result->set('involvedContragents', array((object) array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
 
-        $deliveryTime = !empty($rec->deliveryTermTime) ? dt::addSecs($rec->deliveryTermTime, $rec->valior) : $rec->deliveryTime;
+        $deliveryTime = !empty($rec->deliveryTermTime) ? (dt::addSecs($rec->deliveryTermTime, $rec->valior, false) . " " . trans_Setup::get('END_WORK_TIME') . ":00") : $rec->deliveryTime;
         $result->setIfNot('deliveryTime', $deliveryTime);
 
         $result->setIfNot('amount', $rec->amountDeal);

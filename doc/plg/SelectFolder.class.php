@@ -196,9 +196,10 @@ class doc_plg_SelectFolder extends core_Plugin
 
         // Ако няма още изчислена дефолтна папка - гледа се глобалния дефолт
         if(empty($form->rec->folderId)){
-            $defaultFolderId = $mvc->getDefaultFolder();
-            if($mvc->canAddToFolder($defaultFolderId)){
-                $form->setDefault('folderId', $mvc->getDefaultFolder());
+            if($defaultFolderId = $mvc->getDefaultFolder()){
+                if($mvc->canAddToFolder($defaultFolderId)){
+                    $form->setDefault('folderId', $mvc->getDefaultFolder());
+                }
             }
         }
         

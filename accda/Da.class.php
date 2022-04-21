@@ -9,7 +9,7 @@
  * @package   accda
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -180,7 +180,7 @@ class accda_Da extends core_Master
         
         $this->FLD('assetCode', 'varchar(16)', 'caption=Оборудване->Код');
         $this->FLD('assetGroupId', 'key(mvc=planning_AssetGroups,select=name,allowEmpty)', 'caption=Оборудване->Вид,silent,remember');
-        $this->FLD('assetoResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Папка,silent,remember');
+        $this->FLD('assetResourceFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Папка,silent,remember,oldFieldName=assetoResourceFolderId');
         $this->FLD('assetSupportFolderId', 'key(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Оборудване->Поддръжка,silent,remember');
         
         $this->setDbUnique('num');
@@ -197,17 +197,17 @@ class accda_Da extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-        
+
         $form->setDefault('valior', dt::today());
         if (isset($rec->id)) {
             $form->setReadOnly('productId');
         }
         
         if (isset($rec->productId)) {
-            $pInfo = cat_Products::getProductInfo($rec->productId);
-            $rec->title = $pInfo->productRec->name;
+            $pRec = cat_Products::fetch($rec->productId, 'name,canStore');
+            $form->setDefault('title', $pRec->name);
             
-            if (isset($pInfo->meta['canStore'])) {
+            if ($pRec->canStore == 'yes') {
                 $form->setField('storeId', 'input,mandatory');
                 $form->setFieldTypeParams('accountId', 'root=20');
                 
@@ -257,7 +257,7 @@ class accda_Da extends core_Master
         
         // Какви са достъпните папки за оборудване
         $resourceSuggestionsArr = doc_FolderResources::getFolderSuggestions('assets');
-        $form->setOptions('assetoResourceFolderId', array('' => '') + $resourceSuggestionsArr);
+        $form->setOptions('assetResourceFolderId', array('' => '') + $resourceSuggestionsArr);
         
         // Какви са достъпните папки за поддръжка
         $supportFolderParams = array('titleFld' => 'title', 'restrictViewAccess' => 'yes', 'coverClasses' => 'support_Systems'); 
@@ -283,7 +283,7 @@ class accda_Da extends core_Master
         }
         
         if ($form->isSubmitted()) {
-            if ($form->rec->assetoResourceFolderId || $form->rec->assetSupportFolderId || $form->rec->assetCode) {
+            if ($form->rec->assetResourceFolderId || $form->rec->assetSupportFolderId || $form->rec->assetCode) {
                 if (!$form->rec->assetGroupId) {
                     $form->setError('assetGroupId', 'Непопълнено задължително поле');
                 }
@@ -300,8 +300,8 @@ class accda_Da extends core_Master
         
         if ($form->isSubmitted()) {
             if ($form->rec->assetGroupId) {
-                if (!$form->rec->assetoResourceFolderId && !$form->rec->assetSupportFolderId) {
-                    $form->setError('assetoResourceFolderId, assetSupportFolderId', 'Непопълнено задължително поле');
+                if (!$form->rec->assetResourceFolderId && !$form->rec->assetSupportFolderId) {
+                    $form->setError('assetResourceFolderId, assetSupportFolderId', 'Непопълнено задължително поле');
                 }
                 
                 if (!$form->rec->assetCode) {
@@ -343,8 +343,8 @@ class accda_Da extends core_Master
                     $nRec->code = $rec->assetCode;
                     $nRec->protocolId = $rec->id;
                     
-                    if ($rec->assetoResourceFolderId) {
-                        $nRec->folderId = $rec->assetoResourceFolderId;
+                    if ($rec->assetResourceFolderId) {
+                        $nRec->folderId = $rec->assetResourceFolderId;
                     }
                     
                     if (planning_AssetResources::save($nRec)) {
@@ -598,11 +598,11 @@ class accda_Da extends core_Master
                     if(isset($rec->assetGroupId)){
                         $row->assetGroupId = planning_AssetGroups::getHyperlink($rec->assetGroupId, true);
                     }
-                    if(isset($rec->assetoResourceFolderId)){
-                        $row->assetoResourceFolderId = doc_Folders::recToVerbal($rec->assetoResourceFolderId)->title;
+                    if(isset($rec->assetResourceFolderId)){
+                        $row->assetResourceFolderId = doc_Folders::recToVerbal($rec->assetResourceFolderId)->title;
                     }
                 } else {
-                    unset($row->assetGroupId, $row->assetCode, $row->assetoResourceFolderId);
+                    unset($row->assetGroupId, $row->assetCode, $row->assetResourceFolderId);
                 }
                 
                 $row->type = isset($rec->storeId) ? tr('Дълготраен материален актив') : tr('Дълготраен нематериален актив');
