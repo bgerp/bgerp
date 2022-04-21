@@ -693,30 +693,40 @@ class frame2_Reports extends embed_Manager
             $me->setNewUpdateTimes[$rec->id] = $rec;
             
             // Ако справката сега е създадена да не се обновява
-            if ($rec->__isCreated === true) {
-                
-                return;
-            }
+            if ($rec->__isCreated === true) return;
             
             // Кога последно е видяна от потребител справката
             $lastSeen = self::getLastSeenByUser(__CLASS__, $rec);
-            $months = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE_MONTHS');
-            $seenBefore = dt::addMonths(-1 * $months);
+            $seenBefore = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE');
+            $seenBefore = dt::addSecs(-1 * $seenBefore);
+
             if ($lastSeen <= $seenBefore) {
-                
+
                 // Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
-                $rec->brState = $rec->state;
-                $rec->state = 'closed';
-                $rec->refreshData = false;
-                $me->invoke('BeforeChangeState', array(&$rec, &$rec->state));
-                $me->save($rec, 'state,brState');
-                $me->logWrite('Затваряне на остаряла справка', $rec->id);
-                unset($me->setNewUpdateTimes[$rec->id]);
+                $newState = 'closed';
+                if($me->invoke('BeforeChangeState', array(&$rec, $newState))){
+                    $rec->refreshData = false;
+                    $rec->brState = $rec->state;
+                    $rec->state = $newState;
+
+                    // Затваряне на справката и спиране на автоматичното ѝ обновяване
+                    $me->save($rec, 'state,brState');
+                    $me->logWrite('Затваряне на неизползвана справка', $rec->id);
+                    unset($me->setNewUpdateTimes[$rec->id]);
+
+                    // Нотифициране на споделените потребители, че справката вече няма да се обновява
+                    $userArr = keylist::toArray($rec->sharedUsers);
+                    $currentUserNick = core_Users::getCurrent('nick');
+                    $handle = $me->getHandle($rec->id);
+                    foreach ($userArr as $userId){
+                        bgerp_Notifications::add("|*{$currentUserNick} |затвори неизползвана справка|* #{$handle}", array($me, 'single', $rec->id), $userId);
+                    }
+                }
             }
         }
     }
-    
-    
+
+
     /**
      * След изпълнение на скрипта, обновява записите, които са за ъпдейт
      */
