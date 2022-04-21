@@ -832,9 +832,9 @@ class store_Transfers extends core_Master
     {
         $startTime = trans_Setup::get('START_WORK_TIME');
         $endTime = trans_Setup::get('END_WORK_TIME');
-        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden", 'autoCalcFieldName' => 'readyOnCalc', 'displayExternal' => false),
+        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden", 'autoCalcFieldName' => 'readyOnCalc', 'displayExternal' => true),
                      'deliveryTime' => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => true, "input" => "input", 'autoCalcFieldName' => 'deliveryTimeCalc', 'displayExternal' => true),
-                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden", 'autoCalcFieldName' => 'shipmentOnCalc', 'displayExternal' => false),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden", 'autoCalcFieldName' => 'shipmentOnCalc', 'displayExternal' => true),
                      'deliveryOn'   => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
 
         if(isset($rec)){
