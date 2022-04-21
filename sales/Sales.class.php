@@ -665,7 +665,7 @@ class sales_Sales extends deals_DealMaster
         $result->setIfNot('vatType', $rec->chargeVat);
         $result->setIfNot('agreedValior', $rec->valior);
         $result->setIfNot('deliveryLocation', $rec->deliveryLocationId);
-        $deliveryTime = !empty($rec->deliveryTermTime) ? dt::addSecs($rec->deliveryTermTime, $rec->valior) : $rec->deliveryTime;
+        $deliveryTime = !empty($rec->deliveryTermTime) ? (dt::addSecs($rec->deliveryTermTime, $rec->valior, false) . " " . trans_Setup::get('END_WORK_TIME') . ":00") : $rec->deliveryTime;
 
         $result->setIfNot('deliveryTime', $deliveryTime);
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);

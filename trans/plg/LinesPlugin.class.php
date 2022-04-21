@@ -352,10 +352,9 @@ class trans_plg_LinesPlugin extends core_Plugin
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         core_Lg::push($rec->tplLang);
+        $showTransInfo = trans_Setup::get('SHOW_LOG_INFO_IN_DOCUMENTS');
 
         if (isset($rec->lineId)) {
-
-            $showTransInfo = trans_Setup::get('SHOW_LOG_INFO_IN_DOCUMENTS');
             if($showTransInfo == 'show' || ($showTransInfo == 'hide' && !Mode::isReadOnly())){
                 $lineRec = trans_Lines::fetch($rec->lineId);
                 $row->lineId = '';
@@ -458,7 +457,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if(countR($units)){
                     $row->logisticInfo = trans_Helper::displayTransUnits($units);
                     $row->logisticInfo = ht::createHint($row->logisticInfo, $hint, $hintType, false);
-                    if(empty($rec->transUnitsInput) && empty($rec->transUnits)){
+                    if(empty($rec->transUnitsInput) && empty($rec->transUnits) && !Mode::isReadOnly()){
                         $row->logisticInfo = "<span style='color:blue'>{$row->logisticInfo}</span>";
                     }
                 }
@@ -466,7 +465,6 @@ class trans_plg_LinesPlugin extends core_Plugin
 
             $dateFields = !in_array($rec->state, array('draft', 'pending')) ? $mvc->getShipmentDateFields() : $mvc->getShipmentDateFields($rec, true);
             $datesArr = array();
-            $showTransInfo = trans_Setup::get('SHOW_LOG_INFO_IN_DOCUMENTS');
 
             // За дефолтните дати
             foreach ($dateFields as $dateFld => $dateObj){
@@ -482,7 +480,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 }
 
                 if (Mode::is('printing') || Mode::is('text', 'xhtml')) {
-                    if($dateObj['displayExternal'] !== true){
+                    if($dateObj['displayExternal'] !== true && $showTransInfo == 'hide'){
                         unset($row->{$dateFld});
                     }
                 }

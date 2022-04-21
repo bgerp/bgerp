@@ -924,8 +924,10 @@ class trans_Lines extends core_Master
             $query->show('folderId');
             $folderId = $query->fetch()->folderId;
         }
+        if(isset($folderId)) return $folderId;
 
-        return $folderId;
+        // Ако не е намерена папка, в която последно е създаване връщане папката проект за транспортни линии
+        return parent::getDefaultFolder();
     }
 
 
