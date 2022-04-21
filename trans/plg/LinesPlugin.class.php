@@ -457,7 +457,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                 if(countR($units)){
                     $row->logisticInfo = trans_Helper::displayTransUnits($units);
                     $row->logisticInfo = ht::createHint($row->logisticInfo, $hint, $hintType, false);
-                    if(empty($rec->transUnitsInput) && empty($rec->transUnits)){
+                    if(empty($rec->transUnitsInput) && empty($rec->transUnits) && !Mode::isReadOnly()){
                         $row->logisticInfo = "<span style='color:blue'>{$row->logisticInfo}</span>";
                     }
                 }
