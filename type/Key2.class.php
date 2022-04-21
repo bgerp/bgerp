@@ -138,6 +138,8 @@ class type_Key2 extends type_Int
                     $resArr = core_Cache::get('key2getOptions', $handler);
                     if ($resArr) {
 
+                        $this->params['forceAjax'] = true;
+
                         return $resArr;
                     }
                 }
