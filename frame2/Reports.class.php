@@ -716,10 +716,12 @@ class frame2_Reports extends embed_Manager
 
                     // Нотифициране на споделените потребители, че справката вече няма да се обновява
                     $userArr = keylist::toArray($rec->sharedUsers);
-                    $currentUserNick = core_Users::getCurrent('nick');
-                    $handle = $me->getHandle($rec->id);
-                    foreach ($userArr as $userId){
-                        bgerp_Notifications::add("|*{$currentUserNick} |затвори неизползвана справка|* #{$handle}", array($me, 'single', $rec->id), $userId);
+                    if(countR($userArr)){
+                        $currentUserNick = core_Users::getCurrent('nick');
+                        $handle = $me->getHandle($rec->id);
+                        foreach ($userArr as $userId){
+                            bgerp_Notifications::add("|*{$currentUserNick} |затвори неизползвана справка|* #{$handle}", array($me, 'single', $rec->id), $userId);
+                        }
                     }
                 }
             }
