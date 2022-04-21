@@ -797,9 +797,9 @@ class store_ShipmentOrders extends store_DocumentMaster
                      'deliveryOn' => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
 
         if (isset($rec)) {
-            $res['deliveryTime']['placeholder'] = ($cache) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
-            $res['readyOn']['placeholder'] = ($cache) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
-            $res['shipmentOn']['placeholder'] = ($cache) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+            $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
+            $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
         }
 
         return $res;
@@ -851,13 +851,8 @@ class store_ShipmentOrders extends store_DocumentMaster
                 }
             }
 
-            $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
-            if(isset($deliveryDate)){
-                $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
-                if($res < dt::now()){
-                    $res = dt::today() . " " . trans_Setup::get('END_WORK_TIME') . ":00";
-                }
-            }
+            // От така намерената дата се приспада времето за подготовка на склада, ако има такова
+            $res = store_Stores::calcLoadingDate($rec->storeId, $deliveryDate);
         }
 
         // От така изчисления срок на доставка се приспадат и нужните за подготовка дни от склада

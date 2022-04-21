@@ -838,15 +838,9 @@ class store_Transfers extends core_Master
                      'deliveryOn'   => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
 
         if(isset($rec)){
-            if(isset($rec->deliveryOn)){
-                $preparationTime = store_Stores::getShipmentPreparationTime($rec->fromStore);
-                $deliveryTime = dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
-                $deliveryTime = ($deliveryTime < dt::now()) ? dt::now() : $deliveryTime;
-                $res['deliveryTime']['placeholder'] = $deliveryTime;
-            }
-
-            $res['readyOn']['placeholder'] = ($cache) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
-            $res['shipmentOn']['placeholder'] = ($cache) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+            $res['deliveryTime']['placeholder'] = store_Stores::calcLoadingDate($rec->fromStore, $rec->deliveryOn);
+            $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
         }
 
         return $res;

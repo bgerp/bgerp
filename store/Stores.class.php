@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -440,5 +440,30 @@ class store_Stores extends core_Master
         }
 
         return (int)$secs;
+    }
+
+
+    /**
+     * Какво е времето за подговотка, при подадената дата на доставка
+     *
+     * @param int $storeId
+     * @param datetime|null $deliveryDate
+     * @return null|datetime
+     */
+    public static function calcLoadingDate($storeId, $deliveryDate)
+    {
+        // Ако няма дата нищо не се прави
+        if(!isset($deliveryDate)) return null;
+
+        // Приспада се времето за подготовка на склада
+        $preparationTime = store_Stores::getShipmentPreparationTime($storeId);
+        $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
+
+        // Ако датата е в миналото, подменя се с края на работния ден на текущата дата
+        if($res < dt::now()){
+            $res = dt::today() . " " . trans_Setup::get('END_WORK_TIME') . ":00";
+        }
+
+        return $res;
     }
 }
