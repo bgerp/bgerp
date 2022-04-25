@@ -21,11 +21,11 @@ abstract class deals_DealMaster extends deals_DealBase
      */
     private static $contoMap = array(
         'sales' => array('pay' => 'Прието плащане в брой в каса ',
-            'ship' => 'Експедиране на продукти от склад ',
+            'ship' => 'Експедиране на артикули от склад ',
             'service' => 'Изпълнение на услуги'),
         
         'purchase' => array('pay' => 'Направено плащане в брой от каса ',
-            'ship' => 'Вкарване на продукти в склад ',
+            'ship' => 'Заприхождаване на артикули в склад ',
             'service' => 'Приемане на услуги')
     );
     
@@ -282,6 +282,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $form = &$data->form;
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
         $rec = $form->rec;
+        $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
 
         if(!crm_Companies::isOwnCompanyVatRegistered()) {
             $form->setReadOnly('chargeVat');
@@ -1257,7 +1258,7 @@ abstract class deals_DealMaster extends deals_DealBase
             $row->username = core_Lg::transliterate($row->username);
             $row->responsible = core_Lg::transliterate($row->responsible);
             
-            if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime)) {
+            if (empty($rec->deliveryTime) && empty($rec->deliveryTermTime) && in_array($rec->state, array('draft', 'pending')) ) {
                 $deliveryTermTime = $mvc->calcDeliveryTime($rec->id);
                 if (isset($deliveryTermTime)) {
                     $deliveryTermTime = cls::get('type_Time')->toVerbal($deliveryTermTime);
@@ -1334,7 +1335,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $Calculator = cond_DeliveryTerms::getTransportCalculator($rec->deliveryTermId);
         if(is_object($Calculator)){
             $logisticData = $this->getLogisticData($rec);
-            $deliveryData = $rec->deliveryData + array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
+            $deliveryData = is_array($rec->deliveryData) ? $rec->deliveryData : array();
+            $deliveryData += array('deliveryCountry' => drdata_Countries::getIdByName($logisticData['toCountry']), 'deliveryPCode' => $logisticData['toPCode']);
             $maxDeliveryTime = $Calculator->getMaxDeliveryTime($rec->deliveryTermId, $deliveryData);
         }
 
@@ -1350,9 +1352,10 @@ abstract class deals_DealMaster extends deals_DealBase
             }
         }
 
-        // Към най-големия срок се добавят дните за подготовка от склада, ако има избран такъв
-        if(isset($rec->shipmentStoreId)){
-            $maxDeliveryTime += store_Stores::getShipmentPreparationTime($rec->shipmentStoreId);
+        // Към най-големия срок се добавят дните за подготовка от склада, ако няма склад - колкото е настроено глобално
+        $defaultShipmentTime = store_Stores::getShipmentPreparationTime($rec->shipmentStoreId);
+        if(!empty($defaultShipmentTime)){
+            $maxDeliveryTime += $defaultShipmentTime;
         }
 
         return $maxDeliveryTime;
@@ -1680,38 +1683,19 @@ abstract class deals_DealMaster extends deals_DealBase
         $conf = core_Packs::getConfig('acc');
         $tolerance = $conf->ACC_MONEY_TOLERANCE;
         
-        // Текущата дата
+        // Нишката им да е модифицирана преди зададеното време
         $now = dt::mysql2timestamp(dt::now());
         $oldBefore = dt::timestamp2mysql($now - $olderThan);
-        
-        // Намират се контиращите класове
-        $contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf');
-        $contoClasses = array_keys($contoClasses);
-        
-        // Всички контиращи документи в заявка
-        $cQuery = doc_Containers::getQuery();
-        $cQuery->where("#state = 'pending'");
-        $cQuery->in('docClass', $contoClasses);
-        $cQuery->show('threadId');
-        
-        $cQuery->groupBy('threadId');
-        $threadIds = arr::extractValuesFromArray($cQuery->fetchAll(), 'threadId');
-        
         $query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
-        if (countR($threadIds)) {
-            $query->notIn('threadId', $threadIds);
-        }
-        
+
         // Закръглената оставаща сума за плащане
         $query->XPR('toInvoice', 'double', 'ROUND(#amountDelivered - COALESCE(#amountInvoiced, 0), 2)');
         $query->XPR('deliveredRound', 'double', 'ROUND(#amountDelivered, 2)');
-        
         $percent = deals_Setup::get('CLOSE_UNDELIVERED_OVER');
         $percent = (!empty($percent)) ? $percent : 1;
-        
         $query->XPR('minDelivered', 'double', "ROUND(#amountDeal * {$percent}, 2)");
         
-        // Само активни продажби
+        // Само активни сделки
         $query->where("#state = 'active'");
         $query->where('#amountDelivered IS NOT NULL AND #amountPaid IS NOT NULL');
         
@@ -1725,23 +1709,48 @@ abstract class deals_DealMaster extends deals_DealBase
         $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
         $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");
         
-        // Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници
+        // Ако трябва да се фактурират и са доставеното - фактурираното е в допустими граници или не трябва да се фактурират
         $query->where("(#makeInvoice = 'yes' || #makeInvoice IS NULL) AND #toInvoice BETWEEN -{$tolerance} AND {$tolerance}");
-        
-        // Или не трябва да се фактурират
         $query->orWhere("#makeInvoice = 'no'");
-        
-        // Лимитираме заявката
-        $query->limit($limit);
-        
-        // Всяка намерената сделка, се приключва като платена
-        while ($rec = $query->fetch()) {
+
+        // Ако няма намерени сделки отговарящи на условията пропускат се
+        $foundDealsArr = $query->fetchAll();
+        if(!countR($foundDealsArr)) return;
+
+        // В кои нишки от посочените сделки има контиращи документи на заявка/чернова
+        $closeDealThreads = arr::extractValuesFromArray($foundDealsArr, 'threadId');
+        $contoClasses = core_Classes::getOptionsByInterface('acc_TransactionSourceIntf', 'id');
+        $cQuery = doc_Containers::getQuery();
+        $cQuery->where("#state = 'pending' || #state = 'draft'");
+        $cQuery->in('docClass', $contoClasses);
+        $cQuery->groupBy('threadId');
+        $cQuery->show('threadId');
+        $cQuery->in('threadId', $closeDealThreads);
+        $threadsWithPendingAndDraftDocuments = arr::extractValuesFromArray($cQuery->fetchAll(), 'threadId');
+
+        $count = 0;
+        foreach ($foundDealsArr as $dRec){
+
+            // Ако в нишката на сделката има контиращ документ на заявка/чернова
+            if(array_key_exists($dRec->threadId, $threadsWithPendingAndDraftDocuments)){
+                $notificationUrl = array('doc_Containers', 'list', "threadId" => $dRec->threadId);
+
+                // Изпращане на нотификация на създателя ѝ, че няма да се затвори автоматично докато има документи на чернова/заявка
+                bgerp_Notifications::add("|*#{$this->getHandle($dRec->id)} |не може да бъде автоматично приключена, защото има счетоводни документи на заявка/чернова", $notificationUrl, $dRec->createdBy);
+                continue;
+            }
+
+            // Ако в сделката няма счетоводни/контиращи документи
             try {
-                
-                // Създаване на приключващ документ-чернова
-                $clId = $ClosedDeals->create($className, $rec);
-                $ClosedDeals->conto($clId);
-                $ClosedDeals->logWrite('Автоматично контиране на документа', $clId);
+
+                // Създава се нов приключващ документ и се контира
+                $count++;
+                $closeId = $ClosedDeals->create($className, $dRec);
+                $ClosedDeals->conto($closeId);
+                $ClosedDeals->logWrite('Автоматично контиране на документа', $closeId);
+
+                // Достигне ли се до желаната бройка - спира се до тук
+                if($count >= $limit) break;
             } catch (core_exception_Expect $e) {
                 reportException($e);
             }

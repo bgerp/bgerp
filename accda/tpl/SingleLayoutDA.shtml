@@ -107,12 +107,12 @@
             <td>[#assetGroupId#]</td>
         </tr>
         <!--ET_END assetGroupId-->
-        <!--ET_BEGIN assetoResourceFolderId-->
+        <!--ET_BEGIN assetResourceFolderId-->
         <tr>
             <td class='quiet nowrap'>|Папка|*:</td>
-            <td>[#assetoResourceFolderId#]</td>
+            <td>[#assetResourceFolderId#]</td>
         </tr>
-        <!--ET_END assetoResourceFolderId-->
+        <!--ET_END assetResourceFolderId-->
         <!--ET_BEGIN assetSupportFolderId-->
         <tr>
             <td class='quiet nowrap'>|Поддръжка|*:</td>

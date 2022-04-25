@@ -9,7 +9,7 @@
  * @package   cms
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -152,5 +152,26 @@ class cms_Helper extends core_BaseClass
         }
 
         return null;
+    }
+
+
+    /**
+     * Коя е текущата ценова политика във външната част
+     *
+     * @param stdClass $settings - запис на настройките
+     * @return int               - ид на ценова политика или null ако няма
+     */
+    public static function getCurrentEshopPriceList($settings)
+    {
+        $listId = $settings->listId;
+        if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
+            $Cover = doc_Folders::getCover($lastActiveFolder);
+            $priceDateTime = null;
+            if($contragentListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that, $priceDateTime, true)){
+                $listId = $contragentListId;
+            }
+        }
+
+        return $listId;
     }
 }

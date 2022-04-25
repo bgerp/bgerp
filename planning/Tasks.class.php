@@ -990,9 +990,13 @@ class planning_Tasks extends core_Master
 
         if (isset($rec->systemId, $tasks[$rec->systemId]) && empty($rec->id)) {
             $taskData = (array)$tasks[$rec->systemId];
+
             unset($taskData['products']);
             foreach ($taskData as $fieldName => $defaultValue) {
                 $form->setDefault($fieldName, $defaultValue);
+            }
+            if(!empty($taskData['fixedAssets'])){
+                $fixedAssetOptions = keylist::toArray($taskData['fixedAssets']);
             }
             $form->setReadOnly('productId');
         }
@@ -1042,11 +1046,16 @@ class planning_Tasks extends core_Master
                     foreach ($defFields as $fld => $val){
                         $form->setDefault($fld, $productionData[$val]);
                     }
-
                     if(isset($productionData['fixedAssets'])){
-                        array_walk($productionData['fixedAssets'], function($a) use (&$fixedAssetOptions){$fixedAssetOptions[$a] = planning_AssetResources::getTitleById($a, false);});
+                        $fixedAssetOptions = $productionData['fixedAssets'];
                     }
                 }
+            }
+
+            if(countR($fixedAssetOptions)){
+                $cloneArr = $fixedAssetOptions;
+                $fixedAssetOptions = array();
+                array_walk($cloneArr, function($a) use (&$fixedAssetOptions){$fixedAssetOptions[$a] = planning_AssetResources::getTitleById($a, false);});
             }
 
             if (empty($rec->id)) {
@@ -1128,6 +1137,7 @@ class planning_Tasks extends core_Master
         // Добавяне на наличните за избор оборудвания
         $fixedAssetOptions = countR($fixedAssetOptions) ? $fixedAssetOptions : planning_AssetResources::getByFolderId($rec->folderId, $rec->assetId, 'planning_Tasks', true);
         $countAssets = countR($fixedAssetOptions);
+
         if($countAssets){
             $form->setField('assetId', 'input');
             $form->setOptions('assetId', array('' => '') + $fixedAssetOptions);

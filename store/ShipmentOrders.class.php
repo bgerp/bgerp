@@ -126,7 +126,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'deliveryTime,valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId, createdOn, createdBy';
+    public $listFields = 'deliveryTime, deliveryOn, valior, title=Документ, folderId, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId, createdOn=Създаване, createdBy=Създал';
 
 
     /**
@@ -228,16 +228,25 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, deliveryTime, shipmentOn, deliveryOn';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         parent::setDocFields($this);
-        $this->FLD('deliveryOn', 'datetime', 'input,caption=Доставка до,after=deliveryTime');
+        $endTime = trans_Setup::get('END_WORK_TIME');
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $this->FLD('deliveryOn', "datetime(defaultTime={$endTime})", 'input,caption=Доставка,after=deliveryTime');
         $this->FLD('responsible', 'varchar', 'caption=Получил,after=deliveryOn');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
         $this->FLD('additionalConditions', 'blob(serialize, compress)', 'caption=Допълнително->Условия (Кеширани),input=none');
-        $this->setField('deliveryTime', 'caption=Натоварване');
+        $this->setField('deliveryTime', 'caption=Товарене');
+        $this->setFieldTypeParams("deliveryTime", array('defaultTime' => $startTime));
         $this->setDbIndex('createdOn');
     }
 
@@ -635,7 +644,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     public static function on_BeforePrepareListFields($mvc, &$res, $data)
     {
         if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
-            $data->listFields = 'deliveryTime,valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
+            $data->listFields = 'deliveryTime, deliveryOn, valior, title=Документ, currencyId, amountDelivered, amountDeliveredVat, weight, volume,lineId';
         }
     }
 
@@ -779,15 +788,18 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     public function getShipmentDateFields($rec = null, $cache = false)
     {
-        $res = array('readyOn' => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden"),
-            'deliveryTime' => array('caption' => 'Натоварване', 'type' => 'datetime', 'readOnlyIfActive' => true, "input" => "input"),
-            'shipmentOn' => array('caption' => 'Експедиране на', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input=hidden"),
-            'deliveryOn' => array('caption' => 'Доставка', 'type' => 'datetime', 'readOnlyIfActive' => false, "input" => "input"));
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $endTime = trans_Setup::get('END_WORK_TIME');
+
+        $res = array('readyOn' => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden", 'autoCalcFieldName' => 'readyOnCalc', 'displayExternal' => false),
+                     'deliveryTime' => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => true, "input" => "input", 'autoCalcFieldName' => 'deliveryTimeCalc', 'displayExternal' => false),
+                     'shipmentOn' => array('caption' => 'Експедиране', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden", 'autoCalcFieldName' => 'shipmentOnCalc', 'displayExternal' => false),
+                     'deliveryOn' => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
 
         if (isset($rec)) {
-            $res['deliveryTime']['placeholder'] = $this->getDefaultLoadingDate($rec, $rec->deliveryOn, $cache);
-            $res['readyOn']['placeholder'] = $this->getEarliestDateAllProductsAreAvailableInStore($rec, $cache);
-            $res['shipmentOn']['placeholder'] = trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+            $res['deliveryTime']['placeholder'] = ($cache && !empty($rec->deliveryTimeCalc)) ? $rec->deliveryTimeCalc : $this->getDefaultLoadingDate($rec, $rec->deliveryOn);
+            $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
         }
 
         return $res;
@@ -804,14 +816,17 @@ class store_ShipmentOrders extends store_DocumentMaster
      */
     function getDefaultLoadingDate($id, $deliveryDate = null, $cache = false)
     {
+        $res = null;
         $rec = $this->fetchRec($id);
         if ($cache) {
-            $res = core_Cache::get($this->className, "loadingDate{$rec->containerId}");
+            $res = $rec->deliveryTimeCalc;
         }
 
         if (!$cache || $res === false) {
+
             // Кой е първия документ в нишката
             $firstDoc = doc_Threads::getFirstDocument($rec->threadId);
+
             if ($firstDoc->isInstanceOf('sales_Sales')) {
 
                 $firstRec = $firstDoc->fetch('deliveryTermId,deliveryCalcTransport,deliveryData,deliveryTermTime,valior,deliveryTime');
@@ -836,9 +851,8 @@ class store_ShipmentOrders extends store_DocumentMaster
                 }
             }
 
-            $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
-            $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
-            core_Cache::set($this->className, "loadingDate{$rec->containerId}", $res, 10);
+            // От така намерената дата се приспада времето за подготовка на склада, ако има такова
+            $res = store_Stores::calcLoadingDate($rec->storeId, $deliveryDate);
         }
 
         // От така изчисления срок на доставка се приспадат и нужните за подготовка дни от склада

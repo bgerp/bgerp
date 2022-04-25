@@ -948,22 +948,8 @@ class eshop_Carts extends core_Master
             'note' => tr("Поръчка") . " #{$rec->id}",
         );
 
-        /*
-         * if(!empty($rec->deliveryCountry)){
-            $fields['deliveryAdress'] = drdata_Countries::getTitleById($rec->deliveryCountry);
-            if(!empty($rec->deliveryPCode)) {
-                $fields['deliveryAdress'] .= ", {$rec->deliveryPCode}";
-            }
-         */
-
         // Коя е ценовата политика
-        $priceListId = $settings->listId;
-        if ($lastActiveFolder = core_Mode::get('lastActiveContragentFolder')) {
-            $Cover = doc_Folders::getCover($lastActiveFolder);
-            $priceListId = price_ListToCustomers::getListForCustomer($Cover->getClassId(), $Cover->that);
-        }
-        $fields['priceListId'] = $priceListId;
-        
+        $fields['priceListId'] = cms_Helper::getCurrentEshopPriceList($settings);
         $folderIncharge = doc_Folders::fetchField($folderId, 'inCharge');
         if (haveRole('sales', $folderIncharge)) {
             $fields['dealerId'] = $folderIncharge;

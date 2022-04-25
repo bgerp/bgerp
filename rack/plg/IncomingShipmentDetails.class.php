@@ -25,13 +25,10 @@ class rack_plg_IncomingShipmentDetails extends core_Plugin
     public static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $rows = &$data->rows;
-        if (!countR($rows)) {
-            
-            return;
-        }
+        if (!countR($rows) || $data->masterData->rec->state == 'rejected') return;
         
         $storeId = isset($data->masterMvc->toStoreFieldName) ? $data->masterData->rec->{$data->masterMvc->toStoreFieldName} : $data->masterData->rec->{$data->masterMvc->storeFieldName}; 
-        
+
         foreach ($rows as $id => &$row) {
             $rec = $data->recs[$id];
             $canStore = cat_Products::fetchField($rec->{$mvc->productFld}, 'canStore');

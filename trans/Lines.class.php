@@ -327,6 +327,7 @@ class trans_Lines extends core_Master
     protected static function on_AfterPrepareEditForm(core_Mvc $mvc, $data)
     {
         $form = &$data->form;
+        $form->setFieldTypeParams('start', array('defaultTime' => trans_Setup::get('START_WORK_TIME')));
         $vehicleOptions = trans_Vehicles::makeArray4Select();
         if (countR($vehicleOptions) && is_array($vehicleOptions)) {
             $form->setSuggestions('vehicle', array('' => '') + arr::make($vehicleOptions, true));
@@ -923,8 +924,10 @@ class trans_Lines extends core_Master
             $query->show('folderId');
             $folderId = $query->fetch()->folderId;
         }
+        if(isset($folderId)) return $folderId;
 
-        return $folderId;
+        // Ако не е намерена папка, в която последно е създаване връщане папката проект за транспортни линии
+        return parent::getDefaultFolder();
     }
 
 

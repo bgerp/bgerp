@@ -120,6 +120,10 @@ defIfNot('CAT_TRANSPORT_WEIGHT_STRATEGY', 'paramFirst');
 defIfNot('CAT_PRODUCT_CODE_TYPE', 'default');
 
 
+/**
+ * Продуктови групи които могат да имат правила за обновяване на себестойностти
+ */
+defIfNot('CAT_GROUPS_WITH_PRICE_UPDATE_RULES', '');
 
 
 /**
@@ -133,7 +137,7 @@ defIfNot('CAT_PRODUCT_CODE_TYPE', 'default');
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -246,6 +250,7 @@ class cat_Setup extends core_ProtoSetup
 
         'CAT_DEFAULT_BOM_IS_COMPLETE' => array('enum(yes=Пълни,no=Непълни)', 'caption=Дали рецептите по подразбиране са завършени->Избор'),
         'CAT_TRANSPORT_WEIGHT_STRATEGY' => array('enum(paramFirst=Първо параметър после опаковка,packFirst=Първо опаковка после параметър)', 'caption=Стратегия за изчисляване на транспортния обем->Избор,customizeBy=debug'),
+        'CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => array('keylist(mvc=cat_Groups,select=name)', 'caption=Продуктови групи които могат да имат правила за обновяване на себестойностти->Избор'),
     );
     
     
@@ -351,6 +356,29 @@ class cat_Setup extends core_ProtoSetup
                     $res = false;
                 }
                 break;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Зареждане на данните
+     */
+    public function loadSetupData($itr = '')
+    {
+        $res = parent::loadSetupData($itr);
+
+        // Ако няма посочени от потребителя сметки за синхронизация
+        $groupsWithUpdateRules = cat_Setup::get('GROUPS_WITH_PRICE_UPDATE_RULES');
+        if (strlen($groupsWithUpdateRules) === 0) {
+            if($priceGroupRec = cat_Groups::fetch("#sysId = 'priceGroup'", 'name,id')){
+                $defaultGroupKeylist = keylist::addKey('', $priceGroupRec->id);
+
+                // Записват се ид-та на дефолт сметките за синхронизация
+                core_Packs::setConfig('cat', array('CAT_GROUPS_WITH_PRICE_UPDATE_RULES' => $defaultGroupKeylist));
+                $res .= "<li style='color:green'>Дефолтна продуктова група за ценови правила: <b>{$priceGroupRec->name}</b></li>";
+            }
         }
 
         return $res;

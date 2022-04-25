@@ -400,10 +400,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
             if (is_array($threadsId)) {
+
+                $checkedSInvoices = array();
+
                 foreach ($threadsId as $thread) {
                     $salesInvoiceNotPaid = 0;
-                    $salesInvoiceOverPaid = 0;
-                    $salesInvoiceOverDue = 0;
+
 
                     // масив от фактури в тази нишка //
                     $invoicePayments = (deals_Helper::getInvoicePayments($thread, $checkDate));
@@ -412,6 +414,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($invoicePayments as $inv => $paydocs) {
+
+                            $salesInvoiceOverPaid = 0;
+                            $salesInvoiceOverDue = 0;
+
+                            //Проверка дали отчетена вече фактура не се повтаря
+                            if (in_array($inv,$checkedSInvoices)) continue;
+
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
 
@@ -502,6 +511,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'contragent' => $iRec->contragentName
                                 );
                             }
+                            $checkedSInvoices[$inv] = $inv;
                         }
                     }
                 }
@@ -593,6 +603,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 core_App::setTimeLimit($maxTimeLimit);
             }
 
+            $pThreadsId = array();
+
             // Фактури ПОКУПКИ
             while ($purchaseInvoices = $pQuery->fetch()) {
 
@@ -608,8 +620,6 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                 // Когато е избрано ВСИЧКИ в полето плащане
                 if ($rec->unpaid == 'all') {
-
-                    $aaa[$purchaseInvoices->id] = $fastMarker;
 
                     $invoiceValue = (($purchaseInvoices->dealValue - $purchaseInvoices->discountAmount) + $purchaseInvoices->vatAmount) / $purchaseInvoices->rate;
                     $Invoice = doc_Containers::getDocument($purchaseInvoices->containerId);
@@ -704,13 +714,19 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     }
                 }
 
-                $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
+                if (!in_array($purchaseInvoices->threadId,$pThreadsId)){
+                    $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
+                }
+
             }
 
             if (is_array($pThreadsId)) {
+                $checkedPInvoices = array();
+
                 foreach ($pThreadsId as $pThread) {
+
                     $purchaseInvoiceNotPaid = 0;
-                    $purchaseInvoiceOverDue = 0;
+
 
                     // масив от фактури в тази нишка //
                     $pInvoicePayments = (deals_Helper::getInvoicePayments($pThread, $checkDate));
@@ -719,6 +735,12 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                         // фактура от нишката и масив от платежни документи по тази фактура//
                         foreach ($pInvoicePayments as $pInv => $paydocs) {
+
+                            $purchaseInvoiceOverDue = 0;
+                            $purchaseInvoiceOverPaid = 0;
+
+                         //Проверка дали отчетена вече фактура не се повтаря
+                         if (in_array($pInv,$checkedPInvoices)) continue;
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -729,10 +751,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                             $fastMarker = in_array($purchaseInvoices->threadId, array_keys($fastPur)) ? 0 : 1;
 
-                            // Ако са избрани само неплатените фактури
+                            // Ако са избрани само неплатените фактури пропускаме тези с отклонение под зададения минимум
                             if ($rec->unpaid == 'unpaid') {
-                                if (($invDiff >= -0.01) &&
-                                    ($invDiff <= +0.01)) {
+                                if (($invDiff >= (-1) * $rec->sill) &&
+                                    ($invDiff <= $rec->sill)) {
                                     continue;
                                 }
                             }
@@ -760,6 +782,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $purchaseInvoiceNotPaid = ($invDiff);
                             }
 
+                            if ($invDiff < 0) {
+                                $purchaseInvoiceOverPaid = $invDiff;
+                            }
+
                             if ($iRec->dueDate && ($invDiff) > 0 &&
                                 $iRec->dueDate < $checkDate) {
                                 $purchaseInvoiceOverDue = ($invDiff);
@@ -768,10 +794,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             // Масив с данни за сумите от фактурите  обединени по контрагенти
                             if (!array_key_exists($iRec->contragentName, $totalInvoiceContragent)) {
                                 $totalInvoiceContragent[$iRec->contragentName] = (object)array(
-                                    'totalInvoiceValue' => $paydocs->amount * $iRec->rate, //общо стойност на фактурите за контрагента
-                                    'totalInvoicePayout' => $paydocs->payout * $iRec->rate,//плащания по фактурите за контрагента
-                                    'totalInvoiceNotPaid' => $purchaseInvoiceNotPaid * $iRec->rate,//стойност за плащане по фактурите за контрагента
-                                    'totalInvoiceOverDue' => $purchaseInvoiceOverDue * $iRec->rate,//стойност за плащане по просрочените фактури за контрагента
+                                    'totalInvoiceValue' => $paydocs->amount * $iRec->rate,                               //общо стойност на фактурите за контрагента
+                                    'totalInvoicePayout' => $paydocs->payout * $iRec->rate,                              //плащания по фактурите за контрагента
+                                    'totalInvoiceNotPaid' => $purchaseInvoiceNotPaid * $iRec->rate,                      //стойност за плащане по фактурите за контрагента
+                                    'totalInvoiceOverPaid' => $purchaseInvoiceOverPaid * $iRec->rate,                    //стойност на НАДплатените суми по фактурите за контрагента
+                                    'totalInvoiceOverDue' => $purchaseInvoiceOverDue * $iRec->rate,                      //стойност за плащане по просрочените фактури за контрагента
                                 );
                             } else {
                                 $obj = &$totalInvoiceContragent[$iRec->contragentName];
@@ -779,6 +806,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 $obj->totalInvoiceValue += $paydocs->amount * $iRec->rate;
                                 $obj->totalInvoicePayout += $paydocs->payout * $iRec->rate;
                                 $obj->totalInvoiceNotPaid += $purchaseInvoiceNotPaid * $iRec->rate;
+                                $obj->totalInvoiceOverPaid += $purchaseInvoiceOverPaid * $iRec->rate;
                                 $obj->totalInvoiceOverDue += $purchaseInvoiceOverDue * $iRec->rate;
                             }
 
@@ -804,7 +832,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'contragent' => $iRec->contragentName
                                 );
                             }
+                            $checkedPInvoices[$pInv] = $pInv;
                         }
+
                     }
                 }
             }

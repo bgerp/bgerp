@@ -853,7 +853,7 @@ class sales_Invoices extends deals_InvoiceMaster
     public static function on_AfterActivation($mvc, &$rec)
     {
         $rec = $mvc->fetchRec($rec);
-        
+
         if (!empty($rec->sourceContainerId)) {
             $Source = doc_Containers::getDocument($rec->sourceContainerId);
             if ($Source->isInstanceOf('store_ShipmentOrders')) {
@@ -869,9 +869,25 @@ class sales_Invoices extends deals_InvoiceMaster
                     $amount = $Source->getPaymentData($sRec)->amount;
                     $dRec = (object)array('documentContainerId' => $sRec->containerId, 'containerId' => $sRec->fromContainerId, 'amount' => $amount);
                     deals_InvoicesToDocuments::save($dRec);
-
                     doc_DocumentCache::cacheInvalidation($sRec->containerId);
                 }
+            }
+        }
+
+        // Ако има задължителен експортен параметър - кешира се към момента на активиране
+        if($exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')){
+            $Details = cls::get('sales_InvoiceDetails');
+            $saveDetails = array();
+            $dQuery = $Details->getQuery();
+            $dQuery->where("#invoiceId = {$rec->id} AND (#exportParamValue IS NULL OR #exportParamValue = '')");
+            $dQuery->show('productId,exportParamValue');
+            while($dRec = $dQuery->fetch()){
+                $dRec->exportParamValue = cat_Products::getParams($dRec->productId, $exportParamId);
+                $saveDetails[] = $dRec;
+            }
+
+            if(countR($saveDetails)){
+                $Details->saveArray($saveDetails, 'id,exportParamValue');
             }
         }
     }

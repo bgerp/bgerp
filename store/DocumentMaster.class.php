@@ -74,14 +74,8 @@ abstract class store_DocumentMaster extends core_Master
      * Нужно ли е да има детайл, за да стане на 'Заявка'
      */
     public $requireDetailForPending = false;
-    
-    
-    /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
-    
-    
+
+
     /**
      * Полета, които при клониране да не са попълнени
      *
@@ -102,13 +96,13 @@ abstract class store_DocumentMaster extends core_Master
     protected static function setDocFields(core_Master &$mvc)
     {
         $mvc->FLD('valior', 'date', 'caption=Дата');
-        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Плащане->Валута,smartCenter');
+        $mvc->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'input=none,caption=Вал.,smartCenter');
         $mvc->FLD('currencyRate', 'double(decimals=5)', 'caption=Валута->Курс,input=hidden');
         $mvc->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=От склад, mandatory,silent,removeAndRefreshForm=deliveryTime');
         $mvc->FLD('chargeVat', 'enum(yes=Включено ДДС в цените, separate=Отделен ред за ДДС, exempt=Освободено от ДДС, no=Без начисляване на ДДС)', 'caption=ДДС,input=hidden');
         
-        $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Доставено->Сума,input=none,summary=amount,smartCenter'); // Сумата на доставената стока
-        $mvc->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=Доставено->ДДС,input=none,summary=amount,smartCenter');
+        $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Общо,input=none,summary=amount,smartCenter'); // Сумата на доставената стока
+        $mvc->FLD('amountDeliveredVat', 'double(decimals=2)', 'caption=ДДС,input=none,summary=amount,smartCenter');
         $mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
         $mvc->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $mvc->FLD('contragentId', 'int', 'input=hidden');
@@ -700,21 +694,23 @@ abstract class store_DocumentMaster extends core_Master
         // Ако оригиналния документ е закачен към ТЛ, закача се и този
         if((empty($rec->id) || $rec->_replaceReverseContainerId) && isset($rec->reverseContainerId)){
             $Doc = doc_Containers::getDocument($rec->reverseContainerId);
-            $fields = ($Doc->isInstanceOf('deals_DealMaster')) ? 'deliveryTime,valior' : "{$Doc->lineFieldName},deliveryTime,valior";
-            $docRec = $Doc->fetch($fields);
 
-            if($docRec->{$Doc->lineFieldName}){
-                $lineStart = trans_Lines::fetchField($docRec->{$Doc->lineFieldName}, 'start');
-                $deliveryTime = !empty($rec->deliveryTime) ? $rec->deliveryTime : (($rec->valior) ? $rec->valior : dt::today());
-                $deliveryTime = (strlen($deliveryTime) == 10) ? "{$deliveryTime} 23:59:59" : $deliveryTime;
-                $docDeliveryTime = !empty($docRec->deliveryTime) ? $docRec->deliveryTime : (($docRec->valior) ? $docRec->valior : dt::today());
-                $docDeliveryTime = (strlen($docDeliveryTime) == 10) ? "{$docDeliveryTime} 23:59:59" : $docDeliveryTime;
+            if(isset($Doc->lineFieldName)){
+                $docRec = $Doc->fetch("{$Doc->lineFieldName},deliveryTime,valior");
 
-                // ако датата на документа за връщане е по-голяма или равна от тази на оригиналния документ
-                // и по-малка или равна от тази на ТЛ
-                if($deliveryTime >= $docDeliveryTime && $deliveryTime <= $lineStart){
-                    $rec->{$mvc->lineFieldName} = $docRec->{$Doc->lineFieldName};
-                    $rec->_changeLine = true;
+                if($docRec->{$Doc->lineFieldName}){
+                    $lineStart = trans_Lines::fetchField($docRec->{$Doc->lineFieldName}, 'start');
+                    $deliveryTime = !empty($rec->deliveryTime) ? $rec->deliveryTime : (($rec->valior) ? $rec->valior : dt::today());
+                    $deliveryTime = (strlen($deliveryTime) == 10) ? "{$deliveryTime} 23:59:59" : $deliveryTime;
+                    $docDeliveryTime = !empty($docRec->deliveryTime) ? $docRec->deliveryTime : (($docRec->valior) ? $docRec->valior : dt::today());
+                    $docDeliveryTime = (strlen($docDeliveryTime) == 10) ? "{$docDeliveryTime} 23:59:59" : $docDeliveryTime;
+
+                    // ако датата на документа за връщане е по-голяма или равна от тази на оригиналния документ
+                    // и по-малка или равна от тази на ТЛ
+                    if($deliveryTime >= $docDeliveryTime && $deliveryTime <= $lineStart){
+                        $rec->{$mvc->lineFieldName} = $docRec->{$Doc->lineFieldName};
+                        $rec->_changeLine = true;
+                    }
                 }
             }
         }

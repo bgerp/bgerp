@@ -214,10 +214,16 @@ abstract class trans_Helper
      */
     public static function calcShippedOnDate($valior, $lineId, $activatedOn)
     {
-        if(!empty($valior)) return $valior;
+        $shippedDate = null;
+        if(!empty($valior)) {
+            $startTime = trans_Setup::get('START_WORK_TIME');
+            $shippedDate = "{$valior} {$startTime}:00";
+        } elseif(isset($lineId)){
+            $shippedDate = trans_Lines::fetchField($lineId, 'start');
+        }
 
-        if(isset($lineId)) return trans_Lines::fetchField($lineId, 'start');
+        $shippedDate = (!empty($shippedDate) && $shippedDate >= dt::now()) ? $shippedDate :(dt::today() . " " . trans_Setup::get('END_WORK_TIME') . ":00");
 
-        return $activatedOn;
+        return $shippedDate;
     }
 }

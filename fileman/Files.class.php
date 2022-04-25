@@ -2410,6 +2410,12 @@ class fileman_Files extends core_Master
             $data->toolbar->addBtn('Печат', array($mvc, 'PrintFrame', 'fileHnd' => $data->rec->fileHnd, 'currentTab' => Request::get('currentTab'), 'ret_url' => true), 'id=btnPrint, target=_blank', "ef_icon = img/16/printer.png, title=Печат на изгледа");
         }
 
+        $nameAndExt = $mvc->getNameAndExt($data->rec->name);
+        $ext = strtolower($nameAndExt['ext']);
+        if ($ext == 'pdf') {
+            $data->toolbar->addBtn('Преглед', array($mvc, 'PreviewFile', $data->rec->fileHnd), 'id=btnPreview, target=_blank', "ef_icon = fileman/icons/16/{$ext}.png, title=Преглед на файла,row=2");
+        }
+
         // Очакваме да има такъв файл
         expect($fRec = $data->rec);
         
@@ -2592,7 +2598,8 @@ class fileman_Files extends core_Master
         Mode::set('printing');
 
         if (stripos($fileInfo, '<iframe') !== false) {
-            $fileInfo->append("document.getElementsByTagName('iframe')[0].contentWindow.print();", 'SCRIPTS');
+            $fileInfo->append("function runFramePrinting(){document.getElementsByTagName('iframe')[0].contentWindow.print();};", 'SCRIPTS');
+            $fileInfo->append("runOnLoad(runFramePrinting);", 'SCRIPTS');
             $fileInfo->append(".webdrvFieldset, .webdrvTabBody, .tab-page, .tab-control, .printing {width: 100% !important; height: 100% !important;}", 'STYLES');
 
             Mode::set('runPrinting', false);

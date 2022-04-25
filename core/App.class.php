@@ -53,7 +53,7 @@ class core_App
             
             // Генерираме съдържанието
             $content = core_Request::forward();
-            
+
             // Опакова съдържанието
             $Wrapper = core_Cls::get('core_page_Wrapper');
             $Wrapper->render($content);
@@ -1192,22 +1192,30 @@ class core_App
      *
      * @return array
      */
-    public static function getRepos()
+    public static function getRepos($usePrivate = true)
     {
         static $repos;
-        
+
+        static $sRepos;
+
         static $havePrivate = false;
-        
+
         if (!is_array($repos)) {
             $repos = array();
             $repos = self::getReposByPathAndBranch(EF_APP_PATH, defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null);
+            $sRepos = $repos;
         }
-        
+
+        if (!$usePrivate) {
+
+            return $sRepos;
+        }
+
         if (!$havePrivate && defined('EF_PRIVATE_PATH')) {
             $repos = self::getReposByPathAndBranch(EF_PRIVATE_PATH, defined('PRIVATE_GIT_BRANCH') ? PRIVATE_GIT_BRANCH : (defined('BGERP_GIT_BRANCH') ? BGERP_GIT_BRANCH : null)) + $repos;
             $havePrivate = true;
         }
-        
+
         return $repos;
     }
     
@@ -1255,12 +1263,12 @@ class core_App
      * Файла се търси в EF_PRIVATE_PATH, EF_APP_PATH
      * Ако не бъде открит, се връща FALSE
      */
-    public static function getFullPath($shortPath)
+    public static function getFullPath($shortPath, $usePrivate = true)
     {
         // Не може да има връщане назад, в името на файла
         expect(!preg_match('/\.\.(\\\|\/)/', $shortPath));
         
-        $repos = self::getRepos();
+        $repos = self::getRepos($usePrivate);
         
         foreach (array_keys($repos) as $base) {
             $fullPath = $base . '/' . $shortPath;
@@ -1415,5 +1423,45 @@ class core_App
         }
         
         return $isSecure;
+    }
+    
+
+    /**
+     * Проверка дали репликацията е ОК
+     *
+     * @return string
+     */
+    public static function isReplicationOK()
+    {
+        $errors = '';
+        
+        if (defined('SEARCH_DB_NAME') && defined('SEARCH_DB_USER') && defined('SEARCH_DB_PASS') && defined('SEARCH_DB_HOST')) {
+            $conn = mysqli_init();
+            $conn->options(MYSQLI_OPT_CONNECT_TIMEOUT, 1);
+            if (!@$conn->real_connect(SEARCH_DB_HOST, SEARCH_DB_USER, SEARCH_DB_PASS, SEARCH_DB_NAME)) {
+                $errors = mysqli_connect_errno() . ":" . mysqli_connect_error();
+                return ($errors);
+            }
+        
+            $result = $conn->query("show slave status");
+            if (!$result) {
+                $errors = mysqli_errno($conn) . ":" . mysqli_error($conn);
+                return ($errors);
+            }
+            $row = $result->fetch_assoc();
+            if ($row['Slave_IO_Running'] == 'No') {
+                $errors .= "Slave IO not running on " . SEARCH_DB_HOST . "\n";
+                $errors .= "Error number: {$row['Last_IO_Errno']}\n";
+                $errors .= "Error message: {$row['Last_IO_Error']}\n\n";
+            }
+            if ($row['Slave_SQL_Running'] == 'No') {
+                $errors .= "Slave SQL not running on " . SEARCH_DB_HOST . "\n";
+                $errors .= "Error number: {$row['Last_SQL_Errno']}\n";
+                $errors .= "Error message: {$row['Last_SQL_Error']}\n\n";
+            }
+            mysqli_close($conn);
+        }
+        
+        return $errors;
     }
 }

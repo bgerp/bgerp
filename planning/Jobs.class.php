@@ -58,7 +58,7 @@ class planning_Jobs extends core_Master
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'storeId,dueDate,packQuantity,notes,tolerance,sharedUsers';
+    public $changableFields = 'storeId,dueDate,packQuantity,notes,tolerance,sharedUsers,allowSecondMeasure';
     
     
     /**
@@ -1964,5 +1964,39 @@ class planning_Jobs extends core_Master
         }
 
         return $count;
+    }
+
+
+    /**
+     * Коя е дефолт папката за нови записи
+     */
+    public function getDefaultFolder()
+    {
+        // Първо се търси последната папка на ЦД, където потребителя е създавал задания
+        $centerClassId = planning_Centers::getClassId();
+        $cu = core_Users::getCurrent();
+        $query = $this->getQuery();
+        $query->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+        $query->where("#state != 'rejected' AND #createdBy = '{$cu}' AND #coverClass = {$centerClassId}");
+        doc_Folders::restrictAccess($query, $cu);
+        $query->show('folderId');
+        $query->orderBy('createdOn', 'DESC');
+        $query->limit(1);
+
+        // Ако има връща се тя
+        $folderId = $query->fetch()->folderId;
+        if(!empty($folderId))  return $folderId;
+
+        // Ако потребителя не е създавал, гледам папката в чиято нишка на задание, потребителя е променял документи
+        $cQuery = doc_Containers::getQuery();
+        doc_Folders::restrictAccess($cQuery, $cu);
+        $cQuery->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+        $cQuery->EXT('firstDocClass', 'doc_Threads', 'externalName=firstDocClass,externalKey=threadId');
+        $cQuery->where("(#createdBy = {$cu} OR #modifiedBy = {$cu}) AND #coverClass = {$centerClassId} AND #firstDocClass=" . $this->getClassId());
+        $cQuery->show('folderId');
+        $cQuery->orderBy('modifiedOn', 'DESC');
+        $cQuery->limit(1);
+
+        return $cQuery->fetch()->folderId;
     }
 }

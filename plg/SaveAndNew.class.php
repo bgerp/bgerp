@@ -2,14 +2,14 @@
 
 
 /**
- * Клас 'plg_SaveAndNew' - Инструменти за изтриване и редактиране на ред
+ * Клас 'plg_SaveAndNew' - Плъгин за добавяне на "Запис и Нов"
  *
  *
- * @category  ef
+ * @category  bgerp
  * @package   plg
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2012 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -60,6 +60,8 @@ class plg_SaveAndNew extends core_Plugin
                     Mode::setPermanent($permanentName, $data->form->rec->{$name});
                 }
             }
+
+            Mode::setPermanent(cls::getClassName($mvc) . '_SAVE_AND_NEW', true);
         } elseif ($data->cmd != 'delete' && $data->form->cmd != 'refresh') {
             if (!$data->form->gotErrors()) {
                 $fields = $data->form->selectFields("#remember == 'info' || #name == 'id'");
@@ -87,7 +89,8 @@ class plg_SaveAndNew extends core_Plugin
                 }
                 
                 if ($mvc->rememberTpl && $id) {
-                    $row = $mvc->recToVerbal($mvc->fetch($id));
+                    $rec = $mvc->fetch($id);
+                    $row = $mvc->recToVerbal($rec);
                     $tpl = new ET($mvc->rememberTpl);
                     $tpl->placeObject($row);
                     $info = $tpl->getContent();
@@ -96,14 +99,13 @@ class plg_SaveAndNew extends core_Plugin
                 if ($info) {
                     $info = '<div style="padding:5px; background-color:#ffffcc; border:solid 1px #cc9;">' .
                     tr('Последно добавено') . ": <ul style='margin:5px;padding-left:10px;'>{$info}</ul></div>";
-                    
                     $data->form->info .= $info;
                 }
             }
             
             // Изтриваме от сесията, полетата със запомняне
             $fields = $data->form->selectFields('#remember');
-            
+
             if (countR($fields)) {
                 foreach ($fields as $name => $fld) {
                     $permanentName = cls::getClassName($mvc) . '_' . $name;
@@ -129,6 +131,7 @@ class plg_SaveAndNew extends core_Plugin
             
             return;
         }
+
         if (empty($data->form->rec->id)) {
             $data->form->toolbar->addSbBtn('Запис и Нов', 'save_n_new', null, array('id' => 'saveAndNew', 'order' => '9.99965', 'ef_icon' => 'img/16/save_and_new.png', 'title' => 'Запиши документа и създай нов'));
         }
@@ -158,6 +161,11 @@ class plg_SaveAndNew extends core_Plugin
                     }
                 }
             }
+        }
+
+        if(Mode::get(cls::getClassName($mvc) . '_SAVE_AND_NEW')){
+            $data->_isSaveAndNew = true;
+            Mode::setPermanent(cls::getClassName($mvc) . '_SAVE_AND_NEW', null);
         }
     }
 }

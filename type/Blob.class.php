@@ -75,6 +75,11 @@ class type_Blob extends core_Type
             
             return;
         }
+
+        if(is_scalar($value)) {
+            return type_Varchar::escape($value);
+        }
+
         $value = $this->fromMysql($value);
         
         if ($value && !$this->params['binary']) {
