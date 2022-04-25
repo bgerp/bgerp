@@ -290,7 +290,7 @@ class hr_Departments extends core_Master
         
         if ($chartType == 'Structure') {
             $tpl = static::getChart($data);
-            $mvc->currentTab = 'Структура->Графика';
+            $mvc->currentTab = 'Структура->Диаграма';
         } else {
             $mvc->currentTab = 'Структура->Таблица';
         }

@@ -630,7 +630,7 @@ class planning_Tasks extends core_Master
        if(!empty($rec->expectedTimeStart) || !empty($rec->timeDuration) || !empty($rec->expectedTimeEnd)){
             $resArr['times'] = array('name' => tr('Времена'), 'val' => tr("|*<table>
                 <!--ET_BEGIN expectedTimeStart--><tr><td style='font-weight:normal'>|Очаквано начало|*:</td><td>[#expectedTimeStart#]</td></tr><!--ET_END expectedTimeStart-->
-                <!--ET_BEGIN timeDuration--><tr><td style='font-weight:normal'>|Прод-ност|*:</td><td>[#timeDuration#]</td></tr><!--ET_END timeDuration-->
+                <!--ET_BEGIN timeDuration--><tr><td style='font-weight:normal'>|Производство|*:</td><td>[#timeDuration#]</td></tr><!--ET_END timeDuration-->
                 <!--ET_BEGIN expectedTimeEnd--><tr><td style='font-weight:normal'>|Очакван край|*:</td><td>[#expectedTimeEnd#] <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime--></td></tr><!--ET_END expectedTimeEnd-->
                 </table>"));
         }

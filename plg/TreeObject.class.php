@@ -373,7 +373,10 @@ class plg_TreeObject extends core_Plugin
         if ($fields['-single']) {
 
             $mQuery = $mvc->getQuery();
-            $mQuery->where("#state != 'rejected'");
+
+            if ($mvc->getField('state', false)) {
+                $mQuery->where("#state != 'rejected'");
+            }
 
             $dArr = $mQuery->fetchAll();
 

@@ -106,9 +106,32 @@ class planning_Hr extends core_Master
     {
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name)', 'input=hidden,silent,mandatory,caption=Оператор');
         $this->FLD('code', 'varchar', 'caption=Код');
+        $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty)', 'caption=Работен график');
         $this->FNC('centers', 'keylist(mvc=doc_Folders,select=title)', 'mandatory, input, caption=Центрове на дейност');
         $this->setDbIndex('code');
         $this->setDbUnique('personId');
+    }
+
+    
+    /**
+     * Изчисляване на функционалното поле centers
+     */
+    public function on_CalcCenters(core_Mvc $mvc, $rec)
+    {
+        $fodlerQuery = planning_AssetResourceFolders::getQuery();
+        $fodlerQuery->where("#classId={$this->getClassId()} AND #objectId = {$rec->id}");
+         
+        $fodlerQuery->show('folderId');
+        $folders = arr::extractValuesFromArray($fodlerQuery->fetchAll(), 'folderId');
+
+        if(is_array($folders)) {
+            $in = implode(',', $folders);
+            $cQuery = planning_Centers::getQuery();
+            $cQuery->show('folderId');
+            $centers = arr::extractValuesFromArray($cQuery->fetchAll("#folderId IN ({$in})"), 'folderId');
+            $rec->centers = keylist::fromArray($centers);
+        }
+     
     }
     
     
@@ -258,6 +281,11 @@ class planning_Hr extends core_Master
         if($data->row->_rowTools instanceof core_RowToolbar){
             $data->row->code_toolbar = $data->row->_rowTools->renderHtml();
         }
+
+        if(isset($data->row->scheduleId) && hr_Schedules::haveRightFor('read')) {
+            $data->row->scheduleId = hr_Schedules::getHyperLink($data->rec->scheduleId, $data->row->scheduleId);
+        }
+
         $tpl->placeObject($data->row);
         
         if ($eRec = hr_EmployeeContracts::fetch("#personId = {$data->masterId}")) {
@@ -273,6 +301,43 @@ class planning_Hr extends core_Master
         $tpl->removeBlocks();
         
         return $tpl;
+    }
+
+
+    /**
+     * Връща приложимото работно време за дадения служител
+     * Вземат се по реда на приоритет:
+     *    о Ако има зададен Работен график в този модел
+     *    о Работния график на департамента на служителя
+     *    о Дефолтния работен график = null
+     *
+     * @param int $personId
+     *
+     * @return int?
+     */
+    public static function getSchedule($personId)
+    {
+        $scheduleId = null;
+                
+        // Опитваме се да вземем персоналния график на служителя
+        $hrRec = self::fetch("#personId = {$personId}");
+
+        if(isset($hrRec->scheduleId)) {
+            $scheduleId = $hrRec->scheduleId;
+        } else {
+            $state = hr_EmployeeContracts::getQuery();
+            $state->where("#personId='{$personId}' AND #state = 'active'");
+            if ($employeeContractDetails = $state->fetch()) {
+                if(isset($employeeContractDetails->departmentId)) {
+                    $pcRec = planning_Centers::fetch($employeeContractDetails->departmentId);
+                    if(isset($pcRec->scheduleId)) {
+                        $scheduleId = $pcRec->scheduleId;
+                    }
+                }
+            }
+        }
+        
+        return $scheduleId;
     }
     
     

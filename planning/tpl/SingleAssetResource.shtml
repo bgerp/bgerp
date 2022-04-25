@@ -25,6 +25,14 @@
                     <td>[#simultaneity#]</td>
                 </tr>
                 <!--ET_END simultaneity-->
+				<!--ET_BEGIN scheduleId-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |График|*:
+                    </td>
+                    <td>[#scheduleId#]</td>
+                </tr>
+                <!--ET_END scheduleId-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Създаване|*:
@@ -47,7 +55,7 @@
         
         <!--ET_BEGIN jobs-->
         <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
-            <legend class="groupTitle">|Използване|*</legend>
+            <legend class="groupTitle">|Операции|*</legend>
             <ul>
 	            <!--ET_BEGIN assetFolderId-->
 	            <li class="info">

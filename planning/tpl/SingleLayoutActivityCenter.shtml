@@ -24,7 +24,7 @@
 	                <div>|Щат на служителите|*: <b>[#employersCntAll#]</b></div>
 	                <!--ET_END employersCntAll-->
 	                <!--ET_BEGIN schedule-->
-	                <div>|График|*: <b>[#schedule#]</b></div>
+	                <div>|График|*: <b>[#scheduleId#]</b></div>
 	                <!--ET_END schedule-->
 	                <!--ET_BEGIN startingOn-->
 	                <div>|Започва на|*: <b>[#startingOn#]</b></div>
