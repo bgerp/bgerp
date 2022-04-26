@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -552,5 +552,30 @@ class store_reports_Documents extends frame2_driver_TableData
         $d3 = $date->format('Y-m-d H:i:s');
         
         return array($d1, $d2, $d3);
+    }
+
+
+    /**
+     * Дали при автоматичното обновяване по крон да се обновява справката
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function tryToAutoRefresh($rec)
+    {
+        $before = dt::addSecs(-1 * 5 * 60);
+        if(!$rec->documentType){
+            $documents = array(planning_ConsumptionNotes::getClassId(), planning_ReturnNotes::getClassId(), store_Transfers::getClassId(), store_ShipmentOrders::getClassId(), store_Receipts::getClassId(), planning_DirectProductionNote::getClassId(), store_ConsignmentProtocols::getClassId());
+        } else {
+            $documents = arr::make($rec->documentType);
+        }
+
+        // Ако няма модифицирани складори документи за последните 5 минути да не се обновява автоматично справката
+        $query = doc_Containers::getQuery();
+        $query->in('docClass', $documents);
+        $query->where("#modifiedOn >= '{$before}'");
+        $modifiedCount = $query->count();
+
+        return !empty($modifiedCount);
     }
 }
