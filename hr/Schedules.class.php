@@ -343,7 +343,7 @@ class hr_Schedules extends core_Master
         $startingTimes = self::getStartingTimes($data->masterId, $firstDay, $lastDay);
      
         foreach($startingTimes as $day => $time) {
-            $data->Calendar[(int) substr($day, 8,)] = substr($time, 0, 5);
+            $data->Calendar[(int) substr($day, 8)] = substr($time, 0, 5);
         }
 
         list($data->CalendarYear, $data->CalendarMonth) = explode('-', $firstDay);
