@@ -580,7 +580,11 @@ class purchase_Purchases extends deals_DealMaster
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
-            
+
+            if(!empty($rec->reff)){
+                $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : $rec->reff;
+            }
+
             $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
             
             if (core_Packs::isInstalled('batch')) {
