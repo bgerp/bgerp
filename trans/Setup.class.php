@@ -46,7 +46,7 @@ defIfNot('TRANS_SHOW_LOG_INFO_IN_DOCUMENTS', 'show');
 /**
  * Начало на работния ден за доставка
  */
-defIfNot('TRANS_START_WORK_TIME', '09:09');
+defIfNot('TRANS_START_WORK_TIME', '08:08');
 
 
 /**
