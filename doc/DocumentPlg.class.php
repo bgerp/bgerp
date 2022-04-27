@@ -89,23 +89,23 @@ class doc_DocumentPlg extends core_Plugin
         
         // Добавяне на полета за created
         if (!$mvc->fields['createdOn']) {
-            $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created->На, notNull, input=none');
+            $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created, notNull, input=none');
         }
 
         if (!$mvc->fields['createdBy']) {
-            $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване||Created->От||By, notNull, input=none');
+            $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създал||Creator, notNull, input=none');
         }
 
         // Добавяне на полета за modified
-        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Модифициране||Modified->На,input=none');
-        $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Модифициране||Modified->От||By,input=none');
+        $mvc->FLD('modifiedOn', 'datetime(format=smartTime)', 'caption=Промяна||Modified,input=none');
+        $mvc->FLD('modifiedBy', 'key(mvc=core_Users)', 'caption=Променил||Modified By,input=none');
         
         if (!$mvc->fields['activatedOn']) {
-            $mvc->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated->На,input=none');
+            $mvc->FLD('activatedOn', 'datetime(format=smartTime)', 'caption=Активиране||Activated,input=none');
         }
         
         if (!$mvc->fields['activatedBy']) {
-            $mvc->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активиране||Activated->От||By,input=none');
+            $mvc->FLD('activatedBy', 'key(mvc=core_Users)', 'caption=Активирал||Activated By,input=none');
         }
         
         // Вербализирането на ид-то да е без интервали за улеснение
