@@ -1125,20 +1125,21 @@ class planning_Jobs extends core_Master
         $mvc->save_($rec, 'history');
         
         // Ако заданието е затворено, затваряме и задачите към него
-        if ($rec->state == 'closed') {
-            $count = 0;
-            $tQuery = planning_Tasks::getQuery();
-            $tQuery->where("#originId = '{$rec->containerId}' AND #state != 'draft' AND #state != 'rejected' AND #state != 'stopped' AND #state != 'closed'");
-            while ($tRec = $tQuery->fetch()) {
-                $tRec->state = 'closed';
-                $tRec->timeClosed = dt::now();
-                cls::get('planning_Tasks')->save_($tRec, 'state,timeClosed');
-                planning_Tasks::logWrite("Приключване на задача, след приключване на заданието", $tRec->id);
-                $count++;
+        if($rec->state == 'stopped' || ($rec->brState == 'stopped' && $rec->state == 'active')){
+            $Tasks = cls::get('planning_Tasks');
+
+            $inStates = ($rec->state == 'stopped') ? array('active', 'wakeup') : array('stopped');
+            $action = ($rec->state == 'stopped') ? 'stop' : 'activateAgain';
+            $msg = ($rec->state == 'stopped') ? 'Спрени' : 'Пуснати';
+            $taskRecs = planning_Tasks::getTasksByJob($rec->id, $inStates, false);
+            $syncedCount = countR($taskRecs);
+            foreach ($taskRecs as $tRec){
+                planning_plg_StateManager::changeState($Tasks, $tRec, $action);
             }
-            
-            if (!empty($count)) {
-                core_Statuses::newStatus(tr("|Затворени са|* {$count} |задачи по заданието|*"));
+
+            if($syncedCount){
+                $syncedCountVerbal = core_Type::getByName('int')->toVerbal($syncedCount);
+                core_Statuses::newStatus("{$msg} са|* {$syncedCountVerbal} |операции|*!");
             }
         }
         
@@ -1268,11 +1269,12 @@ class planning_Jobs extends core_Master
 
         // Показване на наличните опции за клониране на операция от предходно задание
         if (isset($jobRec->oldJobId)) {
-            $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId);
+            $oldTasks = planning_Tasks::getTasksByJob($jobRec->oldJobId, array('draft', 'waiting', 'active', 'wakeup', 'stopped', 'closed'));
+
             if (countR($oldTasks)) {
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => tr('От предишно задание') . planning_Jobs::getLink($jobRec->oldJobId, 0), 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 3);
-                foreach ($oldTasks as $k1 => $oldTitle) {
-                    $oldTitle = ht::createLink($oldTitle, planning_Tasks::getSingleUrlArray($k1));
+                foreach ($oldTasks as $k1 => $link) {
+                    $oldTitle = $link;
                     $warning = false;
                     if($taskId = planning_Tasks::fetchField("#originId = {$jobRec->containerId} AND #clonedFromId = {$k1} AND #state != 'rejected'")){
                         if(planning_Tasks::haveRightFor('single', $taskId)){
@@ -1422,6 +1424,19 @@ class planning_Jobs extends core_Master
         if (doc_Containers::fetchField("#threadId = {$rec->threadId} AND #state = 'pending'")) {
             
             return 'Заданието не може да се приключи, защото има документи в състояние "Заявка"';
+        }
+
+        $notClosedTasks = array();
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$rec->containerId} AND #state IN ('active', 'wakeup', 'stopped')");
+        $tQuery->show('id');
+        while($tRec = $tQuery->fetch()){
+            $notClosedTasks[] = "#" . planning_Tasks::getHandle($tRec->id);
+        }
+
+        if(countR($notClosedTasks)){
+
+            return "Заданието не може да бъде приключено докато не са приключени операциите към него|*: " . implode(', ', $notClosedTasks);
         }
     }
     
@@ -1998,5 +2013,19 @@ class planning_Jobs extends core_Master
         $cQuery->limit(1);
 
         return $cQuery->fetch()->folderId;
+    }
+
+
+    /**
+     * Изпълнява се преди оттеглянето на документа
+     */
+    protected static function on_BeforeReject(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        $taskRecs = planning_Tasks::getTasksByJob($rec->id, array('draft', 'waiting', 'active', 'wakeup', 'stopped'));
+        if(countR($taskRecs)){
+            core_Statuses::newStatus("Не може да се оттегли, докато следните операции не са оттеглени/приключени|*: " . implode(', ', $tasks), 'warning');
+            return false;
+        }
     }
 }
