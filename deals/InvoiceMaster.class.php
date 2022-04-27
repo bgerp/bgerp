@@ -1207,6 +1207,8 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         if ($fields['-single']) {
+            $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
+
             if(!in_array($rec->vatRate, array('yes', 'separate'))){
                 if(empty($rec->vatReason)){
                     $vatReason = $mvc->getNoVatReason($rec->contragentCountryId, $rec->contragentVatNo);

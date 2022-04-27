@@ -188,6 +188,11 @@ defIfNot('SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS', '432000');
 defIfNot('SALES_DEFAULT_LOCATION_FOR_INVOICE', '');
 
 
+/**
+ * Показване на ваш реф в нишката на продажбата
+ */
+defIfNot('SALES_SHOW_REFF_IN_SALE_THREAD', 'no');
+
 
 /**
  * Продажби - инсталиране / деинсталиране
@@ -349,6 +354,7 @@ class sales_Setup extends core_ProtoSetup
 
         'SALES_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за нефактурирано получено плащане ("0" за изключване)->Време'),
         'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicer,optionsFunc=crm_Locations::getOwnLocations'),
+        'SALES_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към продажба->Избор'),
     );
     
     

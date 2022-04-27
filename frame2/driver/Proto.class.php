@@ -263,4 +263,16 @@ abstract class frame2_driver_Proto extends core_BaseClass
     {
         return 'img/16/report.png';
     }
+
+
+    /**
+     * Дали при автоматичното обновяване по крон да се обновява справката
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function tryToAutoRefresh($rec)
+    {
+        return true;
+    }
 }
