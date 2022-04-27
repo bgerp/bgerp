@@ -2059,10 +2059,7 @@ class planning_Tasks extends core_Master
         }
     }
 
-public function act_Test()
-    {
-        planning_AssetResources::reOrderTasks(3);
-}
+
     /**
      * След рендиране на лист таблицата
      */
