@@ -131,7 +131,7 @@ class hr_Schedules extends core_Master
 
             $cache[$key] = $res;
             
-            //return $res;
+            return $res;
         }
 
         $from   = dt::addTimeIfNot($from);
@@ -509,7 +509,7 @@ class hr_Schedules extends core_Master
             $rec = new stdClass();
             $rec->scheduleId = $id;
             $rec->type = 'working';
-            $rec->start = '2015-01-01 09:00:00';
+            $rec->start = '2015-01-01 08:00:00';
             $rec->duration = (8*60+30)*60;
             $rec->break = 30*60;
             $rec->repeat = 24*60*60;
@@ -526,7 +526,7 @@ class hr_Schedules extends core_Master
             $rec = new stdClass();
             $rec->scheduleId = $id;
             $rec->type = 'working';
-            $rec->start = '2015-01-01 09:00:00';
+            $rec->start = '2015-01-01 00:00:00';
             $rec->duration = (24*60)*60;
             $rec->break = 0;
             $rec->repeat = 24*60*60;

@@ -53,10 +53,9 @@ class core_Intervals {
 
     /**
      * Изрязва подадения интервал време от наличните
-     * Ако е подаден $minDuration всички остатъци с по-малка продължителност се премахват
      *
      */
-    public function cut($begin, $end, $minDuration = null)
+    public function cut($begin, $end)
     {
         expect($begin <= $end, $begin, $end);
 
