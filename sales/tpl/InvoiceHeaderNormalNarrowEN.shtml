@@ -9,6 +9,9 @@
                         <span class="state [#STATE_CLASS#]">
                         № <span class="bigData">[#number#]</span> /
                         <span class="bigData">[#date#]</span>
+                            <!--ET_BEGIN reff-->
+                            <div>|Ваш реф|* <span class="bigData">[#reff#]</span></div>
+                            <!--ET_END reff-->
                         </span>
                     <!--ET_BEGIN place-->
                     <div class="subtitle">[#place#]</div>

@@ -453,6 +453,7 @@ abstract class store_DocumentMaster extends core_Master
         if (isset($fields['-single'])) {
             core_Lg::push($rec->tplLang);
 
+            $row->reff = deals_Helper::getYourReffInThread($rec->threadId);
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
             $row = (object) ((array) $row + (array) $headerInfo);
 

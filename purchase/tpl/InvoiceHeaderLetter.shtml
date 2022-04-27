@@ -10,6 +10,9 @@
                                 <div class='title-subInfo'>|Номер|* <span class='subtitle-text'>[#number#]</span></div>
                                 <div class='title-subInfo'>|Дата|* <span class='subtitle-text'>[#date#]</span></div>
                                 <!--ET_BEGIN dealPlace--><div class='title-subInfo'>|Място|* <span class='subtitle-text'>[#dealPlace#]</span></div><!--ET_END dealPlace-->
+                                <!--ET_BEGIN reff-->
+                                <div class='title-subInfo'>Ваш реф: <span class="subtitle-text">[#reff#]</span></div>
+                                <!--ET_END reff-->
                                 <div class='title-subInfo original'>|ОРИГИНАЛ|* </div>
                                 <!--ET_BEGIN originInv-->
                                 <div id='origin-title'>|към Фактура|* <b>[#originInv#]</b> |от|* [#originInvDate#]</div>
