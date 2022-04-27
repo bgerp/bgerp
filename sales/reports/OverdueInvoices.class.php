@@ -12,14 +12,14 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Продажби » Просрочени фактури
+ * @title     Продажби » Просрочени фактури !!! Стара - извън поддръжка! Да НЕ СЕ използва !!!
  */
 class sales_reports_OverdueInvoices extends frame2_driver_TableData
 {
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,salesMaster,acc';
+    public $canSelectDriver = 'ceo,sales,acc';
     
     
     /**
