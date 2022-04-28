@@ -188,9 +188,10 @@ class hr_Schedules extends core_Master
             for($t = $fromTs; $t <= $toTs + $h24; $t += $h24) {
                 $day =  date('Y-m-d', $t);
                 $dayDesc = cal_Calendar::getDayStatus($day);
+                if(!isset($dayDesc->specialDay)) {
+                    $dayDesc->specialDay = 'working';
+                }
 
-               $de[$day] = [date('N', $t), $dayDesc->specialDay];
- 
                 if( in_array($dayDesc->specialDay, $cutArr) || 
                     (in_array('saturday', $cutArr) && date('N', $t) == 6) || 
                     in_array('sunday', $cutArr) && date('N', $t) == 7) {
@@ -200,8 +201,6 @@ class hr_Schedules extends core_Master
                     
                     // Ако интервала в поелдната секунда на празничния ден е започнал в него, премахваме целия интервал
                     $wInt = $ints->getByPoint($cutTo);
-                    //if(isset($wInt ) || 1) bp(dt::timestamp2mysql($wInt[0]));
-
  
                     if(isset($wInt[0]) && $wInt[0] > $cutFrom && $wInt[1] < 12*60*60 + $cutTo) {
                          
