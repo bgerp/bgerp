@@ -278,6 +278,8 @@ class planning_Tasks extends core_Master
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
 
         $this->setDbIndex('productId');
+        $this->setDbIndex('assetId,orderByAssetId');
+        $this->setDbIndex('assetId');
     }
     
     
@@ -1360,7 +1362,6 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
-        $data->listFilter->FLD('reorder', 'enum(no=Не,yes=Да)', 'caption=Преподреждане');
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
@@ -1368,14 +1369,13 @@ class planning_Tasks extends core_Master
             $data->listFilter->setField('assetId', 'caption=Оборудване');
             $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
             $data->listFilter->showFields .= ',assetId';
-            $data->listFilter->input('assetId,reorder');
+            $data->listFilter->input('assetId');
         }
 
         if($filter = $data->listFilter->rec){
             if (isset($filter->assetId)) {
                 $data->query->where("#assetId = {$filter->assetId}");
                 $data->query->orderBy("orderByAssetId", "ASC");
-                $data->listFilter->showFields .= ',reorder';
             } else {
                 unset($data->listFields['orderByAssetId']);
             }
@@ -1875,7 +1875,6 @@ class planning_Tasks extends core_Master
             }
         }
 
-        $reorder = $data->listFilter->rec->reorder == 'yes';
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
@@ -1883,13 +1882,11 @@ class planning_Tasks extends core_Master
             $row->ROW_ATTR['data-id'] = $rec->id;
             $row->ROW_ATTR['data-drop-warning'] = tr('Желаете ли да преместите задачата след|*: #' . $mvc->getHandle($rec->id) . "?");
 
-            if($reorder){
-                if($mvc->haveRightFor('reordertask', $rec)){
-                    $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
-                    $img = ht::createImg(array('path' => 'img/16/arrow_switch.png'));
-                    $element = ht::createElement('span', array('data-url' => $reorderUrl, 'class' => 'draggable', 'data-default-warning' => tr('Желаете ли да преместите задачата първа за оборудването|*?')), $img);
-                    $row->title = $element . "" . $row->title;
-                }
+            if($mvc->haveRightFor('reordertask', $rec)){
+                $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
+                $img = ht::createImg(array('path' => 'img/16/arrow_switch.png'));
+                $element = ht::createElement('span', array('data-url' => $reorderUrl, 'class' => 'draggable', 'data-default-warning' => tr('Желаете ли да преместите задачата първа за оборудването|*?')), $img);
+                $row->title = $element . "" . $row->title;
             }
 
             if(countR($data->listFieldsParams)){
@@ -2009,7 +2006,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         // Включване на драг и дроп ако има избрано оборудване
-        if(isset($data->listFilter->rec->assetId) && $data->listFilter->rec->reorder == 'yes'){
+        if(isset($data->listFilter->rec->assetId)){
             jqueryui_Ui::enable($tpl);
             $tpl->push('planning/js/Tasks.js', 'JS');
             jquery_Jquery::run($tpl, 'listTasks();');
