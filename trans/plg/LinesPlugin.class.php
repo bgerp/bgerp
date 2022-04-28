@@ -486,8 +486,9 @@ class trans_plg_LinesPlugin extends core_Plugin
                 }
 
                 if(!empty($value)){
-                    $value = (strlen($value) == 10) ? "{$value} 00:00:00" : $value;
-                    $datesArr[] = array('key' => $dateFld, 'value' => $value, 'caption' => $dateObj['caption']);
+                    $datesArr[$dateFld] = array('key' => $dateFld, 'value' => $value, 'caption' => $dateObj['caption']);
+                    $compareDate = (strlen($value) == 10) ? "{$value} 23:59:50" : $value;
+                    $datesArr[$dateFld]['compareDate'] = $compareDate;
                 }
             }
 
@@ -505,7 +506,7 @@ class trans_plg_LinesPlugin extends core_Plugin
                     }
 
                     if(in_array($rec->state, array('draft', 'pending'))){
-                        if($dObj['value'] < $now) {
+                        if($dObj['compareDate'] < $now) {
                             $warnings[$dObj['key']][] = "Датата е в миналото|*!";
                         }
                     }
@@ -822,16 +823,14 @@ class trans_plg_LinesPlugin extends core_Plugin
             // Ако има лайв изчислена записва се в река
             if(isset($obj['autoCalcFieldName']) && !empty($obj['placeholder'])){
                 $rec->{$obj['autoCalcFieldName']} = $obj['placeholder'];
-                $updateFields[$dateFld] = $dateFld;
+                $updateFields[$obj['autoCalcFieldName']] = $obj['autoCalcFieldName'];
             }
         }
 
         $res = false;
         if(countR($updateFields)){
-
-            // Ако се иска да се обновис сега записа - обновява се
+            // Ако се иска да се обнови сега записа - обновява се
             if($save){
-                $updateFields = array('id' => 'id') + $updateFields;
                 $mvc->save_($rec, $updateFields);
             }
             $res = true;

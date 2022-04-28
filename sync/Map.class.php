@@ -44,7 +44,7 @@ class sync_Map extends core_Manager
     /**
      * Заглавие
      */
-    public $title = "Съответсвия между две bgERP системи";
+    public $title = "Съответствия между две bgERP системи";
     
     
     /**

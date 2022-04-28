@@ -2458,4 +2458,25 @@ abstract class deals_Helper
 
         return $products;
     }
+
+
+    /**
+     * Какъв е вашия реф от първия документ към нишката
+     *
+     * @param int $threadId
+     * @return null|string
+     */
+    public static function getYourReffInThread($threadId)
+    {
+        $firstDocument = doc_Threads::getFirstDocument($threadId);
+        if($firstDocument->isInstanceOf('deals_DealMaster')){
+            $show = $firstDocument->isInstanceOf('sales_Sales') ? sales_Setup::get('SHOW_REFF_IN_SALE_THREAD') : purchase_Setup::get('SHOW_REFF_IN_SALE_THREAD');
+            if($show == 'yes') {
+                $reff = $firstDocument->fetchField('reff');
+                if(!empty($reff)) return $reff;
+            }
+        }
+
+        return null;
+    }
 }

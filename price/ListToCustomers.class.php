@@ -44,7 +44,7 @@ class price_ListToCustomers extends core_Manager
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'listId=Политика, cClass=Контрагент, validFrom=В сила от, createdBy=Създаване->От, createdOn=Създаване->На,state=Състояние';
+    public $listFields = 'listId=Политика, cClass=Контрагент, validFrom=В сила от, createdBy=Създал, createdOn=Създаване,state=Състояние';
     
     
     /**

@@ -294,8 +294,8 @@ class crm_Companies extends core_Master
      */
     public $listOrderBy = array(
         'alphabetic' => array('Азбучно', '#nameT=ASC'),
-        'last' => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване->На,createdBy=Създаване->От'),
-        'modified' => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Модифициране->На,modifiedBy=Модифициране->От'),
+        'last' => array('Последно добавени', '#createdOn=DESC', 'createdOn=Създаване,createdBy=Създал'),
+        'modified' => array('Последно променени', '#modifiedOn=DESC', 'modifiedOn=Промяна,modifiedBy=Променил'),
         'vatId' => array('Данъчен №', '#vatId=DESC', 'vatId=Данъчен №'),
         'pCode' => array('Пощенски код', '#pCode=DESC', 'pCode=П. код'),
         'website' => array('Сайт/Блог', '#website', 'website=Сайт/Блог'),

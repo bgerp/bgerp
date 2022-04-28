@@ -566,8 +566,8 @@ class planning_Tasks extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = cat_Products::getVerbal($rec->productId, 'name');
-        $title = "Opr{$rec->id} - " . $title;
+        $jobDoc = doc_Containers::getDocument($rec->originId);
+        $title = "Opr{$rec->id}/{$jobDoc->getHandle()}-" . cat_Products::getVerbal($jobDoc->fetchField('productId'), 'name');
         
         return $title;
     }
@@ -630,7 +630,7 @@ class planning_Tasks extends core_Master
        if(!empty($rec->expectedTimeStart) || !empty($rec->timeDuration) || !empty($rec->expectedTimeEnd)){
             $resArr['times'] = array('name' => tr('Времена'), 'val' => tr("|*<table>
                 <!--ET_BEGIN expectedTimeStart--><tr><td style='font-weight:normal'>|Очаквано начало|*:</td><td>[#expectedTimeStart#]</td></tr><!--ET_END expectedTimeStart-->
-                <!--ET_BEGIN timeDuration--><tr><td style='font-weight:normal'>|Прод-ност|*:</td><td>[#timeDuration#]</td></tr><!--ET_END timeDuration-->
+                <!--ET_BEGIN timeDuration--><tr><td style='font-weight:normal'>|Производство|*:</td><td>[#timeDuration#]</td></tr><!--ET_END timeDuration-->
                 <!--ET_BEGIN expectedTimeEnd--><tr><td style='font-weight:normal'>|Очакван край|*:</td><td>[#expectedTimeEnd#] <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime--></td></tr><!--ET_END expectedTimeEnd-->
                 </table>"));
         }
@@ -810,7 +810,7 @@ class planning_Tasks extends core_Master
             if (isset($rec->originId)) {
                 $origin = doc_Containers::getDocument($rec->originId);
                 $state = $origin->fetchField('state');
-                if ($state == 'closed' || $state == 'draft' || $state == 'rejected') {
+                if (in_array($state, array('closed', 'rejected', 'draft', 'stopped'))) {
                     $requiredRoles = 'no_one';
                 }
             }
@@ -839,6 +839,16 @@ class planning_Tasks extends core_Master
         if ($action == 'close' && $rec) {
             if ($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped') {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if ($action == 'restore' && $rec) {
+            if (isset($rec->originId)) {
+                $origin = doc_Containers::getDocument($rec->originId);
+                $state = $origin->fetchField('state');
+                if($state == 'rejected'){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
 
@@ -1390,25 +1400,22 @@ class planning_Tasks extends core_Master
      * Връща масив от задачи към дадено задание
      *
      * @param int  $jobId      - ид на задание
-     * @param bool $onlyActive - Не оттеглените или само активните/събудени/спрени
+     * @param mixed $states    - В кои състояния
+     * @param boolean $verbal  - вербални или записи
      *
-     * @return array $res         - масив с намерените задачи
+     * @return array $res      - масив с намерените задачи
      */
-    public static function getTasksByJob($jobId, $onlyActive = false)
+    public static function getTasksByJob($jobId, $states, $verbal = true)
     {
         $res = array();
         $oldContainerId = planning_Jobs::fetchField($jobId, 'containerId');
         $query = static::getQuery();
         $query->where("#originId = {$oldContainerId}");
-        
-        if ($onlyActive === true) {
-            $query->where("#state = 'active' || #state = 'wakeup' || #state = 'stopped'");
-        } else {
-            $query->where("#state != 'rejected'");
-        }
+        $states = arr::make($states, true);
+        $query->in("state", $states);
         
         while ($rec = $query->fetch()) {
-            $res[$rec->id] = self::getRecTitle($rec, false);
+            $res[$rec->id] = ($verbal) ? self::getLink($rec->id, false) : $rec;
         }
         
         return $res;

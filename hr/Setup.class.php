@@ -81,9 +81,6 @@ class hr_Setup extends core_ProtoSetup
      */
     public $managers = array(
         'hr_Departments',
-        'hr_WorkingCycles',
-        'hr_WorkingCycleDetails',
-        'hr_WorkingCycles',
         'hr_Positions',
         'hr_ContractTypes',
         'hr_EmployeeContracts',
@@ -98,6 +95,8 @@ class hr_Setup extends core_ProtoSetup
         'hr_FormCv',
         'hr_WorkPreff',
         'hr_WorkPreffDetails',
+        'hr_ScheduleDetails',
+        'hr_Schedules',
     );
     
     
@@ -131,8 +130,8 @@ class hr_Setup extends core_ProtoSetup
         
         array(
             'systemId' => 'collectDaysType',
-            'description' => 'Събиране на информацията за персоналния вид на деня',
-            'controller' => 'hr_WorkingCycles',
+            'description' => 'Събиране на информацията за отсъствията в профила',
+            'controller' => 'hr_EmployeeContracts',
             'action' => 'SetPersonDayType',
             'period' => 100,
             'offset' => 0,

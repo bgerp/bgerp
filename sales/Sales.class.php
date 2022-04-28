@@ -742,7 +742,11 @@ class sales_Sales extends deals_DealMaster
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
-            
+
+            if(!empty($rec->reff)){
+                $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : $rec->reff;
+            }
+
             if (core_Packs::isInstalled('batch')) {
                 $bQuery = batch_BatchesInDocuments::getQuery();
                 $bQuery->where("#detailClassId = {$detailId}");

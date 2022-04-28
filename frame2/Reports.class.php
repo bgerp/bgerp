@@ -539,7 +539,7 @@ class frame2_Reports extends embed_Manager
         
         // Добавен бутон за ръчно обновяване
         if ($mvc->haveRightFor('refresh', $rec)) {
-            $data->toolbar->addBtn('Обнови', array($mvc, 'refresh', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на справката');
+            $data->toolbar->addBtn('Обновяване', array($mvc, 'refresh', $rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Обновяване на справката');
         }
 
         if(!core_Users::isContractor()){
@@ -638,6 +638,7 @@ class frame2_Reports extends embed_Manager
                 
                 return;
             }
+            $rec->_refreshByCron = true;
             self::refresh($rec);
         } catch (core_exception_Expect $e) {
             reportException($e);
@@ -659,64 +660,82 @@ class frame2_Reports extends embed_Manager
 
         // Ако има драйвер
         if ($Driver = self::getDriver($rec)) {
-            try {
-                // Опресняват се данните му
-                $rec->data = $Driver->prepareData($rec);
 
-            } catch (core_exception_Expect $e) {
+            // Ако се обновява ръчно или се обновява по-крон и не е спряно ръчното обновяване
+            if(!$rec->_refreshByCron || $Driver->tryToAutoRefresh($rec)){
 
-                // Ако е имало грешка, се записва че данните са грешни
-                $rec->data = static::DATA_ERROR_STATE;
-                reportException($e);
-                
-                if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
-                    core_Statuses::newStatus('Грешка при обновяване на справката|*!', 'error');
+                try {
+                    // Опресняват се данните му
+                    $rec->data = $Driver->prepareData($rec);
+
+                } catch (core_exception_Expect $e) {
+
+                    // Ако е имало грешка, се записва че данните са грешни
+                    $rec->data = static::DATA_ERROR_STATE;
+                    reportException($e);
+
+                    if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
+                        core_Statuses::newStatus('Грешка при обновяване на справката|*!', 'error');
+                    }
+
+                    self::logErr('Грешка при обновяване на справката', $rec->id);
                 }
-                
-                self::logErr('Грешка при обновяване на справката', $rec->id);
+
+                $rec->lastRefreshed = dt::now();
+                $me->save_($rec, 'data,lastRefreshed');
+
+                // Записване в опашката че справката е била опреснена
+                if (frame2_ReportVersions::log($rec->id, $rec)) {
+                    if($rec->data !== static::DATA_ERROR_STATE){
+                        $me->refreshReports[$rec->id] = $rec;
+                    }
+
+                    if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
+                        core_Statuses::newStatus('Справката е актуализирана|*!');
+                    }
+                }
             }
 
-            $rec->lastRefreshed = dt::now();
-            $me->save_($rec, 'data,lastRefreshed');
-
-            // Записване в опашката че справката е била опреснена
-            if (frame2_ReportVersions::log($rec->id, $rec)) {
-                if($rec->data !== static::DATA_ERROR_STATE){
-                    $me->refreshReports[$rec->id] = $rec;
-                }
-
-                if (core_Users::getCurrent() != core_Users::SYSTEM_USER) {
-                    core_Statuses::newStatus('Справката е актуализирана|*!');
-                }
-            }
-
+            // Записва се да се зададат нови времена за обновяване
             $me->setNewUpdateTimes[$rec->id] = $rec;
             
             // Ако справката сега е създадена да не се обновява
-            if ($rec->__isCreated === true) {
-                
-                return;
-            }
+            if ($rec->__isCreated === true) return;
             
             // Кога последно е видяна от потребител справката
             $lastSeen = self::getLastSeenByUser(__CLASS__, $rec);
-            $months = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE_MONTHS');
-            $seenBefore = dt::addMonths(-1 * $months);
+            $seenBefore = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE');
+            $seenBefore = dt::addSecs(-1 * $seenBefore);
+
             if ($lastSeen <= $seenBefore) {
-                
+
                 // Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
-                $rec->brState = $rec->state;
-                $rec->state = 'closed';
-                $rec->refreshData = false;
-                $me->invoke('BeforeChangeState', array(&$rec, &$rec->state));
-                $me->save($rec, 'state,brState');
-                $me->logWrite('Затваряне на остаряла справка', $rec->id);
-                unset($me->setNewUpdateTimes[$rec->id]);
+                $newState = 'closed';
+                if($me->invoke('BeforeChangeState', array(&$rec, $newState))){
+                    $rec->refreshData = false;
+                    $rec->brState = $rec->state;
+                    $rec->state = $newState;
+
+                    // Затваряне на справката и спиране на автоматичното ѝ обновяване
+                    $me->save($rec, 'state,brState');
+                    $me->logWrite('Затваряне на неизползвана справка', $rec->id);
+                    unset($me->setNewUpdateTimes[$rec->id]);
+
+                    // Нотифициране на споделените потребители, че справката вече няма да се обновява
+                    $userArr = keylist::toArray($rec->sharedUsers);
+                    if(countR($userArr)){
+                        $currentUserNick = core_Users::getCurrent('nick');
+                        $handle = $me->getHandle($rec->id);
+                        foreach ($userArr as $userId){
+                            bgerp_Notifications::add("|*{$currentUserNick} |затвори неизползвана справка|* #{$handle}", array($me, 'single', $rec->id), $userId);
+                        }
+                    }
+                }
             }
         }
     }
-    
-    
+
+
     /**
      * След изпълнение на скрипта, обновява записите, които са за ъпдейт
      */
@@ -1043,7 +1062,7 @@ class frame2_Reports extends embed_Manager
         }
         
         if (haveRole('debug') && countR($dates)) {
-            status_Messages::newStatus('Зададени времена за обновяване');
+            status_Messages::newStatus('Зададени времена за обновяване|*!');
         }
     }
     
