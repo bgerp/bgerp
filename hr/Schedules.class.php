@@ -115,7 +115,7 @@ class hr_Schedules extends core_Master
     { 
         static $cache = array();
         
-        $key = "{$id}:{$from}:{$to}#";
+        $key = "{$id}:{$from}:{$to}";
 
         if($excludeHolidays) {
             $key = '.' . $key;
@@ -188,15 +188,26 @@ class hr_Schedules extends core_Master
             for($t = $fromTs; $t <= $toTs + $h24; $t += $h24) {
                 $day =  date('Y-m-d', $t);
                 $dayDesc = cal_Calendar::getDayStatus($day);
+                if(!isset($dayDesc->specialDay)) {
+                    $dayDesc->specialDay = 'working';
+                }
 
-               $de[$day] = [date('N', $t), $dayDesc->specialDay];
- 
                 if( in_array($dayDesc->specialDay, $cutArr) || 
                     (in_array('saturday', $cutArr) && date('N', $t) == 6) || 
                     in_array('sunday', $cutArr) && date('N', $t) == 7) {
                     $sd[] = $day;
                     $cutFrom = dt::mysql2timestamp(dt::addTimeIfNot($day));
                     $cutTo   = dt::mysql2timestamp(dt::addTimeIfNot($day, '23:59:59')); 
+                    
+                    // Ако интервала в поелдната секунда на празничния ден е започнал в него, премахваме целия интервал
+                    $wInt = $ints->getByPoint($cutTo);
+ 
+                    if(isset($wInt[0]) && $wInt[0] > $cutFrom && $wInt[1] < 12*60*60 + $cutTo) {
+                         
+                        $cutTo = max($wInt[1], $cutTo); 
+                    }
+
+
                     $ints->cut($cutFrom, $cutTo);
                 }
             }
@@ -306,9 +317,10 @@ class hr_Schedules extends core_Master
             $from = dt::addDays(1, $from, false);
 
             $frame = $ints->getFrame(dt::mysql2timestamp($begin), dt::mysql2timestamp($end));
+
             if(isset($frame[0])) {
                 list($d, $t) = explode(' ', dt::timestamp2mysql($frame[0][0]));
-                if($t == '00:00:00') {
+                if($t == '00:00:00') { 
                     // Ако интервалът, към който е точката в началото на денонощието е започнал в предходното денонощие, това не се взема предвид
                     $int = $ints->getByPoint($frame[0][0]);
                     if(isset($int) && ($frame[0][0] - $int[0] > 0) && ($frame[0][0] - $int[0] < 24*60*60)) {
@@ -381,10 +393,12 @@ class hr_Schedules extends core_Master
         $thisMont = $data->CalendarYear . '-' . dt::getMonth((int) $data->CalendarMonth) . '-';
             
   
-        while($d <= $data->CalendarLastDayOfMonth) {
+        while(($d + 2 - $data->CalendarFirstWeekDay) <= $data->CalendarLastDayOfMonth) {
+            $db[] = " -" . $d;
             $html .= "\n<tr>";
             for($i = 1; $i <= 7; $i++) {
                 $cDay = $d + $i - $data->CalendarFirstWeekDay + 1;  
+                $db[] = $cDay;
                 $cDate = $thisMont . sprintf("%02d", $cDay);
                 $dStatus = cal_Calendar::getDayStatus($cDate);
 
@@ -410,6 +424,7 @@ class hr_Schedules extends core_Master
 
                 $date = '&nbsp;';
                 $outline = '';
+         
                 if($cDay > 0 && $cDay <= $data->CalendarLastDayOfMonth) {
                     $date = "<div class='mc-day' style='font-size:2em;{$dayColor}'>{$cDay}</div>";
                     if($cDate == $today) {
@@ -424,19 +439,28 @@ class hr_Schedules extends core_Master
             
             $html .= "\n</tr>";
         }
-        
+    
         $html .= '</table>';
 
         return $html;
     }
 
-
+    /**
+     * Изтриване на кеша при обновяване на детайла
+     */
     public static function on_AfterUpdateMaster($mvc, &$res, $id)
     {
        core_Cache::removeByType('work_schedule');
     }
     
-    
+    /**
+     * Изтриване на кеша при обновяване на мастера
+     */
+    public static function on_AfterUpdate($mvc, &$res, $id)
+    {
+       core_Cache::removeByType('work_schedule');
+    }
+
     /**
      * По зададени начална и крайна дата изчислява неработните дни 
      * м/у двете дати според зададения работния график
