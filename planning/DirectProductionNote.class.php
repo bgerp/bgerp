@@ -622,7 +622,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                         // Което не е чернова или оттеглено
                         $state = $originDoc->fetchField('state');
-                        if ($state == 'rejected' || $state == 'draft' || $state == 'closed') {
+                        if (in_array($state, array('rejected', 'draft', 'closed', 'waiting'))) {
                             $requiredRoles = 'no_one';
                         } else {
 
