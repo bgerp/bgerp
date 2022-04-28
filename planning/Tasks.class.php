@@ -1939,14 +1939,21 @@ class planning_Tasks extends core_Master
             }
         }
 
+        $reorder = $data->listFilter->rec->reorder == 'yes';
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
             // Добавяне на дата атрибуто за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
-            if($mvc->haveRightFor('reordertask', $rec)){
-                $reorderUrl = array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true);
-                $row->ROW_ATTR['data-url'] = toUrl($reorderUrl, 'local');
+            $row->ROW_ATTR['data-drop-warning'] = tr('Желаете ли да преместите задачата след|*: #' . $mvc->getHandle($rec->id) . "?");
+
+            if($reorder){
+                if($mvc->haveRightFor('reordertask', $rec)){
+                    $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
+                    $img = ht::createImg(array('path' => 'img/16/arrow_refresh.png'));
+                    $element = ht::createElement('span', array('data-url' => $reorderUrl, 'class' => 'draggable', 'data-default-warning' => tr('Желаете ли да преместите задачата първа за оборудването|*?')), $img);
+                    $row->title = $element . "" . $row->title;
+                }
             }
 
             if(countR($data->listFieldsParams)){

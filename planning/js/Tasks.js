@@ -1,30 +1,38 @@
 function listTasks() {
 
-    $(".listTable").sortable({
-        start: function( event, ui) {
-            getEfae().preventRequest = 50;
+    var draggedTr;
+    $( ".draggable" ).draggable({
+        revert: "invalid",
+        helper: 'clone',
+        containment: '.listTable',
+        drag: function( event, ui ) {
+            draggedTr = $(this).parent().parent();
         },
-        stop: function( event, ui) {
-            var tableArr = [];
-            $row = $(ui.item[0]).children();
-            var movedId = $row.attr("data-id");
-            var url = $row.attr("data-url");
+        hoverClass: "ui-state-active",
+    });
 
-            if(!url) return;
+    $( ".listTable tr" ).droppable({
+        classes: {
+            "ui-droppable-hover": "ui-state-hover"
+        },
+        drop: function( event, ui ) {
+            var curId = $(this).attr("data-id");
+            var url = $(ui.draggable).attr("data-url");
+            var warning = $(this).attr("data-drop-warning");
+            if(!warning){
+                warning = $(ui.draggable).attr("data-default-warning");
+            }
 
-            $('.listTable > tbody  > tr').each(function(index, tr) {
-                var element = $(tr);
-                tableArr[index] = element.attr("data-id");
+            if(warning){
+                if (!confirm(warning)) return false;
+            }
 
-            });
+            draggedTr.appendTo($(this).parent());
 
-            var movedIndex = tableArr.indexOf(movedId);
-            var beforeId = (movedIndex != 0) ? tableArr[movedIndex-1] : null;
             var divId = $(".rowsContainerClass").attr("id");
-
             resObj = new Object();
             resObj['url'] = url;
-            var params = {startAfter:beforeId, divId:divId};
+            var params = {startAfter:curId, divId:divId};
 
             getEfae().preventRequest = 0;
             getEfae().process(resObj, params);
@@ -32,9 +40,7 @@ function listTasks() {
     });
 }
 
-
 function render_listTasks()
 {
     listTasks();
-    console.log('after ajax');
 }
