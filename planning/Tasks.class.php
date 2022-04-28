@@ -1950,7 +1950,7 @@ class planning_Tasks extends core_Master
             if($reorder){
                 if($mvc->haveRightFor('reordertask', $rec)){
                     $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
-                    $img = ht::createImg(array('path' => 'img/16/arrow_refresh.png'));
+                    $img = ht::createImg(array('path' => 'img/16/arrow_switch.png'));
                     $element = ht::createElement('span', array('data-url' => $reorderUrl, 'class' => 'draggable', 'data-default-warning' => tr('Желаете ли да преместите задачата първа за оборудването|*?')), $img);
                     $row->title = $element . "" . $row->title;
                 }
