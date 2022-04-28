@@ -12,6 +12,9 @@
                                 № <span class="bigData">[#id#]</span> /
                                 <span class="bigData">[#valior#]</span>
                             </span>
+                        <!--ET_BEGIN reff-->
+                        <div>Your ref: <span class="bigData">[#reff#]</span></div>
+                        <!--ET_END reff-->
                     </div>
                     <!--ET_BEGIN MISC_BLOCK-->
                     [#MISC_BLOCK#]

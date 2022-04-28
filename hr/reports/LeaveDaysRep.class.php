@@ -271,31 +271,8 @@ class hr_reports_LeaveDaysRep extends frame2_driver_TableData
      */
     public static function getLeaveDays($from, $to, $personId)
     {
-        // изисляване на непресъствените бр дни
-        $state = hr_EmployeeContracts::getQuery();
-        $state->where("#personId='{$personId}'");
-        
-        // данните от договора на служителя
-        if ($employeeContractDetails = $state->fetch()) {
-            $employeeContract = $employeeContractDetails->id;
-            $department = $employeeContractDetails->departmentId;
-            
-            // има ли график?
-            $schedule = hr_EmployeeContracts::getWorkingSchedule($employeeContract);
-            
-            // изчисляваме дните по него
-            if ($schedule) {
-                $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $department, $from, $to);
-            
-            // в противен случай ги изсичляваме на основание на калндара
-            } else {
-                $days = cal_Calendar::calcLeaveDays($from, $to);
-            }
-            
-            // ако служителя няма договор изчисляваме дните на база календара
-        } else {
-            $days = cal_Calendar::calcLeaveDays($from, $to);
-        }
+        $scheduleId = planning_Hr::getSchedule($personId);
+        $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, $from, $to);
         
         return $days;
     }

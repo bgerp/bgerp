@@ -14,4 +14,8 @@
 <!--ET_BEGIN centers-->
 <tr><td class='quiet'>|Центрове на дейност|*</td><td>[#centers#]</td></tr>
 <!--ET_END centers-->
+
+<!--ET_BEGIN scheduleId-->
+<tr><td class='quiet'>|Работен график|*</td><td>[#scheduleId#]</td></tr>
+<!--ET_END scheduleId-->
 </table>

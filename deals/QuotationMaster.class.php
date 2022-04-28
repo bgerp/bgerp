@@ -123,7 +123,7 @@ abstract class deals_QuotationMaster extends core_Master
 
         $mvc->FLD('deliveryPlaceId', 'varchar(126)', 'caption=Доставка->Обект,hint=Изберете обект');
         $mvc->FLD('deliveryAdress', 'varchar', 'caption=Доставка->Място');
-        $mvc->FLD('deliveryTime', 'datetime(requireTime)', 'caption=Доставка->Срок до');
+        $mvc->FLD('deliveryTime', 'datetime', 'caption=Доставка->Срок до');
         $mvc->FLD('deliveryTermTime', 'time(uom=days,suggestions=1 ден|5 дни|10 дни|1 седмица|2 седмици|1 месец)', 'caption=Доставка->Срок дни');
         $mvc->FLD('deliveryData', 'blob(serialize, compress)', 'input=none');
 
@@ -149,6 +149,7 @@ abstract class deals_QuotationMaster extends core_Master
         parent::prepareEditForm_($data);
         $form = $data->form;
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
+        $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
         $rec = &$data->form->rec;
 
         $folderId = $rec->folderId;

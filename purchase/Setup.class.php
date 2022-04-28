@@ -68,6 +68,12 @@ defIfNot('PURCHASE_NEW_QUOTATION_AUTO_ACTION_BTN', 'form');
 
 
 /**
+ * Показване на ваш реф в нишката на покупката
+ */
+defIfNot('PURCHASE_SHOW_REFF_IN_SALE_THREAD', 'no');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -152,6 +158,7 @@ class purchase_Setup extends core_ProtoSetup
             'mandatory,caption=Действие на бързия бутон "Покупка" и "Оферта от доставчик" в папките->Оферта от доставчик,customizeBy=ceo|sales|purchase',
         ),
         'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за липсваща фактура за направено плащане->Време'),
+        'PURCHASE_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
     );
     
     

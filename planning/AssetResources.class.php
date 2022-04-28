@@ -138,9 +138,10 @@ class planning_AssetResources extends core_Master
         
         $powerUserId = core_Roles::fetchByName('powerUser');
         
-        $this->FLD('assetFolderId', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Използване->Център на дейност, remember');
-        $this->FLD('assetUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване->Отговорници, remember');
-        $this->FLD('simultaneity', 'int(min=0)', 'caption=Използване->Едновременност,notNull,value=1, oldFieldName=quantity, remember');
+        $this->FLD('assetFolderId', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Използване за производство->Център на дейност, remember');
+        $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty)', 'caption=Използване за производство->Работен график');
+        $this->FLD('assetUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Използване за производство->Отговорници, remember');
+        $this->FLD('simultaneity', 'int(min=0)', 'caption=Използване за производство->Едновременност,notNull,value=1, oldFieldName=quantity, remember');
         
         $this->FLD('systemFolderId', 'keylist(mvc=doc_Folders, select=title, allowEmpty)', 'caption=Поддръжка->Система, remember');
         $this->FLD('systemUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Поддръжка->Отговорници, remember');
@@ -869,9 +870,10 @@ class planning_AssetResources extends core_Master
     {
         $res = array();
         $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#orderByAssetId IS NOT NULL AND #assetId = {$assetId}");
+        $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
+        $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'waiting')))) AND #assetId = {$assetId}");
         $tQuery->show('id,orderByAssetId');
-        $tQuery->orderBy('orderByAssetId,id', $order);
+        $tQuery->orderBy('orderByAssetIdCalc,id', $order);
         $taskRecs = $tQuery->fetchAll();
 
         if($onlyIds){

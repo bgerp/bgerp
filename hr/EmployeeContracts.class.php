@@ -136,7 +136,7 @@ class hr_EmployeeContracts extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'numId,dateId,departmentId,typeId,personId=Имена,numId,positionId=Позиция,startFrom,endOn';
+    public $listFields = 'numId,dateId,departmentId,typeId,personId=Имена,numId,positionId=Длъжност,startFrom,endOn';
     
     
     /**
@@ -280,17 +280,6 @@ class hr_EmployeeContracts extends core_Master
      */
     public static function on_AfterPrepareSingle($mvc, &$res, &$data)
     {
-        // трудовият договор, не може да се създаде без да е обявено работното време в него
-        // в системата, работното време се определя от различните графици
-        // те от своя страна се добавят към отделите (структура)
-        $queryWorkingCycle = planning_Centers::getQuery();
-        
-        if ($queryWorkingCycle->fetch('#schedule') == false) {
-            
-            // Ако няма, изискваме от потребителя да въведе
-            redirect(array('planning_Centers', 'list'), false, '|Не сте въвели работни графици');
-        }
-        
         $row = $data->row;
         
         $rec = $data->rec;
@@ -550,19 +539,9 @@ class hr_EmployeeContracts extends core_Master
         if ($query->fetchAll() == false) {
             
             // Ако няма, изискваме от потребителя да въведе
-            redirect(array('planning_Centers', 'list'), false, '|Не сте въвели длъжност');
+            redirect(array('hr_Positions', 'list'), false, '|Не сте въвели длъжност');
         }
         
-        // трудовият договор, не може да се създаде без да е обявено работното време в него
-        // в системата, работното време се определя от различните графици
-        // те от своя страна се добавят към отделите (структура)
-        $queryWorkingCycle = hr_WorkingCycles::getQuery();
-        
-        if ($query->fetchAll() == false) {
-            
-            // Ако няма, изискваме от потребителя да въведе
-            redirect(array('hr_WorkingCycles', 'list'), false, '|Не сте въвели работни графици');
-        }
     }
     
     
@@ -576,17 +555,6 @@ class hr_EmployeeContracts extends core_Master
                 $rec->numId = self::getNexNumber();
                 $rec->searchKeywords .= ' ' . plg_Search::normalizeText($rec->numId);
             }
-        }
-        
-        // трудовият договор, не може да се създаде без да е обявено работното време в него
-        // в системата, работното време се определя от различните графици
-        // те от своя страна се добавят към отделите (структура)
-        $queryWorkingCycle = planning_Centers::getQuery();
-        
-        if ($queryWorkingCycle->fetch('#schedule') == false) {
-            
-            // Ако няма, изискваме от потребителя да въведе
-            redirect(array('planning_Centers', 'list'), false, '|Не сте въвели работни графици');
         }
     }
     
@@ -631,7 +599,7 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-     * Връща датата на последната ф-ра
+     * Връща датата на последния договор
      */
     protected function getNewestContractDate()
     {
@@ -669,60 +637,22 @@ class hr_EmployeeContracts extends core_Master
     
     
     /**
-     * @todo Чака за документация...
-     */
-    public static function getWorkingSchedule($id)
-    {
-        $departmentId = self::fetchField($id, 'departmentId');
-        
-        $schedule = planning_Centers::fetchField($departmentId, 'schedule');
-        
-        return $schedule;
-    }
-    
-    
-    /**
      * Изчислява седмичното натоварване според графика в секунди
      *
      * @param int $id
      */
     public static function houresForAWeek($id)
     {
-        // Кой е графика
-        // $scheduleId = static::getWorkingSchedule($id);
+        $rec = self::fetch($id);
+
+        $scheduleId = planning_Hr::getSchedule($rec->personId);
         
-        // Каква продължителност има
-        if ($scheduleId) {
-            $duration = hr_WorkingCycles::fetchField($scheduleId, 'cycleDuration');
-        }
-        
-        if (!$duration) {
-            //	redirect(array('hr_WorkingCycles', 'list'), FALSE, '|Не сте въвели продължителност на графика!');
-        }
-        
-        // Извличане на данните за циклите
-        $stateDetails = hr_WorkingCycleDetails::getQuery();
-        
-        // Подробности за конкретния цикъл
-        $stateDetails->where("#cycleId='{$scheduleId}'");
-        
-        while ($rec = $stateDetails->fetch()) {
-            $cycleDetails[] = $rec;
-        }
-        
-        if (is_array($cycleDetails)) {
-            foreach ($cycleDetails as $cycDuration) {
-                $allHours += $cycDuration->duration;
-                $break += $cycDuration->break;
-            }
-            
-            $hoursWeekSec = ($allHours - $break) / $duration * 7 ;
-        } else {
-            $hoursWeekSec = 0;
-        }
-        
+        // Каква седмична продължителност на работното време има този график?
+        $hoursWeekSec = round(hr_Schedules::getTotalTime($scheduleId, date('Y-m-01'), 12*7*24*60*60) / (12*30*60)) * 30*60;
+
         return $hoursWeekSec;
     }
+
     
     /*******************************************************************************************
      *
@@ -841,5 +771,110 @@ class hr_EmployeeContracts extends core_Master
         $title = tr('Трудов договор на|* ') . $me->getVerbal($rec, 'personId');
         
         return $title;
+    }
+
+
+    /**
+     * Записва в модела crm_Profiles първото очаквано събитие (отпуска, болничен, командировка) за всички потребители
+     * Изпълнява се по Cron
+     */
+    public static function colectPersonDaysType()
+    {
+        $now = dt::today();
+        
+        $persons = array();
+        
+        //масив за проверка с всички данни
+        $chekArr = array();
+        $next2weeks = dt::addDays(14, dt::today());
+        
+        $querySick = hr_Sickdays::getQuery();
+        $querySick->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
+        
+        $queryTrip = hr_Trips::getQuery();
+        $queryTrip->where("((#startDate <= '{$now}' AND #toDate >= '{$now}') OR (#startDate >= '{$now}' AND #startDate <= '{$next2weeks}')) AND #state = 'active'");
+        
+        $queryLeave = hr_Leaves::getQuery();
+        $queryLeave->where("((#leaveFrom <= '{$now}' AND #leaveTo >= '{$now}') OR (#leaveFrom >= '{$now}' AND #leaveFrom <= '{$next2weeks}')) AND #state = 'active'");
+        
+        // добавяме болничните
+        while ($recSick = $querySick->fetch()) {
+            
+            // ключ за масива ще е ид-то на всеки потребител в системата
+            $id = $recSick->personId;
+            
+            // масив за проверка
+            if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recSick->startDate) {
+                $persons[$id] = (object) array('stateInfo' => 'sickDay',
+                    'stateDateFrom' => $recSick->startDate,
+                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recSick->toDate, crm_Profiles::getUserByPerson($id))),
+                );
+            }
+        }
+        
+        // добавяме командировките
+        while ($recTrip = $queryTrip->fetch()) {
+            // ключ за масива ще е ид-то на всеки потребител в системата
+            $id = $recTrip->personId;
+            
+            if (!isset($persons[$id]) || ($persons[$id]->stateDateFrom > $recTrip->startDate)) {
+                $persons[$id] = (object) array('stateInfo' => 'tripDay',
+                    'stateDateFrom' => $recTrip->startDate,
+                    'stateDateTo' => dt::addDays(-1, cal_Calendar::nextWorkingDay($recTrip->toDate, crm_Profiles::getUserByPerson($id))),
+                );
+            }
+        }
+        
+        // добавяме и отпуските
+        while ($recLeave = $queryLeave->fetch()) {
+            
+            // ключ за масива ще е ид-то на всеки потребител в системата
+            $id = $recLeave->personId;
+            
+            if (!isset($persons[$id]) || $persons[$id]->stateDateFrom > $recLeave->leaveFrom) {
+                $persons[$id] = (object) array('stateInfo' => 'leaveDay',
+                                               'stateDateFrom' => $recLeave->leaveFrom,
+                                                'stateDateTo' =>dt::addDays(-1, cal_Calendar::nextWorkingDay($recLeave->leaveTo, crm_Profiles::getUserByPerson($id))));
+            }
+        }
+        
+        // взимаме всички профили
+        $query = crm_Profiles::getQuery();
+        
+        // които са активни
+        $query->where("#state = 'active'");
+    
+        while ($rec = $query->fetch()) {
+            if (!is_object($persons[$rec->personId])) {
+                $persons[$rec->personId] = (object) array('stateInfo' => null, 'stateDateFrom' => null, 'stateDateTo' => null);
+            }
+            if ($rec->stateInfo == $persons[$rec->personId]->stateInfo &&
+                $rec->stateDateFrom == $persons[$rec->personId]->stateDateFrom &&
+                $rec->stateDateTo == $persons[$rec->personId]->stateDateTo) {
+                continue;
+            }
+            
+            // тип на деня
+            $rec->stateInfo = $persons[$rec->personId]->stateInfo;
+            
+            // от дата
+            $rec->stateDateFrom = $persons[$rec->personId]->stateDateFrom;
+            
+            // до дата
+            $rec->stateDateTo = $persons[$rec->personId]->stateDateTo;
+
+            $res[] = $rec;
+
+            // и ги записваме на съответния профил
+            crm_Profiles::save($rec, 'stateInfo,stateDateFrom,stateDateTo');
+        }
+    }
+
+    /**
+     * Изпращане на нотификации за започването на задачите
+     */
+    public function cron_SetPersonDayType()
+    {
+        $this->colectPersonDaysType();
     }
 }

@@ -106,7 +106,7 @@ class tcost_Zones extends core_Detail
         $query->where(array("#deliveryTermId = '[#1#]'", $deliveryTermId));
         
         if (empty($pCode)) {
-            $query->where(array("#countryId = [#1#] AND (#pCode = '' OR #pCode IS NULL)", $countryId, $pCode));
+            $query->where(array("#countryId = '[#1#]' AND (#pCode = '' OR #pCode IS NULL)", $countryId, $pCode));
             $rec = $query->fetch();
             $bestZone = $rec;
         } else {

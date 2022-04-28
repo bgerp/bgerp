@@ -277,71 +277,86 @@ class planning_plg_StateManager extends core_Plugin
                 expect(empty($closeError));
             }
             
-            switch ($action) {
-                case 'close':
-                    $rec->brState = $rec->state;
-                    $rec->state = 'closed';
-                    $rec->timeClosed = dt::now();
-                    $logAction = 'Приключване';
-                    break;
-                case 'stop':
-                    $rec->brState = $rec->state;
-                    $rec->state = 'stopped';
-                    $logAction = 'Спиране';
-                    
-                    break;
-                case 'wakeup':
-                    $rec->brState = $rec->state;
-                    $rec->state = 'wakeup';
-                    $logAction = 'Събуждане';
-                break;
-                case 'activateAgain':
-                    $rec->state = $rec->brState;
-                    $rec->brState = 'stopped';
-                    $logAction = ($rec->state == 'wakeup') ? 'Събуждане' : 'Пускане';
-                    break;
-                case 'activate':
-                    $activateErrMsg = null;
-                    $rec->brState = $rec->state;
-                    $rec->state = ($mvc->activateNow($rec, $activateErrMsg)) ? 'active' : 'waiting';
-                    $logAction = ($rec->state == 'active') ? 'Активиране' : 'Преминаване в чакащо';
-                break;
-            }
-            
-            // Ако ще активираме: запалваме събитие, че ще активираме
-            $saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
-            if($mvc instanceof planning_Tasks){
-                $saveFields .= ",orderByAssetId";
-            }
-
-            if ($action == 'activate' && empty($activateErrMsg)) {
-                $rec->activatedBy = core_Users::getCurrent();
-                $rec->activatedOn = dt::now();
-                $mvc->invoke('BeforeActivation', array(&$rec));
-                $saveFields = null;
-            }
-            
-            // Обновяваме състоянието и старото състояние
-            if ($mvc->save($rec, $saveFields)) {
-                $mvc->logWrite($logAction, $rec->id);
-                $mvc->invoke('AfterChangeState', array(&$rec, $rec->state));
-            }
-            
-            // Ако сме активирали: запалваме събитие, че сме активирали
-            if ($action == 'activate') {
-                if(empty($activateErrMsg)){
-                    $mvc->invoke('AfterActivation', array(&$rec));
-                } else {
-                    core_Statuses::newStatus($activateErrMsg, 'warning');
-                }
-            }
+            static::changeState($mvc, $rec, $action);
             
             // Редирект обратно към документа
             redirect(array($mvc, 'single', $rec->id));
         }
     }
-    
-    
+
+
+    /**
+     * Променя състоянието на документа
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     * @param string $action
+     * @return void
+     */
+    public static function changeState($mvc, $rec, $action)
+    {
+        $logAction = null;
+        switch ($action) {
+            case 'close':
+                $rec->brState = $rec->state;
+                $rec->state = 'closed';
+                $rec->timeClosed = dt::now();
+                $logAction = 'Приключване';
+                break;
+            case 'stop':
+                $rec->brState = $rec->state;
+                $rec->state = 'stopped';
+                $logAction = 'Спиране';
+
+                break;
+            case 'wakeup':
+                $rec->brState = $rec->state;
+                $rec->state = 'wakeup';
+                $logAction = 'Събуждане';
+                break;
+            case 'activateAgain':
+                $rec->state = $rec->brState;
+                $rec->brState = 'stopped';
+                $logAction = ($rec->state == 'wakeup') ? 'Събуждане' : 'Пускане';
+                break;
+            case 'activate':
+                $activateErrMsg = null;
+                $rec->brState = $rec->state;
+                $rec->state = ($mvc->activateNow($rec, $activateErrMsg)) ? 'active' : 'waiting';
+                $logAction = ($rec->state == 'active') ? 'Активиране' : 'Преминаване в чакащо';
+                break;
+        }
+
+        // Ако ще активираме: запалваме събитие, че ще активираме
+        $saveFields = 'brState,state,modifiedOn,modifiedBy,timeClosed';
+        if($mvc instanceof planning_Tasks){
+            $saveFields .= ",orderByAssetId";
+        }
+
+        if ($action == 'activate' && empty($activateErrMsg)) {
+            $rec->activatedBy = core_Users::getCurrent();
+            $rec->activatedOn = dt::now();
+            $mvc->invoke('BeforeActivation', array(&$rec));
+            $saveFields = null;
+        }
+
+        // Обновяваме състоянието и старото състояние
+        if ($mvc->save($rec, $saveFields)) {
+            $mvc->logWrite($logAction, $rec->id);
+            $mvc->invoke('AfterChangeState', array(&$rec, $rec->state));
+        }
+
+        // Ако сме активирали: запалваме събитие, че сме активирали
+        if ($action == 'activate') {
+            if(empty($activateErrMsg)){
+                $mvc->invoke('AfterActivation', array(&$rec));
+            } else {
+                core_Statuses::newStatus($activateErrMsg, 'warning');
+            }
+        }
+    }
+
+
     /**
      * Реакция в счетоводния журнал при оттегляне на счетоводен документ
      */
