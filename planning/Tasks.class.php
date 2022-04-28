@@ -1117,9 +1117,8 @@ class planning_Tasks extends core_Master
                 $form->setField('labelQuantityInPack', "placeholder={$quantityInPackDefault}");
 
                 $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);
-                $form->setField('labelTemplate', 'input');
-                $form->setOptions('labelTemplate', $templateOptions);
-                $form->setDefault('labelTemplate', key($templateOptions));
+                $form->setField('labelTemplate', 'input,mandatory');
+                $form->setOptions('labelTemplate', array('' => '') + $templateOptions);
                 $defaultIndPackagingId = $rec->labelPackagingId;
             } else {
                 $defaultIndPackagingId = $rec->measureId;
