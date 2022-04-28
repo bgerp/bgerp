@@ -777,7 +777,7 @@ abstract class deals_InvoiceMaster extends core_Master
 
         $form->setFieldType('uicNo', 'drdata_type_Uic');
         if (!$firstDocument->isInstanceOf('findeals_AdvanceDeals')) {
-            if(($rec->displayContragentClassId == 'crm_Persons' && isset($rec->displayContragentId)) || doc_Folders::fetchCoverClassName($form->rec->folderId) == 'crm_Persons'){
+            if(($rec->displayContragentClassId == 'crm_Persons' && isset($rec->displayContragentId)) || (doc_Folders::fetchCoverClassName($form->rec->folderId) == 'crm_Persons' && empty($rec->displayContragentId))){
                 $form->setField('uicNo', 'caption=Контрагент->ЕГН');
                 $form->setFieldType('uicNo', 'bglocal_EgnType');
             }
