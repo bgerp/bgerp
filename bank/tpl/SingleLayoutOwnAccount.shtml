@@ -101,10 +101,12 @@
                 <legend class="groupTitle">|Кой може да контира документи, в които е избрана сметката|*</legend>
                 <div class="groupList">
                     <table>
+                        <!--ET_BEGIN operators-->
                         <tr>
                             <td class='dt'>|Потребители|*:</td>
                             <td>[#operators#]</td>
                         </tr>
+                        <!--ET_END operators-->
                         <!--ET_BEGIN activateRoles-->
                         <tr>
                             <td class='dt'>|Екипи|*:</td>

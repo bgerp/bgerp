@@ -12,7 +12,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Продажби » Просрочени фактури !!! Стара - извън поддръжка! Да НЕ СЕ използва !!!
+ * @title     Продажби » Просрочени фактури
  */
 class sales_reports_OverdueInvoices extends frame2_driver_TableData
 {
