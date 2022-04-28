@@ -566,8 +566,8 @@ class planning_Tasks extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = cat_Products::getVerbal($rec->productId, 'name');
-        $title = "Opr{$rec->id} - " . $title;
+        $jobDoc = doc_Containers::getDocument($rec->originId);
+        $title = "Opr{$rec->id}/{$jobDoc->getHandle()}-" . cat_Products::getVerbal($jobDoc->fetchField('productId'), 'name');
         
         return $title;
     }
