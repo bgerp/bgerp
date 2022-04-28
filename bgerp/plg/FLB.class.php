@@ -84,7 +84,7 @@ class bgerp_plg_FLB extends core_Plugin
     {
         $rec = &$form->rec;
         if ($form->isSubmitted()) {
-            if(empty($mvc->canActivateUserFld) && empty($mvc->canActivateRoleFld)){
+            if(empty($rec->{$mvc->canActivateUserFld}) && empty($rec->{$mvc->canActivateRoleFld})){
                 $form->setError("{$mvc->canActivateUserFld},{$mvc->canActivateRoleFld}", 'Задължително трябва да е попълнено поне едно от полетата');
             }
         }
