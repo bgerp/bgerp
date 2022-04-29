@@ -904,6 +904,8 @@ class planning_Tasks extends core_Master
             if(isset($rec->id)){
                 if(empty($rec->assetId)){
                     $requiredRoles = 'no_one';
+                } elseif(!in_array($rec->state, array('active', 'wakeup', 'waiting'))){
+                    $requiredRoles = 'no_one';
                 } elseif(!empty($rec->startAfter)){
                     $startAfterTask = $mvc->fetch($rec->startAfter, 'state,assetId');
                     if(!in_array($startAfterTask->state, array('draft', 'pending', 'active', 'wakeup')) || $rec->assetId != $startAfterTask->assetId){
@@ -1366,7 +1368,7 @@ class planning_Tasks extends core_Master
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
         if(countR($assetInTasks)){
-            $data->listFilter->setField('assetId', 'caption=Оборудване');
+            $data->listFilter->setField('assetId', 'caption=Оборудване,autoFilter');
             $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
             $data->listFilter->showFields .= ',assetId';
             $data->listFilter->input('assetId');
@@ -1875,17 +1877,16 @@ class planning_Tasks extends core_Master
             }
         }
 
+        $enableReorder = isset($data->listFilter->rec->assetId) &&  in_array($data->listFilter->rec->state, array('activeAndWaiting', 'waiting', 'active', 'wakeup')) && countR($data->recs) > 1;
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
             // Добавяне на дата атрибуто за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
-
-            if(isset($data->listFilter->rec->assetId)){
+            if($enableReorder){
                 if($mvc->haveRightFor('reordertask', $rec)){
                     $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
-
-                    $row->title = ht::createElement('span', array('data-url' => $reorderUrl, 'class' => 'draggable'), $row->title);
+                    $row->title = ht::createElement('span', array('data-currentId' => $rec->id, 'data-url' => $reorderUrl, 'class' => 'draggable', 'title' => 'Може да преместите задачата след друга|*!'), $row->title);
                 }
             }
 

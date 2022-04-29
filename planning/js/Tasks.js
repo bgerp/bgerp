@@ -2,7 +2,7 @@ function listTasks() {
 
     var draggedTr;
     $( ".draggable" ).draggable({
-        revert: "invalid",
+        revert: "valid",
         containment: '.listTable',
         drag: function( event, ui ) {
             draggedTr = $(this).parent().parent();
@@ -29,7 +29,13 @@ function listTasks() {
 
             var curId = $(this).find('tr').attr("data-id");
             var url = $(ui.draggable).attr("data-url");
-            if(!url) return;
+            var draggableCurrentId = $(ui.draggable).attr("data-currentId");
+
+            if(!url || draggableCurrentId == curId) {
+                $(this).removeClass('ui-droppable-hover-bottom');
+                $(this).removeClass('ui-droppable-hover-top');
+                return;
+            }
 
             var divId = $(".rowsContainerClass").attr("id");
             resObj = new Object();
@@ -40,7 +46,7 @@ function listTasks() {
 
             $(this).removeClass('ui-droppable-hover-bottom');
             $(this).removeClass('ui-droppable-hover-top');
-            $(document.body).css({'cursor' : 'wait'});
+            $( ".draggable" ).draggable({ revert: "invalid"});
 
             getEfae().preventRequest = 0;
             getEfae().process(resObj, params);
