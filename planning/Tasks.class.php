@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, progress, folderId, orderByAssetId, state, modifiedOn, modifiedBy';
+    public $listFields = 'title, progress, folderId, orderByAssetId, state, modifiedOn, modifiedBy, originId=@';
     
     
     /**
@@ -393,8 +393,7 @@ class planning_Tasks extends core_Master
         }
         
         $origin = doc_Containers::getDocument($rec->originId);
-        $row->originId = $origin->getLink();
-        $row->originShortLink = $origin->getShortHyperlink();
+        $row->originId = "<small>" . $origin->getShortHyperlink() . "</small>";
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
@@ -441,11 +440,6 @@ class planning_Tasks extends core_Master
                 }
             }
         }
-        
-        if (isset($fields['-list']) && !isset($fields['-detail'])) {
-            $row->title .= "<br><small>{$row->originShortLink}</small>";
-        }
-        
         
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
@@ -568,8 +562,8 @@ class planning_Tasks extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $jobDoc = doc_Containers::getDocument($rec->originId);
-        $title = "Opr{$rec->id}/{$jobDoc->getHandle()}-" . cat_Products::getVerbal($jobDoc->fetchField('productId'), 'name');
+        $title = cat_Products::getTitleById($rec->productId, $escaped);
+        $title = "Opr{$rec->id} - " . $title;
         
         return $title;
     }
@@ -910,6 +904,8 @@ class planning_Tasks extends core_Master
             if(isset($rec->id)){
                 if(empty($rec->assetId)){
                     $requiredRoles = 'no_one';
+                } elseif(!in_array($rec->state, array('active', 'wakeup', 'waiting'))){
+                    $requiredRoles = 'no_one';
                 } elseif(!empty($rec->startAfter)){
                     $startAfterTask = $mvc->fetch($rec->startAfter, 'state,assetId');
                     if(!in_array($startAfterTask->state, array('draft', 'pending', 'active', 'wakeup')) || $rec->assetId != $startAfterTask->assetId){
@@ -1181,12 +1177,18 @@ class planning_Tasks extends core_Master
         $form->input('assetId', 'silent');
         if(isset($rec->assetId)){
             if($data->action != 'clone'){
-                $assetTasks = planning_AssetResources::getAssetTaskOptions($rec->assetId);
+                $assetTasks = planning_AssetResources::getAssetTaskOptions($rec->assetId, true);
                 unset($assetTasks[$rec->id]);
+                $taskOptions = array();
+                foreach ($assetTasks as $tRec){
+                    $job = doc_Containers::getDocument($tRec->originId);
+                    $title = "#Opr{$tRec->id}/{$job->getRecTitle()}/{$mvc->getVerbal($tRec->id, 'productId')}";
+                    $taskOptions[$tRec->id] = $title;
+                }
 
                 $form->setField('startAfter', 'input');
-                if(countR($assetTasks)){
-                    $form->setOptions('startAfter', array('' => '') + $assetTasks);
+                if(countR($taskOptions)){
+                    $form->setOptions('startAfter', array('' => '') + $taskOptions);
                     $form->setDefault('startAfter', $mvc->getStartAfter($rec));
                 } else {
                     $form->setReadOnly('startAfter');
@@ -1366,7 +1368,7 @@ class planning_Tasks extends core_Master
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
         if(countR($assetInTasks)){
-            $data->listFilter->setField('assetId', 'caption=Оборудване');
+            $data->listFilter->setField('assetId', 'caption=Оборудване,autoFilter');
             $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
             $data->listFilter->showFields .= ',assetId';
             $data->listFilter->input('assetId');
@@ -1875,18 +1877,17 @@ class planning_Tasks extends core_Master
             }
         }
 
+        $enableReorder = isset($data->listFilter->rec->assetId) &&  in_array($data->listFilter->rec->state, array('activeAndWaiting', 'waiting', 'active', 'wakeup')) && countR($data->recs) > 1;
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
             // Добавяне на дата атрибуто за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
-            $row->ROW_ATTR['data-drop-warning'] = tr('Желаете ли да преместите задачата след|*: #' . $mvc->getHandle($rec->id) . "?");
-
-            if($mvc->haveRightFor('reordertask', $rec)){
-                $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
-                $img = ht::createImg(array('path' => 'img/16/arrow_switch.png'));
-                $element = ht::createElement('span', array('data-url' => $reorderUrl, 'class' => 'draggable', 'data-default-warning' => tr('Желаете ли да преместите задачата първа за оборудването|*?')), $img);
-                $row->title = $element . "" . $row->title;
+            if($enableReorder){
+                if($mvc->haveRightFor('reordertask', $rec)){
+                    $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
+                    $row->title = ht::createElement('span', array('data-currentId' => $rec->id, 'data-url' => $reorderUrl, 'class' => 'draggable', 'title' => 'Може да преместите задачата след друга|*!'), $row->title);
+                }
             }
 
             if(countR($data->listFieldsParams)){

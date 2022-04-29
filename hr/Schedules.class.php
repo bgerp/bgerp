@@ -233,7 +233,7 @@ class hr_Schedules extends core_Master
     /**
      * Добавя записа към списъка с интервали
      */
-    private function addInterval($ints, $dRec, $fromTs, $toTs, $forStatistic = false)
+    private static function addInterval($ints, $dRec, $fromTs, $toTs, $forStatistic = false)
     { 
         $duration = $forStatistic ? ($dRec->duration - $dRec->break) : $dRec->duration;
         $repeat = $dRec->repeat ? $dRec->repeat : 0;
@@ -342,7 +342,7 @@ class hr_Schedules extends core_Master
     /**
      * Подготвя локациите на контрагента
      */
-    public function prepareCalendar($data)
+    public static function prepareCalendar($data)
     {
         $firstDay = Request::get('month', 'date');
 
@@ -471,11 +471,13 @@ class hr_Schedules extends core_Master
      */
     public static function calcLeaveDaysBySchedule($id, $from, $to)
     {
+        $from = substr($from, 0, 10);
+        $to = substr($to, 0, 10);
 
         $workDays = $allDays = 0;
         
         $sTimes = self::getStartingTimes($id, $from, $to);
-
+ 
         $workDays = count($sTimes);
 
         $res = (object) array('nonWorking' => $nonWorking, 'workDays' => $workDays, 'allDays' => $allDays);
