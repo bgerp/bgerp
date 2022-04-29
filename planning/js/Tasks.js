@@ -47,6 +47,7 @@ function listTasks() {
             $(this).removeClass('ui-droppable-hover-bottom');
             $(this).removeClass('ui-droppable-hover-top');
             $( ".draggable" ).draggable({ revert: "invalid"});
+            $( ".draggable" ).draggable( "disable" )
 
             getEfae().preventRequest = 0;
             getEfae().process(resObj, params);
