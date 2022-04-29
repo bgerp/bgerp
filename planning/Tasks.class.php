@@ -562,8 +562,8 @@ class planning_Tasks extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $jobDoc = doc_Containers::getDocument($rec->originId);
-        $title = "Opr{$rec->id}/{$jobDoc->getHandle()}-" . cat_Products::getVerbal($jobDoc->fetchField('productId'), 'name');
+        $title = cat_Products::getTitleById($rec->productId, $escaped);
+        $title = "Opr{$rec->id} - " . $title;
         
         return $title;
     }
@@ -1175,12 +1175,21 @@ class planning_Tasks extends core_Master
         $form->input('assetId', 'silent');
         if(isset($rec->assetId)){
             if($data->action != 'clone'){
-                $assetTasks = planning_AssetResources::getAssetTaskOptions($rec->assetId);
+                $assetTasks = planning_AssetResources::getAssetTaskOptions($rec->assetId, true);
                 unset($assetTasks[$rec->id]);
+                $taskOptions = array();
+                foreach ($assetTasks as $tRec){
+                    $job = doc_Containers::getDocument($tRec->originId);
+                    $title = "#Opr{$tRec->id}/{$job->getRecTitle()}";
+                    if($job->fetchField('productId') != $tRec->productId){
+                        $title .= "/" . $mvc->getVerbal($tRec->id, 'productId');
+                    }
+                    $taskOptions[$tRec->id] = $title;
+                }
 
                 $form->setField('startAfter', 'input');
-                if(countR($assetTasks)){
-                    $form->setOptions('startAfter', array('' => '') + $assetTasks);
+                if(countR($taskOptions)){
+                    $form->setOptions('startAfter', array('' => '') + $taskOptions);
                     $form->setDefault('startAfter', $mvc->getStartAfter($rec));
                 } else {
                     $form->setReadOnly('startAfter');
