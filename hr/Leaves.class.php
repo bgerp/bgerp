@@ -369,17 +369,10 @@ class hr_Leaves extends core_Master
                 $form->setError('leaveTo', "Крайната дата трябва да е преди {$after1yearVerbal}г.", $ignorable);
             }
             
-            // изисляване на бр дни отпуска
+            // Изисляване на брой дни отпуска
             if ($form->rec->leaveFrom && $form->rec->leaveTo) {
-                $state = hr_EmployeeContracts::getQuery();
-                $state->where("#personId='{$form->rec->personId}' AND #state = 'active'");
-                
-                if ($employeeContractDetails = $state->fetch()) {
-                    $days = hr_WorkingCycles::calcLeaveDaysBySchedule($schedule, $employeeContractDetails->departmentId, $form->rec->leaveFrom, $form->rec->leaveTo);
-                } else {
-                    $days = cal_Calendar::calcLeaveDays($form->rec->leaveFrom, $form->rec->leaveTo);
-                }
-                
+                $scheduleId = planning_Hr::getSchedule($form->rec->personId);
+                $days = hr_Schedules::calcLeaveDaysBySchedule($scheduleId, $form->rec->leaveFrom, $form->rec->leaveTo);
                 $form->rec->leaveDays = $days->workDays;
             }
             

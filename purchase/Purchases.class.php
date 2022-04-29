@@ -500,14 +500,16 @@ class purchase_Purchases extends deals_DealMaster
         $result->set('allowedPaymentOperations', $this->getPaymentOperations($rec));
         $result->set('allowedShipmentOperations', $this->getShipmentOperations($rec));
         $result->set('involvedContragents', array((object) array('classId' => $rec->contragentClassId, 'id' => $rec->contragentId)));
-        
+
+        $deliveryTime = !empty($rec->deliveryTermTime) ? (dt::addSecs($rec->deliveryTermTime, $rec->valior, false) . " " . trans_Setup::get('END_WORK_TIME') . ":00") : $rec->deliveryTime;
+        $result->setIfNot('deliveryTime', $deliveryTime);
+
         $result->setIfNot('amount', $rec->amountDeal);
         $result->setIfNot('currency', $rec->currencyId);
         $result->setIfNot('rate', $rec->currencyRate);
         $result->setIfNot('vatType', $rec->chargeVat);
         $result->setIfNot('agreedValior', $rec->valior);
         $result->setIfNot('deliveryLocation', $rec->deliveryLocationId);
-        $result->setIfNot('deliveryTime', $rec->deliveryTime);
         $result->setIfNot('deliveryTerm', $rec->deliveryTermId);
         $result->setIfNot('storeId', $rec->shipmentStoreId);
         $result->setIfNot('paymentMethodId', $rec->paymentMethodId);
@@ -578,7 +580,11 @@ class purchase_Purchases extends deals_DealMaster
             foreach (array('productId', 'packagingId', 'discount', 'quantity', 'quantityInPack', 'price', 'notes', 'expenseItemId') as $fld) {
                 $p->{$fld} = $dRec->{$fld};
             }
-            
+
+            if(!empty($rec->reff)){
+                $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : $rec->reff;
+            }
+
             $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");
             
             if (core_Packs::isInstalled('batch')) {

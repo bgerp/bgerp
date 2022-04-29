@@ -16,6 +16,9 @@
                                         <div class="bigData">[#date#]</div>
                                         <div class='invInfo'>Място</div>
                                         <div class="bigData">[#place#]</div>
+                                        <!--ET_BEGIN reff-->
+                                        <div class="invInfo">Ваш реф: <span class="bigData">[#reff#]</span></div>
+                                        <!--ET_END reff-->
                                         <div class='invInfo bigData'>
                                             <div class='original'>[#INV_STATUS#]</div>
                                             <!--ET_BEGIN originInv-->

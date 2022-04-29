@@ -44,6 +44,19 @@ defIfNot('TRANS_SHOW_LOG_INFO_IN_DOCUMENTS', 'show');
 
 
 /**
+ * Начало на работния ден за доставка
+ */
+defIfNot('TRANS_START_WORK_TIME', '08:08');
+
+
+/**
+ * Край на работния ден за доставка
+ */
+defIfNot('TRANS_END_WORK_TIME', '17:17');
+
+
+
+/**
  * Транспорт
  *
  *
@@ -150,6 +163,9 @@ class trans_Setup extends core_ProtoSetup
         'TRANS_DATE_FOR_TRANS_INDICATORS' => array('date', 'caption=От коя дата да се изчисляват индикатори транспортни линии->Дата'),
         'TRANS_SHOW_VOD_BTN' => array('enum(always=Винаги,auto=Условието на доставка + Чужбина ЕС,never=Никога)','caption=Показване на бутон за ВОД към ЕН->Избор'),
         'TRANS_SHOW_LOG_INFO_IN_DOCUMENTS' => array('enum(show=Показване, hide=Скриване)','caption=Логистична информация в транспортните документи при печат/изпращане->Избор,customizeBy=trans|store|sales|ceo'),
+
+        'TRANS_START_WORK_TIME' => array('hour','caption=Начало и край на работния ден за датите в складовите документи->Начало'),
+        'TRANS_END_WORK_TIME' => array('hour','caption=Начало и край на работния ден за датите в складовите документи->Край'),
     );
     
     

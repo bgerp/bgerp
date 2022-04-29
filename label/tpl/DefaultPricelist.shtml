@@ -1,39 +1,96 @@
 <style>
     .label-holder {
         border-radius: 8px;
-        padding: 2mm 1mm 1mm 1mm;
-        position: relative;
-        width: 62mm;
-        border: 1px transparent;
+        padding: 0.5mm 1mm 1mm;
+        width: 60.5mm;
+        font-size: 1em;
+    }
+    .code {
+        font-size: 1.5em;
     }
     .label-holder table {
-        height: 30mm;
-        width: 62mm;
+        height: 27.5mm;
+        width: 59mm;
         border-collapse: collapse;
     }
+
     .label-holder table tr > td {
-        padding: 0 1mm;
-        font-size: 15px;
-    }
-    .barcode img {
-        max-width: 48mm;
-        height:auto;
-    }
-    .bold {
+        border-left: 1px solid #aaa;
+        border-top: 1px solid #aaa;
+        padding: 0 0.5mm;
+        font-size: 10px;
         font-weight: bold;
     }
+
+    .label-holder table tr > td.no-border-left {
+        border-left: none;
+    }
+
+    .label-holder table tr > td.no-border-top {
+        border-top: none;
+    }
+
+    .details-label {
+        top: -1mm;
+        position: relative;
+    }
+
+    .small {
+        font-size: 0.8em;
+        font-weight: normal;
+        display:block;
+    }
+
+    .right {
+        float: right;
+    }
+
+    .left {
+        float: left;
+    }
+
+    .logo img {
+        width: 12mm;
+        height: auto;
+    }
+    .barcode-holder img{
+        max-height: 92px;
+        max-width: 40px;
+    }
+    .description {
+        border-left: 1px solid #aaa;
+    }
+    .clearfix21 {
+        clear: both;
+    }
+    .pics img {
+        float: left;
+        width: 14mm;
+        height: auto;
+    }
+
 </style>
 <div class="label-holder">
     <table cellpadding="0">
         <tr>
-            <td class="no-border-left big-text" >
-                <div style='padding-top: 1px; height:8mm; min-height:8mm;' align="center"> [#NAME#] - [#CODE#]</div>
+            <td class="top-descr no-border-left no-border-top" >
+                <b> <div class='left'>код:<span class="code">[#CODE#]</span></div></b>
+            </td>
+            <td   class="top-descr no-border-left no-border-top" >
+                 <div class='right'>мярка:<span class="measure"><b>[#MEASURE_ID#]</b></span></div>
             </td>
         </tr>
         <tr>
-            <td valign="middle" align="center" class="no-border-left bold" style='font-size: 17px;'>
-                [#CATALOG_PRICE#] [#CATALOG_CURRENCY#]
-
+            <td colspan=2  valign="middle" align="center" class="top-descr no-border-left bold" style='font-size: 15px;'>
+                [#NAME#]
+            </td>
+        </tr>
+        <tr>
+            <td   class="top-descr no-border-left  >
+                <div class='left'><span class="date"><b>[#DATE#]</b></span></div>
+            </td>
+            <td valign="middle" align="center" class="no-border-left bold" style='font-size: 14px;'>
+                  [#CATALOG_PRICE#] [#CATALOG_CURRENCY#]
             </td>
         </tr>
     </table>

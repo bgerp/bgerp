@@ -73,8 +73,8 @@ class fileman_FileType extends type_Varchar
         
         expect($bucketId, 'Очаква се валидна кофа', $bucket);
         
-        $tpl->prepend($Files->makeBtnToAddFile('+', $bucketId, 'setInputFile' . $name, array('class' => 'noicon', 'title' => 'Добавяне или промяна на файл')));
-        
+        $tpl->prepend($Files->makeBtnToAddFile('+', $bucketId, 'setInputFile' . $name, array('class' => 'noicon focus', 'title' => 'Добавяне или промяна на файл')));
+
         $this->addJavascript($tpl, $name);
         
         return $tpl;
@@ -122,6 +122,8 @@ class fileman_FileType extends type_Varchar
                 return setInputFile('{$name}', fh, fName);
             }
         ", 'SCRIPTS');
+
+        $tpl->appendOnce(" document.getElementsByClassName('focus')[0].focus(); ", 'SCRIPTS');
     }
     
     

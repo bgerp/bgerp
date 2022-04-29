@@ -9,6 +9,9 @@
                         <div style="padding-top:5px;">
                             № <span class="bigData">[#id#]</span> /
                             <span class="bigData">[#valior#]</span>
+                            <!--ET_BEGIN reff-->
+                            <div>|Ваш реф|* <span class="bigData">[#reff#]</span></div>
+                            <!--ET_END reff-->
                         </div>
                         <!--ET_BEGIN state-->
                         <div class="[#STATE_CLASS#]" style='margin-top: 5px 0;'>[#state#]</div>
@@ -63,10 +66,23 @@
                        <table class='shipment-table' style='width:100%;'>
                             <!--ET_BEGIN deliveryTime-->
                             <tr>
-                                <td class='quiet nowrap aright' style='width:1%;'>|Натоварване|*:</td>
+                                <td class='quiet nowrap aright' style='width:1%;'>|Товарене|*:</td>
                                 <td>[#deliveryTime#]</td>
                             </tr>
                             <!--ET_END deliveryTime-->
+                           <!--ET_BEGIN shipmentOn-->
+                           <tr>
+                               <td class='quiet nowrap aright' style="width: 1%">|Експедиране|*:</td>
+                               <td>[#shipmentOn#]</td>
+                           </tr>
+                           <!--ET_END shipmentOn-->
+
+                           <!--ET_BEGIN deliveryOn-->
+                           <tr>
+                               <td class='quiet nowrap aright' style="width: 1%">|Доставка|*:</td>
+                               <td>[#deliveryOn#]</td>
+                           </tr>
+                           <!--ET_END deliveryOn-->
                             <!--ET_BEGIN storeId-->
                             <tr>
                                 <td class='quiet nowrap aright'>|От склад|*:</td>

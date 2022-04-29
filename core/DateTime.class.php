@@ -342,7 +342,7 @@ class core_DateTime
         if ($mask == 'smartTime') {
             $addColor = true;
             
-            if ($year != $yearNow) {
+            if (abs($time - time()) > 120*24*60*60) {
                 if (Mode::is('screenMode', 'narrow')) {
                     $mask = 'd.m.y H:i';
                 } else {
@@ -1061,5 +1061,18 @@ class core_DateTime
         }
 
         return $arr;
+    }
+    
+
+    /**
+     * Ако в датата не е посочено време, то се добавя параметъра
+     */
+    public static function addTimeIfNot($mysqlDate, $time = '00:00:00')
+    {
+        if(strlen($mysqlDate) < 11) {
+            $mysqlDate .= ' ' . $time;
+        }
+
+        return $mysqlDate;
     }
 }

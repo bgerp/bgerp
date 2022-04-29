@@ -173,6 +173,16 @@ class store_Setup extends core_ProtoSetup
             'offset' => 0,
             'timeLimit' => 100
         ),
+        array(
+            'systemId' => 'Recalc Shipment Document Dates',
+            'description' => 'Кеширане на изчисленията на датите в складовите документи',
+            'controller' => 'store_Setup',
+            'action' => 'RecalcShipmentDates',
+            'period' => 60,
+            'offset' => 10,
+            'timeLimit' => 300,
+        ),
+
     );
     
     
@@ -310,4 +320,43 @@ class store_Setup extends core_ProtoSetup
         $query = "UPDATE {$Products->dbTableName} SET {$lastUpdatedColName} = NOW() WHERE {$lastUpdatedColName} IS NULL";
         $Products->db->query($query);
     }
+
+
+    /**
+     * Обновяване по разписание
+     */
+    function cron_RecalcShipmentDates()
+    {
+        // Кои са складовите документи в системата
+        $storableDocuments = core_Classes::getOptionsByInterface('store_iface_DocumentIntf');
+        $transportableIntf = core_Classes::getOptionsByInterface('trans_TransportableIntf');
+        $classesToRecalc = array_intersect_key($storableDocuments, $transportableIntf);
+
+        foreach ($classesToRecalc as $class){
+            $toSave = array();
+            $Class = cls::get($class);
+
+            // Ако има полета за дати в тях
+            $dateData = $Class->getShipmentDateFields();
+            if(!countR($dateData)) return;
+
+            $updateFields = array('id');
+            array_walk($dateData, function($a) use(&$updateFields) {if(isset($a['autoCalcFieldName'])) {$updateFields[$a['autoCalcFieldName']] = $a['autoCalcFieldName'];}});
+
+            // Обикалят се всички заявки и чакащи и се преизчислява това им поле
+            $query = $Class->getQuery();
+            $query->where("#state = 'pending' || #state = 'draft'");
+            while($rec = $query->fetch()){
+                if($Class->recalcShipmentDateFields($rec, false)){
+                    $toSave[$rec->id] = $rec;
+                }
+            }
+
+            // Обновяване на всички записи
+            if(countR($toSave)){
+                $Class->saveArray($toSave, $updateFields);
+            }
+        }
+    }
+
 }

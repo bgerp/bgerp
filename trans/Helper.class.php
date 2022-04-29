@@ -202,4 +202,28 @@ abstract class trans_Helper
         
         return (serialize($arr1) == serialize($arr2));
     }
+
+
+    /**
+     * Коя от датите ще се използва за експедиране
+     *
+     * @param date $valior          - вальор
+     * @param int $lineId           - ид на транспортна линия (ако има)
+     * @param datetime $activatedOn - дата на активиране
+     * @return datetime|null        - изчислената дата за експедиране
+     */
+    public static function calcShippedOnDate($valior, $lineId, $activatedOn)
+    {
+        $shippedDate = null;
+        if(!empty($valior)) {
+            $startTime = trans_Setup::get('START_WORK_TIME');
+            $shippedDate = "{$valior} {$startTime}:00";
+        } elseif(isset($lineId)){
+            $shippedDate = trans_Lines::fetchField($lineId, 'start');
+        }
+
+        $shippedDate = (!empty($shippedDate) && $shippedDate >= dt::now()) ? $shippedDate :(dt::today() . " " . trans_Setup::get('END_WORK_TIME') . ":00");
+
+        return $shippedDate;
+    }
 }

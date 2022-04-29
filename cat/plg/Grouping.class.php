@@ -81,6 +81,17 @@ class cat_plg_Grouping extends core_Plugin
             }
             
             $selArrCnt = countR($selArr);
+
+            if (!$selArrCnt) {
+                $retUrl = getRetUrl();
+                if (!$retUrl) {
+                    $retUrl = array($mvc, 'list');
+                }
+                $res = new Redirect($retUrl, 'В избраните няма опции, които може да се променят');
+
+                return false;
+            }
+
             expect($selArrCnt);
             reset($selArr);
             

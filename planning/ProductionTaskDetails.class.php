@@ -91,7 +91,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,weight=Тегло (кг),employees,fixedAsset,created=Създаване,info=@';
+    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,weight=Тегло (кг),employees,created=Създаване,info=@';
     
     
     /**
@@ -450,8 +450,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (!empty($exRec)) {
             $res['type'] = 'existing';
             $res['productId'] = $exRec->productId;
-            if($type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
-                $res['error'] = 'Серийния номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
+            if($exRec->state != 'rejected' && $type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
+                $res['error'] = 'Серийният номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
             }
         } else {
             if ($pRec = $Driver->getRecBySerial($serial)) {
@@ -462,7 +462,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $error = '';
         if ($res['productId'] != $productId) {
-            $res['error'] = 'Серийния номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
+            $res['error'] = 'Серийният номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
         }
@@ -476,10 +476,6 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
-        if (isset($rec->fixedAsset)) {
-            $row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset);
-        }
-
         $taskRec = planning_Tasks::fetch($rec->taskId);
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $row->created = "<div class='nowrap'>" . $mvc->getFieldType('createdOn')->toVerbal($rec->createdOn);
@@ -1057,7 +1053,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if(!empty($params['serial'])){
-            expect(str::containOnlyDigits($params['serial']), 'Серийния номер може да е само от цифри');
+            expect(str::containOnlyDigits($params['serial']), 'Серийният номер може да е само от цифри');
             $params['serial'] = plg_Search::normalizeText($params['serial']);
             $params['serial'] = str::removeWhiteSpace($params['serial']);
             if ($Driver = cat_Products::getDriver($productId)) {

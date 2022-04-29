@@ -172,7 +172,7 @@ class cond_TransportCalc
     
     
     /**
-     * При упдейт на количката в е-магазина, какво да се  изпълнява
+     * При ъпдейт на количката в е-магазина, какво да се  изпълнява
      *
      * @param stdClass $cartRec
      *
@@ -187,7 +187,7 @@ class cond_TransportCalc
     /**
      * Може ли да се избира условието в онлайн магазина
      *
-     * @param int|stdClass $cartRec
+     * @param int|stdClass $rec
      * @param int|null $cu
      *
      * @return boolean
@@ -195,5 +195,18 @@ class cond_TransportCalc
     public function canSelectInEshop(&$rec, $cu = null)
     {
         return $this->class->canSelectInEshop($rec, $cu);
+    }
+
+
+    /**
+     * Колко е най-голямото време за доставка
+     *
+     * @param int $deliveryTermId - ид на условие на доставка
+     * @param array $params       - параметри за доставка
+     * @return int                - най-голямото време за доставка в секунди
+     */
+    public function getMaxDeliveryTime($deliveryTermId, $params)
+    {
+        return $this->class->getMaxDeliveryTime($deliveryTermId, $params);
     }
 }

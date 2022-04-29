@@ -175,8 +175,7 @@ class planning_Centers extends core_Master
         $this->FLD('nkid', 'key(mvc=bglocal_NKID, select=title,allowEmpty=true)', 'caption=Служители->НКИД, hint=Номер по НКИД');
         $this->FLD('employmentTotal', 'int', 'caption=Служители->Щат, input=none');
         $this->FLD('employmentOccupied', 'int', 'caption=Служители->Назначени, input=none');
-        $this->FLD('schedule', 'key(mvc=hr_WorkingCycles, select=name, allowEmpty=true)', 'caption=Работен график->Цикъл,mandatory');
-        $this->FLD('startingOn', 'datetime', 'caption=Работен график->От');
+        $this->FLD('scheduleId', 'key(mvc=hr_Schedules, select=name, allowEmpty=true)', 'caption=Работен график->Разписание,mandatory');
         $this->FLD('state', 'enum(active=Вътрешно,closed=Нормално,rejected=Оттеглено)', 'caption=Състояние,value=active,notNull,input=none');
         
         $this->setDbUnique('name');
@@ -424,14 +423,14 @@ class planning_Centers extends core_Master
         
         $query = self::getQuery();
         $query->where("#state != 'closed' AND #state != 'rejected'");
-        while($rec = $query->fetch()){
-            if(planning_Steps::fetch("#centerId = {$rec->id}")){
-                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
+        while($rec = $query->fetch()){  
+            
+                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {  
                     $options[$rec->folderId] = self::getRecTitle($rec, false);
                 }
-            }
+            
         }
-
+ 
         return $options;
     }
     

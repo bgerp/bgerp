@@ -149,6 +149,7 @@ abstract class deals_QuotationMaster extends core_Master
         parent::prepareEditForm_($data);
         $form = $data->form;
         $form->setField('deliveryAdress', array('placeholder' => '|Държава|*, |Пощенски код|*'));
+        $form->setFieldTypeParams('deliveryTime', array('defaultTime' => trans_Setup::get('END_WORK_TIME')));
         $rec = &$data->form->rec;
 
         $folderId = $rec->folderId;

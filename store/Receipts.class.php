@@ -48,7 +48,7 @@ class store_Receipts extends store_DocumentMaster
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, sales_plg_CalcPriceDelta,store_plg_Request, plg_Sorting,purchase_plg_ExtractPurchasesData,acc_plg_ForceExpenceAllocation, acc_plg_Contable, cond_plg_DefaultValues,
                     plg_Clone,doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, doc_plg_TplManager,
-					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+					doc_EmailCreatePlg, bgerp_plg_Blank, trans_plg_LinesPlugin, doc_plg_HidePrices, doc_SharablePlg,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
     
     
     /**
@@ -187,14 +187,23 @@ class store_Receipts extends store_DocumentMaster
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, modifiedOn, valior, loadingOn, deliveryTime';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
     {
         parent::setDocFields($this);
-        $this->setField('storeId', 'caption=В склад');
-        $this->setField('deliveryTime', 'caption=Разтоварване');
 
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $endTime = trans_Setup::get('END_WORK_TIME');
+        $this->setField('storeId', 'caption=В склад');
+        $this->FLD('loadingOn', "datetime(defaultTime={$startTime})",'caption=Натоварване,after=locationId');
+        $this->setField('deliveryTime', 'caption=Разтоварване,after=loadingOn');
         $this->setField('prevShipment', 'caption=Адрес за натоварване->Избор');
         $this->setField('company', 'caption=Адрес за натоварване->Фирма');
         $this->setField('person', 'caption=Адрес за натоварване->Име');
@@ -204,6 +213,7 @@ class store_Receipts extends store_DocumentMaster
         $this->setField('place', 'caption=Адрес за натоварване->Град/с');
         $this->setField('address', 'caption=Адрес за натоварване->Адрес');
         $this->setField('addressInfo', 'caption=Адрес за натоварване->Особености');
+        $this->setFieldTypeParams("deliveryTime", array('defaultTime' => $endTime));
     }
     
     
@@ -362,8 +372,29 @@ class store_Receipts extends store_DocumentMaster
     {
         if(isset($fields['-single'])){
             core_Lg::push($rec->tplLang);
-            $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
+            if(!empty($rec->deliveryTime)){
+                $row->deliveryTimeCaption = ($rec->isReverse == 'no') ? tr('Разтоварване') : tr('Натоварване');
+            }
             core_Lg::pop();
         }
     }
+
+
+    /**
+     * Kои са полетата за датите за експедирането
+     *
+     * @param mixed $rec     - ид или запис
+     * @param boolean $cache - дали да се използват кеширани данни
+     * @return array $res    - масив с резултат
+     */
+    public function getShipmentDateFields($rec = null, $cache = false)
+    {
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $endTime = trans_Setup::get('END_WORK_TIME');
+        $res = array('loadingOn'   => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input"),
+                     'deliveryTime' => array('caption' => 'Разтоварване', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => true, "input" => "input"),);
+
+        return $res;
+    }
 }
+

@@ -8,7 +8,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -37,7 +37,7 @@ class store_Transfers extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, plg_Sorting, plg_Printing, store_plg_Request, acc_plg_Contable, acc_plg_DocumentSummary,
-                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_SetTermDate,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
+                    doc_DocumentPlg, trans_plg_LinesPlugin, doc_plg_BusinessDoc,plg_Clone,deals_plg_EditClonedDetails,cat_plg_AddSearchKeywords, plg_Search, store_plg_StockPlanning';
 
 
     /**
@@ -189,12 +189,6 @@ class store_Transfers extends core_Master
 
 
     /**
-     * Поле за филтриране по дата
-     */
-    public $filterDateField = 'createdOn, valior,deliveryTime,modifiedOn';
-
-
-    /**
      * Полета, които при клониране да не са попълнени
      *
      * @see plg_Clone
@@ -215,6 +209,12 @@ class store_Transfers extends core_Master
 
 
     /**
+     * Поле за филтриране по дата
+     */
+    public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, deliveryTime, shipmentOn, deliveryOn';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -226,12 +226,13 @@ class store_Transfers extends core_Master
         $this->FLD('volume', 'cat_type_Volume', 'input=none,caption=Обем');
 
         // Доставка
-        $this->FLD('deliveryTime', 'datetime', 'caption=Натоварване');
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $this->FLD('deliveryTime', "datetime(defaultTime={$startTime})", 'caption=Товарене');
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title,allowEmpty)', 'caption=Транспорт');
         $this->FLD('storeReadiness', 'percent', 'input=none,caption=Готовност на склада');
 
         // Допълнително
-        $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
+        $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки,after=deliveryOn');
         $this->FLD(
             'state',
             'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
@@ -702,7 +703,7 @@ class store_Transfers extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
 
-        $date = !empty($rec->{$this->termDateFld}) ? $rec->{$this->termDateFld} : (!empty($rec->{$this->valiorFld}) ? $rec->{$this->valiorFld} : $rec->createdOn);
+        $date = $this->getPlannedQuantityDate($rec);
         $Detail = cls::get('store_TransfersDetails');
 
         $dQuery = $Detail->getQuery();
@@ -793,5 +794,72 @@ class store_Transfers extends core_Master
         }
 
         return $nRec->id;
+    }
+
+
+    /**
+     * Коя е най-ранната дата на която са налични всички документи
+     *
+     * @param stdClass $rec
+     * @param boolean $cache
+     * @return date|null
+     */
+    public function getEarliestDateAllProductsAreAvailableInStore($rec, $cache = false)
+    {
+        $rec = $this->fetchRec($rec);
+        if($cache){
+            $res = core_Cache::get($this->className, "earliestDateAllAvailable{$rec->containerId}");
+        }
+
+        if(!$cache || $res === false){
+            $products = deals_Helper::sumProductsByQuantity('store_TransfersDetails', $rec->id, true, 'newProductId');
+            $res = store_StockPlanning::getEarliestDateAllAreAvailable($rec->fromStore, $products);
+            core_Cache::set($this->className, "earliestDateAllAvailable{$rec->containerId}", $res, 10);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Kои са полетата за датите за експедирането
+     *
+     * @param mixed $rec     - ид или запис
+     * @param boolean $cache - дали да се използват кеширани данни
+     * @return array $res    - масив с резултат
+     */
+    public function getShipmentDateFields($rec = null, $cache = false)
+    {
+        $startTime = trans_Setup::get('START_WORK_TIME');
+        $endTime = trans_Setup::get('END_WORK_TIME');
+        $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden", 'autoCalcFieldName' => 'readyOnCalc', 'displayExternal' => true),
+                     'deliveryTime' => array('caption' => 'Товарене', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => true, "input" => "input", 'autoCalcFieldName' => 'deliveryTimeCalc', 'displayExternal' => true),
+                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => "datetime(defaultTime={$startTime})", 'readOnlyIfActive' => false, "input" => "input=hidden", 'autoCalcFieldName' => 'shipmentOnCalc', 'displayExternal' => true),
+                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => "datetime(defaultTime={$endTime})", 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
+
+        if(isset($rec)){
+            $res['deliveryTime']['placeholder'] = store_Stores::calcLoadingDate($rec->fromStore, $rec->deliveryOn);
+            $res['readyOn']['placeholder'] = ($cache && !empty($rec->readyOnCalc)) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
+            $res['shipmentOn']['placeholder'] = ($cache && !empty($rec->shipmentOnCalc)) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * За коя дата се заплануват наличностите
+     *
+     * @param stdClass $rec - запис
+     * @return datetime     - дата, за която се заплануват наличностите
+     */
+    public function getPlannedQuantityDate_($rec)
+    {
+        // Ако има ръчно въведена дата на доставка, връща се тя
+        if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
+
+        $preparationTime = store_Stores::getShipmentPreparationTime($rec->fromStore);
+
+        return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
     }
 }

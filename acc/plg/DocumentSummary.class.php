@@ -135,11 +135,11 @@ class acc_plg_DocumentSummary extends core_Plugin
         }
 
         if (!$mvc->fields['createdOn']) {
-            $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created->На, notNull, input=none');
+            $mvc->FLD('createdOn', 'datetime(format=smartTime)', 'caption=Създаване||Created, notNull, input=none');
         }
 
         if (!$mvc->fields['createdBy']) {
-            $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създаване||Created->От||By, notNull, input=none');
+            $mvc->FLD('createdBy', 'key(mvc=core_Users)', 'caption=Създал||Creator, notNull, input=none');
         }
 
         $indexName = str::convertToFixedKey(str::phpToMysqlName(implode('_', arr::make('createdOn'))));
@@ -395,19 +395,38 @@ class acc_plg_DocumentSummary extends core_Plugin
                 $where = '';
 
                 if ($fromField) {
+                    $autoCalcField = $mvc->getFieldParam($fromField, 'autoCalcDateField');
+
                     if ($dateRange[0] && $dateRange[1]) {
+
                         $where = "(#{$fromField} >= '[#1#]' AND #{$fromField} <= '[#2#] 23:59:59')";
+                        if($autoCalcField){
+                            $where .= " OR (#{$fromField} IS NULL AND #{$autoCalcField} >= '[#1#]' AND #{$autoCalcField} <= '[#2#] 23:59:59')";
+                            $where = "({$where})";
+                        }
                     } else {
                         if ($dateRange[0]) {
                             $where .= "(#{$fromField} >= '[#1#]')";
+                            if($autoCalcField){
+                                $where .= " OR (#{$fromField} IS NULL AND #{$autoCalcField} >= '[#1#]')";
+                                $where = "({$where})";
+                            }
                         }
 
                         if ($dateRange[1]) {
                             $where .= "(#{$fromField} <= '[#2#] 23:59:59')";
+                            if($autoCalcField){
+                                $where .= " OR (#{$fromField} IS NULL AND #{$autoCalcField} <= '[#2#] 23:59:59')";
+                                $where = "({$where})";
+                            }
                         }
                     }
 
-                    $nullCond = " OR #{$fromField} IS NULL";
+                    if($autoCalcField){
+                        $nullCond = " OR #{$fromField} IS NULL";
+                    } else {
+                        $nullCond = " OR (#{$fromField} IS NULL AND #{$autoCalcField} IS NULL)";
+                    }
                 }
 
                 if ($toField && ($toField != $fromField)) {

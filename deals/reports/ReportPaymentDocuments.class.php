@@ -303,14 +303,14 @@ class deals_reports_ReportPaymentDocuments extends frame2_driver_TableData
         $fld->FLD('contragentName', 'varchar', 'caption=Контрагент');
         $fld->FLD('documentId', 'varchar', 'caption=Документ');
         $fld->FLD('amountDeal', 'double(decimals=2)', 'caption=Сума,smartCenter');
-        $fld->FLD('payDate', 'date', 'caption=Срок->за плащане');
+        $fld->FLD('payDate', 'date', 'caption=Плащане до');
         $fld->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code)', 'caption=Валута,smartCenter');
         
         if ($export === false) {
             $fld->FLD('created', 'varchar', 'caption=Създаване,smartCenter');
         } else {
-            $fld->FLD('createdOn', 'datetime', 'caption=Създаване->На');
-            $fld->FLD('createdBy', 'key(mvc=core_Users,select=nick)', 'caption=Създаване->От');
+            $fld->FLD('createdOn', 'datetime', 'caption=Създаване');
+            $fld->FLD('createdBy', 'key(mvc=core_Users,select=nick)', 'caption=Създал');
         }
         
         return $fld;

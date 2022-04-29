@@ -11,6 +11,9 @@
                     <div style="padding-top:5px;">
                         № <span class="bigData">[#id#]</span> /
                         <span class="bigData">[#valior#]</span>
+                        <!--ET_BEGIN reff-->
+                        <div>Your ref: <span class="bigData">[#reff#]</span></div>
+                        <!--ET_END reff-->
                     </div>
                     <!--ET_BEGIN state-->
                     <div class="state [#STATE_CLASS#]" style='margin: 5px 0;'>[#state#]</div>
@@ -81,12 +84,31 @@
                     <!--ET_BEGIN delivery_table-->
                     [#delivery_table#]
                      <table class='shipment-table' style='width: 100%'>
+                         <!--ET_BEGIN readyOn-->
+                         <tr>
+                             <td class='quiet nowrap aright' style="width: 1%">Ready on:</td>
+                             <td>[#readyOn#]</td>
+                         </tr>
+                         <!--ET_END readyOn-->
                         <!--ET_BEGIN deliveryTime-->
                         <tr>
                             <td style='width:1%' class='nowrap quiet aright'>Loading time:</td>
                             <td>[#deliveryTime#]</td>
                         </tr>
                         <!--ET_END deliveryTime-->
+                         <!--ET_BEGIN shipmentOn-->
+                         <tr>
+                             <td class='quiet nowrap aright' style="width: 1%">Shipment on:</td>
+                             <td>[#shipmentOn#]</td>
+                         </tr>
+                         <!--ET_END shipmentOn-->
+
+                         <!--ET_BEGIN deliveryOn-->
+                         <tr>
+                             <td class='quiet nowrap aright' style="width: 1%">Delivery on:</td>
+                             <td>[#deliveryOn#]</td>
+                         </tr>
+                         <!--ET_END deliveryOn-->
                         <!--ET_BEGIN deliveryAddressBlock-->
                         [#deliveryAddressBlock#]
                         <tr>

@@ -9,7 +9,7 @@
  * @package   store
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -200,10 +200,10 @@ class store_Stores extends core_Master
     {
         $this->FLD('name', 'varchar(128)', 'caption=Наименование,mandatory,remember=info');
         $this->FLD('comment', 'varchar(256)', 'caption=Коментар');
-        $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка за показване на наличностите,notNull,value=productMeasureId');
+        $this->FLD('displayStockMeasure', 'enum(productMeasureId=От артикула,basePack=Избраната за "основна")', 'caption=Мярка,notNull,value=productMeasureId', "unit= (|за показване на наличностите|*)");
         $this->FLD('preparationBeforeShipment', 'time(suggestions=1 ден|2 дена|3 дена|1 седмица)', 'caption=Подготовка преди Експедиция->Време');
 
-        $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители,mandatory');
+        $this->FLD('chiefs', 'userList(roles=store|ceo|production)', 'caption=Контиране на документи->Потребители');
         $this->FLD('locationId', 'key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Допълнително->Локация');
         $this->FLD('productGroups', 'keylist(mvc=cat_Groups,select=name)', 'caption=Допълнително->Продуктови групи');
         $this->FLD('workersIds', 'userList(roles=storeWorker)', 'caption=Допълнително->Товарачи');
@@ -218,8 +218,8 @@ class store_Stores extends core_Master
 
         $this->setDbUnique('name');
     }
-    
-    
+
+
     /**
      * След подготовка на тулбара на единичен изглед.
      *
@@ -422,5 +422,48 @@ class store_Stores extends core_Master
     protected static function on_BeforePrepareSuggestions($mvc, &$suggestions, core_Type $type)
     {
         $type->params['where'] .= ($type->params['where'] ? ' AND ' : '') . " (#state != 'closed' AND #state != 'rejected')";
+    }
+
+
+    /**
+     * Колко време е нужна за подготовка на склада преди експедиция
+     *
+     * @param int|null $storeId - ид на склад, или null ако няма
+     * @return int     $secs    - времето за подготовка в секунди
+     */
+    public static function getShipmentPreparationTime($storeId = null)
+    {
+        $secs = store_Setup::get('PREPARATION_BEFORE_SHIPMENT');
+        if(isset($storeId)){
+            $storeBeforeShipmentTimeSecs = store_Stores::fetchField($storeId, 'preparationBeforeShipment');
+            $secs = ($storeBeforeShipmentTimeSecs) ? $storeBeforeShipmentTimeSecs : $secs;
+        }
+
+        return (int)$secs;
+    }
+
+
+    /**
+     * Какво е времето за подговотка, при подадената дата на доставка
+     *
+     * @param int $storeId
+     * @param datetime|null $deliveryDate
+     * @return null|datetime
+     */
+    public static function calcLoadingDate($storeId, $deliveryDate)
+    {
+        // Ако няма дата нищо не се прави
+        if(!isset($deliveryDate)) return null;
+
+        // Приспада се времето за подготовка на склада
+        $preparationTime = store_Stores::getShipmentPreparationTime($storeId);
+        $res = dt::addSecs(-1 * $preparationTime, $deliveryDate);
+
+        // Ако датата е в миналото, подменя се с края на работния ден на текущата дата
+        if($res < dt::now()){
+            $res = dt::today() . " " . trans_Setup::get('END_WORK_TIME') . ":00";
+        }
+
+        return $res;
     }
 }

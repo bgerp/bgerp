@@ -271,14 +271,15 @@ class transsrv_ProductDrv extends cat_ProductDriver
         
         return $hash;
     }
-    
-    
+
+
     /**
      * Връща задължителната основна мярка
      *
+     * @param stdClass|null $rec
      * @return int|NULL - ид на мярката, или NULL ако може да е всяка
      */
-    public function getDefaultUomId()
+    public function getDefaultUomId($rec = null)
     {
         return cat_UoM::fetchBySinonim($this->uom)->id;
     }
@@ -319,6 +320,7 @@ class transsrv_ProductDrv extends cat_ProductDriver
         $CountryType = core_Type::getByName('key(mvc=drdata_Countries,select=commonName,selectBg=commonNameBg)');
         $row->fromCountry = $CountryType->toVerbal($rec->fromCountry);
         $row->toCountry = $CountryType->toVerbal($rec->toCountry);
+        $row->transUnit = type_Varchar::escape(transliterate(tr($rec->transUnit)));
     }
 
 

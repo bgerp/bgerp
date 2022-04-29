@@ -50,6 +50,7 @@ core_Debug::setErrorWaching();
 
 // Ако заявката е по cli обработваме я по различен начин
 if(php_sapi_name() == 'cli') {
+    core_Debug::$isDebug = true;
     defIfNot('EF_APP_NAME', $argv[1]);
     
     defIfNot('EF_HTTPS', false);
@@ -453,9 +454,9 @@ function logHitState($debugCode = '200', $state = array())
  * Файла се търси в EF_APP_PATH, EF_PRIVATE_PATH
  * Ако не бъде открит, се връща FALSE
  */
-function getFullPath($shortPath)
+function getFullPath($shortPath, $usePrivate = true)
 {
-    return core_App::getFullPath($shortPath);
+    return core_App::getFullPath($shortPath, $usePrivate);
 }
 
 

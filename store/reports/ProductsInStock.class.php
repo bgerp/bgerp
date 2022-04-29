@@ -74,7 +74,8 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     /**
      * Кои полета може да се променят от потребител споделен към справката, но нямащ права за нея
      */
-    protected $changeableFields;
+    protected $changeableFields = 'type,date,storeId,selfPrices,group,products,availability,orderBy';
+
 
 
     /**

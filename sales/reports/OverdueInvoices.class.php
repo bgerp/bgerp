@@ -19,7 +19,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo,salesMaster,acc';
+    public $canSelectDriver = 'ceo,sales,acc';
     
     
     /**

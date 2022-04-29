@@ -146,16 +146,13 @@ class doc_plg_SelectFolder extends core_Plugin
         $cu = core_Users::getCurrent();
         $mQuery = $mvc->getQuery();
         $mQuery->where("#createdBy = {$cu} AND #state != 'rejected'");
+        $mQuery->EXT('coverClass', 'doc_Folders', 'externalName=coverClass,externalKey=folderId');
+        $mQuery->in('coverClass', array_keys($coverArr));
         $mQuery->orderBy('#createdOn', 'DESC');
         $mQuery->limit(10);
-        $mQuery->show('folderId');
-        $prefArr = arr::extractValuesFromArray($mQuery->fetchAll(), 'folderId');
 
-        if(count($prefArr)) {
-            $form->setDefault('folderId', key($prefArr));
-        }
+        $prefArr = arr::extractValuesFromArray($mQuery->fetchAll(), 'folderId');
         $form->setFieldTypeParams('folderId', array('where' => "#coverClass IN ({$coverKeys})", 'preferred' => $prefArr));
- 
         $form->setField('folderId', array('attr' => array('onchange' => 'clearSelect(this, "clearSelect");')));
         
         $form->title = '|*' . tr('Избор на папка||Select a folder') . ' ' . tr('за създаване на||to create a new') . ' ' . mb_strtolower(tr($mvc->singleTitle));
@@ -181,26 +178,33 @@ class doc_plg_SelectFolder extends core_Plugin
             $retUrl['_personId'] = crm_Persons::getUrlPlaceholder('id');
             $form->toolbar->addBtn('Ново лице', array('crm_Persons', 'add', 'ret_url' => $retUrl), 'ef_icon =img/16/vcard-add.png, title=В папка на ново лице');
         }
-        
-        /*
-        if(in_array('doc_UnsortedFolders', $coverArr)) {
-            $retUrl = $retUrlOrg;
-            $retUrl['_projectId'] = doc_UnsortedFolders::getUrlPlaceholder('id');
-            $form->toolbar->addBtn('Нов проект', array('doc_UnsortedFolders', 'add', 'ret_url' => $retUrl), "ef_icon =img/16/vcard-add.png, title=В нов проект");
-        } */
-        
-        $defaultFolderId = Request::get('defaultFolderId');
 
-        if (!$defaultFolderId) {
-            $defaultFolderId = $mvc->getDefaultFolder();
+        // Ако има дефолтна папка в урл-то и потребителя може да добавя документа в нея
+        if($defaultFolderId = Request::get('defaultFolderId')){
+            if($mvc->canAddToFolder($defaultFolderId)){
+                $form->setDefault('folderId', $defaultFolderId);
+            }
         }
 
-        if ($defaultFolderId && $mvc->canAddToFolder($defaultFolderId)) {
-            $form->setDefault('folderId', $defaultFolderId);
+        // Ако има последно добавени стойности в урл-то и потребителя може да добавя документа в нея
+        if(count($prefArr)) {
+            $defaultFolderId = key($prefArr);
+            if($mvc->canAddToFolder($defaultFolderId)){
+                $form->setDefault('folderId', $defaultFolderId);
+            }
+        }
+
+        // Ако няма още изчислена дефолтна папка - гледа се глобалния дефолт
+        if(empty($form->rec->folderId)){
+            if($defaultFolderId = $mvc->getDefaultFolder()){
+                if($mvc->canAddToFolder($defaultFolderId)){
+                    $form->setDefault('folderId', $mvc->getDefaultFolder());
+                }
+            }
         }
         
         $form->toolbar->addBtn('Отказ', self::getRetUrl($mvc), 'ef_icon=img/16/cancel.png, title=Отказ');
-        
+
         return $form;
     }
     

@@ -1001,19 +1001,6 @@ class rack_Pallets extends core_Manager
     
     
     /**
-     * Преди рендиране на таблицата
-     */
-    protected static function on_BeforeRenderListTable1($mvc, &$tpl, $data)
-    {
-        $data->listTableMvc->FLD('uom', 'varchar', 'smartCenter');
-        if (Mode::is('screenMode', 'narrow')) {
-            $data->listTableMvc->commonFirst = "<tbody>[#ADD_ROWS#][#ROW#]</tbody>\n";;
-            $data->listFields['productId'] = '@Артикул';
-        }
-    }
-    
-    
-    /**
      * Връща записа отговарящ на позицията
      *
      * @param string $position
@@ -1145,13 +1132,10 @@ class rack_Pallets extends core_Manager
      */
     public static function getFloorToPalletImgLink($storeId, $productId, $packagingId, $packQuantity, $batch = null, $containerId = null)
     {
-        if (store_Stores::getCurrent('id', false) != $storeId || core_Mode::isReadOnly()) {
-            
-            return false;
-        }
-        
+        if (store_Stores::getCurrent('id', false) != $storeId || core_Mode::isReadOnly()) return false;
+
         if (rack_Movements::haveRightFor('add', (object) array('productId' => $productId))){
-            $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'packQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'ret_url' => true);
+            $addPalletUrl = array('rack_Movements', 'add', 'productId' => $productId, 'packagingId' => $packagingId, 'maxPackQuantity' => $packQuantity, 'fromIncomingDocument' => 'yes', 'movementType' => 'floor2rack', 'ret_url' => true);
             if(!empty($batch)){
                 $addPalletUrl['batch'] = $batch;
             }
