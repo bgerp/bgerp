@@ -229,6 +229,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 20;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -1376,6 +1382,7 @@ class planning_Tasks extends core_Master
 
         if($filter = $data->listFilter->rec){
             if (isset($filter->assetId)) {
+                $mvc->listItemsPerPage = 200;
                 $data->query->where("#assetId = {$filter->assetId}");
                 $data->query->orderBy("orderByAssetId", "ASC");
             } else {
@@ -1870,7 +1877,7 @@ class planning_Tasks extends core_Master
                 // и той има избрани параметри за планиране, добавят се в таблицата
                 $paramFields = array();
                 foreach ($data->listFieldsParams as $paramId) {
-                    $paramFields["param_{$paramId}"] = "Параметри за планиране->|*<small>" . cat_Params::getVerbal($paramId, 'typeExt') . "</small>";
+                    $paramFields["param_{$paramId}"] = "|Параметри за планиране|*->|*<small>" . cat_Params::getVerbal($paramId, 'typeExt') . "</small>";
                     $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'smartCenter');
                 }
                 arr::placeInAssocArray($data->listFields, $paramFields, null, 'progress');
