@@ -393,7 +393,7 @@ class planning_Tasks extends core_Master
         }
         
         $origin = doc_Containers::getDocument($rec->originId);
-        $row->originId = "<small>" . $origin->getShortHyperlink() . "</small>";
+        $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . "</small>" : $origin->getHyperlink();
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
@@ -2008,8 +2008,11 @@ class planning_Tasks extends core_Master
     {
         // Включване на драг и дроп ако има избрано оборудване
         if(isset($data->listFilter->rec->assetId)){
-            jqueryui_Ui::enable($tpl);
-            $tpl->push('planning/js/Tasks.js', 'JS');
+            if (!Request::get('ajax_mode')) {
+                jqueryui_Ui::enable($tpl);
+                $tpl->push('planning/js/Tasks.js', 'JS');
+            }
+
             jquery_Jquery::run($tpl, 'listTasks();');
             jquery_Jquery::runAfterAjax($tpl, 'listTasks');
         }
