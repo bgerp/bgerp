@@ -282,7 +282,7 @@ class core_Intervals {
     /**
      * 1 ако $b > $a, -1 ako $a > $b, 0 ако се пресичат
      */
-    public function comp($a, $b)
+    public static function comp($a, $b)
     {
         return ($b[1] < $a[0]) - ($a[1] < $b[0]);
     }

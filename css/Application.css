@@ -7402,3 +7402,27 @@ only screen and (max-width: 320px) {
 table.bomProductionStepTable td {
   border: 0px !important; }
 
+.ui-droppable-hover-top {
+  border-top: 2px solid #ff55ff !important; }
+
+.ui-droppable-hover-bottom {
+  border-bottom: 2px solid #ff55ff !important; }
+
+.loadingModal {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.8) url('../img/loading.gif') 50% 50% no-repeat; }
+
+.draggable:hover {
+  background-color: #eeeeee;
+  border: 1px solid #9e9e9e;
+  padding: 1px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -ms-border-radius: 4px;
+  border-radius: 4px; }
+
