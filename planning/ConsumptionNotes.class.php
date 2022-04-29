@@ -301,7 +301,7 @@ class planning_ConsumptionNotes extends deals_ManifactureMaster
                     $requiredRoles = 'no_one';
                 } else {
                     $state = $origin->fetchField('state');
-                    if (in_array($state, array('rejected', 'draft', 'closed', 'waiting'))) {
+                    if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped'))) {
                         $requiredRoles = 'no_one';
                     }
                 }
