@@ -89,10 +89,12 @@
                 <legend class="groupTitle">|Кой може да контира документи, в които е избран склада|*</legend>
                 <div class="groupList">
                     <table>
+                        <!--ET_BEGIN chiefs-->
                         <tr>
                             <td class='dt'>|Потребители|*:</td>
                             <td>[#chiefs#]</td>
                         </tr>
+                        <!--ET_END chiefs-->
                         <!--ET_BEGIN activateRoles-->
                         <tr>
                             <td class='dt'>|Роли|*:</td>

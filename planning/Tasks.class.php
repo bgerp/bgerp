@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, progress, folderId, orderByAssetId, state, modifiedOn, modifiedBy';
+    public $listFields = 'title, progress, folderId, orderByAssetId, state, modifiedOn, modifiedBy, originId=@';
     
     
     /**
@@ -254,18 +254,18 @@ class planning_Tasks extends core_Master
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
 
-        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Време за производство->Норма,smartCenter');
-        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,removeAndRefreshForm,caption=Време за производство->Опаковка,input=hidden,tdClass=small-field nowrap');
-        $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Време за производство->Разпределяне,smartCenter,notNull,value=common');
+        $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
+        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,removeAndRefreshForm,caption=Нормиране->Опаковка,input=hidden,tdClass=small-field nowrap');
+        $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=common');
 
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes');
         $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-,autohide');
         $this->FLD('weightDeviationWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Предупреждение,unit=+/-,autohide');
         $this->FLD('weightDeviationAverageWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отклонение,unit=от средното +/-,autohide');
 
-        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Начало, changable, tdClass=leftColImportant,input=none');
-        $this->FLD('timeDuration', 'time', 'caption=Времена за планиране->Продължителност,changable,input=none');
-        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Времена за планиране->Край,changable, tdClass=leftColImportant,formOrder=103,input=none');
+        $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
+        $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
+        $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,formOrder=103');
 
         $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=labelPackagingId,input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
@@ -278,6 +278,8 @@ class planning_Tasks extends core_Master
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
 
         $this->setDbIndex('productId');
+        $this->setDbIndex('assetId,orderByAssetId');
+        $this->setDbIndex('assetId');
     }
     
     
@@ -391,8 +393,7 @@ class planning_Tasks extends core_Master
         }
         
         $origin = doc_Containers::getDocument($rec->originId);
-        $row->originId = $origin->getLink();
-        $row->originShortLink = $origin->getShortHyperlink();
+        $row->originId = "<small>" . $origin->getShortHyperlink() . "</small>";
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
@@ -439,11 +440,6 @@ class planning_Tasks extends core_Master
                 }
             }
         }
-        
-        if (isset($fields['-list']) && !isset($fields['-detail'])) {
-            $row->title .= "<br><small>{$row->originShortLink}</small>";
-        }
-        
         
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
@@ -600,9 +596,18 @@ class planning_Tasks extends core_Master
             }
 
             $whenToUnsetStartAfter = ($form->cmd != 'active' && !empty($rec->startAfter) && !in_array($rec->state, array('waiting', 'active')));
-
             if($whenToUnsetStartAfter){
                 $form->setWarning('startAfter', "Операцията ще се създаде като чернова. Автоматично ще се добави последна към избраното оборудване|*!");
+            }
+
+            if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
+                $form->setError('timeEnd', 'Крайният срок трябва да е след началото на операцията');
+            }
+
+            if (!empty($rec->timeStart) && !empty($rec->timeDuration) && !empty($rec->timeEnd)) {
+                if (strtotime(dt::addSecs($rec->timeDuration, $rec->timeStart)) != strtotime($rec->timeEnd)) {
+                    $form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителността не отговарят на въведената крайната дата');
+                }
             }
 
             if(!$form->gotErrors()){
@@ -1117,9 +1122,8 @@ class planning_Tasks extends core_Master
                 $form->setField('labelQuantityInPack', "placeholder={$quantityInPackDefault}");
 
                 $templateOptions = static::getAllAvailableLabelTemplates($rec->labelTemplate);
-                $form->setField('labelTemplate', 'input');
-                $form->setOptions('labelTemplate', $templateOptions);
-                $form->setDefault('labelTemplate', key($templateOptions));
+                $form->setField('labelTemplate', 'input,mandatory');
+                $form->setOptions('labelTemplate', array('' => '') + $templateOptions);
                 $defaultIndPackagingId = $rec->labelPackagingId;
             } else {
                 $defaultIndPackagingId = $rec->measureId;
@@ -1352,7 +1356,6 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
-        $data->listFilter->FLD('reorder', 'enum(no=Не,yes=Да)', 'caption=Преподреждане');
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
@@ -1360,14 +1363,13 @@ class planning_Tasks extends core_Master
             $data->listFilter->setField('assetId', 'caption=Оборудване');
             $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
             $data->listFilter->showFields .= ',assetId';
-            $data->listFilter->input('assetId,reorder');
+            $data->listFilter->input('assetId');
         }
 
         if($filter = $data->listFilter->rec){
             if (isset($filter->assetId)) {
                 $data->query->where("#assetId = {$filter->assetId}");
                 $data->query->orderBy("orderByAssetId", "ASC");
-                $data->listFilter->showFields .= ',reorder';
             } else {
                 unset($data->listFields['orderByAssetId']);
             }
@@ -1603,10 +1605,6 @@ class planning_Tasks extends core_Master
             $data->toolbar->addBtn('Р. карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция,row=2');
         }
 
-        if ($mvc->haveRightFor('edit', $rec)) {
-            $data->toolbar->addBtn('Планиране', array($mvc, 'setTimes', $rec->id, 'ret_url' => true), null, 'ef_icon=img/16/alarm_clock.png,title=Планиране на времената');
-        }
-
         // Бутон за добавяне на документ за производство
         if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
             $pUrl = array('planning_DirectProductionNote', 'add', 'originId' => $rec->containerId, 'ret_url' => true);
@@ -1637,74 +1635,6 @@ class planning_Tasks extends core_Master
             $rec->timeEnd =  dt::now();
             $mvc->save_($rec, 'timeEnd');
         }
-    }
-
-
-    /**
-     * Екшън за планиране на времената
-     */
-    public function act_setTimes()
-    {
-        $this->requireRightFor('edit');
-        expect($id = Request::get('id', 'int'));
-        expect($rec = $this->fetch($id));
-        $this->requireRightFor('edit', $rec);
-
-        $form = cls::get('core_Form');
-        $form->title = 'Планиране на времена на|* ' . $this->getFormTitleLink($rec->id);
-        $form->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Начало, tdClass=leftColImportant');
-        $form->FLD('timeDuration', 'time', 'caption=Продължителност');
-        $form->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Край, tdClass=leftColImportant,formOrder=103');
-        $form->setDefault('timeStart', $rec->timeStart);
-        $form->setDefault('timeDuration', $rec->timeDuration);
-        $form->setDefault('timeEnd', $rec->timeEnd);
-
-        $form->input();
-
-        if ($form->isSubmitted()) {
-            $formRec = &$form->rec;
-            if ($formRec->timeStart && $formRec->timeEnd && ($formRec->timeStart > $formRec->timeEnd)) {
-                $form->setError('timeEnd', 'Крайният срок трябва да е след началото на операцията');
-            }
-
-            if (!empty($formRec->timeStart) && !empty($formRec->timeDuration) && !empty($formRec->timeEnd)) {
-                if (strtotime(dt::addSecs($formRec->timeDuration, $formRec->timeStart)) != strtotime($formRec->timeEnd)) {
-                    $form->setWarning('timeStart,timeDuration,timeEnd', 'Въведеното начало плюс продължителността не отговарят на въведената крайната дата');
-                }
-            }
-
-            if ($rec->state == 'active' && empty($formRec->timeDuration) && empty($rec->assetId)) {
-                $form->setWarning('timeDuration', 'Сигурни ли сте, че искате да премахнете продължителността, задачата няма и оборудване и ще бъде върната в чакащо състояние|*?');
-            }
-
-            if(!$form->gotErrors()){
-                $rec->timeStart = $formRec->timeStart;
-                $rec->timeDuration = $formRec->timeDuration;
-                $rec->timeEnd = $formRec->timeEnd;
-
-                // Обръщане в чакащо, ако не може да се активира
-                $this->logWrite('Задаване на времена', $rec->id);
-                if($rec->state == 'active'){
-                    $msg = null;
-                    $nextState = ($this->activateNow($rec, $msg)) ? 'active' : 'waiting';
-                    if($nextState == 'waiting'){
-                        $rec->state = $nextState;
-                        $rec->brState = 'active';
-                        core_Statuses::newStatus($msg, 'warning');
-                        $this->logWrite('Преминаване в чакащо', $rec->id);
-                    }
-                }
-
-                $this->save($rec, 'timeStart,timeDuration,timeEnd,state,brState');
-                followRetUrl(null, 'Времената са променени|*!');
-            }
-        }
-
-        // Добавяне на бутони
-        $form->toolbar->addSbBtn('Запис', 'save', 'ef_icon = img/16/disk.png, title = Преизчисляване на делтите');
-        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
-
-        return $form->renderHtml();
     }
 
 
@@ -1944,9 +1874,13 @@ class planning_Tasks extends core_Master
 
             // Добавяне на дата атрибуто за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
-            if($mvc->haveRightFor('reordertask', $rec)){
-                $reorderUrl = array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true);
-                $row->ROW_ATTR['data-url'] = toUrl($reorderUrl, 'local');
+
+            if(isset($data->listFilter->rec->assetId)){
+                if($mvc->haveRightFor('reordertask', $rec)){
+                    $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
+
+                    $row->title = ht::createElement('span', array('data-url' => $reorderUrl, 'class' => 'draggable'), $row->title);
+                }
             }
 
             if(countR($data->listFieldsParams)){
@@ -2066,7 +2000,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterRenderListTable($mvc, &$tpl, &$data)
     {
         // Включване на драг и дроп ако има избрано оборудване
-        if(isset($data->listFilter->rec->assetId) && $data->listFilter->rec->reorder == 'yes'){
+        if(isset($data->listFilter->rec->assetId)){
             jqueryui_Ui::enable($tpl);
             $tpl->push('planning/js/Tasks.js', 'JS');
             jquery_Jquery::run($tpl, 'listTasks();');
