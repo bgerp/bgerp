@@ -1,11 +1,10 @@
 function listTasks() {
 
-    var draggedTr;
     $( ".draggable" ).draggable({
         revert: "valid",
         containment: '.listTable',
         drag: function( event, ui ) {
-            draggedTr = $(this).parent().parent();
+            getEfae().preventRequest = 50;
         },
     });
 
