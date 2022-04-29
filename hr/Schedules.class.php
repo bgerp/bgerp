@@ -471,11 +471,13 @@ class hr_Schedules extends core_Master
      */
     public static function calcLeaveDaysBySchedule($id, $from, $to)
     {
+        $from = substr($from, 0, 10);
+        $to = substr($to, 0, 10);
 
         $workDays = $allDays = 0;
         
         $sTimes = self::getStartingTimes($id, $from, $to);
-
+ 
         $workDays = count($sTimes);
 
         $res = (object) array('nonWorking' => $nonWorking, 'workDays' => $workDays, 'allDays' => $allDays);
