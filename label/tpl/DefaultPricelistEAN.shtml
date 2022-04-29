@@ -92,7 +92,7 @@
                 <div class='left'><span class="date"><b>[#DATE#]</b></span></div>
             </td>
 <td valign="middle" align="center" class="no-border-left bold" style='font-size: 14px;'>
-    [#CATALOG_PRICE#] [#CATALOG_CURRENCY#]
+    [#PRICE_CAPTION#]: [#CATALOG_PRICE#] [#CATALOG_CURRENCY#]
 </td>
 </tr>
     </table>

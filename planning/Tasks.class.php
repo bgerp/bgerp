@@ -229,6 +229,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Брой записи на страница
+     */
+    public $listItemsPerPage = 20;
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -255,7 +261,7 @@ class planning_Tasks extends core_Master
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
 
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
-        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,removeAndRefreshForm,caption=Нормиране->Опаковка,input=hidden,tdClass=small-field nowrap');
+        $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,caption=Нормиране->Опаковка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=common');
 
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes');
@@ -393,7 +399,7 @@ class planning_Tasks extends core_Master
         }
         
         $origin = doc_Containers::getDocument($rec->originId);
-        $row->originId = "<small>" . $origin->getShortHyperlink() . "</small>";
+        $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . "</small>" : $origin->getHyperlink();
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
@@ -1376,6 +1382,7 @@ class planning_Tasks extends core_Master
 
         if($filter = $data->listFilter->rec){
             if (isset($filter->assetId)) {
+                $mvc->listItemsPerPage = 200;
                 $data->query->where("#assetId = {$filter->assetId}");
                 $data->query->orderBy("orderByAssetId", "ASC");
             } else {
@@ -1870,7 +1877,7 @@ class planning_Tasks extends core_Master
                 // и той има избрани параметри за планиране, добавят се в таблицата
                 $paramFields = array();
                 foreach ($data->listFieldsParams as $paramId) {
-                    $paramFields["param_{$paramId}"] = "Параметри за планиране->|*<small>" . cat_Params::getVerbal($paramId, 'typeExt') . "</small>";
+                    $paramFields["param_{$paramId}"] = "|Параметри за планиране|*->|*<small>" . cat_Params::getVerbal($paramId, 'typeExt') . "</small>";
                     $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'smartCenter');
                 }
                 arr::placeInAssocArray($data->listFields, $paramFields, null, 'progress');
@@ -2008,8 +2015,11 @@ class planning_Tasks extends core_Master
     {
         // Включване на драг и дроп ако има избрано оборудване
         if(isset($data->listFilter->rec->assetId)){
-            jqueryui_Ui::enable($tpl);
-            $tpl->push('planning/js/Tasks.js', 'JS');
+            if (!Request::get('ajax_mode')) {
+                jqueryui_Ui::enable($tpl);
+                $tpl->push('planning/js/Tasks.js', 'JS');
+            }
+
             jquery_Jquery::run($tpl, 'listTasks();');
             jquery_Jquery::runAfterAjax($tpl, 'listTasks');
         }
