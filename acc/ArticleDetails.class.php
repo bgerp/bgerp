@@ -232,15 +232,18 @@ class acc_ArticleDetails extends doc_Detail
             if (!isset($acc)) {
                 continue;
             }
-            
+
             foreach ($acc->groups as $i => $list) {
                 if (!$list->rec->itemsCnt) {
                     redirect(array('acc_Items', 'list', 'listId' => $list->rec->id), false, '|Липсва избор за|* "' . acc_Lists::getVerbal($list->rec, 'name') . '"');
                 }
-                
+
                 $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
-                $form->setField("{$type}Ent{$i}", "silent,removeAndRefreshForm,mandatory,input,caption={$caption}->" . $list->rec->name);
-                
+                $form->setField("{$type}Ent{$i}", "silent,mandatory,input,caption={$caption}->" . $list->rec->name);
+                if($list->rec->regInterfaceId == core_Interfaces::fetchByName('currency_CurrenciesAccRegIntf')){
+                    $form->setField("{$type}Ent{$i}", "removeAndRefreshForm");
+                }
+
                 // Ако може да се избират приключени пера, сетваме параметър в типа на перата
                 if ($masterRec->useCloseItems == 'yes') {
                     $form->getField("{$type}Ent{$i}")->type->params['showAll'] = true;
