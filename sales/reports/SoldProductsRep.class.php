@@ -1216,16 +1216,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
         $res = array();
 
         $originId = doc_Containers::getDocument($dcRec->originId)->that;
-<<<<<<< HEAD
-        $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = ${originId} AND #productId = {$dcRec->productId} AND
-                                                           #packagingId = {$dcRec->packagingId} AND 
-                                                           (#quantity != {$dcRec->quantity} OR #price != {$dcRec->price})");
-=======
 
         $originDetRec = sales_InvoiceDetails::fetch("#invoiceId = $originId AND #productId = '$dcRec->productId' AND
                                                            #packagingId = '$dcRec->packagingId'
                                                            AND (#quantity != '$dcRec->quantity' OR #price != '$dcRec->price')");
->>>>>>> refs/remotes/origin/DC1
 
         $originQuantity = $originDetRec->quantity * $originDetRec->quantityInPack;
         $changeQuatity = $dcRec->quantity * $dcRec->quantityInPack - $originQuantity;
