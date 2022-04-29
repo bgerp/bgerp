@@ -239,7 +239,7 @@ class acc_ArticleDetails extends doc_Detail
                 }
                 
                 $form->getField("{$type}Ent{$i}")->type->params['lists'] = $list->rec->num;
-                $form->setField("{$type}Ent{$i}", "silent,removeAndRefreshForm,mandatory,input,caption={$caption}->" . $list->rec->name);
+                $form->setField("{$type}Ent{$i}", "silent,refreshForm,mandatory,input,caption={$caption}->" . $list->rec->name);
                 
                 // Ако може да се избират приключени пера, сетваме параметър в типа на перата
                 if ($masterRec->useCloseItems == 'yes') {
