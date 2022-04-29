@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, progress, folderId, orderByAssetId, state, modifiedOn, modifiedBy';
+    public $listFields = 'title, progress, folderId, orderByAssetId, state, modifiedOn, modifiedBy, originId=@';
     
     
     /**
@@ -393,8 +393,7 @@ class planning_Tasks extends core_Master
         }
         
         $origin = doc_Containers::getDocument($rec->originId);
-        $row->originId = $origin->getLink();
-        $row->originShortLink = $origin->getShortHyperlink();
+        $row->originId = "<small>" . $origin->getShortHyperlink() . "</small>";
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
@@ -441,11 +440,6 @@ class planning_Tasks extends core_Master
                 }
             }
         }
-        
-        if (isset($fields['-list']) && !isset($fields['-detail'])) {
-            $row->title .= "<br><small>{$row->originShortLink}</small>";
-        }
-        
         
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
@@ -1880,13 +1874,13 @@ class planning_Tasks extends core_Master
 
             // Добавяне на дата атрибуто за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
-            $row->ROW_ATTR['data-drop-warning'] = tr('Желаете ли да преместите задачата след|*: #' . $mvc->getHandle($rec->id) . "?");
 
-            if($mvc->haveRightFor('reordertask', $rec)){
-                $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
-                $img = ht::createImg(array('path' => 'img/16/arrow_switch.png'));
-                $element = ht::createElement('span', array('data-url' => $reorderUrl, 'class' => 'draggable', 'data-default-warning' => tr('Желаете ли да преместите задачата първа за оборудването|*?')), $img);
-                $row->title = $element . "" . $row->title;
+            if(isset($data->listFilter->rec->assetId)){
+                if($mvc->haveRightFor('reordertask', $rec)){
+                    $reorderUrl = toUrl(array($mvc, 'reordertask', 'tId' => $rec->id, 'ret_url' => true), 'local');
+
+                    $row->title = ht::createElement('span', array('data-url' => $reorderUrl, 'class' => 'draggable'), $row->title);
+                }
             }
 
             if(countR($data->listFieldsParams)){

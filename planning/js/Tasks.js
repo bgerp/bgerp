@@ -3,44 +3,57 @@ function listTasks() {
     var draggedTr;
     $( ".draggable" ).draggable({
         revert: "invalid",
-        helper: 'clone',
         containment: '.listTable',
         drag: function( event, ui ) {
             draggedTr = $(this).parent().parent();
         },
-        hoverClass: "ui-state-active",
     });
 
-    $( ".listTable tr" ).droppable({
-        classes: {
-            "ui-droppable-hover": "ui-state-hover"
+    $( ".listTable tbody, .listTable thead" ).droppable({
+        over: function(event, ui) {
+            var topPosition   = ui.draggable.position().top - $(this).offset().top;
+            var $halfHeight = $(this).height() / 2;
+            if(topPosition < $halfHeight){
+                $(this).addClass('ui-droppable-hover-bottom');
+                $(this).removeClass('ui-droppable-hover-top');
+            } else {
+                $(this).removeClass('ui-droppable-hover-bottom');
+                $(this).addClass('ui-droppable-hover-top');
+            }
+        },
+        out: function(event, ui) {
+            $(this).removeClass('ui-droppable-hover-bottom');
+            $(this).removeClass('ui-droppable-hover-top');
         },
         drop: function( event, ui ) {
-            var curId = $(this).attr("data-id");
+
+            var curId = $(this).find('tr').attr("data-id");
             var url = $(ui.draggable).attr("data-url");
-            var warning = $(this).attr("data-drop-warning");
-            if(!warning){
-                warning = $(ui.draggable).attr("data-default-warning");
-            }
-
-            if(warning){
-                if (!confirm(warning)) return false;
-            }
-
-            draggedTr.appendTo($(this).parent());
+            if(!url) return;
 
             var divId = $(".rowsContainerClass").attr("id");
             resObj = new Object();
             resObj['url'] = url;
-            var params = {startAfter:curId, divId:divId};
+
+            var startAfter = (curId) ? curId : null;
+            var params = {startAfter:startAfter, divId:divId};
+
+            $(this).removeClass('ui-droppable-hover-bottom');
+            $(this).removeClass('ui-droppable-hover-top');
+            $(document.body).css({'cursor' : 'wait'});
 
             getEfae().preventRequest = 0;
             getEfae().process(resObj, params);
+
+            $('body').append($('<div class="loadingModal">'));
+            $('.loadingModal').show();
         },
     });
 }
 
 function render_listTasks()
 {
+    $('.loadingModal').remove();
     listTasks();
+    console.log('after');
 }
