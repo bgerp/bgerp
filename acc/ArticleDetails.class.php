@@ -113,7 +113,7 @@ class acc_ArticleDetails extends doc_Detail
             
             'debitAccId',
             
-            'acc_type_Account(remember,allowEmpty)',
+            'acc_type_Account(remember,allowEmpty,forceOpen)',
             'caption=Дебит->Сметка и пера,mandatory,removeAndRefreshForm=debitEnt1|debitEnt2|debitEnt3|debitQuantity|debitPrice|amount,tdClass=articleCell,silent'
         
         );
