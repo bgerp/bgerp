@@ -770,9 +770,9 @@ class core_Form extends core_FieldSet
                 } else {
                     if ($field->removeAndRefreshForm) {
                         $rFields = str_replace('|', "', '", trim($field->removeAndRefreshForm, '|'));
-                        $attr['onchange'] .= "refreshForm($(this).closest('form').get(0), ['{$rFields}']);";
+                        $attr['onchange'] .= "refreshForm(this, ['{$rFields}']);";
                     } elseif ($field->refreshForm) {
-                        $attr['onchange'] .= "refreshForm($(this).closest('form').get(0));";
+                        $attr['onchange'] .= "refreshForm(this);";
                     }
                 }
                 
