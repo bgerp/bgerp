@@ -107,13 +107,12 @@ class acc_ArticleDetails extends doc_Detail
     public function description()
     {
         $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
-        $this->FLD('reason', 'varchar', 'caption=Информация');
-        
+                
         $this->FLD(
             
             'debitAccId',
             
-            'acc_type_Account(remember,allowEmpty,forceOpen)',
+            'acc_type_Account(remember,allowEmpty)',
             'caption=Дебит->Сметка и пера,mandatory,removeAndRefreshForm=debitEnt1|debitEnt2|debitEnt3|debitQuantity|debitPrice|amount,tdClass=articleCell,silent'
         
         );
@@ -138,6 +137,8 @@ class acc_ArticleDetails extends doc_Detail
         $this->FLD('creditPrice', 'double(minDecimals=2)', 'caption=Кредит->Цена');
         
         $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума,remember=info');
+	
+	$this->FLD('reason', 'varchar', 'caption=Допълнителна информация->Забележка');
     }
     
     
