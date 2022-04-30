@@ -106,6 +106,8 @@ class acc_ArticleDetails extends doc_Detail
      */
     public function description()
     {
+        $this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
+                
         $this->FLD(
             
             'debitAccId',
@@ -137,7 +139,6 @@ class acc_ArticleDetails extends doc_Detail
         $this->FLD('amount', 'double(decimals=2)', 'caption=Оборот->Сума,remember=info');
 	
 	$this->FLD('reason', 'varchar', 'caption=Допълнителна информация->Забележка');
-	$this->FLD('articleId', 'key(mvc=acc_Articles)', 'column=none,input=hidden,silent');
     }
     
     
