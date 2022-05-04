@@ -76,7 +76,7 @@
                 <b> <div class='left'>код:<span class="code">[#CODE#]</span></div></b>
             </td>
             <td   class="top-descr no-border-left no-border-top" >
-                <div class='right'>мярка:<span class="measure"><b>[#MEASURE_ID#]</b></span></div>
+                <div class='right'>мярка:<span class="code"><b>[#MEASURE_ID#]</b></span></div>
             </td>
             <td colspan=3  class="barcode-holder img  no-border-left no-border-top" rowspan=4>
                 [#EAN#]
@@ -91,7 +91,7 @@
             <td   class="top-descr no-border-left  >
                 <div class='left'><span class="date"><b>[#DATE#]</b></span></div>
             </td>
-<td valign="middle" align="center" class="no-border-left bold" style='font-size: 14px;'>
+<td valign="middle" align="center" class="top-descr  no-border-left " >
     [#PRICE_CAPTION#]: [#CATALOG_PRICE#] [#CATALOG_CURRENCY#]
 </td>
 </tr>
