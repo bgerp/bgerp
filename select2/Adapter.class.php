@@ -158,7 +158,7 @@ class select2_Adapter
 					};
     			},
     			
-    			cache: true
+    			cache: false
     		},
     		
     		minimumInputLength: 0";
