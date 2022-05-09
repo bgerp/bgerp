@@ -207,8 +207,12 @@ class acc_ReportDetails extends core_Manager
                     
                     $res[$accountId]['total'] = arr::sumValuesArray($recsWithAccount, 'blAmount');
                 } else {
+                    $objPos = acc_Lists::getPosition($accSysId, $groupBy);
+                    $fItems1 = $fItems2 = $fItems3 = null;
+                    ${"fItems{$objPos}"} = $data->itemRec->id;
+
                     // Ако няма в текущия период, търсим в кой последно има
-                    if($lastBalanceIn = acc_Balances::fetchLastBalanceFor($accSysId, $data->itemRec->id)){
+                    if($lastBalanceIn = acc_Balances::fetchLastBalanceFor($accSysId, null, $fItems1, $fItems2, $fItems3)){
                         $lastBalanceRec = acc_Balances::fetch($lastBalanceIn);
                         $lastBalanceLink = acc_Periods::getVerbal($lastBalanceRec->periodId, 'title');
                         if (!Mode::isReadOnly()) {
