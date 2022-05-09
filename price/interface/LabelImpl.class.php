@@ -95,7 +95,7 @@ class price_interface_LabelImpl
 
                 foreach ($pRec->packs as $packRec){
                     $ean = !empty($packRec->eanCode) ? $packRec->eanCode : null;
-                    $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($packRec->price), "CODE" => $code, 'MEASURE_ID' => cat_UoM::getShortName($packRec->packagingId), 'PRICE_CAPTION' => $priceCaption);
+                    $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($packRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => cat_UoM::getShortName($packRec->packagingId), 'PRICE_CAPTION' => $priceCaption);
                     $resArr[] = $res;
                     $currentCount++;
                     if($currentCount == $cnt) break;
