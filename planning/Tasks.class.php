@@ -1372,7 +1372,7 @@ class planning_Tasks extends core_Master
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
 
         // Добавят се за избор само използваните в ПО оборудвания
-        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks();
+        $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folder);
         if(countR($assetInTasks)){
             $data->listFilter->setField('assetId', 'caption=Оборудване,autoFilter');
             $data->listFilter->setOptions('assetId', array('' => '') + $assetInTasks);
