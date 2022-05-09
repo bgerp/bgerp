@@ -150,7 +150,7 @@ defIfNot('DOC_LINKED_LAST_SHOW_LIMIT', 3);
 /**
  * Допълнителен ред в листовия изглед
  */
-defIfNot('DOC_LIST_FIELDS_EXTRA_LINE', 'yes');
+defIfNot('DOC_LIST_FIELDS_EXTRA_LINE', 'no');
 
 
 /**
