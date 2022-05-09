@@ -20,7 +20,7 @@ class store_reports_ProductsInStock extends frame2_driver_TableData
     /**
      * Кой може да избира драйвъра
      */
-    public $canSelectDriver = 'ceo, cat, store';
+    public $canSelectDriver = 'ceo, cat, store, acc';
 
 
     /**
