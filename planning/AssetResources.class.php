@@ -815,15 +815,20 @@ class planning_AssetResources extends core_Master
     /**
      * Кои са използваните в операции ресурси
      *
+     * @param int|null $folderId
      * @return array $options
      */
-    public static function getUsedAssetsInTasks()
+    public static function getUsedAssetsInTasks($folderId = null)
     {
         $options = array();
         $tQuery = planning_Tasks::getQuery();
-        $tQuery->XPR('assets', 'varchar', 'GROUP_CONCAT(DISTINCT #assetId)');
-        $tQuery->show('assets');
-        $assets = explode(',', $tQuery->fetch()->assets);
+        $tQuery->where("#assetId IS NOT NULL");
+        $tQuery->show('assetId');
+        if(isset($folderId)){
+            $assetsInFolderId = array_keys(static::getByFolderId($folderId));
+            $tQuery->in('assetId', $assetsInFolderId);
+        }
+        $assets = arr::extractValuesFromArray($tQuery->fetchAll(), 'assetId');
         foreach ($assets as $assetId){
             $options[$assetId] = planning_AssetResources::getTitleById($assetId, false);
         }

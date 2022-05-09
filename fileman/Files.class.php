@@ -2599,6 +2599,15 @@ class fileman_Files extends core_Master
 
         if (stripos($fileInfo, '<iframe') !== false) {
             $fileInfo->append("function runFramePrinting(){document.getElementsByTagName('iframe')[0].contentWindow.print();};", 'SCRIPTS');
+            $fileInfo->append("function fixIframeStyles(){
+                                                            var head = document.getElementsByTagName('iframe')[0].contentWindow.document.getElementsByTagName('head')[0];
+                                                            var s = document.createElement('style');
+                                                            s.setAttribute('type', 'text/css');
+                                                            s.appendChild(document.createTextNode('#imgBg {padding: 0px !important;}'));
+                                                            head.appendChild(s);
+                                        }", 'SCRIPTS');
+
+            $fileInfo->append("runOnLoad(fixIframeStyles);", 'SCRIPTS');
             $fileInfo->append("runOnLoad(runFramePrinting);", 'SCRIPTS');
             $fileInfo->append(".webdrvFieldset, .webdrvTabBody, .tab-page, .tab-control, .printing {width: 100% !important; height: 100% !important;}", 'STYLES');
 
