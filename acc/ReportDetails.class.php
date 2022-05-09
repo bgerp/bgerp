@@ -66,10 +66,11 @@ class acc_ReportDetails extends core_Manager
             $data->Tab = 'top';
             $tabParam = $data->masterData->tabTopParam;
         }
-        
+
         $prepareTab = Request::get($tabParam);
         $data->prepareTab = false;
-        if (!$prepareTab || $prepareTab == 'AccReports') {
+
+        if ((!$prepareTab && !($data->masterMvc instanceof cat_Products)) || $prepareTab == 'AccReports') {
             $data->prepareTab = true;
         }
 
@@ -127,7 +128,7 @@ class acc_ReportDetails extends core_Manager
             
             return;
         }
-        
+
         $accounts = arr::make($data->masterMvc->balanceRefAccounts, true);
         $data->canSeePrices = haveRole('ceo,sales,accJournal');
         
