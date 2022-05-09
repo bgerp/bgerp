@@ -151,8 +151,41 @@ class core_Toolbar extends core_BaseClass
         expect($this->buttons[$id]);
         $this->buttons[$id]->title = $name;
     }
-    
-    
+
+
+    /**
+     * Преименува заглавието на бутона
+     *
+     * @param string $id   - ид на бутона
+     * @param string $name - името на бутона
+     * @param string $value - стойността на параметъра
+     *
+     * @return void
+     */
+    public function setBtnAttr($id, $name, $value)
+    {
+        if(isset($this->buttons[$id])){
+            $this->buttons[$id]->attr[$name] = $value;
+        }
+    }
+
+
+    /**
+     * Сменя подредбата на бутона
+     *
+     * @param string $id   - ид на бутона
+     * @param double $order - новото му име
+     *
+     * @return void
+     */
+    public function setBtnOrder($id, $order)
+    {
+        if (isset($this->buttons[$id])) {
+            $this->buttons[$id]->order = $order;
+        }
+    }
+
+
     /**
      * Премахва посочения бутон/бутони в полето $ids
      * Запазва бутоните посочени в $remains

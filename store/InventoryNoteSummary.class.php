@@ -494,7 +494,21 @@ class store_InventoryNoteSummary extends doc_Detail
         }
         
         $sRec = (object) array('noteId' => $noteId, 'productId' => $productId, 'groups' => cat_Products::fetchField($productId, 'groups'));
-        
+
+        // Ако форсира нов запис изчислява колко е очакваното от баланса
+        $noteRec = store_InventoryNotes::fetch($noteId);
+        $storeItemId = acc_Items::fetchItem('store_Stores', $noteRec->storeId)->id;
+        $to = dt::addDays(-1, $noteRec->valior);
+        $to = dt::verbal2mysql($to, false);
+        $from = dt::addMonths(-2, $to);
+        $from = dt::verbal2mysql($from, false);
+
+        $productItemRec = acc_Items::fetchItem('cat_Products', $productId);
+        $Balance = new acc_ActiveShortBalance(array('from' => $from, 'to' => $to, 'accs' => '321', 'cacheBalance' => false, 'item1' => $storeItemId, 'item2' => $productItemRec->id, 'keepUnique' => true));
+        $bRecs = $Balance->getBalance('321');
+        $bRec = $bRecs[key($bRecs)];
+        $sRec->blQuantity = $bRec->blQuantity;
+
         // Ако няма запис, създаваме го
         return self::save($sRec);
     }

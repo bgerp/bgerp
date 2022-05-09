@@ -424,11 +424,9 @@ class planning_Centers extends core_Master
         $query = self::getQuery();
         $query->where("#state != 'closed' AND #state != 'rejected'");
         while($rec = $query->fetch()){  
-            
-                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {  
-                    $options[$rec->folderId] = self::getRecTitle($rec, false);
-                }
-            
+            if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
+                $options[$rec->folderId] = self::getRecTitle($rec, false);
+            }
         }
  
         return $options;

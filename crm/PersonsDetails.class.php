@@ -83,9 +83,10 @@ class crm_PersonsDetails extends core_Manager
             $tpl->append($resTpl, 'CODE');
         }
         
+        $Schedules = cls::get('hr_Schedules');
         // Показване на работните цикли
         if (isset($data->Schedule)) {
-            $resTpl = hr_Schedules::renderCalendar($data->Schedule);
+            $resTpl = $Schedules->renderCalendar($data->Schedule);
             $tpl->append($resTpl, 'CYCLES');
             
             if (crm_Persons::haveRightFor('single', (object) array('personId' => $data->masterId))) {
