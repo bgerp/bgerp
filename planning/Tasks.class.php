@@ -796,7 +796,14 @@ class planning_Tasks extends core_Master
             $rec->timeStart = dt::now();
             $updateFields .= ',timeStart';
         }
-        
+
+        // При първо добавяне на прогрес, ако е в заявка - се активира автоматично
+        if($rec->state == 'pending' && planning_ProductionTaskDetails::count("#taskId = {$rec->id}")){
+            planning_plg_StateManager::changeState($this, $rec, 'activate');
+            $this->logWrite('Активиране при прогрес', $rec->id);
+            core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
+        }
+
         return $this->save($rec, $updateFields);
     }
     
@@ -846,12 +853,6 @@ class planning_Tasks extends core_Master
         // Ако има прогрес, операцията не може да се оттегля
         if ($action == 'reject' && isset($rec)) {
             if (planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #state != 'rejected'")) {
-                $requiredRoles = 'no_one';
-            }
-        }
-        
-        if ($action == 'close' && $rec) {
-            if ($rec->state != 'active' && $rec->state != 'wakeup' && $rec->state != 'stopped') {
                 $requiredRoles = 'no_one';
             }
         }

@@ -4,14 +4,11 @@
 /**
  * Клас 'planning_DirectProductionNote' - Документ за производство
  *
- *
- *
- *
  * @category  bgerp
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -622,7 +619,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
                         // Което не е чернова или оттеглено
                         $state = $originDoc->fetchField('state');
-                        if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped'))) {
+                        if (in_array($state, array('rejected', 'draft', 'closed', 'waiting', 'stopped', 'pending'))) {
                             $requiredRoles = 'no_one';
                         } else {
 
