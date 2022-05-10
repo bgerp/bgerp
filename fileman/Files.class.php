@@ -2603,7 +2603,7 @@ class fileman_Files extends core_Master
                                                             var head = document.getElementsByTagName('iframe')[0].contentWindow.document.getElementsByTagName('head')[0];
                                                             var s = document.createElement('style');
                                                             s.setAttribute('type', 'text/css');
-                                                            s.appendChild(document.createTextNode('#imgBg {padding: 0px !important;}'));
+                                                            s.appendChild(document.createTextNode('#imgBg {padding: 0px !important; background-image: none !important;}'));
                                                             head.appendChild(s);
                                         }", 'SCRIPTS');
 
