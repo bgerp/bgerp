@@ -1957,11 +1957,14 @@ class planning_Tasks extends core_Master
 
                     // При възстановяване в намърдва се най-накрая
                     $rec->startAfter = $mvc->getStartAfter($rec);
+                } elseif($rec->state == 'pending' && in_array($rec->brState, array('draft', 'waiting'))) {
+
+                    // Ако става на заявка от чакащо/чернова
+                    $rec->startAfter = $mvc->getStartAfter($rec);
                 }
             }
 
             if(!empty($rec->startAfter)){
-
                 // Ако има посочена след коя е - намъква се след нея
                 $orderByAssetId = $mvc->fetchField($rec->startAfter, 'orderByAssetId');
                 $rec->orderByAssetId = $orderByAssetId + 0.5;
