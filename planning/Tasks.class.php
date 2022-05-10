@@ -508,6 +508,9 @@ class planning_Tasks extends core_Master
         // Ако има избрано оборудване
         if(isset($rec->assetId)){
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+            if(haveRole('debug')){
+                $row->assetId = ht::createHint($row->assetId, "Подредба|*: {$row->orderByAssetId}", 'img/16/bug.png');
+            }
 
             // Показва се след коя ще започне
             $startAfter = $mvc->getStartAfter($rec);
