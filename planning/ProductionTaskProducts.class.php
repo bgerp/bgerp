@@ -293,7 +293,7 @@ class planning_ProductionTaskProducts extends core_Detail
     {
         if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
             $state = $mvc->Master->fetchField($rec->taskId, 'state');
-            if (in_array($state, array('active', 'waiting', 'wakeup', 'draft'))) {
+            if (in_array($state, array('active', 'waiting', 'wakeup', 'draft', 'pending'))) {
                 if ($action == 'add') {
                     $requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
                 }
@@ -309,7 +309,7 @@ class planning_ProductionTaskProducts extends core_Detail
         }
         
         if($action == 'replaceproduct' && isset($rec)){
-            if($rec->type == 'production' || planning_ProductionTaskDetails::fetch("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")){
+            if($rec->type == 'production' || planning_ProductionTaskDetails::fetchField("#taskId = {$rec->taskId} AND #productId = {$rec->productId}")){
                 $requiredRoles = 'no_one';
             }
         }
