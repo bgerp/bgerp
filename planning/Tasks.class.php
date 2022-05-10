@@ -600,8 +600,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            // Показване на уорнинг, ако ПО ще бъде обърната в чакаща при активиране
-            if($rec->state == 'active'){
+            if(in_array($rec->state, array('active', 'wakeup'))){
                 if(empty($rec->timeDuration) && empty($rec->assetId)){
                     $form->setError('timeDuration,assetId', "На започната операция, не може да се махне продължителността или оборудването|*!");
                 }
@@ -1270,8 +1269,7 @@ class planning_Tasks extends core_Master
         $query = $this->getQuery();
         $query->where("#state != 'rejected'");
         $query->where("#originId = {$containerId}");
-        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'pending' THEN 4 WHEN 'waiting' THEN 5 WHEN 'closed' THEN 6 ELSE 7 END)");
-        $query->orderBy('#orderByState=ASC,#id=DESC');
+        $data->pager->setLimit($query);
         $fields = $this->selectFields();
         $fields['-list'] = $fields['-detail'] = true;
         
@@ -1284,9 +1282,6 @@ class planning_Tasks extends core_Master
             $row->producedQuantity .= " " . $row->measureId;
             
             $subArr = array();
-            if (!empty($row->assetId)) {
-                $subArr[] = tr('Оборудване:|* ') . $row->assetId;
-            }
             if (!empty($row->employees)) {
                 $subArr[] = tr('Оператори:|* ') . $row->employees;
             }
@@ -1332,7 +1327,9 @@ class planning_Tasks extends core_Master
     public function prepareTasks($data)
     {
         $containerId = $data->masterData->rec->containerId;
-        
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        $data->pager->setPageVar($data->masterMvc->className, $data->masterId);
+
         $data->recs = $data->rows = array();
         $this->prepareExistingTaskRows($containerId, $data);
         
@@ -1358,11 +1355,12 @@ class planning_Tasks extends core_Master
         $listTableMvc->FNC('costsCount', 'int');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = 'title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи,expectedTimeStart=Времена->Начало, timeDuration=Времена->Прод-ст, timeEnd=Времена->Край, modified=Модифицирано,info=@info';
-        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'timeStart,timeDuration,timeEnd,expectedTimeStart,costsCount');
+        $fields = 'timeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info';
+        $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $tpl = $table->get($data->rows, $data->listFields);
-        
+        $tpl->append($data->pager->getHtml());
+
         // Имали бутони за добавяне
         if (isset($data->addUrlArray)) {
             $btn = ht::createLink('', $data->addUrlArray, false, "title=Създаване на производствена операция към задание,ef_icon=img/16/add.png");
