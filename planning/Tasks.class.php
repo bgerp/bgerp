@@ -2090,8 +2090,7 @@ class planning_Tasks extends core_Master
             $form->toolbar->renameBtn('btnPending', 'Запис');
             $form->toolbar->setBtnOrder('btnPending', '1');
             $form->toolbar->setBtnOrder('save', '2');
-
-            if(isset($rec->id)){
+            if(isset($rec->id) && $rec->state != 'draft'){
                 $form->toolbar->removeBtn('save');
             }
         }
@@ -2099,21 +2098,18 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Преди запис на продукт
+     * Преди запис
      */
     protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
     {
         if(in_array($rec->state, array('waiting', 'pending'))) {
+            // Определяне на сътоянието при запис
             $rec->state == 'pending';
             if((empty($rec->timeDuration) && empty($rec->assetId))){
                 $rec->state = 'waiting';
                 core_Statuses::newStatus('Операцията няма избрано оборудване или продължителност. Преминава в чакащо състояние докато не се уточнят|*!');
             }
             $rec->state =  (empty($rec->timeDuration) && empty($rec->assetId)) ? 'waiting' : 'pending';
-        }
-
-        if(!in_array($rec->state, array('active', 'wakeup', 'pending'))) {
-           // $rec->startAfter = null;
         }
     }
 }
