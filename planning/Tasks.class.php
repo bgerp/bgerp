@@ -619,9 +619,9 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $whenToUnsetStartAfter = (empty($rec->id) && !empty($rec->startAfter) && $form->cmd == 'save');
+            $whenToUnsetStartAfter = ((empty($rec->id) || $rec->state == 'draft') && !empty($rec->startAfter) && $form->cmd == 'save');
             if($whenToUnsetStartAfter){
-                $form->setWarning('startAfter', "Операцията ще се създаде като чернова. Автоматично ще се добави последна към избраното оборудване|*!");
+                $form->setWarning('startAfter', "Операцията е чернова. Автоматично ще се добави последна към избраното оборудване|*!");
             }
 
             if(!$form->gotErrors()){
