@@ -141,8 +141,14 @@ class planning_Tasks extends core_Master
      * Кой може да го редактира?
      */
     public $canEdit = 'ceo, taskPlanning';
-    
-    
+
+
+    /**
+     * Кой може да го прави на заявка?
+     */
+    public $canPending = 'ceo, taskPlanning';
+
+
     /**
      * Може ли да се редактират активирани документи
      */
@@ -399,7 +405,7 @@ class planning_Tasks extends core_Master
         }
         
         $origin = doc_Containers::getDocument($rec->originId);
-        $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . "</small>" : $origin->getHyperlink();
+        $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . "</small>" : $origin->getHyperlink(true);
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
@@ -415,7 +421,7 @@ class planning_Tasks extends core_Master
         // Ако няма зададено очаквано начало и край, се приема, че са стандартните
         $rec->expectedTimeStart = ($rec->expectedTimeStart) ? $rec->expectedTimeStart : ((isset($rec->timeStart)) ? $rec->timeStart : null);
         $rec->expectedTimeEnd = ($rec->expectedTimeEnd) ? $rec->expectedTimeEnd : ((isset($rec->timeEnd)) ? $rec->timeEnd : null);
-        
+
         // Проверяване на времената
         foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField) {
             
@@ -446,7 +452,7 @@ class planning_Tasks extends core_Master
                 }
             }
         }
-        
+
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
             $row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
@@ -595,15 +601,10 @@ class planning_Tasks extends core_Master
             }
 
             // Показване на уорнинг, ако ПО ще бъде обърната в чакаща при активиране
-            if($form->cmd == 'active' || $rec->state == 'active'){
+            if($rec->state == 'active'){
                 if(empty($rec->timeDuration) && empty($rec->assetId)){
-                    $form->setWarning('timeDuration,assetId', "Не сте посочили продължителност или оборудване. Операцията ще премине в чакащо състояние|*!");
+                    $form->setError('timeDuration,assetId', "На започната операция, не може да се махне продължителността или оборудването|*!");
                 }
-            }
-
-            $whenToUnsetStartAfter = ($form->cmd != 'active' && !empty($rec->startAfter) && !in_array($rec->state, array('waiting', 'active')));
-            if($whenToUnsetStartAfter){
-                $form->setWarning('startAfter', "Операцията ще се създаде като чернова. Автоматично ще се добави последна към избраното оборудване|*!");
             }
 
             if ($rec->timeStart && $rec->timeEnd && ($rec->timeStart > $rec->timeEnd)) {
@@ -616,10 +617,13 @@ class planning_Tasks extends core_Master
                 }
             }
 
+            $whenToUnsetStartAfter = (empty($rec->id) && !empty($rec->startAfter) && $form->cmd == 'save');
+            if($whenToUnsetStartAfter){
+                $form->setWarning('startAfter', "Операцията ще се създаде като чернова. Автоматично ще се добави последна към избраното оборудване|*!");
+            }
+
             if(!$form->gotErrors()){
                 $rec->_fromForm = true;
-
-                // Нулира се подредбата, ако състоянието на операцията няма да е активно/чакащо
                 if($whenToUnsetStartAfter){
                     $rec->startAfter = null;
                 }
@@ -910,7 +914,7 @@ class planning_Tasks extends core_Master
             if(isset($rec->id)){
                 if(empty($rec->assetId)){
                     $requiredRoles = 'no_one';
-                } elseif(!in_array($rec->state, array('active', 'wakeup', 'waiting'))){
+                } elseif(!in_array($rec->state, array('active', 'wakeup', 'pending'))){
                     $requiredRoles = 'no_one';
                 } elseif(!empty($rec->startAfter)){
                     $startAfterTask = $mvc->fetch($rec->startAfter, 'state,assetId');
@@ -918,6 +922,12 @@ class planning_Tasks extends core_Master
                         $requiredRoles = 'no_one';
                     }
                 }
+            }
+        }
+
+        if($action == 'activate' && isset($rec)) {
+            if (!in_array($rec->state, array('pending'))) {
+                $requiredRoles = 'no_one';
             }
         }
     }
@@ -1163,7 +1173,7 @@ class planning_Tasks extends core_Master
         if($countAssets){
             $form->setField('assetId', 'input');
             $form->setOptions('assetId', array('' => '') + $fixedAssetOptions);
-            if($countAssets == 1 && $form->cmd != 'refresh'){
+            if($countAssets == 1 && $form->cmd != 'refresh' && empty($rec->id)){
                 $form->setDefault('assetId', key($fixedAssetOptions));
             }
         } else {
@@ -1260,7 +1270,7 @@ class planning_Tasks extends core_Master
         $query = $this->getQuery();
         $query->where("#state != 'rejected'");
         $query->where("#originId = {$containerId}");
-        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'closed' THEN 4 WHEN 'waiting' THEN 5 ELSE 6 END)");
+        $query->XPR('orderByState', 'int', "(CASE #state WHEN 'wakeup' THEN 1 WHEN 'active' THEN 2 WHEN 'stopped' THEN 3 WHEN 'pending' THEN 4 WHEN 'waiting' THEN 5 WHEN 'closed' THEN 6 ELSE 7 END)");
         $query->orderBy('#orderByState=ASC,#id=DESC');
         $fields = $this->selectFields();
         $fields['-list'] = $fields['-detail'] = true;
@@ -1397,14 +1407,14 @@ class planning_Tasks extends core_Master
         }
         
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->setOptions('state', arr::make('activeAndWaiting=Чакащи+Активни+Събудени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,all=Всички', true));
+            $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
             $data->listFilter->showFields .= ',state';
             $data->listFilter->input('state');
-            $data->listFilter->setDefault('state', 'activeAndWaiting');
+            $data->listFilter->setDefault('state', 'activeAndPending');
 
             if ($state = $data->listFilter->rec->state) {
-                if ($state == 'activeAndWaiting') {
-                    $data->query->where("#state IN ('active', 'waiting', 'wakeup')");
+                if ($state == 'activeAndPending') {
+                    $data->query->where("#state IN ('active', 'pending', 'wakeup')");
                 } elseif($state != 'all') {
                     $data->query->where("#state = '{$state}'");
                 }
@@ -1637,6 +1647,10 @@ class planning_Tasks extends core_Master
             $pUrl = array('planning_ReturnNotes', 'add', 'threadId' => $rec->threadId, 'ret_url' => true);
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието,row=2');
         }
+
+        if($data->toolbar->haveButton('btnActivate')){
+            $data->toolbar->renameBtn('btnActivate', 'Стартиране');
+        }
     }
     
     
@@ -1842,25 +1856,6 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Дали при активиране документа да остава на заявка или на активно
-     *
-     * @param stdClass $rec
-     * @param string $msg;
-     * @return bool
-     */
-    public function activateNow($rec, &$msg)
-    {
-        // Операцията не може да се активира, ако няма оборудване или продължителност
-        $res = !(empty($rec->timeDuration) && empty($rec->assetId));
-        if(!$res){
-            $msg = "За да се активира, трябва да се избере или оборудване или продължителност|*!";
-        }
-
-        return $res;
-    }
-
-
-    /**
      * Преди рендиране на таблицата
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
@@ -1884,7 +1879,7 @@ class planning_Tasks extends core_Master
             }
         }
 
-        $enableReorder = isset($data->listFilter->rec->assetId) &&  in_array($data->listFilter->rec->state, array('activeAndWaiting', 'waiting', 'active', 'wakeup')) && countR($data->recs) > 1;
+        $enableReorder = isset($data->listFilter->rec->assetId) &&  in_array($data->listFilter->rec->state, array('activeAndPending', 'pending', 'active', 'wakeup')) && countR($data->recs) > 1;
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
@@ -1954,14 +1949,14 @@ class planning_Tasks extends core_Master
             if(!$rec->_fromForm && !$rec->_isDragAndDrop){
 
                 // Ако няма начало изчислява се да започне след последната
-                if($rec->state == 'active' && $rec->brState == 'draft'){
+                if($rec->state == 'active' && $rec->brState == 'pending'){
                     // При активиране от чернова - намърдва се най-накрая
                     $rec->startAfter = $mvc->getStartAfter($rec);
                 } elseif($rec->state == 'rejected'){
 
                     // При оттегляне изчезва от номерацията
                     $rec->orderByAssetId = $rec->startAfter = null;
-                } elseif(in_array($rec->state, array('waiting', 'active', 'wakeup')) && $rec->brState == 'rejected'){
+                } elseif(in_array($rec->state, array('pending', 'active', 'wakeup')) && $rec->brState == 'rejected'){
 
                     // При възстановяване в намърдва се най-накрая
                     $rec->startAfter = $mvc->getStartAfter($rec);
@@ -1974,7 +1969,7 @@ class planning_Tasks extends core_Master
                 $orderByAssetId = $mvc->fetchField($rec->startAfter, 'orderByAssetId');
                 $rec->orderByAssetId = $orderByAssetId + 0.5;
             } else {
-                if(in_array($rec->state, array('waiting', 'active', 'wakeup'))){
+                if(in_array($rec->state, array('pending', 'active', 'wakeup'))){
                     $firstTaskId = key(planning_AssetResources::getAssetTaskOptions($rec->assetId));
                     $orderByAssetId = ($firstTaskId) ? $mvc->fetchField($firstTaskId, 'orderByAssetId') : 1;
                     $rec->orderByAssetId = $orderByAssetId - 0.5;
@@ -2077,5 +2072,48 @@ class planning_Tasks extends core_Master
         $res = array_merge($forwardRes, (array) $statusData);
 
         return $res;
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а на формата за редактиране/добавяне
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, $data)
+    {
+        $form = $data->form;
+        $rec = $form->rec;
+        if($form->toolbar->haveButton('activate')){
+            $form->toolbar->removeBtn('activate');
+        }
+
+        if($form->toolbar->haveButton('btnPending')){
+            $form->toolbar->renameBtn('btnPending', 'Запис');
+            $form->toolbar->setBtnOrder('btnPending', '1');
+            $form->toolbar->setBtnOrder('save', '2');
+
+            if(isset($rec->id)){
+                $form->toolbar->removeBtn('save');
+            }
+        }
+    }
+
+
+    /**
+     * Преди запис на продукт
+     */
+    protected static function on_BeforeSave($mvc, &$id, $rec, $fields = null, $mode = null)
+    {
+        if(in_array($rec->state, array('waiting', 'pending'))) {
+            $rec->state == 'pending';
+            if((empty($rec->timeDuration) && empty($rec->assetId))){
+                $rec->state = 'waiting';
+                core_Statuses::newStatus('Операцията няма избрано оборудване или продължителност. Преминава в чакащо състояние докато не се уточнят|*!');
+            }
+            $rec->state =  (empty($rec->timeDuration) && empty($rec->assetId)) ? 'waiting' : 'pending';
+        }
+
+        if(!in_array($rec->state, array('active', 'wakeup', 'pending'))) {
+           // $rec->startAfter = null;
+        }
     }
 }
