@@ -1253,34 +1253,38 @@ class planning_Tasks extends core_Master
 
         return $query->fetch()->id;
     }
-
-
+    
+    
     /**
-     * Връща масив със съществуващите задачи
-     *
-     * @param int      $containerId
-     * @param stdClass $data
-     *
-     * @return void
+     * Подготвя задачите към заданията
      */
-    protected function prepareExistingTaskRows($containerId, &$data)
+    public function prepareTasks($data)
     {
+        $data->pager = cls::get('core_Pager', array('itemsPerPage' => 10));
+        $data->pager->setPageVar($data->masterMvc->className, $data->masterId);
+        $data->recs = $data->rows = array();
+
         // Всички създадени задачи към заданието
         $query = $this->getQuery();
         $query->where("#state != 'rejected'");
-        $query->where("#originId = {$containerId}");
+        if($data->masterMvc instanceof planning_AssetResources){
+            $query->where("#assetId = {$data->masterId}");
+        } else {
+            $query->where("#originId = {$data->masterData->rec->containerId}");
+        }
         $data->pager->setLimit($query);
+
         $fields = $this->selectFields();
         $fields['-list'] = $fields['-detail'] = true;
-        
-        // Подготвяме данните
+
+        // Подготвяне на данните
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = planning_Tasks::recToVerbal($rec, $fields);
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
-            
+
             $subArr = array();
             if (!empty($row->employees)) {
                 $subArr[] = tr('Оператори:|* ') . $row->employees;
@@ -1288,7 +1292,7 @@ class planning_Tasks extends core_Master
             if (countR($subArr)) {
                 $row->info = '<div><small>' . implode(' &nbsp; ', $subArr) . '</small></div>';
             }
-            
+
             // Показване на протоколите за производство
             $notes = array();
             $nQuery = planning_DirectProductionNote::getQuery();
@@ -1298,7 +1302,7 @@ class planning_Tasks extends core_Master
                 $notes[] = planning_DirectProductionNote::getLink($nRec->id, 0);
             }
             if (countR($notes)) {
-                $row->info .= "<div style='padding-bottom:7px'>" . implode(' | ', $notes) . "</div>";
+                $row->info .= "<div style='padding-bottom:7px' class='small'>" . implode(' | ', $notes) . "</div>";
             }
 
             // Линк към разходите, ако ПО е разходен обект
@@ -1314,29 +1318,15 @@ class planning_Tasks extends core_Master
                 $row->costsCount = ht::createLinkRef($costsCount, $linkArr, false, 'title=Показване на разходите към документа');
             }
 
-            $row->modified = $row->modifiedOn . ' ' . tr('от||by') . ' ' . $row->modifiedBy;
-            $row->modified = "<div style='text-align:center'> {$row->modified} </div>";
             $data->rows[$rec->id] = $row;
         }
-    }
-    
-    
-    /**
-     * Подготвя задачите към заданията
-     */
-    public function prepareTasks($data)
-    {
-        $containerId = $data->masterData->rec->containerId;
-        $data->pager = cls::get('core_Pager', array('itemsPerPage' => 10));
-        $data->pager->setPageVar($data->masterMvc->className, $data->masterId);
-
-        $data->recs = $data->rows = array();
-        $this->prepareExistingTaskRows($containerId, $data);
         
         // Ако потребителя може да добавя операция от съответния тип, ще показваме бутон за добавяне
-        if ($this->haveRightFor('add', (object) array('originId' => $containerId))) {
-            if (!Mode::isReadOnly()) {
-                $data->addUrlArray = array('planning_Jobs', 'selectTaskAction', 'originId' => $containerId, 'ret_url' => true);
+        if($data->masterMvc instanceof planning_Jobs){
+            if ($this->haveRightFor('add', (object) array('originId' => $data->masterData->rec->containerId))) {
+                if (!Mode::isReadOnly()) {
+                    $data->addUrlArray = array('planning_Jobs', 'selectTaskAction', 'originId' => $data->masterData->rec->containerId, 'ret_url' => true);
+                }
             }
         }
     }
@@ -1349,17 +1339,22 @@ class planning_Tasks extends core_Master
     {
         $tpl = new ET('');
         
-        // Ако няма намерени записи, не се рендира нищо
-        // Рендираме таблицата с намерените задачи
+        // Рендиране на таблицата с намерените задачи
         $listTableMvc = clone $this;
         $listTableMvc->FNC('costsCount', 'int');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = 'timeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info';
+        $fields = arr::make('timeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info');
+        if($data->masterMvc instanceof planning_AssetResources){
+            unset($fields['assetId']);
+        }
+
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
         $tpl = $table->get($data->rows, $data->listFields);
-        $tpl->append($data->pager->getHtml());
+        if(isset($data->pager)){
+            $tpl->append($data->pager->getHtml());
+        }
 
         // Имали бутони за добавяне
         if (isset($data->addUrlArray)) {

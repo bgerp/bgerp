@@ -111,7 +111,7 @@ class planning_AssetResources extends core_Master
     /**
      * Детайли
      */
-    public $details = 'planning_AssetResourceFolders,planning_AssetResourcesNorms';
+    public $details = 'planning_AssetResourceFolders,planning_AssetResourcesNorms,Tasks=planning_Tasks';
     
     
     /**
@@ -147,22 +147,11 @@ class planning_AssetResources extends core_Master
         $this->FLD('systemUsers', "keylist(mvc=core_Users, select=nick, where=#state !\\= \\'rejected\\' AND #roles LIKE '%|{$powerUserId}|%')", 'caption=Поддръжка->Отговорници, remember');
         
         $this->FLD('indicators', 'keylist(mvc=sens2_Indicators,select=title, allowEmpty)', 'caption=Сензори, remember');
-        
         $this->FLD('cameras', 'keylist(mvc=cams_Cameras,select=title, allowEmpty)', 'caption=Камери, remember');
         $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Тракер, remember');
-        $this->FNC('codeAndName', 'varchar');
-        
+
         $this->setDbUnique('code');
         $this->setDbUnique('protocolId');
-    }
-    
-    
-    /**
-     * Изчисляване на името и кода
-     */
-    protected static function on_CalcCodeAndName($mvc, &$rec)
-    {
-        $rec->codeAndName = $rec->code . ' - ' . $rec->name;
     }
     
     
@@ -182,7 +171,7 @@ class planning_AssetResources extends core_Master
         }
         
         $defOptArr = array();
-        if ($rec->id) {
+        if (isset($rec->id)) {
             $fQuery = planning_AssetResourceFolders::getQuery();
             $fQuery->where(array("#classId = '[#1#]' AND #objectId = '[#2#]'", $mvc->getClassId(), $rec->id));
             while ($fRec = $fQuery->fetch()) {
@@ -251,15 +240,15 @@ class planning_AssetResources extends core_Master
      * @param core_Mvc  $mvc
      * @param core_Form $form
      */
-    public static function on_AfterInputEditForm($mvc, &$form)
+    protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if ($form->isSubmitted()) {
             if (!$form->rec->assetFolders && $form->rec->assetUsers) {
-                $form->setError('assetFolders', 'Не е избрана папка');
+                $form->setError('assetFolders', 'Не е избран център на дейност, но са избрани отговорници|*!');
             }
             
             if (!$form->rec->systemFolderId && $form->rec->systemUsers) {
-                $form->setError('systemFolderId', 'Не е избрана папка');
+                $form->setError('systemFolderId', 'Не е избрана система за поддръжка, но са избрани отговорници|*!');
             }
 
             if(empty($form->rec->simultaneity)){
@@ -285,6 +274,10 @@ class planning_AssetResources extends core_Master
         }
         
         if (isset($fields['-single'])) {
+            if(isset($rec->scheduleId)){
+                $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
+            }
+
             $row->SingleIcon = ht::createElement('img', array('src' => sbf(str_replace('/16/', '/32/', $mvc->singleIcon), ''), 'alt' => ''));
             
             if ($rec->image) {
@@ -325,14 +318,10 @@ class planning_AssetResources extends core_Master
                     
                     $issues = '';
                     if (doc_Folders::haveRightFor('single', $f['folderId'])) {
-                        $driverClassField = cls::get('cal_Tasks')->driverClassField;
-                        
                         $sQuery = cal_Tasks::getQuery();
                         $sQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
                         $sQuery->where("#state != 'rejected'");
                         $sQuery->where(array("#assetResourceId = '[#1#]'", $rec->id));
-//                        $sQuery->where(array("#{$driverClassField} = '[#1#]'", support_TaskType::getClassId()));
-                        
                         $sQuery->orderBy('state', 'ASC');
                         $sQuery->orderBy('modifiedOn', 'DESC');
 
@@ -353,52 +342,6 @@ class planning_AssetResources extends core_Master
                     
                     if ($issues) {
                         $row->systemFolderId .= '<div style="padding-left: 20px;">' . $issues . '</div>';
-                    }
-                } else {
-                    $row->assetFolders .= $row->assetFolders ? '<br>' : '';
-                    $row->assetFolders .= doc_Folders::getLink($f['folderId']);
-                    
-                    // Показваме отговорниците
-                    if ($f['users']) {
-                        $row->assetFolders .= ' (';
-                        $isFirst = true;
-                        foreach (type_Keylist::toArray($f['users']) as $uId) {
-                            $row->assetFolders .= $isFirst ? '': ', ';
-                            $isFirst = false;
-                            $row->assetFolders .= crm_Profiles::createLink($uId);
-                        }
-                        $row->assetFolders .= ')';
-                    }
-
-                    $jobs = '';
-                    if (doc_Folders::haveRightFor('single', $f['folderId'])) {
-                        $pQuery = planning_Tasks::getQuery();
-                        $pQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
-                        $pQuery->where("#assetId = {$rec->id} AND #state != 'rejected'");
-                        $pQuery->orderBy('state', 'ASC');
-                        $pQuery->orderBy('modifiedOn', 'DESC');
-                        $pQuery->limit($limitForDocs);
-                        
-                        while ($pRec = $pQuery->fetch()) {
-                            $jobs .= "<div class='state-{$pRec->state}'>" . planning_Tasks::getHyperlink($pRec->id, true) . '</div>';
-                        }
-
-                        // Показваме  и задачите
-                        $tQuery = cal_Tasks::getQuery();
-                        $tQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
-                        $tQuery->where(array("#assetResourceId = '[#1#]'", $rec->id));
-                        $tQuery->where("#state != 'rejected'");
-                        $tQuery->orderBy('state', 'ASC');
-                        $tQuery->orderBy('modifiedOn', 'DESC');
-                        $tQuery->limit($limitForDocs);
-
-                        while ($tRec = $tQuery->fetch()) {
-                            $jobs .= "<div class='state-{$tRec->state}'>" . cal_Tasks::getHyperlink($tRec->id, true) . '</div>';
-                        }
-                    }
-                    
-                    if ($jobs) {
-                        $row->assetFolders .= '<div style="padding-left: 20px;">' . $jobs . '</div>';
                     }
                 }
             }
@@ -695,7 +638,7 @@ class planning_AssetResources extends core_Master
      * @param string|array $fields Имена на полетата, които sa записани
      * @param string       $mode   Режим на записа: replace, ignore
      */
-    public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
+    protected static function on_AfterSave(core_Mvc $mvc, &$id, $rec, &$fields = null, $mode = null)
     {
         $rArr = array();
         $allFoldersArr = array();

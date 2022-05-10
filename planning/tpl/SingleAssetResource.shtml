@@ -1,7 +1,7 @@
 <div class="singleView">
     [#SingleToolbar#]
     <div class="info-table">
-        <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>[#codeAndName#]</b></h3>
+        <h3 style='padding: 5px; color:green;' class='[#STATE_CLASS#]'><b>[[#code#]] [#name#]</b></h3>
         
         <fieldset class="detail-info">
             <legend class="groupTitle">|Общи данни|*</legend>
@@ -37,13 +37,13 @@
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Създаване|*:
                     </td>
-                    <td>|от|* [#createdBy#] |на|* [#createdOn#]</td>
+                    <td>|на|* [#createdOn#] |от|* [#createdBy#]</td>
                 </tr>
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
                         |Модифициране|*:
                     </td>
-                    <td>|от|* [#modifiedBy#] |на|* [#modifiedOn#]</td>
+                    <td>|на|* [#modifiedOn#] |от|* [#modifiedBy#]</td>
                 </tr>
                 <!--ET_BEGIN description-->
                 <tr>
@@ -52,21 +52,7 @@
                 <!--ET_END description-->
             </table>
         </fieldset>
-        
-        <!--ET_BEGIN jobs-->
-        <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
-            <legend class="groupTitle">|Операции|*</legend>
-            <ul>
-	            <!--ET_BEGIN assetFolders-->
-	            <li class="info">
-	                [#assetFolders#]
-	            </li>
-	            <!--ET_END assetFolders-->
-           </ul>
-        </fieldset>
-        [#jobs#]
-        <!--ET_END jobs-->
-        
+
         <!--ET_BEGIN issues-->
         <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
             <legend class="groupTitle">|Поддръжка|*</legend>
@@ -112,5 +98,16 @@
                 </div>
             </fieldset>
         </div>
+
+        <!--ET_BEGIN Tasks-->
+        <div class="scrolling-holder">
+            <fieldset class="detail-info" style="margin-top: 20px;">
+                <legend class="groupTitle">|Производствени операции|*</legend>
+                <div class="scrolling-holder">
+                    [#Tasks#]
+                </div>
+            </fieldset>
+        </div>
+        <!--ET_END Tasks-->
     </div>
 </div>
