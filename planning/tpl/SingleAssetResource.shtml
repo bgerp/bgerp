@@ -52,6 +52,19 @@
                 <!--ET_END description-->
             </table>
         </fieldset>
+        <!--ET_BEGIN jobs-->
+        <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
+            <legend class="groupTitle">|Задачи|*</legend>
+            <ul>
+                <!--ET_BEGIN assetFolderTasks-->
+                <li class="info">
+                    [#assetFolderTasks#]
+                </li>
+                <!--ET_END assetFolderTasks-->
+            </ul>
+        </fieldset>
+        [#jobs#]
+        <!--ET_END jobs-->
 
         <!--ET_BEGIN issues-->
         <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">

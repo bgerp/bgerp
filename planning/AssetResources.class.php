@@ -272,7 +272,7 @@ class planning_AssetResources extends core_Master
         if (isset($rec->protocolId)) {
             $row->protocolId = accda_Da::getHyperlink($rec->protocolId, true);
         }
-        
+
         if (isset($fields['-single'])) {
             if(isset($rec->scheduleId)){
                 $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
@@ -292,30 +292,30 @@ class planning_AssetResources extends core_Master
                 $fArr[$fRec->folderId] = array('folderId' => $fRec->folderId, 'users' => $fRec->users, 'rec' => $fRec);
             }
 
-            $row->systemFolderId = '';
-            $row->assetFolders = '';
+            $row->assetFolderTasks = $row->taskFolders = '';
+
             foreach ($fArr as $f) {
                 if (!$f['folderId']) {
                     continue;
                 }
-                
+
                 $cover = doc_Folders::getCover($f['folderId']);
                 if ($cover->className == 'support_Systems') {
-                    $row->systemFolderId .= $row->systemFolderId ? '<br>' : '';
-                    $row->systemFolderId .= doc_Folders::getLink($f['folderId']);
-                    
+                    $row->taskFolders .= $row->systemFolderId ? '<br>' : '';
+                    $row->taskFolders .= doc_Folders::getLink($f['folderId']);
+
                     // Показваме отговорниците
                     if ($f['users']) {
-                        $row->systemFolderId .= ' (';
+                        $row->taskFolders .= ' (';
                         $isFirst = true;
                         foreach (type_Keylist::toArray($f['users']) as $uId) {
-                            $row->systemFolderId .= $isFirst ? '': ', ';
+                            $row->systemFolderId .= $isFirst ? '' : ', ';
                             $isFirst = false;
-                            $row->systemFolderId .= crm_Profiles::createLink($uId);
+                            $row->taskFolders .= crm_Profiles::createLink($uId);
                         }
-                        $row->systemFolderId .= ')';
+                        $row->taskFolders .= ')';
                     }
-                    
+
                     $issues = '';
                     if (doc_Folders::haveRightFor('single', $f['folderId'])) {
                         $sQuery = cal_Tasks::getQuery();
@@ -329,23 +329,58 @@ class planning_AssetResources extends core_Master
 
                         $cnt = 0;
                         while ($sRec = $sQuery->fetch()) {
-
                             $linkTitle = cal_Tasks::getVerbal($sRec->id, 'progress');
                             $linkTitle .= ' ' . cal_Tasks::getVerbal($sRec->id, 'title');
-                            
+
                             // Вземаме линка
                             $link = ht::createLink($linkTitle, cal_Tasks::getSingleUrlArray($sRec->id), null, array('ef_icon' => cal_Tasks::getIcon($sRec->id)));
-                            
+
                             $issues .= "<div class='state-{$sRec->state}'>" . $link . '</div>';
                         }
                     }
-                    
+
                     if ($issues) {
                         $row->systemFolderId .= '<div style="padding-left: 20px;">' . $issues . '</div>';
                     }
+                } else {
+                    $row->assetFolderTasks .= $row->assetFolderTasks ? '<br>' : '';
+                    $row->assetFolderTasks .= doc_Folders::getLink($f['folderId']);
+
+                    // Показваме отговорниците
+                    if ($f['users']) {
+                        $row->assetFolderTasks .= ' (';
+                        $isFirst = true;
+                        foreach (type_Keylist::toArray($f['users']) as $uId) {
+                            $row->assetFolderTasks .= $isFirst ? '' : ', ';
+                            $isFirst = false;
+                            $row->assetFolderTasks .= crm_Profiles::createLink($uId);
+                        }
+                        $row->assetFolderTasks .= ')';
+                    }
+
+                    $jobs = '';
+                    if (doc_Folders::haveRightFor('single', $f['folderId'])) {
+
+                        // Показваме  и задачите
+                        $tQuery = cal_Tasks::getQuery();
+                        $tQuery->where(array("#folderId = '[#1#]'", $f['folderId']));
+                        $tQuery->where(array("#assetResourceId = '[#1#]'", $rec->id));
+                        $tQuery->where("#state != 'rejected'");
+                        $tQuery->orderBy('state', 'ASC');
+                        $tQuery->orderBy('modifiedOn', 'DESC');
+                        $tQuery->limit($limitForDocs);
+
+                        while ($tRec = $tQuery->fetch()) {
+                            $jobs .= "<div class='state-{$tRec->state}'>" . cal_Tasks::getHyperlink($tRec->id, true) . '</div>';
+                        }
+                    }
+
+                    if ($jobs) {
+                        $row->assetFolderTasks .= '<div style="padding-left: 20px;">' . $jobs . '</div>';
+                    }
                 }
             }
-            
+
             // Сензорите
             if ($rec->indicators) {
                 $row->sensors = sens2_Indicators::renderIndicator(type_Keylist::toArray($rec->indicators));
