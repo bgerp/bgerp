@@ -77,7 +77,7 @@
                 <b> <div class='left'>код:<span class="code">[#CODE#]</span></div></b>
             </td>
             <td   class="top-descr no-border-left no-border-top" >
-                 <div class='right'>мярка:<span class="code"><b>[#MEASURE_ID#]</b></span>([#QUANTITY#])</div>
+                 <div class='right'>мярка:<span class="code"><b>[#MEASURE_ID#]</b></span>[#QUANTITY#]</div>
             </td>
         </tr>
         <tr>
