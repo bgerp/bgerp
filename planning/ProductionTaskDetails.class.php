@@ -350,7 +350,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 // Ако артикулът е действие към оборудването
                 if ($productRec->canStore != 'yes' && $rec->type == 'input') {
                     $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
-                    // Подсигуряване че трябва да има норма
+                    // Подсигуряване, че трябва да има норма
                     if (empty($inTp)) {
                         if (!planning_AssetResources::getNormRec($rec->fixedAsset, $rec->productId)) {
                             $form->setError('productId,fixedAsset', 'Изберете оборудване, което има норма за действието');
@@ -393,10 +393,12 @@ class planning_ProductionTaskDetails extends doc_Detail
 
 
     /**
-     * Преди запис на документ, изчислява стойността на полето `isContable`
+     * Преди запис на документ
      *
      * @param core_Manager $mvc
-     * @param stdClass     $rec
+     * @param $res
+     * @param $rec
+     * @return void
      */
     protected static function on_BeforeSave(core_Manager $mvc, $res, $rec)
     {
@@ -438,10 +440,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     private static function fetchSerialInfo($serial, $productId, $taskId, $type = null)
     {
-        if (!$Driver = cat_Products::getDriver($productId)) {
-
-            return;
-        }
+        if (!$Driver = cat_Products::getDriver($productId)) return;
 
         $res = array('serial' => $serial, 'productId' => $productId, 'type' => 'unknown');
         $canonizedSerial = $Driver->canonizeSerial($productId, $serial);
@@ -842,7 +841,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         if (($action == 'add' || $action == 'reject' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
             $state = $mvc->Master->fetchField($rec->taskId, 'state');
-            if ($state != 'active' && $state != 'wakeup') {
+            if (!in_array($state, array('active', 'wakeup', 'pending'))) {
                 $requiredRoles = 'no_one';
             }
         }

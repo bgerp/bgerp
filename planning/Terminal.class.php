@@ -155,7 +155,7 @@ class planning_Terminal extends peripheral_Terminal
                 $assetRec = planning_AssetResources::fetch($form->rec->asset);
                 $supportFolders = keylist::toArray($assetRec->systemFolderId);
                 if(!countR($supportFolders)){
-                    $form->setError('assetFolderId', 'Оборудването няма избрана папка за поддръжка');
+                    $form->setError('assetFolders', 'Оборудването няма избрана папка за поддръжка');
                 } else {
                     $newTask = (object)array('folderId' => key($supportFolders),
                         'driverClass' => support_TaskType::getClassId(),
