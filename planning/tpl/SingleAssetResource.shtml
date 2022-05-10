@@ -57,11 +57,11 @@
         <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
             <legend class="groupTitle">|Операции|*</legend>
             <ul>
-	            <!--ET_BEGIN assetFolderId-->
+	            <!--ET_BEGIN assetFolders-->
 	            <li class="info">
-	                [#assetFolderId#]
+	                [#assetFolders#]
 	            </li>
-	            <!--ET_END assetFolderId-->
+	            <!--ET_END assetFolders-->
            </ul>
         </fieldset>
         [#jobs#]
