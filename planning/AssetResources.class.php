@@ -335,7 +335,7 @@ class planning_AssetResources extends core_Master
                             // Вземаме линка
                             $link = ht::createLink($linkTitle, cal_Tasks::getSingleUrlArray($sRec->id), null, array('ef_icon' => cal_Tasks::getIcon($sRec->id)));
 
-                            $issues .= "<div class='state-{$sRec->state}'>" . $link . '</div>';
+                            $issues .= "<span class='state-{$sRec->state} document-handler'>" . $link . '</span>';
                         }
                     }
 
@@ -371,7 +371,7 @@ class planning_AssetResources extends core_Master
                         $tQuery->limit($limitForDocs);
 
                         while ($tRec = $tQuery->fetch()) {
-                            $jobs .= "<div class='state-{$tRec->state}'>" . cal_Tasks::getHyperlink($tRec->id, true) . '</div>';
+                            $jobs .= "<span class='state-{$tRec->state} document-handler'>" . cal_Tasks::getHyperlink($tRec->id, true) . '</span>';
                         }
                     }
 
