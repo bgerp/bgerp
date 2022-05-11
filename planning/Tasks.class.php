@@ -512,12 +512,14 @@ class planning_Tasks extends core_Master
                 $row->assetId = ht::createHint($row->assetId, "Подредба|*: {$row->orderByAssetId}", 'img/16/bug.png');
             }
 
-            // Показва се след коя ще започне
-            $startAfter = $mvc->getStartAfter($rec);
-            if(isset($startAfter)){
-                $row->startAfter = $mvc->getHyperlink($startAfter, true);
-            } else {
-                $row->startAfter = tr('Първа за оборудването');
+            if(!in_array($rec->state, array('closed', 'rejected'))){
+                // Показва се след коя ще започне
+                $startAfter = $mvc->getStartAfter($rec);
+                if(isset($startAfter)){
+                    $row->startAfter = $mvc->getHyperlink($startAfter, true);
+                } else {
+                    $row->startAfter = tr('Първа за оборудването');
+                }
             }
         }
 
@@ -1951,11 +1953,11 @@ class planning_Tasks extends core_Master
                 if($rec->state == 'active' && $rec->brState == 'pending'){
                     // При активиране от чернова - намърдва се най-накрая
                     $rec->startAfter = $mvc->getStartAfter($rec);
-                } elseif($rec->state == 'rejected'){
+                } elseif($rec->state == 'rejected' || ($rec->state == 'closed' && in_array($rec->brState, array('stopped', 'active', 'wakeup')))){
 
                     // При оттегляне изчезва от номерацията
                     $rec->orderByAssetId = $rec->startAfter = null;
-                } elseif(in_array($rec->state, array('pending', 'active', 'wakeup')) && $rec->brState == 'rejected'){
+                } elseif(in_array($rec->state, array('pending', 'active', 'wakeup')) && in_array($rec->brState, array('rejected', 'closed'))){
 
                     // При възстановяване в намърдва се най-накрая
                     $rec->startAfter = $mvc->getStartAfter($rec);
