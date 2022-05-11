@@ -1408,14 +1408,14 @@ class planning_Tasks extends core_Master
         }
         
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
+            $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
             $data->listFilter->showFields .= ',state';
             $data->listFilter->input('state');
             $data->listFilter->setDefault('state', 'activeAndPending');
 
             if ($state = $data->listFilter->rec->state) {
                 if ($state == 'activeAndPending') {
-                    $data->query->where("#state IN ('active', 'pending', 'wakeup')");
+                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped')");
                 } elseif($state != 'all') {
                     $data->query->where("#state = '{$state}'");
                 }
