@@ -644,11 +644,13 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-       if(!empty($rec->expectedTimeStart) || !empty($rec->timeDuration) || !empty($rec->expectedTimeEnd)){
+       if(!empty($rec->expectedTimeStart) || !empty($rec->timeDuration) || !empty($rec->expectedTimeEnd) || !empty($rec->activatedOn) || !empty($rec->timeClosed)){
             $resArr['times'] = array('name' => tr('Времена'), 'val' => tr("|*<table>
                 <!--ET_BEGIN expectedTimeStart--><tr><td style='font-weight:normal'>|Очаквано начало|*:</td><td>[#expectedTimeStart#]</td></tr><!--ET_END expectedTimeStart-->
                 <!--ET_BEGIN timeDuration--><tr><td style='font-weight:normal'>|Производство|*:</td><td>[#timeDuration#]</td></tr><!--ET_END timeDuration-->
                 <!--ET_BEGIN expectedTimeEnd--><tr><td style='font-weight:normal'>|Очакван край|*:</td><td>[#expectedTimeEnd#] <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime--></td></tr><!--ET_END expectedTimeEnd-->
+                <!--ET_BEGIN activatedOn--><tr><td style='font-weight:normal'>|Активиране|*:</td><td>[#activatedOn#]</td></tr><!--ET_END activatedOn-->
+                <!--ET_BEGIN timeClosed--><tr><td style='font-weight:normal'>|Приключено|*:</td><td>[#timeClosed#]</td></tr><!--ET_END timeClosed-->
                 </table>"));
         }
         
