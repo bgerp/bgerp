@@ -594,6 +594,7 @@ class planning_Tasks extends core_Master
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
+
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->measureId);
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->title = cat_Products::getTitleById($rec->productId);
@@ -605,9 +606,15 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            if(in_array($rec->state, array('active', 'wakeup'))){
+            if($form->cmd == 'save_pending'){
+                if(empty($rec->indTime) && empty($rec->timeDuration)){
+                    $form->setError('timeDuration,indTime', "На операцията трябва да може да ѝ се изчисли продължителността|*!");
+                }
+            }
+
+            if(in_array($rec->state, array('active', 'wakeup', 'stopped'))){
                 if(empty($rec->timeDuration) && empty($rec->assetId)){
-                    $form->setError('timeDuration,assetId', "На започната операция, не може да се махне продължителността или оборудването|*!");
+                    $form->setError('timeDuration,assetId,indTime', "На започната операция, не може да се махне продължителността/нормата или оборудването|*!");
                 }
             }
 
