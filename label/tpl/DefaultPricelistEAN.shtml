@@ -79,7 +79,7 @@
                 <div class='right'>мярка: <span class="code"><b>[#MEASURE_ID#]</b></span> [#QUANTITY#]</div>
             </td>
             <td colspan=3  class="barcode-holder img  no-border-left no-border-top" rowspan=4>
-                [#EAN#]
+                [#EAN_ROTATED#]
             </td>
         </tr>
         <tr>

@@ -41,6 +41,7 @@ class price_interface_LabelImpl
     {
         $placeholders = array();
         $placeholders['EAN'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['EAN_ROTATED'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['CODE'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['NAME'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['CATALOG_CURRENCY'] = (object) array('type' => 'text', 'hidden' => true);
@@ -89,7 +90,7 @@ class price_interface_LabelImpl
                 $measureId = cat_UoM::getShortName($pRec->measureId);
 
                 if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
-                    $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'PRICE_CAPTION' => $priceCaption);
+                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'PRICE_CAPTION' => $priceCaption);
                     $resArr[] = $res;
                     $currentCount++;
                     if($currentCount == $cnt) break;
@@ -98,7 +99,7 @@ class price_interface_LabelImpl
                 foreach ($pRec->packs as $packRec){
                     $ean = !empty($packRec->eanCode) ? $packRec->eanCode : null;
                     $packName = cat_UoM::getShortName($packRec->packagingId);
-                    $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($packRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "({$packRec->quantity} {$measureId})", 'PRICE_CAPTION' => $priceCaption);
+                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($packRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "({$packRec->quantity} {$measureId})", 'PRICE_CAPTION' => $priceCaption);
                     $resArr[] = $res;
                     $currentCount++;
                     if($currentCount == $cnt) break;
