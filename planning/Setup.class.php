@@ -80,6 +80,12 @@ defIfNot('PLANNING_JOB_AUTO_COMPLETION_DELAY', dt::SECONDS_IN_MONTH);
 
 
 /**
+ * За колко време напред да се планират производствените операции към машината
+ */
+defIfNot('PLANNING_ASSET_HORIZON', 3 * dt::SECONDS_IN_MONTH);
+
+
+/**
  * Приоритет при попълване на количеството в протокола за производство
  */
 defIfNot('PLANNING_PRODUCTION_NOTE_PRIORITY', 'bom');
@@ -105,7 +111,7 @@ defIfNot('PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID', '');
  * @package   planning
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -161,6 +167,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
         'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
+        'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
     );
 
 
