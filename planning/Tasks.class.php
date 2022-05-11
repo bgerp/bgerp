@@ -1212,7 +1212,9 @@ class planning_Tasks extends core_Master
                 $taskOptions = array();
                 foreach ($assetTasks as $tRec){
                     $job = doc_Containers::getDocument($tRec->originId);
-                    $title = "#Opr{$tRec->id}/{$job->getRecTitle()}/{$mvc->getVerbal($tRec->id, 'productId')}";
+                    $jobTitle = str::limitLen($job->getRecTitle(), 16);
+                    $productTitle = str::limitLen($mvc->getVerbal($tRec->id, 'productId'), 16);
+                    $title = "#Opr{$tRec->id}/{$jobTitle}/{$productTitle}";
                     $taskOptions[$tRec->id] = $title;
                 }
 
