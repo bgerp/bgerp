@@ -1405,12 +1405,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         deals_OpenDeals::saveRec($rec, $mvc);
     }
-    
 
-    function act_test()
-    {
-        static::on_AfterClosureWithDeal($this, 3390);
-    }
+
     /**
      * Ако с тази сделка е приключена друга сделка
      */
@@ -1431,7 +1427,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 
                 // Взимаме договорените продукти от сделката начало на нейната нишка
                 $firstDoc = doc_Threads::getFirstDocument($doc->threadId);
+                Mode::push('isClosedWithDeal', true);
                 $dealInfo = $firstDoc->getAggregateDealInfo();
+                Mode::pop('isClosedWithDeal');
                 $id = $firstDoc->fetchField('id');
                 $closedIds[$id] = $id;
                 $products = (array) $dealInfo->get('dealProducts');

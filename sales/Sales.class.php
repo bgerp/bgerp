@@ -746,8 +746,10 @@ class sales_Sales extends deals_DealMaster
                 $p->{$fld} = $dRec->{$fld};
             }
 
-            if(!empty($rec->reff)){
-                $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : $rec->reff;
+            if(Mode::is('isClosedWithDeal')){
+                if(!empty($rec->reff)){
+                    $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                }
             }
 
             if (core_Packs::isInstalled('batch')) {
