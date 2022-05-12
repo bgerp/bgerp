@@ -179,6 +179,7 @@ class label_Prints extends core_Master
         
         $this->setDbIndex('createdOn');
         $this->setDbIndex('templateId');
+        $this->setDbIndex('classId, objectId');
     }
     
     
