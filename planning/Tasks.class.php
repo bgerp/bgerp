@@ -512,12 +512,14 @@ class planning_Tasks extends core_Master
                 $row->assetId = ht::createHint($row->assetId, "Подредба|*: {$row->orderByAssetId}", 'img/16/bug.png');
             }
 
-            // Показва се след коя ще започне
-            $startAfter = $mvc->getStartAfter($rec);
-            if(isset($startAfter)){
-                $row->startAfter = $mvc->getHyperlink($startAfter, true);
-            } else {
-                $row->startAfter = tr('Първа за оборудването');
+            if(!in_array($rec->state, array('closed', 'rejected'))){
+                // Показва се след коя ще започне
+                $startAfter = $mvc->getStartAfter($rec);
+                if(isset($startAfter)){
+                    $row->startAfter = $mvc->getHyperlink($startAfter, true);
+                } else {
+                    $row->startAfter = tr('Първа за оборудването');
+                }
             }
         }
 
@@ -592,6 +594,7 @@ class planning_Tasks extends core_Master
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
+
             $packRec = cat_products_Packagings::getPack($rec->productId, $rec->measureId);
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->title = cat_Products::getTitleById($rec->productId);
@@ -603,9 +606,15 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            if(in_array($rec->state, array('active', 'wakeup'))){
+            if($form->cmd == 'save_pending'){
+                if(empty($rec->indTime) && empty($rec->timeDuration)){
+                    $form->setError('timeDuration,indTime', "На операцията трябва да може да ѝ се изчисли продължителността|*!");
+                }
+            }
+
+            if(in_array($rec->state, array('active', 'wakeup', 'stopped'))){
                 if(empty($rec->timeDuration) && empty($rec->assetId)){
-                    $form->setError('timeDuration,assetId', "На започната операция, не може да се махне продължителността или оборудването|*!");
+                    $form->setError('timeDuration,assetId,indTime', "На започната операция, не може да се махне продължителността/нормата или оборудването|*!");
                 }
             }
 
@@ -644,11 +653,13 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-       if(!empty($rec->expectedTimeStart) || !empty($rec->timeDuration) || !empty($rec->expectedTimeEnd)){
+       if(!empty($rec->expectedTimeStart) || !empty($rec->timeDuration) || !empty($rec->expectedTimeEnd) || !empty($rec->activatedOn) || !empty($rec->timeClosed)){
             $resArr['times'] = array('name' => tr('Времена'), 'val' => tr("|*<table>
                 <!--ET_BEGIN expectedTimeStart--><tr><td style='font-weight:normal'>|Очаквано начало|*:</td><td>[#expectedTimeStart#]</td></tr><!--ET_END expectedTimeStart-->
                 <!--ET_BEGIN timeDuration--><tr><td style='font-weight:normal'>|Производство|*:</td><td>[#timeDuration#]</td></tr><!--ET_END timeDuration-->
                 <!--ET_BEGIN expectedTimeEnd--><tr><td style='font-weight:normal'>|Очакван край|*:</td><td>[#expectedTimeEnd#] <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime--></td></tr><!--ET_END expectedTimeEnd-->
+                <!--ET_BEGIN activatedOn--><tr><td style='font-weight:normal'>|Активиране|*:</td><td>[#activatedOn#]</td></tr><!--ET_END activatedOn-->
+                <!--ET_BEGIN timeClosed--><tr><td style='font-weight:normal'>|Приключено|*:</td><td>[#timeClosed#]</td></tr><!--ET_END timeClosed-->
                 </table>"));
         }
         
@@ -1201,7 +1212,9 @@ class planning_Tasks extends core_Master
                 $taskOptions = array();
                 foreach ($assetTasks as $tRec){
                     $job = doc_Containers::getDocument($tRec->originId);
-                    $title = "#Opr{$tRec->id}/{$job->getRecTitle()}/{$mvc->getVerbal($tRec->id, 'productId')}";
+                    $jobTitle = str::limitLen($job->getRecTitle(), 42);
+                    $productTitle = str::limitLen($mvc->getVerbal($tRec->id, 'productId'), 42);
+                    $title = "#Opr{$tRec->id}/{$jobTitle}/{$productTitle}";
                     $taskOptions[$tRec->id] = $title;
                 }
 
@@ -1404,14 +1417,14 @@ class planning_Tasks extends core_Master
         }
         
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
+            $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
             $data->listFilter->showFields .= ',state';
             $data->listFilter->input('state');
             $data->listFilter->setDefault('state', 'activeAndPending');
 
             if ($state = $data->listFilter->rec->state) {
                 if ($state == 'activeAndPending') {
-                    $data->query->where("#state IN ('active', 'pending', 'wakeup')");
+                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped')");
                 } elseif($state != 'all') {
                     $data->query->where("#state = '{$state}'");
                 }
@@ -1949,11 +1962,11 @@ class planning_Tasks extends core_Master
                 if($rec->state == 'active' && $rec->brState == 'pending'){
                     // При активиране от чернова - намърдва се най-накрая
                     $rec->startAfter = $mvc->getStartAfter($rec);
-                } elseif($rec->state == 'rejected'){
+                } elseif($rec->state == 'rejected' || ($rec->state == 'closed' && in_array($rec->brState, array('stopped', 'active', 'wakeup')))){
 
                     // При оттегляне изчезва от номерацията
                     $rec->orderByAssetId = $rec->startAfter = null;
-                } elseif(in_array($rec->state, array('pending', 'active', 'wakeup')) && $rec->brState == 'rejected'){
+                } elseif(in_array($rec->state, array('pending', 'active', 'wakeup')) && in_array($rec->brState, array('rejected', 'closed'))){
 
                     // При възстановяване в намърдва се най-накрая
                     $rec->startAfter = $mvc->getStartAfter($rec);

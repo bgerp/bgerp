@@ -73,13 +73,13 @@
     <table cellpadding="0">
         <tr>
             <td class="top-descr no-border-left no-border-top" >
-                <b> <div class='left'>код:<span class="code">[#CODE#]</span></div></b>
+                <b> <div class='left'>код: <span class="code">[#CODE#]</span></div></b>
             </td>
             <td   class="top-descr no-border-left no-border-top" >
-                <div class='right'>мярка:<span class="code"><b>[#MEASURE_ID#]</b></span>[#QUANTITY#]</div>
+                <div class='right'>мярка: <span class="code"><b>[#MEASURE_ID#]</b></span> [#QUANTITY#]</div>
             </td>
             <td colspan=3  class="barcode-holder img  no-border-left no-border-top" rowspan=4>
-                [#EAN#]
+                [#EAN_ROTATED#]
             </td>
         </tr>
         <tr>
@@ -92,7 +92,7 @@
                 <div class='left'><span class="date"><b>[#DATE#]</b></span></div>
             </td>
 <td valign="middle" align="center" class="top-descr  no-border-left " >
-    [#PRICE_CAPTION#]:  <span class="code"><b>[[#CATALOG_PRICE#]</b></span> [#CATALOG_CURRENCY#]
+    [#PRICE_CAPTION#]: <span class="code"><b>[#CATALOG_PRICE#]</b></span> [#CATALOG_CURRENCY#]
 </td>
 </tr>
     </table>

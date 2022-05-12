@@ -794,13 +794,11 @@ class core_Master extends core_Manager
      *
      * @return string|core_ET - линк към единичния изглед или името ако потребителя няма права
      */
-    public static function getHyperlink($id, $icon = false, $short = false)
+    public static function getHyperlink($id, $icon = false, $short = false, $attr = array())
     {
         $me = cls::get(get_called_class());
         
         $title = $me->getTitleById($id);
-        
-        $attr = array();
         
         if (!Mode::is('printing') && !Mode::is('text', 'xhtml') && !Mode::is('pdf')) {
             if ($icon === true) {

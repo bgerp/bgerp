@@ -863,4 +863,27 @@ class planning_AssetResources extends core_Master
 
         return $res;
     }
+
+
+    /**
+     * Обект за работното време на обордуването
+     *
+     * @param mixed $id            - ид или запис
+     * @param datetime|null $from  - от кога
+     * @param datetime|null $to    - до кога
+     * @return core_Intervals|null
+     */
+    public static function getWorkingInterval($id, $from = null, $to = null)
+    {
+        $int = null;
+        $rec = static::fetchRec($id);
+        if(isset($rec->scheduleId)){
+            $from = isset($from) ? $from : dt::now();
+            $to = isset($to) ? $to : dt::addSecs(panning_Setup::get('ASSET_HORIZON'), $from);
+
+            $int = hr_Schedules::getWorkingIntervals($rec->scheduleId, $from, $to);
+        }
+
+        return $int;
+    }
 }
