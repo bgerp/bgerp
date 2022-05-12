@@ -150,6 +150,9 @@ class planning_AssetResources extends core_Master
         $this->FLD('cameras', 'keylist(mvc=cams_Cameras,select=title, allowEmpty)', 'caption=Други->Камери, remember');
         $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Други->Тракер, remember');
 
+        $this->FLD('lastCalcedTaskDates', 'datetime', 'caption=Последно->Преизичслени времена');
+        $this->FLD('lastReorderedTasks', 'datetime', 'caption=Последно->Преподредени операции');
+
         $this->setDbUnique('code');
         $this->setDbUnique('protocolId');
     }
@@ -869,10 +872,10 @@ class planning_AssetResources extends core_Master
     /**
      * Обект за работното време на обордуването
      *
-     * @param mixed $id            - ид или запис
-     * @param datetime|null $from  - от кога
-     * @param datetime|null $to    - до кога
-     * @return core_Intervals|null
+     * @param mixed $id                 - ид или запис
+     * @param datetime|null $from       - от кога, null за СЕГА
+     * @param datetime|null $to         - до кога, null за Сега + уеб константата
+     * @return core_Intervals|null $int -
      */
     public static function getWorkingInterval($id, $from = null, $to = null)
     {
@@ -880,8 +883,11 @@ class planning_AssetResources extends core_Master
         $rec = static::fetchRec($id);
         $scheduleId = $rec->scheduleId;
         $me = cls::get(get_called_class());
-        if(!isset($rec->scheduleId)){
+
+        // Ако няма график на машината
+        if(!isset($sheduleId)){
             $centerSchedules = array();
+
             $fQuery = planning_AssetResourceFolders::getQuery();
             $fQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
             $fQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
@@ -892,15 +898,15 @@ class planning_AssetResources extends core_Master
                     $centerSchedules[$centerScheduleId] = $centerScheduleId;
                 }
             }
+
+            // Взима се този от първия споделен център на дейност
             $scheduleId = key($centerSchedules);
         }
 
+        // Ако има намерен график взима се работния му график
         if(isset($scheduleId)){
             $from = isset($from) ? $from : dt::now();
             $to = isset($to) ? $to : dt::addSecs(planning_Setup::get('ASSET_HORIZON'), $from);
-
-            echo "<li>FROM: {$from}";
-            echo "<li>TO: {$to}";
             $int = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
         }
 
@@ -919,45 +925,82 @@ class planning_AssetResources extends core_Master
     }
 
 
-    public function act_recalcTimes()
+    /**
+     * Рекалкулиране на началото и края на ПО-та закачени към оборудването
+     *
+     * @param int $id - ид или запис
+     * @return null|array
+     */
+    public static function recalcTaskTimes($id)
     {
-        self::requireRightFor('debug');
-        expect($id = Request::get('id', 'int'));
-
-        $Interval = static::getWorkingInterval($id);
-
-        $packQuery = cat_products_Packagings::getQuery();
-        $pPacks = array();
+        // Кои операции са закачени за оборудването
         $tasks = static::getAssetTaskOptions($id, true);
+        if(!countR($tasks)) return;
+
+        // Какъв е работния график на оборудването
+        $Interval = static::getWorkingInterval($id);
+        if(!$Interval) return;
+
+        // Кеширане на продуктовите опаковки, за артикулите в задачите
+        $pPacks = array();
+        $packQuery = cat_products_Packagings::getQuery();
         $packQuery->in('productId', arr::extractValuesFromArray($tasks, 'productId'));
         $packQuery->show('quantity,productId,packagingId');
         while($pRec = $packQuery->fetch()){
             $pPacks["{$pRec->productId}|{$pRec->packagingId}"] = $pRec->quantity;
         }
 
+        // За всяка заопашена операция
+        $minDuration = planning_Setup::get('MIN_TASK_DURATION');
         $updateRecs = array();
         foreach($tasks as $taskRec){
             $updateRecs[$taskRec->id]  = (object)array('id' => $taskRec->id, 'expectedTimeStart' => null, 'expectedTimeEnd' => null, 'progress' => $taskRec->progress, 'indTime' => $taskRec->indTime, 'indPackagingId' => $taskRec->indPackagingId, 'plannedQuantity' => $taskRec->plannedQuantity, 'duration' => $taskRec->timeDuration);
 
+            // Ако има ръчна продължителност взема се тя
             $duration = $taskRec->timeDuration;
             if(empty($duration)){
+
+                // Ако няма изчислявам от нормата за планираното количество
                 $indQuantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"] : 1;
                 $duration = ($taskRec->indTime / $indQuantityInPack) * $taskRec->plannedQuantity;
             }
 
-            $duration = (1 - $taskRec->progress) * $duration;
-            $duration = max($duration, 5*60);
+            // От продължителността, се приспада произведеното досега
+            $duration = round((1 - $taskRec->progress) * $duration);
+            $duration = max($duration, $minDuration);
             $updateRecs[$taskRec->id]->durationLeft = $duration;
 
+            // Прави се опит за добавяне на операцията в графика
             $timeArr = $Interval->consume($duration);
+
+            // Ако е успешно записват се началото и края
             if(is_array($timeArr)){
                 $updateRecs[$taskRec->id]->expectedTimeStart = dt::timestamp2Mysql($timeArr[0]);
                 $updateRecs[$taskRec->id]->expectedTimeEnd = dt::timestamp2Mysql($timeArr[1]);
             }
         }
 
-        //$Tasks = cls::get('planning_Tasks');
+        // Запис на преизчислените начала и краища на операциите
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->saveArray($updateRecs, 'id,expectedTimeStart,expectedTimeEnd');
+
+        return $updateRecs;
+    }
+
+
+    /**
+     * @todo тестов екшън да се премахне
+     */
+    public function act_recalcTimes()
+    {
+        self::requireRightFor('debug');
+        expect($id = Request::get('id', 'int'));
+
+        echo "<li>FROM: " . dt::now();
+        echo "<li>TO: " . dt::addSecs(planning_Setup::get('ASSET_HORIZON'));
+
+        $updateRecs = static::recalcTaskTimes($id);
+
         bp($updateRecs);
-        //
     }
 }

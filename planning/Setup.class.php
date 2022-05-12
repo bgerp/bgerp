@@ -104,6 +104,12 @@ defIfNot('PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID', '');
 
 
 /**
+ * Минимално време за продължителност на ПО
+ */
+defIfNot('PLANNING_MIN_TASK_DURATION', 5*60);
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -168,6 +174,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
+        'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
     );
 
 

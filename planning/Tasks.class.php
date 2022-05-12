@@ -38,7 +38,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
 
 
     /**
@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'title, progress, folderId, orderByAssetId, state, modifiedOn, modifiedBy, originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title, progress, folderId, orderByAssetId, state, modifiedOn, modifiedBy, originId=@';
     
     
     /**
@@ -164,7 +164,7 @@ class planning_Tasks extends core_Master
     /**
      * Поле за филтриране по дата
      */
-    public $filterDateField = 'expectedTimeStart,timeStart,createdOn';
+    public $filterDateField = 'expectedTimeStart,activatedOn,createdOn';
     
     
     /**
@@ -199,12 +199,6 @@ class planning_Tasks extends core_Master
      * Кои ключове да се тракват, кога за последно са използвани
      */
     public $lastUsedKeys = 'assetId';
-    
-    
-    /**
-     * Кои полета от листовия изглед да се скриват ако няма записи в тях
-     */
-    public $hideListFieldsIfEmpty = 'expectedTimeStart';
     
     
     /**
@@ -279,9 +273,8 @@ class planning_Tasks extends core_Master
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,formOrder=103');
 
-        $this->FLD('expectedTimeStart', 'datetime', 'caption=Планирани времена->Начало');
-        $this->FNC('expectedDuration', 'time', 'caption=Планирани времена->Продължителност');
-        $this->FLD('expectedTimeEnd', 'datetime', 'caption=Планирани времена->Край');
+        $this->FLD('expectedTimeStart', 'datetime', 'caption=Планирани времена->Начало,input=none');
+        $this->FLD('expectedTimeEnd', 'datetime', 'caption=Планирани времена->Край,input=none');
 
         $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=labelPackagingId,input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
@@ -295,20 +288,6 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('productId');
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
-    }
-
-
-    /**
-     * Изчисляване на цена за опаковка на реда
-     *
-     * @param core_Mvc $mvc
-     * @param stdClass $rec
-     */
-    protected static function on_CalcExpectedDuration(core_Mvc $mvc, $rec)
-    {
-        if (empty($rec->plannedQuantity) || empty($rec->indTime)) return;
-
-        $rec->expectedDuration = $rec->plannedQuantity * $rec->indTime;
     }
 
 
@@ -402,25 +381,7 @@ class planning_Tasks extends core_Master
         
         $grey->setGradient($color, $rec->progress);
         $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
-        
-        if ($rec->timeEnd && ($rec->state != 'closed' && $rec->state != 'rejected')) {
-            $remainingTime = dt::mysql2timestamp($rec->timeEnd) - time();
-            $rec->remainingTime = cal_Tasks::roundTime($remainingTime);
-            
-            $typeTime = cls::get('type_Time');
-            if ($rec->remainingTime > 0) {
-                $row->remainingTime = ' (' . tr('остават') . ' ' . $typeTime->toVerbal($rec->remainingTime) . ')';
-            } else {
-                $row->remainingTime = ' (' . tr('просрочване с') . ' ' . $typeTime->toVerbal(-$rec->remainingTime) . ')';
-            }
-        }
-        
-        // Ако е изчислено очакваното начало и има продължителност, изчисляваме очаквания край
-        if (isset($rec->expectedTimeStart, $rec->timeDuration)) {
-            $rec->expectedTimeEnd = dt::addSecs($rec->timeDuration, $rec->expectedTimeStart);
-            $row->expectedTimeEnd = $mvc->getFieldType('expectedTimeStart')->toVerbal($rec->expectedTimeEnd);
-        }
-        
+
         $origin = doc_Containers::getDocument($rec->originId);
         $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . "</small>" : $origin->getHyperlink(true);
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
@@ -434,41 +395,39 @@ class planning_Tasks extends core_Master
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
-        
-        // Ако няма зададено очаквано начало и край, се приема, че са стандартните
-        $rec->expectedTimeStart = ($rec->expectedTimeStart) ? $rec->expectedTimeStart : ((isset($rec->timeStart)) ? $rec->timeStart : null);
-        $rec->expectedTimeEnd = ($rec->expectedTimeEnd) ? $rec->expectedTimeEnd : ((isset($rec->timeEnd)) ? $rec->timeEnd : null);
 
         // Проверяване на времената
         foreach (array('expectedTimeStart' => 'timeStart', 'expectedTimeEnd' => 'timeEnd') as $eTimeField => $timeField) {
-            
+
             // Вербализиране на времената
-            $DateTime = core_Type::getByName('datetime(format=d.m H:i)');
-            $row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
-            $row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
-            
-            // Ако има очаквано и оригинално време
-            if (isset($rec->{$eTimeField}, $rec->{$timeField})) {
-                
-                // Колко е разликата в минути между тях?
-                $diffVerbal = null;
-                $diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
-                $diff = ceil($diff / 60);
-                if ($diff != 0) {
-                    $diffVerbal = cls::get('type_Int')->toVerbal($diff);
-                    $diffVerbal = ($diff > 0) ? "<span class='red'>+{$diffVerbal}</span>" : "<span class='green'>{$diffVerbal}</span>";
-                }
-                
-                // Ако има разлика
-                if (isset($diffVerbal)) {
-                    
-                    // Показва се след очакваното време в скоби, с хинт оригиналната дата
-                    $hint = 'Зададено|*: ' . $row->{$timeField};
-                    $diffVerbal = ht::createHint($diffVerbal, $hint, 'notice', true, array('height' => '12', 'width' => '12'));
-                    $row->{$eTimeField} .= " <span style='font-weight:normal'>({$diffVerbal})</span>";
+            $DateTime = core_Type::getByName('datetime(format=d.m.y H:i)');
+            $row->{$eTimeField} = !empty($rec->{$eTimeField}) ? $DateTime->toVerbal($rec->{$eTimeField}) : '<span class=quiet>N/A</span>';
+            if($rec->{$timeField}){
+                $row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
+            }
+
+            $hint = null;
+            if(!empty($rec->{$timeField})){
+                $hint = "Зададено|*: {$row->{$timeField}}";
+
+                if(!empty($rec->{$eTimeField})){
+                    // Колко е разликата в минути между тях?
+                    $diff = dt::secsBetween($rec->{$eTimeField}, $rec->{$timeField});
+                    if ($diff != 0) {
+                        $diffVerbal = cls::get('type_Time')->toVerbal($diff);
+                        $diffVerbal = ($diff > 0) ? "+{$diffVerbal}" : $diffVerbal;
+                        $hint .= " ({$diffVerbal})";
+                    }
                 }
             }
+
+            if(isset($hint)){
+                $row->{$eTimeField} = ht::createHint($row->{$eTimeField}, $hint, 'notice', true, array('height' => '12', 'width' => '12'));
+            }
         }
+
+        $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
+        $row->expectedDuration = core_Type::getByName('time(uom=hours)')->toVerbal($expectedDuration);
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
@@ -503,6 +462,14 @@ class planning_Tasks extends core_Master
             } else {
                 $row->labelTemplate = "<span class='quiet'>N/A</span>";
             }
+
+            // Линк към отпечаванията ако има
+            if(label_Prints::haveRightFor('list')){
+                if($printCount = label_Prints::count("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id}")){
+                    $row->printCount = core_Type::getByName('int')->toVerbal($printCount);
+                    $row->printCount = ht::createLink($row->printCount, array('label_Prints', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true));
+                }
+            }
         }
         
         if (!empty($rec->employees)) {
@@ -514,14 +481,6 @@ class planning_Tasks extends core_Master
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
 
-        // Линк към отпечаванията ако има
-        if(label_Prints::haveRightFor('list')){
-            if($printCount = label_Prints::count("#classId = {$mvc->getClassId()} AND #objectId = {$rec->id}")){
-                $row->printCount = core_Type::getByName('int')->toVerbal($printCount);
-                $row->printCount = ht::createLink($row->printCount, array('label_Prints', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true));
-            }
-        }
-
         // Ако има избрано оборудване
         if(isset($rec->assetId)){
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
@@ -530,6 +489,7 @@ class planning_Tasks extends core_Master
             }
 
             if(!in_array($rec->state, array('closed', 'rejected'))){
+
                 // Показва се след коя ще започне
                 $startAfter = $mvc->getStartAfter($rec);
                 if(isset($startAfter)){
@@ -672,9 +632,9 @@ class planning_Tasks extends core_Master
     {
        if(!empty($rec->expectedTimeStart) || !empty($rec->timeDuration) || !empty($rec->expectedTimeEnd) || !empty($rec->activatedOn) || !empty($rec->timeClosed)){
             $resArr['times'] = array('name' => tr('Времена'), 'val' => tr("|*<table>
-                <!--ET_BEGIN expectedTimeStart--><tr><td style='font-weight:normal'>|Очаквано начало|*:</td><td>[#expectedTimeStart#]</td></tr><!--ET_END expectedTimeStart-->
-                <!--ET_BEGIN timeDuration--><tr><td style='font-weight:normal'>|Производство|*:</td><td>[#timeDuration#]</td></tr><!--ET_END timeDuration-->
-                <!--ET_BEGIN expectedTimeEnd--><tr><td style='font-weight:normal'>|Очакван край|*:</td><td>[#expectedTimeEnd#] <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime--></td></tr><!--ET_END expectedTimeEnd-->
+                <!--ET_BEGIN expectedTimeStart--><tr><td style='font-weight:normal'>|Начало|*:</td><td>[#expectedTimeStart#]</td></tr><!--ET_END expectedTimeStart-->
+                <!--ET_BEGIN expectedDuration--><tr><td style='font-weight:normal'>|Остава|*:</td><td>[#expectedDuration#]</td></tr><!--ET_END expectedDuration-->
+                <!--ET_BEGIN expectedTimeEnd--><tr><td style='font-weight:normal'>|Край|*:</td><td>[#expectedTimeEnd#] <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime--></td></tr><!--ET_END expectedTimeEnd-->
                 <!--ET_BEGIN activatedOn--><tr><td style='font-weight:normal'>|Активиране|*:</td><td>[#activatedOn#]</td></tr><!--ET_END activatedOn-->
                 <!--ET_BEGIN timeClosed--><tr><td style='font-weight:normal'>|Приключено|*:</td><td>[#timeClosed#]</td></tr><!--ET_END timeClosed-->
                 </table>"));
@@ -1378,7 +1338,7 @@ class planning_Tasks extends core_Master
         $listTableMvc->FNC('costsCount', 'int');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = arr::make('timeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info');
+        $fields = arr::make('expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info');
         if($data->masterMvc instanceof planning_AssetResources){
             unset($fields['assetId']);
         }
@@ -1429,7 +1389,7 @@ class planning_Tasks extends core_Master
         
         // Показване на полето за филтриране
         if ($filterDateField = $data->listFilter->rec->filterDateField) {
-            $filterFieldArr = array($filterDateField => ($filterDateField == 'expectedTimeStart') ? 'Очаквано начало' : ($filterDateField == 'timeStart' ? 'Начало' : 'Създаване'));
+            $filterFieldArr = array($filterDateField => ($filterDateField == 'expectedTimeStart') ? 'Начало' : ($filterDateField == 'activatedOn' ? 'Активирано' : 'Създаване'));
             arr::placeInAssocArray($data->listFields, $filterFieldArr, 'title');
         }
         
