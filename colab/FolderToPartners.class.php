@@ -400,7 +400,7 @@ class colab_FolderToPartners extends core_Manager
                 } elseif (!doc_Folders::haveRightToObject($objectRec)) {
                     $requiredRoles = 'no_one';
                 } else {
-                    $emailsFrom = email_Inboxes::getAllowedFromEmailOptions(null);
+                    $emailsFrom = email_Inboxes::getAllowedFromEmailOptions(null, array(), true);
                     if (!countR($emailsFrom)) {
                         $requiredRoles = 'no_one';
                     }
