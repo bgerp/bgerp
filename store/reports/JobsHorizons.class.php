@@ -30,7 +30,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $summaryListFields ;
+    protected $summaryListFields;
 
 
     /**
@@ -103,17 +103,17 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     {
         $form = $data->form;
         $rec = $form->rec;
-       // $rec->flag = true;
+        // $rec->flag = true;
 
-       // $form->setDefault('orderBy', 'conditionQuantity');
+        // $form->setDefault('orderBy', 'conditionQuantity');
 
-      //  $form->setDefault('typeOfQuantity', 'free');
+        //  $form->setDefault('typeOfQuantity', 'free');
 
-      //  $form->setDefault('filters', 'no');
+        //  $form->setDefault('filters', 'no');
 
-      //  $form->setDefault('condFilter', '');
+        //  $form->setDefault('condFilter', '');
 
-      //  $form->setDefault('orderLimit', 80);
+        //  $form->setDefault('orderLimit', 80);
 
 //        if ($rec->arhGroups) {
 //            $rec->groups = $rec->arhGroups;
@@ -173,7 +173,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     {
 
 
-
         $recs = $storesQuatity = $artLimitsArr = array();
 
         // Подготвяме заявката за извличането на записите от store_Products
@@ -195,17 +194,17 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $arr = arr::extractValuesFromArray($sQuery->fetchAll(), 'id');
 
-        $resArr = store_StockPlanning::getPlannedQuantities($rec->date,$arr);
+        $resArr = store_StockPlanning::getPlannedQuantities($rec->date, $arr);
 
         //bp($resArr,$arr,$sQuery->fetchAll());
 
-        while ($sRec = $sQuery->fetch()){
+        while ($sRec = $sQuery->fetch()) {
 
             $id = $sRec->productId;
 
-            $storeArr =keylist::toArray($rec->storeId);
+            $storeArr = keylist::toArray($rec->storeId);
 
-            $Quantities = store_Products::getQuantities($sRec->productId,$rec->stores,$rec->date);
+            $Quantities = store_Products::getQuantities($sRec->productId, $rec->stores, $rec->date);
             $quantity = $Quantities->quantity;
             $reserved = $Quantities->reserved;
             $expected = $Quantities->expected;
@@ -214,9 +213,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $code = ($sRec->code) ?: 'Art' . $sRec->productId;
 
             $recs[$id] = (object)array(
+                'stProdId' => $sRec->id,
                 'productId' => $sRec->productId,
                 'measure' => $sRec->measureId,
-                'quantity'=> $quantity,
+                'quantity' => $quantity,
                 'reserved' => $reserved,
                 'expected' => $expected,
                 'free' => $free,
@@ -256,7 +256,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
             $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
 
-        }else{
+        } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
@@ -301,15 +301,40 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->reserved = $Double->toVerbal($dRec->reserved);
         $row->reserved = ht::styleIfNegative($row->reserved, $dRec->reserved);
 
+       // $row->reserved .= ht::createLink('zatest', toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $dRec->stProdId, 'field' => 'reserved', 'date' => dt::today())));
+
+        $date = ($rec->date) ? $rec->date : dt::today();
+        $title = 'От кои документи е сформирано количеството';
+
+        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $dRec->stProdId, 'field' => 'reserved', 'date' => $date), 'local');
+        $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
+        $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
+        $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='reserved{$dRec->stProdId}'></span>{$arrow}</span>";
+
+        if ($dRec->reserved) {
+            $row->reserved = $arrow . $row->reserved;
+        }
+
+
         $row->expected = $Double->toVerbal($dRec->expected);
         $row->expected = ht::styleIfNegative($row->expected, $dRec->expected);
+
+      //  $row->expected .= ht::createLink('zatest', toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $dRec->stProdId, 'field' => 'expected', 'date' => dt::today())));
+
+        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $dRec->stProdId, 'field' => 'expected', 'date' => $date), 'local');
+        $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
+        $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
+        $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='expected{$dRec->stProdId}'></span>{$arrow}</span>";
+
+        if ($dRec->expected) {
+            $row->expected = $arrow . $row->expected;
+        }
 
         $row->free = $Double->toVerbal($dRec->free);
         $row->free = ht::styleIfNegative($row->free, $dRec->free);
 
         $row->delrow = '';
         $row->delrow .= ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
-
 
 
         return $row;
@@ -479,9 +504,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $res->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->packOrder);
 
-        if ($dRec->orderMeasure){
+        if ($dRec->orderMeasure) {
             $res->orderMeasure = cat_UoM::fetchField($dRec->orderMeasure, 'shortName');
-        }else{
+        } else {
             $res->orderMeasure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
         if ($dRec->orderMeasure) {
