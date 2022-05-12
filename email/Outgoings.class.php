@@ -1938,6 +1938,8 @@ class email_Outgoings extends core_Master
         $query->where("#state = 'closed'");
         $query->orderBy('modifiedOn', 'DESC');
         $contrData = null;
+
+        $lastGoodRec = null;
         while ($rec = $query->fetch()) {
             if (!$rec->originId) {
 
@@ -1951,23 +1953,55 @@ class email_Outgoings extends core_Master
                 continue ;
             }
 
-            if ($docClsName == $recODoc->className) {
-
-                $contrData = new stdClass;
-
-                $contrData->company = $rec->recipient;
-                $contrData->person = $rec->attn;
-                $contrData->tel = $rec->tel;
-                $contrData->fax = $rec->fax;
-                $contrData->country = $rec->country;
-                $contrData->pCode = $rec->pcode;
-                $contrData->place = $rec->place;
-                $contrData->address = $rec->address;
-                $contrData->email = $rec->email;
-                $contrData->sameEmailCc = $rec->emailCc;
-
-                break;
+            if (!isset($lastGoodRec)) {
+                $lastGoodRec = $rec;
             }
+
+            $haveCF = $haveMatchCF = false;
+            if ($docClsName == $recODoc->className) {
+                $checkFields = $oDoc->getContragentDataCheckFields;
+                if ($checkFields) {
+                    $haveCF = true;
+
+                    $recORec = $recODoc->fetch();
+                    $oRec = $oDoc->fetch();
+                    $checkFields = explode(',', $checkFields);
+                    foreach ($checkFields as $cf) {
+                        if (!isset($oRec->{$cf})) {
+                            continue;
+                        }
+
+                        if ($oRec->{$cf} == $recORec->{$cf}) {
+
+                            $lastGoodRec = $rec;
+
+                            $haveMatchCF = true;
+
+                            break;
+                        }
+                    }
+                }
+
+                if ($haveMatchCF || !$haveCF) {
+
+                    break;
+                }
+            }
+        }
+
+        if (isset($lastGoodRec)) {
+            $contrData = new stdClass;
+
+            $contrData->company = $lastGoodRec->recipient;
+            $contrData->person = $lastGoodRec->attn;
+            $contrData->tel = $lastGoodRec->tel;
+            $contrData->fax = $lastGoodRec->fax;
+            $contrData->country = $lastGoodRec->country;
+            $contrData->pCode = $lastGoodRec->pcode;
+            $contrData->place = $lastGoodRec->place;
+            $contrData->address = $lastGoodRec->address;
+            $contrData->email = $lastGoodRec->email;
+            $contrData->sameEmailCc = $lastGoodRec->emailCc;
         }
 
         return $contrData;
