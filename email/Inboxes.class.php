@@ -1325,12 +1325,12 @@ class email_Inboxes extends core_Master
      *
      * @return array
      */
-    public static function getAllowedFromEmailOptions($type, $otherParams = array())
+    public static function getAllowedFromEmailOptions($type, $otherParams = array(), $personalOnly = false)
     {
         try {
             
             // Личните имейли на текущия потребител
-            $emailOptions = email_Inboxes::getFromEmailOptions(false, null, true);
+            $emailOptions = email_Inboxes::getFromEmailOptions(false, null, $personalOnly);
         } catch (core_exception_Expect $e) {
             $emailOptions[] = '';
         }
