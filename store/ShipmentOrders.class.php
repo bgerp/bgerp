@@ -33,6 +33,12 @@ class store_ShipmentOrders extends store_DocumentMaster
 
 
     /**
+     * Кои полета ще се проверяват при вземане на контрагент данните в имейла
+     */
+    public $getContragentDataCheckFields = 'locationId';
+
+
+    /**
      * Поддържани интерфейси
      */
     public $interfaces = 'doc_DocumentIntf, email_DocumentIntf, store_iface_DocumentIntf, export_XmlExportIntf=store_iface_ShipmentOrderToXmlImpl,
