@@ -220,14 +220,14 @@ abstract class deals_DealMaster extends deals_DealBase
         $mvc->FLD('reff', 'varchar(255)', 'caption=Ваш реф.,class=contactData,after=valior');
         
         // Стойности
-        $mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръчано,input=none');
-        $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Доставено,input=none');
+        $mvc->FLD('amountDeal', 'double(decimals=2)', 'caption=Стойности->Поръч.,hint=Поръчано,input=none');
+        $mvc->FLD('amountDelivered', 'double(decimals=2)', 'caption=Стойности->Дост.,hint=Доставено,input=none');
         $mvc->FLD('amountBl', 'double(decimals=2)', 'caption=Стойности->Крайно салдо,input=none');
-        $mvc->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Платено,input=none');
-        $mvc->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Фактурирано,input=none');
+        $mvc->FLD('amountPaid', 'double(decimals=2)', 'caption=Стойности->Плат.,hint=Платено,input=none');
+        $mvc->FLD('amountInvoiced', 'double(decimals=2)', 'caption=Стойности->Факт.,hint=Фактурирано,input=none');
 
-        $mvc->FLD('amountInvoicedDownpayment', 'double(decimals=2)', 'caption=Стойности->Фактуриран аванс,input=none');
-        $mvc->FLD('amountInvoicedDownpaymentToDeduct', 'double(decimals=2)', 'caption=Стойности->Аванс за приспадане,input=none');
+        $mvc->FLD('amountInvoicedDownpayment', 'double(decimals=2)', 'caption=Аванс->Факт.,hint=Фактуриран аванс,input=none');
+        $mvc->FLD('amountInvoicedDownpaymentToDeduct', 'double(decimals=2)', 'caption=Аванс->Остав.,hint=Аванс за приспадане,input=none');
         
         $mvc->FLD('amountVat', 'double(decimals=2)', 'input=none');
         $mvc->FLD('amountDiscount', 'double(decimals=2)', 'input=none');
@@ -267,7 +267,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 'caption=Статус, input=none'
         );
         
-        $mvc->FLD('paymentState', 'enum(pending=Има||Yes,overdue=Просрочено,paid=Няма,repaid=Издължено)', 'caption=Чакащо плащане, input=none,notNull,value=paid');
+        $mvc->FLD('paymentState', 'enum(pending=Има||Yes,overdue=Просрочено,paid=Не,repaid=Издължено)', 'caption=Плащане->чакащо, input=none,notNull,value=paid');
         $mvc->FLD('productIdWithBiggestAmount', 'varchar', 'caption=Артикул с най-голяма стойност, input=none');
         
         $mvc->setDbIndex('valior');
@@ -633,7 +633,7 @@ abstract class deals_DealMaster extends deals_DealBase
                 
                 if(!in_array($filter->type, array('draft', 'pending', 'all'))){
                     $data->query->orderBy('activatedOn', 'DESC');
-                    arr::placeInAssocArray($data->listFields, array('activatedOn' => 'Активирано->На'), null, 'createdBy');
+                    arr::placeInAssocArray($data->listFields, array('activatedOn' => 'Активиран'), null, 'createdBy');
                 }
             }
         }
@@ -1405,12 +1405,8 @@ abstract class deals_DealMaster extends deals_DealBase
         
         deals_OpenDeals::saveRec($rec, $mvc);
     }
-    
 
-    function act_test()
-    {
-        static::on_AfterClosureWithDeal($this, 3390);
-    }
+
     /**
      * Ако с тази сделка е приключена друга сделка
      */
@@ -1431,7 +1427,9 @@ abstract class deals_DealMaster extends deals_DealBase
                 
                 // Взимаме договорените продукти от сделката начало на нейната нишка
                 $firstDoc = doc_Threads::getFirstDocument($doc->threadId);
+                Mode::push('isClosedWithDeal', true);
                 $dealInfo = $firstDoc->getAggregateDealInfo();
+                Mode::pop('isClosedWithDeal');
                 $id = $firstDoc->fetchField('id');
                 $closedIds[$id] = $id;
                 $products = (array) $dealInfo->get('dealProducts');

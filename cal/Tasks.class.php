@@ -596,7 +596,7 @@ class cal_Tasks extends embed_Manager
         }
 
         if ($rec->assetResourceId) {
-            $row->assetResourceId = planning_AssetResources::getLinkToSingle($rec->assetResourceId, 'codeAndName');
+            $row->assetResourceId = planning_AssetResources::getHyperlink($rec->assetResourceId, true);
         }
     }
     

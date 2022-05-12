@@ -2248,10 +2248,8 @@ function getType (val) {
 /**
  * Рефрешва посочената форма. добавя команда за refresh и маха посочените полета
  */
-function refreshForm(input, removeFields) {
-	form = $(input).closest('form').get(0);
-	 
-	 
+function refreshForm(form, removeFields) {
+	
 	// Добавяме команда за рефрешване на формата
 	addCmdRefresh(form);
 
@@ -2294,7 +2292,7 @@ function refreshForm(input, removeFields) {
 	}
 
 //	form.submit(); return;
-
+	
 	$.ajax({
 		type: frm.attr('method'),
 		url: frm.attr('action'),
@@ -2304,14 +2302,6 @@ function refreshForm(input, removeFields) {
 		getEO().saveFormData(frm.attr('id'), data);
 		replaceFormData(frm, data);
 
-		setTimeout(function(){
-			let inp = document.getElementsByName(input.name)[0];
-			nxt = inp.nextSibling;
-			if(nxt && nxt.classList.contains('select2')) {
-				inp = nxt.querySelector('[role="combobox"]');
-			}
-			inp.focus();
-        },  100);
         // Възстановяваме запазените пароли
         setTimeout(function(){
             for (var k in savedPwd) {

@@ -90,7 +90,7 @@ class planning_Centers extends core_Master
     /**
      * Шаблон за единичния изглед
      */
-    public $singleLayoutFile = 'planning/tpl/SingleLayoutActivityCenter.shtml';
+    public $singleLayoutFile = 'planning/tpl/SingleLayoutCenters.shtml';
     
     
     /**
@@ -197,6 +197,10 @@ class planning_Centers extends core_Master
         
         if (isset($rec->departmentId)) {
             $row->departmentId = hr_Departments::getHyperlink($rec->departmentId, true);
+        }
+
+        if(isset($rec->scheduleId)){
+            $row->scheduleId = hr_Schedules::getHyperlink($rec->scheduleId, true);
         }
     }
     
@@ -424,11 +428,9 @@ class planning_Centers extends core_Master
         $query = self::getQuery();
         $query->where("#state != 'closed' AND #state != 'rejected'");
         while($rec = $query->fetch()){  
-            
-                if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {  
-                    $options[$rec->folderId] = self::getRecTitle($rec, false);
-                }
-            
+            if (doc_Folders::haveRightToFolder($rec->folderId, $userId)) {
+                $options[$rec->folderId] = self::getRecTitle($rec, false);
+            }
         }
  
         return $options;

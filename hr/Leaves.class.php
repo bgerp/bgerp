@@ -207,8 +207,8 @@ class hr_Leaves extends core_Master
     {
         $this->FLD('docType', 'enum(request=Молба за отпуск, order=Заповед за отпуск)', 'caption=Документ, input=none,column=none');
         $this->FLD('personId', 'key(mvc=crm_Persons,select=name,allowEmpty)', 'caption=Служител, mandatory');
-        $this->FLD('leaveFrom', 'datetime(defaultTime=00:00:00)', 'caption=Считано->От, mandatory');
-        $this->FLD('leaveTo', 'datetime(defaultTime=23:59:59)', 'caption=Считано->До, mandatory');
+        $this->FLD('leaveFrom', 'date', 'caption=Считано->От, mandatory');
+        $this->FLD('leaveTo', 'date', 'caption=Считано->До, mandatory');
         $this->FLD('leaveDays', 'int', 'caption=Считано->Дни, input=none');
         $this->FLD('useDaysFromYear', 'int', 'caption=Информация->Ползване от,unit=година, input=none');
         $this->FLD('paid', 'enum(paid=платен, unpaid=неплатен)', 'caption=Информация->Вид, maxRadio=2,columns=2,notNull,value=paid');
@@ -688,7 +688,7 @@ class hr_Leaves extends core_Master
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $DateTime = cls::get('core_DateTime');
-        
+
         if (isset($rec->activatedOn)) {
             $row->activatedOn = dt::mysql2verbal($rec->activatedOn, 'd.m.Y');
         }
@@ -705,12 +705,12 @@ class hr_Leaves extends core_Master
             $tLeaveFrom = dt::mysql2timestamp($rec->leaveFrom);
             $dayOfWeekFrom = date('l', $tLeaveFrom);
             
-            list(, $hourFrom) = explode(' ', $rec->leaveFrom);
+           // list(, $hourFrom) = explode(' ', $rec->leaveFrom);
             
-            if ($hourFrom != '00:00:00') {
+            //if ($hourFrom != '00:00:00') {
                 $row->leaveFrom = $DateTime->mysql2verbal($rec->leaveFrom, 'd.m.Y');
-                $row->fromHour = $DateTime->mysql2verbal($rec->leaveFrom, 'H:i');
-            }
+                //$row->fromHour = $DateTime->mysql2verbal($rec->leaveFrom, 'H:i');
+           // }
             
             $row->dayFrom = static::$weekDays[$dayOfWeekFrom];
         }
@@ -719,12 +719,12 @@ class hr_Leaves extends core_Master
             $tLeaveTo = dt::mysql2timestamp($rec->leaveTo);
             $dayOfWeekTo = date('l', $tLeaveTo);
             
-            list(, $hourTo) = explode(' ', $rec->leaveTo);
+           // list(, $hourTo) = explode(' ', $rec->leaveTo);
             
-            if ($hourTo != '23:59:59') {
+            //if ($hourTo != '23:59:59') {
                 $row->leaveTo = $DateTime->mysql2verbal($rec->leaveTo, 'd.m.Y');
-                $row->toHour = $DateTime->mysql2verbal($rec->leaveTo, 'H:i');
-            }
+            //    $row->toHour = $DateTime->mysql2verbal($rec->leaveTo, 'H:i');
+            //}
             
             $row->dayTo = static::$weekDays[$dayOfWeekTo];
         }

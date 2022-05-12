@@ -41,11 +41,13 @@ class price_interface_LabelImpl
     {
         $placeholders = array();
         $placeholders['EAN'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['EAN_ROTATED'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['CODE'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['NAME'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['CATALOG_CURRENCY'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['CATALOG_PRICE'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['DATE'] = (object) array('type' => 'text', 'hidden' => true);
+        $placeholders['QUANTITY'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['MEASURE_ID'] = (object) array('type' => 'text', 'hidden' => true);
         $placeholders['PRICE_CAPTION'] = (object) array('type' => 'text', 'hidden' => true);
 
@@ -85,17 +87,19 @@ class price_interface_LabelImpl
                 $name = str::limitLen($name, 70);
                 $code = cat_Products::getVerbal($pRec->productId, 'code');
                 $code = !empty($code) ? $code : "Art{$pRec->productId}";
+                $measureId = cat_UoM::getShortName($pRec->measureId);
 
                 if($rec->showMeasureId == 'yes' && !empty($pRec->price)){
-                    $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => cat_UoM::getShortName($pRec->measureId), 'PRICE_CAPTION' => $priceCaption);
+                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' => $Double->toVerbal($pRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $measureId, 'PRICE_CAPTION' => $priceCaption);
                     $resArr[] = $res;
                     $currentCount++;
                     if($currentCount == $cnt) break;
                 }
-                
+
                 foreach ($pRec->packs as $packRec){
                     $ean = !empty($packRec->eanCode) ? $packRec->eanCode : null;
-                    $res = array('EAN' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($pRec->price), "CODE" => $code, 'MEASURE_ID' => cat_UoM::getShortName($packRec->packagingId), 'PRICE_CAPTION' => $priceCaption);
+                    $packName = cat_UoM::getShortName($packRec->packagingId);
+                    $res = array('EAN' => $ean, 'EAN_ROTATED' => $ean, 'NAME' => $name, 'CATALOG_CURRENCY' => $rec->currencyId, 'CATALOG_PRICE' =>  $Double->toVerbal($packRec->price), "CODE" => $code, 'DATE' => $date, 'MEASURE_ID' => $packName, 'QUANTITY' => "({$packRec->quantity} {$measureId})", 'PRICE_CAPTION' => $priceCaption);
                     $resArr[] = $res;
                     $currentCount++;
                     if($currentCount == $cnt) break;

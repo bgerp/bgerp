@@ -193,6 +193,10 @@ class planning_plg_StateManager extends core_Plugin
                 case 'close':
                     
                     // Само активните, събудените и спрените могат да бъдат приключени
+                    if (!in_array($rec->state, array('active', 'wakeup', 'stopped'))) {
+                        $requiredRoles = 'no_one';
+                    }
+
                     if ($rec->state == 'rejected' || $rec->state == 'draft' || $rec->state == 'closed') {
                         $requiredRoles = 'no_one';
                     }
