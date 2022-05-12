@@ -279,13 +279,16 @@ class planning_Tasks extends core_Master
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,formOrder=103');
 
+        $this->FLD('expectedTimeStart', 'datetime', 'caption=Планирани времена->Начало');
+        $this->FNC('expectedDuration', 'time', 'caption=Планирани времена->Продължителност');
+        $this->FLD('expectedTimeEnd', 'datetime', 'caption=Планирани времена->Край');
+
         $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=labelPackagingId,input=none');
         $this->FLD('scrappedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Брак,input=none');
         $this->FLD('producedQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Заскладено,input=none');
 
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
-        $this->FLD('expectedTimeStart', 'datetime(format=smartTime)', 'input=hidden,caption=Очаквано начало');
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание,autoHide');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
 
@@ -293,8 +296,22 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
     }
-    
-    
+
+
+    /**
+     * Изчисляване на цена за опаковка на реда
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $rec
+     */
+    protected static function on_CalcExpectedDuration(core_Mvc $mvc, $rec)
+    {
+        if (empty($rec->plannedQuantity) || empty($rec->indTime)) return;
+
+        $rec->expectedDuration = $rec->plannedQuantity * $rec->indTime;
+    }
+
+
     /**
      * Подготвя параметрите
      * 

@@ -849,7 +849,8 @@ class planning_AssetResources extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
         $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending')))) AND #assetId = {$assetId}");
-        $tQuery->show('id,orderByAssetId,productId,originId');
+        $tQuery->show('id,orderByAssetId,productId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId');
+
         $tQuery->orderBy('orderByAssetIdCalc,id', $order);
         $taskRecs = $tQuery->fetchAll();
 
@@ -877,13 +878,86 @@ class planning_AssetResources extends core_Master
     {
         $int = null;
         $rec = static::fetchRec($id);
-        if(isset($rec->scheduleId)){
-            $from = isset($from) ? $from : dt::now();
-            $to = isset($to) ? $to : dt::addSecs(panning_Setup::get('ASSET_HORIZON'), $from);
+        $scheduleId = $rec->scheduleId;
+        $me = cls::get(get_called_class());
+        if(!isset($rec->scheduleId)){
+            $centerSchedules = array();
+            $fQuery = planning_AssetResourceFolders::getQuery();
+            $fQuery->EXT('coverClass', 'doc_Folders', 'externalKey=folderId');
+            $fQuery->EXT('coverId', 'doc_Folders', 'externalKey=folderId');
+            $fQuery->where("#classId = {$me->getClassId()} AND #objectId = {$rec->id} AND #coverClass = " . planning_Centers::getClassId());
+            $fQuery->show('folderId,coverId');
+            while($fRec = $fQuery->fetch()){
+                if($centerScheduleId = planning_Centers::fetchField($fRec->coverId, 'scheduleId')){
+                    $centerSchedules[$centerScheduleId] = $centerScheduleId;
+                }
+            }
+            $scheduleId = key($centerSchedules);
+        }
 
-            $int = hr_Schedules::getWorkingIntervals($rec->scheduleId, $from, $to);
+        if(isset($scheduleId)){
+            $from = isset($from) ? $from : dt::now();
+            $to = isset($to) ? $to : dt::addSecs(planning_Setup::get('ASSET_HORIZON'), $from);
+
+            echo "<li>FROM: {$from}";
+            echo "<li>TO: {$to}";
+            $int = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
         }
 
         return $int;
+    }
+
+
+    /**
+     * След подготовка на тулбара на единичен изглед.
+     */
+    protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
+    {
+        if (haveRole('debug')) {
+            $data->toolbar->addBtn('Подреждане', array($mvc, 'recalcTimes', $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/bug.png,title=Тестово преизчисляване на времена');
+        }
+    }
+
+
+    public function act_recalcTimes()
+    {
+        self::requireRightFor('debug');
+        expect($id = Request::get('id', 'int'));
+
+        $Interval = static::getWorkingInterval($id);
+
+        $packQuery = cat_products_Packagings::getQuery();
+        $pPacks = array();
+        $tasks = static::getAssetTaskOptions($id, true);
+        $packQuery->in('productId', arr::extractValuesFromArray($tasks, 'productId'));
+        $packQuery->show('quantity,productId,packagingId');
+        while($pRec = $packQuery->fetch()){
+            $pPacks["{$pRec->productId}|{$pRec->packagingId}"] = $pRec->quantity;
+        }
+
+        $updateRecs = array();
+        foreach($tasks as $taskRec){
+            $updateRecs[$taskRec->id]  = (object)array('id' => $taskRec->id, 'expectedTimeStart' => null, 'expectedTimeEnd' => null, 'progress' => $taskRec->progress, 'indTime' => $taskRec->indTime, 'indPackagingId' => $taskRec->indPackagingId, 'plannedQuantity' => $taskRec->plannedQuantity, 'duration' => $taskRec->timeDuration);
+
+            $duration = $taskRec->timeDuration;
+            if(empty($duration)){
+                $indQuantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"] : 1;
+                $duration = ($taskRec->indTime / $indQuantityInPack) * $taskRec->plannedQuantity;
+            }
+
+            $duration = (1 - $taskRec->progress) * $duration;
+            $duration = max($duration, 5*60);
+            $updateRecs[$taskRec->id]->durationLeft = $duration;
+
+            $timeArr = $Interval->consume($duration);
+            if(is_array($timeArr)){
+                $updateRecs[$taskRec->id]->expectedTimeStart = dt::timestamp2Mysql($timeArr[0]);
+                $updateRecs[$taskRec->id]->expectedTimeEnd = dt::timestamp2Mysql($timeArr[1]);
+            }
+        }
+
+        //$Tasks = cls::get('planning_Tasks');
+        bp($updateRecs);
+        //
     }
 }
