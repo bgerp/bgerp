@@ -581,8 +581,10 @@ class purchase_Purchases extends deals_DealMaster
                 $p->{$fld} = $dRec->{$fld};
             }
 
-            if(!empty($rec->reff)){
-                $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : $rec->reff;
+            if(Mode::is('isClosedWithDeal')){
+                if(!empty($rec->reff)){
+                    $p->notes = !empty($p->notes) ? ($p->notes . "\n" . "ref: {$rec->reff}") : "ref: {$rec->reff}";
+                }
             }
 
             $p->expenseRecId = acc_CostAllocations::fetchField("#detailClassId = {$detailClassId} AND #detailRecId = {$dRec->id}");

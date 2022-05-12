@@ -93,9 +93,7 @@ class planning_FoldersWithResources extends core_Manager
     public static function on_AfterGetRequiredRoles($mvc, &$res, $action, $rec = null, $userId = null)
     {
         if ($action == 'delete' && isset($rec->folderId)) {
-            
-            // Ако има навързано оборудване и служители не се изтрива
-            if (planning_AssetResources::fetchField("LOCATE('|{$rec->folderId}|', #folders)") || planning_Hr::fetchField("LOCATE('|{$rec->folderId}|', #folders)")) {
+            if(planning_AssetResourceFolders::fetchField("#folderId = {$rec->folderId}")){
                 $res = 'no_one';
             }
         }

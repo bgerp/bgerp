@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   planning
  *
- * @author    Yusein Yuseino <yyuseinov@gmail.com>
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
