@@ -2024,7 +2024,7 @@ class planning_Jobs extends core_Master
         $rec = $mvc->fetchRec($id);
         $taskRecs = planning_Tasks::getTasksByJob($rec->id, array('draft', 'waiting', 'active', 'wakeup', 'stopped'));
         if(countR($taskRecs)){
-            core_Statuses::newStatus("Не може да се оттегли, докато следните операции не са оттеглени/приключени|*: " . implode(', ', $tasks), 'warning');
+            core_Statuses::newStatus("Не може да се оттегли, докато следните операции не са оттеглени/приключени|*: " . implode(', ', $taskRecs), 'warning');
             return false;
         }
     }
