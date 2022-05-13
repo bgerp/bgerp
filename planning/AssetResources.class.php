@@ -1004,8 +1004,8 @@ class planning_AssetResources extends core_Master
 
             // Ако е успешно записват се началото и края
             if(is_array($timeArr)){
-                $updateRecs[$taskRec->id]->expectedTimeStart = dt::timestamp2Mysql($timeArr[0]);
-                $updateRecs[$taskRec->id]->expectedTimeEnd = dt::timestamp2Mysql($timeArr[1]);
+                $updateRecs[$taskRec->id]->expectedTimeStart = date('Y-m-d H:i:00', $timeArr[0]);
+                $updateRecs[$taskRec->id]->expectedTimeEnd = date('Y-m-d H:i:00', $timeArr[1]);
             }
         }
 

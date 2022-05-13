@@ -470,6 +470,9 @@ class planning_Tasks extends core_Master
                     $row->printCount = ht::createLink($row->printCount, array('label_Prints', 'list', 'classId' => $mvc->getClassId(), 'objectId' => $rec->id, 'ret_url' => true));
                 }
             }
+
+            $row->activatedOn = !empty($rec->activatedOn) ? $row->activatedOn : "<span class='quiet'>N/A</span>";
+            $row->timeClosed = !empty($rec->timeClosed) ? $row->timeClosed : "<span class='quiet'>N/A</span>";
         }
         
         if (!empty($rec->employees)) {
@@ -630,16 +633,6 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-       if(!empty($rec->expectedTimeStart) || !empty($rec->timeDuration) || !empty($rec->expectedTimeEnd) || !empty($rec->activatedOn) || !empty($rec->timeClosed)){
-            $resArr['times'] = array('name' => tr('Времена'), 'val' => tr("|*<table>
-                <!--ET_BEGIN expectedTimeStart--><tr><td style='font-weight:normal'>|Начало|*:</td><td>[#expectedTimeStart#]</td></tr><!--ET_END expectedTimeStart-->
-                <!--ET_BEGIN expectedDuration--><tr><td style='font-weight:normal'>|Остава|*:</td><td>[#expectedDuration#]</td></tr><!--ET_END expectedDuration-->
-                <!--ET_BEGIN expectedTimeEnd--><tr><td style='font-weight:normal'>|Край|*:</td><td>[#expectedTimeEnd#] <!--ET_BEGIN remainingTime--><div>[#remainingTime#]</div><!--ET_END remainingTime--></td></tr><!--ET_END expectedTimeEnd-->
-                <!--ET_BEGIN activatedOn--><tr><td style='font-weight:normal'>|Активиране|*:</td><td>[#activatedOn#]</td></tr><!--ET_END activatedOn-->
-                <!--ET_BEGIN timeClosed--><tr><td style='font-weight:normal'>|Приключено|*:</td><td>[#timeClosed#]</td></tr><!--ET_END timeClosed-->
-                </table>"));
-        }
-        
         if($rec->showadditionalUom != 'yes'){
             unset($row->totalWeight);
         } elseif(empty($rec->totalWeight)) {
