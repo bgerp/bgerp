@@ -961,7 +961,7 @@ class planning_AssetResources extends core_Master
 
             // Извличат се еднократно детайлите за влагане в засегнатите операции отнасящи се за действията с норми
             $dQuery = planning_ProductionTaskDetails::getQuery();
-            $dQuery->where("#type = 'input'");
+            $dQuery->where("#type = 'input' AND #state != 'rejected'");
             $dQuery->in('taskId', $taskIds);
             $dQuery->in('productId', $assetNorms);
             while($dRec = $dQuery->fetch()){
