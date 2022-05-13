@@ -270,30 +270,25 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->reserved = $Double->toVerbal($dRec->reserved);
         $row->reserved = ht::styleIfNegative($row->reserved, $dRec->reserved);
 
-       // $row->reserved .= ht::createLink('zatest', toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $dRec->stProdId, 'field' => 'reserved', 'date' => dt::today())));
-
         $date = ($rec->date) ? $rec->date : dt::today();
         $title = 'От кои документи е сформирано количеството';
 
-        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $dRec->stProdId, 'field' => 'reserved', 'date' => $date), 'local');
+        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores, 'replaceField' => "reserved{$dRec->productId}", 'field' => 'reserved', 'date' => $date), 'local');
         $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
         $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
-        $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='reserved{$dRec->stProdId}'></span>{$arrow}</span>";
+        $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='reserved{$dRec->productId}'></span>{$arrow}</span>";
 
         if ($dRec->reserved) {
             $row->reserved = $arrow . $row->reserved;
         }
 
-
         $row->expected = $Double->toVerbal($dRec->expected);
         $row->expected = ht::styleIfNegative($row->expected, $dRec->expected);
 
-      //  $row->expected .= ht::createLink('zatest', toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $dRec->stProdId, 'field' => 'expected', 'date' => dt::today())));
-
-        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $dRec->stProdId, 'field' => 'expected', 'date' => $date), 'local');
+        $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $dRec->productId, 'stores' => $rec->stores, 'replaceField' => "expected{$dRec->productId}", 'field' => 'expected', 'date' => $date), 'local');
         $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
         $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
-        $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='expected{$dRec->stProdId}'></span>{$arrow}</span>";
+        $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='expected{$dRec->productId}'></span>{$arrow}</span>";
 
         if ($dRec->expected) {
             $row->expected = $arrow . $row->expected;

@@ -585,7 +585,7 @@ class store_Products extends core_Detail
                 if (!empty($rec->{$type})) {
                     $date = in_array($type, array('reservedQuantity', 'expectedQuantity')) ? $today : (in_array($type, array('reservedQuantityMin', 'expectedQuantityMin')) ? $rec->dateMin : $data->horizon);
 
-                    $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'id' => $rec->id, 'field' => $type, 'date' => $date), 'local');
+                    $tooltipUrl = toUrl(array('store_Products', 'ShowReservedDocs', 'productId' => $rec->productId, 'stores' => keylist::addKey('', $rec->storeId), 'replaceField' => "{$type}{$rec->id}", 'field' => $type, 'date' => $date), 'local');
                     $arrowImg = ht::createElement('img', array('height' => 16, 'width' => 16, 'src' => sbf('img/32/info-gray.png', '')));
                     $arrow = ht::createElement('span', array('class' => 'anchor-arrow tooltip-arrow-link', 'data-url' => $tooltipUrl, 'title' => $title), $arrowImg, true);
                     $arrow = "<span class='additionalInfo-holder'><span class='additionalInfo' id='{$type}{$rec->id}'></span>{$arrow}</span>";
@@ -752,15 +752,22 @@ class store_Products extends core_Detail
     public function act_ShowReservedDocs()
     {
         requireRole('powerUser');
-        $id = Request::get('id', 'int');
+        expect($productId = Request::get('productId', 'int'));
+        expect($replaceField = Request::get('replaceField', 'varchar'));
+        $stores = Request::get('stores', 'varchar');
+        $stores = !empty($stores) ? keylist::toArray($stores) : null;
+
         $field = Request::get('field', 'varchar');
         $toDate = Request::get('date', 'date');
-        expect($rec = self::fetch($id));
         $today = dt::today();
 
         $end = "{$toDate} 23:59:59";
         $query = store_StockPlanning::getQuery();
-        $query->where("#productId = {$rec->productId} AND #storeId = {$rec->storeId} AND #date <= '{$end}'");
+        $query->where("#productId = {$productId} AND #date <= '{$end}'");
+        if(isset($stores)){
+            $query->in('storeId', $stores);
+        }
+
         $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
         $query->where("#{$quantityField} IS NOT NULL");
         $query->EXT('measureId', 'cat_Products', 'externalKey=productId');
@@ -808,7 +815,7 @@ class store_Products extends core_Detail
         if (Request::get('ajax_mode')) {
             $resObj = new stdClass();
             $resObj->func = 'html';
-            $resObj->arg = array('id' => "{$field}{$id}", 'html' => $tpl->getContent(), 'replace' => true);
+            $resObj->arg = array('id' => $replaceField, 'html' => $tpl->getContent(), 'replace' => true);
             
             return array($resObj);
         }
