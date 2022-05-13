@@ -406,7 +406,7 @@ class planning_Tasks extends core_Master
                 $row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
                 if($eTimeField == 'expectedTimeStart'){
                     $now = dt::now();
-                    if(in_array($rec->state, array('pending', 'wakeup', 'stopped', 'active'))){
+                    if(in_array($rec->state, array('wakeup', 'stopped', 'active'))){
                         if($rec->expectedTimeStart <= $now && $rec->expectedTimeEnd >= $now){
                             $row->expectedTimeStart = "<span style='color:orangered'>" . tr('В прогрес') . "<span>";
                         }
@@ -1267,7 +1267,9 @@ class planning_Tasks extends core_Master
 
         // Всички създадени задачи към заданието
         $query = $this->getQuery();
+        $query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $query->where("#state != 'rejected'");
+        $query->orderBy('orderByDate', 'ASC');
         if($data->masterMvc instanceof planning_AssetResources){
             $query->where("#assetId = {$data->masterId}");
         } else {
@@ -1374,6 +1376,8 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
+        $data->query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
+        $data->query->orderBy('orderByDate', 'ASC');
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folder);
@@ -1388,16 +1392,9 @@ class planning_Tasks extends core_Master
             if (isset($filter->assetId)) {
                 $mvc->listItemsPerPage = 200;
                 $data->query->where("#assetId = {$filter->assetId}");
-                $data->query->orderBy("orderByAssetId", "ASC");
             } else {
                 unset($data->listFields['orderByAssetId']);
             }
-        }
-        
-        // Показване на полето за филтриране
-        if ($filterDateField = $data->listFilter->rec->filterDateField) {
-            $filterFieldArr = array($filterDateField => ($filterDateField == 'expectedTimeStart') ? 'Начало' : ($filterDateField == 'activatedOn' ? 'Активирано' : 'Създаване'));
-            arr::placeInAssocArray($data->listFields, $filterFieldArr, 'title');
         }
         
         if (!Request::get('Rejected', 'int')) {
