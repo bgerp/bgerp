@@ -401,7 +401,19 @@ class planning_Tasks extends core_Master
 
             // Вербализиране на времената
             $DateTime = core_Type::getByName('datetime(format=d.m.y H:i)');
-            $row->{$eTimeField} = !empty($rec->{$eTimeField}) ? $DateTime->toVerbal($rec->{$eTimeField}) : '<span class=quiet>N/A</span>';
+            $row->{$eTimeField} = '<span class=quiet>N/A</span>';
+            if(!empty($rec->{$eTimeField})){
+                $row->{$eTimeField} = $DateTime->toVerbal($rec->{$eTimeField});
+                if($eTimeField == 'expectedTimeStart'){
+                    $now = dt::now();
+                    if(in_array($rec->state, array('pending', 'wakeup', 'stopped', 'active'))){
+                        if($rec->expectedTimeStart <= $now && $rec->expectedTimeEnd >= $now){
+                            $row->expectedTimeStart = "<span style='color:orangered'>" . tr('В прогрес') . "<span>";
+                        }
+                    }
+                }
+            }
+
             if($rec->{$timeField}){
                 $row->{$timeField} = $DateTime->toVerbal($rec->{$timeField});
             }
@@ -420,6 +432,8 @@ class planning_Tasks extends core_Master
                     }
                 }
             }
+
+
 
             if(isset($hint)){
                 $row->{$eTimeField} = ht::createHint($row->{$eTimeField}, $hint, 'notice', true, array('height' => '12', 'width' => '12'));
