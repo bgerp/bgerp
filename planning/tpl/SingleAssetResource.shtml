@@ -45,6 +45,16 @@
                     </td>
                     <td>|на|* [#modifiedOn#] |от|* [#modifiedBy#]</td>
                 </tr>
+
+                <!--ET_BEGIN lastReorderedTasks-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Последно (Операции)|*:
+                    </td>
+                    <td>[#lastReorderedTasks#]</td>
+                </tr>
+                <!--ET_END lastReorderedTasks-->
+
                 <!--ET_BEGIN description-->
                 <tr>
                     <td colspan = "2">[#description#]</td>

@@ -278,11 +278,11 @@ class planning_AssetResourcesNorms extends core_Manager
      * Връща опциите за избор на действия за оборудването
      *
      * @param int      $assetId  - списък с оборудвания
-     * @param array|NULL $notIn  - ид-та на артикули, които да се игнорират
+     * @param array    $notIn  - ид-та на артикули, които да се игнорират
      *
      * @return array $options   - имена на действия, групирани по оборудвания
      */
-    public static function getNormOptions($assetId, $notIn = null)
+    public static function getNormOptions($assetId, $notIn = array())
     {
         $options = array();
 

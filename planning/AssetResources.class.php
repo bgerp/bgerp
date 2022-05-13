@@ -149,9 +149,7 @@ class planning_AssetResources extends core_Master
         $this->FLD('indicators', 'keylist(mvc=sens2_Indicators,select=title, allowEmpty)', 'caption=Други->Сензори, remember');
         $this->FLD('cameras', 'keylist(mvc=cams_Cameras,select=title, allowEmpty)', 'caption=Други->Камери, remember');
         $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Други->Тракер, remember');
-
-        $this->FLD('lastCalcedTaskDates', 'datetime', 'caption=Последно->Преизичслени времена');
-        $this->FLD('lastReorderedTasks', 'datetime', 'caption=Последно->Преподредени операции');
+        $this->FLD('lastReorderedTasks', 'datetime(format=smartTime)', 'caption=Последно->Преподредени операции');
 
         $this->setDbUnique('code');
         $this->setDbUnique('protocolId');
@@ -835,6 +833,10 @@ class planning_AssetResources extends core_Master
         if(countR($tasksToUpdate)){
             cls::get('planning_Tasks')->saveArray($tasksToUpdate, 'id,orderByAssetId');
         }
+
+        $rec = static::fetchRec($assetId);
+        $rec->lastReorderedTasks = dt::now();
+        cls::get(get_called_class())->save_($rec, 'id,lastReorderedTasks');
     }
 
 
@@ -950,7 +952,26 @@ class planning_AssetResources extends core_Master
             $pPacks["{$pRec->productId}|{$pRec->packagingId}"] = $pRec->quantity;
         }
 
-        // За всяка заопашена операция
+        // Кои са действията с норми към машината
+        $assetNorms = $normsByTask = array();
+        $normOptions = planning_AssetResourcesNorms::getNormOptions($id);
+        if(countR($normOptions)){
+            array_walk($normOptions, function($a, $k) use (&$assetNorms){if(!is_object($a)) {$assetNorms[$k] = $k;}});
+            $taskIds = arr::extractValuesFromArray($tasks, 'id');
+
+            // Извличат се еднократно детайлите за влагане в засегнатите операции отнасящи се за действията с норми
+            $dQuery = planning_ProductionTaskDetails::getQuery();
+            $dQuery->where("#type = 'input'");
+            $dQuery->in('taskId', $taskIds);
+            $dQuery->in('productId', $assetNorms);
+            while($dRec = $dQuery->fetch()){
+                if(!array_key_exists($dRec->taskId, $normsByTask)){
+                    $normsByTask[$dRec->taskId] = 0;
+                }
+                $normsByTask[$dRec->taskId] += planning_type_ProductionRate::getInSecsByQuantity($dRec->norm, $dRec->quantity);
+            }
+        }
+
         $minDuration = planning_Setup::get('MIN_TASK_DURATION');
         $updateRecs = array();
         foreach($tasks as $taskRec){
@@ -968,6 +989,14 @@ class planning_AssetResources extends core_Master
             // От продължителността, се приспада произведеното досега
             $duration = round((1 - $taskRec->progress) * $duration);
             $duration = max($duration, $minDuration);
+
+            // Към така изчислената продължителност се добавя тази от действията към машината
+            $updateRecs[$taskRec->id]->durationCalced = $duration;
+            if(array_key_exists($taskRec->id, $normsByTask)){
+                $duration += $normsByTask[$taskRec->id];
+                $updateRecs[$taskRec->id]->actionNorms = $normsByTask[$taskRec->id];
+            }
+
             $updateRecs[$taskRec->id]->durationLeft = $duration;
 
             // Прави се опит за добавяне на операцията в графика
