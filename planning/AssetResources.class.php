@@ -854,7 +854,7 @@ class planning_AssetResources extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
         $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending')))) AND #assetId = {$assetId}");
-        $tQuery->show('id,orderByAssetId,productId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId');
+        $tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId');
 
         $tQuery->orderBy('orderByAssetIdCalc,id', $order);
         $taskRecs = $tQuery->fetchAll();
@@ -980,10 +980,11 @@ class planning_AssetResources extends core_Master
             // Ако има ръчна продължителност взема се тя
             $duration = $taskRec->timeDuration;
             if(empty($duration)){
-
                 // Ако няма изчислявам от нормата за планираното количество
                 $indQuantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"] : 1;
-                $duration = ($taskRec->indTime / $indQuantityInPack) * $taskRec->plannedQuantity;
+                $quantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->measureId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->measureId}"] : 1;
+                $calcedPlannedQuantity = $taskRec->plannedQuantity * $quantityInPack;
+                $duration = ($taskRec->indTime / $indQuantityInPack) * $calcedPlannedQuantity;
             }
 
             // От продължителността, се приспада произведеното досега
