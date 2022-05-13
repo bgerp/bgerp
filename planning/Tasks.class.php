@@ -239,7 +239,7 @@ class planning_Tasks extends core_Master
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden,tdClass=leftCol');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Производство->Артикул,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Производство->Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent');
         $this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
@@ -1261,6 +1261,10 @@ class planning_Tasks extends core_Master
      */
     public function prepareTasks($data)
     {
+        if($data->masterMvc instanceof planning_AssetResources){
+            $data->TabCaption = 'Операции';
+        }
+
         $data->pager = cls::get('core_Pager', array('itemsPerPage' => 10));
         $data->pager->setPageVar($data->masterMvc->className, $data->masterId);
         $data->recs = $data->rows = array();
@@ -1287,14 +1291,6 @@ class planning_Tasks extends core_Master
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
-
-            $subArr = array();
-            if (!empty($row->employees)) {
-                $subArr[] = tr('Оператори:|* ') . $row->employees;
-            }
-            if (countR($subArr)) {
-                $row->info = '<div><small>' . implode(' &nbsp; ', $subArr) . '</small></div>';
-            }
 
             // Показване на протоколите за производство
             $notes = array();
@@ -1341,7 +1337,11 @@ class planning_Tasks extends core_Master
     public function renderTasks($data)
     {
         $tpl = new ET('');
-        
+        if($data->masterMvc instanceof planning_AssetResources){
+            $data->TabCaption = 'Операции';
+            $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        }
+
         // Рендиране на таблицата с намерените задачи
         $listTableMvc = clone $this;
         $listTableMvc->FNC('costsCount', 'int');
@@ -1354,17 +1354,24 @@ class planning_Tasks extends core_Master
 
         $data->listFields = core_TableView::filterEmptyColumns($data->rows, $fields, 'assetId,costsCount');
         $this->invoke('BeforeRenderListTable', array($tpl, &$data));
-        $tpl = $table->get($data->rows, $data->listFields);
+        $contentTpl = $table->get($data->rows, $data->listFields);
         if(isset($data->pager)){
-            $tpl->append($data->pager->getHtml());
+            $contentTpl->append($data->pager->getHtml());
         }
 
         // Имали бутони за добавяне
         if (isset($data->addUrlArray)) {
             $btn = ht::createLink('', $data->addUrlArray, false, "title=Създаване на производствена операция към задание,ef_icon=img/16/add.png");
-            $tpl->append($btn, 'btnTasks');
+            $contentTpl->append($btn, 'btnTasks');
         }
-        
+
+        if($data->masterMvc instanceof planning_AssetResources){
+            $tpl->append(tr('Производствени операции'), 'title');
+            $tpl->append($contentTpl, 'content');
+        } else {
+            $tpl = $contentTpl;
+        }
+
         // Връщаме шаблона
         return $tpl;
     }
