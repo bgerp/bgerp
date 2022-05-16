@@ -878,7 +878,7 @@ abstract class deals_DealMaster extends deals_DealBase
         $handle = $this->getHandle($id);
         $title = tr(mb_strtolower($this->singleTitle));
         
-        $tpl = new ET(tr("|Моля запознайте се с нашата|* {$title}") . ': #[#handle#]');
+        $tpl = new ET(tr("|Моля, запознайте се с нашата|* {$title}") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
