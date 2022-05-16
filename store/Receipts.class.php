@@ -282,7 +282,7 @@ class store_Receipts extends store_DocumentMaster
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашата складова разписка') . ': #[#handle#]');
+        $tpl = new ET(tr('Моля, запознайте се с нашата складова разписка') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
