@@ -952,7 +952,7 @@ class planning_AssetResources extends core_Master
             // Сортиране по подредба и създаване на хеш за проверка
             ksort($assetData);
             $checkArr = array();
-            array_walk($assetData, function($a) use (&$checkArr) {$checkArr[$a['id']] = $a['progress'];});
+            array_walk($assetData, function($a) use (&$checkArr) {$checkArr[$a['id']] = $a['key'];});
             $newMd5 = md5(json_encode($checkArr));
 
             // Какъв е записания кеш към момента
