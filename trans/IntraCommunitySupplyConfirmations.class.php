@@ -359,7 +359,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr("Моля запознайте се с нашето потвърждение за ВОД") . ': #[#handle#]');
+        $tpl = new ET(tr("Моля, запознайте се с нашето потвърждение за ВОД") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
 
         return $tpl->getContent();
