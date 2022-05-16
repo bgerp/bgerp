@@ -936,10 +936,11 @@ class planning_AssetResources extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
         $tQuery->where('#assetId IS NOT NULl');
-        $tQuery->show('assetId,id,progress,orderByAssetId');
+        $tQuery->show('assetId,id,progress,orderByAssetId,indTime,indPackagingId,plannedQuantity,state');
         $assetArr = array();
         while($tRec = $tQuery->fetch()){
-            $assetArr[$tRec->assetId][$tRec->orderByAssetId] = array('progress' => $tRec->progress, 'id' => $tRec->id);
+            $key = "{$tRec->plannedQuantity}|{$tRec->state}|{$tRec->indTime}|{$tRec->indPackagingId}";
+            $assetArr[$tRec->assetId][$tRec->orderByAssetId] = array('key' => $key, 'id' => $tRec->id);
         }
 
         // Ако няма нищо не прави
