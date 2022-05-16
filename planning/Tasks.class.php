@@ -239,7 +239,7 @@ class planning_Tasks extends core_Master
      */
     public function description()
     {
-        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden,tdClass=leftCol');
+        $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Производство->Артикул,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Производство->Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent');
         $this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
