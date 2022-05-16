@@ -441,7 +441,7 @@ class planning_Tasks extends core_Master
         }
 
         $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
-        $row->expectedDuration = core_Type::getByName('time(uom=hours)')->toVerbal($expectedDuration);
+        $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName('time(uom=hours)')->toVerbal($expectedDuration);
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {

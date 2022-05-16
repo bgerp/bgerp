@@ -9,6 +9,12 @@
             <div class="fright">[#image#]</div>
             <!--ET_END image-->
             <table>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        №:
+                    </td>
+                    <td>[#id#]</td>
+                </tr>
                 <!--ET_BEGIN groupId-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
@@ -49,7 +55,7 @@
                 <!--ET_BEGIN lastRecalcTimes-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
-                        |Преизчислени времена (Операции)|*:
+                        |Преизчислени времена|*:
                     </td>
                     <td>[#lastRecalcTimes#]</td>
                 </tr>
@@ -58,7 +64,7 @@
                 <!--ET_BEGIN lastReorderedTasks-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
-                        |Преподреждане на операции|*:
+                        |Пренаредени операции|*:
                     </td>
                     <td>[#lastReorderedTasks#]</td>
                 </tr>
