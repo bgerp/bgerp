@@ -912,11 +912,11 @@ class planning_Tasks extends core_Master
             if(isset($rec->id)){
                 if(empty($rec->assetId)){
                     $requiredRoles = 'no_one';
-                } elseif(!in_array($rec->state, array('active', 'wakeup', 'pending'))){
+                } elseif(!in_array($rec->state, array('active', 'wakeup', 'pending', 'stopped'))){
                     $requiredRoles = 'no_one';
                 } elseif(!empty($rec->startAfter)){
                     $startAfterTask = $mvc->fetch($rec->startAfter, 'state,assetId');
-                    if(!in_array($startAfterTask->state, array('draft', 'pending', 'active', 'wakeup')) || $rec->assetId != $startAfterTask->assetId){
+                    if(!in_array($startAfterTask->state, array('stopped', 'pending', 'active', 'wakeup')) || $rec->assetId != $startAfterTask->assetId){
                         $requiredRoles = 'no_one';
                     }
                 }

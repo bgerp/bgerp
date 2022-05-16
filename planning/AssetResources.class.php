@@ -738,7 +738,7 @@ class planning_AssetResources extends core_Master
         $res = array();
         $tQuery = planning_Tasks::getQuery();
         $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
-        $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending')))) AND #assetId = {$assetId}");
+        $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending', 'stopped')))) AND #assetId = {$assetId}");
         $tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId');
 
         $tQuery->orderBy('orderByAssetIdCalc,id', $order);

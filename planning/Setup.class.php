@@ -220,7 +220,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_GenericMapper',
         'migrate::updatePlanningStages1',
         'migrate::updateTaskAssets',
-        'migrate::reorderTasks'
+        'migrate::reorderTasks2'
     );
     
     
@@ -364,7 +364,7 @@ class planning_Setup extends core_ProtoSetup
     /**
      * Преподредба на операциите към оборудванията
      */
-    public function reorderTasks()
+    public function reorderTasks2()
     {
         $Tasks = cls::get('planning_Tasks');
         $Tasks->setupMvc();
