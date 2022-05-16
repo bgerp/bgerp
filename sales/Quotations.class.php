@@ -524,7 +524,7 @@ class sales_Quotations extends deals_QuotationMaster
     {
         $rec = $this->fetchRec($id);
         $handle = $this->getHandle($id);
-        $tpl = new core_ET(tr("Моля запознайте се с нашата оферта|*: #[#handle#]."));
+        $tpl = new core_ET(tr("Моля, запознайте се с нашата оферта|*: #[#handle#]."));
         $tpl->append($handle, 'handle');
         
         if($rec->chargeVat == 'separate'){

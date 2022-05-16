@@ -593,7 +593,7 @@ class dec_Declarations extends core_Master
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашата декларация за съответствие') . ': #[#handle#]');
+        $tpl = new ET(tr('Моля, запознайте се с нашата декларация за съответствие') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
 
         return $tpl->getContent();

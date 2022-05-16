@@ -1294,7 +1294,7 @@ class frame2_Reports extends embed_Manager
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашата справка:') . '#[#handle#]');
+        $tpl = new ET(tr('Моля, запознайте се с нашата справка:') . '#[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();

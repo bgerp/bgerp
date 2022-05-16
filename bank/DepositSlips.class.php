@@ -225,7 +225,7 @@ class bank_DepositSlips extends bank_DocumentBlank
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашата вносна бележка') . ': #[#handle#]');
+        $tpl = new ET(tr('Моля, запознайте се с нашата вносна бележка') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
