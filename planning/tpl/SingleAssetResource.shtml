@@ -46,10 +46,19 @@
                     <td>|на|* [#modifiedOn#] |от|* [#modifiedBy#]</td>
                 </tr>
 
+                <!--ET_BEGIN lastRecalcTimes-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Преизчислени времена (Операции)|*:
+                    </td>
+                    <td>[#lastRecalcTimes#]</td>
+                </tr>
+                <!--ET_END lastRecalcTimes-->
+
                 <!--ET_BEGIN lastReorderedTasks-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
-                        |Последно (Операции)|*:
+                        |Преподреждане на операции|*:
                     </td>
                     <td>[#lastReorderedTasks#]</td>
                 </tr>

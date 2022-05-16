@@ -69,7 +69,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Оборудване,code,groupId,assetFolders=Център на дейност,systemFolderId=Система,createdOn,createdBy,state';
+    public $listFields = 'name=Оборудване,code,groupId,createdOn,createdBy,state';
     
     
     /**
@@ -149,6 +149,7 @@ class planning_AssetResources extends core_Master
         $this->FLD('indicators', 'keylist(mvc=sens2_Indicators,select=title, allowEmpty)', 'caption=Други->Сензори, remember');
         $this->FLD('cameras', 'keylist(mvc=cams_Cameras,select=title, allowEmpty)', 'caption=Други->Камери, remember');
         $this->FLD('vehicle', 'key(mvc=tracking_Vehicles,select=number, allowEmpty)', 'caption=Други->Тракер, remember');
+        $this->FLD('lastRecalcTimes', 'datetime(format=smartTime)', 'caption=Последно->Преизчислени времена');
         $this->FLD('lastReorderedTasks', 'datetime(format=smartTime)', 'caption=Последно->Преподредени операции');
 
         $this->setDbUnique('code');
@@ -320,25 +321,6 @@ class planning_AssetResources extends core_Master
                 }
                 $row->tracking = "<div class='state-{$vRec->state}'>{$vehicle}</div>";
             }
-        }
-    }
-    
-    
-    /**
-     * След рендиране на единичния изглед
-     *
-     * @param planning_AssetResources $mvc
-     * @param core_ET                 $tpl
-     * @param stdClass                $data
-     */
-    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-        if (!$data->row->jobs && !$data->row->assetFolders) {
-            $tpl->removeBlock('jobs');
-        }
-        
-        if (!$data->row->issues && !$data->row->systemFolderId) {
-            $tpl->removeBlock('issues');
         }
     }
     
@@ -838,13 +820,13 @@ class planning_AssetResources extends core_Master
      */
     public static function recalcTaskTimes($id)
     {
-        // Кои операции са закачени за оборудването
-        $tasks = static::getAssetTaskOptions($id, true);
-        if(!countR($tasks)) return;
-
         // Какъв е работния график на оборудването
         $Interval = static::getWorkingInterval($id);
         if(!$Interval) return;
+
+        // Кои операции са закачени за оборудването
+        $tasks = static::getAssetTaskOptions($id, true);
+        if(!countR($tasks)) return;
 
         // Кеширане на продуктовите опаковки, за артикулите в задачите
         $pPacks = array();
@@ -856,10 +838,10 @@ class planning_AssetResources extends core_Master
         }
 
         // Кои са действията с норми към машината
-        $assetNorms = $normsByTask = array();
-        $normOptions = planning_AssetResourcesNorms::getNormOptions($id);
+        $assetNorms = $normsByTask = $notIn = array();
+        $normOptions = planning_AssetResourcesNorms::getNormOptions($id, $notIn, true);
         if(countR($normOptions)){
-            array_walk($normOptions, function($a, $k) use (&$assetNorms){if(!is_object($a)) {$assetNorms[$k] = $k;}});
+            // Извличане от опциите само имената - без групите
             $taskIds = arr::extractValuesFromArray($tasks, 'id');
 
             // Извличат се еднократно детайлите за влагане в засегнатите операции отнасящи се за действията с норми
@@ -867,6 +849,7 @@ class planning_AssetResources extends core_Master
             $dQuery->where("#type = 'input' AND #state != 'rejected'");
             $dQuery->in('taskId', $taskIds);
             $dQuery->in('productId', $assetNorms);
+            $dQuery->show('taskId,norm,quantity');
             while($dRec = $dQuery->fetch()){
                 if(!array_key_exists($dRec->taskId, $normsByTask)){
                     $normsByTask[$dRec->taskId] = 0;
@@ -875,8 +858,8 @@ class planning_AssetResources extends core_Master
             }
         }
 
-        $minDuration = planning_Setup::get('MIN_TASK_DURATION');
         $updateRecs = array();
+        $minDuration = planning_Setup::get('MIN_TASK_DURATION');
         foreach($tasks as $taskRec){
             $updateRecs[$taskRec->id]  = (object)array('id' => $taskRec->id, 'expectedTimeStart' => null, 'expectedTimeEnd' => null, 'progress' => $taskRec->progress, 'indTime' => $taskRec->indTime, 'indPackagingId' => $taskRec->indPackagingId, 'plannedQuantity' => $taskRec->plannedQuantity, 'duration' => $taskRec->timeDuration);
 
@@ -917,6 +900,12 @@ class planning_AssetResources extends core_Master
         $Tasks = cls::get('planning_Tasks');
         $Tasks->saveArray($updateRecs, 'id,expectedTimeStart,expectedTimeEnd');
 
+        // Записване на времето за обновяване
+        $me = cls::get(get_called_class());
+        $rec = $me->fetchRec($id);
+        $rec->lastRecalcTimes = dt::now();
+        $me->save_($rec, 'lastRecalcTimes');
+
         return $updateRecs;
     }
 
@@ -935,5 +924,44 @@ class planning_AssetResources extends core_Master
         $updateRecs = static::recalcTaskTimes($id);
 
         bp($updateRecs);
+    }
+
+
+    /**
+     * Рекалкулира времената на ПО към оборудванията
+     */
+    public function cron_RecalcTaskTimes()
+    {
+        // Всички оборудвания, които са закачени към ПО
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
+        $tQuery->where('#assetId IS NOT NULl');
+        $tQuery->show('assetId,id,progress,orderByAssetId');
+        $assetArr = array();
+        while($tRec = $tQuery->fetch()){
+            $assetArr[$tRec->assetId][$tRec->orderByAssetId] = array('progress' => $tRec->progress, 'id' => $tRec->id);
+        }
+
+        // Ако няма нищо не прави
+        if(!countR($assetArr)) return;
+
+        // За всяко оборудване
+        foreach ($assetArr as $assetId => $assetData){
+
+            // Сортиране по подредба и създаване на хеш за проверка
+            ksort($assetData);
+            $checkArr = array();
+            array_walk($assetData, function($a) use (&$checkArr) {$checkArr[$a['id']] = $a['progress'];});
+            $newMd5 = md5(json_encode($checkArr));
+
+            // Какъв е записания кеш към момента
+            $oldMd5 = core_Permanent::get("assetTaskOrder|{$assetId}");
+            if($oldMd5 != $newMd5){
+
+                // Ако има промяна рекалкулират се времената на оборудването
+                static::recalcTaskTimes($assetId);
+                core_Permanent::set("assetTaskOrder|{$assetId}", $newMd5, 24*60*60);
+            }
+        }
     }
 }

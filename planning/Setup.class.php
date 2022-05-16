@@ -179,6 +179,21 @@ class planning_Setup extends core_ProtoSetup
 
 
     /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Recalc Task Start Times',
+            'description' => 'Преизчисляване на началото на производствени операции',
+            'controller' => 'planning_AssetResources',
+            'action' => 'RecalcTaskTimes',
+            'period' => 2,
+            'timeLimit' => 30,
+        ),
+    );
+
+
+    /**
      * Списък с мениджърите, които съдържа пакета
      */
     public $managers = array(

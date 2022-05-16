@@ -58,7 +58,7 @@
 
 <div class="scrolling-holder">
     <div class='sale-summary'>
-        <table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:10px'>
+        <table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:2px'>
             <tr>
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
