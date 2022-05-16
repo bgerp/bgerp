@@ -1384,7 +1384,7 @@ class planning_Tasks extends core_Master
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
         $data->query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
-        $data->query->orderBy('orderByDate', 'ASC');
+        $orderByField = 'orderByDate';
 
         // Добавят се за избор само използваните в ПО оборудвания
         $assetInTasks = planning_AssetResources::getUsedAssetsInTasks($data->listFilter->rec->folder);
@@ -1399,6 +1399,8 @@ class planning_Tasks extends core_Master
             if (isset($filter->assetId)) {
                 $mvc->listItemsPerPage = 200;
                 $data->query->where("#assetId = {$filter->assetId}");
+                $data->query->orderBy('orderByDate', 'ASC');
+                $orderByField = 'orderByAssetId';
             } else {
                 unset($data->listFields['orderByAssetId']);
             }
@@ -1418,6 +1420,8 @@ class planning_Tasks extends core_Master
                 }
             }
         }
+
+        $data->query->orderBy($orderByField, 'ASC');
     }
     
     
