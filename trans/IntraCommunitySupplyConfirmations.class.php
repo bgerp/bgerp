@@ -339,7 +339,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     {
         $res = '';
         $tplArr = array();
-        $tplArr[] = array('name' => 'Потвърждения за вътрешнообщностна доставка', 'content' => 'trans/tpl/SingleLayoutIntraCommunitySupplyConfirmations.shtml', 'lang' => 'bg', 'narrowContent' => null);
+        $tplArr[] = array('name' => 'Потвърждения за вътрешнообщностна доставка', 'content' => 'trans/tpl/SingleLayoutIntraCommunitySupplyConfirmations.shtml', 'lang' => 'en', 'narrowContent' => null);
         $res .= doc_TplManager::addOnce($this, $tplArr);
 
         return $res;
