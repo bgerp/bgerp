@@ -407,8 +407,8 @@ class planning_Tasks extends core_Master
                 if($eTimeField == 'expectedTimeStart'){
                     $now = dt::now();
                     if(in_array($rec->state, array('wakeup', 'stopped', 'active'))){
-                        if($rec->expectedTimeStart <= $now && $rec->expectedTimeEnd >= $now){
-                            $row->expectedTimeStart = "<span style='color:orangered'>" . tr('В прогрес') . "<span>";
+                        if($rec->expectedTimeEnd < $now){
+                            $row->expectedTimeStart = ht::createHint("<span class='red'>{$row->expectedTimeStart}</span>", 'Планираният край е в миналото', 'warning');
                         }
                     }
                 }

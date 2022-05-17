@@ -815,13 +815,15 @@ class planning_AssetResources extends core_Master
     /**
      * Рекалкулиране на началото и края на ПО-та закачени към оборудването
      *
-     * @param int $id - ид или запис
-     * @return null|array
+     * @param mixed $id           - ид или запис
+     * @param datetime|null $from - от кога, null за сега
+     * @param datetime|null $to   - до кога, null за до края на дефолтния период
+     * @return array|void
      */
-    public static function recalcTaskTimes($id)
+    public static function recalcTaskTimes($id, $from = null, $to = null)
     {
         // Какъв е работния график на оборудването
-        $Interval = static::getWorkingInterval($id);
+        $Interval = static::getWorkingInterval($id, $from, $to);
         if(!$Interval) return;
 
         // Кои операции са закачени за оборудването
@@ -946,6 +948,9 @@ class planning_AssetResources extends core_Master
         // Ако няма нищо не прави
         if(!countR($assetArr)) return;
 
+        $from = dt::now();
+        $to = dt::addSecs(planning_Setup::get('ASSET_HORIZON'));
+
         // За всяко оборудване
         foreach ($assetArr as $assetId => $assetData){
 
@@ -960,7 +965,7 @@ class planning_AssetResources extends core_Master
             if($oldMd5 != $newMd5){
 
                 // Ако има промяна рекалкулират се времената на оборудването
-                static::recalcTaskTimes($assetId);
+                static::recalcTaskTimes($assetId, $from, $to);
                 core_Permanent::set("assetTaskOrder|{$assetId}", $newMd5, 24*60*60);
             }
         }
