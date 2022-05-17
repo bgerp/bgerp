@@ -1399,7 +1399,6 @@ class planning_Tasks extends core_Master
             if (isset($filter->assetId)) {
                 $mvc->listItemsPerPage = 200;
                 $data->query->where("#assetId = {$filter->assetId}");
-                $data->query->orderBy('orderByDate', 'ASC');
                 $orderByField = 'orderByAssetId';
             } else {
                 unset($data->listFields['orderByAssetId']);
