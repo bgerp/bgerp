@@ -611,6 +611,8 @@ abstract class deals_InvoiceMaster extends core_Master
                     $rec->additionalInfo .= "\n" . $handle;
                     $mvc->save_($rec, 'additionalInfo');
                 }
+            } elseif($rec->importProducts == 'none') {
+                unset($Source);
             } else {
                 $Source = static::getOrigin($rec);
             }
