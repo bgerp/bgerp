@@ -53,8 +53,9 @@
         width: 12mm;
         height: auto;
     }
+
     .barcode-holder img{
-        max-height: 92px;
+        max-height: 105px;
         max-width: 40px;
     }
     .description {
