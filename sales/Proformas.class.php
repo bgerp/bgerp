@@ -165,7 +165,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Стратегии за добавяне на артикули след създаване от източника
      */
-    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от договора", 'onlyShipped' => 'Експедираните артикули по договора');
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички артикули от договора", 'onlyShipped' => 'Експедираните артикули по договора', 'none' => 'Без');
 
 
     /**
