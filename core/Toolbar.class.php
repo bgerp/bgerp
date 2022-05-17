@@ -433,7 +433,18 @@ class core_Toolbar extends core_BaseClass
             $this->buttons[$id]->url[$param] = $value;
         }
     }
-    
+
+
+    /**
+     * Връща урл-то на бутона
+     *
+     * @param string $id    - ид на бутон
+     * @return array
+     */
+    public function getBtnUrl($id)
+    {
+        return $this->buttons[$id]->url;
+    }
     
     /**
      * Проверява дали даден бутон е ERROR
