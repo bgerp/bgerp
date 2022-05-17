@@ -147,11 +147,14 @@ class deals_plg_SelectInvoicesToDocument extends core_Plugin
 
         if(isset($rec->containerId)){
             $invoicesArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
-            foreach ($invoicesArr as $iRec) {
-                $invRec = sales_Invoices::fetch("#containerId = {$iRec->containerId}", 'number');
-                $numberPadded = sales_Invoices::getVerbal($invRec, 'number');
 
-                $res .= ' ' . plg_Search::normalizeText($invRec->number) . ' ' . plg_Search::normalizeText($numberPadded);
+            foreach ($invoicesArr as $iRec) {
+                $Document = doc_Containers::getDocument($iRec->containerId);
+                if($Document->getInstance()->getField('number', false)){
+                    $invNumber = $Document->fetchField('number');
+                    $invNumberPadded = str_pad($invNumber, 10, '0', STR_PAD_LEFT);
+                    $res .= ' ' . plg_Search::normalizeText($invNumber) . ' ' . plg_Search::normalizeText($invNumberPadded);
+                }
             }
         }
     }

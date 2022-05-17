@@ -72,7 +72,7 @@ class bank_IncomeDocuments extends bank_Document
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'termDate,valior=Вальор, title=Документ, reason, invoices=Фактури, folderId, currencyId, amount, state, createdOn, createdBy';
+    public $listFields = 'termDate,valior=Вальор, title=Документ, reason, invoices=Фактури, folderId, currencyId, amount, state, createdOn, createdBy, searchKeywords';
     
     
     /**
