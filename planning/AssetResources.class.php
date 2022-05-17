@@ -772,7 +772,7 @@ class planning_AssetResources extends core_Master
         $me = cls::get(get_called_class());
 
         // Ако няма график на машината
-        if(!isset($sheduleId)){
+        if(!isset($scheduleId)){
             $centerSchedules = array();
 
             $fQuery = planning_AssetResourceFolders::getQuery();
