@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Ръчен постинг в документната система
@@ -32,6 +32,12 @@ class email_Outgoings extends core_Master
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
     public $defaultFolder = false;
+
+
+    /**
+     * Автоматично споделяне на получателите от входящия имейл
+     */
+    public $autoShareUserEmails = true;
     
     
     /**
@@ -121,7 +127,7 @@ class email_Outgoings extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'email_Wrapper, doc_DocumentPlg, plg_RowTools2, 
+    public $loadList = 'email_Wrapper, doc_SharablePlg, doc_DocumentPlg, plg_RowTools2, 
         plg_Printing, email_plg_Document, doc_ActivatePlg, 
         bgerp_plg_Blank,  plg_Search, recently_Plugin, plg_Clone, change_Plugin';
     
@@ -201,7 +207,7 @@ class email_Outgoings extends core_Master
      * Кои полета да определят рзличността при backup
      */
     public $backupDiffFields = 'modifiedOn,state,lastSendedOn';
-    
+
     
     /**
      * Описание на модела
@@ -217,8 +223,8 @@ class email_Outgoings extends core_Master
         $this->FLD('forward', 'enum(,no=Не, yes=Да)', 'caption=Препращане, input=hidden, allowEmpty');
         
         //Данни за адресата
-        $this->FLD('email', 'emails(1024)', 'caption=Адресат->Имейл, width=100%, silent,changable');
-        $this->FLD('emailCc', 'emails(1024)', 'caption=Адресат->Копие до,  width=100%,changable');
+        $this->FLD('email', 'emails(3072)', 'caption=Адресат->Имейл, width=100%, silent,changable');
+        $this->FLD('emailCc', 'emails(3072)', 'caption=Адресат->Копие до,  width=100%,changable');
         $this->FLD('recipient', 'varchar', 'caption=Адресат->Фирма,class=contactData,changable');
         $this->FLD('attn', 'varchar', 'caption=Адресат->Име,oldFieldName=attentionOf,class=contactData,changable');
         $this->FLD('tel', 'varchar', 'caption=Адресат->Тел.,oldFieldName=phone,class=contactData,changable');
@@ -1572,8 +1578,8 @@ class email_Outgoings extends core_Master
             $isAppended = true;
         }
     }
-    
-    
+
+
     /**
      * Извиква се след подготовката на формата за редактиране/добавяне $data->form
      */
@@ -1586,7 +1592,7 @@ class email_Outgoings extends core_Master
         
         $form = $data->form;
         $rec = $form->rec;
-        
+
         // Ако се препраща
         $isForwarding = (boolean) Request::get('forward');
         $isCloning = (boolean) ($data->action == 'clone');
@@ -1597,7 +1603,7 @@ class email_Outgoings extends core_Master
         
         $emailTo = str_replace(email_ToLinkPlg::AT_ESCAPE, '@', $emailTo);
         $emailTo = str_replace('mailto:', '', $emailTo);
-        
+
         $orderVal = 10.000091;
         
         // Бутон за изпращане
@@ -1623,7 +1629,7 @@ class email_Outgoings extends core_Master
         }
         
         $pContragentData = null;
-        
+
         // Ако сме дошли на формата чрез натискане на имейл или се препраща
         if ($emailTo) {
             if (type_Email::isValidEmail($emailTo)) {
@@ -1741,7 +1747,7 @@ class email_Outgoings extends core_Master
             core_Lg::pop();
             
             $recEmailsArr = type_Emails::toArray($rec->email);
-            
+
             // Ако не отговаряме на конкретен имейл, премахваме нашите имейли
             if (!$emailTo) {
                 $recEmailsArr = email_Inboxes::removeOurEmails($recEmailsArr);
@@ -1757,7 +1763,7 @@ class email_Outgoings extends core_Master
                     $removeFromGroup = array();
                 }
             }
-            
+
             // Ако има имейли в Cc и е избрано да се попълват ги добавяме в полето
             if ($contragentData->ccEmail) {
                 $autoFillCnt = email_Setup::get('AUTO_FILL_EMAILS_FROM_CC');
@@ -1799,11 +1805,11 @@ class email_Outgoings extends core_Master
                     }
                 }
             }
-            
+
             // Автоматично попълване на To имейлите
             if ($contragentData->toEmail) {
                 $autoFillCnt = email_Setup::get('AUTO_FILL_EMAILS_FROM_TO');
-                
+
                 if ($autoFillCnt) {
                     
                     $toParser = new email_Rfc822Addr();
@@ -1825,7 +1831,7 @@ class email_Outgoings extends core_Master
                     }
                     
                     $toEmailsArr = email_Inboxes::removeOurEmails($toEmailsArr);
-                    
+
                     // Ако имейлите в To са над лимита, не ги добавяме автоматично в полето
                     if (countR($toEmailsArr) <= $autoFillCnt) {
                         if (countR($recEmailsArr)) {
@@ -1871,10 +1877,10 @@ class email_Outgoings extends core_Master
             $sentToEmailsArr = type_Emails::toArray($sentToEmails);
             $groupEmailsArr = array_merge($groupEmailsArr, $sentToEmailsArr);
         }
-        
+
         $groupEmailsArr = array_diff($groupEmailsArr, $removeFromGroup);
         $groupEmailsArr = email_Inboxes::removeOurEmails($groupEmailsArr);
-        
+
         if ($groupEmailsArr) {
             $groupEmailsArr = array_combine($groupEmailsArr, $groupEmailsArr);
             

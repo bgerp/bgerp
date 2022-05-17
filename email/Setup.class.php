@@ -130,13 +130,13 @@ defIfNot('EMAIL_DEFAULT_SENT_INBOX', '');
 /**
  * Автоматично попълване на имейлите в полето копие
  */
-defIfNot('EMAIL_AUTO_FILL_EMAILS_FROM_CC', 0);
+defIfNot('EMAIL_AUTO_FILL_EMAILS_FROM_CC', 10);
 
 
 /**
  * Автоматично попълване на имейлите в полето До
  */
-defIfNot('EMAIL_AUTO_FILL_EMAILS_FROM_TO', 0);
+defIfNot('EMAIL_AUTO_FILL_EMAILS_FROM_TO', 10);
 
 
 /**
