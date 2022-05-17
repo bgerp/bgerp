@@ -31,8 +31,14 @@ class doc_Comments extends embed_Manager
      * Дали да се споделя създадели на оригиналния документ
      */
     public $autoShareOriginCreator = true;
-    
-    
+
+
+    /**
+     * Автоматично споделяне на получателите от входящия имейл
+     */
+    public $autoShareUserEmails = true;
+
+
     /**
      * Поддържани интерфейси
      */

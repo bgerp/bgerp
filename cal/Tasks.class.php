@@ -34,8 +34,8 @@ class cal_Tasks extends embed_Manager
     
     
     protected $limitShowMonths = 6;
-    
-    
+
+
     /**
      * Период на показване на чакащи и активни задачи в портала
      */
@@ -454,12 +454,6 @@ class cal_Tasks extends embed_Manager
                 }
             }
         }
-
-
-
-
-
-
     }
     
     

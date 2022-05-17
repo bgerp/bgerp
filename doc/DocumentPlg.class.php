@@ -2129,12 +2129,12 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
-        
+
         if (!$data->form->rec->id && !$data->form->rec->clonedFromId) {
             $detId = Request::get('detId', 'int');
             
             $dData = $mvc->getDefaultData($rec, array('detId' => $detId, 'fType' => $fType));
-            
+
             if (!empty($dData)) {
                 foreach ($dData as $key => $val) {
                     $data->form->setDefault($key, $val);
@@ -2153,8 +2153,8 @@ class doc_DocumentPlg extends core_Plugin
             doc_Linked::showLinkedInForm($data->form, $cId);
         }
     }
-    
-    
+
+
     /**
      *
      * @param core_Mvc   $mvc
@@ -2164,7 +2164,7 @@ class doc_DocumentPlg extends core_Plugin
      */
     public function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
     {
-        $res = array();
+        $res = arr::make($res);
         
         if ($rec->foreignId && $otherParams['fType'] == 'doc') {
             $document = doc_Containers::getDocument($rec->foreignId);
@@ -2181,6 +2181,50 @@ class doc_DocumentPlg extends core_Plugin
                 $for = tr('За|*: ');
                 $title = $for . html_entity_decode($oRow->title, ENT_COMPAT | ENT_HTML401, 'UTF-8');
                 $res[$titleFld] = $title;
+            }
+        }
+
+        if ($mvc->autoShareUserEmails) {
+
+            $originId = null;
+
+            if ($rec->originId) {
+                $originId = $rec->originId;
+            } elseif ($rec->linkedHashKey) {
+                $lRec = core_Permanent::get($rec->linkedHashKey);
+                if (($lRec->outType == 'doc') && $lRec->outVal) {
+                    $originId = $lRec->outVal;
+                }
+            }
+
+            if ($originId) {
+                $document = doc_Containers::getDocument($originId);
+                if ($document->className == 'email_Incomings') {
+                    $eRec = $document->fetch();
+                    $allEmails = array();
+                    foreach (array('allTo', 'allCc') as $fName) {
+                        foreach ((array)$eRec->toAndCc[$fName] as $eAdd) {
+                            $eAdd['address'] = trim($eAdd['address']);
+                            if (!$eAdd['address']) {
+                                continue;
+                            }
+                            $allEmails[] = $eAdd['address'];
+                        }
+                    }
+
+                    $removedUsersArr = array();
+
+                    email_Inboxes::removeOurEmails($allEmails, $removedUsersArr);
+
+                    $cu = core_Users::getCurrent();
+                    unset($removedUsersArr[$cu]);
+                    unset($removedUsersArr[-1]);
+                    unset($removedUsersArr[0]);
+
+                    if (!empty($removedUsersArr)) {
+                        $res['sharedUsers'] = (array) $res['sharedUsers'] + $removedUsersArr;
+                    }
+                }
             }
         }
     }
