@@ -228,7 +228,7 @@ class sales_Invoices extends deals_InvoiceMaster
     /**
      * Стратегии за добавяне на артикули след създаване от източника
      */
-    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички от договора", 'shippedNotInvoiced' => 'Нефактурираните експедирани');
+    protected $autoAddProductStrategies = array('onlyFromDeal' => "Всички от договора", 'shippedNotInvoiced' => 'Нефактурираните експедирани', 'none' => 'Без');
 
 
     /**
