@@ -1,30 +1,29 @@
-Дължина,cond_type_Double,см,length,,yes,active,"min=0",yes,Системни
-Височина,cond_type_Double,см,height,,yes,active,"min=0",yes,Системни
-Тегло,cond_type_Double,кг,weightKg,,no,active,"min=0",yes,Системни
-Дебелина,cond_type_Double,см,thickness,,yes,active,,yes,Системни
-Обем,cond_type_Double,куб.м,volume,,no,active,"min=0",yes,Системни
-Обем,cond_type_Double,л,volumel,,no,active,"min=0",yes,Системни
-Плътност,cond_type_Double,кг/м3,density,,no,active,,no,Системни
-Цвят,cond_type_Varchar,,color,,yes,active,,yes,Системни
-Тарифен код,cond_type_Varchar,,customsTariffNumber,,no,active,,no,Системни
-Транспортен обем,cond_type_Double,л,transportVolume,,no,active,"min=0",no,Системни
-Транспортно тегло,cond_type_Double,кг,transportWeight,,no,active,"min=0",no,Системни
-Толеранс,cond_type_Percent,,tolerance,,no,active,,no,Системни
-Срок на доставка,cond_type_Time,,term,,no,active,,no,Системни
-Широчина,cond_type_Double,см,width,,yes,active,,yes,Системни
-Режийни разходи,cond_type_Percent,,expenses,,no,active,,no,Системни
-Изглед||Preview,cond_type_Image,,preview,,no,active,,yes,Системни
-На етикета||Label text,cond_type_Text,,labelText,,no,active,,yes,Системни
-На етикета (EN)||Label text (EN),cond_type_Text,,labelTextEn,,no,active,,yes,Системни
-Спецификация,cond_type_Text,,specTpl,,no,active,,no,Системни
-Условия към продажба,cond_type_Text,,commonConditionSale,,no,active,,no,Системни
-Условия към покупка,cond_type_Text,,commonConditionPur,,no,active,,no,Системни
-Тегло,cond_type_Double,гр,weight,,no,active,"min=0",yes,Системни
-Срок на годност,cond_type_Time,,expiryTime,,no,active,,no,Системни
-Информация за фактура,cond_type_Varchar,,invoiceInfo,,no,active,,no,Системни
-Начало онлайн продажби,cond_type_Date,,startSales,,yes,active,"time=yes",no,Системни
-Край онлайн продажби,cond_type_Date,,endSales,,yes,active,"time=yes",no,Системни
-Твърдения в ДС,cond_type_Keylist,,decStatements,,no,active,"class=dec_Statements,select=title",no,Системни
-Оборудване,cond_type_Keylist,,planningAssets,,no,active,"class=planning_AssetResources,select=name",no,Системни
-Грамаж,cond_type_Double,г/м2,densityGm2,,no,active,,yes,Системни
-
+Дължина,cond_type_Double,см,length,,yes,active,"min=0",yes
+Височина,cond_type_Double,см,height,,yes,active,"min=0",yes
+Тегло,cond_type_Double,кг,weightKg,,no,active,"min=0",yes
+Дебелина,cond_type_Double,см,thickness,,yes,active,,yes
+Обем,cond_type_Double,куб.м,volume,,no,active,"min=0",yes
+Обем,cond_type_Double,л,volumel,,no,active,"min=0",yes
+Плътност,cond_type_Double,кг/м3,density,,no,active,,no
+Цвят,cond_type_Varchar,,color,,yes,active,,yes
+Тарифен код,cond_type_Varchar,,customsTariffNumber,,no,active,,no
+Транспортен обем,cond_type_Double,л,transportVolume,,no,active,"min=0",no
+Транспортно тегло,cond_type_Double,кг,transportWeight,,no,active,"min=0",no
+Толеранс,cond_type_Percent,,tolerance,,no,active,,no
+Срок на доставка,cond_type_Time,,term,,no,active,,no
+Широчина,cond_type_Double,см,width,,yes,active,,yes
+Режийни разходи,cond_type_Percent,,expenses,,no,active,,no
+Изглед||Preview,cond_type_Image,,preview,,no,active,,yes
+На етикета||Label text,cond_type_Text,,labelText,,no,active,,yes
+На етикета (EN)||Label text (EN),cond_type_Text,,labelTextEn,,no,active,,yes
+Спецификация,cond_type_Text,,specTpl,,no,active,,no
+Условия към продажба,cond_type_Text,,commonConditionSale,,no,active,,no
+Условия към покупка,cond_type_Text,,commonConditionPur,,no,active,,no
+Тегло,cond_type_Double,гр,weight,,no,active,"min=0",yes
+Срок на годност,cond_type_Time,,expiryTime,,no,active,,no
+Информация за фактура,cond_type_Varchar,,invoiceInfo,,no,active,,no
+Начало онлайн продажби,cond_type_Date,,startSales,,yes,active,"time=yes",no
+Край онлайн продажби,cond_type_Date,,endSales,,yes,active,"time=yes",no
+Твърдения в ДС,cond_type_Keylist,,decStatements,,no,active,"class=dec_Statements,select=title",no
+Оборудване,cond_type_Keylist,,planningAssets,,no,active,"class=planning_AssetResources,select=name",no
+Грамаж,cond_type_Double,г/м2,densityGm2,,no,active,,yes
