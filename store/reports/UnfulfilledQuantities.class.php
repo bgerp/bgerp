@@ -149,9 +149,13 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $querySaleDetails->EXT('contoActions', 'sales_Sales', 'externalName=contoActions,externalKey=saleId');
 
+        $querySaleDetails->EXT('closeWith', 'sales_Sales', 'externalName=closeWith,externalKey=saleId');
+
         $querySaleDetails->where("#state = 'closed'");
 
         $querySaleDetails->where(array("#closedOn >= '[#1#]' AND #closedOn <= '[#2#]'", $rec->from . ' 00:00:00', $rec->to . ' 23:59:59'));
+
+        $querySaleDetails->where("#closeWith IS NULL");
 
         $querySaleDetails->like('contoActions', 'ship', false);
 
