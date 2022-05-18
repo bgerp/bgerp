@@ -297,7 +297,9 @@ abstract class store_DocumentMaster extends core_Master
             $copyBatches = false;
             $Detail = $mvc->mainDetail;
             $aggregatedDealInfo = $origin->getAggregateDealInfo();
-            if ($rec->importProducts != 'all') {
+            if($rec->importProducts == 'none'){
+                $agreedProducts = array();
+            } elseif($rec->importProducts != 'all') {
                 $agreedProducts = $aggregatedDealInfo->get('products');
                 $shippedProducts = $aggregatedDealInfo->get('shippedProducts');
                 
