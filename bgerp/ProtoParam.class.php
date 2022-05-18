@@ -158,7 +158,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     protected static function on_AfterMakeArray4Select($mvc, &$options, $fields = null, &$where = '', $index = 'id')
     {
         $newOptions = $options;
-        
+
         // Ако има опции
         if (is_array($options)) {
             $newOptions = array();
@@ -182,14 +182,14 @@ abstract class bgerp_ProtoParam extends embed_Manager
                     }
                 }
                 
-                // Махане на гръпата от името
+                // Махане на групата от името
                 $exploded = explode(' » ', $value);
                 $value = (countR($exploded) == 2) ? $exploded[1] : $value;
                 
                 $newOptions[$id] = $value;
             }
         }
-        
+
         $options = $newOptions;
     }
     
@@ -200,11 +200,12 @@ abstract class bgerp_ProtoParam extends embed_Manager
     public function makeArray4Select_($fields = null, $where = '', $index = 'id', $tpl = null)
     {
         $query = static::getQuery();
+        $query->XPR('orderCalc', 'int', "COALESCE(#order, 99999999)");
         if (strlen($where)) {
             $query->where($where);
         }
-        $query->orderBy('group,order', 'ASC');
-        $query->show('name,suffix,group,roles,group');
+        $query->orderBy('group,orderCalc', 'ASC');
+        $query->show('name,suffix,group,roles,group,orderCalc');
         
         $options = array();
         
@@ -212,7 +213,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
             self::$cache[$rec->id] = $rec;
             $options[$rec->{$index}] = self::calcTypeExt($rec);
         }
-        
+
         return $options;
     }
     
