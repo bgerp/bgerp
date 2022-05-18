@@ -340,10 +340,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
      * @param string      $type    - тип на параметъра
      * @param NULL|string   $options - опции на параметъра само за типовете enum и set
      * @param NULL|string $suffix  - наставка
+     * @param NULL|string $groupName  - група
      *
      * @return stdClass $nRec     - ид на параметъра
      */
-    protected static function makeNewRec($sysId, $name, $type, $options = array(), $suffix = null)
+    protected static function makeNewRec($sysId, $name, $type, $options = array(), $suffix = null, $groupName = null)
     {
         // Проверка дали типа е допустим
         // Подготовка на записа на параметъра
@@ -361,7 +362,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (!empty($suffix)) {
             $nRec->suffix = $suffix;
         }
-        
+
+        if (!empty($groupName)) {
+            $nRec->group = $groupName;
+        }
+
         // Само за типовете enum и set, се искат опции
         if (($Type instanceof cond_type_Enum) || ($Type instanceof cond_type_Set)) {
             $nRec->options = cond_type_abstract_Proto::options2text($options);

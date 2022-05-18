@@ -253,8 +253,8 @@ class cat_Params extends bgerp_ProtoParam
                  return $exId;
             }
         }
-        
-        $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix);
+
+        $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix, $groupName);
         $nRec->showInTasks = ($showInTasks) ? 'yes' : 'no';
         $nRec->showInPublicDocuments = ($showInPublicDocuments) ? 'yes' : 'no';
 
