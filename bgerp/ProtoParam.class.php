@@ -125,7 +125,6 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (isset($data->form->rec->sysId)) {
             $data->form->setReadOnly('name');
             $data->form->setReadOnly('suffix');
-            $data->form->setReadOnly('group');
         }
         
         $query = $mvc->getQuery();
