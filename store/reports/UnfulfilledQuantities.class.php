@@ -146,10 +146,14 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $querySaleDetails->EXT('contragentClassId', 'sales_Sales', 'externalName=contragentClassId,externalKey=saleId');
         
         $querySaleDetails->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
+
+        $querySaleDetails->EXT('contoActions', 'sales_Sales', 'externalName=contoActions,externalKey=saleId');
         
         $querySaleDetails->where("#state = 'closed'");
 
         $querySaleDetails->where(array("#closedOn >= '[#1#]' AND #closedOn <= '[#2#]'",$rec->from . ' 00:00:00',$rec->to . ' 23:59:59'));
+
+        $querySaleDetails->like('contoActions', 'ship',false);
 
         if (!is_null($rec->contragent)) {
             $checkedContragents = keylist::toArray($rec->contragent);
@@ -263,7 +267,8 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                     
                     $tolerance = (100 - $rec->tolerance) / 100;
 
-                    
+                    $shipedQuantity = ($ship->shipedQuantity) ? : 0;
+                    if ($sale->saleId == 1563)bp($sale,$ship,$shipedQuantity,$ship->shipedQuantity < ($sale->requestQuantity * $tolerance));
                     if ($ship->shipedQuantity < ($sale->requestQuantity * $tolerance)) {
                         $recs[$saleKey] = (object) array(
                             
@@ -271,12 +276,26 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                             'productId' => $sale->productId,
                             'measure' => cat_Products::getProductInfo($sale->productId)->productRec->measureId,
                             'shipmentId' => $ship->shipmentId,
-                            'shipedQuantity' => $ship->shipedQuantity,
+                            'shipedQuantity' => $shipedQuantity,
                             'requestQuantity' => $sale->requestQuantity,
                             'contragentClassId' => $sale->contragentClassId,
                             'contragentId' => $sale->contragentId
                         );
                     }
+                }else{
+
+                    $recs[$saleKey] = (object) array(
+
+                        'saleId' => $sale->saleId,
+                        'productId' => $sale->productId,
+                        'measure' => cat_Products::getProductInfo($sale->productId)->productRec->measureId,
+                        'shipmentId' => '',
+                        'shipedQuantity' => 0,
+                        'requestQuantity' => $sale->requestQuantity,
+                        'contragentClassId' => $sale->contragentClassId,
+                        'contragentId' => $sale->contragentId
+                    );
+
                 }
             }
         }
