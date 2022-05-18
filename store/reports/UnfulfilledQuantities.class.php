@@ -132,12 +132,12 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         
         //Продажби
         $querySaleDetails = sales_SalesDetails::getQuery();
-        
-        //    $querySaleDetails->where(array("#createdOn >= '[#1#]' AND #createdOn <= '[#2#]'",$rec->from . ' 00:00:01',$rec->to . ' 23:59:59'));
-        
+
         $querySaleDetails->EXT('isPublic', 'cat_Products', 'externalName=isPublic,externalKey=productId');
-        
+
         $querySaleDetails->EXT('threadId', 'sales_Sales', 'externalName=threadId,externalKey=saleId');
+
+        $querySaleDetails->EXT('closedOn', 'sales_Sales', 'externalName=closedOn,externalKey=saleId');
         
         $querySaleDetails->EXT('folderId', 'sales_Sales', 'externalName=folderId,externalKey=saleId');
         
@@ -147,8 +147,10 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         
         $querySaleDetails->EXT('contragentId', 'sales_Sales', 'externalName=contragentId,externalKey=saleId');
         
-        $querySaleDetails->where("#state != 'rejected'");
-        
+        $querySaleDetails->where("#state = 'closed'");
+
+        $querySaleDetails->where(array("#closedOn >= '[#1#]' AND #closedOn <= '[#2#]'",$rec->from . ' 00:00:00',$rec->to . ' 23:59:59'));
+
         if (!is_null($rec->contragent)) {
             $checkedContragents = keylist::toArray($rec->contragent);
             
@@ -251,15 +253,16 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                 $obj->shipedQuantity += $shipmentDet->quantity;
             }
         }
-        
-        foreach ($shipDetRecs as $key => $ship) {
-            foreach ($saleDetRecs as $saleKey => $sale) {
+
+        foreach ($saleDetRecs as $saleKey  => $sale) {
+            foreach ($shipDetRecs as $shipKey =>$ship ) {
                 expect($ship->firstDocumentName == 'sales_Sales');
                 
-                if ($key == $saleKey) {
+                if ($shipKey == $saleKey) {
                     expect($sale->saleId == $ship->saleIdShip);
                     
                     $tolerance = (100 - $rec->tolerance) / 100;
+
                     
                     if ($ship->shipedQuantity < ($sale->requestQuantity * $tolerance)) {
                         $recs[$saleKey] = (object) array(
@@ -303,12 +306,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $fld->FLD('requestQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Заявено,smartCenter');
         $fld->FLD('shipedQuantity', 'double(smartRound,decimals=2)', 'caption=Количество->Експедирано,smartCenter');
         $fld->FLD('quantity', 'double(smartRound,decimals=2)', 'caption=Количество->Неизпълнение,smartCenter');
-        if ($rec->limmits == 'yes') {
-            $fld->FLD('minQuantity', 'double(smartRound,decimals=2)', 'caption=Минимално,smartCenter');
-            $fld->FLD('maxQuantity', 'double(smartRound,decimals=2)', 'caption=Максимално,smartCenter');
-            $fld->FLD('conditionQuantity', 'text', 'caption=Състояние,tdClass=centered');
-        }
-        
+
         return $fld;
     }
     
@@ -377,7 +375,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                                     </div>
                                 </fieldset><!--ET_END BLOCK-->"));
         
-        
+
         if (isset($data->rec->from)) {
             $fieldTpl->append('<b>' . $data->rec->from . '</b>', 'from');
         }
@@ -388,6 +386,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         
         
         if (isset($data->rec->contragent)) {
+            $marker = 0;
             foreach (type_Keylist::toArray($data->rec->contragent) as $contragent) {
                 $marker++;
                 
