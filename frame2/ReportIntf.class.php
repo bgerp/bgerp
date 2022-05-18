@@ -229,4 +229,16 @@ class frame2_ReportIntf extends embed_DriverIntf
     {
         return $this->class->getIcon($id);
     }
+
+
+    /**
+     * Дали след обновяване на справката да се затвори автоматично
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function canCloseAfterRefresh($rec)
+    {
+        return $this->class->canCloseAfterRefresh($rec);
+    }
 }

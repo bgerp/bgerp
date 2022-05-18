@@ -275,4 +275,23 @@ abstract class frame2_driver_Proto extends core_BaseClass
     {
         return true;
     }
+
+
+    /**
+     * Дали след обновяване на справката да се затвори автоматично
+     *
+     * @param stdClass $rec
+     * @return bool
+     */
+    public function canCloseAfterRefresh($rec)
+    {
+        // Кога последно е видяна от потребител справката
+        $lastSeen = log_Data::getLastSeenByUser(frame2_Reports::getClassId(), $rec);
+
+        $lastSeen = !empty($lastSeen) ? $lastSeen : $rec->createdOn;
+        $seenBeforeTime = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE');
+        $seenBefore = dt::addSecs(-1 * $seenBeforeTime);
+
+        return $lastSeen <= $seenBefore;
+    }
 }
