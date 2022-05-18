@@ -211,7 +211,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $queryShipmentOrderDetails->where("#state = 'active'");
 
-        $queryShipmentOrderDetails->where(array("#shipmentOrderActivatedOn >= '[#1#]' AND #shipmentOrderActivatedOn <= '[#2#]'", $rec->from . ' 00:00:01', $rec->to . ' 23:59:59'));
+        //$queryShipmentOrderDetails->where(array("#shipmentOrderActivatedOn >= '[#1#]' AND #shipmentOrderActivatedOn <= '[#2#]'", $rec->from . ' 00:00:01', $rec->to . ' 23:59:59'));
 
         //филтър по склад
         if ($rec->storeId) {
