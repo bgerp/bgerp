@@ -1295,7 +1295,7 @@ td.portal-date {
 
 .detail-info.portal table.listTable {
   font-size: 1em; }
-  .detail-info.portal table.listTable .frontToolip img {
+  .detail-info.portal table.listTable .frontTooltip img {
     height: 14px;
     margin-top: -2px; }
 
@@ -2099,12 +2099,12 @@ td.rowtools-column {
   font-size: 15px; }
 
 .listTable td .endTooltip img,
-.listTable td .frontToolip img {
+.listTable td .frontTooltip img {
   width: 14px !important;
   height: 14px !important; }
 
 .sale-summary td .endTooltip img,
-.sale-summary td .frontToolip img {
+.sale-summary td .frontTooltip img {
   width: 16px !important;
   height: 16px !important; }
 
@@ -7300,7 +7300,7 @@ only screen and (max-width: 320px) {
   margin: 0; }
 
   .endTooltip img,
-  .frontToolip img {
+  .frontTooltip img {
     width: 16px;
     height: 16px; }
 
@@ -7311,7 +7311,7 @@ only screen and (max-width: 320px) {
   display: inline-block;
   border-bottom: 1px dashed; }
 
-.frontToolip {
+.frontTooltip {
   display: inline-block; }
 
 /*

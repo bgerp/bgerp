@@ -1484,7 +1484,7 @@ td.portal-date {
 
 .detail-info.portal table.listTable {
 	font-size:1em;
-	.frontToolip img{
+	.frontTooltip img{
 		height: 14px;
 		margin-top: -2px;
 	}
@@ -2434,12 +2434,12 @@ font-size: 0.85em;
 font-size: 15px;
 }
 
-.listTable td .endTooltip img, .listTable td .frontToolip img{
+.listTable td .endTooltip img, .listTable td .frontTooltip img{
 width: 14px !important;
 height: 14px !important;
 }
 
-.sale-summary td .endTooltip img, .sale-summary td .frontToolip img{
+.sale-summary td .endTooltip img, .sale-summary td .frontTooltip img{
 	width: 16px !important;
 	height: 16px !important;
 }
@@ -8304,7 +8304,7 @@ body.narrow {
     left: auto;
     margin: 0;
 }
-.endTooltip, .frontToolip {
+.endTooltip, .frontTooltip {
 	img {
 		width: 16px;
 		height: 16px;
@@ -8320,7 +8320,7 @@ body.narrow {
 	border-bottom: 1px dashed;
 }
 
-.frontToolip {
+.frontTooltip {
 	display: inline-block;
 }
 /* край на стилове за външната част при потребител контрактор */
