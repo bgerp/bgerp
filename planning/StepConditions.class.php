@@ -208,7 +208,7 @@ class planning_StepConditions extends core_Detail
 
         // Цикли се по всички Задания и след това по всяка ПО от едно задание. Вземаме ПЕ за текущата операция
         $tasksEarliestTime = array();
-        foreach ($jobArr as $jobContainerId => $jobTasks) {
+        foreach ($jobArr as $jobTasks) {
             foreach ($jobTasks as $taskId => $taskRec) {
                 if(!array_key_exists($taskId, $tasksEarliestTime)){
                     $tasksEarliestTime[$taskId] = array('prevErr' => array(), 'nextErr' => array(), 'exPrevErrId' => $taskRec->prevErrId, 'exNextErrId' => $taskRec->nextErrId, 'taskRec' => $taskRec);
@@ -235,6 +235,9 @@ class planning_StepConditions extends core_Detail
                                 // Ако $earlierTime е по-голямо от началото на текущата операция
                                 if($earlierTime > $taskRec->expectedTimeStart){
                                     $tasksEarliestTime[$taskRec->id]['prevErr'][$prevStepTask->id] = $earlierTime;
+                                    if(!array_key_exists($prevStepTask->id, $tasksEarliestTime)){
+                                        $tasksEarliestTime[$prevStepTask->id] = array('prevErr' => array(), 'nextErr' => array(), 'exPrevErrId' => $prevStepTask->prevErrId, 'exNextErrId' => $prevStepTask->nextErrId, 'taskRec' => $prevStepTask);
+                                    }
                                     $tasksEarliestTime[$prevStepTask->id]['nextErr'][$taskRec->id] = $earlierTime;
                                 }
                             }
@@ -244,6 +247,19 @@ class planning_StepConditions extends core_Detail
             }
         }
 
-        bp($stepArr, $tasksEarliestTime);
+        $toUpdate = array();
+        foreach ($tasksEarliestTime as $taskId => $taskData){
+            $prevNewErrId = countR($taskData['prevErr']) ? array_search(min($taskData['prevErr']), $taskData['prevErr']) : null;
+            $nextNewErrId = countR($taskData['nextErr']) ? array_search(min($taskData['nextErr']), $taskData['nextErr']) : null;
+
+            if($taskData['exPrevErrId'] != $prevNewErrId || $taskData['exNextErrId'] != $nextNewErrId){
+                $toUpdate[$taskId] = (object)array('id' => $taskId, 'prevErrId' => $prevNewErrId, 'nextErrId' => $nextNewErrId);
+            }
+        }
+
+        if(countR($toUpdate)){
+            $Tasks = cls::get('planning_Tasks');
+            $Tasks->saveArray($toUpdate, 'id,prevErrId,nextErrId');
+        }
     }
 }

@@ -2098,9 +2098,15 @@ td.rowtools-column {
 .sale-summary .secondMeasure {
   font-size: 15px; }
 
-.listTable td .endTooltip img {
+.listTable td .endTooltip img,
+.listTable td .frontToolip img {
   width: 14px !important;
   height: 14px !important; }
+
+.sale-summary td .endTooltip img,
+.sale-summary td .frontToolip img {
+  width: 16px !important;
+  height: 16px !important; }
 
 .secondMeasure .endTooltip,
 .listTable td .secondMeasure .endTooltip {

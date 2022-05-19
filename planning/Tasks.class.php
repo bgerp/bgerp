@@ -436,12 +436,18 @@ class planning_Tasks extends core_Master
                 }
             }
 
-
-
             if(isset($hint)){
                 $row->{$eTimeField} = ht::createHint($row->{$eTimeField}, $hint, 'notice', true, array('height' => '12', 'width' => '12'));
             }
         }
+
+        if(!empty($rec->prevErrId)){
+            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходна операция #{$mvc->getHandle($rec->prevErrId)}", 'error', false);
+        }
+        if(!empty($rec->nextErrId)){
+            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следваща операция #{$mvc->getHandle($rec->nextErrId)}", 'error');
+        }
+
 
         $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
         $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName('time(uom=hours)')->toVerbal($expectedDuration);
