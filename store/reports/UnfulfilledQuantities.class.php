@@ -217,7 +217,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $queryShipmentOrderDetails->where("#state = 'active'");
 
-        $queryShipmentOrderDetails->in('threadId',$salesThreadsIdArr);
+        $queryShipmentOrderDetails->in('threadId', $salesThreadsIdArr);
 
         //филтър по склад
         if ($rec->storeId) {
@@ -264,16 +264,14 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
 
-        //Добавяме артикули, от които няма нищо експедирано
-
-
-        $shipDetKeysArr = array_keys($shipDetRecs);       //ММасив с ключове на масива на детайлите по експедиционните
+        //Добавяме артикули, от които няма нищо експедирано но ги има в договорите
+        $shipDetKeysArr = array_keys($shipDetRecs);       //Масив с ключове на масива на детайлите по експедиционните
 
         $salesDetKeysArr = array_keys($saleDetRecs);      //Масив с ключове на масива на детайлите по договорите за продажби
 
-        foreach ($salesDetKeysArr as $saleDetKey){
+        foreach ($salesDetKeysArr as $saleDetKey) {
 
-            if(!in_array($saleDetKey,$shipDetKeysArr)) {
+            if (!in_array($saleDetKey, $shipDetKeysArr)) {
 
                 $shipDetRecs[$saleDetKey] = (object)array(
 
@@ -291,15 +289,12 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
 
-
-        $salesWithShipments = (arr::extractValuesFromArray($shipDetRecs, 'saleIdShip'));
-
         foreach ($saleDetRecs as $saleKey => $sale) {
             foreach ($shipDetRecs as $shipKey => $ship) {
                 expect($ship->firstDocumentName == 'sales_Sales');
 
                 if ($shipKey == $saleKey) {
-                   // expect($sale->saleId == $ship->saleIdShip);
+                    // expect($sale->saleId == $ship->saleIdShip);
 
                     $tolerance = (100 - $rec->tolerance) / 100;
 
