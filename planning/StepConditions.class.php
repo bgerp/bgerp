@@ -214,7 +214,7 @@ class planning_StepConditions extends core_Detail
                     $tasksEarliestTime[$taskId] = array('prevErr' => array(), 'nextErr' => array(), 'exPrevErrId' => $taskRec->prevErrId, 'exNextErrId' => $taskRec->nextErrId, 'taskRec' => $taskRec);
                 }
 
-                $duration = dt::secsBetween($taskRec->expectedTimeStart, $taskRec->expectedTimeEnd);
+                $duration = dt::secsBetween($taskRec->expectedTimeEnd, $taskRec->expectedTimeStart);
 
                 // Ако имам записи в масива със зависимостите за съответния ПЕ цикли се по тях
                 if (array_key_exists($taskRec->productId, $stepArr)) {
@@ -226,7 +226,7 @@ class planning_StepConditions extends core_Detail
                         // Ако се намерят такива (предходни операция)
                         if(countR($tasks4StepInSameJob)){
                             foreach ($tasks4StepInSameJob as $prevStepTask){
-                                $prevEndCalc = dt::addSecs(-1 * ($duration + $stepRec->delay), $prevStepTask->expectedTimeEnd);
+                                $prevEndCalc = dt::addSecs(-1 * ($duration - $stepRec->delay), $prevStepTask->expectedTimeEnd);
                                 $prevStartCalc = dt::addSecs($stepRec->delay, $prevStepTask->expectedTimeStart);
 
                                 // $earlierTime = max($prevEnd - $duration + $delay, $prevBegin + $delay)

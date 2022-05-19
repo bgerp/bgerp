@@ -794,7 +794,7 @@ class planning_AssetResources extends core_Master
         if(isset($scheduleId)){
             $from = isset($from) ? $from : dt::now();
             $to = isset($to) ? $to : dt::addSecs(planning_Setup::get('ASSET_HORIZON'), $from);
-            $int = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to);
+            $int = hr_Schedules::getWorkingIntervals($scheduleId, $from, $to, false, false);
         }
 
         return $int;
@@ -828,6 +828,7 @@ class planning_AssetResources extends core_Master
 
         // Кои операции са закачени за оборудването
         $tasks = static::getAssetTaskOptions($id, true);
+
         if(!countR($tasks)) return;
 
         // Кеширане на продуктовите опаковки, за артикулите в задачите
@@ -860,8 +861,8 @@ class planning_AssetResources extends core_Master
             }
         }
 
-        $updateRecs = array();
         $minDuration = planning_Setup::get('MIN_TASK_DURATION');
+        $updateRecs = array();
         foreach($tasks as $taskRec){
             $updateRecs[$taskRec->id]  = (object)array('id' => $taskRec->id, 'expectedTimeStart' => null, 'expectedTimeEnd' => null, 'progress' => $taskRec->progress, 'indTime' => $taskRec->indTime, 'indPackagingId' => $taskRec->indPackagingId, 'plannedQuantity' => $taskRec->plannedQuantity, 'duration' => $taskRec->timeDuration);
 
