@@ -218,6 +218,7 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',
+        'planning_StepConditions',
         'migrate::updatePlanningStages1',
         'migrate::updateTaskAssets',
         'migrate::reorderTasks2'

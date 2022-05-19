@@ -285,6 +285,9 @@ class planning_Tasks extends core_Master
         $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание,autoHide');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
 
+        $this->FLD('prevErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Предишна грешка');
+        $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
+
         $this->setDbIndex('productId');
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
