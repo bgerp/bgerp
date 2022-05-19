@@ -111,23 +111,19 @@ class hr_Schedules extends core_Master
     /**
      * Връща обект от тип core_Intervals в който са включени само работните периоди за дадения работен цикъл
      */
-    public static function getWorkingIntervals($id, $from, $to, $forStatistic = false) 
+    public static function getWorkingIntervals($id, $from, $to, $forStatistic = false, $doCache = true)
     { 
         static $cache = array();
         
         $key = "{$id}:{$from}:{$to}";
 
-        if($excludeHolidays) {
-            $key = '.' . $key;
-        }
-
-        if(isset($cache[$key])) {
+        if(isset($cache[$key]) && $doCache) {
 
            return $cache[$key];
         }
 
         $res = core_Cache::get('work_schedule', $key);
-        if(isset($res) && $res != false) {
+        if(isset($res) && $res != false && $doCache) {
 
             $cache[$key] = $res;
             
@@ -223,9 +219,11 @@ class hr_Schedules extends core_Master
             self::addInterval($ints, $dRec, $fromTs, $toTs, $forStatistic);
         }
 
-        $cache[$key] = $ints;
-        core_Cache::set('work_schedule', $key, $ints, 10);
- 
+        if($doCache){
+            $cache[$key] = $ints;
+            core_Cache::set('work_schedule', $key, $ints, 10);
+        }
+
         return $ints;
     }
     
