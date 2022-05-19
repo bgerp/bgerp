@@ -128,6 +128,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
     {
         $saleDetRecs = array();
         $shipDetRecs = array();
+        $salesThreadsIdArr = array();
         $recs = array();
 
         //Продажби
@@ -199,6 +200,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
 
+        $salesThreadsIdArr = (arr::extractValuesFromArray($saleDetRecs, 'threadId'));
 
         //Експедиционни нареждания
         $queryShipmentOrderDetails = store_ShipmentOrderDetails::getQuery();
@@ -215,7 +217,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 
         $queryShipmentOrderDetails->where("#state = 'active'");
 
-        //$queryShipmentOrderDetails->where(array("#shipmentOrderActivatedOn >= '[#1#]' AND #shipmentOrderActivatedOn <= '[#2#]'", $rec->from . ' 00:00:01', $rec->to . ' 23:59:59'));
+        $queryShipmentOrderDetails->in('threadId', $salesThreadsIdArr);
 
         //филтър по склад
         if ($rec->storeId) {
@@ -262,14 +264,37 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
             }
         }
 
-        $salesWithShipments = (arr::extractValuesFromArray($shipDetRecs, 'saleIdShip'));
+        //Добавяме артикули, от които няма нищо експедирано но ги има в договорите
+        $shipDetKeysArr = array_keys($shipDetRecs);       //Масив с ключове на масива на детайлите по експедиционните
+
+        $salesDetKeysArr = array_keys($saleDetRecs);      //Масив с ключове на масива на детайлите по договорите за продажби
+
+        foreach ($salesDetKeysArr as $saleDetKey) {
+
+            if (!in_array($saleDetKey, $shipDetKeysArr)) {
+
+                $shipDetRecs[$saleDetKey] = (object)array(
+
+
+                    'productId' => $saleDetRecs->productId,
+                    'shipedQuantity' => 0,
+                    'shipmentId' => '',
+                    'firstDocumentName' => 'sales_Sales',
+                    'saleIdShip' => $saleDetRecs->saleId,
+                    'threadIdShip' => $saleDetRecs->threadId
+
+                );
+
+
+            }
+        }
 
         foreach ($saleDetRecs as $saleKey => $sale) {
             foreach ($shipDetRecs as $shipKey => $ship) {
                 expect($ship->firstDocumentName == 'sales_Sales');
 
                 if ($shipKey == $saleKey) {
-                    expect($sale->saleId == $ship->saleIdShip);
+                    // expect($sale->saleId == $ship->saleIdShip);
 
                     $tolerance = (100 - $rec->tolerance) / 100;
 
@@ -283,20 +308,6 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                             'measure' => cat_Products::getProductInfo($sale->productId)->productRec->measureId,
                             'shipmentId' => $ship->shipmentId,
                             'shipedQuantity' => $shipedQuantity,
-                            'requestQuantity' => $sale->requestQuantity,
-                            'contragentClassId' => $sale->contragentClassId,
-                            'contragentId' => $sale->contragentId
-                        );
-                    }
-                } else {
-                    if (!in_array($sale->saleId, $salesWithShipments)) {
-
-                        $recs[$saleKey] = (object)array(
-                            'saleId' => $sale->saleId,
-                            'productId' => $sale->productId,
-                            'measure' => cat_Products::getProductInfo($sale->productId)->productRec->measureId,
-                            'shipmentId' => '',
-                            'shipedQuantity' => 0,
                             'requestQuantity' => $sale->requestQuantity,
                             'contragentClassId' => $sale->contragentClassId,
                             'contragentId' => $sale->contragentId
