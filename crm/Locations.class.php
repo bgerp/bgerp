@@ -968,7 +968,7 @@ class crm_Locations extends core_Master
         foreach (array('start', 'end') as $column){
             foreach ($tableData[$column] as $key => $time) {
                 if(!empty($tableData[$column][$key])){
-                    if(!preg_match("/^(?:2[0-4]|[01][1-9]|10):([0-5][0-9])$/", $tableData[$column][$key])) {
+                    if(!preg_match("/^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/", $tableData[$column][$key])) {
                         $error[] = 'Невалиден формат за час';
                         $errorFields[$column][$key] = 'Невалиден формат за час';
                     }
