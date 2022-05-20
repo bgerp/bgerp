@@ -1117,7 +1117,7 @@ class marketing_Inquiries2 extends embed_Manager
             $rec = &$form->rec;
             
             // Ако има регистриран потребител с този имейл. Изисква се да се логне
-            if ($error = cms_Helper::getErrorIfThereIsUserWithEmail($rec->email)) {
+            if ($error = cms_Helper::getEmailError($rec->email)) {
                 $form->setError('email', $error);
             }
 

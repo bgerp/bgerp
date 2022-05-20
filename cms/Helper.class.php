@@ -114,19 +114,22 @@ class cms_Helper extends core_BaseClass
      * 
      * @return void|string
      */
-    public static function getErrorIfThereIsUserWithEmail($email)
+    public static function getEmailError($email)
     {
         $cu = core_Users::getCurrent('id', false);
-        if (isset($cu)) {
-            
-            return;
-        }
-        
+        if (isset($cu)) return;
+
         // Ако има потребител с този имейл той трябва да е логнат
         if (core_Users::getUserByEmail($email)) {
-
             $link = ht::createLink(tr('логнете'),array('core_Users','login'));
+
             return "Изглежда, че има регистриран потребител с този имейл. Моля преди да продължите да се|* <b>{$link}</b>.";
+        }
+
+        // Ако имейла е вътрешен да не се допуска създаване/изпращане
+        if(email_Inboxes::fetchField(array("#email = '[#1#]'", $email))){
+
+            return "Моля, използвайте друг имейл";
         }
     }
 
