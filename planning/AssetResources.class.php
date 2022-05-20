@@ -963,12 +963,12 @@ class planning_AssetResources extends core_Master
 
             // Какъв е записания кеш към момента
             $oldMd5 = core_Permanent::get("assetTaskOrder|{$assetId}");
-           // if($oldMd5 != $newMd5){
+            if($oldMd5 != $newMd5){
 
                 // Ако има промяна рекалкулират се времената на оборудването
                 static::recalcTaskTimes($assetId, $from, $to);
                 core_Permanent::set("assetTaskOrder|{$assetId}", $newMd5, 24*60*60);
-            //}
+            }
         }
     }
 }
