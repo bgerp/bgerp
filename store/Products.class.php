@@ -760,21 +760,10 @@ class store_Products extends core_Detail
         $field = Request::get('field', 'varchar');
         $toDate = Request::get('date', 'date');
         $today = dt::today();
-
-        $end = "{$toDate} 23:59:59";
-        $query = store_StockPlanning::getQuery();
-        $query->where("#productId = {$productId} AND #date <= '{$end}'");
-        if(isset($stores)){
-            $query->in('storeId', $stores);
-        }
-
-        $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
-        $query->where("#{$quantityField} IS NOT NULL");
-        $query->EXT('measureId', 'cat_Products', 'externalKey=productId');
-        $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId');
+        $recs = store_StockPlanning::getRecs($productId, $stores, $toDate, $field);
 
         $links = '';
-        while($dRec = $query->fetch()){
+        foreach($recs as $dRec){
             $Source = cls::get($dRec->sourceClassId);
             $row = (object)array('date' => dt::mysql2verbal($dRec->date));
 
