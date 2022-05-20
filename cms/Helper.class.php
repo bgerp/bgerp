@@ -129,7 +129,7 @@ class cms_Helper extends core_BaseClass
         // Ако имейла е вътрешен да не се допуска създаване/изпращане
         if(email_Inboxes::fetchField(array("#email = '[#1#]'", $email))){
 
-            return "Моля, използвайте друг имейл";
+            return "Моля, използвайте друг имейл|*!";
         }
     }
 
