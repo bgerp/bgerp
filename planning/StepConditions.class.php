@@ -32,7 +32,7 @@ class planning_StepConditions extends core_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'stepId,prevStepId,delay,createdOn,createdBy,modifiedOn,modifiedBy';
+    public $listFields = 'stepId,prevStepId,delay,intersect,createdOn,createdBy,modifiedOn,modifiedBy';
 
 
     /**
@@ -85,6 +85,7 @@ class planning_StepConditions extends core_Detail
         $this->FLD('stepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'input=hidden,silent,mandatory,caption=Производствен етап');
         $this->FLD('prevStepId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty)', 'mandatory,caption=Предходен етап,tdClass=leftCol');
         $this->FLD('delay', 'time', 'caption=Изчакване');
+        $this->FLD('intersect', 'enum(yes=Да,no=Не)', 'caption=Застъпване,notNull,default=yes');
 
         $this->setDbIndex('prevStepId');
         $this->setDbUnique('stepId,prevStepId');
@@ -174,10 +175,15 @@ class planning_StepConditions extends core_Detail
         }
     }
 
-    public function act_Test()
-    {
-        requireRole('debug');
 
+    /**
+     * Проверка дали за изпълнени условията за зависимост
+     *
+     * @return array
+     */
+    public static function checkTaskConditions()
+    {
+        // Всички производствени етапи
         $sQuery = cat_Products::getQuery();
         $sQuery->where("#state != 'closed' AND #innerClass = " . planning_interface_StepProductDriver::getClassId());
         $sQuery->show('id');
@@ -186,21 +192,26 @@ class planning_StepConditions extends core_Detail
             $stepArr[$sRec->id] = array();
         }
 
-        if (!countR($stepArr)) return;
-
+        // Всички условия за зависимости
         $cQuery = planning_StepConditions::getQuery();
-        $cQuery->show('stepId,prevStepId,delay');
+        $cQuery->show('stepId,prevStepId,delay,intersect');
         while ($cRec = $cQuery->fetch()) {
             $stepArr[$cRec->stepId][$cRec->id] = $cRec;
         }
 
         $minDuration = planning_Setup::get('MIN_TASK_DURATION');
         $endOfHorizon = dt::addSecs(planning_Setup::get('ASSET_HORIZON'), dt::now());
+
+        // ОТ текущите ПО, се взимат тези за ПЕ
         $tQuery = planning_Tasks::getQuery();
         $tQuery->in("productId", array_keys($stepArr));
         $tQuery->in("state", array('wakeup', 'stopped', 'active', 'pending'));
+        $tQuery->where("#timeClosed IS NULL");
         $tQuery->show('expectedTimeStart,expectedTimeEnd,originId,productId,prevErrId,nextErrId');
+
         while ($tRec = $tQuery->fetch()) {
+
+            // Ако нямат начало/край то се приема, че това е края на търсения период
             $tRec->expectedTimeStart = !empty($tRec->expectedTimeStart) ? $tRec->expectedTimeStart : $endOfHorizon;
             $tRec->expectedTimeEnd = !empty($tRec->expectedTimeEnd) ? $tRec->expectedTimeEnd : dt::addSecs($minDuration, $tRec->expectedTimeStart);
             $jobArr[$tRec->originId][$tRec->id] = $tRec;
@@ -214,6 +225,7 @@ class planning_StepConditions extends core_Detail
                     $tasksEarliestTime[$taskId] = array('prevErr' => array(), 'nextErr' => array(), 'exPrevErrId' => $taskRec->prevErrId, 'exNextErrId' => $taskRec->nextErrId, 'taskRec' => $taskRec);
                 }
 
+                // Колко е оставащата продължителност
                 $duration = dt::secsBetween($taskRec->expectedTimeEnd, $taskRec->expectedTimeStart);
 
                 // Ако имам записи в масива със зависимостите за съответния ПЕ цикли се по тях
@@ -226,11 +238,14 @@ class planning_StepConditions extends core_Detail
                         // Ако се намерят такива (предходни операция)
                         if(countR($tasks4StepInSameJob)){
                             foreach ($tasks4StepInSameJob as $prevStepTask){
-                                $prevEndCalc = dt::addSecs(-1 * ($duration - $stepRec->delay), $prevStepTask->expectedTimeEnd);
-                                $prevStartCalc = dt::addSecs($stepRec->delay, $prevStepTask->expectedTimeStart);
 
-                                // $earlierTime = max($prevEnd - $duration + $delay, $prevBegin + $delay)
-                                $earlierTime = max($prevEndCalc, $prevStartCalc);
+                                if($stepRec->intersect == 'no'){
+                                    $earlierTime = dt::addSecs($stepRec->delay, $prevStepTask->expectedTimeEnd);
+                                } else {
+                                    $prevEndCalc = dt::addSecs(-1 * ($duration - $stepRec->delay), $prevStepTask->expectedTimeEnd);
+                                    $prevStartCalc = dt::addSecs($stepRec->delay, $prevStepTask->expectedTimeStart);
+                                    $earlierTime = max($prevEndCalc, $prevStartCalc);
+                                }
 
                                 // Ако $earlierTime е по-голямо от началото на текущата операция
                                 if($earlierTime > $taskRec->expectedTimeStart){
@@ -249,17 +264,36 @@ class planning_StepConditions extends core_Detail
 
         $toUpdate = array();
         foreach ($tasksEarliestTime as $taskId => $taskData){
+
+            // Ако има колизия с предходна/последваща ПО взима се тази с минималната дата
             $prevNewErrId = countR($taskData['prevErr']) ? array_search(min($taskData['prevErr']), $taskData['prevErr']) : null;
             $nextNewErrId = countR($taskData['nextErr']) ? array_search(min($taskData['nextErr']), $taskData['nextErr']) : null;
 
+            // Ако има промяна между съществуващите записи, ще се обновява
             if($taskData['exPrevErrId'] != $prevNewErrId || $taskData['exNextErrId'] != $nextNewErrId){
                 $toUpdate[$taskId] = (object)array('id' => $taskId, 'prevErrId' => $prevNewErrId, 'nextErrId' => $nextNewErrId);
             }
         }
 
+        // Ако има записи за обновяване - обновяват се
         if(countR($toUpdate)){
             $Tasks = cls::get('planning_Tasks');
             $Tasks->saveArray($toUpdate, 'id,prevErrId,nextErrId');
         }
+
+        return $tasksEarliestTime;
+    }
+
+
+    /**
+     * @todo тестово да се махне
+     */
+    public function act_Test()
+    {
+        requireRole('debug');
+
+        $conditions = $this->checkTaskConditions();
+
+        bp($conditions);
     }
 }

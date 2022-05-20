@@ -442,10 +442,10 @@ class planning_Tasks extends core_Master
         }
 
         if(!empty($rec->prevErrId)){
-            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходна операция #{$mvc->getHandle($rec->prevErrId)}", 'error', false);
+            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходна операция #{$mvc->getHandle($rec->prevErrId)}", 'img/16/red-warning.png', false);
         }
         if(!empty($rec->nextErrId)){
-            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следваща операция #{$mvc->getHandle($rec->nextErrId)}", 'error');
+            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следваща операция #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
         }
 
 
@@ -1909,6 +1909,9 @@ class planning_Tasks extends core_Master
                 $origin = doc_Containers::getDocument($rec->originId);
                 $jobProductId = $origin->fetchField('productId');
                 $jobParams = cat_Products::getParams($jobProductId, null, true);
+
+                // da dobavq parametrite ot operaciqta s prioritet pred tezi ot zadanieto
+
                 $displayParams = array_intersect_key($jobParams, $data->listFieldsParams);
                 foreach ($displayParams as $pId => $pValue){
                     $pSuffix = cat_Params::getVerbal($pId, 'suffix');
