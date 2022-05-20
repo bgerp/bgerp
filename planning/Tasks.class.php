@@ -442,15 +442,16 @@ class planning_Tasks extends core_Master
         }
 
         if(!empty($rec->prevErrId)){
-            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходна операция #{$mvc->getHandle($rec->prevErrId)}", 'img/16/red-warning.png', false);
+            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходната операция #{$mvc->getHandle($rec->prevErrId)}", 'img/16/red-warning.png', false);
         }
 
         if(!empty($rec->nextErrId)){
-            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следваща операция #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
+            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следващата операция #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
         }
 
         $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
-        $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName('time(uom=hours)')->toVerbal($expectedDuration);
+        $durationUom = ($expectedDuration < 60) ? 'seconds' : (($expectedDuration < 3600) ? 'minutes' : 'hours');
+        $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName("time(uom={$durationUom},noSmart)")->toVerbal($expectedDuration);
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
@@ -933,7 +934,7 @@ class planning_Tasks extends core_Master
         }
 
         if($action == 'activate' && isset($rec)) {
-            if (!in_array($rec->state, array('pending'))) {
+            if ($rec->state != 'pending') {
                 $requiredRoles = 'no_one';
             }
         }
