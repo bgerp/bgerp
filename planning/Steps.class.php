@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,storeInput,storeIn,fixedAssets,planningParams,employees,labelPackagingId,labelQuantityInPack,labelType,labelTemplate';
+    protected $extenderFields = 'centerId,name,canStore,norm,storeInput,storeIn,fixedAssets,planningParams,employees,interruptOffset,labelPackagingId,labelQuantityInPack,labelType,labelTemplate';
     
     
     /**
@@ -99,6 +99,7 @@ class planning_Steps extends core_Extender
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване в производството->Планиране (Параметри)');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
+        $this->FLD('interruptOffset', 'time', 'caption=Използване в производството->Отместване при прекъсване');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');

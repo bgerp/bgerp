@@ -841,6 +841,7 @@ class planning_AssetResources extends core_Master
         }
 
         // Кои са действията с норми към машината
+        $productsClassId = cat_Products::getClassId();
         $assetNorms = $normsByTask = $notIn = array();
         $normOptions = planning_AssetResourcesNorms::getNormOptions($id, $notIn, true);
         if(countR($normOptions)){
@@ -859,6 +860,17 @@ class planning_AssetResources extends core_Master
                 }
                 $normsByTask[$dRec->taskId] += planning_type_ProductionRate::getInSecsByQuantity($dRec->norm, $dRec->quantity);
             }
+        }
+
+        // Какви са плануваните отмествания при прекъсване
+        $taskProductIds = arr::extractValuesFromArray($tasks, 'productId');
+        $iQuery = planning_Steps::getQuery();
+        $iQuery->where("#classId = {$productsClassId}");
+        $iQuery->show('interruptOffset,objectId');
+        $iQuery->in("objectId", $taskProductIds);
+        $interruptionArr = array();
+        while($iRec = $iQuery->fetch()){
+            $interruptionArr[$iRec->objectId] = $iRec->interruptOffset;
         }
 
         $minDuration = planning_Setup::get('MIN_TASK_DURATION');
@@ -889,8 +901,11 @@ class planning_AssetResources extends core_Master
 
             $updateRecs[$taskRec->id]->durationLeft = $duration;
 
+            // Колко ще е отместването при прекъсване
+            $interruptOffset = array_key_exists($taskRec->productId, $interruptionArr) ? $interruptionArr[$taskRec->productId] : null;
+
             // Прави се опит за добавяне на операцията в графика
-            $timeArr = $Interval->consume($duration);
+            $timeArr = $Interval->consume($duration, null, null, $interruptOffset);
 
             // Ако е успешно записват се началото и края
             if(is_array($timeArr)){

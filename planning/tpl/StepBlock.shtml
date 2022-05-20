@@ -46,6 +46,13 @@
 		</tr>
 		<!--ET_END planning_Steps_norm-->
 
+		<!--ET_BEGIN planning_Steps_interruptOffset-->
+		<tr>
+			<td class='quiet'>|Отместване при прекъсване|*:</td>
+			<td>[#planning_Steps_interruptOffset#]</td>
+		</tr>
+		<!--ET_END planning_Steps_interruptOffset-->
+
 		<!--ET_BEGIN planning_Steps_planningParams-->
 		<tr>
 			<td class='quiet'>|Планиране (Параметри)|*:</td>
