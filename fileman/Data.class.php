@@ -353,8 +353,10 @@ class fileman_Data extends core_Manager
             $rec->links = 0;
             
             // Записваме
-            $res->id = static::save($rec);
-            
+            $res->id = static::save($rec, null, 'IGNORE');
+
+            expect($res->id, $rec, $path);
+
             // Отбелязваме, че е нов файл
             $res->new = true;
         } else {
