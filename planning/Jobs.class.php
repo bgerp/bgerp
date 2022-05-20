@@ -760,11 +760,11 @@ class planning_Jobs extends core_Master
         // Ако има втора мярка
         $coefficient = null;
         if(isset($rec->secondMeasureId)){
-            $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
+            $derivativeMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
             $secondMeasureQuantity = isset($rec->secondMeasureQuantity) ? $rec->secondMeasureQuantity : 0;
 
             // Ако заданието е в нея, ще се показват разменени местата на количествата
-            if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
+            if(array_key_exists($rec->packagingId, $derivativeMeasures)){
                 $secondMeasureQuantity = cat_UoM::convertValue($secondMeasureQuantity, $rec->secondMeasureId, $rec->packagingId);
                 $quantityProduced = $secondMeasureQuantity;
                 $row->quantityProduced = $Double->toVerbal($secondMeasureQuantity);
@@ -811,8 +811,8 @@ class planning_Jobs extends core_Master
         if(!empty($rec->secondMeasureId)){
 
             // Ако заданието е във втората мярка, то ще се показва, че ще се отчита в основната
-            $derivitiveMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
-            if(array_key_exists($rec->packagingId, $derivitiveMeasures)){
+            $derivativeMeasures = cat_UoM::getSameTypeMeasures($rec->secondMeasureId);
+            if(array_key_exists($rec->packagingId, $derivativeMeasures)){
                 $mandatoryMeasure = cat_Products::fetchField($rec->productId, 'measureId');
             } else {
                 $mandatoryMeasure = $rec->secondMeasureId;

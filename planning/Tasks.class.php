@@ -444,10 +444,10 @@ class planning_Tasks extends core_Master
         if(!empty($rec->prevErrId)){
             $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем с предходна операция #{$mvc->getHandle($rec->prevErrId)}", 'img/16/red-warning.png', false);
         }
+
         if(!empty($rec->nextErrId)){
             $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следваща операция #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
         }
-
 
         $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
         $row->expectedDuration = empty($expectedDuration) ? '<span class=quiet>N/A</span>' : core_Type::getByName('time(uom=hours)')->toVerbal($expectedDuration);
@@ -1889,6 +1889,7 @@ class planning_Tasks extends core_Master
             }
         }
 
+        $displayPlanningParamsCount = countR($data->listFieldsParams);
         $enableReorder = isset($data->listFilter->rec->assetId) &&  in_array($data->listFilter->rec->state, array('activeAndPending', 'pending', 'active', 'wakeup')) && countR($data->recs) > 1;
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
@@ -1902,22 +1903,35 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            if(countR($data->listFieldsParams)){
+            if($displayPlanningParamsCount){
 
-                // От ПО се намира артикула от заданието ѝ, извличат се неговите параметри
-                // които са посочени за филтриране от центъра и се показват в таблицата
+                // Кои са параметрите от артикула на заданието за операцията
                 $origin = doc_Containers::getDocument($rec->originId);
                 $jobProductId = $origin->fetchField('productId');
+                $taskDisplayParams = array();
                 $jobParams = cat_Products::getParams($jobProductId, null, true);
+                foreach ($jobParams as $jParamId => $jParamValue){
+                    $taskDisplayParams[$jParamId] = array('value' => $jParamValue, 'type' => 'job');
+                }
 
-                // da dobavq parametrite ot operaciqta s prioritet pred tezi ot zadanieto
+                // Ако в операцията има конкретно избрани параметри - ще се използват те с приоритет
+                $taskParamQuery = cat_products_Params::getQuery();
+                $taskParamQuery->where("#productId = {$rec->id} AND #classId = {$mvc->getClassId()}");
+                while($taskParamRec = $taskParamQuery->fetch()){
+                    $taskParamVal = cat_Params::toVerbal($taskParamRec->paramId, $mvc->getClassId(), $rec->id, $taskParamRec->paramValue);
+                    $taskDisplayParams[$taskParamRec->paramId] = array('value' => $taskParamVal, 'type' => 'task');
+                }
 
-                $displayParams = array_intersect_key($jobParams, $data->listFieldsParams);
-                foreach ($displayParams as $pId => $pValue){
+                // Кои от продуктовите параметри ще се показват в лист изгледа за планиране
+                $displayParams = array_intersect_key($taskDisplayParams, $data->listFieldsParams);
+                foreach ($displayParams as $pId => $pArr){
                     $pSuffix = cat_Params::getVerbal($pId, 'suffix');
-                    $row->{"param_{$pId}"} = $pValue;
+                    $row->{"param_{$pId}"} = $pArr['value'];
                     if(!empty($pSuffix)){
                         $row->{"param_{$pId}"} .= " {$pSuffix}";
+                    }
+                    if($pArr['type'] == 'job'){
+                        $row->{"param_{$pId}"} = "<span style='color:blue'>{$row->{"param_{$pId}"}}</span>";
                     }
                 }
             }
