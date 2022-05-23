@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title, progress, folderId, orderByAssetId, state, modifiedOn, modifiedBy, originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title, progress, folderId, modifiedOn, modifiedBy, originId=@';
     
     
     /**
@@ -273,7 +273,7 @@ class planning_Tasks extends core_Master
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,formOrder=103');
 
-        $this->FLD('expectedTimeStart', 'datetime', 'caption=Планирани времена->Начало,input=none');
+        $this->FLD('expectedTimeStart', 'datetime', 'caption=Планирани времена->Начало,input=none,tdClass=leftCol');
         $this->FLD('expectedTimeEnd', 'datetime', 'caption=Планирани времена->Край,input=none');
 
         $this->FLD('totalQuantity', 'double(smartRound)', 'mandatory,caption=Произвеждане->Количество,after=labelPackagingId,input=none');
@@ -1410,8 +1410,6 @@ class planning_Tasks extends core_Master
                 $mvc->listItemsPerPage = 200;
                 $data->query->where("#assetId = {$filter->assetId}");
                 $orderByField = 'orderByAssetId';
-            } else {
-                unset($data->listFields['orderByAssetId']);
             }
         }
         
