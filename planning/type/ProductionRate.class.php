@@ -198,9 +198,9 @@ class planning_type_ProductionRate extends type_Varchar
     {
         $me = cls::get(get_called_class());
         $parseValue = $me->parseValue($value);
+        $secs = null;
 
-        switch($parseValue['right'])
-        {
+        switch($parseValue['right']){
             case 'secsPer1':
                 $secs = $parseValue['left'] * $quantity;
                 break;

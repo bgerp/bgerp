@@ -1076,7 +1076,7 @@ class core_Html
             if ($appendToEnd === true) {
                 $element = "[#body#] <span class='endTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span>";
             } else {
-                $element = "<span class='frontToolip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
+                $element = "<span class='frontTooltip' style='position: relative; top: 2px;' title='[#hint#]' rel='tooltip'>[#icon#]</span> [#body#]";
             }
         }
         

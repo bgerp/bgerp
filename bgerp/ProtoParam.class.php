@@ -157,7 +157,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
     protected static function on_AfterMakeArray4Select($mvc, &$options, $fields = null, &$where = '', $index = 'id')
     {
         $newOptions = $options;
-        
+
         // Ако има опции
         if (is_array($options)) {
             $newOptions = array();
@@ -181,14 +181,14 @@ abstract class bgerp_ProtoParam extends embed_Manager
                     }
                 }
                 
-                // Махане на гръпата от името
+                // Махане на групата от името
                 $exploded = explode(' » ', $value);
                 $value = (countR($exploded) == 2) ? $exploded[1] : $value;
                 
                 $newOptions[$id] = $value;
             }
         }
-        
+
         $options = $newOptions;
     }
     
@@ -199,11 +199,12 @@ abstract class bgerp_ProtoParam extends embed_Manager
     public function makeArray4Select_($fields = null, $where = '', $index = 'id', $tpl = null)
     {
         $query = static::getQuery();
+        $query->XPR('orderCalc', 'int', "COALESCE(#order, 99999999)");
         if (strlen($where)) {
             $query->where($where);
         }
-        $query->orderBy('group,order', 'ASC');
-        $query->show('name,suffix,group,roles,group');
+        $query->orderBy('group,orderCalc', 'ASC');
+        $query->show('name,suffix,group,roles,group,orderCalc');
         
         $options = array();
         
@@ -211,7 +212,7 @@ abstract class bgerp_ProtoParam extends embed_Manager
             self::$cache[$rec->id] = $rec;
             $options[$rec->{$index}] = self::calcTypeExt($rec);
         }
-        
+
         return $options;
     }
     
@@ -338,10 +339,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
      * @param string      $type    - тип на параметъра
      * @param NULL|string   $options - опции на параметъра само за типовете enum и set
      * @param NULL|string $suffix  - наставка
+     * @param NULL|string $groupName  - група
      *
      * @return stdClass $nRec     - ид на параметъра
      */
-    protected static function makeNewRec($sysId, $name, $type, $options = array(), $suffix = null)
+    protected static function makeNewRec($sysId, $name, $type, $options = array(), $suffix = null, $groupName = null)
     {
         // Проверка дали типа е допустим
         // Подготовка на записа на параметъра
@@ -359,7 +361,11 @@ abstract class bgerp_ProtoParam extends embed_Manager
         if (!empty($suffix)) {
             $nRec->suffix = $suffix;
         }
-        
+
+        if (!empty($groupName)) {
+            $nRec->group = $groupName;
+        }
+
         // Само за типовете enum и set, се искат опции
         if (($Type instanceof cond_type_Enum) || ($Type instanceof cond_type_Set)) {
             $nRec->options = cond_type_abstract_Proto::options2text($options);

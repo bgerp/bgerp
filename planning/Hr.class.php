@@ -414,7 +414,7 @@ class planning_Hr extends core_Master
         if(isset($exIds)) {
             $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
             foreach ($exOptions as $eId) {
-                if (!array_key_exists($eId, $options)) { bp($options, $exIds, $eId, crm_Persons::fetch($eId));
+                if (!array_key_exists($eId, $options)) {
                     $options[$eId] = static::fetchField("#personId = {$eId}", 'code');
                 }
             }

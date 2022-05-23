@@ -46,7 +46,7 @@ class cond_Setup extends core_ProtoSetup
     /**
      * Описание на модула
      */
-    public $info = 'Дефиниции на фирмата';
+    public $info = 'Дефиниции на фирмата (пасажи, диапазони, плащания и др.)';
     
     
     /**

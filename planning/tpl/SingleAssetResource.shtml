@@ -9,6 +9,12 @@
             <div class="fright">[#image#]</div>
             <!--ET_END image-->
             <table>
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        №:
+                    </td>
+                    <td>[#id#]</td>
+                </tr>
                 <!--ET_BEGIN groupId-->
                 <tr>
                     <td class="gray-title aright" style="padding-right: 5px;">
@@ -45,6 +51,25 @@
                     </td>
                     <td>|на|* [#modifiedOn#] |от|* [#modifiedBy#]</td>
                 </tr>
+
+                <!--ET_BEGIN lastRecalcTimes-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Преизчислени времена|*:
+                    </td>
+                    <td>[#lastRecalcTimes#]</td>
+                </tr>
+                <!--ET_END lastRecalcTimes-->
+
+                <!--ET_BEGIN lastReorderedTasks-->
+                <tr>
+                    <td class="gray-title aright" style="padding-right: 5px;">
+                        |Пренаредени операции|*:
+                    </td>
+                    <td>[#lastReorderedTasks#]</td>
+                </tr>
+                <!--ET_END lastReorderedTasks-->
+
                 <!--ET_BEGIN description-->
                 <tr>
                     <td colspan = "2">[#description#]</td>
@@ -52,33 +77,6 @@
                 <!--ET_END description-->
             </table>
         </fieldset>
-        <!--ET_BEGIN jobs-->
-        <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
-            <legend class="groupTitle">|Задачи|*</legend>
-            <ul>
-                <!--ET_BEGIN assetFolderTasks-->
-                <li class="info">
-                    [#assetFolderTasks#]
-                </li>
-                <!--ET_END assetFolderTasks-->
-            </ul>
-        </fieldset>
-        [#jobs#]
-        <!--ET_END jobs-->
-
-        <!--ET_BEGIN issues-->
-        <fieldset class="detail-info" style="margin-top: 20px; line-height: 120%">
-            <legend class="groupTitle">|Поддръжка|*</legend>
-            <table>
-                <!--ET_BEGIN systemFolderId-->
-                <tr>
-                    <td colspan="2">[#systemFolderId#]</td>
-                </tr>
-                <!--ET_END systemFolderId-->
-            </table>
-        </fieldset>
-        [#issues#]
-        <!--ET_END issues-->
        
         <!--ET_BEGIN sensors-->
         <div class="scrolling-holder">
@@ -111,16 +109,6 @@
                 </div>
             </fieldset>
         </div>
-
-        <!--ET_BEGIN Tasks-->
-        <div class="scrolling-holder">
-            <fieldset class="detail-info" style="margin-top: 20px;">
-                <legend class="groupTitle">|Производствени операции|*</legend>
-                <div class="scrolling-holder">
-                    [#Tasks#]
-                </div>
-            </fieldset>
-        </div>
-        <!--ET_END Tasks-->
+        [#DETAILS#]
     </div>
 </div>

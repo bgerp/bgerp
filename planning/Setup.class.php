@@ -104,6 +104,12 @@ defIfNot('PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID', '');
 
 
 /**
+ * Минимално време за продължителност на ПО
+ */
+defIfNot('PLANNING_MIN_TASK_DURATION', 5*60);
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -168,6 +174,22 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
+        'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
+    );
+
+
+    /**
+     * Настройки за Cron
+     */
+    public $cronSettings = array(
+        array(
+            'systemId' => 'Recalc Task Start Times',
+            'description' => 'Преизчисляване на началото на производствени операции',
+            'controller' => 'planning_AssetResources',
+            'action' => 'RecalcTaskTimes',
+            'period' => 2,
+            'timeLimit' => 30,
+        ),
     );
 
 
@@ -196,8 +218,10 @@ class planning_Setup extends core_ProtoSetup
         'planning_WorkCards',
         'planning_Points',
         'planning_GenericMapper',
+        'planning_StepConditions',
         'migrate::updatePlanningStages1',
-        'migrate::updateTaskAssets'
+        'migrate::updateTaskAssets',
+        'migrate::reorderTasks2'
     );
     
     
@@ -335,5 +359,36 @@ class planning_Setup extends core_ProtoSetup
         if(countR($arr)){
             $Tasks->saveArray($arr, 'id,assetId');
         }
+    }
+
+
+    /**
+     * Преподредба на операциите към оборудванията
+     */
+    public function reorderTasks2()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+
+        // Кои оборудвания са към операции
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
+        $tQuery->where('#assetId IS NOT NULl');
+        $tQuery->show('assetId');
+
+        // Ако има такива
+        $assets = arr::extractValuesFromArray($tQuery->fetchAll(), 'assetId');
+        if(!countR($assets)) return;
+
+        // Нулиране на подредбата на всички ПО
+        $lastUpdatedColName = str::phpToMysqlName('orderByAssetId');
+        $query = "UPDATE {$Tasks->dbTableName} SET {$lastUpdatedColName} = NULL";
+        $Tasks->db->query($query);
+
+        // За всяко оборудване с операция - преизчислява се подредбата
+        foreach ($assets as $assetId){
+            planning_AssetResources::reOrderTasks($assetId);
+        }
+
     }
 }
