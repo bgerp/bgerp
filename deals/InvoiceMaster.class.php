@@ -546,7 +546,7 @@ abstract class deals_InvoiceMaster extends core_Master
         
         // Ако има Авансово плащане може да се активира
         if (isset($rec->dpAmount)) {
-            $res = (round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)) ? false : true;
+            $res = !((round($rec->dealValue, 2) < 0 || is_null($rec->dealValue)));
             
             return;
         }
@@ -611,6 +611,8 @@ abstract class deals_InvoiceMaster extends core_Master
                     $rec->additionalInfo .= "\n" . $handle;
                     $mvc->save_($rec, 'additionalInfo');
                 }
+            } elseif($rec->importProducts == 'none') {
+                unset($Source);
             } else {
                 $Source = static::getOrigin($rec);
             }

@@ -155,4 +155,18 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
 
         return $res;
     }
+
+
+    /**
+     * Какви са детайлите на драйвера
+     *
+     * @param stdClass $rec
+     * @param embed_Manager $Embedder
+     *
+     * @return array()
+     */
+    public function getDetails($rec, embed_Manager $Embedder)
+    {
+        return array('planning_StepConditions' => 'planning_StepConditions');
+    }
 }

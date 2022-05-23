@@ -527,19 +527,34 @@ class store_StockPlanning extends core_Manager
 
 
     /**
-     * Тестов екшън
+     * Връща записите отговарящи на условията
      *
-     * @todo да се махне след като не е нужно
+     * @param int         $productId - ид на артикул
+     * @param null|array  $stores    - складове или null за всички
+     * @param date        $toDate    - към коя дата
+     * @param string|null $field     - кое поле или и двете
+     * @return array
      */
-    function act_Test()
+    public static function getRecs($productId, $stores, $toDate, $field = null)
     {
-        requireRole('debug');
-        $daysForward = 14;
-        $storeId = 21;
-        $needed = array('4331' => 1, '38' => 2, '4355' => 80, '4756' => 4, '4771' => 200);
+        $end = (strlen($toDate) == 10) ? "{$toDate} 23:59:59" : $toDate;
+        $query = static::getQuery();
+        $query->where("#productId = {$productId} AND #date <= '{$end}'");
+        if(isset($stores)){
+            $query->in('storeId', $stores);
+        }
 
-        $earliestDate = static::getEarliestDateAllAreAvailable($storeId, $needed, $daysForward);
-        bp($earliestDate);
+        if($field){
+            $quantityField = (strpos($field, 'reserved') !== false) ? 'quantityOut' : 'quantityIn';
+            $query->where("#{$quantityField} IS NOT NULL");
+        } else {
+            $query->where("#quantityOut IS NOT NULL OR #quantityIn IS NOT NULL");
+        }
+
+        $query->EXT('measureId', 'cat_Products', 'externalKey=productId');
+        $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId');
+
+        return $query->fetchAll();
     }
 }
 

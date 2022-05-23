@@ -335,7 +335,7 @@ class frame_Reports extends core_Embedder
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашата справка ') . ': #[#handle#]');
+        $tpl = new ET(tr('Моля, запознайте се с нашата справка ') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();

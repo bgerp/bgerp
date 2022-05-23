@@ -70,6 +70,7 @@ class planning_plg_StateManager extends core_Plugin
         if (isset($mvc->demandReasonChangeState)) {
             $mvc->demandReasonChangeState = arr::make($mvc->demandReasonChangeState, true);
         }
+        $mvc->setDbIndex('timeClosed');
     }
     
     
@@ -316,6 +317,7 @@ class planning_plg_StateManager extends core_Plugin
             case 'wakeup':
                 $rec->brState = $rec->state;
                 $rec->state = 'wakeup';
+                $rec->timeClosed = null;
                 $logAction = 'Събуждане';
                 break;
             case 'activateAgain':

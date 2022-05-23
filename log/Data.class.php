@@ -908,4 +908,33 @@ class log_Data extends core_Manager
         $rec->timeLimit = 400;
         $res .= core_Cron::addOnce($rec);
     }
+
+
+    /**
+     * Помощна ф-я кога дадения обект е последно видян от потребител
+     *
+     * @param mixed $classId  - клас
+     * @param mixed $objectId - ид на запис или обект
+     *
+     * @return datetime|NULL - на коя дата
+     */
+    public static function getLastSeenByUser($classId, $objectId)
+    {
+        $Class = cls::get($classId);
+        $objectRec = $Class->fetchRec($objectId, 'id,threadId');
+
+        // Нишката посещавана ли е
+        $oRecs = log_Data::getObjectRecs('doc_Threads', $objectRec->threadId, 'read', null, 1, 'DESC');
+        $lastDate1 = $oRecs[key($oRecs)]->time;
+
+        // Сингъла посещаван ли е
+        $oRecs1 = log_Data::getObjectRecs($Class->className, $objectRec->id, 'read', null, 1, 'DESC');
+        $lastDate2 = $oRecs[key($oRecs1)]->time;
+
+        // По-голямата дата от двете
+        $maxDate = max($lastDate1, $lastDate2);
+        $lastUsedDate = !empty($maxDate) ? dt::timestamp2Mysql($maxDate) : null;
+
+        return $lastUsedDate;
+    }
 }

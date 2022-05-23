@@ -346,23 +346,18 @@ class acc_plg_DocumentSummary extends core_Plugin
                     if(in_array($filter->filterDateField, $userFields)){
                         $data->query->where("#{$filter->filterDateField} IN ({$userArr})");
                     } else {
-                        
+                        $map = array('createdOn' => 'createdBy', 'modifiedOn' => 'modifiedBy', 'activatedOn' => 'activatedBy');
+                        $useUserField = isset($map[$filter->filterDateField]) ? $map[$filter->filterDateField] : $mvc->filterFieldUsers;
                         if(isset($mvc->filterFieldUsers)){
-                            $data->query->where("#{$mvc->filterFieldUsers} IN ({$userArr})");
-                        }
-                        
-                        // Ако полето за филтриране по потребител нее създателя, добавяме и към него
-                        if(isset($mvc->fields['createdBy'])){
-                            if (isset($mvc->filterFieldUsers) && $mvc->filterFieldUsers != 'createdBy') {
+                            $data->query->where("#{$useUserField} IN ({$userArr})");
+                            if(!isset($map[$filter->filterDateField])){
                                 $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
-                            } elseif(!isset($mvc->filterFieldUsers)){
-                                $data->query->where("#createdBy IN ({$userArr})");
                             }
                         }
                     }
                 }
             }
-            
+
             $dateRange = array();
             
             if ($filter->from) {

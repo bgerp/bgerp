@@ -339,7 +339,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     {
         $res = '';
         $tplArr = array();
-        $tplArr[] = array('name' => 'Потвърждения за вътрешнообщностна доставка', 'content' => 'trans/tpl/SingleLayoutIntraCommunitySupplyConfirmations.shtml', 'lang' => 'bg', 'narrowContent' => null);
+        $tplArr[] = array('name' => 'Потвърждения за вътрешнообщностна доставка', 'content' => 'trans/tpl/SingleLayoutIntraCommunitySupplyConfirmations.shtml', 'lang' => 'en', 'narrowContent' => null);
         $res .= doc_TplManager::addOnce($this, $tplArr);
 
         return $res;
@@ -359,8 +359,7 @@ class trans_IntraCommunitySupplyConfirmations extends trans_abstract_ShipmentDoc
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $singleTitle = mb_strtolower($this->singleTitle);
-        $tpl = new ET(tr("Моля запознайте се с нашето {$singleTitle}") . ': #[#handle#]');
+        $tpl = new ET(tr("Моля, запознайте се с нашето потвърждение за ВОД") . ': #[#handle#]');
         $tpl->append($handle, 'handle');
 
         return $tpl->getContent();

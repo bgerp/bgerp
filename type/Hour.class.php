@@ -44,7 +44,7 @@ class type_Hour extends type_Varchar
     {
         $value = trim($value);
         if($value){
-            if(!preg_match("/^(?:2[0-4]|[01][1-9]|10):([0-5][0-9])$/", $value)){
+            if(!preg_match("/^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/", $value)){
                 $this->error = 'Невалиден формат за час';
 
                 return false;

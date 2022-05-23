@@ -701,13 +701,8 @@ class frame2_Reports extends embed_Manager
             
             // Ако справката сега е създадена да не се обновява
             if ($rec->__isCreated === true) return;
-            
-            // Кога последно е видяна от потребител справката
-            $lastSeen = self::getLastSeenByUser(__CLASS__, $rec);
-            $seenBefore = frame2_Setup::get('CLOSE_LAST_SEEN_BEFORE');
-            $seenBefore = dt::addSecs(-1 * $seenBefore);
 
-            if ($lastSeen <= $seenBefore) {
+            if ($Driver->canCloseAfterRefresh($rec)) {
 
                 // Ако е последно видяна преди зададеното време да се затваря и да не се обновява повече
                 $newState = 'closed';
@@ -1215,35 +1210,6 @@ class frame2_Reports extends embed_Manager
     
     
     /**
-     * Помощна ф-я кога дадения обект е последно видян от потребител
-     *
-     * @param mixed $classId  - клас
-     * @param mixed $objectId - ид на запис или обект
-     *
-     * @return datetime|NULL - на коя дата
-     */
-    private static function getLastSeenByUser($classId, $objectId)
-    {
-        $Class = cls::get($classId);
-        $objectRec = $Class->fetchRec($objectId, 'id,threadId');
-        
-        // Нишката посещавана ли е
-        $oRecs = log_Data::getObjectRecs('doc_Threads', $objectRec->threadId, 'read', null, 1, 'DESC');
-        $lastDate1 = $oRecs[key($oRecs)]->time;
-        
-        // Сингъла посещаван ли е
-        $oRecs1 = log_Data::getObjectRecs($Class->className, $objectRec->id, 'read', null, 1, 'DESC');
-        $lastDate2 = $oRecs[key($oRecs1)]->time;
-        
-        // По-голямата дата от двете
-        $maxDate = max($lastDate1, $lastDate2);
-        $lastUsedDate = !empty($maxDate) ? dt::timestamp2Mysql($maxDate) : null;
-        
-        return $lastUsedDate;
-    }
-    
-    
-    /**
      * Кои са достъпните шаблони за печат на етикети
      * 
      * @param int $id     - ид на обекта
@@ -1294,7 +1260,7 @@ class frame2_Reports extends embed_Manager
     public function getDefaultEmailBody($id, $forward = false)
     {
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашата справка:') . '#[#handle#]');
+        $tpl = new ET(tr('Моля, запознайте се с нашата справка:') . '#[#handle#]');
         $tpl->append($handle, 'handle');
         
         return $tpl->getContent();
