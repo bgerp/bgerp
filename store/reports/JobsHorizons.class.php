@@ -445,11 +445,18 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $recs = array();
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
-
+                $markFirst = 1;
 
                foreach ($dRec->documentsReserved as $docReserved){
                    $dCloneRec = clone $dRec;
+
                    $document= cls::get($docReserved->sourceClassId)->abbr.$docReserved->sourceId;
+
+                   if($markFirst == 1){
+                       $dCloneRec->markFirst = true;
+                   }else{
+                       $dCloneRec->markFirst = false;
+                   }
 
                    $dCloneRec->date = $docReserved->date;
                    $dCloneRec->document = $document;
@@ -458,6 +465,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                    $recs[]=  $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
+                   $markFirst++;
 
                }
 
@@ -503,9 +511,24 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
-        $res->productId = $pRec->name;
+        if ($dRec->markFirst){
+            $res->productId = $pRec->name;
+            $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
+            $res->quantity = $Double->toVerbal($dRec->quantity);
+            $res->free = $Double->toVerbal($dRec->free);
+            $res->expected = $Double->toVerbal($dRec->expected);
+            $res->reserved = $Double->toVerbal($dRec->reserved);
+        }else{
+            $res->productId = '';
+            $res->code = '';
+            $res->quantity = '';
+            $res->free = '';
+            $res->expected = '';
+            $res->reserved = '';
+        }
 
-        $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
+
+
 
         if ($dRec->measure) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
@@ -513,10 +536,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $res->date =$Date->toVerbal($dRec->date);
 
-        $res->quantity = $Double->toVerbal($dRec->quantity);
-        $res->free = $Double->toVerbal($dRec->free);
-        $res->expected = $Double->toVerbal($dRec->expected);
-        $res->reserved = $Double->toVerbal($dRec->reserved);
+
         $res->docExpectedQuantyti = $Double->toVerbal($dRec->docExpectedQuantyti);
         $res->docReservedQuantyti = $Double->toVerbal($dRec->docReservedQuantyti);
 
