@@ -26,12 +26,6 @@ class planning_Terminal extends peripheral_Terminal
      * Име на източника
      */
     protected $clsName = 'planning_Points';
-    
-    
-    /**
-     * Полета
-     */
-    protected $fieldArr = array('centerId', 'fixedAssets', 'employees');
 
     
     /**
@@ -284,7 +278,8 @@ class planning_Terminal extends peripheral_Terminal
         $data->query->where("#folderId = {$folderId} AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped' AND #state != 'draft'");
         $data->query->orderBy('id', "DESC");
         if(!empty($rec->fixedAssets)){
-            $data->query->likeKeylist('fixedAssets', $rec->fixedAssets);
+            $assets = keylist::toArray($rec->fixedAssets);
+            $data->query->in('assetId', $assets);
         }
         
         Mode::push('text', 'xhtml');
@@ -797,8 +792,8 @@ class planning_Terminal extends peripheral_Terminal
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
-        $verbalAsset = strip_tags(core_Type::getByName('keylist(mvc=planning_AssetResources,makeLinks=hyperlink)')->toVerbal($rec->fixedAssets));
-        
+        $verbalAsset = strip_tags(core_Type::getByName('key(mvc=planning_AssetResources,makeLinks=hyperlink)')->toVerbal($rec->fixedAssets));
+
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($rec->name, 'name');
         $tpl->replace($rec->id, 'id');
@@ -809,7 +804,7 @@ class planning_Terminal extends peripheral_Terminal
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y'), 'date');
         $tpl->replace(strip_tags(crm_Profiles::createLink()), 'userId');
         $img = ht::createImg(array('path' => 'img/16/logout-white.png'));
-        
+
         $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => array('core_Users', 'login')), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Подготовка на урл-тата на табовете
