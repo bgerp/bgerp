@@ -3240,7 +3240,7 @@ class cat_Products extends embed_Manager
                 
                 $obj->title = cat_Products::getTitleById($dRec->resourceId);
                 $obj->measureId = $row->packagingId;
-                $obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
+                $obj->quantity = $dRec->rowQuantity;
                 
                 $obj->level = substr_count($obj->code, '.');
                 $obj->titleClass = 'product-component-title';
@@ -3258,7 +3258,9 @@ class cat_Products extends embed_Manager
                         $obj->quantity *= $res[$obj->parent]->quantity;
                     }
                 } else {
-                    $obj->quantity *= $qQuantity;
+                    if ($obj->quantity != cat_BomDetails::CALC_ERROR) {
+                        $obj->quantity *= $qQuantity;
+                    }
                 }
                 
                 if ($dRec->description) {
