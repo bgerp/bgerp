@@ -180,6 +180,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $expected = $Quantities->expected;
             $free = $Quantities->free;
 
+            $documentsReserved = store_StockPlanning::getRecs($sRec->productId,null,$rec->date,'reserved');
+            $documentsExpected = store_StockPlanning::getRecs($sRec->productId,null,$rec->date,'expected');
+
             $code = ($sRec->code) ?: 'Art' . $sRec->productId;
 
             $recs[$id] = (object)array(
@@ -190,6 +193,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                 'expected' => $expected,
                 'free' => $free,
                 'code' => $code,
+                'documentsReserved' => $documentsReserved,
+                'documentsExpected' => $documentsExpected,
 
             );
 
@@ -223,16 +228,22 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('reserved', 'varchar', 'caption=Количество->Запазено,smartCenter');
             $fld->FLD('expected', 'varchar', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
-            $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
+            if (core_Users::haveRole('debug')) {
+                $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
+            }
 
         } else {
             $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
+            $fld->FLD('document', 'varchar', 'caption=Документ,tdClass=centered');
+            $fld->FLD('date', 'varchar', 'caption=Падеж,tdClass=centered');
+            $fld->FLD('docReservedQuantyti', 'varchar', 'caption=Количество->Запазено,smartCenter');
+            $fld->FLD('docExpectedQuantyti', 'varchar', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
-            $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
-            $fld->FLD('reserved', 'varchar', 'caption=Количество->Запазено,smartCenter');
-            $fld->FLD('expected', 'varchar', 'caption=Количество->Очаквано,smartCenter');
-            $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
+            $fld->FLD('quantity', 'varchar', 'caption=Количество Общо->Налично,smartCenter');
+            $fld->FLD('reserved', 'varchar', 'caption=Количество Общо->Запазено,smartCenter');
+            $fld->FLD('expected', 'varchar', 'caption=Количество Общо->Очаквано,smartCenter');
+            $fld->FLD('free', 'varchar', 'caption=Количество Об що->Разполагаемо,smartCenter');
 
         }
 
@@ -262,10 +273,14 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row = new stdClass();
 
         $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
+
+
         $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
 
         $row->quantity = $Double->toVerbal($dRec->quantity);
         $row->quantity = ht::styleIfNegative($row->quantity, $dRec->quantity);
+
+
 
         $row->reserved = $Double->toVerbal($dRec->reserved);
         $row->reserved = ht::styleIfNegative($row->reserved, $dRec->reserved);
@@ -297,8 +312,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->free = $Double->toVerbal($dRec->free);
         $row->free = ht::styleIfNegative($row->free, $dRec->free);
 
-        $row->delrow = '';
-        $row->delrow .= ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
+
+            $row->delrow = '';
+            $row->delrow .= ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
 
 
         return $row;
@@ -423,8 +439,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     public function getExportRecs($rec, $ExportClass)
     {
 
-        $exportFilterArr = explode(',', $rec->exportFilter);
-
         expect(cls::haveInterface('export_ExportTypeIntf', $ExportClass));
         $recsToExport = $this->getRecsForExport($rec, $ExportClass);
 
@@ -432,11 +446,38 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                if ($rec->exportFilter && in_array($dRec->conditionQuantity, $exportFilterArr)) {
-                    $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
-                } elseif (!$rec->exportFilter) {
-                    $recs[] = $this->getExportRec($rec, $dRec, $ExportClass);
+
+               foreach ($dRec->documentsReserved as $docReserved){
+                   $dCloneRec = clone $dRec;
+                   $document= cls::get($docReserved->sourceClassId)->abbr.$docReserved->sourceId;
+
+                   $dCloneRec->date = $docReserved->date;
+                   $dCloneRec->document = $document;
+                   $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
+                   unset ($dCloneRec->documentsReserved,$dCloneRec->documentsExpected);
+
+                   $recs[]=  $this->getExportRec($rec, $dCloneRec, $ExportClass);
+
+
+               }
+
+                foreach ($dRec->documentsExpected as $docExpected){
+
+                    $dCloneRec = clone $dRec;
+
+                    $Document = cls::get($docExpected->sourceClassId)->abbr.$docExpected->sourceId;
+
+                    $dCloneRec->date = $docExpected->date;
+                    $dCloneRec->document = $Document;
+                    $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
+
+                    unset ($dCloneRec->documentsExpected,$dCloneRec->documentsExpected);
+
+                    $recs[]= $this->getExportRec($rec, $dCloneRec, $ExportClass);
+
+
                 }
+
 
             }
         }
@@ -456,7 +497,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
 
-        $orderArr = self::getPacksForOrder($dRec, $rec);
+        $Date = cls::get('type_Date');
+        $Double = cls::get('type_Double');
+        $Double->params['decimals'] = 2;
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
@@ -464,18 +507,19 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
 
-        $res->suggQuantity = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->suggQuantity);
-
-        $res->packOrder = core_Type::getByName('double(smartRound,decimals=3)')->toVerbal($orderArr->packOrder);
-
-        if ($dRec->orderMeasure) {
-            $res->orderMeasure = cat_UoM::fetchField($dRec->orderMeasure, 'shortName');
-        } else {
-            $res->orderMeasure = cat_UoM::fetchField($dRec->measure, 'shortName');
-        }
-        if ($dRec->orderMeasure) {
+        if ($dRec->measure) {
             $res->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
         }
+
+        $res->date =$Date->toVerbal($dRec->date);
+
+        $res->quantity = $Double->toVerbal($dRec->quantity);
+        $res->free = $Double->toVerbal($dRec->free);
+        $res->expected = $Double->toVerbal($dRec->expected);
+        $res->reserved = $Double->toVerbal($dRec->reserved);
+        $res->docExpectedQuantyti = $Double->toVerbal($dRec->docExpectedQuantyti);
+        $res->docReservedQuantyti = $Double->toVerbal($dRec->docReservedQuantyti);
+
     }
 
     /**
