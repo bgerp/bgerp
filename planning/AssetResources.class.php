@@ -844,6 +844,8 @@ class planning_AssetResources extends core_Master
         $productsClassId = cat_Products::getClassId();
         $assetNorms = $normsByTask = $notIn = array();
         $normOptions = planning_AssetResourcesNorms::getNormOptions($id, $notIn, true);
+        $rec = static::fetchRec($id);
+
         if(countR($normOptions)){
             // Извличане от опциите само имената - без групите
             $taskIds = arr::extractValuesFromArray($tasks, 'id');
@@ -885,7 +887,8 @@ class planning_AssetResources extends core_Master
                 $indQuantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"] : 1;
                 $quantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->measureId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->measureId}"] : 1;
                 $calcedPlannedQuantity = $taskRec->plannedQuantity * $quantityInPack;
-                $duration = ($taskRec->indTime / $indQuantityInPack) * $calcedPlannedQuantity;
+
+                $duration = (($taskRec->indTime / $rec->simultaneity) / $indQuantityInPack) * $calcedPlannedQuantity;
             }
 
             // От продължителността, се приспада произведеното досега

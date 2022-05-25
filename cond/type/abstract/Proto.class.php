@@ -51,14 +51,15 @@ abstract class cond_type_abstract_Proto extends core_BaseClass
     public function addFields(core_Fieldset &$fieldset)
     {
     }
-    
-    
+
+
     /**
      * Преди показване на форма за добавяне/промяна.
      *
      * @param cond_type_abstract_Proto $Driver
-     * @param embed_Manager            $Embedder
-     * @param stdClass                 $data
+     * @param embed_Manager $Embedder
+     * @param $form
+     * @return void
      */
     public static function on_AfterInputEditForm(cond_type_abstract_Proto $Driver, embed_Manager $Embedder, &$form)
     {
