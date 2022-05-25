@@ -318,15 +318,32 @@ class cal_Reminders extends core_Master
             $data->form->setDefault('timeStart', $time);
             $data->form->setDefault('title', $title);
             $data->form->setDefault('priority', 'normal');
-            $data->form->setDefault('sharedUsers', '|'.$cu.'|');
         }
         
         if (Mode::is('screenMode', 'narrow')) {
             $data->form->fields['priority']->maxRadio = 2;
         }
     }
-    
-    
+
+
+    /**
+     *
+     * @param core_Mvc   $mvc
+     * @param NULL|array $res
+     * @param stdClass   $rec
+     * @param array      $otherParams
+     */
+    public function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
+    {
+        $res = arr::make($res);
+
+        if (empty((array) $res['sharedUsers'])) {
+            $cu = core_Users::getCurrent();
+            $res['sharedUsers'][$cu] = $cu;
+        }
+    }
+
+
     /**
      * Проверява и допълва въведените данни от 'edit' формата
      */
