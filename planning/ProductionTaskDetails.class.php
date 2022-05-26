@@ -824,7 +824,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $data->query->where("#fixedAsset = '{$filter->fixedAsset}'");
             }
             if (!empty($filter->employees)) {
-                $data->query->where("LOCATE('|{$filter->employees}|', #employees)");
+                $data->query->likeKeylist("employees", $filter->employees);
             }
             
             if (!empty($filter->serial)) {
