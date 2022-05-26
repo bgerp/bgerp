@@ -639,6 +639,20 @@ class planning_Tasks extends core_Master
 
             if(!$form->gotErrors()){
                 $rec->_fromForm = true;
+
+                // Ако не е въведено точен час се добавя началото на работното време на машината
+                if(!empty($rec->timeStart) && isset($rec->assetId)){
+                    if (strpos($rec->timeStart, ' 00:00:00') !== false) {
+                        if($scheduleId = planning_AssetResources::getScheduleId($rec->assetId)){
+                            $timeStartDate = dt::verbal2mysql($rec->timeStart, false);
+                            $startTimes = hr_Schedules::getStartingTimes($scheduleId, $timeStartDate, $timeStartDate);
+                            if(isset($startTimes[$timeStartDate])){
+                                $rec->timeStart = str_replace(' 00:00:00', " {$startTimes[$timeStartDate]}", $rec->timeStart);
+                            }
+                        }
+                    }
+                }
+
                 if($whenToUnsetStartAfter){
                     $rec->startAfter = null;
                 }
