@@ -464,8 +464,6 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                 }
             }
-
-            bp($data->query->where);
         }
     }
     
