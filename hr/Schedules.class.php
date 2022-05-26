@@ -296,12 +296,24 @@ class hr_Schedules extends core_Master
 
 
     /**
+     * Кой е дефолтния график
+     *
+     * @param int $id
+     * @return mixed
+     */
+    public static function getDefaultScheduleId()
+    {
+        return hr_Schedules::fetchField("#sysId = 'dayShift'");
+    }
+
+
+    /**
      * Връща началните часове за всеки ден от посочения интервал
      */
     public static function getStartingTimes($id, $from, $to)
     {
         if(!$id) {
-            $id = self::fetchField("#sysId = 'dayShift'", 'id');
+            $id = self::getDefaultScheduleId();
         }
 
         $res = array();
