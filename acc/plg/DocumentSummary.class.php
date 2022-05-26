@@ -102,12 +102,11 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->filterDateField, 'valior');
         setIfNot($mvc->filterCurrencyField, 'currencyId');
         setIfNot($mvc->rememberListFilterFolderId, false);
-        if(isset($mvc->fields['createdBy'])) {
-            setIfNot($mvc->filterFieldUsers, 'createdBy');
-        }
+        setIfNot($mvc->filterFieldUsers, 'createdBy');
         setIfNot($mvc->termDateFld, null);
         setIfNot($mvc->showNullDateFields, false);
-        
+
+
         $mvc->filterRolesForTeam .= ',' . acc_Setup::get('SUMMARY_ROLES_FOR_TEAMS');
         $mvc->filterRolesForTeam = trim($mvc->filterRolesForTeam, ',');
         $rolesForTeamsArr = arr::make($mvc->filterRolesForTeam, true);
@@ -348,11 +347,10 @@ class acc_plg_DocumentSummary extends core_Plugin
                     } else {
                         $map = array('createdOn' => 'createdBy', 'modifiedOn' => 'modifiedBy', 'activatedOn' => 'activatedBy');
                         $useUserField = isset($map[$filter->filterDateField]) ? $map[$filter->filterDateField] : $mvc->filterFieldUsers;
-                        if(isset($mvc->filterFieldUsers)){
-                            $data->query->where("#{$useUserField} IN ({$userArr})");
-                            if(!isset($map[$filter->filterDateField])){
-                                $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
-                            }
+
+                        $data->query->where("#{$useUserField} IN ({$userArr})");
+                        if(!isset($map[$filter->filterDateField])){
+                            $data->query->orWhere("#{$mvc->filterFieldUsers} IS NULL AND #createdBy IN ({$userArr})");
                         }
                     }
                 }
@@ -466,6 +464,8 @@ class acc_plg_DocumentSummary extends core_Plugin
                     }
                 }
             }
+
+            bp($data->query->where);
         }
     }
     
