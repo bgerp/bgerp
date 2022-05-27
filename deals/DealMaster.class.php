@@ -403,7 +403,7 @@ abstract class deals_DealMaster extends deals_DealBase
         }
         
         $title = "{$abbr}{$rec->id}/{$contragent}";
-        
+
         // Показване и на артикула с най-голяма стойност в продажбата
         if (!empty($rec->reff)) {
             $title .= "/{$rec->reff}";
