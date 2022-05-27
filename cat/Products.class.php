@@ -2284,7 +2284,8 @@ class cat_Products extends embed_Manager
             if ($originalName == $part) {
                 $part = core_Lg::transliterate($part);
             }
-            
+            $part = type_Varchar::escape($part);
+
             return false;
         } elseif ($field == 'code') {
             if (!is_object($rec) && type_Int::isInt($rec)) {
