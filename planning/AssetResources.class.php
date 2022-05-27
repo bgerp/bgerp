@@ -915,14 +915,25 @@ class planning_AssetResources extends core_Master
 
         // Преподреждане по изчислените времена
         $newOrder = 1;
-        foreach ($updateRecs as $uRec){
+        $prevId = null;
+        foreach ($updateRecs as $index => $uRec){
+            $uRec->freeTimeAfter = 'no';
+
+            // Между началото на тази и предишната има интервал над определеното дига се флаг, че има дупка
+            if(isset($prevId)){
+                $betweenInSec = dt::secsBetween($uRec->expectedTimeStart, $updateRecs[$prevId]->expectedTimeEnd);
+                if($betweenInSec > 15 * 60){
+                    $updateRecs[$prevId]->freeTimeAfter = 'yes';
+                }
+            }
             $uRec->orderByAssetId = $newOrder;
             $newOrder++;
+            $prevId = $index;
         }
 
         // Запис на преизчислените начала и краища на операциите
         $Tasks = cls::get('planning_Tasks');
-        $Tasks->saveArray($updateRecs, 'id,expectedTimeStart,expectedTimeEnd,orderByAssetId');
+        $Tasks->saveArray($updateRecs, 'id,freeTimeAfter,expectedTimeStart,expectedTimeEnd,orderByAssetId');
 
         // Записване на времето за обновяване
         $me = cls::get(get_called_class());

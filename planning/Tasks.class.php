@@ -247,7 +247,7 @@ class planning_Tasks extends core_Master
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=Производство->К-во в мярка,input=none');
 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Производство->Склад,input=none');
-        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Производство->Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|allowedInputProducts');
+        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Производство->Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|allowedInputProducts|freeTimeAfter');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Производство->Оператори');
         $this->FNC('startAfter', 'varchar', 'caption=Производство->Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
@@ -287,6 +287,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('prevErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Предишна грешка');
         $this->FLD('nextErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Следваща грешка');
+        $this->FLD('freeTimeAfter', 'enum(yes,no)', 'input=none,notNull,value=no');
 
         $this->setDbIndex('productId');
         $this->setDbIndex('assetId,orderByAssetId');
@@ -447,6 +448,10 @@ class planning_Tasks extends core_Master
 
         if(!empty($rec->nextErrId)){
             $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има проблем със следващата операция #{$mvc->getHandle($rec->nextErrId)}", 'img/16/red-warning.png');
+        }
+
+        if($rec->freeTimeAfter == 'yes'){
+            $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има свободно време между края на тази операция и началото на следващата|*!", 'warning');
         }
 
         $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
@@ -2154,5 +2159,7 @@ class planning_Tasks extends core_Master
             }
             $rec->state =  (empty($rec->timeDuration) && empty($rec->assetId)) ? 'waiting' : 'pending';
         }
+
+        $rec->freeTimeAfter = 'no';
     }
 }
