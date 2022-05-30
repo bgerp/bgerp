@@ -120,14 +120,14 @@ class core_Intervals {
             $new[0] = max(isset($begin) ? $begin : PHP_INT_MIN, $int[0]);
 
             // До къде можем да консумираме
-            $new[1] = min(isset($end) ? $end : PHP_INT_MAX, $int[1], $int[0] + $duration - 1);
+            $new[1] = min(isset($end) ? $end : PHP_INT_MAX, $int[1], $new[0] + $duration - 1);
 
             $add = array_merge($add, self::getDiff($int, $new));
 
             $min = isset($min) ? min($min, $new[0]) : $new[0];
             $max = isset($max) ? max($max, $new[1]) : $new[1];
 
-            $duration -= $new[1] - $new[0] + 1;         
+            $duration -= $new[1] - $new[0] + 1;
         }
 
         $this->data = $this->combine($last, $add, $first);
