@@ -1634,7 +1634,7 @@ class cat_Products extends embed_Manager
         $mArr = array();
 
         // Подготвяне на опциите
-        $showFields = 'isPublic,folderId,meta,id,code,name,nameEn,state';
+        $showFields = 'isPublic,folderId,meta,id,code,name,nameEn,state,measureId,innerClass';
         if (isset($params['listId'])) {
             $showFields .= ",reff";
         }
@@ -1644,6 +1644,19 @@ class cat_Products extends embed_Manager
             $title = static::getRecTitle($rec, false);
             if(!empty($rec->reff)){
                 $title = "[{$rec->reff}]  {$title}";
+            }
+
+            // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
+            if(!is_numeric($onlyIds)){
+                if(isset($params['priceData']) && $rec->isPublic == 'yes'){
+                    $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
+                    if(isset($policyInfo->price)){
+                        $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
+                        $priceVerbal = core_Math::roundNumber($price);
+                        $measureName = cat_UoM::getShortName($rec->measureId);
+                        $title .= " - {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
+                    }
+                }
             }
 
             if($rec->state == 'template'){
