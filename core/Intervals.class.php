@@ -86,8 +86,14 @@ class core_Intervals {
 
     /**
      * Консумира посоченият интервал, като се среми да използва само интервали между $begin и $end
-     * 
      * Връща масив с начало на консумацията и края й, или false в случай на неуспех
+     *
+     * @param int $duration             - продължителност в секунди
+     * @param int|null $begin           - timestamp на от коя дата или null за без такава
+     * @param int|null$end              - timestamp на до коя дата или null за без такава
+     * @param int|null $interruptOffset - секунди, при прекъсване или null ако няма
+     * @return array|false              - масив с начална и крайна дата или false ако не може да се сметне
+     * @throws core_exception_Expect
      */
     public function consume($duration, $begin = null, $end = null, $interruptOffset = null)
     {
@@ -139,6 +145,7 @@ class core_Intervals {
 
         return false;
     }
+
 
     /**
      * Връща интервалите, заключени в тази рамка
