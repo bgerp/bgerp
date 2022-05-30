@@ -281,15 +281,26 @@ class type_Time extends type_Varchar
                     $suffix = tr('седм.');
                     break;
                 case 'days':
-                    $v = $v / (24 * 60 * 60);
-                    $v = round($v, $decimals);
-                    $suffix = ($v == 1) ? tr('ден') : tr('дни');
-                    break;
+                    $vMod = $v % (24 * 60 * 60);
+                    $days = round(($v - $vMod) / (24 * 60 * 60));
+                    $hoursLeft = ($vMod) ? round($vMod / 3600) : 0;
+
+                    $res = round($days, $decimals) . " " . (($days == 1) ? tr('ден') : tr('дни'));
+                    if($hoursLeft){
+                        $res .= " " . tr('и') . " {$hoursLeft} " . tr('ч.');
+                    }
+
+                    return $res;
                 case 'hours':
-                    $v = $v / (60 * 60);
-                    $v = round($v, $decimals);
-                    $suffix = ($v == 1) ? tr('час') : tr('часа');
-                    break;
+                    $vMod = $v % 3600;
+                    $hours = round(($v - $vMod) / 3600);
+                    $minutesLeft = ($vMod) ? round($vMod / 60) : 0;
+                    $res = round($hours, $decimals) . " " . (($hours == 1) ? tr('час') : tr('часа'));
+                    if($minutesLeft){
+                        $res .= " " . tr('и') . " {$minutesLeft} " . tr('мин.');
+                    }
+
+                    return $res;
                 case 'minutes':
                     $v = $v / 60;
                     $suffix = tr('мин.');
