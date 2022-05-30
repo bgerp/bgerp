@@ -1648,7 +1648,9 @@ class cat_Products extends embed_Manager
                     $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
                     if(isset($policyInfo->price)){
                         $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
-                        $priceVerbal = core_Math::roundNumber($price);
+                        $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
+                        $priceVerbal = price_Lists::roundPrice($listId, $price, true);
+
                         $measureName = cat_UoM::getShortName($rec->measureId);
                         $title .= " - {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
                     }
