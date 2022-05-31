@@ -1652,7 +1652,15 @@ class cat_Products extends embed_Manager
                         $priceVerbal = price_Lists::roundPrice($listId, $price, true);
 
                         $measureName = cat_UoM::getShortName($rec->measureId);
-                        $title .= " - {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
+						
+						if ($params['priceData']['currencyId'] == 'BGN') {
+							
+							$title .= " ...... {$priceVerbal} лв/{$measureName}";
+						}
+						
+						else
+						
+							$title .= " ...... {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
                     }
                 }
             }
