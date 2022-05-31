@@ -321,14 +321,6 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $data->paramData = cat_products_Params::prepareClassObjectParams($mvc, $data->rec);
-        
-        if(Mode::is('printworkcard')){
-            $ownCompanyData = crm_Companies::fetchOwnCompany();
-            $data->row->MyCompany = $ownCompanyData->companyVerb;
-            
-            $absoluteUrl = toUrl(array($mvc, 'single', $data->rec->id), 'absolute');
-            $data->row->QR_CODE = barcode_Generator::getLink('qr', $absoluteUrl, array('width' => 87, 'height' => 87));
-        }
     }
     
     
@@ -337,11 +329,7 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
     {
-        if(Mode::is('printworkcard')){
-            $tpl = getTplFromFile('planning/tpl/SingleWorkCard.shtml');
-        } else {
-            $tpl->prepend(getTplFromFile('planning/tpl/TaskStatistic.shtml'), 'ABOVE_LETTER_HEAD');
-        }
+        $tpl->prepend(getTplFromFile('planning/tpl/TaskStatistic.shtml'), 'ABOVE_LETTER_HEAD');
     }
     
     
@@ -1636,27 +1624,12 @@ class planning_Tasks extends core_Master
     
     
     /**
-     * Преди подготовка на сингъла
-     */
-    protected static function on_BeforePrepareSingle(core_Mvc $mvc, &$res, $data)
-    {
-        if (Request::get('printworkcard', 'int')) {
-            Mode::set('printworkcard', true);
-        }
-    }
-    
-    
-    /**
      * Поставя бутони за генериране на други банкови документи възоснова
      * на този, само ако документа е "чернова"
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
         $rec = $data->rec;
-
-        if ($mvc->haveRightFor('single', $rec) && $rec->state != 'rejected') {
-            $data->toolbar->addBtn('Р. карта', array($mvc, 'single', $rec->id, 'ret_url' => true, 'Printing' => true, 'printworkcard' => true), null, 'target=_blank,ef_icon=img/16/print_go.png,title=Печат на работна карта за производствената операция,row=2');
-        }
 
         // Бутон за добавяне на документ за производство
         if (planning_DirectProductionNote::haveRightFor('add', (object) array('originId' => $rec->containerId))) {
