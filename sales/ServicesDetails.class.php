@@ -113,7 +113,13 @@ class sales_ServicesDetails extends deals_DeliveryDocumentDetail
         $masterRec = $data->masterRec;
         $property = ($masterRec->isReverse == 'yes') ? 'canBuy' : 'canSell';
         
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'canStore,generic'));
+        
+        $productTypeParams = array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $property, 'hasnotProperties' => 'canStore,generic');
+        if($masterRec->isReverse == 'no'){
+            $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'currencyId' => $masterRec->currencyId);
+            $productTypeParams['priceData'] = $priceData;
+        }
+        $form->setFieldTypeParams('productId', $productTypeParams);
     }
     
     
