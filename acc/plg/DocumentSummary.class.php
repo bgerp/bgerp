@@ -323,11 +323,13 @@ class acc_plg_DocumentSummary extends core_Plugin
             if($mvc->filterAllowState){
                 if($mvc->getField('state', false)){
                     $stateOptions = $mvc->getFieldType('state')->options;
-                    unset($stateOptions['rejected']);
-                    unset($stateOptions['revert']);
+                    $stateOptions = array_intersect_key($stateOptions, arr::make(array('draft', 'pending', 'active', 'waiting', 'stopped', 'wakeup', 'closed'), true));
+                    foreach ($stateOptions as $k => $v){
+                        $stateOptions[$k] = is_object($v) ? $v->title : $v;
+                    }
                     $stateOptions = array('all' => 'Всички') + $stateOptions;
-                    $stateOptions = arr::fromArray($stateOptions);
-                    $data->listFilter->FNC('fState', "enum({$stateOptions})", 'caption=Състояние,input,silent');
+                    $stateOptionsString = arr::fromArray($stateOptions);
+                    $data->listFilter->FNC('fState', "enum({$stateOptionsString})", 'caption=Състояние,input,silent');
                     $data->listFilter->showFields .= ',fState';
                     $data->listFilter->setDefault('fState', $mvc->defaultListFilterState);
                 }
