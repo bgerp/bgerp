@@ -111,6 +111,14 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * По кое състояние да се филтрира в лист изгледа по дефолт
+     *
+     * @see acc_plg_DocumentSummary
+     */
+    public $defaultListFilterState = 'active';
+
+
+    /**
      * Да се рефрешват ли дефолтните данни при рефреш
      */
     public $dontReloadDefaultsOnRefresh = false;
@@ -201,13 +209,7 @@ abstract class deals_InvoiceMaster extends core_Master
     public static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->FNC('countryGroups', 'key(mvc=drdata_CountryGroups,select=name,allowEmpty)', 'caption=Държави,input');
-        if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('invState', 'enum(all=Всички, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
-            $data->listFilter->showFields .= ',invState';
-            $data->listFilter->input();
-            $data->listFilter->setDefault('invState', 'active');
-        }
-        
+
         $type = '';
         if ($mvc->getField('type', false)) {
             $data->listFilter->FNC('invType', 'enum(all=Всички, invoice=Фактура, credit_note=Кредитно известие, debit_note=Дебитно известие)', 'caption=Вид,input,silent');
@@ -220,14 +222,6 @@ abstract class deals_InvoiceMaster extends core_Master
         $data->listFilter->input(null, 'silent');
         
         if ($rec = $data->listFilter->rec) {
-            
-            // Филтър по състояние
-            if ($rec->invState) {
-                if ($rec->invState != 'all') {
-                    $data->query->where("#state = '{$rec->invState}'");
-                }
-            }
-            
             if ($rec->invType) {
                 if ($rec->invType != 'all') {
                     if ($rec->invType == 'invoice') {

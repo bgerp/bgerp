@@ -27,31 +27,13 @@ class store_plg_StoreFilter extends core_Plugin
         
         if (!Request::get('Rejected', 'int')) {
             $data->listFilter->FNC('store', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input,silent');
-            $data->listFilter->FNC('dState', 'enum(all=Всички, pending=Заявка, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
-            $data->listFilter->showFields .= ',store,dState';
+            $data->listFilter->showFields .= ',store';
             $data->listFilter->input();
-            $data->listFilter->setDefault('dState', 'all');
             
             if ($rec = $data->listFilter->rec) {
                 
-                // Филтър по състояние
-                if ($rec->dState) {
-                    if ($rec->dState != 'all') {
-                        $data->query->where("#state = '{$rec->dState}'");
-                    }
-                    
-                    if ($rec->dState == 'pending') {
-                        if (isset($mvc->termDateFld, $mvc->valiorFld)) {
-                            $data->query->XPR('orderByDate', 'datetime', "(CASE WHEN (#{$mvc->termDateFld} IS NOT NULL AND #{$mvc->valiorFld} IS NULL) THEN #{$mvc->termDateFld} WHEN (#{$mvc->termDateFld} IS NULL AND #{$mvc->valiorFld} IS NOT NULL) THEN #{$mvc->valiorFld} WHEN (#{$mvc->termDateFld} < #{$mvc->valiorFld}) THEN #{$mvc->termDateFld} WHEN (#{$mvc->termDateFld} > #{$mvc->valiorFld}) THEN #{$mvc->valiorFld} ELSE 9999999 END)");
-                            $data->query->orderBy('orderByDate', 'ASC');
-                        } else {
-                            $data->query->orderBy('valior', 'ASC');
-                        }
-                    }
-                }
-                
                 // Филтър по склад
-                if ($rec->store) {
+                if (isset($rec->store)) {
                     $fields = arr::make($storeFields, true);
                     $where = '';
                     foreach ($fields as $fld) {
