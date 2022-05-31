@@ -44,11 +44,12 @@ class batch_plg_TaskDetails extends core_Plugin
         $Job = doc_Containers::getDocument($taskRec->originId);
         $jobProductId = $Job->fetchField('productId');
         $BatchClass = batch_Defs::getBatchDef($jobProductId);
-       
+
         if($rec->type != 'production' || empty($taskRec->storeId) || $taskRec->followBatchesForFinalProduct != 'yes' || !$BatchClass) return;
 
         $form->setField('batch', 'input,unit=|*<small>|на|* ' . cat_Products::getTitleById($jobProductId) . "</small>");
         $batchClassType = $BatchClass->getBatchClassType();
+
 
         $form->setFieldType('batch', $batchClassType);
         if (isset($BatchClass->fieldPlaceholder)) {
