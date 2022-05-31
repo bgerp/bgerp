@@ -340,7 +340,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if (!empty($rec->serial)) {
                     $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId, $rec->type);
-
+                  //  bp();
                     $rec->serialType = $serialInfo['type'];
                     if (isset($serialInfo['error'])) {
                         $form->setError('serial', $serialInfo['error']);
@@ -449,8 +449,10 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (!empty($exRec)) {
             $res['type'] = 'existing';
             $res['productId'] = $exRec->productId;
-            if($exRec->state != 'rejected' && $type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
-                $res['error'] = 'Серийният номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
+            if(planning_Setup::get('ALLOW_SERIAL_FROM_DIFFERENT_TASKS') != 'yes'){
+                if($exRec->state != 'rejected' && $type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
+                    $res['error'] = 'Серийният номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
+                }
             }
         } else {
             if ($pRec = $Driver->getRecBySerial($serial)) {

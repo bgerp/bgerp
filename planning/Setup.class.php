@@ -110,6 +110,12 @@ defIfNot('PLANNING_MIN_TASK_DURATION', 5*60);
 
 
 /**
+ * Позволено ли е да се въвежда сериен номер от друга ПО
+ */
+defIfNot('PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS', 'no');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -175,6 +181,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
         'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
+        'PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Въвеждане на производ. № в ПО от друга операция->Избор'),
     );
 
 
