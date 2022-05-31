@@ -1653,17 +1653,14 @@ class cat_Products extends embed_Manager
                     if(isset($policyInfo->price)){
                         $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
                         $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
+                        Mode::push('text', 'plain');
                         $priceVerbal = price_Lists::roundPrice($listId, $price, true);
-
+                        Mode::pop();
                         $measureName = cat_UoM::getShortName($rec->measureId);
 						
 						if ($params['priceData']['currencyId'] == 'BGN') {
-							
 							$title .= " ...... {$priceVerbal} лв/{$measureName}";
-						}
-						
-						else
-						
+						} else
 							$title .= " ...... {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
                     }
                 }
