@@ -183,6 +183,9 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         $odQuery->where("#{$OriginDetail->masterKey} = {$origin->that}");
         while($oRec = $odQuery->fetch()){
             unset($oRec->id);
+            $oRec->price = $oRec->price * (1 - $oRec->discount);
+            unset($oRec->discount);
+
             $oRec->invoiceId = $invoiceId;
             $exRec = deals_Helper::fetchExistingDetail($this, $oRec->invoiceId, $oRec->id, $oRec->productId, $oRec->packagingId, $oRec->price, $oRec->discount, null, null, $oRec->batch, $oRec->expenseItemId, $oRec->notes);
             $oRec->quantity = $oRec->packQuantity;
