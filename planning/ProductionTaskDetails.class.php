@@ -339,11 +339,16 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 if (!empty($rec->serial)) {
+
+                    // Проверка на сериния номер
                     $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId, $rec->type);
-                  //  bp();
                     $rec->serialType = $serialInfo['type'];
                     if (isset($serialInfo['error'])) {
                         $form->setError('serial', $serialInfo['error']);
+                    } elseif ($serialInfo['type'] == 'existing') {
+                        if(!empty($rec->batch) && $rec->batch != $serialInfo['batch']){
+                            $form->setError('serial,batch', "Този номер е към друга партида");
+                        }
                     }
                 }
 
@@ -367,6 +372,18 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
 
             if (!$form->gotErrors()) {
+                if(isset($serialInfo)){
+                    if(empty($rec->quantity) && !empty($serialInfo['quantity'])){
+                        $rec->quantity = $serialInfo['quantity'];
+                    }
+
+                    if(empty($rec->batch) && !empty($serialInfo['quantity'])){
+                        if(isset($masterRec->storeId) && $masterRec->followBatchesForFinalProduct == 'yes'){
+                            $rec->batch = $serialInfo['batch'];
+                        }
+                    }
+                }
+
                 if($rec->_isKgMeasureId){
                     $rec->quantity = !empty($rec->quantity) ? $rec->quantity : ((!empty($rec->weight)) ? $rec->weight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1));
                     $rec->weight = $rec->weight;
@@ -449,21 +466,37 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (!empty($exRec)) {
             $res['type'] = 'existing';
             $res['productId'] = $exRec->productId;
+            $res['batch'] = $exRec->batch;
+            $res['quantity'] = $exRec->quantity;
+
             if(planning_Setup::get('ALLOW_SERIAL_FROM_DIFFERENT_TASKS') != 'yes'){
                 if($exRec->state != 'rejected' && $type == 'production' && $exRec->type == 'production' && $taskId != $exRec->taskId){
-                    $res['error'] = 'Серийният номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
+                    $res['error'] = 'Производственият номер е произведен по друга операция|*: <b>' . planning_Tasks::getHyperlink($exRec->taskId, true) . '</b>';
                 }
             }
         } else {
-            if ($pRec = $Driver->getRecBySerial($serial)) {
+
+            // Проверка дали серийния номер е за този артикул
+            $pRec = $Driver->getRecBySerial($serial);
+            $serialProductId = is_object($pRec) ? $pRec->id : null;
+            if(empty($serialProductId)){
+                if($serialPrintId = label_CounterItems::fetchField(array("#number = [#1#]", $serial), 'printId')){
+                    $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
+                    if($printRec->classId == cat_products_Packagings::getClassId()){
+                        $serialProductId = cls::get($printRec->classId)->fetchField($printRec->objectId, 'productId');
+                    }
+                }
+            }
+
+            if (isset($serialProductId)) {
                 $res['type'] = 'existing';
-                $res['productId'] = $pRec->id;
+                $res['productId'] = $serialProductId;
             }
         }
 
         $error = '';
         if ($res['productId'] != $productId) {
-            $res['error'] = 'Серийният номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
+            $res['error'] = 'Производственият номер е към друг артикул|*: <b>' . cat_Products::getHyperlink($res['productId'], true) . '</b>';
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
         }

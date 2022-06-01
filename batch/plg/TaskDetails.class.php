@@ -25,7 +25,7 @@ class batch_plg_TaskDetails extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->FLD('batch', 'text', 'caption=Партида,after=productId,input=none');
+        $mvc->FLD('batch', 'text', 'caption=Партида,before=employees,input=none');
     }
 
 
