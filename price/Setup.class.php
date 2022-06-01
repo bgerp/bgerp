@@ -131,7 +131,7 @@ class price_Setup extends core_ProtoSetup
         'PRICE_SIGNIFICANT_DIGITS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Значещи цифри'),
         'PRICE_MIN_DECIMALS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Мин. знаци'),
         'PRICE_MIN_CHANGE_UPDATE_PRIME_COST' => array('percent(Min=0,max=1)', 'caption=Автоматично обновяване на себестойностите->Мин. промяна'),
-        'PRICE_STORE_AVERAGE_PRICES' => array('keylist(mvc=store_Stores,select=name)', 'caption=Складове за които да се записва осреднена цена->Избор,callOnChange=price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices'),
+        'PRICE_STORE_AVERAGE_PRICES' => array('keylist(mvc=store_Stores,select=name)', 'caption=Складове, за които се изчислява "Осреднена за избрани складове" себестойност->Избор,callOnChange=price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices'),
         'PRICE_CRON_UPDATE_PRIME_COST' => array('int(min=0)', 'caption=Настройки на крона за обновяване на себестойностите->Минути'),
         'PRICE_CRON_UPDATE_BOM_COST' => array('int(min=0)', 'caption=Настройки на крона за обновяване на себестойностите на рецептите->Минути'),
     );
