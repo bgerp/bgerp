@@ -43,9 +43,12 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
      */
     public function getDefaultFastLabel($id, $driverRec = null)
     {
-        $defaultRec = label_Templates::fetchField("#classId={$this->class->getClassId()} AND #peripheralDriverClassId = {$driverRec->driverClass}");
-       
-        return $defaultRec;
+        $query = label_Templates::getQuery();
+        $query->where("#classId={$this->class->getClassId()} AND #peripheralDriverClassId = {$driverRec->driverClass} AND #state != 'closed'");
+        $query->orderBy('id', 'DESC');
+        $query->show('id');
+
+        return $query->fetch()->id;
     }
     
     
@@ -95,27 +98,40 @@ class planning_interface_TaskLabelDetail extends planning_interface_TaskLabel
 
         expect($rec = planning_ProductionTaskDetails::fetchRec($id));
         $rowInfo = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type);
-        $productName = trim(cat_Products::getVerbal($rec->productId, 'name'));
+        $productName = trim(cat_Products::getTitleById($rec->productId));
 
         core_Lg::push('en');
         $quantity = $rec->quantity . " " . cat_UoM::getShortName($rowInfo->measureId);
         $weight = (!empty($rec->weight)) ? core_Type::getByName('cat_type_Weight')->toVerbal($rec->weight) : null;
-        core_Lg::pop('en');
+        core_Lg::pop();
 
         $date = dt::mysql2verbal($rec->createdOn, 'd.m.Y');
         $Origin = doc_Containers::getDocument(planning_Tasks::fetchField($rec->taskId, 'originId'));
 
         $batch = null;
         if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
-            if($BatchDef instanceof batch_definitions_Job){
+            if(!empty($rec->batch)){
+                $batch = $rec->batch;
+            } elseif($BatchDef instanceof batch_definitions_Job){
                 $batch = $BatchDef->getDefaultBatchName($Origin->that);
             }
+        }
+
+        $reff = null;
+        if($saleId = $Origin->fetchField('saleId')){
+            $reff = sales_Sales::fetchField($saleId, 'reff');
         }
 
         $arr = array();
         for ($i = 1; $i <= $cnt; $i++) {
             $res = array('PRODUCT_NAME' => $productName, 'QUANTITY' => $quantity, 'DATE' => $date, 'WEIGHT' => $weight, 'SERIAL' => $rec->serial, 'SERIAL_STRING' => $rec->serial, 'JOB' => "#" . $Origin->getHandle());
-            $res['BATCH'] = $batch;
+            if(!empty($batch)){
+                $res['BATCH'] = $batch;
+            }
+
+            if(!empty($reff)){
+                $res['REFF'] = $reff;
+            }
 
             $arr[] = $res;
         }
