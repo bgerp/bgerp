@@ -9,7 +9,7 @@
  * @package   sales
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -56,10 +56,9 @@ class sales_Proformas extends deals_InvoiceMaster
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
-					doc_EmailCreatePlg, plg_Printing,
-                    doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords, plg_Search';
-    
-    
+					doc_EmailCreatePlg, plg_Printing,doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords,change_Plugin, plg_Search';
+
+
     /**
      * Детайла, на модела
      */
@@ -90,8 +89,8 @@ class sales_Proformas extends deals_InvoiceMaster
      * Кой има право да променя?
      */
     public $canEdit = 'ceo,sales';
-    
-    
+
+
     /**
      * Кой може да го разглежда?
      */
@@ -515,5 +514,18 @@ class sales_Proformas extends deals_InvoiceMaster
         }
 
         return $rec;
+    }
+
+
+    /**
+     * Връща вальора на документа по подразбиране
+     *
+     * @param core_Mvc - $mvc
+     * @param stdClass - $res
+     * @return date    - $rec
+     */
+    public static function getValiorValue($rec)
+    {
+        return $rec->date;
     }
 }
