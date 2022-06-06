@@ -57,7 +57,7 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public $loadList = 'plg_RowTools2, sales_Wrapper, cond_plg_DefaultValues, plg_Sorting, doc_DocumentPlg, acc_plg_DocumentSummary,
 					doc_EmailCreatePlg, plg_Printing,
-                    doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone, change_Plugin, cat_plg_AddSearchKeywords, plg_Search';
+                    doc_plg_HidePrices, doc_plg_TplManager, bgerp_plg_Blank, deals_plg_DpInvoice, doc_ActivatePlg, plg_Clone,cat_plg_AddSearchKeywords, plg_Search';
     
     
     /**
@@ -65,21 +65,7 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public $details = 'sales_ProformaDetails' ;
     
-        
-    /**
-     * Кой може да променя активирани записи
-     *
-     * @see change_Plugin
-     */
-    public $canChangerec = 'accMaster, ceo, invoicer';
     
-    
-    /**
-     * Кои полета да могат да се променят след активация
-     */
-    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo, accountId, paymentType, template';
-    	
-	
     /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
