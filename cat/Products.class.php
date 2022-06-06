@@ -3384,9 +3384,7 @@ class cat_Products extends embed_Manager
         expect($jobRec = planning_Jobs::fetchRec($jobRec));
         $rec = self::fetch($jobRec->productId);
         
-        if ($rec->canManifacture != 'yes') {
-            return $defaultTasks;
-        }
+        if ($rec->canManifacture != 'yes') return $defaultTasks;
         
         // Питаме драйвера какви дефолтни задачи да се генерират
         $ProductDriver = cat_Products::getDriver($rec);
@@ -3400,7 +3398,7 @@ class cat_Products extends embed_Manager
             // Намираме последната активна рецепта
             $bomRec = self::getLastActiveBom($rec, 'production,sales');
             
-            // Ако има опитваме се да намерим задачите за производството по нейните етапи
+            // Ако има прави се опит да се намерят задачите за производството по нейните етапи
             if ($bomRec) {
                 $defaultTasks = cat_Boms::getTasksFromBom($bomRec, $quantity);
             }

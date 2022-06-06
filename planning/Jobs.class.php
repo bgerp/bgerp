@@ -1169,6 +1169,7 @@ class planning_Jobs extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#originId = {$rec->containerId} AND #state != 'draft' AND #state != 'rejected'");
         $tQuery->show('containerId');
+
         $containerIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'containerId');
         $containerIds[$rec->containerId] = $rec->containerId;
         

@@ -198,7 +198,9 @@ class planning_ProductionTaskDetails extends doc_Detail
         $form->setOptions('productId', array('' => '') + $productOptions);
 
         if ($rec->type == 'production') {
-            $form->setDefault('productId', $masterRec->productId);
+            if($masterRec->isFinal != 'yes'){
+                $form->setDefault('productId', $masterRec->productId);
+            }
 
             // При редакция на производството само брака може да се променя
             if (isset($rec->id)) {
@@ -222,7 +224,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако е избран артикул
         if (isset($rec->productId)) {
             $labelType = (($rec->type == 'production') ? $masterRec->labelType : (($rec->type == 'input') ? 'scan' : 'print'));
-
             if($labelType == 'print'){
                 $form->setField('serial', 'input=none');
             } elseif($labelType == 'scan'){
@@ -242,14 +243,15 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setField('weight', 'input=none');
             }
 
+            $productIsTaskProduct = planning_ProductionTaskProducts::isProduct4Task($masterRec, $rec->productId);
             $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-            $shortMeasureId = ($rec->productId == $masterRec->productId) ? $masterRec->measureId : $info->packagingId;
+
+            $shortMeasureId = ($productIsTaskProduct) ? $masterRec->measureId : $info->packagingId;
             $shortMeasure = cat_UoM::getShortName($shortMeasureId);
             $rec->_isKgMeasureId = ($shortMeasureId == cat_UoM::fetchBySinonim('kg')->id);
 
             $fieldName = 'quantity';
-
-            if($rec->type == 'production' && isset($masterRec->labelPackagingId) && $rec->productId == $masterRec->productId && $masterRec->labelPackagingId != $masterRec->measureId){
+            if($rec->type == 'production' && isset($masterRec->labelPackagingId) && $masterRec->labelPackagingId != $masterRec->measureId && $productIsTaskProduct){
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->labelPackagingId);
                 $form->setField($fieldName, "unit={$unit}");
                 $defaultQuantity = $masterRec->labelQuantityInPack;
@@ -520,7 +522,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
 
-        if($taskRec->productId != $rec->productId){
+        if($taskRec->productId != $foundRec->productId){
             $measureId = $foundRec->packagingId;
             $labelPackagingId = (!empty($foundRec->packagingId)) ? $foundRec->packagingId : $pRec->measureId;
         } else {
@@ -547,7 +549,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     }
 
 
-
     /**
      * Връща серийния номер като линк, ако е от друга операция
      *
@@ -559,10 +560,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     public static function getLink($taskId, $serial)
     {
         $serialVerbal = core_Type::getByName('varchar(32)')->toVerbal($serial);
-        if (Mode::isReadOnly()) {
-
-            return $serialVerbal;
-        }
+        if (Mode::isReadOnly()) return $serialVerbal;
 
         // Линк към прогреса филтриран по сериен номер
         if (planning_ProductionTaskDetails::haveRightFor('list')) {
@@ -579,10 +577,10 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
         $data->isMeasureKg = ($data->masterData->rec->measureId == cat_UoM::fetchBySinonim('kg')->id);
+        $lastRecId = null;
 
         if (isset($data->masterMvc)) {
             $selectedTerminalId = Mode::get('taskProgressInTerminal');
-            $lastRecId = null;
 
             if(!$selectedTerminalId){
                 unset($data->listFields['notes']);
@@ -605,10 +603,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         $rows = &$data->rows;
-        if (!countR($rows)) {
-
-            return;
-        }
+        if (!countR($rows)) return;
 
         $weightWarningPercent = ($data->masterData->rec->weightDeviationWarning) ? $data->masterData->rec->weightDeviationWarning : planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING');
         $masterRec = $data->masterData->rec;

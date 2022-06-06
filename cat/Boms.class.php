@@ -1658,12 +1658,12 @@ class cat_Boms extends core_Master
                                            'plannedQuantity' => $quantity,
                                            'quantityInPack' => 1,
                                            '_dId' => null,
+                                           'isFinal' => 'yes',
                                            '_parentId' => null,
                                            '_position' => null,
-                                           'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'),
-                                           'productId' => $rec->productId,
                                            'products' => array('input' => array(),'waste' => array())));
-        
+        $tasks[1]->products['production'][] = array('productId' => $rec->productId, 'type' => 'production');
+
         // Намираме неговите деца от първо ниво те ще бъдат артикулите за влагане/отпадък
         $dQuery = cat_BomDetails::getQuery();
         $dQuery->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
@@ -1688,7 +1688,7 @@ class cat_Boms extends core_Master
         $query = cat_BomDetails::getQuery();
         $query->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $query->where("#bomId = {$rec->id}");
-        $query->where("#type = 'stage'");
+        $query->where("#type = 'stage' AND #innerClass = {$productStepClassId}");
         while($dRec1 = $query->fetch()){
             $allStages[$dRec1->id] = $dRec1;
             if($dRec1->innerClass == $productStepClassId){

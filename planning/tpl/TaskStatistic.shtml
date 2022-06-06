@@ -1,5 +1,8 @@
 <div class="scrolling-holder">
     <div class="sale-summary">
+        <!--ET_BEGIN originProductId-->
+        <div style="text-align:left;margin-bottom:5px">|За|*: [#originProductId#]</div>
+        <!--ET_END originProductId-->
        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
           <tr>
              <td class = 'sum-th'>
@@ -21,12 +24,12 @@
           </tr>
           <tr>
               <td class = 'nowrap'>[#plannedQuantity#]</td>
-              <td class = 'nowrap'>[#totalQuantity#] </td>
+              <td class = 'nowrap'>[#totalQuantity#]</td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td class = 'nowrap'>[#producedQuantity#]</td>
               
               <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
-                  <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
+                  <span style='font-weight:normal'>[#productCaption#]</span>: [#productId#]<br>
                   <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
                   <!--ET_BEGIN batch-->
                   <span style='font-weight:normal'>|Партида|*</span>: [#batch#]<br>
