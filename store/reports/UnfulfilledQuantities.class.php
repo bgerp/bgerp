@@ -55,7 +55,7 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
         $fieldset->FLD('from', 'date', 'caption=От,after=title,single=none,mandatory');
         $fieldset->FLD('to', 'date', 'caption=До,after=from,single=none,mandatory');
         $fieldset->FLD('contragent', 'key(mvc=doc_Folders,select=title,allowEmpty)', 'caption=Контрагент,placeholder=Всички,single=none,after=to');
-        $fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=contragent');
+        //$fieldset->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,placeholder=Всички,single=none,after=contragent');
         $fieldset->FLD('group', 'key(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група артикули,placeholder=Всички,after=storeId,single=none');
         $fieldset->FLD('tolerance', 'double', 'caption=Толеранс,after=group,unit = %,single=none,mandatory');
     }
