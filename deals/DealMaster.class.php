@@ -2277,7 +2277,7 @@ abstract class deals_DealMaster extends deals_DealBase
         // Приспадане на фактурираното, ако има
         foreach ($products as $product) {
             $quantity = $product->quantity;
-            if($strategy != 'onlyFromDeal') {
+            if($strategy == 'shippedNotInvoiced') {
                 $quantity -= $invoiced[$product->productId];
             }
 
