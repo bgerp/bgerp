@@ -171,6 +171,8 @@ class cond_Parameters extends bgerp_ProtoParam
         }
         
         // Създаване на параметъра
-        return self::save(self::makeNewRec($sysId, $name, $type, $options, $suffix));
+        $rec = self::makeNewRec($sysId, $name, $type, $options, $suffix);
+
+        return self::save($rec);
     }
 }

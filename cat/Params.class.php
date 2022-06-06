@@ -104,7 +104,6 @@ class cat_Params extends bgerp_ProtoParam
     protected static function on_AfterPrepareEditForm($mvc, &$data)
     {
         $data->form->setDefault('showInPublicDocuments', 'yes');
-        
         if (isset($data->form->rec->sysId)) {
             $data->form->setReadOnly('showInTasks');
         }
@@ -127,6 +126,7 @@ class cat_Params extends bgerp_ProtoParam
             6 => 'state',
             7 => 'csv_params',
             8 => 'showInTasks',
+            9 => 'group',
         );
         
         $cntObj = csv_Lib::importOnce($this, $file, $fields);
@@ -253,8 +253,8 @@ class cat_Params extends bgerp_ProtoParam
                  return $exId;
             }
         }
-        
-        $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix);
+
+        $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix, $groupName);
         $nRec->showInTasks = ($showInTasks) ? 'yes' : 'no';
         $nRec->showInPublicDocuments = ($showInPublicDocuments) ? 'yes' : 'no';
 

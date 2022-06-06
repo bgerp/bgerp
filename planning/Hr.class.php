@@ -118,20 +118,18 @@ class planning_Hr extends core_Master
      */
     public function on_CalcCenters(core_Mvc $mvc, $rec)
     {
-        $fodlerQuery = planning_AssetResourceFolders::getQuery();
-        $fodlerQuery->where("#classId={$this->getClassId()} AND #objectId = {$rec->id}");
-         
-        $fodlerQuery->show('folderId');
-        $folders = arr::extractValuesFromArray($fodlerQuery->fetchAll(), 'folderId');
+        $folderQuery = planning_AssetResourceFolders::getQuery();
+        $folderQuery->where("#classId={$this->getClassId()} AND #objectId = {$rec->id}");
+        $folderQuery->show('folderId');
+        $folders = arr::extractValuesFromArray($folderQuery->fetchAll(), 'folderId');
 
-        if(is_array($folders)) {
-            $in = implode(',', $folders);
+        if(countR($folders)) {
             $cQuery = planning_Centers::getQuery();
             $cQuery->show('folderId');
-            $centers = arr::extractValuesFromArray($cQuery->fetchAll("#folderId IN ({$in})"), 'folderId');
+            $cQuery->in('folderId', $folders);
+            $centers = arr::extractValuesFromArray($cQuery->fetchAll(), 'folderId');
             $rec->centers = keylist::fromArray($centers);
         }
-     
     }
     
     
@@ -282,8 +280,8 @@ class planning_Hr extends core_Master
             $data->row->code_toolbar = $data->row->_rowTools->renderHtml();
         }
 
-        if(isset($data->row->scheduleId) && hr_Schedules::haveRightFor('read')) {
-            $data->row->scheduleId = hr_Schedules::getHyperLink($data->rec->scheduleId, $data->row->scheduleId);
+        if(isset($data->row->scheduleId)) {
+            $data->row->scheduleId = hr_Schedules::getHyperLink($data->rec->scheduleId, true);
         }
 
         $tpl->placeObject($data->row);
@@ -414,7 +412,7 @@ class planning_Hr extends core_Master
         if(isset($exIds)) {
             $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
             foreach ($exOptions as $eId) {
-                if (!array_key_exists($eId, $options)) { bp($options, $exIds, $eId, crm_Persons::fetch($eId));
+                if (!array_key_exists($eId, $options)) {
                     $options[$eId] = static::fetchField("#personId = {$eId}", 'code');
                 }
             }

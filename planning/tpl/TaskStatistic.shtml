@@ -55,3 +55,25 @@
        </table>
     </div>
 </div>
+
+<div class="scrolling-holder">
+    <div class='sale-summary'>
+        <table class='paddingCells' style='margin-bottom:10px;width:100%;margin-top:2px'>
+            <tr>
+                <td class='sum-th'><b>|Планирано начало|*</b></td>
+                <td class='sum-th'><b>|Планиран край|*</b></td>
+                <td class='sum-th'><b>|Продължителност|*</b></td>
+                <td class='sum-th'><b>|Други|*</b></td>
+            </tr>
+            <tr>
+                <td>[#expectedTimeStart#]</td>
+                <td>[#expectedTimeEnd#]</td>
+                <td>[#expectedDuration#]</td>
+                <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
+                    <span style='font-weight:normal'>|Активирано на|*</span>: [#activatedOn#]<br>
+                    <span style='font-weight:normal'>|Приключено на|*</span>: [#timeClosed#]<br>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

@@ -209,7 +209,18 @@ class cat_Categories extends core_Master
         $this->setDbUnique('sysId');
         $this->setDbUnique('name');
     }
-    
+
+    /**
+     * Подготовка на филтър формата
+     *
+     * @param core_Mvc $mvc
+     * @param StdClass $data
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        // Сортиране на записите по num
+        $data->query->orderBy('createdOn', 'DESC');
+    }
     
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.

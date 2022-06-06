@@ -7,7 +7,7 @@
  * @category  bgerp
  * @package   planning
  *
- * @author    Yusein Yuseino <yyuseinov@gmail.com>
+ * @author    Yusein Yuseinov <yyuseinov@gmail.com>
  * @copyright 2006 - 2018 Experta OOD
  * @license   GPL 3
  *
@@ -25,8 +25,8 @@ class planning_AssetResourceFolders extends core_Manager
      * Плъгини за зареждане
      */
     public $loadList = 'planning_Wrapper, plg_RowTools2';
-    
-    
+
+
     /**
      * Кой има право да променя?
      */
@@ -72,7 +72,7 @@ class planning_AssetResourceFolders extends core_Manager
     {
         $this->FLD('classId', 'class', 'caption=Клас,mandatory,silent,input=hidden');
         $this->FLD('objectId', 'int', 'caption=Оборудване/Група,mandatory,silent,input=hidden,tdClass=leftCol');
-        $this->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка, mandatory');
+        $this->FLD('folderId', 'key(mvc=doc_Folders, select=title)', 'caption=Папка, mandatory, tdClass=leftCol');
         $this->FLD('users', 'userList', 'caption=Потребители');
         
         $this->setDbUnique('classId, objectId, folderId');
@@ -85,11 +85,11 @@ class planning_AssetResourceFolders extends core_Manager
      */
     public function prepareDetail_($data)
     {
+        $data->TabCaption = 'Папки';
         $data->classId = $data->masterMvc->getClassId();
         $data->objectId = $data->masterId;
         
         setIfNot($data->masterMvc, $this->Master);
-        
         $data->query = $this->getQuery();
         
         // Добавяме връзката с мастер-обекта
@@ -109,9 +109,39 @@ class planning_AssetResourceFolders extends core_Manager
         
         // Подготвяме редовете от таблицата
         $this->prepareListRecs($data);
-        
+
         // Подготвяме вербалните стойности за редовете
         $this->prepareListRows($data);
+
+        if($data->masterMvc instanceof planning_AssetResources){
+            foreach ($data->rows as $id => $row){
+                $rec = $data->recs[$id];
+
+                if (doc_Folders::haveRightFor('single', $rec->folderId)) {
+                    $sQuery = cal_Tasks::getQuery();
+                    $sQuery->where(array("#folderId = '[#1#]'", $rec->folderId));
+                    $sQuery->where("#state != 'rejected'");
+                    $sQuery->where(array("#assetResourceId = '[#1#]'", $rec->objectId));
+                    $sQuery->orderBy('state', 'ASC');
+                    $sQuery->orderBy('modifiedOn', 'DESC');
+
+                    $links = '';
+                    while ($sRec = $sQuery->fetch()) {
+                        $linkTitle = cal_Tasks::getVerbal($sRec->id, 'progress');
+                        $linkTitle .= ' ' . cal_Tasks::getVerbal($sRec->id, 'title');
+
+                        // Вземаме линка
+                        $link = ht::createLink($linkTitle, cal_Tasks::getSingleUrlArray($sRec->id), null, array('ef_icon' => cal_Tasks::getIcon($sRec->id)));
+                        $links .= "<div class='state-{$sRec->state} document-handler'>" . $link . '</div> ';
+                    }
+
+                    if(!empty($links)){
+                        $row->folderId .= "<br> " . $links;
+                    }
+                }
+            }
+        }
+
         
         $data->toolbar = cls::get('core_Toolbar');
         if ($this->haveRightFor('add')) {
@@ -146,7 +176,7 @@ class planning_AssetResourceFolders extends core_Manager
         if (!isset($this->currentTab)) {
             $this->currentTab = $data->masterMvc->title;
         }
-        
+
         // Рендираме общия лейаут
         $tpl = new ET("
             <div class='clearfix21 planning_AssetResourceFolders'>
@@ -169,8 +199,12 @@ class planning_AssetResourceFolders extends core_Manager
         
         // Попълваме долния тулбар
         $tpl->append($this->renderListToolbar($data), 'ListToolbar');
-        
-        return $tpl;
+
+        $resTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
+        $resTpl->append($tpl, 'content');
+        $resTpl->append(tr("Споделени в папки"), 'title');
+
+        return $resTpl;
     }
     
     

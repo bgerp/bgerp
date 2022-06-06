@@ -89,7 +89,7 @@ class core_Intervals {
      * 
      * Връща масив с начало на консумацията и края й, или false в случай на неуспех
      */
-    public function consume($duration, $begin = null, $end = null)
+    public function consume($duration, $begin = null, $end = null, $interruptOffset = null)
     {
         if(isset($begin) && isset($end)) {
             expect($begin <= $end, $begin, $end);
