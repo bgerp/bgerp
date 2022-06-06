@@ -1338,12 +1338,11 @@ abstract class deals_InvoiceMaster extends core_Master
                 unset($row->bic);
             }
             
-            if (!empty($row->paymentType)) {
+            if (!empty($rec->paymentType)) {
+                $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
                 if ($rec->paymentType == 'postal') {
-                    $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
                     $row->paymentType = tr('Пощенски паричен превод');
                 } else {
-                    $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
                     $row->paymentType = tr('Плащане ' . $arr[$rec->paymentType]);
                 }
 
@@ -1926,5 +1925,14 @@ abstract class deals_InvoiceMaster extends core_Master
         if($name != $rec->contragentName) return array();
 
         return arr::make(static::$updateContragentdataField, true);
+    }
+
+
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
 }

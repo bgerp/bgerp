@@ -408,15 +408,6 @@ class purchase_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
-    {
-        $tpl->push('purchase/tpl/invoiceStyles.css', 'CSS');
-    }
-    
-    
-    /**
      * След преобразуване на записа в четим за хора вид.
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
