@@ -21,8 +21,15 @@ class cal_Reminders extends core_Master
      * Ако стойноста е 'FALSE', нови документи от този тип се създават в основната папка на потребителя
      */
     public $defaultFolder = false;
-    
-    
+
+
+    /**
+     * Автоматично споделяне на текущия потребител
+     * @see doc_SharablePlg
+     */
+    public $autoShareCurrentUser = true;
+
+
     /**
      * Поддържани интерфейси
      */
@@ -322,24 +329,6 @@ class cal_Reminders extends core_Master
         
         if (Mode::is('screenMode', 'narrow')) {
             $data->form->fields['priority']->maxRadio = 2;
-        }
-    }
-
-
-    /**
-     *
-     * @param core_Mvc   $mvc
-     * @param NULL|array $res
-     * @param stdClass   $rec
-     * @param array      $otherParams
-     */
-    public function on_AfterGetDefaultData($mvc, &$res, $rec, $otherParams = array())
-    {
-        $res = arr::make($res);
-
-        if (empty((array) $res['sharedUsers'])) {
-            $cu = core_Users::getCurrent();
-            $res['sharedUsers'][$cu] = $cu;
         }
     }
 
