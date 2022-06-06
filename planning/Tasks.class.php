@@ -601,7 +601,7 @@ class planning_Tasks extends core_Master
             if($rec->isFinal == 'yes'){
                 if($otherTaskId = planning_Tasks::fetchField("#originId = {$rec->originId} AND #state != 'rejected' AND #isFinal = 'yes' AND #productId != {$rec->productId}")) {
                     $otherTaskLink = planning_Tasks::getHyperlink($otherTaskId, true);
-                    $form->setError('productId,isFinal', "Операция за друг артикул вече е избрана за финална|*: {$otherTaskLink}");
+                    $form->setError('productId,isFinal', "Операция за друг етап вече е избрана за финална|*: {$otherTaskLink}");
                 }
             }
 

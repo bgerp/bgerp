@@ -2241,7 +2241,6 @@ abstract class deals_DealMaster extends deals_DealBase
 
         if($strategy == 'onlyFromDeal') {
             $products = $agreed;
-            $invoiced = array();
             foreach ($products as $product1) {
                 if (!($forMvc instanceof sales_Proformas)) {
                     $product1->price -= $product1->price * $product1->discount;
@@ -2278,7 +2277,10 @@ abstract class deals_DealMaster extends deals_DealBase
         // Приспадане на фактурираното, ако има
         foreach ($products as $product) {
             $quantity = $product->quantity;
-            $quantity -= $invoiced[$product->productId];
+            if($strategy != 'onlyFromDeal') {
+                $quantity -= $invoiced[$product->productId];
+            }
+
             if ($quantity <= 0) continue;
             
             // Ако няма информация за експедираните опаковки, взимаме основната опаковка
