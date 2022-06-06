@@ -74,16 +74,20 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        $fieldset->FLD('weeks', 'int', 'caption=Брой седмици,after=horizon');
+        $fieldset->FLD('type', 'enum(byWeeks=По седмици, bySales=По продажби)', 'caption=Вид на справката,removeAndRefreshForm,after=title,silent');
+
+        $fieldset->FLD('weeks', 'int', 'caption=Брой седмици,after=type');
+
+        $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number)', 'caption=Договори,placeholder = Всички,after=weeks,single=none');
         
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
-            $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=to,single=none');
+            $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=slalesDog,single=none');
         } else {
-            $fieldset->FLD('groups', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=to,single=none');
+            $fieldset->FLD('groups', 'treelist(mvc=cat_Groups,select=name, parentId=parentId)', 'caption=Артикули->Група артикули,placeholder = Всички,after=weeks,single=none');
         }
         
-        $fieldset->FLD('period', 'enum(all=Общо за периода,byweek=По седмици)', 'caption=Показване,after=groups,silent');
+        $fieldset->FLD('period', 'enum(all=Общо за периода,byWeeks=По седмици)', 'caption=Показване,after=groups,silent');
     }
     
     
@@ -98,6 +102,10 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     protected static function on_AfterInputEditForm(frame2_driver_Proto $Driver, embed_Manager $Embedder, &$form)
     {
         if ($form->isSubmitted()) {
+
+            if ($form->rec->type == 'bySales'){
+                $form->rec->period = 'all';
+            }
         }
     }
     
@@ -115,7 +123,32 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $rec = $form->rec;
         
         $form->setDefault('weeks', 8);
-        $form->setDefault('period', 'weeks');
+        $form->setDefault('period', 'byWeeks');
+
+
+        if ($rec->type == 'bySales'){
+            $form->setField('weeks', 'input=hidden');
+            $form->setField('period', 'input=hidden');
+
+        }
+        if ($rec->type == 'byWeeks'){
+
+            $form->setField('slalesDog', 'input=hidden');
+
+        }
+
+        $salesQuery = sales_Sales::getQuery();
+        $salesQuery->where("#state = 'active'");
+
+        while ($salesDog = $salesQuery->fetch()) {
+
+                $suggestions[$salesDog->id] =$salesDog->id;
+
+        }
+
+        asort($suggestions);
+
+        $form->setSuggestions('slalesDog', $suggestions);
     }
     
     
@@ -131,46 +164,61 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
     {
         $recs = $totalQuantity = array();
         $today = dt::today();
-        
-        $thisWeek = date('W', strtotime($today));
-        $year = date('Y', strtotime($today));
-        
-        //Кои седмици влизат в отчета $weeksForCheck
-        $weeksForCheck = array();
-        $weekMarker = 0;
-        for ($i = $thisWeek; $i < $thisWeek + $rec->weeks; $i++) {
-            $weekNumber = $i - $weekMarker;
-            $week = $i - $weekMarker.'-'.$year;
-            $endDayOfWeek = self::getStartAndEndDate($weekNumber, $year)[1];
-            
-            if ($endDayOfWeek > $year . '-12-31') {
-                $weekMarker = $i;
-                $year = date('Y', strtotime($endDayOfWeek));
-            }
-            
-            array_push($weeksForCheck, $week);
-            unset($week);
-        }
-        
+
         $jobsQuery = planning_Jobs::getQuery();
+
         $jobsQuery->where("#state != 'rejected' AND #state != 'closed' AND #state != 'draft'");
-        
-        list($lastWeek, $lastYear) = explode('-', end($weeksForCheck));
-        
-        $endDay = self::getStartAndEndDate($lastWeek, $lastYear)[1];
-        
-        $jobsQuery->where(array("#quantity > #quantityProduced AND #dueDate <= '[#1#]'", $endDay . ' 23:59:59'));
-        
-        $jobsQuery->show('quantity,quantityProduced,productId,dueDate');
+
+        if ($rec->type == 'byWeeks'){
+
+            $thisWeek = date('W', strtotime($today));
+            $year = date('Y', strtotime($today));
+
+            //Кои седмици влизат в отчета $weeksForCheck
+            $weeksForCheck = array();
+            $weekMarker = 0;
+            for ($i = $thisWeek; $i < $thisWeek + $rec->weeks; $i++) {
+                $weekNumber = $i - $weekMarker;
+                $week = $i - $weekMarker.'-'.$year;
+                $endDayOfWeek = self::getStartAndEndDate($weekNumber, $year)[1];
+
+                if ($endDayOfWeek > $year . '-12-31') {
+                    $weekMarker = $i;
+                    $year = date('Y', strtotime($endDayOfWeek));
+                }
+
+                array_push($weeksForCheck, $week);
+                unset($week);
+            }
+
+            list($lastWeek, $lastYear) = explode('-', end($weeksForCheck));
+
+            $endDay = self::getStartAndEndDate($lastWeek, $lastYear)[1];
+
+            $jobsQuery->where(array("#quantity > #quantityProduced AND #dueDate <= '[#1#]'", $endDay . ' 23:59:59'));
+
+            $jobsQuery->show('quantity,quantityProduced,productId,dueDate');
+
+        }
+        if ($rec->type == 'bySales'){
+
+            $slalesDogArr = keylist::toArray($rec->slalesDog);
+            $jobsQuery->in('saleId', $slalesDogArr);
+
+        }
+
         
         
         $jobsRecsArr = $jobsQuery->fetchAll();
-        
-        //Добавяне на виртуалните задания
-        $vJobsArr = self::createdVirtualJobs($endDay);
-        
-        $jobsRecsArr = array_merge($jobsRecsArr, $vJobsArr);
-        
+
+        if ($rec->type == 'byWeeks') {
+
+            //Добавяне на виртуалните задания
+            $vJobsArr = self::createdVirtualJobs($endDay);
+
+            $jobsRecsArr = array_merge($jobsRecsArr, $vJobsArr);
+        }
+
         foreach ($jobsRecsArr as $jobsRec) {
             $materialsArr = array();
             
@@ -197,17 +245,22 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                         }
                     }
                     
-                    $week = ($jobsRec->week)?$jobsRec->week : date('W', strtotime($jobsRec->dueDate)).'-'.date('Y', strtotime($jobsRec->dueDate));
-                    
-                    //Ако падежа е изткъл, заданието се отнася към нулева седмица
-                    if ($jobsRec->dueDate && $jobsRec->dueDate < $today) {
-                        $week = '0-0';
+
+                    if ($rec->type == 'byWeeks') {
+                        $week = ($jobsRec->week)?$jobsRec->week : date('W', strtotime($jobsRec->dueDate)).'-'.date('Y', strtotime($jobsRec->dueDate));
+
+                        //Ако падежа е изткъл, заданието се отнася към нулева седмица
+                        if ($jobsRec->dueDate && $jobsRec->dueDate < $today) {
+                            $week = '0-0';
+                        }
+
+
                     }
-                    
+
                     $doc = ($jobsRec->id) ? 'planning_Jobs'.'|'.$jobsRec->id : 'sales_Sales'.'|'.$jobsRec->saleId;
                     
-                    $recsKey = $week .' | '.$val['productId'];
-                    
+                    $recsKey = ($rec->type == 'byWeeks') ? $week .' | '.$val['productId'] : $val['productId'];
+
                     $totalmaterialQuantiry += $val['quantity'];
                     
                     // Запис в масива
