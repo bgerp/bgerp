@@ -77,7 +77,7 @@ class sales_Proformas extends deals_InvoiceMaster
     /**
      * Кои полета да могат да се променят след активация
      */
-    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, additionalInfo, accountId, paymentType, template';
+    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, additionalInfo, accountId, template';
     	
 	
     /**
