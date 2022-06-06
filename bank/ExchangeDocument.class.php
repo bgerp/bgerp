@@ -162,7 +162,7 @@ class bank_ExchangeDocument extends core_Master
             'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно, pending=Заявка)',
             'caption=Статус, input=none'
         );
-        $this->FLD('sharedUsers', 'userList', 'input=none,caption=Споделяне->Потребители');
+        $this->FLD('sharedUsers', 'userList', 'caption=Споделяне->Потребители');
     }
     
     
@@ -265,7 +265,7 @@ class bank_ExchangeDocument extends core_Master
             } else {
                 $rec->equals = currency_CurrencyRates::convertAmount($rec->debitQuantity, $rec->valior, $dCode, null);
             }
-            
+
             $bankRec = bank_OwnAccounts::fetch($rec->peroTo);
             if ($bankRec->autoShare == 'yes') {
                 $rec->sharedUsers = keylist::removeKey($bankRec->operators, core_Users::getCurrent());
