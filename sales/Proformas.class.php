@@ -334,9 +334,16 @@ class sales_Proformas extends deals_InvoiceMaster
      */
     public static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
+        if ($fields['-single']) {
+            if(isset($rec->paymentMethodId)){
+                $rec->paymentType = cond_PaymentMethods::fetchField($rec->paymentMethodId, 'type');
+            }
+        }
+
         parent::getVerbalInvoice($mvc, $rec, $row, $fields);
         
         if ($fields['-single']) {
+
             if (isset($rec->accountId)) {
                 $Varchar = cls::get('type_Varchar');
                 $ownAcc = bank_OwnAccounts::getOwnAccountInfo($rec->accountId);
@@ -381,43 +388,6 @@ class sales_Proformas extends deals_InvoiceMaster
         }
         
         return false;
-    }
-    
-    
-    /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
-    {
-        $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
-        
-        if ($data->paymentPlan) {
-            $tpl->placeObject($data->paymentPlan);
-        }
-    }
-    
-    
-    /**
-     * Подготвя данните (в обекта $data) необходими за единичния изглед
-     */
-    public function prepareSingle_($data)
-    {
-        parent::prepareSingle_($data);
-        
-        $rec = &$data->rec;
-        if (empty($rec->dpAmount)) {
-            $total = $this->_total->amount - $this->_total->discount;
-            $total = $total + $this->_total->vat;
-            
-            if ($rec->paymentMethodId) {
-                core_Lg::push($rec->tplLang);
-                $data->row->paymentMethodId = tr(cond_PaymentMethods::getVerbal($rec->paymentMethodId, 'title'));
-                cond_PaymentMethods::preparePaymentPlan($data, $rec->paymentMethodId, $total, $rec->date, $rec->currencyId);
-                core_Lg::pop();
-            }
-        } else {
-            unset($data->row->paymentMethodId);
-        }
     }
     
     

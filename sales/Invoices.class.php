@@ -505,8 +505,6 @@ class sales_Invoices extends deals_InvoiceMaster
             $original = tr('ОРИГИНАЛ');
             $tpl->replace($original, 'INV_STATUS');
         }
-        
-        $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
     
