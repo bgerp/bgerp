@@ -316,6 +316,11 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                 }
             }
         }
+        if (!is_null($recs)) {
+
+                arr::sortObjects($recs, 'saleId', 'desc');
+        }
+
 
         return $recs;
     }
