@@ -53,7 +53,8 @@ class doc_SharablePlg extends core_Plugin
         // Дали да са споделени потребителите от оригиналния документ (ако създателят е един и същи)
         setIfNot($mvc->autoShareOriginShared, true);
         setIfNot($mvc->autoShareOriginCreator, false);
-        
+        setIfNot($mvc->autoShareCurrentUser, false);
+
         $mvc->autoShareFields = arr::make($mvc->autoShareFields, true);
         $mvc->autoShareFields['sharedUsers'] = 'sharedUsers';
     }
@@ -276,7 +277,7 @@ class doc_SharablePlg extends core_Plugin
         $roles = core_Roles::getRolesAsKeylist($roles);
         
         $roles = keylist::toArray($roles);
-        
+
         $allUsers = core_Users::getRolesWithUsers();
         $users = array();
         
@@ -452,12 +453,20 @@ class doc_SharablePlg extends core_Plugin
             return ;
         }
         
-        if (!$mvc->autoShareOriginShared && !$mvc->autoShareOriginCreator) {
+        if (!$mvc->autoShareOriginShared && !$mvc->autoShareOriginCreator && !$mvc->autoShareCurrentUser) {
             
             return ;
         }
         
-        setIfNot($res['sharedUsers'], array());
+        $currUserId = core_Users::getCurrent();
+
+        if (!is_array($res['sharedUsers'])) {
+            $res['sharedUsers'] = type_UserList::toArray($res['sharedUsers']);
+        }
+
+        if ($mvc->autoShareCurrentUser) {
+            $res['sharedUsers'][$currUserId] = $currUserId;
+        }
         
         $orig = $rec->originId;
         if (!$orig && $rec->threadId) {
@@ -478,16 +487,18 @@ class doc_SharablePlg extends core_Plugin
             } elseif ($dRec->modifiedBy > 0) {
                 $createdBy = $dRec->modifiedBy;
             }
-            
+
             // Ако създадетеля на оригиналния документ е текущия
             if (isset($createdBy)) {
-                $currUserId = core_Users::getCurrent();
                 if ($createdBy == $currUserId) {
                     if ($mvc->autoShareOriginShared) {
                         foreach ($shareFieldsArr as $sharFName) {
                             if ($dRec->{$sharFName}) {
                                 $sharedArr = type_Keylist::toArray($dRec->{$sharFName});
-                                unset($sharedArr[$currUserId]);
+                                if (!$mvc->autoShareCurrentUser) {
+                                    unset($sharedArr[$currUserId]);
+                                }
+
                                 $res['sharedUsers'] += (array) $sharedArr;
                             }
                         }
@@ -503,6 +514,10 @@ class doc_SharablePlg extends core_Plugin
         if (!empty($res['sharedUsers'])) {
             unset($res['sharedUsers'][-1]);
             unset($res['sharedUsers'][0]);
+        }
+
+        if (is_array($res['sharedUsers'])) {
+            $res['sharedUsers'] = type_UserList::fromArray($res['sharedUsers']);
         }
     }
     
