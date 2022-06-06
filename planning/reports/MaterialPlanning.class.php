@@ -78,7 +78,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
 
         $fieldset->FLD('weeks', 'int', 'caption=Брой седмици,after=type');
 
-        $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number)', 'caption=Договори,placeholder = Всички,after=weeks,single=none');
+        $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number)', 'caption=Договори,placeholder = Всички,after=weeks,mandatory,single=none');
         
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
@@ -165,11 +165,11 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         $recs = $totalQuantity = array();
         $today = dt::today();
 
-        $jobsQuery = planning_Jobs::getQuery();
+        if ($rec->type == 'byWeeks') {
 
-        $jobsQuery->where("#state != 'rejected' AND #state != 'closed' AND #state != 'draft'");
+            $jobsQuery = planning_Jobs::getQuery();
 
-        if ($rec->type == 'byWeeks'){
+            $jobsQuery->where("#state != 'rejected' AND #state != 'closed' AND #state != 'draft'");
 
             $thisWeek = date('W', strtotime($today));
             $year = date('Y', strtotime($today));
@@ -179,7 +179,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
             $weekMarker = 0;
             for ($i = $thisWeek; $i < $thisWeek + $rec->weeks; $i++) {
                 $weekNumber = $i - $weekMarker;
-                $week = $i - $weekMarker.'-'.$year;
+                $week = $i - $weekMarker . '-' . $year;
                 $endDayOfWeek = self::getStartAndEndDate($weekNumber, $year)[1];
 
                 if ($endDayOfWeek > $year . '-12-31') {
@@ -199,44 +199,33 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
 
             $jobsQuery->show('quantity,quantityProduced,productId,dueDate');
 
-        }
-        if ($rec->type == 'bySales'){
-
-            $slalesDogArr = keylist::toArray($rec->slalesDog);
-            $jobsQuery->in('saleId', $slalesDogArr);
-
-        }
-
-        
-        
-        $jobsRecsArr = $jobsQuery->fetchAll();
-
-        if ($rec->type == 'byWeeks') {
+            $jobsRecsArr = $jobsQuery->fetchAll();
 
             //Добавяне на виртуалните задания
             $vJobsArr = self::createdVirtualJobs($endDay);
 
             $jobsRecsArr = array_merge($jobsRecsArr, $vJobsArr);
-        }
+
+
 
         foreach ($jobsRecsArr as $jobsRec) {
             $materialsArr = array();
-            
+
             $quantityRemaining = $jobsRec->quantity - $jobsRec->quantityProduced;
-            
+
             $materialsArr = cat_Products::getMaterialsForProduction($jobsRec->productId, (double)$quantityRemaining);
-            
+
             $totalmaterialQuantiry = 0;
-            
+
             if (!empty($materialsArr)) {
                 foreach ($materialsArr as $val) {
                     $matRec = cat_Products::fetch($val['productId']);
-                    
+
                     //Филтрира само складируеми материали
                     if ($matRec->canStore == 'no') {
                         continue;
                     }
-                    
+
                     //Ако има избрана група или групи материали
                     if ($rec->groups) {
                         $groupsArr = keylist::toArray($rec->groups);
@@ -244,70 +233,124 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
                             continue;
                         }
                     }
-                    
 
-                    if ($rec->type == 'byWeeks') {
-                        $week = ($jobsRec->week)?$jobsRec->week : date('W', strtotime($jobsRec->dueDate)).'-'.date('Y', strtotime($jobsRec->dueDate));
+                        $week = ($jobsRec->week) ? $jobsRec->week : date('W', strtotime($jobsRec->dueDate)) . '-' . date('Y', strtotime($jobsRec->dueDate));
 
                         //Ако падежа е изткъл, заданието се отнася към нулева седмица
                         if ($jobsRec->dueDate && $jobsRec->dueDate < $today) {
                             $week = '0-0';
                         }
 
+                    $doc = ($jobsRec->id) ? 'planning_Jobs' . '|' . $jobsRec->id : 'sales_Sales' . '|' . $jobsRec->saleId;
 
-                    }
-
-                    $doc = ($jobsRec->id) ? 'planning_Jobs'.'|'.$jobsRec->id : 'sales_Sales'.'|'.$jobsRec->saleId;
-                    
-                    $recsKey = ($rec->type == 'byWeeks') ? $week .' | '.$val['productId'] : $val['productId'];
+                    $recsKey = ($rec->type == 'byWeeks') ? $week . ' | ' . $val['productId'] : $val['productId'];
 
                     $totalmaterialQuantiry += $val['quantity'];
-                    
+
                     // Запис в масива
                     if (!array_key_exists($recsKey, $recs)) {
-                        $recs[$recsKey] = (object) array(
-                            
+                        $recs[$recsKey] = (object)array(
+
                             'week' => $week,
-                            
                             'originDoc' => array($doc),
                             'jobProductId' => $jobsRec->productId,                                           //Id на артикула
                             'quantityRemaining' => $quantityRemaining,                                       // Оставащо количество
-                            
+
                             'materialId' => $val['productId'],
                             'materialQuantiry' => $val['quantity'],
-                        
+
                         );
                     } else {
                         $obj = &$recs[$recsKey];
-                        
+
                         $obj->quantityRemaining += $quantityRemaining;
                         $obj->materialQuantiry += $val['quantity'];
                         array_push($obj->originDoc, $doc);
                     }
-                    
-                    
+
+
                     if (!array_key_exists($val['productId'], $totalQuantity)) {
-                        $totalQuantity[$val['productId']] = (object) array(
-                            
+                        $totalQuantity[$val['productId']] = (object)array(
+
                             'materialId' => $val['productId'],
                             'materialQuantiry' => $val['quantity'],
-                        
+
                         );
                     } else {
                         $obj = &$totalQuantity[$val['productId']];
-                        
+
                         $obj->materialQuantiry += $val['quantity'];
                     }
                 }
             }
         }
-        
+
         arr::sortObjects($recs, 'week');
-        
-        if ($rec->period == 'all') {
-            $recs = $totalQuantity;
+
+            if ($rec->period == 'all') {
+                $recs = $totalQuantity;
+            }
+
+
+    }
+
+        if ($rec->type == 'bySales' && $rec->slalesDog) {
+
+            $sQuery = sales_SalesDetails::getQuery();
+
+            $sQuery->in('saleId',keylist::toArray($rec->slalesDog));
+;
+            while ($pRec = $sQuery->fetch()){//bp($pRec);
+
+                $materialsArr = cat_Products::getMaterialsForProduction($pRec->productId, (double)$pRec->quantity);
+
+                if (!empty($materialsArr)) {
+                    foreach ($materialsArr as $val) {
+
+                        $matRec = cat_Products::fetch($val['productId']);
+
+                        //Филтрира само складируеми материали
+                        if ($matRec->canStore == 'no') {
+                            continue;
+                        }
+
+                        //Ако има избрана група или групи материали
+                        if ($rec->groups) {
+                            $groupsArr = keylist::toArray($rec->groups);
+                            if (!keylist::isIn($groupsArr, $matRec->groups)) {
+                                continue;
+                            }
+                        }
+
+                        $doc ='sales_Sales' . '|' . $pRec->saleId;
+
+                        $recsKey = $val['productId'];
+
+                        // Запис в масива
+                        if (!array_key_exists($recsKey, $recs)) {
+                            $recs[$recsKey] = (object)array(
+
+                                'originDoc' => array($doc),
+                                'jobProductId' => $pRec->productId,                                           //Id на артикула
+
+                                'materialId' => $val['productId'],
+                                'materialQuantiry' => $val['quantity'],
+
+                            );
+                        } else {
+                            $obj = &$recs[$recsKey];
+
+                            $obj->materialQuantiry += $val['quantity'];
+                            array_push($obj->originDoc, $doc);
+                        }
+
+                    }
+                }
+
+            }
+
         }
-        
+
         return $recs;
     }
     
@@ -582,4 +625,5 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         
         return $vJobsArr;
     }
+
 }
