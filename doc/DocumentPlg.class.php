@@ -2141,7 +2141,7 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
-        
+
         // Показваме свързаните документи, ако има такива
         if ($data->form->rec->id) {
             $cId = $data->form->rec->containerId;
@@ -2222,7 +2222,7 @@ class doc_DocumentPlg extends core_Plugin
                     unset($removedUsersArr[0]);
 
                     if (!empty($removedUsersArr)) {
-                        $res['sharedUsers'] = (array) $res['sharedUsers'] + $removedUsersArr;
+                        $res['sharedUsers'] = type_UserList::merge($res['sharedUsers'], $removedUsersArr);
                     }
                 }
             }
