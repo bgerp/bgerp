@@ -117,6 +117,20 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Кой може да променя активирани записи
+     *
+     * @see change_Plugin
+     */
+    public $canChangerec = 'accMaster, ceo, invoicer';
+
+
+    /**
+     * Кои полета да могат да се променят след активация
+     */
+    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template';
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
