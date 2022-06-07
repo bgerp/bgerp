@@ -33,6 +33,10 @@
                             <div class='address-block'>
                                 [#contragentCountryId#]
                                 <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                                <!--ET_BEGIN locationId-->
+                                <hr>
+                                <div>|До обект|*: [#locationId#]</div>
+                                <!--ET_END locationId-->
                             </div>
                         </td>
                         <td class="cell">
@@ -70,6 +74,13 @@
                                     <td>[#storeId#]</td>
                                 </tr>
                                 <!--ET_END storeId-->
+                                <!--ET_BEGIN deliveryAddress-->
+                                <tr>
+                                    <td class='quiet nowrap aright' style="width: 1%">|До адрес|*:</td>
+                                    <td>[#deliveryAddress#]</td>
+                                </tr>
+                                <!--ET_END deliveryAddress-->
+
                                 <!--ET_BEGIN readyOn-->
                                 <tr>
                                     <td class='quiet nowrap aright' style="width: 1%">|Готовност|*:</td>

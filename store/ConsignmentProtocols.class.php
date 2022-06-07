@@ -54,7 +54,7 @@ class store_ConsignmentProtocols extends core_Master
      * Плъгини за зареждане
      */
     public $loadList = 'plg_RowTools2, store_plg_StoreFilter, deals_plg_SaveValiorOnActivation, store_Wrapper, doc_plg_BusinessDoc,plg_Sorting, acc_plg_Contable, cond_plg_DefaultValues,
-                        plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, store_plg_StockPlanning';
+                        plg_Clone, doc_DocumentPlg, plg_Printing, acc_plg_DocumentSummary, trans_plg_LinesPlugin, doc_plg_TplManager, plg_Search, bgerp_plg_Blank, doc_plg_HidePrices, doc_EmailCreatePlg, store_plg_StockPlanning';
     
     
     /**
@@ -176,6 +176,12 @@ class store_ConsignmentProtocols extends core_Master
 
 
     /**
+     * Кои полета ще се проверяват при вземане на контрагент данните в имейла
+     */
+    public $getContragentDataCheckFields = 'locationId';
+
+
+    /**
      * Описание на модела (таблицата)
      */
     public function description()
@@ -183,9 +189,9 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('valior', 'date', 'caption=Вальор');
         $this->FLD('contragentClassId', 'class(interface=crm_ContragentAccRegIntf)', 'input=hidden,caption=Клиент');
         $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
-        
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
         $this->FLD('deliveryTime', 'datetime(requireTime)','caption=Натоварване');
         $this->FLD('deliveryOn', 'datetime(requireTime)','caption=Доставка');
         $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
@@ -242,6 +248,11 @@ class store_ConsignmentProtocols extends core_Master
             $mvc->pushTemplateLg($rec->template);
             $row->contragentCaption = ($rec->productType == 'ours') ? tr('Довереник') : tr('Доверител');
             $row->ourCompanyCaption = ($rec->productType == 'ours') ? tr('Доверител') : tr('Довереник');
+            if(isset($rec->locationId)){
+                $row->locationId = crm_Locations::getHyperlink($rec->locationId);
+                $row->deliveryAddress = crm_Locations::getAddress($rec->locationId, true);
+            }
+
             core_Lg::pop();
         }
     }
@@ -374,7 +385,8 @@ class store_ConsignmentProtocols extends core_Master
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
-        
+        $form->setOptions('locationId', array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId));
+
         if (isset($rec->id)) {
             if (store_ConsignmentProtocolDetailsSend::fetchField("#protocolId = {$rec->id}")) {
                 $form->setReadOnly('currencyId');
@@ -478,8 +490,8 @@ class store_ConsignmentProtocols extends core_Master
         $tplArr[] = array('name' => 'Протокол за отговорно пазене', 'content' => 'store/tpl/SingleLayoutConsignmentProtocol.shtml',
             'narrowContent' => 'store/tpl/SingleLayoutConsignmentProtocolNarrow.shtml', 'lang' => 'bg');
         
-        $res = '';
-        $res .= doc_TplManager::addOnce($this, $tplArr);
+
+        $res = doc_TplManager::addOnce($this, $tplArr);
         
         return $res;
     }
@@ -565,7 +577,18 @@ class store_ConsignmentProtocols extends core_Master
         $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
         $res['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
         $res['stores'] = array($rec->storeId);
-        $res['address'] = str_replace('<br>', '', $row->contragentAddress);
+
+        if(isset($rec->locationId)){
+            $locationRec = crm_Locations::fetch($rec->locationId);
+            $res['locationId'] = $locationRec->id;
+            $res['address'] = crm_Locations::getAddress($locationRec, false, false);
+            if(!empty($locationRec->features)){
+                $res['features'] = keylist::toArray($locationRec->features);
+            }
+        } else {
+            $res['address'] = str_replace('<br>', '', $row->contragentAddress);
+        }
+
         $res['cases'] = array();
 
         return $res;
@@ -728,5 +751,23 @@ class store_ConsignmentProtocols extends core_Master
         $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
 
         return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
+    }
+
+
+    /**
+     * Връща тялото на имейла генериран от документа
+     *
+     * @see email_DocumentIntf
+     * @param int  $id      - ид на документа
+     * @param bool $forward
+     * @return string - тялото на имейла
+     */
+    public function getDefaultEmailBody($id, $forward = false)
+    {
+        $handle = $this->getHandle($id);
+        $tpl = new ET(tr('Моля, запознайте се с нашия протокол за отговорно пазене') . ': #[#handle#]');
+        $tpl->append($handle, 'handle');
+
+        return $tpl->getContent();
     }
 }
