@@ -78,7 +78,7 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
 
         $fieldset->FLD('weeks', 'int', 'caption=Брой седмици,after=type');
 
-        $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number)', 'caption=Договори,placeholder = Всички,after=weeks,mandatory,single=none');
+        $fieldset->FLD('slalesDog', 'keylist(mvc=sales_Sales,select=number)', 'caption=Договори,placeholder = Всички,after=weeks,single=none');
         
         //Групи артикули
         if (BGERP_GIT_BRANCH == 'dev') {
@@ -129,11 +129,12 @@ class planning_reports_MaterialPlanning extends frame2_driver_TableData
         if ($rec->type == 'bySales'){
             $form->setField('weeks', 'input=hidden');
             $form->setField('period', 'input=hidden');
-
+            $form->setField('slalesDog', 'mandatory');
         }
         if ($rec->type == 'byWeeks'){
 
             $form->setField('slalesDog', 'input=hidden');
+
 
         }
 
