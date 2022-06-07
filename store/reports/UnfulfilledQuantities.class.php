@@ -17,6 +17,15 @@
 class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
 {
     /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var int
+     */
+    protected $sortableListFields = 'saleId';
+
+
+
+    /**
      * Кой може да избира драйвъра
      */
     public $canSelectDriver = 'ceo,manager,store,planning,purchase';
@@ -316,6 +325,11 @@ class store_reports_UnfulfilledQuantities extends frame2_driver_TableData
                 }
             }
         }
+        if (!is_null($recs)) {
+
+                arr::sortObjects($recs, 'saleId', 'desc');
+        }
+
 
         return $recs;
     }
