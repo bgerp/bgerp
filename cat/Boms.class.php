@@ -1913,7 +1913,7 @@ class cat_Boms extends core_Master
         $dQuery = $Detail->getQuery();
         $dQuery->where("#bomId = {$rec->id}");
         while($dRec = $dQuery->fetch()){
-            $notAllowed[] = array();
+            $notAllowed = array();
             $Detail->findNotAllowedProducts($dRec->resourceId, $rec->productId, $notAllowed);
 
             if (isset($notAllowed[$dRec->resourceId])) return false;
