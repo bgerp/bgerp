@@ -1466,7 +1466,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         $rec = $mvc->fetchRec($id);
         if (planning_DirectProductNoteDetails::fetchField("#productId = {$rec->productId}")) {
-            core_Statuses::newStatus('Протокола не може да се контира, защото произвеждания артикул е в детайла|*!', 'error');
+            core_Statuses::newStatus('Произвеждания артикул не може да бъде влаган в същия протокол|*!', 'error');
 
             return false;
         }
