@@ -677,19 +677,20 @@ class crm_Locations extends core_Master
         
         return $resRecs;
     }
-    
-    
+
+
     /**
-     * Ф-я връщаща пълния адрес на локацията: Държава, ПКОД, град, адрес
+     * Ф-я връщаща пълния адрес на локацията
      *
-     * @param int  $id
+     * @param mixed $id
      * @param bool $translitarate
-     *
-     * @return core_ET $tpl
+     * @param bool $showFeatures
+     * @return string
+     * @throws core_exception_Expect
      */
-    public static function getAddress($id, $translitarate = false)
+    public static function getAddress($id, $translitarate = false, $showFeatures = true)
     {
-        expect($rec = static::fetch($id));
+        expect($rec = static::fetchRec($id));
         $row = static::recToVerbal($rec);
         
         $string = '';
@@ -708,7 +709,7 @@ class crm_Locations extends core_Master
         $string .= "{$row->pCode} {$row->place}, {$row->address}";
         $string = trim($string, ',  ');
 
-        if(!empty($rec->features)){
+        if($showFeatures && !empty($rec->features)){
             $features = core_Type::getByName('keylist(mvc=trans_Features,select=name)')->toVerbal($rec->features);
             $string .= "; {$features}";
         }
