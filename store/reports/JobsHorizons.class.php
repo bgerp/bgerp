@@ -237,6 +237,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('productId', 'varchar', 'caption=Артикул');
             $fld->FLD('document', 'varchar', 'caption=Документ,tdClass=centered');
             $fld->FLD('date', 'varchar', 'caption=Падеж,tdClass=centered');
+            $fld->FLD('note', 'varchar', 'caption=Забележка,tdClass=centered');
             $fld->FLD('docReservedQuantyti', 'varchar', 'caption=Количество->Запазено,smartCenter');
             $fld->FLD('docExpectedQuantyti', 'varchar', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
@@ -451,7 +452,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec = clone $dRec;
 
-                    $document = cls::get($docReserved->sourceClassId)->abbr . $docReserved->sourceId;
+                    //$document = cls::get($docReserved->sourceClassId)->abbr . $docReserved->sourceId;
+                    $Document = cls::get($docReserved->sourceClassId);
+                    $docClassName = $Document->className;
+                    $docRec = $docClassName::fetch($docReserved->sourceId);
 
                     if ($markFirst == 1) {
                         $dCloneRec->markFirst = true;
@@ -461,7 +465,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->date = $docReserved->date;
 
-                    $dCloneRec->document = $document;
+                    $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
+
+                    $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
@@ -477,11 +483,14 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec = clone $dRec;
 
-                    $Document = cls::get($docExpected->sourceClassId)->abbr . $docExpected->sourceId;
+                    $Document = cls::get($docReserved->sourceClassId);
+                    $docClassName = $Document->className;
+                    $docRec = $docClassName::fetch($docReserved->sourceId);
 
                     $dCloneRec->date = $docExpected->date;
 
-                    $dCloneRec->document = $Document;
+                    $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
+                    $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
@@ -536,6 +545,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         }
 
         $res->date = $Date->toVerbal($dRec->date);
+        $res->note= $dRec->note;
 
         $res->docExpectedQuantyti = $dRec->docExpectedQuantyti;
         $res->docReservedQuantyti = $dRec->docReservedQuantyti;
