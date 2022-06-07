@@ -210,6 +210,10 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
 
             if ($form->isSubmitted()) {
+                $masterRec = planning_DirectProductionNote::fetch($rec->noteId);
+                if($rec->productId == $masterRec->productId){
+                    $form->setError('productId', 'Не може да избирате артикула, който ще се произвежда');
+                }
 
                 // Проверка на к-то
                 $warning = null;
