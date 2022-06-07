@@ -662,6 +662,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      *          string|null ['labelType']            - тип на етикета
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
+     *          string      ['isFinal']              - дали е финална
      */
     public function getProductionData($productId)
     {

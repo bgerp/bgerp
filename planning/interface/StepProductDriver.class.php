@@ -139,7 +139,6 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
      *          string      ['isFinal']              - дали е финална
-     *          string      ['isFinal']              - дали е финална
      */
     public function getProductionData($productId)
     {
@@ -147,7 +146,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $res = array('centerId' => $rec->planning_Steps_centerId, 'storeIn' => $rec->planning_Steps_storeIn, 'storeInput' => $rec->planning_Steps_storeInput, 'norm' => $rec->planning_Steps_norm);
         $res['fixedAssets'] = !empty($rec->planning_Steps_fixedAssets) ? keylist::toArray($rec->planning_Steps_fixedAssets) : null;
         $res['employees'] = !empty($rec->planning_Steps_employees) ? keylist::toArray($rec->planning_Steps_employees) : null;
-        $res['planningParams'] = !empty($rec->planning_Steps_planningParams) ? keylist::toArray($rec->planning_Steps_planningParams) : null;
+        $res['planningParams'] = !empty($rec->planning_Steps_planningParams) ? keylist::toArray($rec->planning_Steps_planningParams) : array();
         $res['isFinal'] = $rec->planning_Steps_isFinal;
         if($rec->canStore == 'yes'){
             $res['labelPackagingId'] = $rec->planning_Steps_labelPackagingId;

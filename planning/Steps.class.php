@@ -132,6 +132,16 @@ class planning_Steps extends core_Extender
         $form->setDefault("{$mvc->className}_centerId", planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
         $form->input("{$mvc->className}_canStore,{$mvc->className}_centerId,measureId,{$mvc->className}_labelPackagingId", 'silent');
 
+        // Добавяне на избор само на Параметрите за производствени операции
+        $paramOptions = array();
+        $taskParamIds = cat_Params::getTaskParamIds();
+        $exParamIds = keylist::toArray($rec->{"{$mvc->className}_planningParams"});
+        $allowedParamIds = $taskParamIds + $exParamIds;
+        foreach ($allowedParamIds as $paramId){
+            $paramOptions[$paramId] = cat_Params::getVerbal($paramId, 'typeExt');
+        }
+        $form->setSuggestions("{$mvc->className}_planningParams", $paramOptions);
+
         if($form->getField('meta', false)){
             $form->setField('meta', 'input=none');
         }
@@ -452,6 +462,7 @@ class planning_Steps extends core_Extender
         $blockTpl->placeObject($data->row);
         $blockTpl->removeBlocksAndPlaces();
         $tpl->append($blockTpl, 'ADDITIONAL_TOP_BLOCK');
+        $tpl->removeBlock('innerState');
     }
     
     

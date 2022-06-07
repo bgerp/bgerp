@@ -240,21 +240,21 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Производство->Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat,silent');
-        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Производство->Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal,silent');
+        $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
-        $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Производство->Планирано');
-        $this->FLD('isFinal', 'enum(yes=Да,no=Не)', 'caption=Производство->Финална,silent,removeAndRefreshForm=plannedQuantity|packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|paramcat');
-        $this->FLD('quantityInPack', 'double', 'mandatory,caption=Производство->К-во в мярка,input=none');
+        $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано');
+        $this->FLD('isFinal', 'enum(yes=Да,no=Не)', 'input=hidden,caption=Финална,silent');
+        $this->FLD('quantityInPack', 'double', 'mandatory,caption=К-во в мярка,input=none');
 
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Производство->Склад,input=none');
-        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Производство->Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|allowedInputProducts|freeTimeAfter');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Производство->Оператори');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
+        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|allowedInputProducts|freeTimeAfter');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори');
         $this->FNC('startAfter', 'varchar', 'caption=Производство->Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
-            $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Производство->Отчитане,input=none');
+            $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
         }
-        $this->FLD('allowedInputProducts', 'enum(yes=Всички за влагане,no=Само посочените в операцията)', 'caption=Производство->Влагане');
+        $this->FLD('allowedInputProducts', 'enum(yes=Всички за влагане,no=Само посочените в операцията)', 'caption=Влагане');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate|indPackagingId|,oldFieldName=packagingId');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
@@ -601,7 +601,7 @@ class planning_Tasks extends core_Master
             if($rec->isFinal == 'yes'){
                 if($otherTaskId = planning_Tasks::fetchField("#originId = {$rec->originId} AND #state != 'rejected' AND #isFinal = 'yes' AND #productId != {$rec->productId}")) {
                     $otherTaskLink = planning_Tasks::getHyperlink($otherTaskId, true);
-                    $form->setError('productId,isFinal', "Операция за друг етап вече е избрана за финална|*: {$otherTaskLink}");
+                    $form->setError('productId', "По заданието вече има операция за друг финален етап|*: {$otherTaskLink}");
                 }
             }
 
@@ -709,36 +709,6 @@ class planning_Tasks extends core_Master
 
         if(isset($rec->indPackagingId) && !empty($rec->indTime)){
             $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->indPackagingId})")->toVerbal($rec->indTime);
-        }
-
-        if($Driver = cat_Products::getDriver($rec->productId)){
-
-            // Има ли параметри за планиране
-            $productionData = $Driver->getProductionData($rec->productId);
-            if(is_array($productionData['planningParams'])){
-                $jobRec = doc_Containers::getDocument($rec->originId);
-                $jobProductId = $jobRec->fetchField('productId');
-                $productParams = cat_Products::getParams($jobProductId, null, true);
-                $displayParams = array_intersect_key($productParams, $productionData['planningParams']);
-
-                // Има ли от параметрите на артикула за задание, такива които да се покажат
-                if(countR($displayParams)){
-                    $resArr['params'] = array('name' => tr('От') . ": " . cat_Products::getHyperlink($jobProductId));
-                    $displayParamsHtml = "<table>";
-
-                    // Ако има показват се
-                    foreach ($displayParams as $pId => $pVal){
-                        $pName = tr(cat_Params::getTitleById($pId));
-                        $pSuffix = tr(cat_Params::getVerbal($pId, 'suffix'));
-                        if(!empty($pSuffix)){
-                            $pVal = "{$pVal} {$pSuffix}";
-                        }
-                        $displayParamsHtml .= "<tr><td style='font-weight:normal'>{$pName}:</td><td>{$pVal}</td></tr>";
-                    }
-                    $displayParamsHtml .= "</table>";
-                    $resArr['params']['val'] = $displayParamsHtml;
-                }
-            }
         }
     }
     
@@ -1080,12 +1050,6 @@ class planning_Tasks extends core_Master
             $form->setField('labelType', 'input');
             $form->setField('measureId', 'input');
 
-            $productId4Form = ($rec->isFinal == 'yes') ? $originRec->productId : $rec->productId;
-            if($rec->isFinal == 'yes'){
-                $form->setDefault('plannedQuantity', $originRec->quantity);
-            }
-
-            $productRec = cat_Products::fetch($productId4Form, 'canConvert,canStore,measureId');
             if(core_Packs::isInstalled('batch')){
                 if(batch_Defs::getBatchDef($originRec->productId)){
                     $form->setField('followBatchesForFinalProduct', 'input');
@@ -1109,7 +1073,12 @@ class planning_Tasks extends core_Master
                 }
             }
 
+            $productId4Form = ($rec->isFinal == 'yes') ? $originRec->productId : $rec->productId;
+            $productRec = cat_Products::fetch($productId4Form, 'canConvert,canStore,measureId');
             if($rec->isFinal == 'yes'){
+                $form->setDefault('plannedQuantity', $originRec->quantity);
+                $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция') . "</div>";
+
                 // Ако артикула е този от заданието то допустимите мерки са тази от заданието и втората му мярка ако има
                 if(cat_UoM::fetchField($originRec->packagingId, 'type') == 'uom'){
                     $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
@@ -1140,7 +1109,7 @@ class planning_Tasks extends core_Master
             }
 
             if (empty($rec->id)) {
-                cat_products_Params::addProductParamsToForm($mvc, $rec->id, $productId4Form, $form);
+                cat_products_Params::addProductParamsToForm($mvc, $rec->id, $originRec->productId, $rec->productId, $form);
             }
 
             if (isset($rec->systemId, $tasks[$rec->systemId])) {

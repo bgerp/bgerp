@@ -5,6 +5,10 @@
     		<td class='quiet'>|Наименование|*:</td>
     		<td>[#planning_Steps_name#]</td>
     	</tr>
+		<tr>
+			<td class='quiet'>|Мярка|*:</td>
+			<td>[#measureId#]</td>
+		</tr>
     	<tr>
     		<td class='quiet'>|Складируем|*:</td>
     		<td>[#planning_Steps_canStore#]</td>
