@@ -466,7 +466,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $dCloneRec->date = $docReserved->date;
 
                     $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
-                    $dCloneRec->note = $docRec->note;
+
+                    $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
@@ -489,7 +490,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $dCloneRec->date = $docExpected->date;
 
                     $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
-                    $dCloneRec->note = $docRec->note;
+                    $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
