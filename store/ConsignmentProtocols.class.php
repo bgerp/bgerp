@@ -191,9 +191,9 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('contragentId', 'int', 'input=hidden,tdClass=leftCol');
         $this->FLD('currencyId', 'customKey(mvc=currency_Currencies,key=code,select=code,allowEmpty)', 'mandatory,caption=Валута');
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,mandatory');
-        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Обект до,silent');
-        $this->FLD('deliveryTime', 'datetime(requireTime)','caption=Натоварване');
+        $this->FLD('deliveryTime', 'datetime(requireTime)','caption=Товарене');
         $this->FLD('deliveryOn', 'datetime(requireTime)','caption=Доставка');
+        $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация на Контрагента->Обект,silent');
         $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
 
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
