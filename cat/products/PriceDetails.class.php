@@ -50,7 +50,7 @@ class cat_products_PriceDetails extends core_Manager
         $data->Order = 5;
         
         $Param = core_Request::get($data->masterData->tabTopParam, 'varchar');
-        $isPublic = ($data->masterData->rec->isPublic == 'yes') ? true : false;
+        $isPublic = ($data->masterData->rec->isPublic == 'yes');
         
         if (!(($isPublic === true && (empty($Param) || $Param == 'Prices')) || ($isPublic === false && $Param == 'Prices'))) {
             $data->hide = true;

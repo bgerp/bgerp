@@ -1695,6 +1695,8 @@ class email_Outgoings extends core_Master
             
             if ($rec->originId && $oDoc->haveInterface('email_DocumentIntf')) {
                 $rec->subject = $oDoc->getDefaultEmailSubject($isForwarding);
+                $rec->subject = preg_replace('/\s*[^\s\w]+spam[^\s\w]+\s*/ui', ' ', $rec->subject);
+                $rec->subject = preg_replace('/\s{2,}/ui', ' ', $rec->subject);
             }
             
             $hintStr = tr('Смяна на езика');

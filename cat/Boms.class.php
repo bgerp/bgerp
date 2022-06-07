@@ -495,14 +495,10 @@ class cat_Boms extends core_Master
                 }
             }
         }
-        
+
+        // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
         if(countR(static::$stoppedActiveBoms)){
             foreach (static::$stoppedActiveBoms as $rec){
-                if ($nextId = $mvc->activateLastBefore($rec)) {
-                    core_Statuses::newStatus("|Активирана е рецепта|* #Bom{$nextId}");
-                }
-
-                // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
                 store_StockPlanning::recalcByReff($mvc, $rec->id);
             }
         }
@@ -1913,7 +1909,7 @@ class cat_Boms extends core_Master
         $dQuery = $Detail->getQuery();
         $dQuery->where("#bomId = {$rec->id}");
         while($dRec = $dQuery->fetch()){
-            $notAllowed[] = array();
+            $notAllowed = array();
             $Detail->findNotAllowedProducts($dRec->resourceId, $rec->productId, $notAllowed);
 
             if (isset($notAllowed[$dRec->resourceId])) return false;

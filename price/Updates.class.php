@@ -200,7 +200,7 @@ class price_Updates extends core_Manager
     {
         // Показваме името на правилото
         try{
-            $row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, true) : cat_Products::getHyperlink($rec->objectId, true);
+            $row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, true) : (($rec->type == 'group') ? cat_Groups::getHyperlink($rec->objectId, true) : cat_Products::getHyperlink($rec->objectId, true));
         } catch(core_exception_Expect $e){
             wp($rec);
             $row->name = "<span class='red'>" . tr("Проблем при показването") . "</span>";

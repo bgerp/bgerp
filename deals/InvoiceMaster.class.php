@@ -117,6 +117,20 @@ abstract class deals_InvoiceMaster extends core_Master
 
 
     /**
+     * Кой може да променя активирани записи
+     *
+     * @see change_Plugin
+     */
+    public $canChangerec = 'accMaster, ceo, invoicer';
+
+
+    /**
+     * Кои полета да могат да се променят след активация
+     */
+    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template';
+
+
+    /**
      * След описанието на полетата
      */
     protected static function setInvoiceFields(core_Master &$mvc)
@@ -1338,12 +1352,11 @@ abstract class deals_InvoiceMaster extends core_Master
                 unset($row->bic);
             }
             
-            if (!empty($row->paymentType)) {
+            if (!empty($rec->paymentType)) {
+                $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
                 if ($rec->paymentType == 'postal') {
-                    $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
                     $row->paymentType = tr('Пощенски паричен превод');
                 } else {
-                    $arr = array('cash' => 'в брой', 'bank' => 'по банков път', 'card' => 'с карта', 'factoring' => 'факторинг', 'intercept' => 'с прихващане');
                     $row->paymentType = tr('Плащане ' . $arr[$rec->paymentType]);
                 }
 
@@ -1926,5 +1939,14 @@ abstract class deals_InvoiceMaster extends core_Master
         if($name != $rec->contragentName) return array();
 
         return arr::make(static::$updateContragentdataField, true);
+    }
+
+
+    /**
+     * Извиква се преди рендирането на 'опаковката'
+     */
+    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
+    {
+        $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
 }
