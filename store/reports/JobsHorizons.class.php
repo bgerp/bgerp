@@ -455,8 +455,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $dCloneRec = clone $dRec;
 
                     //$document = cls::get($docReserved->sourceClassId)->abbr . $docReserved->sourceId;
-                    $Document = cls::get($docReserved->sourceClassId);
-                    $docClassName = $Document->className;
+                    $DocumentRez = cls::get($docReserved->sourceClassId);
+                    $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
 
                     if ($markFirst == 1) {
@@ -467,13 +467,13 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->date = $docReserved->date;
 
-                    $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
+                    $dCloneRec->document = $DocumentRez->abbr . $docReserved->sourceId;
 
                     $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
-                    unset ($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
+                   // unset ($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
@@ -485,25 +485,27 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec = clone $dRec;
 
-                    $Document = cls::get($docReserved->sourceClassId);
+                    $Document = cls::get($docExpected->sourceClassId);
+
                     $docClassName = $Document->className;
-                    $docRec = $docClassName::fetch($docReserved->sourceId);
+                    $docRec = $docClassName::fetch($docExpected->sourceId);
 
                     $dCloneRec->date = $docExpected->date;
 
-                    $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
+                    $dCloneRec->document = $Document->abbr . $docExpected->sourceId;
                     $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
-                    unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
+                   // unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
                 }
             }
         }
-        //unset($rec->exportFilter);
+        //unset($rec->exportFilter);bp
+
         return $recs;
     }
 
