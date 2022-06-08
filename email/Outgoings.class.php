@@ -1900,6 +1900,9 @@ class email_Outgoings extends core_Master
             $data->form->addAttr('body', $langAttrArr);
             $data->form->addAttr('subject', $langAttrArr);
         }
+
+        $data->form->rec->emailCc = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->emailCc)));
+        $data->form->rec->email = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->email)));
     }
 
 
