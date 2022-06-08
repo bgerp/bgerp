@@ -460,9 +460,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $docRec = $docClassName::fetch($docReserved->sourceId);
 
                     if ($markFirstRes == 1) {
-                        $dCloneRec->$markFirstRes = true;
+                        $dCloneRec->markFirstRes = true;
                     } else {
-                        $dCloneRec->$markFirstRes = false;
+                        $dCloneRec->markFirstRes = false;
                     }
 
                     $dCloneRec->date = $docReserved->date;
@@ -491,9 +491,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $docRec = $docClassName::fetch($docExpected->sourceId);
 
                     if ($markFirstEx == 1) {
-                        $dCloneRec->$markFirstEx = true;
+                        $dCloneRec->markFirstEx = true;
                     } else {
-                        $dCloneRec->$markFirstEx = false;
+                        $dCloneRec->markFirstEx = false;
                     }
 
                     $dCloneRec->date = $docExpected->date;
@@ -534,7 +534,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
-        if ($dRec->markFirst) {
+        if ($dRec->markFirstEx || $dRec->markFirstRes) {
             $res->productId = $pRec->name;
             $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
             $res->quantity = $dRec->quantity;
