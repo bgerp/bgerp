@@ -448,7 +448,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                $markFirst = 1;
+                $markFirstRes = $markFirstEx = 1;
 
                 foreach ($dRec->documentsReserved as $docReserved) {
 
@@ -459,10 +459,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
 
-                    if ($markFirst == 1) {
-                        $dCloneRec->markFirst = true;
+                    if ($markFirstRes == 1) {
+                        $dCloneRec->$markFirstRes = true;
                     } else {
-                        $dCloneRec->markFirst = false;
+                        $dCloneRec->$markFirstRes = false;
                     }
 
                     $dCloneRec->date = $docReserved->date;
@@ -477,7 +477,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
-                    $markFirst++;
+                    $markFirstRes++;
 
                 }
 
@@ -490,6 +490,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $docClassName = $Document->className;
                     $docRec = $docClassName::fetch($docExpected->sourceId);
 
+                    if ($markFirstEx == 1) {
+                        $dCloneRec->$markFirstEx = true;
+                    } else {
+                        $dCloneRec->$markFirstEx = false;
+                    }
+
                     $dCloneRec->date = $docExpected->date;
 
                     $dCloneRec->document = $Document->abbr . $docExpected->sourceId;
@@ -500,6 +506,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
+
+                    $markFirstEx++;
 
                 }
             }
