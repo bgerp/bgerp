@@ -180,8 +180,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $expected = $Quantities->expected;
             $free = $Quantities->free;
 
-            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, null, $rec->date, 'reserved');
-            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, null, $rec->date, 'expected');
+            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'reserved');
+            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'expected');
 
             $code = ($sRec->code) ?: 'Art' . $sRec->productId;
 
