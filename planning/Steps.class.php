@@ -97,10 +97,10 @@ class planning_Steps extends core_Extender
         $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад приемане');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
-        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване в производството->Планиране (Параметри)');
+        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване в производството->Параметри');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
         $this->FLD('isFinal', 'enum(no=Не,yes=Да)', 'caption=Използване в производството->Финален,notNull,value=no');
-        $this->FLD('interruptOffset', 'time', 'caption=Използване в производството->Отместване при прекъсване');
+        $this->FLD('interruptOffset', 'time', 'caption=Използване в производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
