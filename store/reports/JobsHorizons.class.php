@@ -473,7 +473,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
-                   // unset ($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
+                    unset ($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
@@ -497,14 +497,13 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
-                   // unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
+                    unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
                 }
             }
         }
-        //unset($rec->exportFilter);bp
 
         return $recs;
     }
