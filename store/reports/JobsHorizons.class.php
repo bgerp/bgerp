@@ -22,7 +22,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'quantity';
+    protected $sortableListFields = 'quantity,code';
 
 
     /**
@@ -88,6 +88,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,mandatory,silent,single=none');
 
+        //Подредба на резултатите
+         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
     }
 
 
@@ -165,6 +167,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             if (!is_object($sRec)) {
                 $sRec = store_StockPlanning::fetch("#productId = $sRec");
             }
+            $pRec   = (cat_Products::fetch($sRec->productId));
 
             if (!$sRec->measureId) {
                 $measureId = cat_Products::fetch($sRec->productId)->measureId;
@@ -184,7 +187,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $documentsReserved = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'reserved');
             $documentsExpected = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'expected');
 
-            $code = ($sRec->code) ?: 'Art' . $sRec->productId;
+            $code = ($pRec->code) ?: 'Art' . $pRec->productId;
 
             $recs[$id] = (object)array(
                 'productId' => $sRec->productId,
@@ -199,10 +202,14 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
             );
 
-            unset($documentsReserved,$documentsExpected,$Quantities);
+            unset($documentsReserved,$documentsExpected,$Quantities,$code);
 
         }
 
+        if (!is_null($recs)) {
+
+            arr::sortObjects($recs, 'code', $rec->order,'stri');
+        }
 
         return $recs;
     }
@@ -224,6 +231,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         if ($export === false) {
 
+            $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
@@ -275,7 +283,11 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
+        $pRec   = (cat_Products::fetch($dRec->productId));
+
+        $row->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
+
+        $row->productId = cat_Products::getLinkToSingle_($dRec->productId, true);
 
 
         $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
@@ -448,7 +460,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                $markFirstRes = $markFirstEx = 1;
+                $markFirst = 1;
 
                 foreach ($dRec->documentsReserved as $docReserved) {
 
@@ -459,10 +471,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
 
-                    if ($markFirstRes == 1) {
-                        $dCloneRec->markFirstRes = true;
+                    if ($markFirst == 1) {
+                        $dCloneRec->markFirst = true;
                     } else {
-                        $dCloneRec->markFirstRes = false;
+                        $dCloneRec->markFirst = false;
                     }
 
                     $dCloneRec->date = $docReserved->date;
@@ -477,7 +489,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
-                    $markFirstRes++;
+                    $markFirst++;
 
                 }
 
@@ -490,10 +502,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $docClassName = $Document->className;
                     $docRec = $docClassName::fetch($docExpected->sourceId);
 
-                    if ($markFirstEx == 1) {
-                        $dCloneRec->markFirstEx = true;
+                    if ($markFirst == 1) {
+                        $dCloneRec->markFirst = true;
                     } else {
-                        $dCloneRec->markFirstEx = false;
+                        $dCloneRec->markFirst = false;
                     }
 
                     $dCloneRec->date = $docExpected->date;
@@ -507,7 +519,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
-                    $markFirstEx++;
+                    $markFirst++;
 
                 }
             }
@@ -534,7 +546,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
-        if ($dRec->markFirstEx || $dRec->markFirstRes) {
+        if ( $dRec->markFirst) {
             $res->productId = $pRec->name;
             $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
             $res->quantity = $dRec->quantity;
