@@ -161,6 +161,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         foreach ($storesRecsArr as $sRec) {
 
+
             if (!is_object($sRec)) {
                 $sRec = store_StockPlanning::fetch("#productId = $sRec");
             }
@@ -180,8 +181,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $expected = $Quantities->expected;
             $free = $Quantities->free;
 
-            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, null, $rec->date, 'reserved');
-            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, null, $rec->date, 'expected');
+            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'reserved');
+            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'expected');
 
             $code = ($sRec->code) ?: 'Art' . $sRec->productId;
 
@@ -198,6 +199,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
             );
 
+            unset($documentsReserved,$documentsExpected,$Quantities);
 
         }
 
@@ -446,26 +448,26 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         if (is_array($recsToExport)) {
             foreach ($recsToExport as $dRec) {
 
-                $markFirst = 1;
+                $markFirstRes = $markFirstEx = 1;
 
                 foreach ($dRec->documentsReserved as $docReserved) {
 
                     $dCloneRec = clone $dRec;
 
                     //$document = cls::get($docReserved->sourceClassId)->abbr . $docReserved->sourceId;
-                    $Document = cls::get($docReserved->sourceClassId);
-                    $docClassName = $Document->className;
+                    $DocumentRez = cls::get($docReserved->sourceClassId);
+                    $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
 
-                    if ($markFirst == 1) {
-                        $dCloneRec->markFirst = true;
+                    if ($markFirstRes == 1) {
+                        $dCloneRec->markFirstRes = true;
                     } else {
-                        $dCloneRec->markFirst = false;
+                        $dCloneRec->markFirstRes = false;
                     }
 
                     $dCloneRec->date = $docReserved->date;
 
-                    $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
+                    $dCloneRec->document = $DocumentRez->abbr . $docReserved->sourceId;
 
                     $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
@@ -475,7 +477,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
-                    $markFirst++;
+                    $markFirstRes++;
 
                 }
 
@@ -483,13 +485,20 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec = clone $dRec;
 
-                    $Document = cls::get($docReserved->sourceClassId);
+                    $Document = cls::get($docExpected->sourceClassId);
+
                     $docClassName = $Document->className;
-                    $docRec = $docClassName::fetch($docReserved->sourceId);
+                    $docRec = $docClassName::fetch($docExpected->sourceId);
+
+                    if ($markFirstEx == 1) {
+                        $dCloneRec->markFirstEx = true;
+                    } else {
+                        $dCloneRec->markFirstEx = false;
+                    }
 
                     $dCloneRec->date = $docExpected->date;
 
-                    $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
+                    $dCloneRec->document = $Document->abbr . $docExpected->sourceId;
                     $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
@@ -498,10 +507,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
+                    $markFirstEx++;
+
                 }
             }
         }
-        //unset($rec->exportFilter);
+
         return $recs;
     }
 
@@ -523,7 +534,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
-        if ($dRec->markFirst) {
+        if ($dRec->markFirstEx || $dRec->markFirstRes) {
             $res->productId = $pRec->name;
             $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
             $res->quantity = $dRec->quantity;
