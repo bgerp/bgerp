@@ -200,6 +200,12 @@ defIfNot('SALES_SHOW_REFF_IN_SALE_THREAD', 'no');
 defIfNot('SALES_SET_DEFAULT_DEALER_ID', 'yes');
 
 
+/**
+ * Дали да се изчислява дефолтен търговец в продажбата
+ */
+defIfNot('SALES_SHOW_PRICE_IN_PRODUCT_SELECTION', 'no');
+
+
 
 /**
  * Продажби - инсталиране / деинсталиране
@@ -363,6 +369,7 @@ class sales_Setup extends core_ProtoSetup
         'SALES_DEFAULT_LOCATION_FOR_INVOICE' => array('key(mvc=crm_Locations,select=title,allowEmpty)', 'caption=Настройки на дефолта за фактура и проформа->Локация,customizeBy=ceo|sales|invoicer,optionsFunc=crm_Locations::getOwnLocations'),
         'SALES_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към продажба->Избор'),
         'SALES_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен търговец в продажбите->Избор'),
+        'SALES_SHOW_PRICE_IN_PRODUCT_SELECTION' => array('enum(no=Изключено,measureId=Основна мярка,basePack=Избраната за основна мярка/опаковка)', 'caption=Показване на продажната цена при избор на артикул в документи->Избор'),
     );
     
     
