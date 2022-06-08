@@ -193,7 +193,7 @@ class purchase_Purchases extends deals_DealMaster
         'paymentMethodId' => 'clientCondition|lastDocUser|lastDoc',
         'currencyId' => 'lastDocUser|lastDoc|CoverMethod',
         'bankAccountId' => 'defMethod',
-        'dealerId' => 'lastDocUser',
+        'dealerId' => 'defMethod',
         'makeInvoice' => 'lastDocUser|lastDoc',
         'deliveryLocationId' => 'lastDocUser|lastDoc',
         'chargeVat' => 'defMethod',
@@ -900,5 +900,21 @@ class purchase_Purchases extends deals_DealMaster
         }
 
         return null;
+    }
+
+
+    /**
+     * Кой е дефолтния търговец по продажбата
+     *
+     * @param stdClass $rec   - папка
+     * @return int|NULL $dealerId - ид на търговец
+     */
+    public static function getDefaultDealerId($rec)
+    {
+        $setDefaultDealerId = purchase_Setup::get('SET_DEFAULT_DEALER_ID');
+        if($setDefaultDealerId != 'yes') return null;
+
+        $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $rec->folderId, 'dealerId', true);
+        if (core_Users::haveRole('purchase', $dealerId)) return $dealerId;
     }
 }
