@@ -161,6 +161,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         foreach ($storesRecsArr as $sRec) {
 
+
             if (!is_object($sRec)) {
                 $sRec = store_StockPlanning::fetch("#productId = $sRec");
             }
@@ -198,6 +199,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
             );
 
+            unset($documentsReserved,$documentsExpected,$Quantities);
 
         }
 
