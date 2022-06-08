@@ -205,7 +205,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         if (!is_null($recs)) {
 
-            arr::sortObjects($recs, 'code', 'desc');
+            arr::sortObjects($recs, 'code', 'ASC','stri');
         }
         return $recs;
     }
