@@ -1643,19 +1643,29 @@ class cat_Products extends embed_Manager
             }
 
             // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
+            $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
             if(!is_numeric($onlyIds)){
-                if(isset($params['priceData']) && $rec->isPublic == 'yes'){
+                if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices){
                     $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
                     if(isset($policyInfo->price)){
                         $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
                         $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
+                        $measureId = $rec->measureId;
+
+                        if($showPrices == 'basePack'){
+                            if($packRec = cat_products_Packagings::fetch("#productId = {$rec->id} AND #isBase = 'yes'", 'packagingId,quantity')){
+                                $measureId = $packRec->packagingId;
+                                $price *= $packRec->quantity;
+                            }
+                        }
+
                         Mode::push('text', 'plain');
                         $priceVerbal = price_Lists::roundPrice($listId, $price, true);
                         Mode::pop();
-                        $measureName = cat_UoM::getShortName($rec->measureId);
+                        $measureName = cat_UoM::getShortName($measureId);
 						
 						if ($params['priceData']['currencyId'] == 'BGN') {
-							$title .= " ...... {$priceVerbal} лв/{$measureName}";
+							$title .= " ...... {$priceVerbal} " . tr('лв') . "/{$measureName}";
 						} else
 							$title .= " ...... {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
                     }
