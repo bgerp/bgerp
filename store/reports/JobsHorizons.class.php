@@ -22,7 +22,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'quantity';
+    protected $sortableListFields = 'quantity,code';
 
 
     /**
@@ -203,7 +203,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         }
 
+        if (!is_null($recs)) {
 
+            arr::sortObjects($recs, 'code', 'desc');
+        }
         return $recs;
     }
 
@@ -224,6 +227,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         if ($export === false) {
 
+            $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
@@ -275,7 +279,11 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
+        $pRec = (cat_Products::fetch($dRec->productId));
+
+        $row->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
+
+        $row->productId = cat_Products::getLinkToSingle_($dRec->productId, true);
 
 
         $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
