@@ -74,6 +74,12 @@ defIfNot('PURCHASE_SHOW_REFF_IN_SALE_THREAD', 'no');
 
 
 /**
+ * Дали да се изчислява дефолтен закупчик в покупката
+ */
+defIfNot('PURCHASE_SET_DEFAULT_DEALER_ID', 'yes');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -159,6 +165,7 @@ class purchase_Setup extends core_ProtoSetup
         ),
         'PURCHASE_NOTIFICATION_FOR_FORGOTTEN_INVOICED_PAYMENT_DAYS' => array('time', 'caption=Нотификация за липсваща фактура за направено плащане->Време'),
         'PURCHASE_SHOW_REFF_IN_SALE_THREAD' => array('enum(no=Скриване,yes=Показване)', 'caption=Показване на "Ваш реф." в документите към покупката->Избор'),
+        'PURCHASE_SET_DEFAULT_DEALER_ID' => array('enum(yes=Включено,no=Изключено)', 'caption=Попълване на дефолтен закупчик в покупката->Избор'),
     );
     
     
