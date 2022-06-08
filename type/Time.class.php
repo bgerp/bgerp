@@ -295,9 +295,11 @@ class type_Time extends type_Varchar
                     $vMod = $v % 3600;
                     $hours = round(($v - $vMod) / 3600);
                     $minutesLeft = ($vMod) ? round($vMod / 60) : 0;
-                    $res = round($hours, $decimals) . " " . (($hours == 1) ? tr('час') : tr('часа'));
+                    $hoursLeft = round($hours, $decimals);
                     if($minutesLeft){
-                        $res .= " " . tr('и') . " {$minutesLeft} " . tr('мин.');
+                        $res = "{$hoursLeft}:{$minutesLeft} " . tr('ч.');
+                    } else {
+                        $res = $hoursLeft . " " . (($hours == 1) ? tr('час') : tr('часа'));
                     }
 
                     return $res;
