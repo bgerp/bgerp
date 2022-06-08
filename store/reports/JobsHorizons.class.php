@@ -88,6 +88,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,mandatory,silent,single=none');
 
+        //Подредба на резултатите
+        $fieldset->FLD('orderBy', 'enum(code=Код, quantyti=Наличности)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=seeWeight');
+        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
     }
 
 
@@ -205,7 +208,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         if (!is_null($recs)) {
 
-            arr::sortObjects($recs, 'code', 'ASC','stri');
+            $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
+
+            $orderBy = $rec->orderBy;
+
+
+            arr::sortObjects($recs, $orderBy, $rec->order,$typeOrder);
         }
         return $recs;
     }
