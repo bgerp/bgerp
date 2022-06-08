@@ -89,8 +89,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,mandatory,silent,single=none');
 
         //Подредба на резултатите
-        $fieldset->FLD('orderBy', 'enum(code=Код, quantyti=Наличности)', 'caption=Подреждане на резултата->Показател,maxRadio=5,columns=3,after=seeWeight');
-        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
+         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
     }
 
 
@@ -168,6 +167,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             if (!is_object($sRec)) {
                 $sRec = store_StockPlanning::fetch("#productId = $sRec");
             }
+            $pRec   = (cat_Products::fetch($sRec->productId));
 
             if (!$sRec->measureId) {
                 $measureId = cat_Products::fetch($sRec->productId)->measureId;
@@ -187,7 +187,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $documentsReserved = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'reserved');
             $documentsExpected = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'expected');
 
-            $code = ($sRec->code) ?: 'Art' . $sRec->productId;
+            $code = ($pRec->code) ?: 'Art' . $pRec->productId;
 
             $recs[$id] = (object)array(
                 'productId' => $sRec->productId,
@@ -202,19 +202,15 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
             );
 
-            unset($documentsReserved,$documentsExpected,$Quantities);
+            unset($documentsReserved,$documentsExpected,$Quantities,$code);
 
         }
 
         if (!is_null($recs)) {
 
-            $typeOrder = ($rec->orderBy == 'code') ? 'stri' : 'native';
-
-            $orderBy = $rec->orderBy;
-
-
-            arr::sortObjects($recs, $orderBy, $rec->order,$typeOrder);
+            arr::sortObjects($recs, 'code', $rec->order,'stri');
         }
+
         return $recs;
     }
 
@@ -287,7 +283,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $pRec = (cat_Products::fetch($dRec->productId));
+        $pRec   = (cat_Products::fetch($dRec->productId));
 
         $row->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
 
