@@ -1645,7 +1645,7 @@ class cat_Products extends embed_Manager
             // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
             $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
             if(!is_numeric($onlyIds)){
-                if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices){
+                if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
                     $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
                     if(isset($policyInfo->price)){
                         $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
