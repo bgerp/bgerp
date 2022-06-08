@@ -642,7 +642,7 @@ class cat_products_Params extends doc_Detail
     public static function addProductParamsToForm($classId, $objectId, $productId, $planningStepProductId, &$form)
     {
         // Показване на параметрите за задача във формата, като задължителни полета
-        $paramValues = cat_Products::getParams($productId, null, true);
+        $paramValues = cat_Products::getParams($productId);
         $params = array_combine(array_keys($paramValues), array_keys($paramValues));
         if(isset($planningStepProductId)){
             if($StepDriver = cat_Products::getDriver($planningStepProductId)){
@@ -698,7 +698,7 @@ class cat_products_Params extends doc_Detail
         foreach ($rec->{$paramField} as $k => $o) {
             if (!isset($rec->{$k})) continue;
             $paramDriver = cat_Params::getDriver($o->paramId);
-            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar) && empty($rec->{$k})) continue;
+            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File) && empty($rec->{$k})) continue;
 
             $nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $Class->getClassId(), 'productId' => $rec->id);
             if ($id = cat_products_Params::fetchField("#classId = {$Class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')) {
