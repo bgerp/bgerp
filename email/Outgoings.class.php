@@ -1916,7 +1916,6 @@ class email_Outgoings extends core_Master
      */
     protected static function getContragentDataForSameDocument($originId, $folderId)
     {
-//        bp();
         if ((!$originId) || (!$folderId)) {
 
             return ;
