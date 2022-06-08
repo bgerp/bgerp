@@ -150,7 +150,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=20)', 'caption=Оператори');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
-        $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Забележки,autohide');
+        $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
 
@@ -584,7 +584,6 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             if(!$selectedTerminalId){
                 unset($data->listFields['notes']);
-                unset($data->listFields['productId']);
                 $data->listTableMvc->FNC('shortUoM', 'varchar', 'tdClass=nowrap');
                 $data->listTableMvc->setField('productId', 'tdClass=nowrap');
                 $data->listTableMvc->FNC('info', 'varchar', 'tdClass=task-row-info');
@@ -680,8 +679,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
             }
             
-            if (isset($data->masterMvc) && $masterRec->productId != $rec->productId) {
-                $row->info = "{$row->productId}";
+            if (isset($data->masterMvc)) {
+                if($rec->type != 'production' || ($masterRec->productId != $rec->productId && $data->masterData->rec->isFinal != 'yes')){
+                    $row->info = "{$row->productId}";
+                }
             }
 
             if(!empty($rec->notes)){
