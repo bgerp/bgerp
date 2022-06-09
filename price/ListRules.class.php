@@ -491,7 +491,7 @@ class price_ListRules extends core_Detail
                     $form->setDefault('vat', $masterRec->vat);
                 } else {
                     $form->setReadOnly('currency');
-                    //$form->setReadOnly('vat');
+                    $form->setReadOnly('vat');
                 }
                 break;
         }
