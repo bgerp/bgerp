@@ -67,10 +67,7 @@
                 <td>[#expectedTimeEnd#]</td>
                 <td>[#expectedDuration#]</td>
                 <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
-                    <span style='font-weight:normal'>|Активирано на|*</span>: [#activatedOn#]<br>
-                    <span style='font-weight:normal'>|Приключено на|*</span>: [#timeClosed#]<br>
                     <!--ET_BEGIN assetId-->
-                    <hr>
                     <span style='font-weight:normal'>|Оборудване|*</span>: [#assetId#]<br>
                     <!--ET_END assetId-->
                     <!--ET_BEGIN startAfter-->

@@ -484,9 +484,6 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $row->activatedOn = !empty($rec->activatedOn) ? $row->activatedOn : "<span class='quiet'>N/A</span>";
-            $row->timeClosed = !empty($rec->timeClosed) ? $row->timeClosed : "<span class='quiet'>N/A</span>";
-
             if($rec->isFinal == 'yes'){
                 $row->productCaption = tr('Финален етап');
                 $row->originProductId = cat_Products::getHyperlink($origin->fetchField('productId'), true);
