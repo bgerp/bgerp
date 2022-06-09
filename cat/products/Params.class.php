@@ -281,6 +281,8 @@ class cat_products_Params extends doc_Detail
         $notIn = arr::extractValuesFromArray($query->fetchAll(), 'paramId');
         $in = array();
 
+        $taskClassId = planning_Tasks::getClassId();
+        $bomClassId = cat_BomDetails::getClassId();
         if ($classId == cat_Products::getClassId()) {
             $grSysid = cat_Params::fetchIdBySysId('weight');
             $kgSysid = cat_Params::fetchIdBySysId('weightKg');
@@ -296,11 +298,14 @@ class cat_products_Params extends doc_Detail
                     $ids[$grSysid] = $grSysid;
                 }
             }
-        } elseif($classId == planning_Tasks::getClassId()){
-            $taskStepId = planning_Tasks::fetchField($productId, 'productId');
+        } elseif($classId == $taskClassId || $classId == $bomClassId){
+            $productField = ($classId == $taskClassId) ? 'productId' : 'resourceId';
+            $taskStepId = cls::get($classId)->fetchField($productId, $productField);
             $Driver = cat_Products::getDriver($taskStepId);
             $pData = $Driver->getProductionData($taskStepId);
             $in = $pData['planningParams'];
+
+            if(!countR($in)) return array();
         }
 
         $where = '';
