@@ -54,7 +54,7 @@ class type_Users extends type_Keylist
         setIfNot($this->params['rolesForAllUsers'], 'no_one');
         $this->params['rolesForAllUsers'] = str_replace('|', ',', $this->params['rolesForAllUsers']);
 
-        // Кой може да избира "Всички лица" - като "Всички потребители" но без анонимните или системните - за регистрирани потребители
+        // Кой може да избира "Всички лица" - като "Всички потребители" но без системните - за регистрирани потребители + анонимния
         setIfNot($this->params['rolesForAllHuman'], 'no_one');
         $this->params['rolesForAllHuman'] = str_replace('|', ',', $this->params['rolesForAllHuman']);
 
