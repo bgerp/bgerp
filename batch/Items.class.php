@@ -134,7 +134,7 @@ class batch_Items extends core_Master
         expect($storeId);
         
         // Имали запис за тази партида
-        if ($rec = self::fetch("#productId = '{$productId}' AND #batch = '{$batch}' AND #storeId = '{$storeId}'")) {
+        if ($rec = self::fetch(array("#productId = '{$productId}' AND #batch = '[#1#]' AND #storeId = '{$storeId}'", $batch))) {
             batch_Features::sync($rec->id);
             
             // Връщаме ид-то на записа
