@@ -325,13 +325,12 @@ class price_ListRules extends core_Detail
             
             $query->orderBy('#priority', 'ASC');
             $query->orderBy('#validFrom,#id', 'DESC');
-            
             $query->limit(1);
             
             $rec = $query->fetch();
             $listRec = price_Lists::fetch($listId, 'title,parent,vat,defaultSurcharge,significantDigits,minDecimals,currency');
             $round = true;
-            //bp($rec, $listRec);
+
             if ($rec) {
                 if ($rec->type == 'value') {
                     $vat = cat_Products::getVat($productId, $datetime);
@@ -492,7 +491,7 @@ class price_ListRules extends core_Detail
                     $form->setDefault('vat', $masterRec->vat);
                 } else {
                     $form->setReadOnly('currency');
-                    $form->setReadOnly('vat');
+                    //$form->setReadOnly('vat');
                 }
                 break;
         }
