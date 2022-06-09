@@ -2,13 +2,13 @@
 
 
 /**
- * Начален номер на фактурите
+ * Политики: значещи цифри
  */
-defIfNot('PRICE_SIGNIFICANT_DIGITS', '5');
+defIfNot('PRICE_SIGNIFICANT_DIGITS', '2');
 
 
 /**
- * Краен номер на фактурите
+ * Политики: десетични знаци
  */
 defIfNot('PRICE_MIN_DECIMALS', '2');
 
