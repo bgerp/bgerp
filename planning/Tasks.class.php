@@ -1154,6 +1154,11 @@ class planning_Tasks extends core_Master
                 $form->setDefault('indPackagingId', $rec->labelPackagingId);
 
                 if($rec->labelPackagingId == $productionData['labelPackagingId']){
+                    $stepMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
+                    $stepSimilarMeasures = cat_UoM::getSameTypeMeasures($stepMeasureId);
+                    if(array_key_exists($productRec->measureId, $stepSimilarMeasures)){
+                        $productionData['labelQuantityInPack'] = cat_UoM::convertValue($productionData['labelQuantityInPack'], $stepMeasureId, $productRec->measureId);
+                    }
                     $form->setDefault('labelQuantityInPack', $productionData['labelQuantityInPack']);
                 }
 
