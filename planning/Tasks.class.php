@@ -1116,8 +1116,10 @@ class planning_Tasks extends core_Master
                 $packs = array($rec->measureId => cat_UoM::getTitleById($rec->measureId, false)) + cat_products_Packagings::getOnlyPacks($productId4Form);
                 $form->setOptions('labelPackagingId', array('' => '') + $packs);
                 $form->setOptions('indPackagingId', $packs);
-                if(array_key_exists($productionData['labelPackagingId'], $packs)){
-                    $form->setDefault('labelPackagingId', $productionData['labelPackagingId']);
+                if($rec->isFinal != 'yes'){
+                    if(array_key_exists($productionData['labelPackagingId'], $packs)){
+                        $form->setDefault('labelPackagingId', $productionData['labelPackagingId']);
+                    }
                 }
 
                 $form->setField('storeId', 'input');
@@ -1148,7 +1150,7 @@ class planning_Tasks extends core_Master
                 $form->setField('labelQuantityInPack', 'input');
                 $form->setDefault('indPackagingId', $rec->labelPackagingId);
 
-                if($rec->labelPackagingId == $productionData['labelPackagingId']){
+                if($rec->isFinal != 'yes' && $rec->labelPackagingId == $productionData['labelPackagingId']){
                     $stepMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
                     $stepSimilarMeasures = cat_UoM::getSameTypeMeasures($stepMeasureId);
                     if(array_key_exists($productRec->measureId, $stepSimilarMeasures)){
