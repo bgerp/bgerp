@@ -42,6 +42,9 @@ class type_Users extends type_Keylist
         setIfNot($this->params['rolesForAll'], 'ceo');
         $this->params['rolesForAll'] = str_replace('|', ',', $this->params['rolesForAll']);
 
+
+
+
         // Кой може да избира системяни потребител
         setIfNot($this->params['rolesForSystem'], 'no_one');
         $this->params['rolesForSystem'] = str_replace('|', ',', $this->params['rolesForSystem']);
@@ -54,9 +57,13 @@ class type_Users extends type_Keylist
         setIfNot($this->params['rolesForAllUsers'], 'no_one');
         $this->params['rolesForAllUsers'] = str_replace('|', ',', $this->params['rolesForAllUsers']);
 
-        // Кой може да избира "Всички лица" - като "Всички потребители" но без анонимните или системните - за регистрирани потребители
+        // Кой може да избира "Всички лица" - като "Всички потребители" но без системните - за регистрирани потребители + анонимния
         setIfNot($this->params['rolesForAllHuman'], 'no_one');
         $this->params['rolesForAllHuman'] = str_replace('|', ',', $this->params['rolesForAllHuman']);
+
+        // Кой може да избира "Всички лица" - като "Всички потребители" но без системните - за регистрирани потребители + анонимния
+        setIfNot($this->params['rolesForAllTeams'], 'no_one');
+        $this->params['rolesForAllTeams'] = str_replace('|', ',', $this->params['rolesForAllTeams']);
 
         setIfNot($this->params['cuFirst'], 'yes');
     }
@@ -116,8 +123,8 @@ class type_Users extends type_Keylist
             if ($this->params['showClosedGroups']) {
                 $removeClosedGroups = false;
             }
-            
-            if (haveRole($this->params['rolesForAll']) || haveRole($this->params['rolesForAllUsers']) || haveRole($this->params['rolesForAllHuman'])) {
+
+            if (haveRole($this->params['rolesForAll']) || haveRole($this->params['rolesForAllUsers']) || haveRole($this->params['rolesForAllHuman']) || haveRole($this->params['rolesForAllTeams'])) {
                 // Показваме всички екипи
                 $teams = core_Roles::getRolesByType('team', 'keylist', $removeClosedGroups);
 
@@ -160,6 +167,28 @@ class type_Users extends type_Keylist
                     $this->options['all_human'] = $all;
                 }
 
+                // Избор на всички хора
+                if (haveRole($this->params['rolesForAllTeams'])) {
+                    $uQueryPU = core_Users::getQuery();
+                    $uQueryPU->orderBy('nick', 'ASC');
+
+                    // Потребителите, които ще покажем, трябва да имат посочените роли
+                    $roles = core_Roles::getRolesAsKeylist('powerUser');
+                    $uQueryPU->likeKeylist('roles', $roles);
+
+                    $allPowerUsers = '';
+                    while ($uRec = $uQueryPU->fetchAndCache()) {
+                        $allPowerUsers .= $allPowerUsers ? '|' . $uRec->id : $uRec->id;
+                    }
+
+                    // Добавя в началото опция за избор на всички потребители на системата
+                    $all = new stdClass();
+                    $all->title = tr('Всички екипи');
+                    $all->attr = array('class' => 'all-teams', 'style' => 'color:#777;');
+
+                    $all->keylist = keylist::normalize("|{$allPowerUsers}|");
+                    $this->options['all_teams'] = $all;
+                }
             } else {
                 // Показваме само екипите на потребителя
                 $teams = core_Users::getUserRolesByType(null, 'team', 'keylist', $removeClosedGroups);
@@ -188,7 +217,7 @@ class type_Users extends type_Keylist
                 $anonym->keylist = "|0|";
                 $this->options['anonym_user'] = $anonym;
             }
-            
+
             $teams = keylist::toArray($teams);
             
             $rolesArr = type_Keylist::toArray($roles);
@@ -253,8 +282,7 @@ class type_Users extends type_Keylist
             if (!empty($cuRecArr)) {
                 $this->options = $cuRecArr + $this->options;
             }
-            
-            
+
             // Добавка за оттеглените потребители
             if ($rejected) {
                 $key = 'rejected';
