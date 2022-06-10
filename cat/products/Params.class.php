@@ -659,10 +659,24 @@ class cat_products_Params extends doc_Detail
         $plannedProductName = cat_Products::getVerbal($productId, 'name');
         $plannedProductName = str_replace(',', ' ', $plannedProductName);
         $class = cls::get($classId);
+
+        // Сортиране на намерените параметри
+        if(countR($params)){
+            $oQuery = cat_Params::getQuery();
+            $oQuery->XPR('orderEx', 'varchar', 'COALESCE(#order, 999999)');
+            $oQuery->orderBy('group,orderEx,id', 'ASC');
+            $oQuery->in('id', $params);
+            $params = arr::extractValuesFromArray($oQuery->fetchAll(), 'id');
+        }
+
         foreach ($params as $pId) {
             $v = $paramValues[$pId];
             $paramRec = cat_Params::fetch($pId);
             $name = cat_Params::getVerbal($paramRec, 'name');
+            if(!empty($paramRec->group)){
+                $groupName = cat_Params::getVerbal($paramRec, 'group');
+                $name = "{$groupName}: {$name}";
+            }
             $form->FLD("paramcat{$pId}", 'double', "caption=Параметри за планиране на:|* {$plannedProductName}->|{$name}|*,before=description");
             $ParamType = cat_Params::getTypeInstance($pId, $class->getClassId(), $objectId);
             $form->setFieldType("paramcat{$pId}", $ParamType);
