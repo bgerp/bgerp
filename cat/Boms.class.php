@@ -1648,36 +1648,6 @@ class cat_Boms extends core_Master
         $Details = cls::get('cat_BomDetails');
         $productStepClassId = planning_interface_StepProductDriver::getClassId();
 
-        // За основния артикул подготвяме задача
-        // В която самия той е за произвеждане
-        $tasks = array(1 => (object) array('title' => $pName,
-                                           'plannedQuantity' => $quantity,
-                                           'quantityInPack' => 1,
-                                           '_dId' => null,
-                                           'isFinal' => 'yes',
-                                           '_parentId' => null,
-                                           '_position' => null,
-                                           'products' => array('input' => array(),'waste' => array())));
-        $tasks[1]->products['production'][] = array('productId' => $rec->productId, 'type' => 'production');
-
-        // Намираме неговите деца от първо ниво те ще бъдат артикулите за влагане/отпадък
-        $dQuery = cat_BomDetails::getQuery();
-        $dQuery->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
-        $dQuery->where("#bomId = {$rec->id}");
-        $dQuery->where('#parentId IS NULL');
-        while ($detRec = $dQuery->fetch()) {
-            if($detRec->innerClass == $productStepClassId) continue;
-
-            $detRec->params['$T'] = $quantity;
-            $quantityE = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
-            if ($quantityE == cat_BomDetails::CALC_ERROR) {
-                $quantityE = 0;
-            }
-            $quantityE = ($quantityE / $rec->quantity) * $quantity;
-            $place = ($detRec->type == 'pop') ? 'waste' : 'input';
-            $tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantityE / $quantity, 'quantityInPack' => $detRec->quantityInPack);
-        }
-
         // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
         // А неговите подетапи са за влагане/отпадък
         $onlySteps = $allStages = array();
