@@ -1320,7 +1320,13 @@ class planning_Jobs extends core_Master
                     $urlNewTask = array('planning_Tasks', 'add', 'originId' => $jobRec->containerId, 'folderId' => $depFolderId, 'ret_url' => true);
                 }
 
-                $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, 'title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png');
+                $productionSteps = planning_Centers::getManifacturableOptions($depFolderId);
+                if(!countR($productionSteps)){
+                    $urlLink = ht::createErrBtn('Създаване', 'В избраният център, няма посочени производствени етапи|*!');
+                } else {
+                    $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, "title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png");
+                }
+
                 $dName = doc_Folders::recToVerbal($depFolderId)->title;
                 $trClass = ($readyOptions) ? 'newTaskBtn' : null;
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1, 'DEFAULT_TASK_TR_CLASS' => $trClass);
@@ -1401,9 +1407,8 @@ class planning_Jobs extends core_Master
         
         while ($rec = $query->fetch()) {
             $activatedBy = isset($rec->activatedBy) ? $rec->activatedBy : $rec->createdBy;
-            if (empty($activatedBy) || $activatedBy == core_Users::SYSTEM_USER) {
-                continue;
-            }
+            if (empty($activatedBy) || $activatedBy == core_Users::SYSTEM_USER) continue;
+
             $personId = crm_Profiles::fetchField("#userId = {$activatedBy}", 'personId');
             $classId = planning_Jobs::getClassId();
             
@@ -1621,12 +1626,11 @@ class planning_Jobs extends core_Master
                         }
 
                         if($remainingQuantity > 0){
+                            $inputStoreId = null;
                             if(isset($rec->inputStores)){
                                 $quantities = store_Products::getQuantitiesByStore($materialRec->productId, null, $rec->inputStores);
                                 arsort($quantities);
                                 $inputStoreId = key($quantities);
-                            } else {
-                                $inputStoreId = null;
                             }
 
                             $res[] = (object)array('storeId'          => $inputStoreId,
@@ -1829,7 +1833,6 @@ class planning_Jobs extends core_Master
                         }
                     }
 
-                    $cSign = $sign;
                     foreach ($aArray as $batch => $q){
                         $key1 = "{$dRec->productId}|{$dRec->packagingId}||{$fromAccId}|{$storeId}|{$batch}";
 
@@ -1840,7 +1843,7 @@ class planning_Jobs extends core_Master
                             if(!array_key_exists($key1, $convertedArr)){
                                 $convertedArr[$key1] = (object)array('productId' => $dRec->productId, 'packagingId' => $dRec->packagingId, 'quantityInPack' => $dRec->quantityInPack, 'measureId' => $dRec->measureId, 'quantityExpected' => 0, 'expenseItemId' => null, 'fromAccId' => null, 'type' => 'input', 'batch' => null);
                             }
-                            $convertedArr[$key1]->quantityExpected += $cSign * $q;
+                            $convertedArr[$key1]->quantityExpected += $sign * $q;
                         }
                     }
                 } else {

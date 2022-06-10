@@ -729,12 +729,7 @@ class planning_Tasks extends core_Master
             $res->append("</table>");
         }
     }
-    
 
-    function act_Test()
-    {
-        $this->updateMaster_(630);
-    }
 
     /**
      * Обновява данни в мастъра
