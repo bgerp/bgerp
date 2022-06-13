@@ -1067,7 +1067,6 @@ class planning_Tasks extends core_Master
             $productId4Form = ($rec->isFinal == 'yes') ? $originRec->productId : $rec->productId;
             $productRec = cat_Products::fetch($productId4Form, 'canConvert,canStore,measureId');
             if($rec->isFinal == 'yes'){
-                $form->setDefault('plannedQuantity', $originRec->quantity);
                 $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция') . "</div>";
 
                 // Ако артикула е този от заданието то допустимите мерки са тази от заданието и втората му мярка ако има
@@ -1092,6 +1091,17 @@ class planning_Tasks extends core_Master
                 $form->setField('measureId', 'input=hidden');
             }
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
+            if($rec->isFinal == 'yes'){
+                $defaultPlannedQuantity = $originRec->quantity;
+                if(isset($originRec->secondMeasureId) && $rec->measureId == $originRec->secondMeasureId){
+                    if($secondMeasureRec = cat_products_Packagings::getPack($originRec->productId, $rec->measureId)){
+                        $defaultPlannedQuantity /= $secondMeasureRec->quantity;
+                        $round = cat_Uom::fetchField($originRec->secondMeasureId, 'round');
+                        $defaultPlannedQuantity = round($defaultPlannedQuantity, $round);
+                    }
+                }
+                $form->setDefault('plannedQuantity', $defaultPlannedQuantity);
+            }
 
             if(countR($fixedAssetOptions)){
                 $cloneArr = $fixedAssetOptions;
