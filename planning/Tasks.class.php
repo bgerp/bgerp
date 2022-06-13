@@ -1541,14 +1541,21 @@ class planning_Tasks extends core_Master
     public static function getProducedQuantityForJob($jobId)
     {
         expect($jobRec = planning_Jobs::fetchRec($jobId));
-        
-        $query = planning_Tasks::getQuery();
-        $query->XPR('sum', 'double', 'SUM((COALESCE(#totalQuantity, 0) - COALESCE(#scrappedQuantity, 0)) * #quantityInPack)');
-        $query->where("#originId = {$jobRec->containerId} AND (#productId = {$jobRec->productId} OR #isFinal = 'yes')");
-        $query->where("#state != 'rejected' AND #state != 'pending'");
-        $query->show('sum');
 
-        $sum = $query->fetch()->sum;
+        $sum = 0;
+        $tQuery = planning_Tasks::getQuery();
+        $tQuery->where("#originId = {$jobRec->containerId} AND (#productId = {$jobRec->productId} OR #isFinal = 'yes')");
+        $tQuery->where("#state != 'rejected' AND #state != 'pending'");
+
+        //bp($tQuery->fetchAll(), $jobRec);
+        while($tRec = $tQuery->fetch()){
+            $sum = $tRec->totalQuantity - $tRec->scrappedQuantity;
+            if($tRec->measureId != $jobRec->packagingId){
+                $sum *= $tRec->quantityInPack;
+            }
+        }
+
+        //bp($sum);
         $quantity = (!empty($sum)) ? round($sum, 5) : 0;
 
         return $quantity;
