@@ -1320,7 +1320,7 @@ class planning_Jobs extends core_Master
 
                 $productionSteps = planning_Centers::getManifacturableOptions($depFolderId);
                 if(!countR($productionSteps)){
-                    $urlLink = ht::createErrBtn('Създаване', 'В избраният център, няма посочени производствени етапи|*!');
+                    $urlLink = ht::createErrBtn('Създаване', 'В избрания център, няма посочени производствени етапи|*!');
                 } else {
                     $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, "title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png");
                 }

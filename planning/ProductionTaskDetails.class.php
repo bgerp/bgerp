@@ -223,14 +223,21 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Ако е избран артикул
         if (isset($rec->productId)) {
-            $labelType = (($rec->type == 'production') ? $masterRec->labelType : (($rec->type == 'input') ? 'scan' : 'print'));
+            $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
+
+            $labelType = 'print';
+            if($rec->type == 'production'){
+                $labelType = $masterRec->labelType;
+            } elseif($rec->type == 'input' && $pRec->canStore == 'yes'){
+                $labelType = 'scan';
+            }
+
             if($labelType == 'print'){
                 $form->setField('serial', 'input=none');
             } elseif($labelType == 'scan'){
                 $form->setField('serial', 'mandatory');
             }
 
-            $pRec = cat_Products::fetch($rec->productId, 'measureId,canStore');
             if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
                     if($rest > 0){
