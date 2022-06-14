@@ -1663,6 +1663,7 @@ class cat_Boms extends core_Master
         }
 
         // За всеки етап намираме подетапите му
+        $tasks = array();
         foreach ($allStages as $dRec) {
             $quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
             if ($quantityP == cat_BomDetails::CALC_ERROR) {
