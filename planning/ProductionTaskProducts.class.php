@@ -242,10 +242,16 @@ class planning_ProductionTaskProducts extends core_Detail
                 if ($rec->plannedQuantity > $rec->limit) {
                     $form->setError('plannedQuantity,limit', 'Планираното количество е повече от зададения лимит');
                 }
-                
+
                 if ($rec->inputedQuantity > $rec->limit) {
                     $caption = ($rec->type == 'input') ? 'Вложеното' : (($rec->type == 'waste') ? 'Отпадъкът' : 'Произведеното');
                     $form->setError('inputedQuantity,limit', "{$caption} е повече от зададения лимит");
+                }
+            }
+
+            if(!$form->gotErrors()){
+                if (!empty($rec->inputedQuantity) && !empty($rec->indTime)){
+                    $rec->norm = $rec->indTime;
                 }
             }
         }
@@ -486,7 +492,7 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterCreate($mvc, $rec)
     {
         if (!empty($rec->inputedQuantity)) {
-            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity, 'employees' => $rec->employees);
+            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity, 'employees' => $rec->employees, 'norm' => $rec->norm);
             planning_ProductionTaskDetails::save($dRec);
         }
     }
