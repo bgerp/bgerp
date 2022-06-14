@@ -101,7 +101,7 @@ class export_Doc extends core_Mvc
         
         $html = str::cut($html, '<div id="begin' . $r . '">', '<div id="end' . $r . '">');
         
-        $fileName = $clsInst->getHandle($cRec->id) . '_Export.html';
+        $fileName = $clsInst->getHandle($cRec->id) . '_' . str::getRand() . '_Export.html';
         
         $fileHnd = docoffice_Office::htmlToDoc($html, $fileName, 'exportFiles');
         
