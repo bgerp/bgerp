@@ -482,7 +482,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $pRec = $Driver->getRecBySerial($serial);
             $serialProductId = is_object($pRec) ? $pRec->id : null;
             if(empty($serialProductId)){
-                if($serialPrintId = label_CounterItems::fetchField(array("#number = [#1#]", $serial), 'printId')){
+                if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
                     $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
                     if($printRec->classId == cat_products_Packagings::getClassId()){
                         $serialProductId = cls::get($printRec->classId)->fetchField($printRec->objectId, 'productId');
