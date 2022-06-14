@@ -175,6 +175,11 @@ class planning_ProductionTaskProducts extends core_Detail
             if (empty($rec->id) && $rec->type != 'waste' && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
                 $caption = ($rec->type == 'input') ? 'Вложено' : 'Произведено';
                 $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
+                $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
+                if (countR($employees)) {
+                    $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=20)', 'caption=Оператори,after=inputedQuantity');
+                    $form->setSuggestions('employees', $employees);
+                }
             }
             
             $shortUomId = cat_Products::fetchField($masterRec->productId, 'measureId');
@@ -212,6 +217,10 @@ class planning_ProductionTaskProducts extends core_Detail
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
+            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
+                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
+            }
+
             if ($rec->type == 'waste') {
                 $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
                 if (!isset($selfValue)) {
@@ -477,7 +486,7 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterCreate($mvc, $rec)
     {
         if (!empty($rec->inputedQuantity)) {
-            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity);
+            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity, 'employees' => $rec->employees);
             planning_ProductionTaskDetails::save($dRec);
         }
     }
