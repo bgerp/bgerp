@@ -1540,14 +1540,13 @@ class planning_Tasks extends core_Master
      */
     public static function getProducedQuantityForJob($jobId)
     {
-        expect($jobRec = planning_Jobs::fetchRec($jobId));
+        $jobRec = planning_Jobs::fetchRec($jobId);
 
         $sum = 0;
         $tQuery = planning_Tasks::getQuery();
         $tQuery->where("#originId = {$jobRec->containerId} AND (#productId = {$jobRec->productId} OR #isFinal = 'yes')");
         $tQuery->where("#state != 'rejected' AND #state != 'pending'");
-
-        //bp($tQuery->fetchAll(), $jobRec);
+        $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack');
         while($tRec = $tQuery->fetch()){
             $sum = $tRec->totalQuantity - $tRec->scrappedQuantity;
             if($tRec->measureId != $jobRec->packagingId){
@@ -1555,7 +1554,6 @@ class planning_Tasks extends core_Master
             }
         }
 
-        //bp($sum);
         $quantity = (!empty($sum)) ? round($sum, 5) : 0;
 
         return $quantity;
@@ -1837,9 +1835,12 @@ class planning_Tasks extends core_Master
     {
         // Ако се иска директно контиране редирект към екшъна за контиране
         if (isset($data->form) && $data->form->isSubmitted() && $data->form->rec->id) {
+
             $retUrl = getRetUrl();
             if($retUrl['Ctr'] == 'planning_Jobs' && $retUrl['Act'] == 'selectTaskAction'){
-                $data->retUrl = $retUrl;
+                if($data->form->cmd == 'save_pending'){
+                    $data->retUrl = $retUrl;
+                }
             }
         }
     }
