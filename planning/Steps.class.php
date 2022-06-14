@@ -192,9 +192,12 @@ class planning_Steps extends core_Extender
                 if(isset($rec->id)){
                     $packRec = cat_products_Packagings::getPack($rec->id, $rec->{"{$mvc->className}_labelPackagingId"});
                     $quantityInPack = is_object($packRec) ? $packRec->quantity : 1;
-                    $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
+                    if($data->action == 'clone'){
+                        $form->setDefault("{$mvc->className}_labelQuantityInPack", $quantityInPack);
+                    } else {
+                        $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
+                    }
                 }
-
             }
         }
     }
@@ -237,7 +240,7 @@ class planning_Steps extends core_Extender
                     if($rec->{"{$mvc->className}_labelPackagingId"} == $rec->measureId && $rec->{"{$mvc->className}_labelQuantityInPack"} != 1){
                         $form->setError("{$mvc->className}_labelQuantityInPack", 'Ако за етикиране е избрана основната мярка, то количеството не може да е различно от 1|*!');
                     }
-                } elseif(!isset($rec->id)){
+                } elseif(!isset($rec->id) || isset($rec->clonedFromId)){
                     $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да е въвдено количество при добавяне на нова опаковка|*!');
                 }
             }
