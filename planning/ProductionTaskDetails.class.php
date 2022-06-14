@@ -477,7 +477,12 @@ class planning_ProductionTaskDetails extends doc_Detail
     }
 
 
-
+    /**
+     * Извлича кой е артикула по дадения сериен номер
+     *
+     * @param string $serial
+     * @return array|null
+     */
     private static function getProductBySerial($serial)
     {
         $res = array();
