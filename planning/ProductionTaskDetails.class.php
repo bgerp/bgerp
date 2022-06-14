@@ -336,28 +336,29 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if(!empty($rec->serial)){
                     $rec->serial = plg_Search::normalizeText($rec->serial);
-                    $rec->serial = str::removeWhiteSpace($rec->serial);
-                    if ($Driver = cat_Products::getDriver($rec->productId)) {
-                        $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+                    if(!empty($rec->serial)){
+                        $rec->serial = str::removeWhiteSpace($rec->serial);
+                        if ($Driver = cat_Products::getDriver($rec->productId)) {
+                            $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+                        }
+
+                        // Проверка на сериния номер
+                        $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId, $rec->type);
+                        $rec->serialType = $serialInfo['type'];
+                        if (isset($serialInfo['error'])) {
+                            $form->setError('serial', $serialInfo['error']);
+                        } elseif ($serialInfo['type'] == 'existing') {
+                            if(!empty($rec->batch) && $rec->batch != $serialInfo['batch']){
+                                $form->setError('serial,batch', "Този номер е към друга партида");
+                            }
+                        }
+                    } else {
+                        $form->setError('serial', "Невалиден производствен номер");
                     }
 
                     if ($exId = self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}' AND #state != 'rejected'")) {
                         $form->setWarning('serial', 'Наистина ли, искате да подмените, съществуващия от преди запис|*?');
                         $form->rec->_rejectId = $exId;
-                    }
-                }
-
-                if (!empty($rec->serial)) {
-
-                    // Проверка на сериния номер
-                    $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId, $rec->type);
-                    $rec->serialType = $serialInfo['type'];
-                    if (isset($serialInfo['error'])) {
-                        $form->setError('serial', $serialInfo['error']);
-                    } elseif ($serialInfo['type'] == 'existing') {
-                        if(!empty($rec->batch) && $rec->batch != $serialInfo['batch']){
-                            $form->setError('serial,batch', "Този номер е към друга партида");
-                        }
                     }
                 }
 
@@ -509,7 +510,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
         }
-
+        bp($res);
         return $res;
     }
 
@@ -1080,14 +1081,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             expect(!empty($rec->fixedAsset), 'Задължително трябва да е избрано оборудване');
         }
         
-        if(!empty($taskRec->employees) && empty($rec->employees)){
-            expect(!empty($rec->employees), 'Задължително трябва да са избрани служители');
-        }
-        
         if($taskRec->showadditionalUom == 'mandatory' && $rec->type == 'production' && $rec->productId == $taskRec->productId){
             expect($rec->weight, 'Теглото е задължително');
         }
-        
+        bp($rec);
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if(!empty($params['serial'])){
             expect(str::containOnlyDigits($params['serial']), 'Серийният номер може да е само от цифри');
