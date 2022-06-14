@@ -331,6 +331,28 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setError('serial,productId', 'Трябва да е въведен артикул или сериен номер');
             }
 
+            if($rec->type == 'input'){
+
+                // При влагане ако няма артикул, прави се опит да се намери от произв. номер
+                if(!isset($rec->productId) && !empty($rec->serial)){
+                    if($pData = static::getProductBySerial($rec->serial)){
+                        if(!planning_ProductionTaskProducts::fetchField("#taskId = '{$rec->taskId}' AND #type = 'input' AND #productId = '{$pData['productId']}'")){
+                            $form->setError('serial', "Номера е на артикул, който не в допустим за влагане в тази операция|*: <b>" . cat_Products::getHyperlink($pData['productId'], true) . "</b>");
+                            return;
+                        }
+                        $rec->productId = $pData['productId'];
+                        if(empty($rec->quantity)){
+                            $rec->quantity = $pData['quantity'];
+                        }
+                    }
+                }
+
+                if(!isset($rec->productId)){
+                    $form->setError('productId,serial', "Трябва да е посочен артикул или производствен номер");
+                    return;
+                }
+            }
+
             if(isset($rec->productId)){
                 $productRec = cat_Products::fetch($rec->productId, 'canStore,generic');
 
@@ -455,6 +477,27 @@ class planning_ProductionTaskDetails extends doc_Detail
     }
 
 
+
+    private static function getProductBySerial($serial)
+    {
+        $res = array();
+        if($exRec = self::fetch(array("#serial = '[#1#]'", $serial))){
+            $res['quantity'] = $exRec->quantity;
+            $res['productId'] = $exRec->productId;
+        } else {
+            if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
+                $printRec = label_Prints::fetch($serialPrintId, 'objectId,classId');
+                if($printRec->classId == cat_products_Packagings::getClassId()){
+                    $res['productId'] = $exRec->productId;
+                }
+            }
+        }
+
+        return countR($res) ? $res : null;
+
+    }
+
+
     /**
      * Информация за серийния номер
      *
@@ -510,7 +553,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         } elseif (!$Driver->checkSerial($productId, $serial, $error)) {
             $res['error'] = $error;
         }
-        bp($res);
+
         return $res;
     }
 
