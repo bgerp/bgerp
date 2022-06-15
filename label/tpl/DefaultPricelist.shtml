@@ -2,15 +2,16 @@
     .label-holder {
         border-radius: 8px;
         padding: 0.5mm 1mm 1mm;
-        width: 60.5mm;
+        height: 33.5mm;
+        width: 64.5mm;
         font-size: 1em;
     }
     .code {
         font-size: 1.3em;
     }
     .label-holder table {
-        height: 27.5mm;
-        width: 59mm;
+        height: 33mm;
+        width: 63.5mm;
         border-collapse: collapse;
     }
 
