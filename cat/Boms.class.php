@@ -31,13 +31,13 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
     
     
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,showInProduct, expenses, isComplete';
+    public $changableFields = 'title,showInProduct,expenses,isComplete';
     
     
     /**
@@ -221,7 +221,7 @@ class cat_Boms extends core_Master
 
         $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пълна рецепта,notNull,value=auto,mandatory');
-        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
+        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
@@ -348,11 +348,8 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if ($rec->cloneDetails === true) {
-            
-            return;
-        }
-        
+        if ($rec->cloneDetails === true || !empty($rec->prototypeId)) return;
+
         $activeBom = null;
         cat_BomDetails::addProductComponents($rec->productId, $rec->id, null, $activeBom, true);
     }
