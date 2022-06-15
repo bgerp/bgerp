@@ -311,6 +311,7 @@ class planning_Terminal extends peripheral_Terminal
         
         setIfNot($data->listTableMvc, clone $Tasks);
         $data->listTableMvc->FLD('selectBtn', 'varchar', 'tdClass=small-field centered');
+        $data->stopListRefresh = true;
         $tpl = $Tasks->renderList($data);
         Mode::pop('text', 'xhtml');
         
