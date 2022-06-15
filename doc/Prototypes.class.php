@@ -338,29 +338,6 @@ class doc_Prototypes extends core_Manager
     
     
     /**
-     *
-     *
-     * @param mixed       $class
-     * @param int         $docId
-     * @param string|NULL $field
-     *
-     * @return stdClass|string
-     */
-    public static function getProtoRec($class, $docId, $field = null)
-    {
-        $Class = cls::get($class);
-        $cond = array("#classId = '[#1#]' AND #docId = '[#2#]'", $Class->getClassId(), $docId);
-        
-        if (!empty($field)) {
-            
-            return self::fetchField($cond, $field);
-        }
-        
-        return self::fetch($cond);
-    }
-    
-    
-    /**
      * Създаване на шаблон + смяна на състоянието на документа в 'шаблон'
      *
      * @param mixed       $class           - клас на документа
