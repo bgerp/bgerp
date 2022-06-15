@@ -793,7 +793,6 @@ class planning_Terminal extends peripheral_Terminal
         
         Mode::setPermanent('currentPlanningPoint', $id);
         Mode::set('wrapper', 'page_Empty');
-        $verbalAsset = strip_tags(core_Type::getByName('key(mvc=planning_AssetResources,makeLinks=hyperlink)')->toVerbal($rec->fixedAssets));
 
         $tpl = getTplFromFile('planning/tpl/terminal/Point.shtml');
         $tpl->replace($rec->name, 'name');
@@ -801,11 +800,9 @@ class planning_Terminal extends peripheral_Terminal
         $tpl->appendOnce("\n<link  rel=\"shortcut icon\" href=" . sbf('img/16/monitor.png', '"', true) . '>', 'HEAD');
         
         $tpl->replace(planning_Centers::getTitleById($rec->centerId), 'centerId');
-        $tpl->replace($verbalAsset, 'fixedAssets');
         $tpl->replace(dt::mysql2verbal(dt::now(), 'd/m/y'), 'date');
         $tpl->replace(strip_tags(crm_Profiles::createLink()), 'userId');
         $img = ht::createImg(array('path' => 'img/16/logout-white.png'));
-
         $tpl->replace(ht::createLink($img, array('core_Users', 'logout', 'ret_url' => array('core_Users', 'login')), false, 'title=Излизане от системата'), 'EXIT_TERMINAL');
         
         // Подготовка на урл-тата на табовете

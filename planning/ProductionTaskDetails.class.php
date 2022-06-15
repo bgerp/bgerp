@@ -183,7 +183,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Ако в мастъра са посочени машини, задават се като опции
         if (isset($masterRec->assetId)) {
             $assetOptions = array($masterRec->assetId => planning_AssetResources::getTitleById($masterRec->assetId, false));
-            $assetOptions = ((Mode::is('terminalProgressForm')) ? array(' ' => ' ') : array('' => '')) + $assetOptions;
             $form->setOptions('fixedAsset', $assetOptions);
             $form->setField('fixedAsset', 'input,mandatory');
             if(!Mode::is('terminalProgressForm')){
@@ -1132,7 +1131,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if($taskRec->showadditionalUom == 'mandatory' && $rec->type == 'production' && $rec->productId == $taskRec->productId){
             expect($rec->weight, 'Теглото е задължително');
         }
-        bp($rec);
+
         $canStore = cat_Products::fetchField($productId, 'canStore');
         if(!empty($params['serial'])){
             expect(str::containOnlyDigits($params['serial']), 'Серийният номер може да е само от цифри');
