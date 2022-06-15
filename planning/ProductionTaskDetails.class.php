@@ -262,7 +262,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setField($fieldName, "unit={$unit}");
                 $defaultQuantity = $masterRec->labelQuantityInPack;
                 if(!$defaultQuantity){
-                    $defaultQuantity = planning_Tasks::getDefaultQuantityInLabelPackagingId($masterRec->productId, $masterRec->measureId, $masterRec->labelPackagingId);
+                    $defaultQuantity = planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $masterRec->measureId, $masterRec->labelPackagingId);
                 }
                 $form->setField('quantity', "placeholder={$defaultQuantity}");
                 if($rec->_isKgMeasureId){

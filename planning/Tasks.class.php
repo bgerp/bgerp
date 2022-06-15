@@ -465,7 +465,8 @@ class planning_Tasks extends core_Master
                 $row->labelQuantityInPack = "<span class='quiet'>N/A</span>";
             } else {
                 if(empty($rec->labelQuantityInPack)){
-                    $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($rec->productId, $rec->measureId, $rec->labelPackagingId);
+                    $labelProductId = ($rec->isFinal == 'yes') ? $origin->fetchField('productId') : $rec->productId;
+                    $quantityInPackDefault = static::getDefaultQuantityInLabelPackagingId($labelProductId, $rec->measureId, $rec->labelPackagingId);
                     $quantityInPackDefault = "<span style='color:blue'>" . core_Type::getByName('double(smartRound)')->toVerbal($quantityInPackDefault) . "</span>";
                     $quantityInPackDefault = ht::createHint($quantityInPackDefault, 'От опаковката/мярката на артикула');
                     $row->labelQuantityInPack = $quantityInPackDefault;
@@ -541,6 +542,7 @@ class planning_Tasks extends core_Master
         $packRec = cat_products_Packagings::getPack($productId, $labelPackagingId);
         $quantityInPackDefault = is_object($packRec) ? $packRec->quantity : 1;
         $productMeasureId = cat_Products::fetchField($productId, 'measureId');
+
         if($productMeasureId != $measureId){
             $packRec1 = cat_products_Packagings::getPack($productId, $measureId);
             $quantityInSecondMeasure = is_object($packRec1) ? $packRec1->quantity : 1;
