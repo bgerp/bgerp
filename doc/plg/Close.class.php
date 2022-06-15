@@ -110,7 +110,7 @@ class doc_plg_Close extends core_Plugin
                 // Ако мениджъра е корица
                 if (cls::haveInterface('doc_FolderIntf', $mvc) && !cls::haveInterface('acc_RegisterIntf', $mvc)) {
                    
-                    // И има папка без документи или няма папка, няма смиссъл да се затваря (защото може да се оттегли)
+                    // И има папка без документи или няма папка, няма смисъл да се затваря (защото може да се оттегли)
                     if (isset($rec->folderId)) {
                         $threadsCount = doc_Folders::fetchField($rec->folderId, 'allThreadsCnt');
                         if ($threadsCount == 0) {

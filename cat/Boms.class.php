@@ -628,6 +628,12 @@ class cat_Boms extends core_Master
                 $res = 'no_one';
             }
         }
+
+        if ($action == 'close' && isset($rec)) {
+            if(!in_array($rec->state, array('active', 'closed'))){
+                $res = 'no_one';
+            }
+        }
     }
     
     
