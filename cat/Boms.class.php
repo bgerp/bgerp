@@ -76,8 +76,14 @@ class cat_Boms extends core_Master
      * @see plg_Clone
      */
     public $cloneDetails = 'cat_BomDetails';
-    
-    
+
+
+    /**
+     * Кои полета да не бъдат презаписвани от шаблона
+     */
+    public $fieldsNotToCopyFromTemplate = 'type';
+
+
     /**
      * Заглавие на единичен документ
      */

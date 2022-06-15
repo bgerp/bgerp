@@ -329,7 +329,7 @@ class doc_Prototypes extends core_Manager
         while ($rec = $query->fetch()) {
             $arr[$rec->docId] = $Class->getPrototypeTitle($rec->docId);
         }
-        
+
         asort($arr);
         
         // Връщане на намерените шаблони
