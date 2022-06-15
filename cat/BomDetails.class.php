@@ -262,10 +262,8 @@ class cat_BomDetails extends doc_Detail
 
                 $canStore = cat_Products::fetchField($rec->resourceId, 'canStore');
                 if($canStore == 'yes'){
-                    $form->setField('storeInput', 'input');
-                    $form->setField('storeIn', 'input');
-
                     // Показване на полетата за етикетиране
+                    $form->setField('storeIn', 'input');
                     $form->setField('labelPackagingId', 'input');
                     $packs = array('' => '') + cat_Products::getPacks($rec->resourceId);
                     $form->setOptions("labelPackagingId", $packs);

@@ -166,7 +166,6 @@ class planning_Steps extends core_Extender
         }
 
         if($rec->{"{$mvc->className}_canStore"} != 'yes'){
-            $form->setField("{$mvc->className}_storeInput", 'input=none');
             $form->setField("{$mvc->className}_storeIn", 'input=none');
         } else {
 
