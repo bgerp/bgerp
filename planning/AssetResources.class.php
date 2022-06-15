@@ -964,11 +964,14 @@ class planning_AssetResources extends core_Master
         // Ако има ръчна продължителност взема се тя
         $duration = $taskRec->timeDuration;
         if(empty($duration)){
+
             // Ако няма изчислявам от нормата за планираното количество
             $indQuantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"] : 1;
             $quantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->measureId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->measureId}"] : 1;
-            $calcedPlannedQuantity = $taskRec->plannedQuantity * $quantityInPack;
-            $duration = (($taskRec->indTime / $assetRec->simultaneity) / $indQuantityInPack) * $calcedPlannedQuantity;
+            $calcedPlannedQuantity = ($taskRec->plannedQuantity / $quantityInPack) / $indQuantityInPack;
+
+            $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
+            $duration = round($indTime / $assetRec->simultaneity);
         }
 
         // От продължителността, се приспада произведеното досега
