@@ -379,7 +379,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
 
                     if ($exId = self::fetchField("#taskId = {$rec->taskId} AND #serial = '{$rec->serial}' AND #id != '{$rec->id}' AND #state != 'rejected'")) {
-                        $form->setWarning('serial', 'Наистина ли, искате да подмените, съществуващия от преди запис|*?');
+                        $form->setWarning('serial', 'Наистина ли искате да подмените съществуващия от преди запис|*?');
                         $form->rec->_rejectId = $exId;
                     }
                 }
@@ -812,7 +812,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     protected static function on_AfterPrepareListToolbar($mvc, &$data)
     {
-        // Документа не може да се създава  в нова нишка, ако е възоснова на друг
+        // Документът не може да се създава в нова нишка, ако е въз основа на друг
         if (!empty($data->toolbar->buttons['btnAdd'])) {
             $data->toolbar->removeBtn('btnAdd');
             $masterRec = $data->masterData->rec;
@@ -969,7 +969,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     
     /**
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
-     * успеваемостта на човека спрямо ресурса, които е изпозлвал
+     * успеваемостта на човека спрямо ресурса, които е използвал
      *
      * @param datetime $timeline - Времето, след което да се вземат всички модифицирани/създадени записи
      *
@@ -1152,7 +1152,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         
         if($rec->type == 'input' && $canStore != 'yes') {
             $inTp = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->taskId} AND #type = 'input' AND #productId = {$rec->productId}");
-            // Подсигуряване че трябва да има норма
+            // Подсигуряване, че трябва да има норма
             if (empty($inTp)) {
                 expect(planning_AssetResources::getNormRec($rec->fixedAsset, $rec->productId), 'Изберете оборудване, което има норма за действието');
             }
