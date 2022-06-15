@@ -2109,8 +2109,8 @@ class planning_Tasks extends core_Master
         // Форсиране на опресняване на лист таблицата
         $divId = Request::get('divId');
         Request::push(array('id' => false));
-        $test = array('Ctr' => 'planning_Tasks', 'Act' => 'ajaxrefreshrows', 'divId' => $divId, 'refreshUrl' => toUrl(getCurrentUrl(), 'local'));
-        $forwardRes = Request::forward($test);
+        $refreshUrl = array('Ctr' => 'planning_Tasks', 'Act' => 'ajaxrefreshrows', 'divId' => $divId, 'refreshUrl' => toUrl(getCurrentUrl(), 'local'));
+        $forwardRes = Request::forward($refreshUrl);
 
         // Моментно показване на статусите
         $hitTime = Request::get('hitTime', 'int');
