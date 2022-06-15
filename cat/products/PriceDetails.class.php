@@ -251,7 +251,7 @@ class cat_products_PriceDetails extends core_Manager
             
             // Ако каталожната цена е от прототипа, показва се тази информация
             $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogCost);
-            if($catalogCostIsFromTemplate === true){
+            if($catalogCostIsFromTemplate === true && isset($catalogCost)){
                 $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
             }
 
