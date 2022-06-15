@@ -282,13 +282,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
-                $originRec = $originDoc->fetch('productId,producedQuantity,measureId');
-                if($rec->productId == $originRec->productId){
+                $originRec = $originDoc->fetch('productId,producedQuantity,measureId,isFinal');
+                if($originRec->isFinal == 'yes'){
                     $producedQuantity = $originDoc->fetchField('producedQuantity');
                     $info->totalQuantity -= $producedQuantity;
                     $originPackId = $originRec->measureId;
                 } else {
-                    $originPackId = $info->packagingId;
+                    $originPackId = $info->labelPackagingId;
                 }
 
                 $form->setDefault('packagingId', $originPackId);
