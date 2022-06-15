@@ -5,7 +5,7 @@
         position: relative;
         width: 62mm;
         border: 1px transparent;
-        margin: -3mm 1mm 3mm -1mm;
+        margin: -2mm 2mm 2mm -2mm;
     }
     .label-holder table {
 
