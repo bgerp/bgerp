@@ -1,76 +1,31 @@
 <style>
     .label-holder {
         border-radius: 8px;
-        padding: 0.5mm 1mm 1mm;
-        height: 33.5mm;
-        width: 64.5mm;
-        font-size: 1em;
-    }
-    .code {
-        font-size: 1.3em;
+        padding: 2mm 1mm 1mm 1mm;
+        position: relative;
+        width: 62mm;
+        border: 1px transparent;
+        margin: -3mm 1mm 3mm -1mm;
     }
     .label-holder table {
-        height: 33mm;
-        width: 63.5mm;
+
+        height: 30mm;
+        width: 62mm;
         border-collapse: collapse;
     }
-
     .label-holder table tr > td {
-        border-left: 1px solid #aaa;
-        border-top: 1px solid #aaa;
-        padding: 0 0.5mm;
-        font-size: 10px;
+        padding: 0 1mm;
+        font-size: 15px;
+    }
+    .barcode img {
+        max-width: 48mm;
+        height:auto;
+    }
+    .bold {
         font-weight: bold;
     }
-
-    .label-holder table tr > td.no-border-left {
-        border-left: none;
-    }
-
-    .label-holder table tr > td.no-border-top {
-        border-top: none;
-    }
-
-    .details-label {
-        top: -1mm;
-        position: relative;
-    }
-
-    .small {
-        font-size: 0.8em;
-        font-weight: normal;
-        display:block;
-    }
-
-    .right {
-        float: right;
-    }
-
-    .left {
-        float: left;
-    }
-
-    .logo img {
-        width: 12mm;
-        height: auto;
-    }
-    .barcode-holder img{
-        max-height: 92px;
-        max-width: 40px;
-    }
-    .description {
-        border-left: 1px solid #aaa;
-    }
-    .clearfix21 {
-        clear: both;
-    }
-    .pics img {
-        float: left;
-        width: 14mm;
-        height: auto;
-    }
-
 </style>
+
 <div class="label-holder">
     <table cellpadding="0">
         <tr>
