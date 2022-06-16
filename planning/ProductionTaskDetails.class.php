@@ -8,7 +8,6 @@
  *
  * @category  bgerp
  * @package   planning
- *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
  * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
@@ -27,7 +26,8 @@ class planning_ProductionTaskDetails extends doc_Detail
      * Заглавие в единствено число
      */
     public $singleTitle = 'Прогрес';
-    
+
+
     /**
      * Интерфейси
      */
@@ -996,7 +996,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $indicatorId = $iRec->id;
 
         while ($rec = $query->fetch()) {
-            
+
             // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
             if (!countR($persons)) continue;
