@@ -736,7 +736,7 @@ class crm_Persons extends core_Master
         
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
         
-        if ($birthday) {
+        if ($birthday && $mvc->birthdayFilter) {
             if (strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
             } else {
@@ -748,10 +748,9 @@ class crm_Persons extends core_Master
                     $dateType = 'Роден(а)';
                 }
             }
-            if ($mvc->birthdayFilter) {
-                $dateType = tr($dateType);
-                $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
-            }
+
+            $dateType = tr($dateType);
+            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
         } elseif ($rec->egn) {
             $egn = $mvc->getVerbal($rec, 'egn');
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$egn}</div>";
