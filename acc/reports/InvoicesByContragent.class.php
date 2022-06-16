@@ -954,6 +954,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         unset(
             $rec->totalInvoiceValueAll
         );
+
+
         if ($rec->unpaid == 'all') {
             $cArr = array();
             foreach ($recs as $key => $val) {
@@ -967,6 +969,57 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             }
 
         }
+
+        //Добавяне на проформа фактурите
+
+//        if ($rec->typeOfInvoice == 'out') {
+//            $proformInvQuery = sales_Proformas::getQuery();
+//            $proformInvQuery->where("#state = 'active'");
+//
+//            // Ако е посочена начална дата на период
+//            if ($rec->fromDate) {
+//                $proformInvQuery->where(array(
+//                    "#date >= '[#1#]'",
+//                    $rec->fromDate
+//                ));
+//            }
+//
+//            //Крайна дата / 'към дата'
+//            $proformInvQuery->where(array(
+//                "#date <= '[#1#]'",
+//                $checkDate
+//            ));
+//
+//            $profomInvArr = arr::extractValuesFromArray($proformInvQuery->fetchAll(), 'threadId');
+//
+//            foreach (array('cash_Pko','bank_IncomeDocuments') as $payDocs){
+//
+//                $payDocQuery = $payDocs::getQuery();
+//                $payDocQuery->in('threadId',$profomInvArr);
+//               while ($pDocRec =$payDocQuery->fetch()){
+//
+//                   $invArr = deals_InvoicesToDocuments::getInvoiceArr($pDocRec->containerId);
+//                   if (!empty($invArr)) {
+//                       foreach ($invArr as $key => $val) {
+//
+//
+//                           if (doc_Containers::getDocument($val->containerId)->className != 'sales_Proformas') {
+//                               continue;
+//                           } else {
+//
+//                               bp($val, doc_Containers::getDocument($val->containerId)->className);
+//                           }
+//
+//                           bp($invArr, doc_Containers::getDocument());
+//                       }
+//                   }
+//
+//               }
+//            }
+//
+//bp($profomInvArr);
+//
+//        }
 
         return $recs;
     }
