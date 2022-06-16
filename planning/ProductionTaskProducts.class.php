@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -278,43 +278,28 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
-
-        $isLive = false;
-        $indTime = $rec->indTime;
-        if($rec->type == 'production'){
-            $taskRec = planning_Tasks::fetch($rec->taskId);
-            if($taskRec->isFinal == 'yes' && static::isProduct4Task($taskRec, $rec->productId)){
-                unset($row->packagingId);
-                unset($row->plannedQuantity);
-                unset($row->totalQuantity);
-                $isLive = true;
-            }
-        }
-
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
 
-        if(!$isLive){
-            deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-            if (isset($rec->storeId)) {
-                $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
-            }
-
-            if(isset($indTime)){
-                $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($indTime);
-            } else {
-                $row->indTime = "<span class='quiet'>N/A</span>";
-            }
-
-            $row->plannedQuantity = "<span class='green'>{$row->plannedQuantity}</span>";
-            if($rec->totalQuantity > $rec->plannedQuantity){
-                $row->totalQuantity = "<span class='red'>{$row->totalQuantity}</span>";
-                $row->totalQuantity = ht::createHint($row->totalQuantity, 'Изпълнено е повече от планираното', 'warning', false);
-            }
-
-            $row->packagingId = ht::createHint($row->packagingId, 'Зададено в производствената операция', 'notice',false);
-            $row->indTime = "<span style='color:blue'>{$row->indTime}</span>";
-            $row->indTime = ht::createHint($row->indTime, 'Зададено в производствената операция', 'notice',false);
+        deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
+        if (isset($rec->storeId)) {
+            $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
+
+        if(isset($indTime)){
+            $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($indTime);
+        } else {
+            $row->indTime = "<span class='quiet'>N/A</span>";
+        }
+
+        $row->plannedQuantity = "<span class='green'>{$row->plannedQuantity}</span>";
+        if($rec->totalQuantity > $rec->plannedQuantity){
+            $row->totalQuantity = "<span class='red'>{$row->totalQuantity}</span>";
+            $row->totalQuantity = ht::createHint($row->totalQuantity, 'Изпълнено е повече от планираното', 'warning', false);
+        }
+
+        $row->packagingId = ht::createHint($row->packagingId, 'Зададено в производствената операция', 'notice',false);
+        $row->indTime = "<span style='color:blue'>{$row->indTime}</span>";
+        $row->indTime = ht::createHint($row->indTime, 'Зададено в производствената операция', 'notice',false);
     }
     
     
@@ -577,6 +562,13 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        if($data->masterData->rec->isFinal == 'yes' && countR($data->recs)){
+            $jobProductId = planning_Jobs::fetchField("#containerId = {$data->masterData->rec->originId}", 'productId');
+            $jobProductRecs = array_filter($data->recs, function($a) use ($jobProductId) {return $a->productId == $jobProductId;});
+            $jobProductIdRecId = key($jobProductRecs);
+            unset($data->rows[$jobProductIdRecId]);
+        }
+
         if(!Mode::is('taskInTerminal')){
             $data->listTableMvc->setField('packagingId', 'smartCenter');
             $data->listTableMvc->setField('plannedQuantity', 'smartCenter');

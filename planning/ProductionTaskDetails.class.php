@@ -91,7 +91,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,weight=Тегло (кг),employees,created=Създаване,norm,info=@';
+    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,weight=Тегло (кг),employees,created=Създаване,info=@';
     
     
     /**
@@ -103,7 +103,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Активен таб на менюто
      */
-
     public $currentTab = 'Операции->Прогрес';
 
 
@@ -115,8 +114,6 @@ class planning_ProductionTaskDetails extends doc_Detail
 
     /**
      * Брой записи на страница
-     *
-     * @var int
      */
     public $listItemsPerPage = 30;
 
@@ -129,8 +126,6 @@ class planning_ProductionTaskDetails extends doc_Detail
 
     /**
      * Каква да е максималната дължина на стринга за пълнотекстово търсене
-     *
-     * @see plg_Search
      */
     public $maxSearchKeywordLen = 13;
 
@@ -505,10 +500,10 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Информация за серийния номер
      *
-     * @param string   $serial
-     * @param int      $productId
-     * @param int      $taskId
-     * @param int|NULL $id
+     * @param string      $serial
+     * @param int         $productId
+     * @param int         $taskId
+     * @param string|null $type
      *
      * @return array $res
      */
@@ -776,7 +771,6 @@ class planning_ProductionTaskDetails extends doc_Detail
      * Показва вербалното име на операторите
      *
      * @param string $employees - кейлист от оператори
-     *
      * @return string $verbalEmployees
      */
     public static function getVerbalEmployees($employees)
