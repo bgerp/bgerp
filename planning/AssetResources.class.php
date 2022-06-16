@@ -737,10 +737,10 @@ class planning_AssetResources extends core_Master
     {
         $res = array();
         $tQuery = planning_Tasks::getQuery();
+        $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
         $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
         $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending', 'stopped')))) AND #assetId = {$assetId}");
-        $tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId,timeStart');
-
+        $tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId,timeStart,isFinal,jobProductId');
         $tQuery->orderBy('orderByAssetIdCalc,id', $order);
         $taskRecs = $tQuery->fetchAll();
 
@@ -841,7 +841,9 @@ class planning_AssetResources extends core_Master
         // Кеширане на продуктовите опаковки, за артикулите в задачите
         $pPacks = array();
         $packQuery = cat_products_Packagings::getQuery();
-        $packQuery->in('productId', arr::extractValuesFromArray($tasks, 'productId'));
+        $in = arr::extractValuesFromArray($tasks, 'productId');
+        $in += arr::extractValuesFromArray($tasks, 'jobProductId');
+        $packQuery->in('productId', $in);
         $packQuery->show('quantity,productId,packagingId');
         while($pRec = $packQuery->fetch()){
             $pPacks["{$pRec->productId}|{$pRec->packagingId}"] = $pRec->quantity;
@@ -966,8 +968,9 @@ class planning_AssetResources extends core_Master
         if(empty($duration)){
 
             // Ако няма изчислявам от нормата за планираното количество
-            $indQuantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->indPackagingId}"] : 1;
-            $quantityInPack = isset($pPacks["{$taskRec->productId}|{$taskRec->measureId}"]) ? $pPacks["{$taskRec->productId}|{$taskRec->measureId}"] : 1;
+            $indProductIdKey = ($taskRec->isFinal == 'yes') ? $taskRec->jobProductId : $taskRec->productId;
+            $indQuantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"] : 1;
+            $quantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->measureId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->measureId}"] : 1;
             $calcedPlannedQuantity = ($taskRec->plannedQuantity / $quantityInPack) / $indQuantityInPack;
 
             $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
