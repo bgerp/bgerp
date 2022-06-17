@@ -1326,6 +1326,14 @@ class planning_Tasks extends core_Master
         while ($rec = $query->fetch()) {
             $data->recs[$rec->id] = $rec;
             $row = planning_Tasks::recToVerbal($rec, $fields);
+            if(!empty($rec->assetId)){
+                $aCode = "[" . planning_AssetResources::getVerbal($rec->assetId, 'code') . "]";
+                $assetSingleUrl = planning_AssetResources::getSingleUrlArray($rec->assetId);
+                if(countR($assetSingleUrl)){
+                    $row->assetId = ht::createLink($aCode, $assetSingleUrl);
+                }
+            }
+
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
