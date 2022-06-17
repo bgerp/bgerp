@@ -404,7 +404,12 @@ class planning_Setup extends core_ProtoSetup
      */
     public function migrateOldTasks()
     {
-        core_App::setTimeLimit(600);
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+
+        if(!planning_Tasks::count()) return;
+
+        core_App::setTimeLimit(400);
         $query = planning_Tasks::getQuery();
         $query->EXT('driverClass', 'cat_Products', 'externalName=innerClass,externalKey=productId');
         $query->where("#isFinal IS NULL");
@@ -423,7 +428,7 @@ class planning_Setup extends core_ProtoSetup
             }
         }
 
-        cls::get('planning_Tasks')->saveArray($saveTasks, 'id,isFinal');
+        $Tasks->saveArray($saveTasks, 'id,isFinal');
         cls::get('planning_ProductionTaskProducts')->saveArray($saveDetails);
     }
 }
