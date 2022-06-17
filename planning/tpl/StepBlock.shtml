@@ -21,12 +21,12 @@
 			<td class='quiet'>|Финален етап|*:</td>
 			<td>[#planning_Steps_isFinal#]</td>
 		</tr>
-		<!--ET_BEGIN planning_Steps_storeInput-->
+		<!--ET_BEGIN planning_Steps_inputStores-->
 		<tr>
 			<td class='quiet'>|Склад влагане|*:</td>
-			<td>[#planning_Steps_storeInput#]</td>
+			<td>[#planning_Steps_inputStores#]</td>
 		</tr>
-		<!--ET_END planning_Steps_storeInput-->
+		<!--ET_END planning_Steps_inputStores-->
 
 		<!--ET_BEGIN planning_Steps_storeIn-->
 		<tr>
