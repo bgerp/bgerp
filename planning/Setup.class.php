@@ -396,6 +396,34 @@ class planning_Setup extends core_ProtoSetup
         foreach ($assets as $assetId){
             planning_AssetResources::reOrderTasks($assetId);
         }
+    }
 
+
+    /**
+     * Миграция на стари операции
+     */
+    public function migrateOldTasks()
+    {
+        core_App::setTimeLimit(600);
+        $query = planning_Tasks::getQuery();
+        $query->EXT('driverClass', 'cat_Products', 'externalName=innerClass,externalKey=productId');
+        $query->where("#isFinal IS NULL");
+        $query->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
+        $query->in('state', array('active', 'wakeup', 'stopped', 'pending', 'waiting'));
+        $query->show('productId,jobProductId,driverClass');
+
+        $saveTasks = array();
+        $saveDetails = array();
+        while($rec = $query->fetch()){
+            if($rec->jobProductId == $rec->productId){
+                $rec->isFinal = 'yes';
+                $saveTasks[$rec->id] = $rec;
+                $dRec = (object)array('taskId' => $rec->id, 'productId' => $rec->jobProductId, 'type' => 'production');
+                $saveDetails[$rec->id] = $dRec;
+            }
+        }
+
+        cls::get('planning_Tasks')->saveArray($saveTasks, 'id,isFinal');
+        cls::get('planning_ProductionTaskProducts')->saveArray($saveDetails);
     }
 }
