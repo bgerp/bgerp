@@ -228,7 +228,8 @@ class planning_Setup extends core_ProtoSetup
         'planning_StepConditions',
         'migrate::updatePlanningStages1',
         'migrate::updateTaskAssets',
-        'migrate::reorderTasks2'
+        'migrate::reorderTasks2',
+        'migrate::migrateOldTasks',
     );
     
     
