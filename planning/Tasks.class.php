@@ -293,26 +293,6 @@ class planning_Tasks extends core_Master
         $this->setDbIndex('assetId,orderByAssetId');
         $this->setDbIndex('assetId');
     }
-
-
-    /**
-     * Подготвя параметрите
-     * 
-     * @param stdClass $rec
-     * @return stdClass
-     */
-    private static function prepareTaskParams($rec)
-    {
-        $d = new stdClass();
-        $d->masterId = $rec->id;
-        $d->masterClassId = planning_Tasks::getClassId();
-        if ($rec->state == 'closed' || $rec->state == 'stopped' || $rec->state == 'rejected') {
-            $d->noChange = true;
-        }
-        cat_products_Params::prepareParams($d);
-        
-        return $d;
-    }
     
     
     /**
@@ -321,6 +301,14 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareSingle($mvc, &$res, $data)
     {
         $data->paramData = cat_products_Params::prepareClassObjectParams($mvc, $data->rec);
+
+        if($Driver = cat_Products::getDriver($data->rec->productId)){
+            $pData = $Driver->getProductionData($data->rec->productId);
+            $in = $pData['planningParams'];
+            if(!countR($in)){
+                unset($data->paramData->addUrl);
+            }
+        }
     }
     
     
