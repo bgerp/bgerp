@@ -3398,6 +3398,16 @@ div.richtext ol ol ol {
     background-image: url('../img/info_blue.png');
 }
 
+.richtext-info-no-image {
+	color: #00529B;
+	border-color: lighten(#00529B, 30%);
+	background-color: #BDE5F8;
+	border: 1px dotted;
+	margin: 0 30px;
+	padding: 7px 10px 5px 10px;
+	min-height: 20px;
+}
+
 .richtext-tip {
 	color: #b05410;
 	border-color: lighten(#c9841a, 30%);

@@ -329,34 +329,11 @@ class doc_Prototypes extends core_Manager
         while ($rec = $query->fetch()) {
             $arr[$rec->docId] = $Class->getPrototypeTitle($rec->docId);
         }
-        
+
         asort($arr);
         
         // Връщане на намерените шаблони
         return $arr;
-    }
-    
-    
-    /**
-     *
-     *
-     * @param mixed       $class
-     * @param int         $docId
-     * @param string|NULL $field
-     *
-     * @return stdClass|string
-     */
-    public static function getProtoRec($class, $docId, $field = null)
-    {
-        $Class = cls::get($class);
-        $cond = array("#classId = '[#1#]' AND #docId = '[#2#]'", $Class->getClassId(), $docId);
-        
-        if (!empty($field)) {
-            
-            return self::fetchField($cond, $field);
-        }
-        
-        return self::fetch($cond);
     }
     
     

@@ -1852,7 +1852,7 @@ class fileman_Files extends core_Master
         $rec->dataId = $dataId;
         
         // Записваме
-        fileman_Files::save($rec);
+        fileman_Files::save($rec, null, 'IGNORE');
         
         // Увеличаваме с единица броя на файловете за които отговаря файла
         fileman_Data::increaseLinks($dataId);

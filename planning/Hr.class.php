@@ -334,7 +334,11 @@ class planning_Hr extends core_Master
                 }
             }
         }
-        
+
+        if(empty($scheduleId)){
+            $scheduleId = hr_Schedules::getDefaultScheduleId();
+        }
+
         return $scheduleId;
     }
     

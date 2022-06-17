@@ -726,7 +726,7 @@ class eshop_ProductDetails extends core_Detail
         // Ако е шаблон
         if($isTemplate){
             
-            // Ще се извличат е-артикулите, където той е избран като протоип
+            // Ще се извличат е-артикулите, където той е избран като прототип
             $data->listFields = arr::make('name=Е-артикул,domainId=Домейн,coMoq=МКП,quantityCount=Количества');
             $data->info = tr('Артикулът се използва като прототип за запитване в Е-маг');
             $query = eshop_Products::getQuery();

@@ -131,7 +131,8 @@ class type_Combodate extends type_Varchar
         
         // Ако имаме всички данни
         if ($d > 0 && $m > 0 && $y > 0) {
-            $res = "{$d}-{$m}-{$y}";
+            $m = dt::getMonth($m, 'FM');
+            $res = "{$d} {$m}, {$y}";
         
         // Ако имаме само месеца и годината
         } elseif ($m > 0 && $y > 0) {

@@ -252,7 +252,10 @@ class store_ConsignmentProtocols extends core_Master
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);
                 $row->deliveryAddress = crm_Locations::getAddress($rec->locationId, true);
             }
+<<<<<<< HEAD
 
+=======
+>>>>>>> refs/remotes/origin/test
             core_Lg::pop();
         }
     }

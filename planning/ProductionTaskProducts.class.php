@@ -10,7 +10,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -175,6 +175,11 @@ class planning_ProductionTaskProducts extends core_Detail
             if (empty($rec->id) && $rec->type != 'waste' && planning_ProductionTaskDetails::haveRightFor('add', (object) array('taskId' => $masterRec->id))) {
                 $caption = ($rec->type == 'input') ? 'Вложено' : 'Произведено';
                 $form->FLD('inputedQuantity', 'double(Min=0)', "caption={$caption},before=storeId");
+                $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
+                if (countR($employees)) {
+                    $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=20)', 'caption=Оператори,after=inputedQuantity');
+                    $form->setSuggestions('employees', $employees);
+                }
             }
             
             $shortUomId = cat_Products::fetchField($masterRec->productId, 'measureId');
@@ -212,6 +217,10 @@ class planning_ProductionTaskProducts extends core_Detail
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
+            if(!empty($rec->inputedQuantity) && empty($rec->employees)){
+                $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
+            }
+
             if ($rec->type == 'waste') {
                 $selfValue = price_ListRules::getPrice(price_ListRules::PRICE_LIST_COST, $rec->productId);
                 if (!isset($selfValue)) {
@@ -233,10 +242,16 @@ class planning_ProductionTaskProducts extends core_Detail
                 if ($rec->plannedQuantity > $rec->limit) {
                     $form->setError('plannedQuantity,limit', 'Планираното количество е повече от зададения лимит');
                 }
-                
+
                 if ($rec->inputedQuantity > $rec->limit) {
                     $caption = ($rec->type == 'input') ? 'Вложеното' : (($rec->type == 'waste') ? 'Отпадъкът' : 'Произведеното');
                     $form->setError('inputedQuantity,limit', "{$caption} е повече от зададения лимит");
+                }
+            }
+
+            if(!$form->gotErrors()){
+                if (!empty($rec->inputedQuantity) && !empty($rec->indTime)){
+                    $rec->norm = $rec->indTime;
                 }
             }
         }
@@ -263,17 +278,15 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
-        $row->totalQuantity = ht::styleNumber($row->totalQuantity, $rec->totalQuantity);
-
         $row->ROW_ATTR['class'] = ($rec->type == 'input') ? 'row-added' : (($rec->type == 'waste') ? 'row-removed' : 'state-active');
+
         deals_Helper::getPackInfo($row->packagingId, $rec->productId, $rec->packagingId, $rec->quantityInPack);
-        
         if (isset($rec->storeId)) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId, true);
         }
 
-        if(isset($rec->indTime)){
-            $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($rec->indTime);
+        if(isset($indTime)){
+            $row->indTime = core_Type::getByName("planning_type_ProductionRate(measureId={$rec->packagingId})")->toVerbal($indTime);
         } else {
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
@@ -283,6 +296,10 @@ class planning_ProductionTaskProducts extends core_Detail
             $row->totalQuantity = "<span class='red'>{$row->totalQuantity}</span>";
             $row->totalQuantity = ht::createHint($row->totalQuantity, 'Изпълнено е повече от планираното', 'warning', false);
         }
+
+        $row->packagingId = ht::createHint($row->packagingId, 'Зададено в производствената операция', 'notice',false);
+        $row->indTime = "<span style='color:blue'>{$row->indTime}</span>";
+        $row->indTime = ht::createHint($row->indTime, 'Зададено в производствената операция', 'notice',false);
     }
     
     
@@ -292,12 +309,17 @@ class planning_ProductionTaskProducts extends core_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (($action == 'add' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
-            $state = $mvc->Master->fetchField($rec->taskId, 'state');
-            if (in_array($state, array('active', 'waiting', 'wakeup', 'draft', 'pending'))) {
+            $tRec = $mvc->Master->fetch($rec->taskId, 'state,isFinal,originId');
+            if (in_array($tRec->state, array('active', 'waiting', 'wakeup', 'draft', 'pending'))) {
                 if ($action == 'add') {
                     $requiredRoles = $mvc->getRequiredRoles('addtoactive', $rec);
                 }
             } else {
+                $requiredRoles = 'no_one';
+            }
+
+            // Финалната ПО може да има само един артикул за произвеждане
+            if($tRec->isFinal == 'yes' && $rec->type == 'production'){
                 $requiredRoles = 'no_one';
             }
         }
@@ -366,11 +388,11 @@ class planning_ProductionTaskProducts extends core_Detail
         $taskRec = planning_Tasks::fetchRec($taskId);
         $usedProducts = $options = array();
         expect(in_array($type, array('input', 'waste', 'production')));
-        
-        if ($type == 'production') {
+
+        if ($type == 'production' && $taskRec->isFinal != 'yes') {
             $options[$taskRec->productId] = cat_Products::getTitleById($taskRec->productId, false);
         }
-        
+
         $query = self::getQuery();
         $query->where("#taskId = {$taskId}");
         $query->where("#type = '{$type}'");
@@ -390,7 +412,7 @@ class planning_ProductionTaskProducts extends core_Detail
                 }
             }
         }
-        
+
         return $options;
     }
     
@@ -417,27 +439,31 @@ class planning_ProductionTaskProducts extends core_Detail
         expect(in_array($type, array('input', 'waste', 'production')));
         
         // Ако артикула е същия като от операцията, връща се оттам
-        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,assetId,productId,indTime,labelPackagingId,plannedQuantity,measureId,quantityInPack');
-        if ($taskRec->productId == $productId) {
-            if(empty($taskRec->labelPackagingId)){
-                $taskRec->packagingId = $taskRec->measureId;
-            }
+        $taskRec = planning_Tasks::fetchRec($taskId, 'totalQuantity,assetId,productId,indTime,labelPackagingId,plannedQuantity,measureId,quantityInPack,isFinal,originId');
+        if($type == 'production'){
 
-            return $taskRec;
+            // Ако ПО е финална и артикула за производство е този от заданието - взимат се неговите данни
+            $compareTaskProductId = $taskRec->productId;
+            if($taskRec->isFinal == 'yes'){
+                $compareTaskProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+            }
+            if ($compareTaskProductId == $productId ) {
+                if(empty($taskRec->labelPackagingId)){
+                    $taskRec->packagingId = $taskRec->measureId;
+                }
+
+                return $taskRec;
+            }
         }
 
         // Ако има запис в артикули за него, връща се оттам
         $query = self::getQuery();
         $query->where("#taskId = {$taskRec->id} AND #productId = {$productId} AND #type = '{$type}'");
         $query->show('productId,indTime,packagingId,plannedQuantity,totalQuantity,limit');
-        if ($rec = $query->fetch()) {
-
-            return $rec;
-        }
+        if ($rec = $query->fetch()) return $rec;
 
         if (isset($assetId)) {
             $normRec = planning_AssetResources::getNormRec($assetId, $productId);
-
             if(!empty($normRec)) return $normRec;
         }
         
@@ -451,7 +477,7 @@ class planning_ProductionTaskProducts extends core_Detail
     protected static function on_AfterCreate($mvc, $rec)
     {
         if (!empty($rec->inputedQuantity)) {
-            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity);
+            $dRec = (object) array('taskId' => $rec->taskId, 'productId' => $rec->productId, 'type' => $rec->type, 'quantity' => $rec->inputedQuantity, 'employees' => $rec->employees, 'norm' => $rec->norm);
             planning_ProductionTaskDetails::save($dRec);
         }
     }
@@ -536,6 +562,13 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     protected static function on_BeforeRenderListTable($mvc, &$tpl, $data)
     {
+        if($data->masterData->rec->isFinal == 'yes' && countR($data->recs)){
+            $jobProductId = planning_Jobs::fetchField("#containerId = {$data->masterData->rec->originId}", 'productId');
+            $jobProductRecs = array_filter($data->recs, function($a) use ($jobProductId) {return $a->productId == $jobProductId;});
+            $jobProductIdRecId = key($jobProductRecs);
+            unset($data->rows[$jobProductIdRecId]);
+        }
+
         if(!Mode::is('taskInTerminal')){
             $data->listTableMvc->setField('packagingId', 'smartCenter');
             $data->listTableMvc->setField('plannedQuantity', 'smartCenter');
@@ -543,5 +576,21 @@ class planning_ProductionTaskProducts extends core_Detail
             $data->listTableMvc->setField('indTime', 'smartCenter');
             $data->listTableMvc->setField('totalTime', 'smartCenter');
         }
+    }
+
+
+    /**
+     * Кой е основния производим артикул на операцията:
+     * ако е финална е този от заданието, иначе е етапа от операцията
+     *
+     * @param int|stdClass $taskId
+     * @param int $productId
+     * @return bool
+     */
+    public static function isProduct4Task($taskId, $productId)
+    {
+        $taskRec = planning_Tasks::fetchRec($taskId);
+
+        return ($taskRec->isFinal == 'yes') ? ($productId == planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId')) : ($productId == $taskRec->productId);
     }
 }

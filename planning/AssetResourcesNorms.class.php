@@ -135,7 +135,9 @@ class planning_AssetResourcesNorms extends core_Manager
                 $row->ROW_ATTR['class'] = 'zebra1';
                 core_RowToolbar::createIfNotExists($row->_rowTools);
                 $row->_rowTools->removeBtn('*');
-                $row->indTime = ht::createHint($row->indTime, 'Нормата идва от вида на оборудването', 'notice', false);
+
+                $row->indTime = "<span style='color:blue'>{$row->indTime}</span>";
+                $row->indTime = ht::createHint($row->indTime, 'Нормата е зададена във вида на оборудването', 'notice', false);
                 
                 unset($row->state);
                 if (isset($addUrl)) {
@@ -224,7 +226,7 @@ class planning_AssetResourcesNorms extends core_Manager
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         $row->objectId = cls::get($rec->classId)->getHyperlink($rec->objectId, true);
         if (!isset($rec->limit)) {
-            $row->limit = "<i class='quiet'>" . tr('няма||no') . '</i>';
+            $row->limit = "<i class='quiet'>" . tr('Няма||No') . '</i>';
         }
 
         $measureId = cat_Products::fetchField($rec->productId, 'measureId');

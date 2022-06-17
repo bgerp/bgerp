@@ -140,6 +140,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,dealerId';
+	
+	
+    /**
      * Името на полето, което ще е на втори ред
      */
     public $listFieldsExtraLine = 'title';

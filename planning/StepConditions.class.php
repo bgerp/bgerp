@@ -292,7 +292,7 @@ class planning_StepConditions extends core_Detail
     {
         requireRole('debug');
 
-        $conditions = $this->checkTaskConditions();
+        $conditions = static::checkTaskConditions();
 
         bp($conditions);
     }

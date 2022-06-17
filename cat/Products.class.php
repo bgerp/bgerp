@@ -3271,7 +3271,7 @@ class cat_Products extends embed_Manager
                 
                 $obj->title = cat_Products::getTitleById($dRec->resourceId);
                 $obj->measureId = $row->packagingId;
-                $obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
+                $obj->quantity = $dRec->rowQuantity;
                 
                 $obj->level = substr_count($obj->code, '.');
                 $obj->titleClass = 'product-component-title';
@@ -3289,7 +3289,9 @@ class cat_Products extends embed_Manager
                         $obj->quantity *= $res[$obj->parent]->quantity;
                     }
                 } else {
-                    $obj->quantity *= $qQuantity;
+                    if ($obj->quantity != cat_BomDetails::CALC_ERROR) {
+                        $obj->quantity *= $qQuantity;
+                    }
                 }
                 
                 if ($dRec->description) {
@@ -3392,9 +3394,7 @@ class cat_Products extends embed_Manager
         expect($jobRec = planning_Jobs::fetchRec($jobRec));
         $rec = self::fetch($jobRec->productId);
         
-        if ($rec->canManifacture != 'yes') {
-            return $defaultTasks;
-        }
+        if ($rec->canManifacture != 'yes') return $defaultTasks;
         
         // Питаме драйвера какви дефолтни задачи да се генерират
         $ProductDriver = cat_Products::getDriver($rec);
@@ -3408,7 +3408,7 @@ class cat_Products extends embed_Manager
             // Намираме последната активна рецепта
             $bomRec = self::getLastActiveBom($rec, 'production,sales');
             
-            // Ако има опитваме се да намерим задачите за производството по нейните етапи
+            // Ако има прави се опит да се намерят задачите за производството по нейните етапи
             if ($bomRec) {
                 $defaultTasks = cat_Boms::getTasksFromBom($bomRec, $quantity);
             }

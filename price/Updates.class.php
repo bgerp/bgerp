@@ -396,8 +396,8 @@ class price_Updates extends core_Manager
             // Опит за изчисление на себестойността според източниците
             $primeCost = $this->getPrimeCost($productId, $rec->sourceClass1, $rec->sourceClass2, $rec->sourceClass3, $rec->costAdd);
 
-            // Намира се старата му себестойност (ако има)
-            $primeCost = round($primeCost, 5);
+            // Закръгля се цената до указаното в политиката себестойност
+            $primeCost = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost);
 
             // Ако има изчислена ненулева себестойност
             if ($primeCost > 0) {

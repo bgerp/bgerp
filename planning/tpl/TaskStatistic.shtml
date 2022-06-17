@@ -1,5 +1,8 @@
 <div class="scrolling-holder">
     <div class="sale-summary">
+        <!--ET_BEGIN originProductId-->
+        <div style="text-align:left;margin-bottom:5px">|За|*: [#originProductId#]</div>
+        <!--ET_END originProductId-->
        <table class='paddingCells' style='margin-bottom:10px;width:100%;'>
           <tr>
              <td class = 'sum-th'>
@@ -21,12 +24,11 @@
           </tr>
           <tr>
               <td class = 'nowrap'>[#plannedQuantity#]</td>
-              <td class = 'nowrap'>[#totalQuantity#] </td>
+              <td class = 'nowrap'>[#totalQuantity#]</td>
               <td class = 'nowrap'>[#scrappedQuantity#]</td>
               <td class = 'nowrap'>[#producedQuantity#]</td>
               
               <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
-                  <span style='font-weight:normal'>|Артикул|*</span>: [#productId#]<br>
                   <span style='font-weight:normal'>|Задание|*</span>: [#originId#]<br>
                   <!--ET_BEGIN batch-->
                   <span style='font-weight:normal'>|Партида|*</span>: [#batch#]<br>
@@ -34,12 +36,6 @@
                   <!--ET_BEGIN storeId-->
                   <span style='font-weight:normal'>|В склад|*</span>: [#storeId#]<br>
                   <!--ET_END storeId-->
-                  <!--ET_BEGIN assetId-->
-                  <span style='font-weight:normal'>|Оборудване|*</span>: [#assetId#]<br>
-                  <!--ET_END assetId-->
-                  <!--ET_BEGIN startAfter-->
-                  <span style='font-weight:normal'>|Започва след|*</span>: [#startAfter#]<br>
-                  <!--ET_END startAfter-->
                   <!--ET_BEGIN employees-->
                   <span style='font-weight:normal'>|Оператори|*</span>: [#employees#]<br>
                   <!--ET_END employees-->
@@ -63,15 +59,19 @@
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
                 <td class='sum-th'><b>|Продължителност|*</b></td>
-                <td class='sum-th'><b>|Други|*</b></td>
+                <td class='sum-th'>[#productCaption#] <b>[#productId#]</b></td>
             </tr>
             <tr>
                 <td>[#expectedTimeStart#]</td>
                 <td>[#expectedTimeEnd#]</td>
                 <td>[#expectedDuration#]</td>
                 <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
-                    <span style='font-weight:normal'>|Активирано на|*</span>: [#activatedOn#]<br>
-                    <span style='font-weight:normal'>|Приключено на|*</span>: [#timeClosed#]<br>
+                    <!--ET_BEGIN assetId-->
+                    <span style='font-weight:normal'>|Оборудване|*</span>: [#assetId#]<br>
+                    <!--ET_END assetId-->
+                    <!--ET_BEGIN startAfter-->
+                    <span style='font-weight:normal'>|Започва след|*</span>: [#startAfter#]<br>
+                    <!--ET_END startAfter-->
                 </td>
             </tr>
         </table>

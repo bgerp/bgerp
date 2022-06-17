@@ -34,7 +34,9 @@ class plg_RefreshRows extends core_Plugin
             
             return;
         }
-        
+
+        if($data->stopListRefresh) return;
+
         // Ако не се тегли по AJAX
         if (!Request::get('ajax_mode')) {
             
@@ -73,7 +75,7 @@ class plg_RefreshRows extends core_Plugin
                 }
                 jquery_Jquery::run($tpl, "getEfae().setHitId('{$hitId}');", true);
             }
-            
+
             // Абонираме URL-то
             core_Ajax::subscribe($tpl, $url, $name, $time);
             

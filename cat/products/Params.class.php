@@ -278,8 +278,11 @@ class cat_products_Params extends doc_Detail
     {
         $query = self::getQuery();
         $query->where("#classId = {$classId} AND #productId = {$productId}");
-        $ids = arr::extractValuesFromArray($query->fetchAll(), 'paramId');
-        
+        $notIn = arr::extractValuesFromArray($query->fetchAll(), 'paramId');
+        $in = array();
+
+        $taskClassId = planning_Tasks::getClassId();
+        $bomClassId = cat_BomDetails::getClassId();
         if ($classId == cat_Products::getClassId()) {
             $grSysid = cat_Params::fetchIdBySysId('weight');
             $kgSysid = cat_Params::fetchIdBySysId('weightKg');
@@ -295,16 +298,28 @@ class cat_products_Params extends doc_Detail
                     $ids[$grSysid] = $grSysid;
                 }
             }
+        } elseif($classId == $taskClassId || $classId == $bomClassId){
+            $productField = ($classId == $taskClassId) ? 'productId' : 'resourceId';
+            $taskStepId = cls::get($classId)->fetchField($productId, $productField);
+            $Driver = cat_Products::getDriver($taskStepId);
+            $pData = $Driver->getProductionData($taskStepId);
+            $in = $pData['planningParams'];
+
+            if(!countR($in)) return array();
         }
-        
+
         $where = '';
-        if (countR($ids)) {
-            $ids = implode(',', $ids);
-            $where = "#id NOT IN ({$ids})";
+        if (countR($notIn)) {
+            $notInString = implode(',', $notIn);
+            $where = "#id NOT IN ({$notInString})";
         }
-        
+        if (countR($in)) {
+            $inString = implode(',', $in);
+            $where .= (!empty($where) ? ' AND ' : '') . "#id IN ({$inString})";
+        }
+
         $options = cat_Params::makeArray4Select(null, $where);
-        
+
         return $options;
     }
     
@@ -435,10 +450,10 @@ class cat_products_Params extends doc_Detail
             $pRec = $Class->fetch($rec->productId);
             if($rec->classId == cat_Products::getClassId()){
                 if ($action == 'add') {
-                    $InnerClass = cls::load($pRec->innerClass, true);
-                    if ($InnerClass instanceof cat_GeneralProductDriver) {
-
-                        // Добавянето е разрешено само ако драйвера на артикула е универсалния артикул
+                    $InnerClass = cls::get($pRec->innerClass);
+                    if (!($InnerClass instanceof cat_GeneralProductDriver)) {
+                        $requiredRoles = 'no_one';
+                    } elseif($InnerClass instanceof planning_interface_StepProductDriver){
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -622,32 +637,47 @@ class cat_products_Params extends doc_Detail
     /**
      * Добавяне на параметри за редактиране във формата на обект
      *
-     * @param $classId
-     * @param $objectId
-     * @param $productId
-     * @param $form
-     * @param $onlyTaskParams
-     * @param $mandatoryValues
+     * @param mixed $classId
+     * @param int $objectId
+     * @param int $productId
+     * @param core_Form $form
+     * @param int $planningStepProductId
      * @return void
      */
-    public static function addProductParamsToForm($classId, $objectId, $productId, &$form , $onlyTaskParams = true, $mandatoryValues = true)
+    public static function addProductParamsToForm($classId, $objectId, $productId, $planningStepProductId, &$form)
     {
         // Показване на параметрите за задача във формата, като задължителни полета
-        $params = cat_Products::getParams($productId);
-        if($onlyTaskParams){
-            $taskParams = cat_Params::getTaskParamIds();
-            $params = array_intersect_key($params, $taskParams);;
+        $paramValues = cat_Products::getParams($productId);
+        $params = array_combine(array_keys($paramValues), array_keys($paramValues));
+        if(isset($planningStepProductId)){
+            if($StepDriver = cat_Products::getDriver($planningStepProductId)){
+                $pData = $StepDriver->getProductionData($planningStepProductId);
+                $params = $pData['planningParams'];
+            }
         }
 
+        $plannedProductName = cat_Products::getVerbal($productId, 'name');
+        $plannedProductName = str_replace(',', ' ', $plannedProductName);
         $class = cls::get($classId);
-        foreach ($params as $pId => $v) {
+
+        // Сортиране на намерените параметри
+        if(countR($params)){
+            $oQuery = cat_Params::getQuery();
+            $oQuery->XPR('orderEx', 'varchar', 'COALESCE(#order, 999999)');
+            $oQuery->orderBy('group,orderEx,id', 'ASC');
+            $oQuery->in('id', $params);
+            $params = arr::extractValuesFromArray($oQuery->fetchAll(), 'id');
+        }
+
+        foreach ($params as $pId) {
+            $v = $paramValues[$pId];
             $paramRec = cat_Params::fetch($pId);
             $name = cat_Params::getVerbal($paramRec, 'name');
-            $form->FLD("paramcat{$pId}", 'double', "caption=Параметри за производство->{$name},before=description");
-            if($mandatoryValues){
-                $form->setField("paramcat{$pId}", 'mandatory');
+            if(!empty($paramRec->group)){
+                $groupName = cat_Params::getVerbal($paramRec, 'group');
+                $name = "{$groupName}: {$name}";
             }
-
+            $form->FLD("paramcat{$pId}", 'double', "caption=Параметри за планиране на:|* <b>{$plannedProductName}</b>->|{$name}|*,before=description");
             $ParamType = cat_Params::getTypeInstance($pId, $class->getClassId(), $objectId);
             $form->setFieldType("paramcat{$pId}", $ParamType);
 
@@ -659,14 +689,12 @@ class cat_products_Params extends doc_Detail
             if (isset($v)) {
                 if (($ParamType instanceof fileman_FileType)) {
                     $form->setDefault("paramcat{$pId}", $v);
-                }else {
+                } else {
                     if(cat_Params::haveDriver($paramRec, 'cond_type_Keylist')){
                         $defaults = keylist::toArray($v);
                         $v = array_intersect_key($ParamType->getSuggestions(), $defaults);
-                    } else {
-                        $v = array('' => '', "{$v}" => "{$v}");
                     }
-                    $form->setSuggestions("paramcat{$pId}", $v);
+                    $form->setDefault("paramcat{$pId}", $v);
                 }
             }
 
@@ -688,6 +716,8 @@ class cat_products_Params extends doc_Detail
         $Class = cls::get($class);
         foreach ($rec->{$paramField} as $k => $o) {
             if (!isset($rec->{$k})) continue;
+            $paramDriver = cat_Params::getDriver($o->paramId);
+            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html) && empty($rec->{$k})) continue;
 
             $nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $Class->getClassId(), 'productId' => $rec->id);
             if ($id = cat_products_Params::fetchField("#classId = {$Class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')) {

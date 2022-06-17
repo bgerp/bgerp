@@ -606,7 +606,8 @@ class colab_FolderToPartners extends core_Manager
             $msg = ($res) ? 'Успешно изпратен имейл' : 'Проблем при изпращането на имейл';
             
             cls::get($className)->logInAct('Изпращане на имейл за регистрация на нов партньор', $objectId);
-            
+            cls::get($className)->logDebug("Изпращане на имейл за регистрация на нов партньор: '{$form->rec->to}'", $objectId);
+
             return followRetUrl(null, $msg);
         }
         

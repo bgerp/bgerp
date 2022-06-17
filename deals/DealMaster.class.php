@@ -95,6 +95,14 @@ abstract class deals_DealMaster extends deals_DealBase
 
 
     /**
+     * Дали в лист изгледа да се показва полето за филтър по състояние
+     * @param bool
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterAllowState = false;
+
+
+    /**
      * Извиква се след описанието на модела
      *
      * @param core_Mvc $mvc
@@ -2233,7 +2241,6 @@ abstract class deals_DealMaster extends deals_DealBase
 
         if($strategy == 'onlyFromDeal') {
             $products = $agreed;
-            $invoiced = array();
             foreach ($products as $product1) {
                 if (!($forMvc instanceof sales_Proformas)) {
                     $product1->price -= $product1->price * $product1->discount;
@@ -2270,7 +2277,10 @@ abstract class deals_DealMaster extends deals_DealBase
         // Приспадане на фактурираното, ако има
         foreach ($products as $product) {
             $quantity = $product->quantity;
-            $quantity -= $invoiced[$product->productId];
+            if($strategy == 'shippedNotInvoiced') {
+                $quantity -= $invoiced[$product->productId];
+            }
+
             if ($quantity <= 0) continue;
             
             // Ако няма информация за експедираните опаковки, взимаме основната опаковка
