@@ -2,7 +2,7 @@
 
 
 /**
- * Имплементация на изчисляване на мениджърски себестойности "Средна складова"
+ * Имплементация на изчисляване на мениджърски себестойности "Осреднена за избрани складове" (старо име: "Средна складова")
  *
  * @category  bgerp
  * @package   price
@@ -13,7 +13,7 @@
  *
  * @since     v 0.1
  * @see price_CostPolicyIntf
- * @title Мениджърска себестойност "Средна складова"
+ * @title Мениджърска себестойност "Осреднена за избрани складове"
  *
  */
 class price_interface_AverageCostStorePricePolicyImpl extends price_interface_BaseCostPolicy
@@ -34,7 +34,7 @@ class price_interface_AverageCostStorePricePolicyImpl extends price_interface_Ba
      */
     public function getName($verbal = false)
     {
-        $res = ($verbal) ? tr('Средна складова') : 'averageStorePrice';
+        $res = ($verbal) ? tr('Осреднена за избрани складове') : 'averageStorePrice';
         
         return $res;
     }

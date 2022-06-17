@@ -140,6 +140,12 @@ class sales_Sales extends deals_DealMaster
     
     
     /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'amountInvoicedDownpayment,amountInvoicedDownpaymentToDeduct,dealerId';
+	
+	
+    /**
      * Името на полето, което ще е на втори ред
      */
     public $listFieldsExtraLine = 'title';
@@ -390,22 +396,19 @@ class sales_Sales extends deals_DealMaster
      */
     public static function getDefaultDealerId($folderId, $locationId = null)
     {
+        $setDefaultDealerId = sales_Setup::get('SET_DEFAULT_DEALER_ID');
+        if($setDefaultDealerId != 'yes') return null;
+
         if (isset($locationId)) {
             $dealerId = sales_Routes::getSalesmanId($locationId);
-            if (isset($dealerId)) {
-                return $dealerId;
-            }
+            if (isset($dealerId)) return $dealerId;
         }
         
         $dealerId = doc_Folders::fetchField($folderId, 'inCharge');
-        if (core_Users::haveRole('sales', $dealerId)) {
-            return $dealerId;
-        }
+        if (core_Users::haveRole('sales', $dealerId)) return $dealerId;
         
         $dealerId = cond_plg_DefaultValues::getFromLastDocument(cls::get(get_called_class()), $folderId, 'dealerId', true);
-        if (core_Users::haveRole('sales', $dealerId)) {
-            return $dealerId;
-        }
+        if (core_Users::haveRole('sales', $dealerId)) return $dealerId;
     }
     
     

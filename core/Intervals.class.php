@@ -86,8 +86,14 @@ class core_Intervals {
 
     /**
      * Консумира посоченият интервал, като се среми да използва само интервали между $begin и $end
-     * 
      * Връща масив с начало на консумацията и края й, или false в случай на неуспех
+     *
+     * @param int $duration             - продължителност в секунди
+     * @param int|null $begin           - timestamp на от коя дата или null за без такава
+     * @param int|null$end              - timestamp на до коя дата или null за без такава
+     * @param int|null $interruptOffset - секунди, при прекъсване или null ако няма
+     * @return array|false              - масив с начална и крайна дата или false ако не може да се сметне
+     * @throws core_exception_Expect
      */
     public function consume($duration, $begin = null, $end = null, $interruptOffset = null)
     {
@@ -120,14 +126,14 @@ class core_Intervals {
             $new[0] = max(isset($begin) ? $begin : PHP_INT_MIN, $int[0]);
 
             // До къде можем да консумираме
-            $new[1] = min(isset($end) ? $end : PHP_INT_MAX, $int[1], $int[0] + $duration - 1);
+            $new[1] = min(isset($end) ? $end : PHP_INT_MAX, $int[1], $new[0] + $duration - 1);
 
             $add = array_merge($add, self::getDiff($int, $new));
 
             $min = isset($min) ? min($min, $new[0]) : $new[0];
             $max = isset($max) ? max($max, $new[1]) : $new[1];
 
-            $duration -= $new[1] - $new[0] + 1;         
+            $duration -= $new[1] - $new[0] + 1;
         }
 
         $this->data = $this->combine($last, $add, $first);
@@ -139,6 +145,7 @@ class core_Intervals {
 
         return false;
     }
+
 
     /**
      * Връща интервалите, заключени в тази рамка

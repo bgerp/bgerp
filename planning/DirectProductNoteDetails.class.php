@@ -210,7 +210,6 @@ class planning_DirectProductNoteDetails extends deals_ManifactureDetail
             }
 
             if ($form->isSubmitted()) {
-
                 // Проверка на к-то
                 $warning = null;
                 if (!deals_Helper::checkQuantity($rec->packagingId, $rec->packQuantity, $warning)) {

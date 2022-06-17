@@ -200,7 +200,7 @@ class price_Updates extends core_Manager
     {
         // Показваме името на правилото
         try{
-            $row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, true) : cat_Products::getHyperlink($rec->objectId, true);
+            $row->name = ($rec->type == 'category') ? cat_Categories::getHyperlink($rec->objectId, true) : (($rec->type == 'group') ? cat_Groups::getHyperlink($rec->objectId, true) : cat_Products::getHyperlink($rec->objectId, true));
         } catch(core_exception_Expect $e){
             wp($rec);
             $row->name = "<span class='red'>" . tr("Проблем при показването") . "</span>";
@@ -297,8 +297,8 @@ class price_Updates extends core_Manager
         $this->requireRightFor('saveprimecost', $rec);
 
         // Записва себестойността, ако е имало промяна
-        $id = $this->savePrimeCost($rec, true, $productId);
-        $msg = (!empty($id)) ? 'Себестойността е променена успешно|*!' : 'Себестойността не е променена, защото няма промяна|*!';
+        $res = $this->savePrimeCost($rec, true, $productId);
+        $msg = (countR($res)) ? 'Себестойността е променена успешно|*!' : 'Себестойността не е променена, защото няма промяна|*!';
 
         // Редирект към списъчния изглед
         return followRetUrl(null, $msg);
@@ -368,7 +368,7 @@ class price_Updates extends core_Manager
      * @param bool      $saveInPriceList - искаме ли да запишем изчислената себестойност в 'Себестойности'
      * @param int|null  $productId       - ид на артикул
      *
-     * @return null|int                  - ид-то на записа в себестойности или null ако не е имало обновяване
+     * @return array $res                - масив от ид-та на обновените записи
      */
     private function savePrimeCost($rec, $saveInPriceList = true, $productId = null)
     {
@@ -384,6 +384,7 @@ class price_Updates extends core_Manager
         $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($validFrom);
 
         // За всеки артикул
+        $res = array();
         foreach ($products as $productId) {
             $pRec = cat_Products::fetch($productId, 'state,canStore,isPublic,canBuy,canManifacture');
 
@@ -395,8 +396,8 @@ class price_Updates extends core_Manager
             // Опит за изчисление на себестойността според източниците
             $primeCost = $this->getPrimeCost($productId, $rec->sourceClass1, $rec->sourceClass2, $rec->sourceClass3, $rec->costAdd);
 
-            // Намира се старата му себестойност (ако има)
-            $primeCost = round($primeCost, 5);
+            // Закръгля се цената до указаното в политиката себестойност
+            $primeCost = price_Lists::roundPrice(price_ListRules::PRICE_LIST_COST, $primeCost);
 
             // Ако има изчислена ненулева себестойност
             if ($primeCost > 0) {
@@ -423,11 +424,15 @@ class price_Updates extends core_Manager
                     if ($saveInPriceList === true) {
 
                         // Записваме новата себестойност на продукта
-                        return price_ListRules::savePrimeCost($productId, $primeCost, $validFrom, $baseCurrencyCode);
+                        if($savedId = price_ListRules::savePrimeCost($productId, $primeCost, $validFrom, $baseCurrencyCode)){
+                            $res[$savedId] = $savedId;
+                        }
                     }
                 }
             }
         }
+
+        return $res;
     }
     
     
@@ -776,6 +781,7 @@ class price_Updates extends core_Manager
                 $uRow->_rowTools = new core_RowToolbar();
             } elseif($rec->type == 'category') {
                 $fromCategoryStr = 'От категория|* " <b>' . cat_Categories::getTitleById($rec->objectId) . '"</b>: ';
+                $uRow->_rowTools = new core_RowToolbar();
             }
         }
 

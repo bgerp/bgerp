@@ -198,9 +198,9 @@ class fileman_Setup extends core_ProtoSetup
         
         'LINK_NARROW_MIN_FILELEN_SHOW' => array('fileman_FileSize', 'caption=Показване размера на файла в мобилен режим при големина->Повече от, suggestions=50 KB|100 KB|200 KB|300 KB'),
         
-        'FILEINFO_MIN_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
+        'FILEINFO_MIN_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в които ще се търси баркод->Минимален, suggestions=5KB|15 KB|30 KB|50 KB'),
         
-        'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в който ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
+        'FILEINFO_MAX_FILE_LEN_BARCODE' => array('fileman_FileSize', 'caption=Размер на файловете|*&comma;| в които ще се търси баркод->Максимален, suggestions=500 KB|1 MB|2 MB|3 MB'),
 
         'FILEMAN_MAX_BARCODE_AUTO_FIND' => array('fileman_FileSize', 'caption=Максимален размер на файловете в които автоматично ще се търси за баркод->Размер, suggestions=500 KB|1 MB|2 MB|3 MB'),
 

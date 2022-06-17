@@ -261,9 +261,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $packs = cat_Products::getPacks($rec->productId, false, $jobRec->secondMeasureId);
             $productRec = cat_Products::fetch($rec->productId, 'canStore,fixedAsset,canConvert,measureId');
 
-            $secondMeasureDerivitives = array();
+            $secondMeasureDerivatives = array();
             if($jobRec->secondMeasureId){
-                $secondMeasureDerivitives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
+                $secondMeasureDerivatives = cat_UoM::getSameTypeMeasures($jobRec->secondMeasureId);
             }
 
             if($originDoc->isInstanceOf('planning_Jobs')){
@@ -282,13 +282,13 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
-                $originRec = $originDoc->fetch('productId,producedQuantity,measureId');
-                if($rec->productId == $originRec->productId){
+                $originRec = $originDoc->fetch('productId,producedQuantity,measureId,isFinal');
+                if($originRec->isFinal == 'yes'){
                     $producedQuantity = $originDoc->fetchField('producedQuantity');
                     $info->totalQuantity -= $producedQuantity;
                     $originPackId = $originRec->measureId;
                 } else {
-                    $originPackId = $info->packagingId;
+                    $originPackId = $info->labelPackagingId;
                 }
 
                 $form->setDefault('packagingId', $originPackId);
@@ -298,10 +298,10 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             }
 
             $originalPacks = $packs;
-            if(!array_key_exists($originPackId, $secondMeasureDerivitives)){
-                $packs = array_diff_key($packs, $secondMeasureDerivitives);
+            if(!array_key_exists($originPackId, $secondMeasureDerivatives)){
+                $packs = array_diff_key($packs, $secondMeasureDerivatives);
             } else {
-                $packs = array_intersect_key($packs, $secondMeasureDerivitives);
+                $packs = array_intersect_key($packs, $secondMeasureDerivatives);
             }
 
             $form->setOptions('packagingId', $packs);
@@ -343,18 +343,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 if($jobRec->secondMeasureId){
 
                     // Ако заданието е във втора мярка, и се произвежда в някоя от производните и
-                    if(array_key_exists($rec->packagingId, $secondMeasureDerivitives)){
-                        $additionalMeasures = array_diff_key($originalPacks, $secondMeasureDerivitives);
+                    if(array_key_exists($rec->packagingId, $secondMeasureDerivatives)){
+                        $additionalMeasures = array_diff_key($originalPacks, $secondMeasureDerivatives);
 
                         $pQuery = cat_products_Packagings::getQuery();
                         $pQuery->EXT('type', 'cat_UoM', 'externalName=type,externalKey=packagingId');
                         $pQuery->where("#type = 'uom' AND #productId = {$rec->productId}");
-                        $pQuery->notIn('packagingId', array_keys($secondMeasureDerivitives));
+                        $pQuery->notIn('packagingId', array_keys($secondMeasureDerivatives));
                         $pQuery->show('packagingId');
                         $ignoreMeasureArr = arr::extractValuesFromArray($pQuery->fetchAll(), 'packagingId');
                         $additionalMeasures = array_diff_key($additionalMeasures, $ignoreMeasureArr);
                     } else {
-                        $additionalMeasures = array_intersect_key($originalPacks, $secondMeasureDerivitives);
+                        $additionalMeasures = array_intersect_key($originalPacks, $secondMeasureDerivatives);
                     }
                     $additionalMeasureCount = countR($additionalMeasures);
 
@@ -492,7 +492,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             // Ако втората мярка е мярка
             if($additionalMeasureType == 'uom'){
                 $equivalentMeasureId = $productRec->measureId;
-                $expectedEquvalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $productRec->measureId, $rec->additionalMeasureId);
+                $expectedEquivalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $productRec->measureId, $rec->additionalMeasureId);
                 $additionalQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId,  $productRec->measureId);
             } else {
 
@@ -500,7 +500,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $equivalentMeasureId = $rec->additionalMeasureId;
                 $addPackRec = cat_products_Packagings::getPack($rec->productId, $rec->additionalMeasureId);
                 $quantityInPack = is_object($addPackRec) ? $addPackRec->quantity : 1;
-                $expectedEquvalentQuantityInMeasure = $expectedQuantity / $quantityInPack;
+                $expectedEquivalentQuantityInMeasure = $expectedQuantity / $quantityInPack;
                 $additionalQuantity = $rec->additionalMeasureQuantity * $quantityInPack;
             }
         } else {
@@ -511,7 +511,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
             $additionalQuantity = cat_UoM::convertValue($rec->additionalMeasureQuantity, $rec->additionalMeasureId, $jobRec->secondMeasureId);
             $expectedQuantity = $rec->quantity / $secondMeasureQuantityInPack;
             $equivalentMeasureId = $rec->additionalMeasureId;
-            $expectedEquvalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $jobRec->secondMeasureId, $rec->additionalMeasureId);
+            $expectedEquivalentQuantityInMeasure = cat_UoM::convertValue($expectedQuantity, $jobRec->secondMeasureId, $rec->additionalMeasureId);
         }
 
         $diff = abs(core_Math::diffInPercent($additionalQuantity, $expectedQuantity));
@@ -519,7 +519,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
 
         // Ако разликата е над допустимата, показва се предупреждение
         if($diff > $allowedDiff){
-            $expectedSecondMeasureVerbal = core_Type::getByName('double(smartRound)')->toVerbal($expectedEquvalentQuantityInMeasure);
+            $expectedSecondMeasureVerbal = core_Type::getByName('double(smartRound)')->toVerbal($expectedEquivalentQuantityInMeasure);
             $equivalentMeasureIdVerbal = cat_UoM::getShortName($equivalentMeasureId);
 
             $msg = "Има разминаване от над |*{$allowedDiff} %, |спрямо очакваното от|* <b>{$expectedSecondMeasureVerbal} |{$equivalentMeasureIdVerbal}|*</b>";
@@ -828,13 +828,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected static function on_AfterCreate($mvc, $rec)
     {
         // Ако записа е клониран не правим нищо
-        if ($rec->_isClone === true) {
-
-            return;
-        }
+        if ($rec->_isClone === true) return;
 
         $details = $mvc->getDefaultDetails($rec);
-
         if(countR($details)) {
             foreach ($details as $dRec) {
                 $dRec->noteId = $rec->id;
@@ -1460,5 +1456,19 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         return null;
+    }
+
+
+    /**
+     * Изпълнява се преди контиране на документа
+     */
+    protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
+    {
+        $rec = $mvc->fetchRec($id);
+        if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #productId = {$rec->productId}")) {
+            core_Statuses::newStatus('Произвежданият артикул не може да бъде влаган в същия протокол|*!', 'error');
+
+            return false;
+        }
     }
 }

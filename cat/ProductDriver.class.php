@@ -1004,6 +1004,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      *          string|null ['labelType']            - тип на етикета
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
+     *          string      ['isFinal']              - дали е финална
      */
     public function getProductionData($productId)
     {

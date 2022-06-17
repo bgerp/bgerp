@@ -341,7 +341,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             if (!$mvc->isNumberFree($checkRec, $foundInvoiceId)) {
                 $foundInvoiceId = purchase_Invoices::getLink($foundInvoiceId, 0);
-                $form->setError("{$fld},number", "Има вече входяща фактура с този номер, за този контрагент|*: <b>{$foundInvoiceId}</b>");
+                $form->setError("number", "Има вече входяща фактура с този номер, за този контрагент|*: <b>{$foundInvoiceId}</b>");
             }
         }
     }
@@ -404,15 +404,6 @@ class purchase_Invoices extends deals_InvoiceMaster
             $number = $mvc->getVerbal($rec, 'number');
             $rec->searchKeywords .= ' ' . plg_Search::normalizeText($number) . " " . plg_Search::normalizeText($rec->number);
         }
-    }
-    
-    
-    /**
-     * Извиква се преди рендирането на 'опаковката'
-     */
-    public static function on_AfterRenderSingleLayout($mvc, &$tpl, $data)
-    {
-        $tpl->push('purchase/tpl/invoiceStyles.css', 'CSS');
     }
     
     

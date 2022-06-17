@@ -232,7 +232,7 @@ class cat_Serials extends core_Manager
     public static function check($serial, &$error)
     {
         if (!str::containOnlyDigits($serial)) {
-            $error = 'Номера трябва да съдържа само цифри';
+            $error = 'Номерът трябва да съдържа само цифри';
             
             return false;
         }

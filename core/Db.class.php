@@ -894,7 +894,9 @@ class core_Db
         $link = $this->connect();
         
         expect(is_scalar($value) || !$value, $value);
-        
+
+        expect(!is_array($value), $value);
+
         return $link->real_escape_string($value);
     }
     

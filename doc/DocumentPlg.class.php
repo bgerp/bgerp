@@ -1096,7 +1096,11 @@ class doc_DocumentPlg extends core_Plugin
             // Ако текущия потребител няма права за тази папка, или тя не е определена до сега,
             // То 'Unsorted' папката е дефолт папката на потребителя, ако има потребител
             if ((!$folderId || !doc_Folders::haveRightFor('single', $folderId)) && $userId) {
-                $folderId = doc_Folders::getDefaultFolder($userId);
+                if(core_Packs::isInstalled('colab') && core_Users::haveRole('partner', $userId)){
+                    wp($folderId, $userId, getCurrentUrl());
+                } else {
+                    $folderId = doc_Folders::getDefaultFolder($userId);
+                }
             }
         }
     }
@@ -2046,7 +2050,7 @@ class doc_DocumentPlg extends core_Plugin
                 $userId = core_Users::getCurrent();
                 $colabFolders = colab_Folders::getSharedFolders($userId);
                 if (!in_array($rec->folderId, $colabFolders)) {
-                    error('403 Недостъпен ресурс');
+                    error('403 Недостъпен ресурс', $rec->folderId);
                 }
             } else {
                 error('403 Недостъпен ресурс');
@@ -2141,7 +2145,7 @@ class doc_DocumentPlg extends core_Plugin
                 }
             }
         }
-        
+
         // Показваме свързаните документи, ако има такива
         if ($data->form->rec->id) {
             $cId = $data->form->rec->containerId;
@@ -2222,7 +2226,7 @@ class doc_DocumentPlg extends core_Plugin
                     unset($removedUsersArr[0]);
 
                     if (!empty($removedUsersArr)) {
-                        $res['sharedUsers'] = (array) $res['sharedUsers'] + $removedUsersArr;
+                        $res['sharedUsers'] = type_UserList::merge($res['sharedUsers'], $removedUsersArr);
                     }
                 }
             }

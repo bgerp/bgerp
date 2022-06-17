@@ -42,9 +42,9 @@ class cat_products_VatGroups extends core_Detail
     
     
     /**
-     * Кой може да качва файлове
+     * Кой може да добавя
      */
-    public $canAdd = 'ceo,cat';
+    public $canAdd = 'ceo,cat,priceDealer';
     
     
     /**

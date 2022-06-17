@@ -291,7 +291,7 @@ class crm_Persons extends core_Master
     {
         // Име на лицето
         $this->FLD('salutation', 'enum(,mr=Г-н,mrs=Г-жа,miss=Г-ца)', 'caption=Обръщение,export=Csv');
-        $this->FLD('name', 'varchar(255,ci)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv, translate=transliterate');
+        $this->FLD('name', 'varchar(255,ci)', 'caption=Имена,class=contactData,mandatory,remember=info,silent,export=Csv, translate=transliterate, class=focus');
         $this->FNC('nameList', 'varchar', 'sortingLike=name, translate=transliterate');
         
         // Единен Граждански Номер
@@ -330,7 +330,7 @@ class crm_Persons extends core_Master
         
         // Допълнителна информация
         $this->FLD('info', 'richtext(bucket=crmFiles, passage)', 'caption=Информация->Бележки,height=150px,class=contactData,export=Csv');
-        $this->FLD('photo', 'fileman_FileType(bucket=pictures)', 'caption=Информация->Фото,export=Csv');
+        $this->FLD('photo', 'fileman_FileType(bucket=pictures,focus=none)', 'caption=Информация->Фото,export=Csv');
         
         // В кои групи е?
         $this->FLD('groupList', 'keylist(mvc=crm_Groups,select=name,makeLinks,where=#allow !\\= \\\'companies\\\' AND #state !\\= \\\'rejected\\\',classLink=group-link)', 'caption=Групи->Групи,remember,silent,export=Csv');
@@ -736,7 +736,7 @@ class crm_Persons extends core_Master
         
         $birthday = trim($mvc->getVerbal($rec, 'birthday'));
         
-        if ($birthday) {
+        if ($birthday && $mvc->birthdayFilter) {
             if (strlen($birthday) == 5) {
                 $dateType = 'Рожден&nbsp;ден';
             } else {
@@ -748,10 +748,9 @@ class crm_Persons extends core_Master
                     $dateType = 'Роден(а)';
                 }
             }
-            if ($mvc->birthdayFilter) {
-                $dateType = tr($dateType);
-                $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
-            }
+
+            $dateType = tr($dateType);
+            $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$dateType}:&nbsp;{$birthday}</div>";
         } elseif ($rec->egn) {
             $egn = $mvc->getVerbal($rec, 'egn');
             $row->nameList .= "<div style='font-size:0.8em;margin:3px;'>{$egn}</div>";

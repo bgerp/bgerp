@@ -9,7 +9,7 @@
  * @package   deals
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.com>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -374,26 +374,6 @@ abstract class deals_QuotationMaster extends core_Master
         $reff = $mvc->getVerbal($id, 'reff');
         if (strlen($reff) != 0) {
             $docName .= "({$reff})";
-        }
-    }
-
-
-    /**
-     *  Подготовка на филтър формата
-     */
-    protected static function on_AfterPrepareListFilter($mvc, &$data)
-    {
-        if (Request::get('Rejected', 'int')) return;
-
-        $data->listFilter->FNC('sState', 'enum(all=Всички,draft=Чернова,pending=Заявка,active=Активен,closed=Приключен)', 'caption=Състояние,autoFilter');
-        $data->listFilter->showFields .= ',sState';
-        $data->listFilter->setDefault('sState', 'active');
-        $data->listFilter->input();
-
-        if ($rec = $data->listFilter->rec) {
-            if (isset($rec->sState) && $rec->sState != 'all') {
-                $data->query->where("#state = '{$rec->sState}'");
-            }
         }
     }
 

@@ -230,7 +230,6 @@ class cond_plg_DefaultValues extends core_Plugin
         $cu = core_Users::getCurrent();
         $query = $mvc->getQuery();
         $query->where("#state = 'active' OR #state = 'closed'");
-        
         $query->where("#folderId = {$folderId}");
         if ($fromUser) {
             $query->where("#createdBy = '{$cu}'");

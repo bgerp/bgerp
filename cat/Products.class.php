@@ -1630,7 +1630,7 @@ class cat_Products extends embed_Manager
         $mArr = array();
 
         // Подготвяне на опциите
-        $showFields = 'isPublic,folderId,meta,id,code,name,nameEn,state';
+        $showFields = 'isPublic,folderId,meta,id,code,name,nameEn,state,measureId,innerClass';
         if (isset($params['listId'])) {
             $showFields .= ",reff";
         }
@@ -1640,6 +1640,36 @@ class cat_Products extends embed_Manager
             $title = static::getRecTitle($rec, false);
             if(!empty($rec->reff)){
                 $title = "[{$rec->reff}]  {$title}";
+            }
+
+            // За стандартните артикули ще се показва и еденичната цена е указано да се показват и цени
+            $showPrices = sales_Setup::get('SHOW_PRICE_IN_PRODUCT_SELECTION');
+            if(!is_numeric($onlyIds)){
+                if(isset($params['priceData']) && $rec->isPublic == 'yes' && $showPrices != 'no'){
+                    $policyInfo = cls::get('price_ListToCustomers')->getPriceInfo($params['customerClass'], $params['customerId'], $rec->id, $rec->measureId, 1, $params['priceData']['valior'], $params['priceData']['rate'], $params['priceData']['chargeVat'], $params['priceData']['listId']);
+                    if(isset($policyInfo->price)){
+                        $price = ($policyInfo->discount) ?  $policyInfo->price * (1 - $policyInfo->discount) : $policyInfo->price;
+                        $listId = isset($params['priceData']['listId']) ? $params['priceData']['listId'] : price_ListToCustomers::getListForCustomer($params['customerClass'], $params['customerId']);
+                        $measureId = $rec->measureId;
+
+                        if($showPrices == 'basePack'){
+                            if($packRec = cat_products_Packagings::fetch("#productId = {$rec->id} AND #isBase = 'yes'", 'packagingId,quantity')){
+                                $measureId = $packRec->packagingId;
+                                $price *= $packRec->quantity;
+                            }
+                        }
+
+                        Mode::push('text', 'plain');
+                        $priceVerbal = price_Lists::roundPrice($listId, $price, true);
+                        Mode::pop();
+                        $measureName = cat_UoM::getShortName($measureId);
+						
+						if ($params['priceData']['currencyId'] == 'BGN') {
+							$title .= " ...... {$priceVerbal} " . tr('лв') . "/{$measureName}";
+						} else
+							$title .= " ...... {$priceVerbal} {$params['priceData']['currencyId']}/{$measureName}";
+                    }
+                }
             }
 
             if($rec->state == 'template'){
@@ -2280,7 +2310,8 @@ class cat_Products extends embed_Manager
             if ($originalName == $part) {
                 $part = core_Lg::transliterate($part);
             }
-            
+            $part = type_Varchar::escape($part);
+
             return false;
         } elseif ($field == 'code') {
             if (!is_object($rec) && type_Int::isInt($rec)) {
@@ -3240,7 +3271,7 @@ class cat_Products extends embed_Manager
                 
                 $obj->title = cat_Products::getTitleById($dRec->resourceId);
                 $obj->measureId = $row->packagingId;
-                $obj->quantity = ($dRec->rowQuantity == cat_BomDetails::CALC_ERROR) ? $dRec->rowQuantity : $dRec->rowQuantity;
+                $obj->quantity = $dRec->rowQuantity;
                 
                 $obj->level = substr_count($obj->code, '.');
                 $obj->titleClass = 'product-component-title';
@@ -3258,7 +3289,9 @@ class cat_Products extends embed_Manager
                         $obj->quantity *= $res[$obj->parent]->quantity;
                     }
                 } else {
-                    $obj->quantity *= $qQuantity;
+                    if ($obj->quantity != cat_BomDetails::CALC_ERROR) {
+                        $obj->quantity *= $qQuantity;
+                    }
                 }
                 
                 if ($dRec->description) {
@@ -3361,9 +3394,7 @@ class cat_Products extends embed_Manager
         expect($jobRec = planning_Jobs::fetchRec($jobRec));
         $rec = self::fetch($jobRec->productId);
         
-        if ($rec->canManifacture != 'yes') {
-            return $defaultTasks;
-        }
+        if ($rec->canManifacture != 'yes') return $defaultTasks;
         
         // Питаме драйвера какви дефолтни задачи да се генерират
         $ProductDriver = cat_Products::getDriver($rec);
@@ -3377,7 +3408,7 @@ class cat_Products extends embed_Manager
             // Намираме последната активна рецепта
             $bomRec = self::getLastActiveBom($rec, 'production,sales');
             
-            // Ако има опитваме се да намерим задачите за производството по нейните етапи
+            // Ако има прави се опит да се намерят задачите за производството по нейните етапи
             if ($bomRec) {
                 $defaultTasks = cat_Boms::getTasksFromBom($bomRec, $quantity);
             }

@@ -103,11 +103,11 @@
                                         <!--ET_BEGIN paymentBlock-->
                                         [#paymentBlock#]
                                         <div class='custom-bg-block'><b>Payment</b></div>
-                                        <!--ET_BEGIN paymentMethodId-->
-					                    <div class='cellRow'>
-					                        <span class='quiet'>Payment method: </span>|[#paymentMethodId#]|*
-					                    </div>
-					                    <!--ET_END paymentMethodId-->
+                                        <!--ET_BEGIN paymentType-->
+                                        <div class='cellRow'>
+                                            [#paymentType#]
+                                        </div>
+                                        <!--ET_END paymentType-->
 					                    <!--ET_BEGIN downpayment-->
 					                    <div class='cellRow'>
 					                        <span class='quiet'>Downpayment:</span> [#downpayment#]

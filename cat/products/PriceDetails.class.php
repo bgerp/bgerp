@@ -50,7 +50,7 @@ class cat_products_PriceDetails extends core_Manager
         $data->Order = 5;
         
         $Param = core_Request::get($data->masterData->tabTopParam, 'varchar');
-        $isPublic = ($data->masterData->rec->isPublic == 'yes') ? true : false;
+        $isPublic = ($data->masterData->rec->isPublic == 'yes');
         
         if (!(($isPublic === true && (empty($Param) || $Param == 'Prices')) || ($isPublic === false && $Param == 'Prices'))) {
             $data->hide = true;
@@ -251,7 +251,7 @@ class cat_products_PriceDetails extends core_Manager
             
             // Ако каталожната цена е от прототипа, показва се тази информация
             $verbPrice = core_Type::getByName('double(smartRound,minDecimals=2)')->toVerbal($catalogCost);
-            if($catalogCostIsFromTemplate === true){
+            if($catalogCostIsFromTemplate === true && isset($catalogCost)){
                 $verbPrice = ht::createHint($verbPrice, 'Цената по каталог е зададена за шаблонния артикул|*!', 'notice', false, 'height=14px,width=14px', 'style=color:blue');
             }
 

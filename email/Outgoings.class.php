@@ -1694,6 +1694,8 @@ class email_Outgoings extends core_Master
             
             if ($rec->originId && $oDoc->haveInterface('email_DocumentIntf')) {
                 $rec->subject = $oDoc->getDefaultEmailSubject($isForwarding);
+                $rec->subject = preg_replace('/\s*[^\s\w]+spam[^\s\w]+\s*/ui', ' ', $rec->subject);
+                $rec->subject = preg_replace('/\s{2,}/ui', ' ', $rec->subject);
             }
             
             $hintStr = tr('Смяна на езика');
@@ -1898,6 +1900,9 @@ class email_Outgoings extends core_Master
             $data->form->addAttr('body', $langAttrArr);
             $data->form->addAttr('subject', $langAttrArr);
         }
+
+        $data->form->rec->emailCc = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->emailCc)));
+        $data->form->rec->email = type_Emails::fromArray(email_Inboxes::removeOurEmails(type_Emails::toArray($data->form->rec->email)));
     }
 
 

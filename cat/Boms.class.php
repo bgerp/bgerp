@@ -31,13 +31,13 @@ class cat_Boms extends core_Master
     /**
      * Неща, подлежащи на начално зареждане
      */
-    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
+    public $loadList = 'plg_RowTools2, cat_Wrapper, doc_DocumentPlg, plg_Printing, doc_plg_Close, doc_plg_Prototype, acc_plg_DocumentSummary, doc_ActivatePlg, plg_Clone, cat_plg_AddSearchKeywords, plg_Search, change_Plugin';
     
     
     /**
      * Полетата, които могат да се променят с change_Plugin
      */
-    public $changableFields = 'title,showInProduct, expenses, isComplete';
+    public $changableFields = 'title,showInProduct,expenses,isComplete';
     
     
     /**
@@ -76,8 +76,14 @@ class cat_Boms extends core_Master
      * @see plg_Clone
      */
     public $cloneDetails = 'cat_BomDetails';
-    
-    
+
+
+    /**
+     * Кои полета да не бъдат презаписвани от шаблона
+     */
+    public $fieldsNotToCopyFromTemplate = 'type';
+
+
     /**
      * Заглавие на единичен документ
      */
@@ -221,7 +227,7 @@ class cat_Boms extends core_Master
 
         $this->FLD('expenses', 'percent(Min=0)', 'caption=Общи режийни,changeable');
         $this->FLD('isComplete', 'enum(auto=Автоматично,yes=Да,no=Не)', 'caption=Пълна рецепта,notNull,value=auto,mandatory');
-        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен)', 'caption=Статус, input=none');
+        $this->FLD('state', 'enum(draft=Чернова, active=Активиран, rejected=Оттеглен, closed=Затворен,template=Шаблон)', 'caption=Статус, input=none');
         $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'input=hidden,silent');
         $this->FLD('showInProduct', 'enum(,auto=Автоматично,product=В артикула,job=В заданието,yes=Навсякъде,no=Никъде)', 'caption=Показване в артикула,changeable');
         $this->FLD('notes', 'richtext(rows=4,bucket=Notes)', 'caption=Забележки');
@@ -348,11 +354,8 @@ class cat_Boms extends core_Master
      */
     protected static function on_AfterCreate($mvc, $rec)
     {
-        if ($rec->cloneDetails === true) {
-            
-            return;
-        }
-        
+        if ($rec->cloneDetails === true || !empty($rec->prototypeId)) return;
+
         $activeBom = null;
         cat_BomDetails::addProductComponents($rec->productId, $rec->id, null, $activeBom, true);
     }
@@ -495,14 +498,10 @@ class cat_Boms extends core_Master
                 }
             }
         }
-        
+
+        // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
         if(countR(static::$stoppedActiveBoms)){
             foreach (static::$stoppedActiveBoms as $rec){
-                if ($nextId = $mvc->activateLastBefore($rec)) {
-                    core_Statuses::newStatus("|Активирана е рецепта|* #Bom{$nextId}");
-                }
-
-                // Ако по изключените е имало запазени количества, рекалкулират се запазените по заданията
                 store_StockPlanning::recalcByReff($mvc, $rec->id);
             }
         }
@@ -632,6 +631,12 @@ class cat_Boms extends core_Master
         
         if($action == 'recalcselfvalue' && isset($rec)){
             if(Mode::isReadOnly()){
+                $res = 'no_one';
+            }
+        }
+
+        if ($action == 'close' && isset($rec)) {
+            if(!in_array($rec->state, array('active', 'closed'))){
                 $res = 'no_one';
             }
         }
@@ -1652,43 +1657,13 @@ class cat_Boms extends core_Master
         $Details = cls::get('cat_BomDetails');
         $productStepClassId = planning_interface_StepProductDriver::getClassId();
 
-        // За основния артикул подготвяме задача
-        // В която самия той е за произвеждане
-        $tasks = array(1 => (object) array('title' => $pName,
-                                           'plannedQuantity' => $quantity,
-                                           'quantityInPack' => 1,
-                                           '_dId' => null,
-                                           '_parentId' => null,
-                                           '_position' => null,
-                                           'packagingId' => cat_Products::fetchField($rec->productId, 'measureId'),
-                                           'productId' => $rec->productId,
-                                           'products' => array('input' => array(),'waste' => array())));
-        
-        // Намираме неговите деца от първо ниво те ще бъдат артикулите за влагане/отпадък
-        $dQuery = cat_BomDetails::getQuery();
-        $dQuery->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
-        $dQuery->where("#bomId = {$rec->id}");
-        $dQuery->where('#parentId IS NULL');
-        while ($detRec = $dQuery->fetch()) {
-            if($detRec->innerClass == $productStepClassId) continue;
-
-            $detRec->params['$T'] = $quantity;
-            $quantityE = cat_BomDetails::calcExpr($detRec->propQuantity, $detRec->params);
-            if ($quantityE == cat_BomDetails::CALC_ERROR) {
-                $quantityE = 0;
-            }
-            $quantityE = ($quantityE / $rec->quantity) * $quantity;
-            $place = ($detRec->type == 'pop') ? 'waste' : 'input';
-            $tasks[1]->products[$place][] = array('productId' => $detRec->resourceId, 'packagingId' => $detRec->packagingId, 'packQuantity' => $quantityE / $quantity, 'quantityInPack' => $detRec->quantityInPack);
-        }
-
         // Отделяме етапите за всеки етап ще генерираме отделна задача в която той е за произвеждане
         // А неговите подетапи са за влагане/отпадък
         $onlySteps = $allStages = array();
         $query = cat_BomDetails::getQuery();
         $query->EXT('innerClass', 'cat_Products', "externalName=innerClass,externalKey=resourceId");
         $query->where("#bomId = {$rec->id}");
-        $query->where("#type = 'stage'");
+        $query->where("#type = 'stage' AND #innerClass = {$productStepClassId}");
         while($dRec1 = $query->fetch()){
             $allStages[$dRec1->id] = $dRec1;
             if($dRec1->innerClass == $productStepClassId){
@@ -1697,6 +1672,7 @@ class cat_Boms extends core_Master
         }
 
         // За всеки етап намираме подетапите му
+        $tasks = array();
         foreach ($allStages as $dRec) {
             $quantityP = cat_BomDetails::calcExpr($dRec->propQuantity, $dRec->params);
             if ($quantityP == cat_BomDetails::CALC_ERROR) {
@@ -1913,7 +1889,7 @@ class cat_Boms extends core_Master
         $dQuery = $Detail->getQuery();
         $dQuery->where("#bomId = {$rec->id}");
         while($dRec = $dQuery->fetch()){
-            $notAllowed[] = array();
+            $notAllowed = array();
             $Detail->findNotAllowedProducts($dRec->resourceId, $rec->productId, $notAllowed);
 
             if (isset($notAllowed[$dRec->resourceId])) return false;

@@ -206,7 +206,10 @@ abstract class deals_DealDetail extends doc_Detail
         
         $form->fields['packPrice']->unit = '|*' . $masterRec->currencyId . ', ';
         $form->fields['packPrice']->unit .= ($masterRec->chargeVat == 'yes') ? '|с ДДС|*' : '|без ДДС|*';
-        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic'));
+
+        // Добавяне да се показва ценовата информация за стандартните артикули
+        $priceData = array('valior' => $masterRec->valior, 'rate' => $masterRec->currencyRate, 'chargeVat' => $masterRec->chargeVat, 'listId' => $masterRec->priceListId, 'currencyId' => $masterRec->currencyId);
+        $form->setFieldTypeParams('productId', array('customerClass' => $masterRec->contragentClassId, 'customerId' => $masterRec->contragentId, 'hasProperties' => $mvc->metaProducts, 'hasnotProperties' => 'generic', 'priceData' => $priceData));
 
         if (empty($rec->id)) {
             $listSysId = ($mvc instanceof sales_SalesDetails) ? 'salesList' : 'purchaseList';

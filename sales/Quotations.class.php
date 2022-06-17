@@ -18,6 +18,14 @@
  */
 class sales_Quotations extends deals_QuotationMaster
 {
+
+
+    /**
+     * Дали да взема контрагент данните от последния документ в папката
+     */
+    public $getContragentDataFromLastDoc = false;
+
+
     /**
      * Заглавие
      */

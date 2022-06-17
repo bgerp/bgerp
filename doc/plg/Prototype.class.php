@@ -90,20 +90,9 @@ class doc_plg_Prototype extends core_Plugin
     private static function prepareForm($mvc, &$form)
     {
         $fields = array();
-        
-        if ($mvc instanceof embed_Manager) {
-            if (isset($form->rec->{$mvc->driverClassField})) {
-                $prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->driverClassField}, $form->rec->folderId);
-            }
-        } elseif ($mvc instanceof core_Embedder) {
-            if (isset($form->rec->{$mvc->innerClassField})) {
-                $prototypes = doc_Prototypes::getPrototypes($mvc, $form->rec->{$mvc->innerClassField}, $form->rec->folderId);
-            }
-        } else {
-            $prototypes = doc_Prototypes::getPrototypes($mvc, null, $form->rec->folderId);
-        }
-        
+
         // Ако има прототипи
+        $prototypes = $mvc->getPrototypes($form->rec);
         if (!empty($prototypes)) {
             $form->setField($mvc->protoFieldName, 'input');
             $form->setOptions($mvc->protoFieldName, array('' => '') + $prototypes);
@@ -131,9 +120,10 @@ class doc_plg_Prototype extends core_Plugin
             // Махат се определени полета от всичките
             $unsetFields = arr::make(self::$unsetFields, true);
             $fieldsNotToClone = arr::make($mvc->fieldsNotToClone, true);
-            $unsetFields = $unsetFields + $fieldsNotToClone;
+            $fieldsNotToCopyFromTemplate = arr::make($mvc->fieldsNotToCopyFromTemplate, true);
+            $unsetFields = $unsetFields + $fieldsNotToClone + $fieldsNotToCopyFromTemplate;
             $fields = array_diff_key($fields, $unsetFields);
-            
+
             // Добавяне на рефреш на полето
             if (countR($fields)) {
                 $refresh = implode('|', array_keys($fields));
@@ -165,8 +155,29 @@ class doc_plg_Prototype extends core_Plugin
             }
         }
     }
-    
-    
+
+
+    /**
+     * Достъпните шаблони за операцията
+     */
+    public static function on_AfterGetPrototypes($mvc, &$res, $rec)
+    {
+        if(!isset($res)){
+            if ($mvc instanceof embed_Manager) {
+                if (isset($rec->{$mvc->driverClassField})) {
+                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->driverClassField}, $rec->folderId);
+                }
+            } elseif ($mvc instanceof core_Embedder) {
+                if (isset($rec->{$mvc->innerClassField})) {
+                    $res = doc_Prototypes::getPrototypes($mvc, $rec->{$mvc->innerClassField}, $rec->folderId);
+                }
+            } else {
+                $res = doc_Prototypes::getPrototypes($mvc, null, $rec->folderId);
+            }
+        }
+    }
+
+
     /**
      * След подготовка на тулбара за единичен изглед
      */

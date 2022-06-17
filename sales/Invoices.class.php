@@ -184,12 +184,6 @@ class sales_Invoices extends deals_InvoiceMaster
     
     
     /**
-     * Кои полета да могат да се променят след активация
-     */
-    public $changableFields = 'responsible,contragentCountryId, contragentPCode, contragentPlace, contragentAddress, dueTime, dueDate, additionalInfo,accountId,paymentType,template';
-    
-    
-    /**
      * Записите от кои детайли на мениджъра да се клонират, при клониране на записа
      *
      * @see plg_Clone
@@ -505,8 +499,6 @@ class sales_Invoices extends deals_InvoiceMaster
             $original = tr('ОРИГИНАЛ');
             $tpl->replace($original, 'INV_STATUS');
         }
-        
-        $tpl->push('sales/tpl/invoiceStyles.css', 'CSS');
     }
     
     

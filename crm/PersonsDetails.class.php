@@ -29,16 +29,18 @@ class crm_PersonsDetails extends core_Manager
     { 
         $data->TabCaption = 'Лични данни';
         expect($data->masterMvc instanceof crm_Persons);
-        
+
         $employeeId = crm_Groups::getIdFromSysId('employees');
         if (keylist::isIn($employeeId, $data->masterData->rec->groupList)) {
             $data->Codes = cls::get('planning_Hr');
             $data->TabCaption = 'HR';
             $Schedule = new stdClass();
             $Schedule->masterId = planning_Hr::getSchedule($data->masterId);
+            $Schedule->masterMvc = cls::get('hr_Schedules');
             hr_Schedules::prepareCalendar($Schedule);
             $data->Schedule = $Schedule;
         }
+
         // Подготовка на индикаторите
         $data->Indicators = cls::get('hr_Indicators');
         if ($this->haveRightFor('seeindicators', (object) array('personId' => $data->masterId))) {

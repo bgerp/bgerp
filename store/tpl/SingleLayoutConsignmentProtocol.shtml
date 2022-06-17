@@ -33,12 +33,20 @@
                             <div class='address-block'>
                                 [#contragentCountryId#]
                                 <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                                <!--ET_BEGIN locationId-->
+                                <hr>
+                                <div>|Обект|*: [#locationId#]</div>
+                                <!--ET_END locationId-->
                             </div>
                         </td>
                         <td class="cell">
                             <b>[#MyCompany#]</b>
                             <div class='address-block'>
                                 [#MyAddress#]
+                                <!--ET_BEGIN storeId-->
+                                <hr>
+                                <div>|Склад|*: [#storeId#]</div>
+                                <!--ET_END storeId-->
                             </div>
                         </td>
                     </tr>
@@ -64,12 +72,13 @@
                                     <td class='quiet nowrap aright' style="width: 1%">|Валута|*:</td>
                                     <td>[#currencyId#]</td>
                                 </tr>
-                                <!--ET_BEGIN storeId-->
+                                <!--ET_BEGIN deliveryAddress-->
                                 <tr>
-                                    <td class='quiet nowrap aright' style="width: 1%">|От склад|*:</td>
-                                    <td>[#storeId#]</td>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Адрес|*:</td>
+                                    <td>[#deliveryAddress#]</td>
                                 </tr>
-                                <!--ET_END storeId-->
+                                <!--ET_END deliveryAddress-->
+
                                 <!--ET_BEGIN readyOn-->
                                 <tr>
                                     <td class='quiet nowrap aright' style="width: 1%">|Готовност|*:</td>
@@ -85,7 +94,7 @@
 
                                 <!--ET_BEGIN shipmentOn-->
                                 <tr>
-                                    <td class='quiet nowrap aright' style="width: 1%">|Експедиране|*:</td>
+                                    <td class='quiet nowrap aright' style="width: 1%">|Експед.|*:</td>
                                     <td>[#shipmentOn#]</td>
                                 </tr>
                                 <!--ET_END shipmentOn-->

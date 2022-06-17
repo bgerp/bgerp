@@ -262,10 +262,8 @@ class cat_BomDetails extends doc_Detail
 
                 $canStore = cat_Products::fetchField($rec->resourceId, 'canStore');
                 if($canStore == 'yes'){
-                    $form->setField('storeInput', 'input');
-                    $form->setField('storeIn', 'input');
-
                     // Показване на полетата за етикетиране
+                    $form->setField('storeIn', 'input');
                     $form->setField('labelPackagingId', 'input');
                     $packs = array('' => '') + cat_Products::getPacks($rec->resourceId);
                     $form->setOptions("labelPackagingId", $packs);
@@ -315,17 +313,9 @@ class cat_BomDetails extends doc_Detail
                     $form->setSuggestions("employees", $hrAssets);
                 }
 
+                $masterRec = cat_Boms::fetch($rec->bomId);
                 if(empty($rec->id)){
-                    cat_products_Params::addProductParamsToForm($mvc, $rec->id, $rec->resourceId, $form, true, false);
-
-                    // Задаване на дефолтни параметри
-                    $params = cat_Products::getParams($rec->resourceId);
-                    $taskParams = cat_Params::getTaskParamIds();
-                    $params = array_intersect_key($params, $taskParams);
-
-                    foreach ($params as $pId => $pValue){
-                        $form->setDefault("paramcat{$pId}", $pValue);
-                    }
+                    cat_products_Params::addProductParamsToForm($mvc, $rec->id, $masterRec->productId, $rec->resourceId, $form);
                 }
             }
         }

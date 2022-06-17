@@ -107,7 +107,7 @@
     font-weight: bold;
 }
 
-span.all-users{
+span.all-users, span.all-reg-users, span.all-human, span.all-teams, span.system-user, span.anonym-user {
     color: #777;
 }
 
