@@ -995,7 +995,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @return array
      *          int|null    ['centerId']             - ид на център на дейност
      *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
-     *          int|null    ['storeInput']           - ид на склад за влагане (ако е складируем)
+     *          int|null    ['inputStores']          - ид на складове за влагане (ако е складируем)
      *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
      *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
      *          int|null    ['norm']                 - норма за производство

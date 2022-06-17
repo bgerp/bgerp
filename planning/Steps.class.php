@@ -54,7 +54,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Етап,centerId=Център,fixedAssets,employees,norm,storeIn,storeInput,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
+    public $listFields = 'name=Етап,centerId=Център,fixedAssets,employees,norm,storeIn,inputStores,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
 
 
     /**
@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,storeInput,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,labelQuantityInPack,labelType,labelTemplate';
+    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,labelQuantityInPack,labelType,labelTemplate';
     
     
     /**
@@ -93,7 +93,7 @@ class planning_Steps extends core_Extender
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Складируем,notNull,value=yes,silent');
 
         $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
-        $this->FLD('storeInput', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад влагане');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Склад влагане');
         $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад приемане');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
@@ -124,7 +124,7 @@ class planning_Steps extends core_Extender
 
         // Добавяне на полетата от екстендъра възможност за рефреш
         $form->setField("measureId", "removeAndRefreshForm,silent");
-        $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_storeInput|{$mvc->className}_storeIn");
+        $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_inputStores|{$mvc->className}_storeIn");
         $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm");
         $form->setField("{$mvc->className}_labelPackagingId", "removeAndRefreshForm={$mvc->className}_labelQuantityInPack|{$mvc->className}_labelTemplate|{$mvc->className}_labelType");
         $form->setDefault("{$mvc->className}_canStore", 'yes');
@@ -218,7 +218,7 @@ class planning_Steps extends core_Extender
             $metaArr = type_Set::toArray($rec->meta);
             if($rec->{"{$mvc->className}_canStore"} == 'no'){
                 unset($metaArr['canStore']);
-                $rec->{"{$mvc->className}_storeInput"} = null;
+                $rec->{"{$mvc->className}_inputStores"} = null;
                 $rec->{"{$mvc->className}_storeIn"} = null;
                 $rec->{"{$mvc->className}_labelPackagingId"} = null;
             } else {
@@ -400,10 +400,6 @@ class planning_Steps extends core_Extender
                 $row->norm = core_Type::getByName("planning_type_ProductionRate(measureId={$Extended->fetchField('measureId')})")->toVerbal($rec->norm);
             } else {
                 $row->norm = null;
-            }
-
-            if(isset($rec->storeInput)){
-                $row->storeInput = store_Stores::getHyperlink($rec->storeInput, true);
             }
 
             if(isset($rec->storeIn)){
