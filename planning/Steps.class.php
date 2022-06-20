@@ -93,8 +93,8 @@ class planning_Steps extends core_Extender
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Складируем,notNull,value=yes,silent');
 
         $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
-        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Склад влагане');
-        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад приемане');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Материали ОТ');
+        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Произвеждане В');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване в производството->Параметри');
@@ -124,7 +124,7 @@ class planning_Steps extends core_Extender
 
         // Добавяне на полетата от екстендъра възможност за рефреш
         $form->setField("measureId", "removeAndRefreshForm,silent");
-        $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_inputStores|{$mvc->className}_storeIn");
+        $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_storeIn");
         $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm");
         $form->setField("{$mvc->className}_labelPackagingId", "removeAndRefreshForm={$mvc->className}_labelQuantityInPack|{$mvc->className}_labelTemplate|{$mvc->className}_labelType");
         $form->setDefault("{$mvc->className}_canStore", 'yes');
@@ -218,7 +218,6 @@ class planning_Steps extends core_Extender
             $metaArr = type_Set::toArray($rec->meta);
             if($rec->{"{$mvc->className}_canStore"} == 'no'){
                 unset($metaArr['canStore']);
-                $rec->{"{$mvc->className}_inputStores"} = null;
                 $rec->{"{$mvc->className}_storeIn"} = null;
                 $rec->{"{$mvc->className}_labelPackagingId"} = null;
             } else {
