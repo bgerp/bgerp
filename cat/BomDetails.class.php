@@ -154,8 +154,8 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
-        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Склад влагане,input=none');
-        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад приемане,input=none');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Произвеждане В,input=none');
+        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Материали ОТ,input=none');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване,input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори,input=none');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма,input=none');
@@ -686,10 +686,10 @@ class cat_BomDetails extends doc_Detail
                 $descriptionArr[] = tr("|*<tr><td>|Център на дейност|*:</td><td>") . planning_Centers::getHyperlink($rec->centerId, true) . "</td></tr>";
             }
             if(!empty($rec->storeIn)){
-                $descriptionArr[] = tr("|*<tr><td>|Приемане|*:</td><td>") . store_Stores::getHyperlink($rec->storeIn, true) . "</td></tr>";
+                $descriptionArr[] = tr("|*<tr><td>|Произвеждане В|*:</td><td>") . store_Stores::getHyperlink($rec->storeIn, true) . "</td></tr>";
             }
             if(!empty($rec->inputStores)){
-                $descriptionArr[] = tr("|*<tr><td>|Влагане|*:</td><td>") . $mvc->getFieldType('inputStores')->toVerbal($rec->inputStores) . "</td></tr>";
+                $descriptionArr[] = tr("|*<tr><td>|Материали ОТ|*:</td><td>") . $mvc->getFieldType('inputStores')->toVerbal($rec->inputStores) . "</td></tr>";
             }
             if(!empty($rec->fixedAssets)){
                 $descriptionArr[] = tr("|*<tr><td>|Оборудване|*:</td><td>") . $mvc->getFieldType('fixedAssets')->toVerbal($rec->fixedAssets) . "<td></tr>";
