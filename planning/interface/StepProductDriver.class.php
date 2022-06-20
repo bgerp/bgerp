@@ -194,10 +194,5 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         }
 
         return $tpl;
-
-
-        $data->paramBlockTpl = 'HAHAHA';
-
-        return parent::renderProductDescription($data);
     }
 }
