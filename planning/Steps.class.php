@@ -124,7 +124,7 @@ class planning_Steps extends core_Extender
 
         // Добавяне на полетата от екстендъра възможност за рефреш
         $form->setField("measureId", "removeAndRefreshForm,silent");
-        $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_inputStores|{$mvc->className}_storeIn");
+        $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_storeIn");
         $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm");
         $form->setField("{$mvc->className}_labelPackagingId", "removeAndRefreshForm={$mvc->className}_labelQuantityInPack|{$mvc->className}_labelTemplate|{$mvc->className}_labelType");
         $form->setDefault("{$mvc->className}_canStore", 'yes');
@@ -167,7 +167,6 @@ class planning_Steps extends core_Extender
 
         if($rec->{"{$mvc->className}_canStore"} != 'yes'){
             $form->setField("{$mvc->className}_storeIn", 'input=none');
-            $form->setField("{$mvc->className}_inputStores", 'input=none');
         } else {
 
             // Ако артикула е складируем показват се полетата за етикетиране
@@ -219,7 +218,6 @@ class planning_Steps extends core_Extender
             $metaArr = type_Set::toArray($rec->meta);
             if($rec->{"{$mvc->className}_canStore"} == 'no'){
                 unset($metaArr['canStore']);
-                $rec->{"{$mvc->className}_inputStores"} = null;
                 $rec->{"{$mvc->className}_storeIn"} = null;
                 $rec->{"{$mvc->className}_labelPackagingId"} = null;
             } else {
