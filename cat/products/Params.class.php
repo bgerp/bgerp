@@ -453,8 +453,6 @@ class cat_products_Params extends doc_Detail
                     $InnerClass = cls::get($pRec->innerClass);
                     if (!($InnerClass instanceof cat_GeneralProductDriver)) {
                         $requiredRoles = 'no_one';
-                    } elseif($InnerClass instanceof planning_interface_StepProductDriver){
-                        $requiredRoles = 'no_one';
                     }
                 }
 

@@ -171,4 +171,33 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
     {
         return array('planning_StepConditions' => 'planning_StepConditions');
     }
+
+    /**
+     * Рендира данните за показване на артикула
+     *
+     * @param stdClass $data
+     *
+     * @return core_ET
+     */
+    public function renderProductDescription($data)
+    {
+        $tpl = getTplFromFile('planning/tpl/StepBlock.shtml');
+        $info = (core_Lg::getCurrent() == 'en') ? (!empty($data->rec->infoInt) ? $data->rec->infoInt : $data->rec->info) : $data->rec->info;
+        if (!empty($info)) {
+            $data->row->info = core_Type::getByName('richtext')->toVerbal($info);
+        }
+        $tpl->placeObject($data->row);
+
+        if ($data->noChange !== true || countR($data->params)) {
+            $paramTpl = cat_products_Params::renderParams($data);
+            $tpl->append($paramTpl, 'PARAMS');
+        }
+
+        return $tpl;
+
+
+        $data->paramBlockTpl = 'HAHAHA';
+
+        return parent::renderProductDescription($data);
+    }
 }

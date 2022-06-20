@@ -7408,11 +7408,18 @@ only screen and (max-width: 320px) {
 table.bomProductionStepTable td {
   border: 0px !important; }
 
+.ui-droppable {
+  border: 2px solid #cccccc; }
+
+.ui-draggable-dragging {
+  background-color: white;
+  z-index: 100000 !important; }
+
 .ui-droppable-hover-top {
-  border-top: 2px solid #ff55ff !important; }
+  border-top: 2px solid red !important; }
 
 .ui-droppable-hover-bottom {
-  border-bottom: 2px solid #ff55ff !important; }
+  border-bottom: 2px solid red !important; }
 
 .loadingModal {
   position: fixed;
@@ -7422,4 +7429,12 @@ table.bomProductionStepTable td {
   height: 100%;
   width: 100%;
   background: rgba(255, 255, 255, 0.8) url('../img/loading.gif') 50% 50% no-repeat; }
+
+.stepProductSingleGroup {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  text-decoration: underline; }
+
+.stepParamTable td {
+  text-indent: 15px; }
 
