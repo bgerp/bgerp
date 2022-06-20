@@ -5,6 +5,10 @@
     		<td class='quiet'>|Наименование|*:</td>
     		<td>[#planning_Steps_name#]</td>
     	</tr>
+		<tr>
+			<td class='quiet'>|Мярка|*:</td>
+			<td>[#measureId#]</td>
+		</tr>
     	<tr>
     		<td class='quiet'>|Складируем|*:</td>
     		<td>[#planning_Steps_canStore#]</td>
@@ -13,17 +17,20 @@
 			<td class='quiet'>|Център на дейност|*:</td>
 			<td>[#planning_Steps_centerId#]</td>
 		</tr>
-
-		<!--ET_BEGIN planning_Steps_storeInput-->
 		<tr>
-			<td class='quiet'>|Склад влагане|*:</td>
-			<td>[#planning_Steps_storeInput#]</td>
+			<td class='quiet'>|Финален етап|*:</td>
+			<td>[#planning_Steps_isFinal#]</td>
 		</tr>
-		<!--ET_END planning_Steps_storeInput-->
+		<!--ET_BEGIN planning_Steps_inputStores-->
+		<tr>
+			<td class='quiet'>|Материали ОТ|*:</td>
+			<td>[#planning_Steps_inputStores#]</td>
+		</tr>
+		<!--ET_END planning_Steps_inputStores-->
 
 		<!--ET_BEGIN planning_Steps_storeIn-->
 		<tr>
-			<td class='quiet'>|Склад приемане|*:</td>
+			<td class='quiet'>|Произвеждане В|*:</td>
 			<td>[#planning_Steps_storeIn#]</td>
 		</tr>
 		<!--ET_END planning_Steps_storeIn-->

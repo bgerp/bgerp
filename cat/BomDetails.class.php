@@ -144,7 +144,7 @@ class cat_BomDetails extends doc_Detail
     public function description()
     {
         $this->FLD('bomId', 'key(mvc=cat_Boms)', 'column=none,input=hidden,silent');
-        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description|storeInput|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
+        $this->FLD('resourceId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'class=w100,caption=Материал,mandatory,silent,removeAndRefreshForm=packagingId|description|inputStores|storeIn|centerId|fixedAssets|employees|norm|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|paramcat');
         $this->FLD('parentId', 'key(mvc=cat_BomDetails,select=id)', 'caption=Подетап на,remember,removeAndRefreshForm=propQuantity,silent');
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'tdClass=small-field nowrap,smartCenter,silent,removeAndRefreshForm=quantityInPack,mandatory,input=hidden');
         $this->FLD('quantityInPack', 'double(smartRound)', 'input=none,notNull,value=1');
@@ -154,10 +154,10 @@ class cat_BomDetails extends doc_Detail
         $this->FLD('description', 'richtext(rows=3,bucket=Notes)', 'caption=Допълнително->Описание');
 
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name, allowEmpty)', 'caption=Използване в производството->Център на дейност, remember,silent,removeAndRefreshForm=norm|fixedAssets|employees,input=hidden');
-        $this->FLD('storeInput', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад влагане,input=none');
-        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Склад приемане,input=none');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLink)', 'caption=Използване в производството->Произвеждане В,input=none');
+        $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Материали ОТ,input=none');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване,input=none');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори,input=none,input=none');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори,input=none');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма,input=none');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate|labelType');
@@ -262,10 +262,9 @@ class cat_BomDetails extends doc_Detail
 
                 $canStore = cat_Products::fetchField($rec->resourceId, 'canStore');
                 if($canStore == 'yes'){
-                    $form->setField('storeInput', 'input');
-                    $form->setField('storeIn', 'input');
-
                     // Показване на полетата за етикетиране
+                    $form->setField('storeIn', 'input');
+                    $form->setField('inputStores', 'input');
                     $form->setField('labelPackagingId', 'input');
                     $packs = array('' => '') + cat_Products::getPacks($rec->resourceId);
                     $form->setOptions("labelPackagingId", $packs);
@@ -273,8 +272,8 @@ class cat_BomDetails extends doc_Detail
 
                 // Добавяне на дефолтите от производствените данни
                 if($form->cmd == 'refresh' || Request::get('resourceId', 'int')){
-                    if(empty($rec->centerId) && empty($rec->norm) && empty($rec->storeIn) && empty($rec->storeInput) && empty($rec->fixedAssets) && empty($rec->employees) && empty($rec->labelPackagingId) && empty($rec->labelTemplate) && empty($rec->labelType) && empty($rec->labelQuantityInPack)){
-                        foreach (array('centerId', 'norm', 'storeIn', 'storeInput', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld){
+                    if(empty($rec->centerId) && empty($rec->norm) && empty($rec->storeIn) && empty($rec->inputStores) && empty($rec->fixedAssets) && empty($rec->employees) && empty($rec->labelPackagingId) && empty($rec->labelTemplate) && empty($rec->labelType) && empty($rec->labelQuantityInPack)){
+                        foreach (array('centerId', 'norm', 'storeIn', 'inputStores', 'fixedAssets', 'employees', 'labelPackagingId', 'labelQuantityInPack', 'labelType', 'labelTemplate') as $productionFld){
                             $defaultValue = is_array($productionData[$productionFld]) ? keylist::fromArray($productionData[$productionFld]) : $productionData[$productionFld];
                             $form->setDefault($productionFld, $defaultValue);
                             if($data->masterRec->type != 'production') {
@@ -315,17 +314,9 @@ class cat_BomDetails extends doc_Detail
                     $form->setSuggestions("employees", $hrAssets);
                 }
 
+                $masterRec = cat_Boms::fetch($rec->bomId);
                 if(empty($rec->id)){
-                    cat_products_Params::addProductParamsToForm($mvc, $rec->id, $rec->resourceId, $form, true, false);
-
-                    // Задаване на дефолтни параметри
-                    $params = cat_Products::getParams($rec->resourceId);
-                    $taskParams = cat_Params::getTaskParamIds();
-                    $params = array_intersect_key($params, $taskParams);
-
-                    foreach ($params as $pId => $pValue){
-                        $form->setDefault("paramcat{$pId}", $pValue);
-                    }
+                    cat_products_Params::addProductParamsToForm($mvc, $rec->id, $masterRec->productId, $rec->resourceId, $form);
                 }
             }
         }
@@ -695,10 +686,10 @@ class cat_BomDetails extends doc_Detail
                 $descriptionArr[] = tr("|*<tr><td>|Център на дейност|*:</td><td>") . planning_Centers::getHyperlink($rec->centerId, true) . "</td></tr>";
             }
             if(!empty($rec->storeIn)){
-                $descriptionArr[] = tr("|*<tr><td>|Приемане|*:</td><td>") . store_Stores::getHyperlink($rec->storeIn, true) . "</td></tr>";
+                $descriptionArr[] = tr("|*<tr><td>|Произвеждане В|*:</td><td>") . store_Stores::getHyperlink($rec->storeIn, true) . "</td></tr>";
             }
-            if(!empty($rec->storeInput)){
-                $descriptionArr[] = tr("|*<tr><td>|Влагане|*:</td><td>") . store_Stores::getHyperlink($rec->storeInput, true) . "</td></tr>";
+            if(!empty($rec->inputStores)){
+                $descriptionArr[] = tr("|*<tr><td>|Материали ОТ|*:</td><td>") . $mvc->getFieldType('inputStores')->toVerbal($rec->inputStores) . "</td></tr>";
             }
             if(!empty($rec->fixedAssets)){
                 $descriptionArr[] = tr("|*<tr><td>|Оборудване|*:</td><td>") . $mvc->getFieldType('fixedAssets')->toVerbal($rec->fixedAssets) . "<td></tr>";
@@ -847,7 +838,7 @@ class cat_BomDetails extends doc_Detail
         $this->delete("#bomId = {$rec->bomId} AND #parentId = {$rec->id}");
         cat_products_Params::delete("#classId = {$this->getClassId()} AND #productId = {$rec->id}");
         $rec->coefficient = null;
-        $rec->centerId = $rec->storeInput = $rec->storeIn = $rec->fixedAssets = $rec->employees = $rec->norm = null;
+        $rec->centerId = $rec->inputStores = $rec->storeIn = $rec->fixedAssets = $rec->employees = $rec->norm = null;
         $this->save($rec);
         
         $title = cat_Products::getTitleById($rec->resourceId);

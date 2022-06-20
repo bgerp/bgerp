@@ -3,12 +3,13 @@
     <!--ET_BEGIN proto--><div class='quiet'><small>|Базирано на|*: [#proto#]</small></div><!--ET_END proto--> 
     <!--ET_BEGIN originId--><small style="font-style: italic" class='quiet'>|Генериран от|* [#originId#]</small> <!--ET_END originId-->
     [#ADDITIONAL_TOP_BLOCK#]
-    <fieldset class="detail-info">
+<!--ET_BEGIN innerState-->
+<fieldset class="detail-info">
     <legend class="groupTitle">|Описание|*</legend>
-     [#innerState#]
-     [#COMPONENTS#]
-    </fieldset>
-    
+    [#innerState#]
+    [#COMPONENTS#]
+</fieldset>
+<!--ET_END innerState-->
     <!--ET_BEGIN PARAMETERS-->
     <fieldset class="detail-info">
     <legend class="groupTitle">|Параметри|*</legend>

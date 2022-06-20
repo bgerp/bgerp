@@ -90,18 +90,18 @@
         <tr>
             <th colspan="2" style='padding-top: 15px;'>|Закръгляне|*</th>
         </tr>
-        <!--ET_BEGIN significantDigits-->
-        <tr>
-            <td class="title-style">|Значещи цифри ≠0 (мин.)|*</td>
-            <td>[#significantDigits#]</td>
-        </tr>
-        <!--ET_END significantDigits-->
         <!--ET_BEGIN minDecimals-->
         <tr>
-            <td class="title-style">|Десетични знаци (макс.)|*</td>
+            <td class="title-style">|Десетични знаци (цел)|*</td>
             <td>[#minDecimals#]</td>
         </tr>
         <!--ET_END minDecimals-->
+        <!--ET_BEGIN significantDigits-->
+        <tr>
+            <td class="title-style">|Значещи цифри ≠0 (поне)|*</td>
+            <td>[#significantDigits#]</td>
+        </tr>
+        <!--ET_END significantDigits-->
     <!--ET_END roundingPrecisionTable-->
     
      <!--ET_BEGIN connectedClients-->

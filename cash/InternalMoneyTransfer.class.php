@@ -230,23 +230,6 @@ class cash_InternalMoneyTransfer extends core_Master
     {
         // Добавяме към формата за търсене търсене по Каса
         cash_Cases::prepareCaseFilter($data, array('creditCase', 'debitCase'), 'operationSysId');
-        
-        // Добавяме към формата за търсене търсене и по Състояние
-        if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('dState', 'enum(all=Всички, pending=Заявка, draft=Чернова, active=Контиран)', 'caption=Състояние,input,silent');
-            $data->listFilter->showFields .= ',dState';
-            $data->listFilter->input();
-            $data->listFilter->setDefault('dState', 'all');
-        }
-        
-        if ($rec = $data->listFilter->rec) {
-            if ($rec->dState) {
-                if ($rec->dState != 'all') {
-                    $data->query->where("#state = '{$rec->dState}'");
-                }
-            }
-        }
-        
     }
     
     

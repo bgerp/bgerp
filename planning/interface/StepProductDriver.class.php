@@ -129,7 +129,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      * @return array
      *          int|null    ['centerId']             - ид на център на дейност
      *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
-     *          int|null    ['storeInput']           - ид на склад за влагане (ако е складируем)
+     *          int|null    ['inputStores']          - ид на складове за влагане (ако е складируем)
      *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
      *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
      *          int|null    ['norm']                 - норма за производство
@@ -138,14 +138,16 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          string|null ['labelType']            - тип на етикета
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
+     *          string      ['isFinal']              - дали е финална
      */
     public function getProductionData($productId)
     {
         $rec = cat_Products::fetch($productId);
-        $res = array('centerId' => $rec->planning_Steps_centerId, 'storeIn' => $rec->planning_Steps_storeIn, 'storeInput' => $rec->planning_Steps_storeInput, 'norm' => $rec->planning_Steps_norm);
+        $res = array('centerId' => $rec->planning_Steps_centerId, 'storeIn' => $rec->planning_Steps_storeIn, 'inputStores' => $rec->planning_Steps_inputStores, 'norm' => $rec->planning_Steps_norm);
         $res['fixedAssets'] = !empty($rec->planning_Steps_fixedAssets) ? keylist::toArray($rec->planning_Steps_fixedAssets) : null;
         $res['employees'] = !empty($rec->planning_Steps_employees) ? keylist::toArray($rec->planning_Steps_employees) : null;
-        $res['planningParams'] = !empty($rec->planning_Steps_planningParams) ? keylist::toArray($rec->planning_Steps_planningParams) : null;
+        $res['planningParams'] = !empty($rec->planning_Steps_planningParams) ? keylist::toArray($rec->planning_Steps_planningParams) : array();
+        $res['isFinal'] = $rec->planning_Steps_isFinal;
         if($rec->canStore == 'yes'){
             $res['labelPackagingId'] = $rec->planning_Steps_labelPackagingId;
             $res['labelQuantityInPack'] = $rec->planning_Steps_labelQuantityInPack;

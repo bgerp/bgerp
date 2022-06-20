@@ -22,7 +22,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
      *
      * @var int
      */
-    protected $sortableListFields = 'quantity';
+    protected $sortableListFields = 'quantity,code';
 
 
     /**
@@ -88,6 +88,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,mandatory,silent,single=none');
 
+        //Подредба на резултатите
+         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
     }
 
 
@@ -161,9 +163,11 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         foreach ($storesRecsArr as $sRec) {
 
+
             if (!is_object($sRec)) {
                 $sRec = store_StockPlanning::fetch("#productId = $sRec");
             }
+            $pRec   = (cat_Products::fetch($sRec->productId));
 
             if (!$sRec->measureId) {
                 $measureId = cat_Products::fetch($sRec->productId)->measureId;
@@ -180,10 +184,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $expected = $Quantities->expected;
             $free = $Quantities->free;
 
-            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, null, $rec->date, 'reserved');
-            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, null, $rec->date, 'expected');
+            $documentsReserved = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'reserved');
+            $documentsExpected = store_StockPlanning::getRecs($sRec->productId, $storesArr, $rec->date, 'expected');
 
-            $code = ($sRec->code) ?: 'Art' . $sRec->productId;
+            $code = ($pRec->code) ?: 'Art' . $pRec->productId;
 
             $recs[$id] = (object)array(
                 'productId' => $sRec->productId,
@@ -198,9 +202,14 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
             );
 
+            unset($documentsReserved,$documentsExpected,$Quantities,$code);
 
         }
 
+        if (!is_null($recs)) {
+
+            arr::sortObjects($recs, 'code', $rec->order,'stri');
+        }
 
         return $recs;
     }
@@ -222,6 +231,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         if ($export === false) {
 
+            $fld->FLD('code', 'varchar', 'caption=Код');
             $fld->FLD('productId', 'key(mvc=cat_Products,select=name)', 'caption=Артикул');
             $fld->FLD('measure', 'key(mvc=cat_UoM,select=name)', 'caption=Мярка,tdClass=centered');
             $fld->FLD('quantity', 'varchar', 'caption=Количество->Налично,smartCenter');
@@ -273,7 +283,11 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $row->productId = cat_Products::getShortHyperlink($dRec->productId, true);
+        $pRec   = (cat_Products::fetch($dRec->productId));
+
+        $row->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
+
+        $row->productId = cat_Products::getLinkToSingle_($dRec->productId, true);
 
 
         $row->measure = cat_UoM::fetchField($dRec->measure, 'shortName');
@@ -453,8 +467,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $dCloneRec = clone $dRec;
 
                     //$document = cls::get($docReserved->sourceClassId)->abbr . $docReserved->sourceId;
-                    $Document = cls::get($docReserved->sourceClassId);
-                    $docClassName = $Document->className;
+                    $DocumentRez = cls::get($docReserved->sourceClassId);
+                    $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
 
                     if ($markFirst == 1) {
@@ -465,7 +479,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->date = $docReserved->date;
 
-                    $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
+                    $dCloneRec->document = $DocumentRez->abbr . $docReserved->sourceId;
 
                     $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
@@ -483,13 +497,20 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec = clone $dRec;
 
-                    $Document = cls::get($docReserved->sourceClassId);
+                    $Document = cls::get($docExpected->sourceClassId);
+
                     $docClassName = $Document->className;
-                    $docRec = $docClassName::fetch($docReserved->sourceId);
+                    $docRec = $docClassName::fetch($docExpected->sourceId);
+
+                    if ($markFirst == 1) {
+                        $dCloneRec->markFirst = true;
+                    } else {
+                        $dCloneRec->markFirst = false;
+                    }
 
                     $dCloneRec->date = $docExpected->date;
 
-                    $dCloneRec->document = $Document->abbr . $docReserved->sourceId;
+                    $dCloneRec->document = $Document->abbr . $docExpected->sourceId;
                     $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
@@ -498,10 +519,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
 
+                    $markFirst++;
+
                 }
             }
         }
-        //unset($rec->exportFilter);
+
         return $recs;
     }
 
@@ -523,7 +546,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
-        if ($dRec->markFirst) {
+        if ( $dRec->markFirst) {
             $res->productId = $pRec->name;
             $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
             $res->quantity = $dRec->quantity;

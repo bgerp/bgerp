@@ -2,13 +2,13 @@
 
 
 /**
- * Начален номер на фактурите
+ * Политики: значещи цифри
  */
-defIfNot('PRICE_SIGNIFICANT_DIGITS', '5');
+defIfNot('PRICE_SIGNIFICANT_DIGITS', '2');
 
 
 /**
- * Краен номер на фактурите
+ * Политики: десетични знаци
  */
 defIfNot('PRICE_MIN_DECIMALS', '2');
 
@@ -128,8 +128,8 @@ class price_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'PRICE_SIGNIFICANT_DIGITS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Значещи цифри'),
-        'PRICE_MIN_DECIMALS' => array('int(min=0)', 'caption=Закръгляне в ценовите политики (без себестойност)->Мин. знаци'),
+        'PRICE_MIN_DECIMALS' => array('int(min=0)', 'caption=Ценови политики: закръгляне за избрания вид (с/без ДДС) цени (2 и 1 за цена Х.хх)->Десетични знаци', "unit= (|желан брой цифри след десетичната запетая|*)"),
+        'PRICE_SIGNIFICANT_DIGITS' => array('int(min=0)', 'caption=Ценови политики: закръгляне за избрания вид (с/без ДДС) цени (2 и 1 за цена Х.хх)->Значещи цифри', "unit= (|но минимален брой цифри различни от|* 0)"),
         'PRICE_MIN_CHANGE_UPDATE_PRIME_COST' => array('percent(Min=0,max=1)', 'caption=Автоматично обновяване на себестойностите->Мин. промяна'),
         'PRICE_STORE_AVERAGE_PRICES' => array('keylist(mvc=store_Stores,select=name)', 'caption=Изчисляване на "Осреднена за избрани складове" себестойност->За складове,callOnChange=price_interface_AverageCostStorePricePolicyImpl::saveAvgPrices'),
         'PRICE_CRON_UPDATE_PRIME_COST' => array('int(min=0)', 'caption=Настройки на крона за обновяване на себестойностите->Минути'),

@@ -119,6 +119,8 @@ class planning_interface_TaskLabel
 
         // Кое е последното задание към артикула
         $jRec = doc_Containers::getDocument($rec->originId)->fetch();
+        $productId = ($rec->isFinal == 'yes') ? $jRec->productId : $rec->productId;
+
         $jobCode = mb_strtoupper(planning_Jobs::getHandle($jRec->id));
         if ($lg != 'bg' && isset($jRec->saleId)) {
             $lData = cls::get('sales_Sales')->getLogisticData($jRec->saleId);
@@ -126,14 +128,14 @@ class planning_interface_TaskLabel
             $countryCode .= ' ' . date('m/y');
         }
 
-        $code = (!empty($pRec->code)) ? $pRec->code : "Art{$rec->productId}";
-        $name = trim(cat_Products::getVerbal($rec->productId, 'name'));
+        $code = (!empty($pRec->code)) ? $pRec->code : "Art{$productId}";
+        $name = trim(cat_Products::getVerbal($productId, 'name'));
         $date = date('m/y');
 
         $ean = null;
         $quantity = $rec->labelQuantityInPack;
         if(empty($quantity) && isset($rec->labelPackagingId)){
-            $packRec = cat_products_Packagings::getPack($rec->productId, $rec->labelPackagingId);
+            $packRec = cat_products_Packagings::getPack($productId, $rec->labelPackagingId);
             $quantity = is_object($packRec) ? $packRec->quantity : 1;
             $ean = is_object($packRec) ? $rec->eanCode : null;
         }
@@ -147,9 +149,9 @@ class planning_interface_TaskLabel
         Mode::pop('text');
 
         // Продуктови параметри, като тези от операцията са с приоритет
-        $params = $this->getTaskParamData($rec->id, $rec->productId);
-        $Driver = cat_Products::getDriver($rec->productId);
-        $additionalFields = (is_object($Driver)) ? $Driver->getAdditionalLabelData($rec->productId, $this->class) : array();
+        $params = $this->getTaskParamData($rec->id, $productId);
+        $Driver = cat_Products::getDriver($productId);
+        $additionalFields = (is_object($Driver)) ? $Driver->getAdditionalLabelData($productId, $this->class) : array();
 
         if($onlyPreview === false){
             core_App::setTimeLimit(round($cnt / 8, 2), false, 100);
@@ -157,7 +159,7 @@ class planning_interface_TaskLabel
 
         $batch = null;
         if(core_Packs::isInstalled('batch')){
-            if($BatchDef = batch_Defs::getBatchDef($rec->productId)){
+            if($BatchDef = batch_Defs::getBatchDef($productId)){
                 if($BatchDef instanceof batch_definitions_Job){
                     $origin = doc_Containers::getDocument($rec->originId);
                     $batch = $BatchDef->getDefaultBatchName($origin->that);
@@ -220,6 +222,7 @@ class planning_interface_TaskLabel
 
         // От останалите продуктови параметри, се извличат тези, които вече не са предефинирани
         $productParams = cat_Products::getParams($productId, null, false);
+
         foreach ($productParams as $paramId => $paramValue){
             if(!array_key_exists($paramId, $paramRecs)){
                 $paramRecs[$paramId] = $paramValue;

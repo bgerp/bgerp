@@ -341,7 +341,7 @@ class purchase_Invoices extends deals_InvoiceMaster
             
             if (!$mvc->isNumberFree($checkRec, $foundInvoiceId)) {
                 $foundInvoiceId = purchase_Invoices::getLink($foundInvoiceId, 0);
-                $form->setError("{$fld},number", "Има вече входяща фактура с този номер, за този контрагент|*: <b>{$foundInvoiceId}</b>");
+                $form->setError("number", "Има вече входяща фактура с този номер, за този контрагент|*: <b>{$foundInvoiceId}</b>");
             }
         }
     }

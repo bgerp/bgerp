@@ -148,8 +148,8 @@ class planning_ConsumptionNoteDetails extends deals_ManifactureDetail
             }
         }
     }
-
-
+    
+    
     /**
      * Преди показване на форма за добавяне/промяна.
      *

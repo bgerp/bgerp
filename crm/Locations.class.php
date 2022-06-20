@@ -683,12 +683,12 @@ class crm_Locations extends core_Master
      * Ф-я връщаща пълния адрес на локацията
      *
      * @param mixed $id
-     * @param bool $translitarate
+     * @param bool $transliterate
      * @param bool $showFeatures
      * @return string
      * @throws core_exception_Expect
      */
-    public static function getAddress($id, $translitarate = false, $showFeatures = true)
+    public static function getAddress($id, $transliterate = false, $showFeatures = true)
     {
         expect($rec = static::fetchRec($id));
         $row = static::recToVerbal($rec);
@@ -701,7 +701,7 @@ class crm_Locations extends core_Master
             }
         }
         
-        if ($translitarate === true) {
+        if ($transliterate === true) {
             $row->place = transliterate($row->place);
             $row->address = transliterate($row->address);
         }

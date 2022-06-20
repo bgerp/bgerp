@@ -110,6 +110,12 @@ defIfNot('PLANNING_MIN_TASK_DURATION', 5*60);
 
 
 /**
+ * Позволено ли е да се въвежда сериен номер от друга ПО
+ */
+defIfNot('PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS', 'no');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -171,10 +177,11 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_JOB_AUTO_COMPLETION_DELAY' => array('time', 'caption=Автоматично приключване на Задание без нови контиращи документи->Повече от'),
         'PLANNING_JOB_AUTO_COMPLETION_PERCENT' => array('percent(Min=0)', 'placeholder=Никога,caption=Автоматично приключване на Задание без нови контиращи документи->И Заскладено над,callOnChange=planning_Setup::setJobAutoClose'),
         'PLANNING_PRODUCTION_NOTE_PRIORITY' => array('enum(bom=Рецепта,expected=Вложено)', 'caption=Приоритет за попълване на количеството на материалите в протокол за производство->Източник'),
-        'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
+        'PLANNING_PRODUCTION_RATE_DEFAULT_MEASURE' => array('set(minPer1=Минути за (мярка),per1Min=(Мярка) за минута,minPer10=Минути за 10 (мярка),minPer100=Минути за 100 (мярка),minPer1000=Минути за 1000 (мярка),per1Hour=(Мярка) за час,per8Hour=(Мярка) за 8 часа)', 'caption=Допълнителни разрешени производствени норми освен "Секунди за (мярка)"->Избор'),
         'PLANNING_DEFAULT_PRODUCTION_STEP_FOLDER_ID' => array('key2(mvc=doc_Folders,select=title,coverClasses=cat_Categories,allowEmpty)', 'caption=Дефолтна папка за създаване на нов производствен етап от рецепта->Избор'),
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
         'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
+        'PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Въвеждане на производ. № в ПО от друга операция->Избор'),
     );
 
 
@@ -221,7 +228,8 @@ class planning_Setup extends core_ProtoSetup
         'planning_StepConditions',
         'migrate::updatePlanningStages1',
         'migrate::updateTaskAssets',
-        'migrate::reorderTasks2'
+        'migrate::reorderTasks2',
+        'migrate::migrateOldTasks',
     );
     
     
@@ -389,6 +397,39 @@ class planning_Setup extends core_ProtoSetup
         foreach ($assets as $assetId){
             planning_AssetResources::reOrderTasks($assetId);
         }
+    }
 
+
+    /**
+     * Миграция на стари операции
+     */
+    public function migrateOldTasks()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+
+        if(!planning_Tasks::count()) return;
+
+        core_App::setTimeLimit(400);
+        $query = planning_Tasks::getQuery();
+        $query->EXT('driverClass', 'cat_Products', 'externalName=innerClass,externalKey=productId');
+        $query->where("#isFinal IS NULL");
+        $query->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
+        $query->in('state', array('active', 'wakeup', 'stopped', 'pending', 'waiting'));
+        $query->show('productId,jobProductId,driverClass');
+
+        $saveTasks = array();
+        $saveDetails = array();
+        while($rec = $query->fetch()){
+            if($rec->jobProductId == $rec->productId){
+                $rec->isFinal = 'yes';
+                $saveTasks[$rec->id] = $rec;
+                $dRec = (object)array('taskId' => $rec->id, 'productId' => $rec->jobProductId, 'type' => 'production');
+                $saveDetails[$rec->id] = $dRec;
+            }
+        }
+
+        $Tasks->saveArray($saveTasks, 'id,isFinal');
+        cls::get('planning_ProductionTaskProducts')->saveArray($saveDetails);
     }
 }

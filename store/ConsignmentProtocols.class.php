@@ -139,14 +139,14 @@ class store_ConsignmentProtocols extends core_Master
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
     public $searchFields = 'valior,folderId,note';
-
-
+    
+    
     /**
      * Поле за филтриране по дата
      */
     public $filterDateField = 'createdOn, modifiedOn, valior, readyOn, deliveryTime, shipmentOn, deliveryOn';
-
-
+    
+    
     /**
      * На кой ред в тулбара да се показва бутона за принтиране
      */
@@ -173,14 +173,14 @@ class store_ConsignmentProtocols extends core_Master
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'valior,snapshot,lineId';
-
-
+    
+    
     /**
      * Кои полета ще се проверяват при вземане на контрагент данните в имейла
      */
     public $getContragentDataCheckFields = 'locationId';
-
-
+    
+    
     /**
      * Описание на модела (таблицата)
      */
@@ -195,7 +195,7 @@ class store_ConsignmentProtocols extends core_Master
         $this->FLD('deliveryOn', 'datetime(requireTime)','caption=Доставка');
         $this->FLD('locationId', 'key(mvc=crm_Locations, select=title,allowEmpty)', 'caption=Локация на Контрагента->Обект,silent');
         $this->FLD('productType', 'enum(ours=Наши артикули,other=Чужди артикули)', 'caption=Артикули за предаване/получаване->Избор,mandatory,notNull,default=ours');
-
+        
         $this->FLD('lineId', 'key(mvc=trans_Lines,select=title, allowEmpty)', 'caption=Транспорт');
         $this->FLD('note', 'richtext(bucket=Notes,rows=3)', 'caption=Допълнително->Бележки');
         $this->FLD('state', 'enum(draft=Чернова, active=Контиран, rejected=Оттеглен,stopped=Спряно,pending=Заявка)', 'caption=Статус, input=none');
@@ -237,14 +237,14 @@ class store_ConsignmentProtocols extends core_Master
             $row->contragentId = cls::get($rec->contragentClassId)->getHyperlink($rec->contragentId, true);
             $row->title = $mvc->getLink($rec->id, 0);
         }
-
+        
         $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId);
         $row = (object) ((array) $row + (array) $headerInfo);
         
         if (isset($fields['-single'])) {
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
             $row->username = core_Users::getVerbal($rec->createdBy, 'names');
-
+            
             $mvc->pushTemplateLg($rec->template);
             $row->contragentCaption = ($rec->productType == 'ours') ? tr('Довереник') : tr('Доверител');
             $row->ourCompanyCaption = ($rec->productType == 'ours') ? tr('Доверител') : tr('Довереник');
@@ -252,7 +252,6 @@ class store_ConsignmentProtocols extends core_Master
                 $row->locationId = crm_Locations::getHyperlink($rec->locationId);
                 $row->deliveryAddress = crm_Locations::getAddress($rec->locationId, true);
             }
-
             core_Lg::pop();
         }
     }
@@ -292,17 +291,17 @@ class store_ConsignmentProtocols extends core_Master
         // Ако потребителя няма достъп към визитката на лицето, или не може да види сч. справки то визитката, той не може да види справката
         $Contragent = cls::get($data->rec->contragentClassId);
         if (!$Contragent->haveRightFor('single', $data->rec->contragentId)) return;
-
+        
         if (!haveRole($Contragent->canReports)) return;
         
         $snapshot = $data->rec->snapshot;
         $mvcTable = new core_Mvc;
         $mvcTable->FLD('blQuantity', 'int', 'tdClass=accCell');
-
+        
         $productCaption = ($data->rec->productType == 'ours') ? 'Наш артикул' : 'Чужд артикул';
         $table = cls::get('core_TableView', array('mvc' => $mvcTable));
         $details = $table->get($snapshot->rows, "count=№,productId={$productCaption},blQuantity=Количество");
-
+        
         $tpl->replace($details, 'SNAPSHOT');
         $tpl->replace($snapshot->date, 'SNAPSHOT_DATE');
     }
@@ -315,7 +314,7 @@ class store_ConsignmentProtocols extends core_Master
     {
         $rows = array();
         $accId = ($rec->productType == 'ours') ? '3231' : '3232';
-
+        
         // Кое е перото на контрагента ?
         $contragentItem = acc_Items::fetchItem($rec->contragentClassId, $rec->contragentId);
         
@@ -331,7 +330,7 @@ class store_ConsignmentProtocols extends core_Master
                 'strict' => true,
                 'keepUnique' => true,
                 'cacheBalance' => false));
-
+            
             // Изчлисляваме в момента, какъв би бил крания баланс по сметката в края на деня
             $Balance = $Balance->getBalanceBefore($accId);
             
@@ -341,7 +340,7 @@ class store_ConsignmentProtocols extends core_Master
             
             $accId = acc_Accounts::getRecBySystemId($accId)->id;
             $count = 1;
-
+            
             // Подготвяме записите за показване
             foreach ($Balance as $b) {
                 if ($b['accountId'] != $accId) {
@@ -374,19 +373,18 @@ class store_ConsignmentProtocols extends core_Master
     {
         $form = &$data->form;
         $rec = &$form->rec;
-
+        
         // При нов протокол, потребителя ще бъде принуден да избере типа на предаваните/получаваните артикули
         if(empty($rec->id)){
             $form->setOptions('productType', array('' => '', 'ours' => 'Наши артикули', 'other' => 'Чужди артикули'));
             $form->setDefault('productType', '');
         }
-
+        
         $form->setDefault('storeId', store_Stores::getCurrent('id', false));
         $rec->contragentClassId = doc_Folders::fetchCoverClassId($rec->folderId);
         $rec->contragentId = doc_Folders::fetchCoverId($rec->folderId);
         $form->setDefault('currencyId', acc_Periods::getBaseCurrencyCode());
         $form->setOptions('locationId', array('' => '') + crm_Locations::getContragentOptions($rec->contragentClassId, $rec->contragentId));
-
         if (isset($rec->id)) {
             if (store_ConsignmentProtocolDetailsSend::fetchField("#protocolId = {$rec->id}")) {
                 $form->setReadOnly('currencyId');
@@ -410,7 +408,7 @@ class store_ConsignmentProtocols extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         if($form->isSubmitted()){
-
+            
             // Задаване на дефолтния склад, ако потребителя е партньор
             if(core_Packs::isInstalled('colab') && haveRole('partner')){
                 $form->rec->storeId = cond_Parameters::getParameter($form->rec->contragentClassId, $form->rec->contragentId, 'defaultStoreSale');
@@ -490,7 +488,6 @@ class store_ConsignmentProtocols extends core_Master
         $tplArr[] = array('name' => 'Протокол за отговорно пазене', 'content' => 'store/tpl/SingleLayoutConsignmentProtocol.shtml',
             'narrowContent' => 'store/tpl/SingleLayoutConsignmentProtocolNarrow.shtml', 'lang' => 'bg');
         
-
         $res = doc_TplManager::addOnce($this, $tplArr);
         
         return $res;
@@ -540,8 +537,8 @@ class store_ConsignmentProtocols extends core_Master
         
         return $this->save($rec);
     }
-
-
+    
+    
     /**
      * Информацията на документа, за показване в транспортната линия
      *
@@ -577,7 +574,7 @@ class store_ConsignmentProtocols extends core_Master
         $res = array('baseAmount' => null, 'amount' => null, 'amountVerbal' => null, 'currencyId' => null, 'notes' => $rec->lineNotes);
         $res['contragentName'] = cls::get($rec->contragentClassId)->getTitleById($rec->contragentId);
         $res['stores'] = array($rec->storeId);
-
+        
         if(isset($rec->locationId)){
             $locationRec = crm_Locations::fetch($rec->locationId);
             $res['locationId'] = $locationRec->id;
@@ -588,9 +585,9 @@ class store_ConsignmentProtocols extends core_Master
         } else {
             $res['address'] = str_replace('<br>', '', $row->contragentAddress);
         }
-
+        
         $res['cases'] = array();
-
+        
         return $res;
     }
     
@@ -647,8 +644,8 @@ class store_ConsignmentProtocols extends core_Master
         
         return $title;
     }
-
-
+    
+    
     /**
      * Връща планираните наличности
      *
@@ -669,14 +666,14 @@ class store_ConsignmentProtocols extends core_Master
         $id = is_object($rec) ? $rec->id : $rec;
         $rec = $this->fetch($id, '*', false);
         $date = $this->getPlannedQuantityDate($rec);
-
+        
         $dQuery = store_ConsignmentProtocolDetailsSend::getQuery();
         $dQuery->EXT('generic', 'cat_Products', "externalName=generic,externalKey=productId");
         $dQuery->EXT('canConvert', 'cat_Products', "externalName=canConvert,externalKey=productId");
         $dQuery->XPR('totalQuantity', 'double', "SUM(#packQuantity * #quantityInPack)");
         $dQuery->where("#protocolId = {$rec->id}");
         $dQuery->groupBy('productId');
-
+        
         while ($dRec = $dQuery->fetch()) {
             $genericProductId = null;
             if($dRec->generic == 'yes'){
@@ -684,19 +681,19 @@ class store_ConsignmentProtocols extends core_Master
             } elseif($dRec->canConvert == 'yes'){
                 $genericProductId = planning_GenericMapper::fetchField("#productId = {$dRec->productId}", 'genericProductId');
             }
-
+            
             $res[] = (object)array('storeId'          => $rec->storeId,
-                                   'productId'        => $dRec->productId,
-                                   'date'             => $date,
-                                   'quantityIn'       => null,
-                                   'quantityOut'      => $dRec->totalQuantity,
-                                   'genericProductId' => $genericProductId);
+                'productId'        => $dRec->productId,
+                'date'             => $date,
+                'quantityIn'       => null,
+                'quantityOut'      => $dRec->totalQuantity,
+                'genericProductId' => $genericProductId);
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Kои са полетата за датите за експедирането
      *
@@ -707,20 +704,20 @@ class store_ConsignmentProtocols extends core_Master
     public function getShipmentDateFields($rec = null, $cache = false)
     {
         $res = array('readyOn'      => array('caption' => 'Готовност', 'type' => 'date', 'readOnlyIfActive' => true, "input" => "input=hidden", 'autoCalcFieldName' => 'readyOnCalc', 'displayExternal' => false),
-                     'deliveryTime' => array('caption' => 'Товарене', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input", 'autoCalcFieldName' => 'deliveryTimeCalc', 'displayExternal' => false),
-                     'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden", 'autoCalcFieldName' => 'shipmentOnCalc', 'displayExternal' => false),
-                     'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
-
+            'deliveryTime' => array('caption' => 'Товарене', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => true, "input" => "input", 'autoCalcFieldName' => 'deliveryTimeCalc', 'displayExternal' => false),
+            'shipmentOn'   => array('caption' => 'Експедиране на', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input=hidden", 'autoCalcFieldName' => 'shipmentOnCalc', 'displayExternal' => false),
+            'deliveryOn'   => array('caption' => 'Доставка', 'type' => 'datetime(requireTime)', 'readOnlyIfActive' => false, "input" => "input", 'autoCalcFieldName' => 'deliveryOnCalc', 'displayExternal' => true));
+        
         if(isset($rec)){
             $res['deliveryTime']['placeholder'] = store_Stores::calcLoadingDate($rec->storeId, $rec->deliveryOn);
             $res['readyOn']['placeholder'] = ($cache) ? $rec->readyOnCalc : $this->getEarliestDateAllProductsAreAvailableInStore($rec);
             $res['shipmentOn']['placeholder'] = ($cache) ? $rec->shipmentOnCalc : trans_Helper::calcShippedOnDate($rec->valior, $rec->lineId, $rec->activatedOn);
         }
-
+        
         return $res;
     }
-
-
+    
+    
     /**
      * Коя е най-ранната дата на която са налични всички документи
      *
@@ -732,11 +729,11 @@ class store_ConsignmentProtocols extends core_Master
         $rec = $this->fetchRec($rec);
         $detail = ($rec->productType == 'ours') ? 'store_ConsignmentProtocolDetailsSend' : 'store_ConsignmentProtocolDetailsReceived';
         $products = deals_Helper::sumProductsByQuantity($detail, $rec->id, true);
-
+        
         return store_StockPlanning::getEarliestDateAllAreAvailable($rec->storeId, $products);
     }
-
-
+    
+    
     /**
      * За коя дата се заплануват наличностите
      *
@@ -747,13 +744,13 @@ class store_ConsignmentProtocols extends core_Master
     {
         // Ако има ръчно въведена дата на натоварване, връща се тя
         if (!empty($rec->deliveryTime)) return $rec->deliveryTime;
-
+        
         $preparationTime = store_Stores::getShipmentPreparationTime($rec->storeId);
-
+        
         return dt::addSecs(-1 * $preparationTime, $rec->deliveryOn);
     }
 
-
+    
     /**
      * Връща тялото на имейла генериран от документа
      *
@@ -767,7 +764,7 @@ class store_ConsignmentProtocols extends core_Master
         $handle = $this->getHandle($id);
         $tpl = new ET(tr('Моля, запознайте се с нашия протокол за отговорно пазене') . ': #[#handle#]');
         $tpl->append($handle, 'handle');
-
+        
         return $tpl->getContent();
     }
 }

@@ -452,14 +452,17 @@ class label_Prints extends core_Master
      */
     protected static function getDefaultTemplateId($optArr, $classId = null, $objectId = null)
     {
-        if(isset($classId) && isset($objectId)){
+        if (isset($classId) && isset($objectId)) {
             $intfInst = cls::getInterface('label_SequenceIntf', $classId);
             $defaultTemplateId = $intfInst->getDefaultLabelTemplateId($objectId);
 
-            if(isset($defaultTemplateId)) return $defaultTemplateId;
+            if (isset($defaultTemplateId)) {
+
+                return $defaultTemplateId;
+            }
         }
 
-        $qLimit = 5;
+        $qLimit = 7;
         $query = self::getQuery();
         if ($classId) {
             $query->where(array("#classId = '[#1#]'", $classId));
@@ -477,12 +480,21 @@ class label_Prints extends core_Master
         $query->orderBy('createdOn', 'DESC');
         
         $query->limit($qLimit);
-        
+
+        $cu = core_Users::getCurrent();
+
         $tArr = array();
         while ($rec = $query->fetch()) {
             $tArr[$rec->templateId] += 1 + ($qLimit-- * 0.1);
+
+            // С по-голяма приоритед да са създадените от текущия потребител
+            if ($rec->createdBy == $cu) {
+                $tArr[$rec->templateId] += 0.1 * $qLimit;
+            } else {
+                $tArr[$rec->templateId] -= 0.1 * $qLimit;
+            }
         }
-        
+
         if (empty($tArr)) {
             reset($optArr);
             $defOptKey = key($optArr);

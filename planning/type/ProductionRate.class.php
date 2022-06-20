@@ -9,7 +9,7 @@
  * @package   planning
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2021 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -26,13 +26,14 @@ class planning_type_ProductionRate extends type_Varchar
     /**
      * Разрешените опции
      */
-    private static $allowedRates = array('secsPer1' => '|сек. за|* |[#measureId#]|*',
-                                         'minPer1' => '|минути за|* |[#measureId#]|*',
-                                         'minPer10' => '|минути за|* 10 |[#measureId#]|*',
-                                         'minPer100' => '|минути за|* 100 |[#measureId#]|*',
-                                         'per1Hour' => '|[#measureId#]|* |за|* 1 |час|*',
-                                         'per1Min' => '|[#measureId#]|* |за|* 1 |минута|*',
-                                         'per8Hour' => '|[#measureId#]|* |за|* 8 |часа|*',);
+    private static $allowedRates = array('secsPer1'   => '|сек. за|* |[#measureId#]|*',
+                                         'minPer1'    => '|минути за|* |[#measureId#]|*',
+                                         'minPer10'   => '|минути за|* 10 |[#measureId#]|*',
+                                         'minPer100'  => '|минути за|* 100 |[#measureId#]|*',
+                                         'minPer1000' => '|минути за|* 1000 |[#measureId#]|*',
+                                         'per1Hour'   => '|[#measureId#]|* |за|* 1 |час|*',
+                                         'per1Min'    => '|[#measureId#]|* |за|* 1 |минута|*',
+                                         'per8Hour'   => '|[#measureId#]|* |за|* 8 |часа|*',);
 
 
     /**
@@ -212,6 +213,11 @@ class planning_type_ProductionRate extends type_Varchar
                 break;
             case 'minPer100':
                 $secs = (60 * $parseValue['left'] / 100);
+                $secs *= $quantity;
+                $secs = round($secs);
+                break;
+            case 'minPer1000':
+                $secs = (60 * $parseValue['left'] / 1000);
                 $secs *= $quantity;
                 $secs = round($secs);
                 break;

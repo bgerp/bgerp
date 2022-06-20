@@ -175,7 +175,7 @@ class cat_UoM extends core_Manager
             $data->listFields['name'] = 'Опаковка';
             arr::placeInAssocArray($data->listFields, array('isBasic' => 'Тип'), 'sysId');
         } else {
-            $mvc->currentTab = 'Мерки->Мерки';
+            $mvc->currentTab = 'Мерки->Основни';
         }
         
         $data->query->where(array("#type = '[#1#]'", $type));

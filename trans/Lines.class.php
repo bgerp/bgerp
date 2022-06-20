@@ -631,8 +631,10 @@ class trans_Lines extends core_Master
                     $rec->countActiveDocuments++;
                 }
 
-                if (rack_Zones::fetchField("#containerId = {$dRec->containerId} AND #readiness >= 1")) {
-                    $rec->countReadyDocuments++;
+                if(core_Packs::isInstalled('rack')){
+                    if (rack_Zones::fetchField("#containerId = {$dRec->containerId} AND #readiness >= 1")) {
+                        $rec->countReadyDocuments++;
+                    }
                 }
 
                 if(is_array($lineInfo['transportUnits'])){

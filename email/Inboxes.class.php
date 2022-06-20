@@ -553,7 +553,7 @@ class email_Inboxes extends core_Master
                 $replaceDomainArr = false;
             }
         }
-        
+
         if ($replaceDomainArr && countR($replaceDomainArr)) {
             list($toNick, $toDomain) = explode('@', $toEmail);
             foreach ($replaceDomainArr as $fromReplace => $toReplace) {
@@ -1272,6 +1272,18 @@ class email_Inboxes extends core_Master
             }
         }
 
+        foreach ($emailsArr as $eStr) {
+            $rEmail = self::replaceDomains($eStr);
+            if ($rEmail != $eStr) {
+                $emailForRemove[] = $eStr;
+                if (isset($emailInChargeArr[$eStr])) {
+                    $emailInChargeArr[$rEmail] = $emailInChargeArr[$er];
+                } elseif (isset($emailInChargeArr[$rEmail])) {
+                    $emailInChargeArr[$rEmail] = $emailInChargeArr[$rEmail];
+                }
+            }
+        }
+
         // Премахваме нашите имейли
         $allEmailsArr = array_diff($emailsArr, $emailForRemove);
 
@@ -1284,42 +1296,42 @@ class email_Inboxes extends core_Master
         }
 
         if (!$allEmailsArr) {
-            
+
             return $allEmailsArr;
         }
-        
+
         // Масив с всички корпоративни домейни
         $domainsArr = email_Accounts::getCorporateDomainsArr();
-        
+
         // Обхождаме масива с останалите имейли
         foreach ($allEmailsArr as $key => $email) {
-            
+
             // Вземаме домейна на имейла
             list($nick, $domain) = explode('@', $email);
-            
+
             // Домейна в долен регистър
             $domain = mb_strtolower($domain);
-            
+
             // Ако домейна съществува в нашите домейни
             if ($domainsArr[$domain]) {
-                
+
                 // Премахваме от масива
                 unset($allEmailsArr[$key]);
-                
+
                 continue;
             }
-            
+
             foreach (self::$removeEmailsUserNameArr as $emailNick) {
                 if (stripos($nick, $emailNick) !== false) {
                     unset($allEmailsArr[$key]);
                 }
             }
         }
-        
+
         return $allEmailsArr;
     }
-    
-    
+
+
     /**
      * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие.
      *
