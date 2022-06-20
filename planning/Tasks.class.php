@@ -1893,13 +1893,19 @@ class planning_Tasks extends core_Master
         if ($data->listFilter->rec->folder) {
             $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
             if($Cover->isInstanceOf('planning_Centers')){
-                $data->listFieldsParams = keylist::toArray($Cover->fetchField('planningParams'));
+                $plannedParams = keylist::toArray($Cover->fetchField('planningParams'));
+                $data->listFieldsParams = cat_Params::getOrderedArr($plannedParams, 'desc');
 
                 // и той има избрани параметри за планиране, добавят се в таблицата
                 $paramFields = array();
                 foreach ($data->listFieldsParams as $paramId) {
-                    $paramFields["param_{$paramId}"] = "|Параметри за планиране|*->|*<small>" . cat_Params::getVerbal($paramId, 'typeExt') . "</small>";
-                    $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'smartCenter');
+                    $paramExt = explode(' » ', cat_Params::getVerbal($paramId, 'typeExt'));
+                    if(countR($paramExt) == 1){
+                        $paramExt[1] = $paramExt[0];
+                        $paramExt[0] = " ";
+                    }
+                    $paramFields["param_{$paramId}"] = "|Планиране|*->|*<small>{$paramExt[0]}</small>->|*<small>{$paramExt[1]}</small>";
+                    $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'tdClass=taskParamCol');
                 }
                 arr::placeInAssocArray($data->listFields, $paramFields, null, 'progress');
             }
