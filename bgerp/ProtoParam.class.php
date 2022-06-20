@@ -9,7 +9,7 @@
  * @package   bgerp
  *
  * @author    Ivelin Dimov <ivelin_pdimov@abv.bg>
- * @copyright 2006 - 2016 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -441,5 +441,28 @@ abstract class bgerp_ProtoParam extends embed_Manager
         }
         
         return $value;
+    }
+
+
+    /**
+     * Подрежда готов масив от параметри по групата и подредбата им
+     *
+     * @param mixed $plannedParams - списък от параметри
+     * @param string $dir          - нисходящ или възходящ ред
+     * @return array               - подредените параметри
+     */
+    public static function getOrderedArr($plannedParams, $dir = 'asc')
+    {
+        $arr = array();
+        $plannedParams = arr::make($plannedParams);
+        foreach ($plannedParams as $paramId){
+            $pRec = cat_Params::fetch($paramId,'group,order');
+            $pRec->order = empty($pRec->order) ? '9999' : $pRec->order;
+            $arr[$paramId] = "{$pRec->group}|{$pRec->order}";
+        }
+
+        uasort($arr, function ($a, $b) use ($dir) {return ($dir == 'asc' ? 1 : -1) * strcmp($a, $b);});
+
+        return array_combine(array_keys($arr), array_keys($arr));
     }
 }
