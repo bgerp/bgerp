@@ -188,8 +188,10 @@
                  $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
                  $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity');
 
+                 $quantity = ($iRec->measureId == $iRec->indPackagingId) ? $iRec->totalQuantity : $iRec->quantityInPack ;
+
                  if(!empty($iRec->indTime)){
-                     $iRec->indTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $iRec->quantityInPack);
+                     $iRec->indTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $quantity);
                  }
                   $divisor = countR(keylist::toArray($tRec->employees));
                  if ($rec->typeOfReport == 'short') {
@@ -335,7 +337,7 @@
 
              arr::sortObjects($recs, 'taskId', 'asc');
          }
-         
+
 
          return $recs;
      }
@@ -435,6 +437,7 @@
          
          if ($rec->typeOfReport == 'short' && isset($dRec->employees)) {
              $row->employees = crm_Persons::getTitleById(($dRec->employees)).' - '.planning_Hr::getCodeLink($dRec->employees);
+
              $row->indTimeSum = $Double->toVerbal($dRec->indTimeSum/60);
          } else {
              if (isset($dRec->employees)) {
@@ -451,7 +454,9 @@
              $row->assetResources = '';
          }
 
-         $indTimeSumm = ($dRec->indTime * $row->labelQuantity);
+         $m = ($dRec->measureId == $dRec->labelMeasure) ? 1 : $dRec->labelQuantity;
+
+         $indTimeSumm = ($dRec->indTime * $m);
          //$row->min = $Time->toVerbal($indTimeSumm);
          $row->min =$Double->toVerbal($indTimeSumm/60);
          return $row;

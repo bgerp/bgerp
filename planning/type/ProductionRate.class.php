@@ -55,9 +55,13 @@ class planning_type_ProductionRate extends type_Varchar
         }
 
         // Валидиране на цифровата част
-        $Int = core_Type::getByName('int');
         if(!empty($valueArr['cL'])){
-            $valueArr['cL'] = $Int->fromVerbal($valueArr['cL']);
+            $Type = core_Type::getByName('double(decimals=1)');
+            if($valueArr['cR'] == 'secsPer1'){
+                $Type = core_Type::getByName('int');
+            }
+            $valueArr['cL'] = $Type->fromVerbal($valueArr['cL']);
+
             if(empty($valueArr['cL'])){
                 $this->error = 'Невалидно число';
 
@@ -66,10 +70,18 @@ class planning_type_ProductionRate extends type_Varchar
                 $this->error = "Не е над|* - 0";
 
                 return false;
+            } elseif(in_array($valueArr['cR'], array('per1Hour', 'per1Min', 'per8Hour'))){
+                $error = null;
+                deals_Helper::checkQuantity($this->params['measureId'], $valueArr['cL'], $error);
+                if(!empty($error)){
+                    $this->error = $error;
+
+                    return false;
+                }
             }
 
             if(strpos($valueArr['cR'], 'min') !== false){
-                $valueArr['cL'] = $valueArr['cL'] * 60;
+                $valueArr['cL'] = round($valueArr['cL'], 1) * 60;
             }
         }
 

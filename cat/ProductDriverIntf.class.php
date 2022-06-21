@@ -479,7 +479,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      * @param mixed $sourceClassId  - клас
      * @param mixed $sourceObjectId - ид на обект
      *
-     * @return string $serial       - генериран сериен номер
+     * @return string|null $serial  - генериран сериен номер или null ако не може
      */
     public function generateSerial($id, $sourceClassId = null, $sourceObjectId = null)
     {

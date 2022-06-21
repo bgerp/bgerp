@@ -1,6 +1,6 @@
-<fieldset class="detail-info">
-    <legend class="groupTitle">|Етап в производството - параметри|*</legend>
-    <table>
+[#info#]
+<div class="stepProductSingleGroup">|Етап в производството - параметри|*</div>
+    <table class="stepParamTable">
     	<tr>
     		<td class='quiet'>|Наименование|*:</td>
     		<td>[#planning_Steps_name#]</td>
@@ -67,13 +67,20 @@
 		</tr>
 		<!--ET_END planning_Steps_planningParams-->
 
+
+		<!--ET_BEGIN LABELS-->
+		<tr>
+			<td colspan = 2>[#PARAMS#]</td>
+		</tr>
+		<!--ET_END LABELS-->
+
+
     </table>
-</fieldset>
+
 <!--ET_BEGIN LABELS-->
-<fieldset class="detail-info">
 	[#LABELS#]
-	<legend class="groupTitle">|Етикиране в производствена операция|*</legend>
-	<table>
+	<div class="stepProductSingleGroup">|Етикиране в производствена операция|*</div>
+	<table class="stepParamTable">
 		<!--ET_BEGIN planning_Steps_labelPackagingId-->
 		<tr>
 			<td class='quiet'>|Опаковка|*:</td>
@@ -102,5 +109,4 @@
 		</tr>
 		<!--ET_END planning_Steps_labelTemplate-->
 	</table>
-</fieldset>
 <!--ET_END LABELS-->
