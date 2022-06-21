@@ -337,7 +337,7 @@
 
              arr::sortObjects($recs, 'taskId', 'asc');
          }
-         
+
 
          return $recs;
      }
@@ -437,6 +437,7 @@
          
          if ($rec->typeOfReport == 'short' && isset($dRec->employees)) {
              $row->employees = crm_Persons::getTitleById(($dRec->employees)).' - '.planning_Hr::getCodeLink($dRec->employees);
+
              $row->indTimeSum = $Double->toVerbal($dRec->indTimeSum/60);
          } else {
              if (isset($dRec->employees)) {
