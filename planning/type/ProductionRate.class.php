@@ -70,6 +70,14 @@ class planning_type_ProductionRate extends type_Varchar
                 $this->error = "Не е над|* - 0";
 
                 return false;
+            } elseif(in_array($valueArr['cR'], array('per1Hour', 'per1Min', 'per8Hour'))){
+                $error = null;
+                deals_Helper::checkQuantity($this->params['measureId'], $valueArr['cL'], $error);
+                if(!empty($error)){
+                    $this->error = $error;
+
+                    return false;
+                }
             }
 
             if(strpos($valueArr['cR'], 'min') !== false){
