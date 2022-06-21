@@ -234,23 +234,38 @@ class bgerp_L extends core_Manager
             $html->append("\n" . '<meta name="robots" content="noindex, nofollow">', 'HEAD');
 
             $html->append("<div class='docToolbar noMediaPrint'>");
+
+            $showLoginButton = false;
+
+            // Ако има логване от този браузър, показваме бутона за логване
+            if (core_LoginLog::getUserIdForAutocomplete(1, false)) {
+                $showLoginButton = true;
+            }
+
             // Ако има потребител с такъв имейл и не е логнат, показваме линк за логване
-            if (($options['to'] || $options['cc']) && !haveRole('user')) {
-                $emailsStr = $options['to'];
-                if ($options['cc']) {
-                    $emailsStr .= ', ' . $options['cc'];
-                }
-                $emailsStr = strtolower($emailsStr);
-                $emailsArr = type_Emails::toArray($emailsStr);
-                foreach ($emailsArr as $email) {
-                    if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) {
-                        continue;
+            if ((($options['to'] || $options['cc']) && !haveRole('user')) || $showLoginButton) {
+                if (!$showLoginButton) {
+                    $emailsStr = $options['to'];
+                    if ($options['cc']) {
+                        $emailsStr .= ', ' . $options['cc'];
                     }
-                    
-                    $html->append(ht::createLink(tr('Логване'), array('core_Users', 'login', 'ret_url' => true), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/key.png')). "<span>|</span>");
-                    break;
+                    $emailsStr = strtolower($emailsStr);
+                    $emailsArr = type_Emails::toArray($emailsStr);
+
+                    foreach ($emailsArr as $email) {
+                        if (!core_Users::fetch(array("#email = '[#1#]' AND #state = 'active'", $email))) {
+                            continue;
+                        }
+
+                        $showLoginButton = true;
+                        break;
+                    }
                 }
-                
+
+                if ($showLoginButton) {
+                    $html->append(ht::createLink(tr('Логване'), array('core_Users', 'login', 'ret_url' => true), null, array('class' => 'hideLink', 'ef_icon' => 'img/16/key.png')). "<span>|</span>");
+                }
+
                 if (email_Setup::get('SHOW_THREAD_IN_EXTERNAL') == 'yes') {
                     // Ако има повече от един имейл в нишката
                     $tEmailArr = $this->getThreadEmails($cid, $mid, true);
