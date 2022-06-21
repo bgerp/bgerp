@@ -214,6 +214,14 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Дали в лист изгледа да се показва полето за филтър по състояние
+     * @param bool
+     * @see acc_plg_DocumentSummary
+     */
+    public $filterAllowState = false;
+
+
+    /**
      * Дали да се помни последно избраната папка в лист изгледа
      *
      * @see acc_plg_DocumentSummary
