@@ -989,7 +989,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
         $query->where("#taskModifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
-        
+
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
         $indicatorId = $iRec->id;
