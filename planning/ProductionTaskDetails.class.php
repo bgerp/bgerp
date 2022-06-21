@@ -91,7 +91,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,weight=Тегло (кг),employees,created=Създаване,info=@';
+    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,weight=Тегло (кг),employees,date=Дата,info=@';
     
     
     /**
@@ -144,6 +144,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=20)', 'caption=Оператори');
+        $this->FLD('date', 'datetime', 'caption=Дата,focus,remember');
+
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
@@ -190,6 +192,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         $form->setOptions('productId', array('' => '') + $productOptions);
+        $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
 
         if ($rec->type == 'production') {
             if($masterRec->isFinal != 'yes'){
@@ -569,8 +572,12 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $taskRec = planning_Tasks::fetch($rec->taskId);
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
-        $row->created = "<div class='nowrap'>" . $mvc->getFieldType('createdOn')->toVerbal($rec->createdOn);
-        $row->created .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
+        $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
+        $dateVerbal = $mvc->getFieldType('createdOn')->toVerbal($date);
+        $dateVerbal = !empty($rec->date) ? ht::createHint($dateVerbal, 'Датата е въведена от потребителя', 'notice', false) : $dateVerbal;
+
+        $row->date = "<div class='nowrap'>{$dateVerbal}";
+        $row->date .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
 
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
@@ -1024,7 +1031,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
             $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
 
-            $date = dt::verbal2mysql($rec->createdOn, false);
+            $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
+            $date = dt::verbal2mysql($date, false);
             foreach ($persons as $personId) {
                 $key = "{$personId}|{$classId}|{$rec->taskId}|{$rec->state}|{$date}|{$indicatorId}";
                 if (!array_key_exists($key, $result)) {
