@@ -446,24 +446,6 @@ class planning_Steps extends core_Extender
     
     
     /**
-     * След рендиране на единичния изглед
-     *
-     * @param core_Manager $mvc
-     * @param core_ET      $tpl
-     * @param stdClass     $data
-     */
-    protected static function on_AfterRenderSingle($mvc, &$tpl, $data)
-    {
-        // Показване на данните от екстендъра в шаблона
-        $blockTpl = getTplFromFile('planning/tpl/StepBlock.shtml');
-        $blockTpl->placeObject($data->row);
-        $blockTpl->removeBlocksAndPlaces();
-        $tpl->append($blockTpl, 'ADDITIONAL_TOP_BLOCK');
-        $tpl->removeBlock('innerState');
-    }
-    
-    
-    /**
      * След подготовка на единичния изглед
      *
      * @param stdClass     $data

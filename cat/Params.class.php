@@ -259,7 +259,11 @@ class cat_Params extends bgerp_ProtoParam
         $nRec->showInPublicDocuments = ($showInPublicDocuments) ? 'yes' : 'no';
 
         // Създаване на параметъра
-        return self::save($nRec);
+        core_Users::forceSystemUser();
+        $id = self::save($nRec);
+        core_Users::cancelSystemUser();
+
+        return $id;
     }
     
     

@@ -453,8 +453,6 @@ class cat_products_Params extends doc_Detail
                     $InnerClass = cls::get($pRec->innerClass);
                     if (!($InnerClass instanceof cat_GeneralProductDriver)) {
                         $requiredRoles = 'no_one';
-                    } elseif($InnerClass instanceof planning_interface_StepProductDriver){
-                        $requiredRoles = 'no_one';
                     }
                 }
 
@@ -649,10 +647,13 @@ class cat_products_Params extends doc_Detail
         // Показване на параметрите за задача във формата, като задължителни полета
         $paramValues = cat_Products::getParams($productId);
         $params = array_combine(array_keys($paramValues), array_keys($paramValues));
+
+        $stepParams = array();
         if(isset($planningStepProductId)){
             if($StepDriver = cat_Products::getDriver($planningStepProductId)){
                 $pData = $StepDriver->getProductionData($planningStepProductId);
                 $params = $pData['planningParams'];
+                $stepParams = cat_Products::getParams($planningStepProductId);
             }
         }
 
@@ -670,7 +671,7 @@ class cat_products_Params extends doc_Detail
         }
 
         foreach ($params as $pId) {
-            $v = $paramValues[$pId];
+            $v = (array_key_exists($pId, $paramValues)) ? $paramValues[$pId] : $stepParams[$pId];
             $paramRec = cat_Params::fetch($pId);
             $name = cat_Params::getVerbal($paramRec, 'name');
             if(!empty($paramRec->group)){

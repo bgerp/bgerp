@@ -31,6 +31,11 @@
 				<td colspan='2'>[#employees#]</td>
 			</tr>
 			<!--ET_END employees-->
+			<!--ET_BEGIN date-->
+			<tr>
+				<td colspan='2'>[#date#]</td>
+			</tr>
+			<!--ET_END date-->
 			<!--ET_BEGIN fixedAsset-->
 			<tr>
 				<td colspan='2'>[#fixedAsset#]</td>
