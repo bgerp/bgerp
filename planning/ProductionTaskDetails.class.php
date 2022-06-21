@@ -987,6 +987,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query = self::getQuery();
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
+        $query->EXT('labelPackagingId', 'planning_Tasks', 'externalName=labelPackagingId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
         $query->where("#taskModifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
 
@@ -1002,20 +1003,27 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             $quantity = $rec->quantity;
             if($rec->type == 'production'){
-                $quantityInPack = 1;
-                if(isset($rec->indPackagingId)){
-                    if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->indPackagingId)){
-                        $quantityInPack = $packRec->quantity;
+                if($rec->indPackagingId == $rec->labelPackagingId){
+
+                    // Ако мярката/опаковката за етикетиране са една и съща, значи ще е за 1-ца нормата
+                    $quantity = 1;
+                } else {
+
+                    // Иначе взима се 1-ца колко е в мярката/опаковката и се изчислява на какво число от нея съответства
+                    $quantityInPack = 1;
+                    if(isset($rec->indPackagingId)){
+                        if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->indPackagingId)){
+                            $quantityInPack = $packRec->quantity;
+                        }
                     }
+                    $quantity = round(($rec->quantity / $quantityInPack), 3);
                 }
-                
-                $quantity = round(($rec->quantity / $quantityInPack), 2);
             }
 
             // Колко е заработката за 1 човек
             $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
             $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
-            
+
             $date = dt::verbal2mysql($rec->createdOn, false);
             foreach ($persons as $personId) {
                 $key = "{$personId}|{$classId}|{$rec->taskId}|{$rec->state}|{$date}|{$indicatorId}";
