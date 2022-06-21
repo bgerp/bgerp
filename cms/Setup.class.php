@@ -166,7 +166,7 @@ class cms_Setup extends core_ProtoSetup
         
         // Кофа за снимки
         $Bucket = cls::get('fileman_Buckets');
-        $html .= $Bucket->createBucket('gallery_Pictures', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png,ico', '6MB', 'user', 'every_one');
+        $html .= $Bucket->createBucket('gallery_Pictures', 'Снимки', 'jpg,jpeg,image/jpeg,gif,png,ico', '20MB', 'user', 'every_one');
         
         // Кофа за видео
         $Bucket = cls::get('fileman_Buckets');

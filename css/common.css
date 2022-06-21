@@ -2795,7 +2795,7 @@ a.lang {
     border-style: outset;
     border: 1px solid #9999cc; }
 
-.narrow .richtext {
+.narrow .richtext, .hyphen {
   -webkit-hyphens: auto;
   -moz-hyphens: auto;
   -ms-hyphens: auto;

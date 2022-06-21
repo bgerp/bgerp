@@ -305,7 +305,7 @@ class fileman_Log extends core_Manager
                 
                 // Вземаме записите за кофата
                 $bucketRec = fileman_Buckets::fetch($bucketId);
-                
+
                 // Вземаме максималния размер за файл в кофата
                 $query->where("#fileSize < '{$bucketRec->maxSize}'");
                 
@@ -417,14 +417,11 @@ class fileman_Log extends core_Manager
                 // Съкращаваме дължината на името
                 $fileNameVerb = str::limitLen($fileNameVerb, 30);
                 
-                // Хифенираме името на файла
-                $fileNameVerb = core_String::getHyphenWord($fileNameVerb);
-                
                 $id = 'last_' . $rec->id;
                 
                 // Атрибутите на линковете
-                $attr = array('onclick' => "if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();", 'class' => 'file-log-link');
-                
+                $attr = array('onclick' => "if(window.opener.{$callback}('{$fh}','{$fileName}') != true) self.close(); else self.focus();", 'class' => 'file-log-link hyphen');
+
                 // Името на файла да е линк с посочените атрибути
                 $fileNameLink = ht::createLink($fileNameVerb, '#', null, $attr);
                 
