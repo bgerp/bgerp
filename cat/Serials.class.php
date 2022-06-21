@@ -101,7 +101,7 @@ class cat_Serials extends core_Manager
      * @param string $sourceClassId  - клас
      * @param string $sourceObjectId - ид на обект
      *
-     * @return int $serial
+     * @return string|null $serial  - генериран сериен номер или null ако не може
      */
     public static function generateSerial($sourceClassId = null, $sourceObjectId = null)
     {
