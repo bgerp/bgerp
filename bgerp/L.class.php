@@ -238,7 +238,7 @@ class bgerp_L extends core_Manager
             $showLoginButton = false;
 
             // Ако има логване от този браузър, показваме бутона за логване
-            if (core_LoginLog::getUserIdForAutocomplete(1, false)) {
+            if (core_LoginLog::getUserIdForAutocomplete(1, false) && !core_Users::getCurrent()) {
                 $showLoginButton = true;
             }
 
