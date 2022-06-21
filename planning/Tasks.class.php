@@ -1196,10 +1196,13 @@ class planning_Tasks extends core_Master
 
         if($countAssets){
             $form->setField('assetId', 'input');
-            $form->setOptions('assetId', array('' => '') + $fixedAssetOptions);
             if($countAssets == 1 && empty($rec->id)){
                 $form->setDefault('assetId', key($fixedAssetOptions));
+            } else {
+                $fixedAssetOptions = array('' => '') + $fixedAssetOptions;
             }
+
+            $form->setOptions('assetId', $fixedAssetOptions);
         } else {
             $form->setField('assetId', 'input=none');
         }
