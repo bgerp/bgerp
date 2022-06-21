@@ -192,7 +192,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         $form->setOptions('productId', array('' => '') + $productOptions);
-        //$form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
+        $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
 
         if ($rec->type == 'production') {
             if($masterRec->isFinal != 'yes'){
