@@ -144,7 +144,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=20)', 'caption=Оператори');
-        $this->FLD('date', 'datetime', 'caption=Дата,focus,remember');
+        $this->FLD('date', 'datetime', 'caption=Дата,remember');
 
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
@@ -192,7 +192,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         $form->setOptions('productId', array('' => '') + $productOptions);
-        $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
+        //$form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
 
         if ($rec->type == 'production') {
             if($masterRec->isFinal != 'yes'){
