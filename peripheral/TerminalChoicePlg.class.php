@@ -18,11 +18,6 @@ class peripheral_TerminalChoicePlg extends core_Plugin
 {
     function on_PrepareLoginForm($mvc, &$form)
     {
-        if ($_GET['ret_url']) {
-            
-            return ;
-        }
-        
         $dArr = peripheral_Devices::getDevices('peripheral_TerminalIntf');
         
         if (empty($dArr)) {
@@ -36,13 +31,15 @@ class peripheral_TerminalChoicePlg extends core_Plugin
         foreach ($dArr as $dId => $dRec) {
             $tArr[$dId] = $dRec->name;
         }
-        
-        $form->InputFields .= ',terminal';
-        
+
         $form->setOptions('terminal', $tArr);
         
-        if (!empty($tArr)) {
+        if (!empty($tArr) && !$_GET['ret_url']) {
             $form->setDefault('terminal', key($tArr));
+        }
+
+        if (!empty($tArr) || !$_GET['ret_url']) {
+            $form->InputFields .= ',terminal';
         }
     }
     
