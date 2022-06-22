@@ -82,9 +82,11 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
         
         if (!empty($pArr)) {
             $data->form->setSuggestions('name', $pArr);
-            
-            $data->form->setField('name', array('removeAndRefreshForm' => implode('|', $Driver->fieldArr)));
-            
+
+            if ($Driver->fieldArr) {
+                $data->form->setField('name', array('removeAndRefreshForm' => implode('|', $Driver->fieldArr)));
+            }
+
             $data->form->input('name');
             
             if ($data->form->rec->name && $pArr[$data->form->rec->name]) {

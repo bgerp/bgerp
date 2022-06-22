@@ -194,9 +194,15 @@ class planning_ProductionTaskDetails extends doc_Detail
         $form->setOptions('productId', array('' => '') + $productOptions);
         if(!Mode::is('terminalProgressForm')){
             $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
+            $form->setFieldTypeParams('date', array('defaultTime' => trans_Setup::get('START_WORK_TIME')));
         }
         if(!empty($rec->date)){
-            $form->info = "<div class='richtext-info-no-image'>" . tr('Въвеждане на прогрес за конкретна дата') . "</div>";
+            $today = dt::today();
+            $checkDate = dt::verbal2mysql($rec->date, false);
+            if($checkDate != $today){
+                $dateMsg = ($checkDate < $today) ? tr('Датата е в миналото') : tr('Датата е в бъдещето');
+                $form->info = "<div class='richtext-info-no-image'>{$dateMsg}!</div>";
+            }
         }
 
         if ($rec->type == 'production') {
