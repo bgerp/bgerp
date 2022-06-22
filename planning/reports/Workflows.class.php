@@ -190,11 +190,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $quantity = $tRec->quantity;
 
-
-                // Иначе взима се 1-ца колко е в мярката/опаковката и се изчислява на какво число от нея съответства
                 $quantityInPack = 1;
                 if (isset($iRec->indPackagingId)) {
                     if ($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId)) {
+
                         $quantityInPack = $packRec->quantity;
                     }
 
@@ -348,7 +347,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             arr::sortObjects($recs, 'taskId', 'asc');
         }
 
-//bp($recs);
+
         return $recs;
     }
 
@@ -430,16 +429,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $Double->params['decimals'] = 2;
         $row = new stdClass();
 
-        $dev = 1;
-        if (cat_UoM::fetch($dRec->measureId)->name == 'хиляди бройки' && $dRec->measureId != $dRec->labelMeasure) {
-            $dev = 1000;
-        }
 
         $row->taskId = planning_Tasks::getHyperlink($dRec->taskId, true);
         $row->article = cat_Products::getHyperlink($dRec->productId, true);
 
         $row->measureId = cat_UoM::getShortName($dRec->measureId);
-        $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity/$dev);
+        $row->quantity = core_Type::getByName('double(decimals=2)')->toVerbal($dRec->quantity);
 
         $row->labelMeasure = isset($dRec->labelMeasure) ? cat_UoM::getShortName($dRec->labelMeasure) : '';
 
@@ -470,7 +465,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
 
-        $row->min = $Double->toVerbal($dRec->indTimeSum / 60 / $dev);
+        $row->min = $Double->toVerbal($dRec->indTimeSum / 60 );
         return $row;
     }
 
