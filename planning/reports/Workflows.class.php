@@ -21,6 +21,13 @@ class planning_reports_Workflows extends frame2_driver_TableData
      */
     public $canSelectDriver = 'ceo,planning,hrMaster';
 
+    /**
+     * Кои полета от листовия изглед да може да се сортират
+     *
+     * @var int
+     */
+    protected $sortableListFields = 'employees';
+
 
     /**
      * Брой записи на страница
