@@ -192,7 +192,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $quantityInPack = 1;
                 if (isset($iRec->indPackagingId)) {
-                    if ($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId,)) {
+                    if ($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId)) {
 
                         $quantityInPack = $packRec->quantity;
                     }
