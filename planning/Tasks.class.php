@@ -1064,17 +1064,17 @@ class planning_Tasks extends core_Master
 
             $productId4Form = ($rec->isFinal == 'yes') ? $originRec->productId : $rec->productId;
             $productRec = cat_Products::fetch($productId4Form, 'canConvert,canStore,measureId');
+            $similarMeasures = cat_UoM::getSameTypeMeasures($productRec->measureId);
             if($rec->isFinal == 'yes'){
                 $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция') . "</div>";
-                $similarMeasures = cat_UoM::getSameTypeMeasures($productRec->measureId);
-
-                // Ако артикула е този от заданието то допустимите мерки са тази от заданието и втората му мярка ако има
-                if(cat_UoM::fetchField($originRec->packagingId, 'type') == 'uom' && !array_key_exists($originRec->packagingId, $similarMeasures)){
+                $measureOptions = array();
+                if(array_key_exists($originRec->packagingId, $similarMeasures)){
                     $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
-                } else {
-                    $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
                 }
 
+                if(!array_key_exists($productRec->measureId, $measureOptions)){
+                    $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
+                }
                 if(isset($originRec->secondMeasureId)){
                     $secondMeasureId = ($originRec->secondMeasureId == $originRec->packagingId) ? $productRec->measureId : $originRec->secondMeasureId;
                     $measureOptions[$secondMeasureId] = cat_UoM::getTitleById($secondMeasureId, false);
@@ -1092,6 +1092,10 @@ class planning_Tasks extends core_Master
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
             if($rec->isFinal == 'yes'){
                 $defaultPlannedQuantity = $originRec->quantity;
+                if($rec->measureId && array_key_exists($rec->measureId, $similarMeasures)){
+                    $defaultPlannedQuantity = cat_UoM::convertValue($defaultPlannedQuantity, $productRec->measureId, $rec->measureId);
+                }
+
                 if(isset($originRec->secondMeasureId) && $rec->measureId == $originRec->secondMeasureId){
                     if($secondMeasureRec = cat_products_Packagings::getPack($originRec->productId, $rec->measureId)){
                         $defaultPlannedQuantity /= $secondMeasureRec->quantity;
