@@ -1091,7 +1091,6 @@ class planning_Tasks extends core_Master
             }
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
             if($rec->isFinal == 'yes'){
-                //bp($originRec, cat_UoM::fetch($originRec->packagingId));
                 $defaultPlannedQuantity = $originRec->quantity;
                 if(isset($originRec->secondMeasureId) && $rec->measureId == $originRec->secondMeasureId){
                     if($secondMeasureRec = cat_products_Packagings::getPack($originRec->productId, $rec->measureId)){
@@ -1554,6 +1553,7 @@ class planning_Tasks extends core_Master
     public static function getProducedQuantityForJob($jobId)
     {
         $jobRec = planning_Jobs::fetchRec($jobId);
+        $productMeasureId = cat_Products::fetchField($jobRec->productId, 'measureId');
 
         $sum = 0;
         $tQuery = planning_Tasks::getQuery();
@@ -1567,6 +1567,9 @@ class planning_Tasks extends core_Master
             if(array_key_exists($jobRec->packagingId, $similarMeasures)){
                 $sum *= cat_UoM::convertValue($tRec->quantityInPack, $tRec->measureId, $jobRec->packagingId);
             } elseif($tRec->measureId != $jobRec->packagingId){
+                if($tRec->measureId == $productMeasureId){
+                    $tRec->quantityInPack = $jobRec->quantityInPack;
+                }
                 $sum *= $tRec->quantityInPack;
             }
         }
