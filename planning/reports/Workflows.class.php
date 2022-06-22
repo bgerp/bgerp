@@ -188,11 +188,21 @@
                  $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
                  $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity');
 
-                 $quantity = ($iRec->measureId == $iRec->indPackagingId) ? $iRec->totalQuantity : $iRec->quantityInPack ;
+                 $quantity = $tRec->quantity;
 
-                 if(!empty($iRec->indTime)){
-                     $iRec->indTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $quantity);
+
+                     // Иначе взима се 1-ца колко е в мярката/опаковката и се изчислява на какво число от нея съответства
+                     $quantityInPack = 1;
+                     if(isset($iRec->indPackagingId)){
+                         if($packRec = cat_products_Packagings::getPack($tRec->productId, $iRec->indPackagingId)){
+                             $quantityInPack = $packRec->quantity;
+                         }
+
+                     $quantity = round(($tRec->quantity / $quantityInPack), 3);
                  }
+
+                 $normTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $quantity);
+
                   $divisor = countR(keylist::toArray($tRec->employees));
                  if ($rec->typeOfReport == 'short') {
 
@@ -206,7 +216,7 @@
                  if ($divisor){
 
                      $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
-                     $indTimeSum = $timeAlocation * $iRec->indTime;
+                     $indTimeSum = $timeAlocation * $normTime;
 
                  }else{
                      $indTimeSum = 0;
@@ -220,7 +230,7 @@
                          
                          'taskId' => $tRec->taskId,
                          'detailId' => $tRec->id,
-                         'indTime' => $iRec->indTime,
+                         'indTime' => $normTime,
                          'indTimeSum' => $indTimeSum,
                          'indPackagingId' => $iRec->indPackagingId,
                          'indTimeAllocation' => $iRec->indTimeAllocation,
@@ -338,7 +348,7 @@
              arr::sortObjects($recs, 'taskId', 'asc');
          }
 
-
+//bp($recs);
          return $recs;
      }
      
@@ -454,11 +464,9 @@
              $row->assetResources = '';
          }
 
-         $m = ($dRec->measureId == $dRec->labelMeasure) ? 1 : $dRec->labelQuantity;
-
-         $indTimeSumm = ($dRec->indTime * $m);
-         //$row->min = $Time->toVerbal($indTimeSumm);
-         $row->min =$Double->toVerbal($indTimeSumm/60);
+         //$indTimeAll = ($dRec->indTime * $dRec->quantity);
+         //$row->min = $Time->toVerbal($indTimeAll);
+         $row->min =$Double->toVerbal($dRec->indTimeSum/60);
          return $row;
      }
      

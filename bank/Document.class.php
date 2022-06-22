@@ -515,7 +515,7 @@ abstract class bank_Document extends deals_PaymentDocument
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         $row->title = $mvc->getLink($rec->id, 0);
-        
+
         if ($fields['-single']) {
             if ($rec->dealCurrencyId != $rec->currencyId) {
                 $baseCurrencyId = acc_Periods::getBaseCurrencyId($rec->valior);
@@ -532,12 +532,17 @@ abstract class bank_Document extends deals_PaymentDocument
                 $row->rate = cls::get('type_Double', array('params' => array('decimals' => 5)))->toVerbal($rate);
                 $row->rateFromCurrencyId = currency_Currencies::getCodeById($rateFromCurrencyId);
                 $row->rateToCurrencyId = currency_Currencies::getCodeById($rateToCurrencyId);
+
+                if(!doc_plg_HidePrices::canSeePriceFields($rec)) {
+                    $row->amountDeal = doc_plg_HidePrices::getBuriedElement();
+                    $row->rate = doc_plg_HidePrices::getBuriedElement();
+                }
             } else {
                 unset($row->dealCurrencyId);
                 unset($row->amountDeal);
                 unset($row->rate);
             }
-            
+
             // Вземаме данните за нашата фирма
             $headerInfo = deals_Helper::getDocumentHeaderInfo($rec->contragentClassId, $rec->contragentId, $row->contragentName);
             foreach (array('MyCompany', 'MyAddress', 'contragentName', 'contragentAddress') as $fld) {

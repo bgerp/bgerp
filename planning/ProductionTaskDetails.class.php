@@ -192,7 +192,12 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         $form->setOptions('productId', array('' => '') + $productOptions);
-        $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
+        if(!Mode::is('terminalProgressForm')){
+            $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
+        }
+        if(!empty($rec->date)){
+            $form->info = "<div class='richtext-info-no-image'>" . tr('Въвеждане на прогрес за конкретна дата') . "</div>";
+        }
 
         if ($rec->type == 'production') {
             if($masterRec->isFinal != 'yes'){
@@ -1010,21 +1015,15 @@ class planning_ProductionTaskDetails extends doc_Detail
             
             $quantity = $rec->quantity;
             if($rec->type == 'production'){
-                if($rec->indPackagingId == $rec->labelPackagingId){
 
-                    // Ако мярката/опаковката за етикетиране са една и съща, значи ще е за 1-ца нормата
-                    $quantity = 1;
-                } else {
-
-                    // Иначе взима се 1-ца колко е в мярката/опаковката и се изчислява на какво число от нея съответства
-                    $quantityInPack = 1;
-                    if(isset($rec->indPackagingId)){
-                        if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->indPackagingId)){
-                            $quantityInPack = $packRec->quantity;
-                        }
+                // Иначе взима се 1-ца колко е в мярката/опаковката и се изчислява на какво число от нея съответства
+                $quantityInPack = 1;
+                if(isset($rec->indPackagingId)){
+                    if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->indPackagingId)){
+                        $quantityInPack = $packRec->quantity;
                     }
-                    $quantity = round(($rec->quantity / $quantityInPack), 3);
                 }
+                $quantity = round(($rec->quantity / $quantityInPack), 3);
             }
 
             // Колко е заработката за 1 човек
