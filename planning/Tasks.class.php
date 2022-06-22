@@ -1561,17 +1561,18 @@ class planning_Tasks extends core_Master
         $tQuery->where("#state != 'rejected' AND #state != 'pending'");
         $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack');
         while($tRec = $tQuery->fetch()){
-            $sum = $tRec->totalQuantity - $tRec->scrappedQuantity;
+            $sumRec = $tRec->totalQuantity - $tRec->scrappedQuantity;
             $similarMeasures = cat_UoM::getSameTypeMeasures($tRec->measureId);
 
             if(array_key_exists($jobRec->packagingId, $similarMeasures)){
-                $sum *= cat_UoM::convertValue($tRec->quantityInPack, $tRec->measureId, $jobRec->packagingId);
+                $sumRec *= cat_UoM::convertValue($tRec->quantityInPack, $tRec->measureId, $jobRec->packagingId);
             } elseif($tRec->measureId != $jobRec->packagingId){
                 if($tRec->measureId == $productMeasureId){
                     $tRec->quantityInPack = $jobRec->quantityInPack;
                 }
-                $sum *= $tRec->quantityInPack;
+                $sumRec *= $tRec->quantityInPack;
             }
+            $sum += $sumRec;
         }
 
         $quantity = (!empty($sum)) ? round($sum, 5) : 0;
