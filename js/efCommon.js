@@ -3253,7 +3253,9 @@ jQuery.extend({
                 if (/\s/.test(node.data[match.index])) {
                     match.index++;
                 }
-                var wordNode = node.splitText(match.index);
+
+                var wordNode = node.splitText(match.index + match[1].trim().length);
+
                 wordNode.splitText(match[2].length);
                 var wordClone = wordNode.cloneNode(true);
                 highlight.appendChild(wordClone);
@@ -3316,7 +3318,7 @@ jQuery.fn.highlight = function(words, options) {
         pattern = "\\b" + pattern + "\\b";
     }
     if (settings.startsWith) {
-        pattern = "(\\s|^)" + pattern;
+        pattern = "(\\s|^|[\\W])" + pattern;
     }
     var re = new RegExp(pattern, flag);
 

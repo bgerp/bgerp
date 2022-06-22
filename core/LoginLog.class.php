@@ -245,10 +245,19 @@ class core_LoginLog extends core_Manager
     /**
      * Връща id на потребителя, който се е логва от този браузър
      *
-     * @return mixed
+     * @param integer|null $loginAutocompleteCnt
+     * @param boolean $checkUsers
+     *
+     * @return boolean|integer
      */
-    public static function getUserIdForAutocomplete()
+    public static function getUserIdForAutocomplete($loginAutocompleteCnt = null, $checkUsers = true)
     {
+        $conf = core_Packs::getConfig('core');
+
+        if (!isset($loginAutocompleteCnt)) {
+            $loginAutocompleteCnt = (int) $conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE;
+        }
+
         // id на браузъра
         $brid = log_Browsers::getBrid(false);
         
@@ -258,18 +267,14 @@ class core_LoginLog extends core_Manager
             return false;
         }
         
-        $userId = false;
-        
         $cnt = 0;
-        
-        $conf = core_Packs::getConfig('core');
         
         // Ограничение на броя на дните
         $daysLimit = (int) $conf->CORE_LOGIN_LOG_FETCH_DAYS_LIMIT;
-        
+
         // Ограничаваме времето на търсене
         $maxCreatedOn = dt::subtractSecs($daysLimit);
-        
+
         // Последния n на брой успешни логвания от този браузър
         $query = static::getQuery();
         $query->where(array("#brid = '[#1#]'", $brid));
@@ -277,29 +282,39 @@ class core_LoginLog extends core_Manager
         $query->where("#status = 'success'");
         $query->orWhere("#status = 'first_login'");
         
-        $query->limit((int) $conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE);
-        
+        $query->limit((int) $loginAutocompleteCnt);
+
         $query->orderBy('createdOn', 'DESC');
-        
-        // Ако е логнат само от един потребител
-        while ($rec = $query->fetch()) {
-            $cnt++;
-            if ($userId === false) {
-                $userId = $rec->userId;
-            } else {
-                if ($userId != $rec->userId) {
-                    
-                    return false;
+
+        $userId = false;
+
+        if ($checkUsers) {
+            // Ако е логнат само от един потребител
+            while ($rec = $query->fetch()) {
+                $cnt++;
+                if ($userId === false) {
+                    $userId = $rec->userId;
+                } else {
+                    if ($userId != $rec->userId) {
+
+                        return false;
+                    }
                 }
             }
+
+            // Ако има по - малко записи от лимита
+            if ($cnt < (int) $loginAutocompleteCnt) {
+
+                return false;
+            }
+        } else {
+            $cnt = $query->count();
+            if ($cnt == $loginAutocompleteCnt) {
+                $rec = $query->fetch();
+                $userId = $rec->userId;
+            }
         }
-        
-        // Ако има по - малко записи от лимита
-        if ($cnt < (int) $conf->CORE_SUCCESS_LOGIN_AUTOCOMPLETE) {
-            
-            return false;
-        }
-        
+
         return $userId;
     }
     

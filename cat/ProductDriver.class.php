@@ -771,10 +771,15 @@ abstract class cat_ProductDriver extends core_BaseClass
      * @param mixed $sourceClassId  - клас
      * @param mixed $sourceObjectId - ид на обект
      *
-     * @return string $serial       - генериран сериен номер
+     * @return string|null $serial  - генериран сериен номер или null ако не може
      */
     public function generateSerial($id, $sourceClassId = null, $sourceObjectId = null)
     {
+        if(isset($sourceClassId) && cls::get($sourceClassId) instanceof planning_Tasks){
+            $canStore = cat_Products::fetchField($id, 'canStore');
+            if($canStore == 'no') return;
+        }
+
         return cat_Serials::generateSerial($sourceClassId, $sourceObjectId);
     }
     
