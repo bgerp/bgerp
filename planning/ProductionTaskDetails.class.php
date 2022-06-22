@@ -192,7 +192,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         $form->setOptions('productId', array('' => '') + $productOptions);
-        $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
+        if(!Mode::is('terminalProgressForm')){
+            $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
+        }
         if(!empty($rec->date)){
             $form->info = "<div class='richtext-info-no-image'>" . tr('Въвеждане на прогрес за конкретна дата') . "</div>";
         }
