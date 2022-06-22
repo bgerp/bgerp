@@ -720,6 +720,7 @@ class price_Updates extends core_Manager
 
         $tpl = new core_ET("<div><div>[#title#]</div>[#RULES#]<!--ET_BEGIN RULE--><div style='margin:5px;text-align:center;'>[#RULE#]</div><!--ET_END RULE--></div>");
         $isFromProduct = $data->masterMvc instanceof cat_Products;
+        $caption = tr('Правила за обновяване на себестойност');
 
         if(countR($data->recs)){
             foreach ($data->recs as $rec){
@@ -736,7 +737,7 @@ class price_Updates extends core_Manager
             }
         } else {
             $style = (!($data->masterMvc instanceof cat_Products)) ? '' : 'text-align:center;';
-            $tpl->append("<div class='quiet' style='{$style}'>" . tr("Няма зададено правило за обновяване на себестойност") . "</div>", 'RULES');
+            $caption = "<span class='quiet'>" . tr('Няма зададени') .":</span> {$caption}";
         }
 
         $btnPlaceholder = 'title';
@@ -749,7 +750,7 @@ class price_Updates extends core_Manager
         } else {
             $btnPlaceholder = 'updateRuleBtn';
             if(isset($data->updateCostBtn)) {
-                $tpl->append(tr('Правила за обновяване на себестойност'), 'updateInfoTitle');
+                $tpl->append($caption, 'updateInfoTitle');
             }
         }
 
