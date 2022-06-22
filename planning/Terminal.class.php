@@ -429,7 +429,6 @@ class planning_Terminal extends peripheral_Terminal
         $form->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $form->FLD('weight', 'double(Min=0)', "class=w100 weightField{$mandatoryClass},placeholder=Тегло|* (|кг|*)");
         $form->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=100,columns=3)', 'elementId=employeeSelect,placeholder=Оператори,class=w100');
-        $form->FLD('date', 'datetime', 'caption=Дата,remember');
         $form->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id,select2MinItems=100)', 'elementId=fixedAssetSelect,placeholder=Оборудване,class=w100');
         $form->FLD('recId', 'int', 'input=hidden,silent');
         $form->rec->taskId = $currentTaskId;
