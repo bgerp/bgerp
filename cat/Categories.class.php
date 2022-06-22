@@ -559,6 +559,10 @@ class cat_Categories extends core_Master
         if($Driver instanceof planning_interface_StepProductDriver){
             if(!isset($metasArr['canManifacture'])){
                 $error = "Артикулът е етап от производство и трябва да остане производим|*!";
+            } elseif(!isset($metasArr['canSell'])){
+                $error = "Артикулът е етап от производство и не може да е продаваем|*!";
+            } elseif(!isset($metasArr['canBuy'])){
+                $error = "Артикулът е етап от производство и не може да е купуваем|*!";
             } elseif(!isset($metasArr['canConvert'])){
                 $error = "Артикулът е етап от производство и трябва да остане вложим|*!";
             } elseif(isset($productId)) {

@@ -1064,16 +1064,17 @@ class planning_Tasks extends core_Master
 
             $productId4Form = ($rec->isFinal == 'yes') ? $originRec->productId : $rec->productId;
             $productRec = cat_Products::fetch($productId4Form, 'canConvert,canStore,measureId');
+            $similarMeasures = cat_UoM::getSameTypeMeasures($productRec->measureId);
             if($rec->isFinal == 'yes'){
                 $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция') . "</div>";
-
-                // Ако артикула е този от заданието то допустимите мерки са тази от заданието и втората му мярка ако има
-                if(cat_UoM::fetchField($originRec->packagingId, 'type') == 'uom'){
+                $measureOptions = array();
+                if(array_key_exists($originRec->packagingId, $similarMeasures)){
                     $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
-                } else {
-                    $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
                 }
 
+                if(!array_key_exists($productRec->measureId, $measureOptions)){
+                    $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
+                }
                 if(isset($originRec->secondMeasureId)){
                     $secondMeasureId = ($originRec->secondMeasureId == $originRec->packagingId) ? $productRec->measureId : $originRec->secondMeasureId;
                     $measureOptions[$secondMeasureId] = cat_UoM::getTitleById($secondMeasureId, false);
@@ -1091,6 +1092,10 @@ class planning_Tasks extends core_Master
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
             if($rec->isFinal == 'yes'){
                 $defaultPlannedQuantity = $originRec->quantity;
+                if($rec->measureId && array_key_exists($rec->measureId, $similarMeasures)){
+                    $defaultPlannedQuantity = cat_UoM::convertValue($defaultPlannedQuantity, $productRec->measureId, $rec->measureId);
+                }
+
                 if(isset($originRec->secondMeasureId) && $rec->measureId == $originRec->secondMeasureId){
                     if($secondMeasureRec = cat_products_Packagings::getPack($originRec->productId, $rec->measureId)){
                         $defaultPlannedQuantity /= $secondMeasureRec->quantity;
@@ -1148,7 +1153,7 @@ class planning_Tasks extends core_Master
                 $form->setField('weightDeviationAverageWarning', 'input=none');
                 $form->setDefault('indPackagingId', $rec->measureId);
             }
-            
+
             if($measuresCount == 1){
                 $measureShort = cat_UoM::getShortName($rec->measureId);
                 $form->setField('plannedQuantity', "unit={$measureShort}");
@@ -1552,6 +1557,7 @@ class planning_Tasks extends core_Master
     public static function getProducedQuantityForJob($jobId)
     {
         $jobRec = planning_Jobs::fetchRec($jobId);
+        $productMeasureId = cat_Products::fetchField($jobRec->productId, 'measureId');
 
         $sum = 0;
         $tQuery = planning_Tasks::getQuery();
@@ -1559,10 +1565,18 @@ class planning_Tasks extends core_Master
         $tQuery->where("#state != 'rejected' AND #state != 'pending'");
         $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack');
         while($tRec = $tQuery->fetch()){
-            $sum = $tRec->totalQuantity - $tRec->scrappedQuantity;
-            if($tRec->measureId != $jobRec->packagingId){
-                $sum *= $tRec->quantityInPack;
+            $sumRec = $tRec->totalQuantity - $tRec->scrappedQuantity;
+            $similarMeasures = cat_UoM::getSameTypeMeasures($tRec->measureId);
+
+            if(array_key_exists($jobRec->packagingId, $similarMeasures)){
+                $sumRec *= cat_UoM::convertValue($tRec->quantityInPack, $tRec->measureId, $jobRec->packagingId);
+            } elseif($tRec->measureId != $jobRec->packagingId){
+                if($tRec->measureId == $productMeasureId){
+                    $tRec->quantityInPack = $jobRec->quantityInPack;
+                }
+                $sumRec *= $tRec->quantityInPack;
             }
+            $sum += $sumRec;
         }
 
         $quantity = (!empty($sum)) ? round($sum, 5) : 0;
