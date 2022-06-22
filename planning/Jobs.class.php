@@ -1307,7 +1307,7 @@ class planning_Jobs extends core_Master
         $departments = planning_Centers::getCentersForTasks($jobRec->id);
         $caption = tr('Нова операция в център на дейност');
         if($readyOptions){
-            $caption .= "&nbsp; <a id= 'btnShowTasks' href=\"javascript:toggleDisplayByClass('btnShowTasks', 'newTaskBtn')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn show-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>";
+            $caption .= "&nbsp; <a id= 'btnShowTasks' href=\"javascript:toggleDisplayByClass('btnShowTasks', 'newTaskBtn')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn", title="' . tr('Допълнителна информация за транспорта') . "\"</a>";
         }
         $options[] = (object)array('DEFAULT_TASK_CAPTION' => $caption, 'DEFAULT_TASK_LINK' => null, 'DEFAULT_TASK_TR_CLASS' => 'selectTaskFromJobRow', 'DEFAULT_TASK_CAPTION_COLSPAN' => 2);
 
