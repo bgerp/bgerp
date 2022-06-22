@@ -91,9 +91,11 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
             
             if ($data->form->rec->name && $pArr[$data->form->rec->name]) {
                 $pRec = $clsName::fetch(array("#{$nameField} = '[#1#]'", $data->form->rec->name));
-                
-                foreach ($Driver->fieldArr as $fName) {
-                    $data->form->setDefault($fName, $pRec->{$fName});
+
+                if ($Driver->fieldArr) {
+                    foreach ($Driver->fieldArr as $fName) {
+                        $data->form->setDefault($fName, $pRec->{$fName});
+                    }
                 }
             }
         }
@@ -125,11 +127,13 @@ abstract class peripheral_Terminal extends peripheral_DeviceDriver
             $dRec = new stdClass();
             $msgStr = 'Дабавяне на|* ';
         }
-        
-        foreach ($Driver->fieldArr as $fName) {
-            $dRec->{$fName} = $rec->{$fName};
+
+        if ($Driver->fieldArr) {
+            foreach ($Driver->fieldArr as $fName) {
+                $dRec->{$fName} = $rec->{$fName};
+            }
         }
-        
+
         $dRec->{$nameField} = $rec->{$nameField};
         
         if ($clsName::save($dRec)) {
