@@ -146,7 +146,7 @@ class marketing_Router extends core_Manager
             $pQuery->where(array("#egn IS NULL OR #egn = '' OR #egn = '[#1#]'", $egn));
         }
 
-        while ($personRec = $pQuery->fetchAll()) {
+        while ($personRec = $pQuery->fetch()) {
             $emails = type_Emails::toArray($personRec->email);
             if (in_array($email, $emails)) {
                 $rec = (object) array('id' => $personRec->id, 'inCharge' => $inCharge);
