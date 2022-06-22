@@ -983,10 +983,10 @@ class planning_Jobs extends core_Master
         if (($action == 'write' || $action == 'add' || $action == 'edit') && isset($rec)){
 
             if(isset($rec->productId)) {
-                $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,generic');
+                $productRec = cat_Products::fetch($rec->productId, 'state,canManifacture,generic,innerClass');
 
-                // Трябва да е активиран
-                if ($productRec->state != 'active') {
+                // Трябва да е активиран и да не е производствен етап
+                if ($productRec->state != 'active' || $productRec->innerClass == planning_interface_StepProductDriver::getClassId()) {
                     $res = 'no_one';
                 }
 

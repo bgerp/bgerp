@@ -223,11 +223,8 @@ class cat_products_Usage extends core_Manager
      */
     private function renderJobs($data)
     {
-        if ($data->hide === true) {
-            
-            return;
-        }
-        
+        if ($data->hide === true) return;
+
         $tpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
         $title = tr('Задания за производство');
         $tpl->append($title, 'title');
@@ -273,6 +270,11 @@ class cat_products_Usage extends core_Manager
      */
     private function prepareJobs(&$data)
     {
+        if($data->masterData->rec->innerClass == planning_interface_StepProductDriver::getClassId()){
+            $data->hide = true;
+            return;
+        }
+
         $masterRec = $data->masterData->rec;
         $data->rows = $data->recs = array();
         
