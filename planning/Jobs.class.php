@@ -1177,8 +1177,8 @@ class planning_Jobs extends core_Master
 
         return $noteQuery;
     }
-    
-    
+
+
     /**
      * Преизчисляваме какво количество е произведено по заданието
      *
