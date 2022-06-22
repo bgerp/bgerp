@@ -736,7 +736,6 @@ class price_Updates extends core_Manager
                 $tpl->append($bTpl, 'RULES');
             }
         } else {
-            $style = (!($data->masterMvc instanceof cat_Products)) ? '' : 'text-align:center;';
             $caption = "<span class='quiet'>" . tr('Няма зададени') .":</span> {$caption}";
         }
 

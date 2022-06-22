@@ -1916,7 +1916,8 @@ class planning_Tasks extends core_Master
                         $paramExt[1] = $paramExt[0];
                         $paramExt[0] = " ";
                     }
-                    $paramFields["param_{$paramId}"] = "|Планиране|*->|*<small>{$paramExt[0]}</small>->|*<small>{$paramExt[1]}</small>";
+                    $paramExt[1] = ht::createHint($paramExt[1], cat_Params::getVerbal($paramId, 'typeExt'));
+                    $paramFields["param_{$paramId}"] = "|*<small>{$paramExt[1]}</small>";
                     $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'tdClass=taskParamCol');
                 }
                 arr::placeInAssocArray($data->listFields, $paramFields, null, 'progress');
