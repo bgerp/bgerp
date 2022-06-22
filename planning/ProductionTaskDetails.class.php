@@ -603,6 +603,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $foundRec->measureId;
         }
 
+        $rec->quantity = cat_UoM::round($measureId, $rec->quantity);
+        $quantity = cat_UoM::round($measureId, $rec->quantity);
+        $row->quantity = $quantity;
         $row->measureId = cat_UoM::getShortName($measureId);
         $labelPackagingName = cat_UoM::getShortName($labelPackagingId);
         if (cat_UoM::fetchField($measureId, 'type') != 'uom') {
@@ -619,6 +622,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
         $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/y l');
+
     }
 
 
