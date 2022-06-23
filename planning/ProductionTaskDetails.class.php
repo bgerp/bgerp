@@ -424,6 +424,14 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
                 }
 
+                if($rec->type == 'production'){
+                    $productMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
+                    $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
+                    if(array_key_exists($masterRec->labelPackagingId, $similarMeasures) && $masterRec->measureId != $productMeasureId){
+                        $rec->quantity = cat_UoM::convertValue($rec->quantity, $masterRec->measureId, $productMeasureId);
+                    }
+                }
+
                 if($rec->_isKgMeasureId){
                     $rec->quantity = !empty($rec->quantity) ? $rec->quantity : ((!empty($rec->weight)) ? $rec->weight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1));
                     $rec->weight = $rec->weight;
@@ -602,10 +610,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             $measureId = $foundRec->measureId;
             $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $foundRec->measureId;
         }
+        if($taskRec->isFinal == 'yes'){
+            $rec->quantity /= $taskRec->quantityInPack;
+        }
 
-        $rec->quantity = cat_UoM::round($measureId, $rec->quantity);
-        $quantity = cat_UoM::round($measureId, $rec->quantity);
-        $row->quantity = $quantity;
         $row->measureId = cat_UoM::getShortName($measureId);
         $labelPackagingName = cat_UoM::getShortName($labelPackagingId);
         if (cat_UoM::fetchField($measureId, 'type') != 'uom') {
@@ -1007,11 +1015,15 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $result = array();
         $query = self::getQuery();
+        $query->EXT('taskMeasureId', 'planning_Tasks', 'externalName=measureId,externalKey=taskId');
+        $query->EXT('productMeasureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
         $query->EXT('labelPackagingId', 'planning_Tasks', 'externalName=labelPackagingId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
         $query->where("#taskModifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
+
+        //$query->where("#taskId = 718 AND #id = 2215");
 
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
@@ -1022,7 +1034,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
             if (!countR($persons)) continue;
-            
+
             $quantity = $rec->quantity;
             if($rec->type == 'production'){
 

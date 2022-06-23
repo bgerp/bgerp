@@ -592,14 +592,16 @@ class planning_Tasks extends core_Master
         if ($form->isSubmitted()) {
 
             // Ако е финална операция
+            $productId = $rec->productId;
             if($rec->isFinal == 'yes'){
+                $productId = doc_Containers::getDocument($rec->originId)->fetchField('productId');
                 if($otherTaskId = planning_Tasks::fetchField("#originId = {$rec->originId} AND #state != 'rejected' AND #isFinal = 'yes' AND #productId != {$rec->productId}")) {
                     $otherTaskLink = planning_Tasks::getHyperlink($otherTaskId, true);
                     $form->setError('productId', "По заданието вече има операция за друг финален етап|*: {$otherTaskLink}");
                 }
             }
 
-            $packRec = cat_products_Packagings::getPack($rec->productId, $rec->measureId);
+            $packRec = cat_products_Packagings::getPack($productId, $rec->measureId);
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->title = cat_Products::getTitleById($rec->productId);
 
@@ -729,6 +731,12 @@ class planning_Tasks extends core_Master
     }
 
 
+    function act_Test()
+    {
+        $this->updateMaster(724);
+    }
+
+
     /**
      * Обновява данни в мастъра
      *
@@ -740,21 +748,19 @@ class planning_Tasks extends core_Master
     {
         $rec = $this->fetch($id);
         $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy';
-        
+
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
         $dQuery->where("#taskId = {$rec->id} AND #productId = {$productId} AND #type = 'production' AND #state != 'rejected'");
-        $dQuery->XPR('sumQuantity', 'double', "ROUND(SUM(#quantity), 5)");
-        $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
-        $dQuery->XPR('sumScrappedQuantity', 'double', "ROUND(SUM(#scrappedQuantity), 5)");
-        $dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
 
-        // Преизчисляваме общото тегло
-        $res = $dQuery->fetch();
-        $rec->totalWeight = $res->sumWeight;
-        $rec->totalQuantity = $res->sumQuantity;
-        $rec->scrappedQuantity = $res->sumScrappedQuantity;
+        $rec->totalWeight = $rec->totalQuantity = $rec->scrappedQuantity = 0;
+        while($dRec = $dQuery->fetch()){
+            $quantity = $dRec->quantity / $rec->quantityInPack;
+            $rec->totalQuantity += $quantity;
+            $rec->totalWeight += $dRec->sumWeight;
+            $rec->scrappedQuantity += $dRec->scrappedQuantity;
+        }
         
         // Изчисляваме колко % от зададеното количество е направено
         if (!empty($rec->plannedQuantity)) {
@@ -1566,16 +1572,13 @@ class planning_Tasks extends core_Master
         $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack');
         while($tRec = $tQuery->fetch()){
             $sumRec = $tRec->totalQuantity - $tRec->scrappedQuantity;
-            $similarMeasures = cat_UoM::getSameTypeMeasures($tRec->measureId);
-
-            if(array_key_exists($jobRec->packagingId, $similarMeasures)){
-                $sumRec *= cat_UoM::convertValue($tRec->quantityInPack, $tRec->measureId, $jobRec->packagingId);
-            } elseif($tRec->measureId != $jobRec->packagingId){
-                if($tRec->measureId == $productMeasureId){
-                    $tRec->quantityInPack = $jobRec->quantityInPack;
+            if($tRec->measureId != $jobRec->packagingId){
+                if($pQuantity = cat_products_Packagings::getPack($jobRec->productId, $jobRec->packagingId, 'quantity')){
+                    $tRec->quantityInPack = $pQuantity;
+                    $sumRec /= $tRec->quantityInPack;
                 }
-                $sumRec *= $tRec->quantityInPack;
             }
+
             $sum += $sumRec;
         }
 
