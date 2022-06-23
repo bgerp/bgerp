@@ -46,6 +46,12 @@
 			<td>[#planning_Steps_employees#]</td>
 		</tr>
 		<!--ET_END planning_Steps_employees-->
+		<!--ET_BEGIN planning_Steps_showPreviousJobField-->
+		<tr>
+			<td class='quiet'>|Предишно задание|*:</td>
+			<td>[#planning_Steps_showPreviousJobField#]</td>
+		</tr>
+		<!--ET_END planning_Steps_showPreviousJobField-->
 		<!--ET_BEGIN planning_Steps_norm-->
 		<tr>
 			<td class='quiet'>|Норма|*:</td>

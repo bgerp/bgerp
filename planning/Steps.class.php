@@ -72,7 +72,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,labelQuantityInPack,labelType,labelTemplate';
+    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField';
     
     
     /**
@@ -101,6 +101,7 @@ class planning_Steps extends core_Extender
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
         $this->FLD('isFinal', 'enum(no=Междинен етап,yes=Финален етап)', 'caption=Използване в производството->Вид,notNull,value=no');
         $this->FLD('interruptOffset', 'time', 'caption=Използване в производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
+        $this->FLD('showPreviousJobField', 'enum(no=Скриване,yes=Показване)', 'caption=Използване в производството->Предходно задание,notNull,value=no');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
@@ -431,11 +432,12 @@ class planning_Steps extends core_Extender
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search,centerId,isFinal';
+        $data->listFilter->FLD('finalType', 'enum(all=Всички,no=Междинен етап,yes=Финален етап)');
+        $data->listFilter->setDefault('finalType', 'all');
+        $data->listFilter->showFields = 'search,centerId,finalType';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input();
-        $data->listFilter->setFieldType('isFinal', 'enum(all=Всички,no=Междинен етап,yes=Финален етап)');
-        $data->listFilter->setDefault('isFinal', 'all');
+
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->query->orderBy('centerId,state', 'asc');
         
@@ -443,8 +445,8 @@ class planning_Steps extends core_Extender
             if(!empty($filterRec->centerId)){
                 $data->query->where("#centerId = {$filterRec->centerId}");
             }
-            if($filterRec->isFinal != 'all'){
-                $data->query->where("#isFinal = '{$filterRec->isFinal}'");
+            if($filterRec->finalType != 'all'){
+                $data->query->where("#isFinal = '{$filterRec->finalType}'");
             }
         }
     }
