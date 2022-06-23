@@ -427,10 +427,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if($rec->type == 'production'){
                     $productMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
                     $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
-
-                    if(isset($masterRec->labelPackagingId) && array_key_exists($masterRec->labelPackagingId, $similarMeasures) && $masterRec->measureId != $productMeasureId){
-                        $rec->quantity = cat_UoM::convertValue($rec->quantity, $masterRec->measureId, $productMeasureId);
-                    }
+                    $rec->quantity *= $masterRec->quantityInPack;
                 }
 
                 if($rec->_isKgMeasureId){
