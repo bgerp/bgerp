@@ -273,6 +273,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if(!$defaultQuantity){
                     $defaultQuantity = planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $masterRec->measureId, $masterRec->labelPackagingId);
                 }
+
                 $form->setField('quantity', "placeholder={$defaultQuantity}");
                 if($rec->_isKgMeasureId){
                     $form->setField('quantity', "caption=Нето");
@@ -424,9 +425,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     }
                 }
 
-                if($rec->type == 'production'){
-                    $productMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
-                    $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
+                if($rec->type == 'production' && isset($rec->quantity)){
                     $rec->quantity *= $masterRec->quantityInPack;
                 }
 
@@ -434,7 +433,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $rec->quantity = !empty($rec->quantity) ? $rec->quantity : ((!empty($rec->weight)) ? $rec->weight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1));
                     $rec->weight = $rec->weight;
                 } else {
-                    $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
+                    $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : $masterRec->quantityInPack);
                 }
 
                 $limit = '';
