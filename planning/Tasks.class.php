@@ -1563,7 +1563,6 @@ class planning_Tasks extends core_Master
     public static function getProducedQuantityForJob($jobId)
     {
         $jobRec = planning_Jobs::fetchRec($jobId);
-        $productMeasureId = cat_Products::fetchField($jobRec->productId, 'measureId');
 
         $sum = 0;
         $tQuery = planning_Tasks::getQuery();
