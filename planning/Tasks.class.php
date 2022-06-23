@@ -731,12 +731,6 @@ class planning_Tasks extends core_Master
     }
 
 
-    function act_Test()
-    {
-        $this->updateMaster(724);
-    }
-
-
     /**
      * Обновява данни в мастъра
      *
