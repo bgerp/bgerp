@@ -1921,12 +1921,15 @@ class planning_Tasks extends core_Master
                 // и той има избрани параметри за планиране, добавят се в таблицата
                 $paramFields = array();
                 foreach ($data->listFieldsParams as $paramId) {
-                    $paramExt = explode(' » ', cat_Params::getVerbal($paramId, 'typeExt'));
+                    $fullName = cat_Params::getVerbal($paramId, 'typeExt');
+                    $paramExt = explode(' » ', $fullName);
                     if(countR($paramExt) == 1){
                         $paramExt[1] = $paramExt[0];
                         $paramExt[0] = " ";
                     }
-                    $paramExt[1] = ht::createHint($paramExt[1], cat_Params::getVerbal($paramId, 'typeExt'));
+                    if($fullName != $paramExt[1]){
+                        $paramExt[1] = ht::createHint($paramExt[1], $fullName);
+                    }
                     $paramFields["param_{$paramId}"] = "|*<small>{$paramExt[1]}</small>";
                     $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'tdClass=taskParamCol');
                 }
