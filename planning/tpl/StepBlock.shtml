@@ -18,7 +18,7 @@
 			<td>[#planning_Steps_centerId#]</td>
 		</tr>
 		<tr>
-			<td class='quiet'>|Финален етап|*:</td>
+			<td class='quiet'>|Вид|*:</td>
 			<td>[#planning_Steps_isFinal#]</td>
 		</tr>
 		<!--ET_BEGIN planning_Steps_inputStores-->

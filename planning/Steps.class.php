@@ -48,7 +48,7 @@ class planning_Steps extends core_Extender
     /**
      * Кой има достъп до лист изгледа
      */
-    public $canList = 'ceo,planning';
+    public $canList = 'ceo,planning,name';
     
     
     /**
@@ -66,7 +66,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'centerId,name';
+    public $searchFields = 'centerId,name,fixedAssets,storeIn,inputStores';
     
     
     /**
@@ -99,7 +99,7 @@ class planning_Steps extends core_Extender
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване в производството->Параметри');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
-        $this->FLD('isFinal', 'enum(no=Не,yes=Да)', 'caption=Използване в производството->Финален,notNull,value=no');
+        $this->FLD('isFinal', 'enum(no=Междинен етап,yes=Финален етап)', 'caption=Използване в производството->Вид,notNull,value=no');
         $this->FLD('interruptOffset', 'time', 'caption=Използване в производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
@@ -431,15 +431,20 @@ class planning_Steps extends core_Extender
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search,centerId';
+        $data->listFilter->showFields = 'search,centerId,isFinal';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input();
+        $data->listFilter->setFieldType('isFinal', 'enum(all=Всички,no=Междинен етап,yes=Финален етап)');
+        $data->listFilter->setDefault('isFinal', 'all');
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->query->orderBy('centerId,state', 'asc');
         
         if($filterRec = $data->listFilter->rec){
             if(!empty($filterRec->centerId)){
                 $data->query->where("#centerId = {$filterRec->centerId}");
+            }
+            if($filterRec->isFinal != 'all'){
+                $data->query->where("#isFinal = '{$filterRec->isFinal}'");
             }
         }
     }
