@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Артикул
+ * @title     Групи артикули
  */
 class cond_type_Product extends cond_type_Varchar
 {
