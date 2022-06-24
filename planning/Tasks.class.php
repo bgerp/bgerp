@@ -1572,7 +1572,7 @@ class planning_Tasks extends core_Master
         $tQuery->where("#state != 'rejected' AND #state != 'pending'");
         $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack');
         while($tRec = $tQuery->fetch()){
-            $sumRec = $tRec->totalQuantity - $tRec->scrappedQuantity;
+            $sumRec = ($tRec->totalQuantity - $tRec->scrappedQuantity) * $tRec->quantityInPack;
             if($tRec->measureId != $jobRec->packagingId){
                 if($pQuantity = cat_products_Packagings::getPack($jobRec->productId, $jobRec->packagingId, 'quantity')){
                     $tRec->quantityInPack = $pQuantity;
