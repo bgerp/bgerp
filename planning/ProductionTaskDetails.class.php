@@ -294,7 +294,13 @@ class planning_ProductionTaskDetails extends doc_Detail
         if (!empty($masterRec->employees)) {
             $employees = planning_Hr::getPersonsCodesArr($masterRec->employees);
             $form->setSuggestions('employees', $employees);
-            $form->setField('employees', 'input,mandatory');
+            $form->setField('employees', 'input');
+            $mandatoryOperatorsInTasks = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'mandatoryOperatorsInTasks');
+            $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR') : $mandatoryOperatorsInTasks;
+            if($mandatoryOperatorsInTasks == 'yes'){
+                $form->setField('employees', 'mandatory');
+            }
+
             if(countR($employees) == 1){
                 if(!Mode::is('terminalProgressForm')){
                     $form->setDefault('employees', keylist::addKey('', key($employees)));
