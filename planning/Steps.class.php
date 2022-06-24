@@ -433,8 +433,10 @@ class planning_Steps extends core_Extender
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
         $data->listFilter->FLD('finalType', 'enum(all=Всички,no=Междинен етап,yes=Финален етап)');
+        $data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
+        $data->listFilter->setOptions('assetId', planning_AssetResources::getByFolderId());
         $data->listFilter->setDefault('finalType', 'all');
-        $data->listFilter->showFields = 'search,centerId,finalType';
+        $data->listFilter->showFields = 'search,centerId,assetId,finalType';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input();
 
@@ -447,6 +449,9 @@ class planning_Steps extends core_Extender
             }
             if($filterRec->finalType != 'all'){
                 $data->query->where("#isFinal = '{$filterRec->finalType}'");
+            }
+            if(isset($filterRec->assetId)){
+                $data->query->where("LOCATE('|{$filterRec->assetId}|', #fixedAssets)");
             }
         }
     }
