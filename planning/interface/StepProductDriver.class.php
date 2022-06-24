@@ -60,6 +60,9 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      */
     public function getDefaultBatchTemplate($id)
     {
+        $rec = cat_Products::fetchRec($id);
+        if($rec->planning_Steps_isFinal == 'yes') return null;
+
         $templateId = batch_Templates::fetchField("#createdBy = '-1' AND #state = 'active' AND #driverClass =" . batch_definitions_Job::getClassId());
     
         return !empty($templateId) ? $templateId : null;
