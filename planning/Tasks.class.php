@@ -257,7 +257,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|allowedInputProducts|freeTimeAfter');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,input=none');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
@@ -1054,19 +1054,28 @@ class planning_Tasks extends core_Master
             }
 
             // Ако не е системна, взима се дефолта от драйвера
-            $productionData = null;
+            $productionData = array();
+            if($Driver = cat_Products::getDriver($rec->productId)) {
+                $productionData = $Driver->getProductionData($rec->productId);
+            }
+
             if(empty($rec->systemId) && empty($rec->id)){
-                if($Driver = cat_Products::getDriver($rec->productId)){
-                    $productionData = $Driver->getProductionData($rec->productId);
-                    $defFields = arr::make(array('employees', 'labelType', 'labelTemplate', 'isFinal'), true);
-                    $defFields['storeId'] = 'storeIn';
-                    $defFields['indTime'] = 'norm';
-                    foreach ($defFields as $fld => $val){
-                        $form->setDefault($fld, $productionData[$val]);
-                    }
-                    if(isset($productionData['fixedAssets'])){
-                        $fixedAssetOptions = $productionData['fixedAssets'];
-                    }
+                $defFields = arr::make(array('employees', 'labelType', 'labelTemplate', 'isFinal'), true);
+                $defFields['storeId'] = 'storeIn';
+                $defFields['indTime'] = 'norm';
+                foreach ($defFields as $fld => $val){
+                    $form->setDefault($fld, $productionData[$val]);
+                }
+                if(isset($productionData['fixedAssets'])){
+                    $fixedAssetOptions = $productionData['fixedAssets'];
+                }
+            }
+
+            if(!empty($rec->employees)){
+                $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
+                if(countR($employeeOptions)){
+                    $form->setField('employees', 'input');
+                    $form->setSuggestions('employees', $employeeOptions);
                 }
             }
 
@@ -1227,15 +1236,6 @@ class planning_Tasks extends core_Master
             $form->setOptions('assetId', $fixedAssetOptions);
         } else {
             $form->setField('assetId', 'input=none');
-        }
-
-        // Добавяне на достъпните за избор оператори
-        $employees = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
-        if(countR($employees)){
-            $form->setField('employees', 'input');
-            $form->setSuggestions('employees', $employees);
-        } else {
-            $form->setField('employees', 'input=none');
         }
 
         // Ако има избрано оборудване се добавя след края на коя операция да започне тази
