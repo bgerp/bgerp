@@ -68,7 +68,7 @@
 
 		<!--ET_BEGIN planning_Steps_planningParams-->
 		<tr>
-			<td class='quiet'>|Планиране (Параметри)|*:</td>
+			<td class='quiet'>|Планиране|*:</td>
 			<td>[#planning_Steps_planningParams#]</td>
 		</tr>
 		<!--ET_END planning_Steps_planningParams-->

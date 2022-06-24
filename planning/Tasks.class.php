@@ -1083,7 +1083,7 @@ class planning_Tasks extends core_Master
             $productRec = cat_Products::fetch($productId4Form, 'canConvert,canStore,measureId');
             $similarMeasures = cat_UoM::getSameTypeMeasures($productRec->measureId);
             if($rec->isFinal == 'yes'){
-                $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция') . "</div>";
+                $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция към|* ') . $origin->getHyperlink(true) . "</div>";
                 $measureOptions = array();
                 if(array_key_exists($originRec->packagingId, $similarMeasures)){
                     $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
