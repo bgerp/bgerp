@@ -1579,11 +1579,9 @@ class planning_Tasks extends core_Master
         $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack');
         while($tRec = $tQuery->fetch()){
             $sumRec = ($tRec->totalQuantity - $tRec->scrappedQuantity) * $tRec->quantityInPack;
-            if($tRec->measureId != $jobRec->packagingId){
-                if($pQuantity = cat_products_Packagings::getPack($jobRec->productId, $jobRec->packagingId, 'quantity')){
-                    $tRec->quantityInPack = $pQuantity;
-                    $sumRec /= $tRec->quantityInPack;
-                }
+            if($pQuantity = cat_products_Packagings::getPack($jobRec->productId, $jobRec->packagingId, 'quantity')){
+                $tRec->quantityInPack = $pQuantity;
+                $sumRec /= $tRec->quantityInPack;
             }
 
             $sum += $sumRec;
