@@ -143,10 +143,9 @@ class planning_ProductionTaskDetails extends doc_Detail
         $this->FLD('quantity', 'double(Min=0)', 'caption=Количество');
         $this->FLD('scrappedQuantity', 'double(Min=0)', 'caption=Брак,input=none');
         $this->FLD('weight', 'double(Min=0)', 'caption=Тегло,unit=кг');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=20)', 'caption=Оператори');
-        $this->FLD('date', 'datetime', 'caption=Дата,remember');
-
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,select2MinItems=20)', 'caption=Оператори,input=none');
         $this->FLD('fixedAsset', 'key(mvc=planning_AssetResources,select=id)', 'caption=Оборудване,input=none,tdClass=nowrap');
+        $this->FLD('date', 'datetime', 'caption=Дата,remember');
         $this->FLD('notes', 'richtext(rows=2,bucket=Notes)', 'caption=Забележки');
         $this->FLD('state', 'enum(active=Активирано,rejected=Оттеглен)', 'caption=Състояние,input=none,notNull');
         $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Време,input=none');
@@ -273,6 +272,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if(!$defaultQuantity){
                     $defaultQuantity = planning_Tasks::getDefaultQuantityInLabelPackagingId($rec->productId, $masterRec->measureId, $masterRec->labelPackagingId);
                 }
+
                 $form->setField('quantity', "placeholder={$defaultQuantity}");
                 if($rec->_isKgMeasureId){
                     $form->setField('quantity', "caption=Нето");
@@ -290,22 +290,21 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
 
-        // Връща избрани оператори от операцията, или ако няма всички от центъра
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
-
         if (countR($employees)) {
             $form->setSuggestions('employees', $employees);
-
-            if(!empty($masterRec->employees)){
+            $form->setField('employees', 'input');
+            $mandatoryOperatorsInTasks = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'mandatoryOperatorsInTasks');
+            $mandatoryOperatorsInTasks = ($mandatoryOperatorsInTasks == 'auto') ? planning_Setup::get('TASK_PROGRESS_MANDATORY_OPERATOR') : $mandatoryOperatorsInTasks;
+            if($mandatoryOperatorsInTasks == 'yes'){
                 $form->setField('employees', 'mandatory');
             }
+
             if(countR($employees) == 1){
                 if(!Mode::is('terminalProgressForm')){
                     $form->setDefault('employees', keylist::addKey('', key($employees)));
                 }
             }
-        } else {
-            $form->setField('employees', 'input=none');
         }
 
         // Показване на допълнителна мярка при нужда
@@ -429,6 +428,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $rec->weight = $rec->weight;
                 } else {
                     $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
+                }
+
+                if($rec->type == 'production' && isset($rec->quantity)){
+                    $rec->quantity *= $masterRec->quantityInPack;
                 }
 
                 $limit = '';
@@ -602,10 +605,10 @@ class planning_ProductionTaskDetails extends doc_Detail
             $measureId = $foundRec->measureId;
             $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $foundRec->measureId;
         }
+        if($taskRec->isFinal == 'yes'){
+            $rec->quantity /= $taskRec->quantityInPack;
+        }
 
-        $rec->quantity = cat_UoM::round($measureId, $rec->quantity);
-        $quantity = cat_UoM::round($measureId, $rec->quantity);
-        $row->quantity = $quantity;
         $row->measureId = cat_UoM::getShortName($measureId);
         $labelPackagingName = cat_UoM::getShortName($labelPackagingId);
         if (cat_UoM::fetchField($measureId, 'type') != 'uom') {
@@ -1007,11 +1010,15 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $result = array();
         $query = self::getQuery();
+        $query->EXT('taskMeasureId', 'planning_Tasks', 'externalName=measureId,externalKey=taskId');
+        $query->EXT('productMeasureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
         $query->EXT('labelPackagingId', 'planning_Tasks', 'externalName=labelPackagingId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
         $query->where("#taskModifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
+
+        //$query->where("#taskId = 718 AND #id = 2215");
 
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
@@ -1022,7 +1029,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             // Ако няма оператори, пропуска се
             $persons = keylist::toArray($rec->employees);
             if (!countR($persons)) continue;
-            
+
             $quantity = $rec->quantity;
             if($rec->type == 'production'){
 

@@ -447,7 +447,8 @@ class planning_ProductionTaskProducts extends core_Detail
             if($taskRec->isFinal == 'yes'){
                 $compareTaskProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
             }
-            if ($compareTaskProductId == $productId ) {
+
+            if ($compareTaskProductId == $productId) {
                 if(empty($taskRec->labelPackagingId)){
                     $taskRec->packagingId = $taskRec->measureId;
                 }

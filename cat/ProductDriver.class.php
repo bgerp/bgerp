@@ -1010,6 +1010,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
      *          string      ['isFinal']              - дали е финална
+     *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
      */
     public function getProductionData($productId)
     {

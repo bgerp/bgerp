@@ -106,6 +106,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
+        $form->setDefault('order', 'desc');
 
     }
 
@@ -169,6 +170,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             }
             $pRec   = (cat_Products::fetch($sRec->productId));
 
+
             if (!$sRec->measureId) {
                 $measureId = cat_Products::fetch($sRec->productId)->measureId;
             } else {
@@ -199,6 +201,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                 'code' => $code,
                 'documentsReserved' => $documentsReserved,
                 'documentsExpected' => $documentsExpected,
+                'store' => $sRec->storeId,
 
             );
 
@@ -206,7 +209,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         }
 
-        if (!is_null($recs)) {
+        if (!empty($recs)) {
 
             arr::sortObjects($recs, 'code', $rec->order,'stri');
         }
@@ -238,6 +241,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('reserved', 'varchar', 'caption=Количество->Запазено,smartCenter');
             $fld->FLD('expected', 'varchar', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
+            $fld->FLD('store', 'varchar', 'caption=Склад,smartCenter');
             if (core_Users::haveRole('debug')) {
                 $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
             }
@@ -248,6 +252,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('document', 'varchar', 'caption=Документ,tdClass=centered');
             $fld->FLD('date', 'varchar', 'caption=Падеж,tdClass=centered');
             $fld->FLD('note', 'varchar', 'caption=Забележка,tdClass=centered');
+            $fld->FLD('store', 'varchar', 'caption=Склад,tdClass=centered');
             $fld->FLD('docReservedQuantyti', 'varchar', 'caption=Количество->Запазено,smartCenter');
             $fld->FLD('docExpectedQuantyti', 'varchar', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('measure', 'varchar', 'caption=Мярка,tdClass=centered');
@@ -329,6 +334,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $row->delrow = '';
         $row->delrow .= ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
+
+        if($dRec->store){
+            $row->store = store_Stores::getHyperlink($dRec->store);
+        }else{
+            $row->store = 'Без';
+        }
 
 
         return $row;
@@ -572,6 +583,13 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $res->docExpectedQuantyti = $dRec->docExpectedQuantyti;
         $res->docReservedQuantyti = $dRec->docReservedQuantyti;
+
+
+        if($dRec->store){
+            $res->store = store_Stores::fetch($dRec->store)->name;
+        }else{
+            $res->store = 'Без';
+        }
 
     }
 

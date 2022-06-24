@@ -20,6 +20,9 @@
 					<!--ET_BEGIN planningParams-->
 					<div>|Параметри за планиране|*: <b>[#planningParams#]</b></div>
 					<!--ET_END planningParams-->
+					<!--ET_BEGIN mandatoryOperatorsInTasks-->
+					<div>|Оператор в прогрес на ПО|*: <b>[#mandatoryOperatorsInTasks#]</b></div>
+					<!--ET_END mandatoryOperatorsInTasks-->
 	                <!--ET_BEGIN nkid-->
 	                <div>|Номер по НКИД|*: <b>[#nkid#]</b></div>
 	                <!--ET_END nkid-->

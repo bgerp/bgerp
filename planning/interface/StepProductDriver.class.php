@@ -60,6 +60,9 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      */
     public function getDefaultBatchTemplate($id)
     {
+        $rec = cat_Products::fetchRec($id);
+        if($rec->planning_Steps_isFinal == 'yes') return null;
+
         $templateId = batch_Templates::fetchField("#createdBy = '-1' AND #state = 'active' AND #driverClass =" . batch_definitions_Job::getClassId());
     
         return !empty($templateId) ? $templateId : null;
@@ -139,6 +142,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
      *          string      ['isFinal']              - дали е финална
+     *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
      */
     public function getProductionData($productId)
     {
@@ -148,6 +152,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $res['employees'] = !empty($rec->planning_Steps_employees) ? keylist::toArray($rec->planning_Steps_employees) : null;
         $res['planningParams'] = !empty($rec->planning_Steps_planningParams) ? keylist::toArray($rec->planning_Steps_planningParams) : array();
         $res['isFinal'] = $rec->planning_Steps_isFinal;
+        $res['showPreviousJobField'] = ($rec->planning_Steps_showPreviousJobField == 'yes');
         if($rec->canStore == 'yes'){
             $res['labelPackagingId'] = $rec->planning_Steps_labelPackagingId;
             $res['labelQuantityInPack'] = $rec->planning_Steps_labelQuantityInPack;

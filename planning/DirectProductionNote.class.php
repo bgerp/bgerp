@@ -288,7 +288,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $info->totalQuantity -= $producedQuantity;
                     $originPackId = $originRec->measureId;
                 } else {
-                    $originPackId = $info->labelPackagingId;
+                    $originPackId = $info->measureId;
                 }
 
                 $form->setDefault('packagingId', $originPackId);
