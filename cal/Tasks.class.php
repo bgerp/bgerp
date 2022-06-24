@@ -807,7 +807,6 @@ class cal_Tasks extends embed_Manager
         if ($form->isSubmitted()) {
             $mvc->calculateExpectationTime($rec);
             
-            $query = self::getQuery();
             $link = $mvc->prepareQueryForTimeIntersection($rec);
 
             if ($link !== false) {
@@ -984,7 +983,7 @@ class cal_Tasks extends embed_Manager
             
             return false;
         }
-        
+
         $tStart = $rec->expectationTimeStart;
         $tEnd = $rec->expectationTimeEnd;
         if (($rec->timeStart) && (!$rec->timeEnd) && (!$rec->timeDuration)) {
@@ -1002,11 +1001,11 @@ class cal_Tasks extends embed_Manager
         $cQuery->orWhere(array("#timeEnd IS NULL AND #time >= '[#1#]' AND #time <= '[#2#]'", $tStart, $tEnd));
         $cQuery->orWhere(array("#time <= '[#1#]' AND #timeEnd <= '[#2#]' AND #timeEnd >= '[#1#]'", $tStart, $tEnd));
         
-        $cQuery->where("#type = 'task'");
+        $cQuery->where("#type = 'task' AND #state != 'draft' AND #state != 'rejected' AND #state != 'closed' AND #state != 'stopped'");
         $cQuery->orWhere("#type = 'working-travel'");
         $cQuery->orWhere("#type = 'leaves'");
         $cQuery->orWhere("#type = 'sick'");
-        
+
         $cQuery->orderBy('type', 'ASC');
         $cQuery->orderBy('time', 'DESC');
         $cQuery->groupBy('url');

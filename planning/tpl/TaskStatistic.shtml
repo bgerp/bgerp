@@ -72,6 +72,9 @@
                     <!--ET_BEGIN startAfter-->
                     <span style='font-weight:normal'>|Започва след|*</span>: [#startAfter#]<br>
                     <!--ET_END startAfter-->
+                    <!--ET_BEGIN previousJob-->
+                    <span style='font-weight:normal'>[#previousJobCaption#]</span>: [#previousJob#]<br>
+                    <!--ET_END previousJob-->
                 </td>
             </tr>
         </table>

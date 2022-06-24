@@ -743,8 +743,11 @@ class price_Updates extends core_Manager
         if(!($data->masterMvc instanceof cat_Products)){
             $tpl->removeBlocksAndPlaces();
             $finalTpl = getTplFromFile('crm/tpl/ContragentDetail.shtml');
-            $finalTpl->replace($tpl, 'content');
             $finalTpl->append(tr('Обновяване на себестойности'), 'title');
+            if(!countR($data->recs)){
+                $finalTpl->append(tr('Няма зададени правила'), 'content');
+            }
+            $finalTpl->replace($tpl, 'content');
             $tpl = $finalTpl;
         } else {
             $btnPlaceholder = 'updateRuleBtn';

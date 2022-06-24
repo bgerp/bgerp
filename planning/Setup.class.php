@@ -116,6 +116,18 @@ defIfNot('PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS', 'no');
 
 
 /**
+ * Позволено ли е да се въвежда сериен номер от друга ПО
+ */
+defIfNot('PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS', 'no');
+
+
+/**
+ * Задължителен избор за оператор в ПО
+ */
+defIfNot('PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR', 'yes');
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -182,7 +194,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_ASSET_HORIZON' => array('time', 'caption=Планиране на производствени операции към оборудване->Хоризонт'),
         'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
         'PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Въвеждане на производ. № в ПО от друга операция->Избор'),
-    );
+        'PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR' => array('enum(yes=Задължително,no=Опционално)', 'caption=Въвеждане на прогрес в ПО->Оператор(и)'),
+        );
 
 
     /**

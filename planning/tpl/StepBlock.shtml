@@ -18,7 +18,7 @@
 			<td>[#planning_Steps_centerId#]</td>
 		</tr>
 		<tr>
-			<td class='quiet'>|Финален етап|*:</td>
+			<td class='quiet'>|Вид|*:</td>
 			<td>[#planning_Steps_isFinal#]</td>
 		</tr>
 		<!--ET_BEGIN planning_Steps_inputStores-->
@@ -46,6 +46,12 @@
 			<td>[#planning_Steps_employees#]</td>
 		</tr>
 		<!--ET_END planning_Steps_employees-->
+		<!--ET_BEGIN planning_Steps_showPreviousJobField-->
+		<tr>
+			<td class='quiet'>|Предишно задание|*:</td>
+			<td>[#planning_Steps_showPreviousJobField#]</td>
+		</tr>
+		<!--ET_END planning_Steps_showPreviousJobField-->
 		<!--ET_BEGIN planning_Steps_norm-->
 		<tr>
 			<td class='quiet'>|Норма|*:</td>
@@ -62,7 +68,7 @@
 
 		<!--ET_BEGIN planning_Steps_planningParams-->
 		<tr>
-			<td class='quiet'>|Планиране (Параметри)|*:</td>
+			<td class='quiet'>|Планиране|*:</td>
 			<td>[#planning_Steps_planningParams#]</td>
 		</tr>
 		<!--ET_END planning_Steps_planningParams-->

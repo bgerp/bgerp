@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title, progress, folderId, modifiedOn, modifiedBy, originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title,progress,folderId,originId=@';
     
     
     /**
@@ -257,7 +257,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|allowedInputProducts|freeTimeAfter');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,input=none');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
@@ -316,6 +316,14 @@ class planning_Tasks extends core_Master
             if(!countR($in)){
                 unset($data->paramData->addUrl);
             }
+            if($pData['showPreviousJobField']){
+                $originRec = doc_Containers::getDocument($data->rec->originId)->fetch('oldJobId,productId');
+                if($originRec->oldJobId){
+                    $oldJobProductId = planning_Jobs::fetchField($originRec->oldJobId, 'productId');
+                    $data->row->previousJob = planning_Jobs::getHyperlink($originRec->oldJobId, true);
+                    $data->row->previousJobCaption = ($originRec->productId == $oldJobProductId) ? tr('Предходно') : tr('Подобно');
+                }
+            }
         }
     }
     
@@ -366,12 +374,10 @@ class planning_Tasks extends core_Master
         
         $color = ($rec->progress <= 1) ? $blue : $red;
         $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
-        
         $grey->setGradient($color, $rec->progress);
-        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
 
         $origin = doc_Containers::getDocument($rec->originId);
-        $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . "</small>" : $origin->getHyperlink(true);
+        $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . " / {$origin->getVerbal('dueDate')}</small>" : $origin->getHyperlink(true);
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
@@ -436,6 +442,11 @@ class planning_Tasks extends core_Master
 
         if($rec->freeTimeAfter == 'yes'){
             $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има свободно време между края на тази операция и началото на следващата|*!", 'warning');
+        }
+
+        if(!empty($rec->expectedTimeEnd) && $rec->expectedTimeEnd >= ($origin->fetchField('dueDate') . " 23:59:59")){
+            $useField = isset($fields['-list']) ? 'expectedTimeStart' : 'expectedTimeEnd';
+            $row->{$useField} = ht::createHint($row->{$useField}, "Планирания край е след падежа на заданието|*!", 'img/16/red-warning.png');
         }
 
         $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
@@ -521,6 +532,9 @@ class planning_Tasks extends core_Master
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
         $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
 
+        $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ($mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId)) : $row->progress;
+        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
+
         return $row;
     }
 
@@ -592,14 +606,16 @@ class planning_Tasks extends core_Master
         if ($form->isSubmitted()) {
 
             // Ако е финална операция
+            $productId = $rec->productId;
             if($rec->isFinal == 'yes'){
+                $productId = doc_Containers::getDocument($rec->originId)->fetchField('productId');
                 if($otherTaskId = planning_Tasks::fetchField("#originId = {$rec->originId} AND #state != 'rejected' AND #isFinal = 'yes' AND #productId != {$rec->productId}")) {
                     $otherTaskLink = planning_Tasks::getHyperlink($otherTaskId, true);
                     $form->setError('productId', "По заданието вече има операция за друг финален етап|*: {$otherTaskLink}");
                 }
             }
 
-            $packRec = cat_products_Packagings::getPack($rec->productId, $rec->measureId);
+            $packRec = cat_products_Packagings::getPack($productId, $rec->measureId);
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->title = cat_Products::getTitleById($rec->productId);
 
@@ -740,21 +756,19 @@ class planning_Tasks extends core_Master
     {
         $rec = $this->fetch($id);
         $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy';
-        
+
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
         $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
         $dQuery->where("#taskId = {$rec->id} AND #productId = {$productId} AND #type = 'production' AND #state != 'rejected'");
-        $dQuery->XPR('sumQuantity', 'double', "ROUND(SUM(#quantity), 5)");
-        $dQuery->XPR('sumWeight', 'double', 'SUM(#weight)');
-        $dQuery->XPR('sumScrappedQuantity', 'double', "ROUND(SUM(#scrappedQuantity), 5)");
-        $dQuery->show('sumQuantity,sumWeight,sumScrappedQuantity');
 
-        // Преизчисляваме общото тегло
-        $res = $dQuery->fetch();
-        $rec->totalWeight = $res->sumWeight;
-        $rec->totalQuantity = $res->sumQuantity;
-        $rec->scrappedQuantity = $res->sumScrappedQuantity;
+        $rec->totalWeight = $rec->totalQuantity = $rec->scrappedQuantity = 0;
+        while($dRec = $dQuery->fetch()){
+            $quantity = $dRec->quantity / $rec->quantityInPack;
+            $rec->totalQuantity += $quantity;
+            $rec->totalWeight += $dRec->sumWeight;
+            $rec->scrappedQuantity += $dRec->scrappedQuantity;
+        }
         
         // Изчисляваме колко % от зададеното количество е направено
         if (!empty($rec->plannedQuantity)) {
@@ -1046,19 +1060,28 @@ class planning_Tasks extends core_Master
             }
 
             // Ако не е системна, взима се дефолта от драйвера
-            $productionData = null;
+            $productionData = array();
+            if($Driver = cat_Products::getDriver($rec->productId)) {
+                $productionData = $Driver->getProductionData($rec->productId);
+            }
+
             if(empty($rec->systemId) && empty($rec->id)){
-                if($Driver = cat_Products::getDriver($rec->productId)){
-                    $productionData = $Driver->getProductionData($rec->productId);
-                    $defFields = arr::make(array('employees', 'labelType', 'labelTemplate', 'isFinal'), true);
-                    $defFields['storeId'] = 'storeIn';
-                    $defFields['indTime'] = 'norm';
-                    foreach ($defFields as $fld => $val){
-                        $form->setDefault($fld, $productionData[$val]);
-                    }
-                    if(isset($productionData['fixedAssets'])){
-                        $fixedAssetOptions = $productionData['fixedAssets'];
-                    }
+                $defFields = arr::make(array('employees', 'labelType', 'labelTemplate', 'isFinal'), true);
+                $defFields['storeId'] = 'storeIn';
+                $defFields['indTime'] = 'norm';
+                foreach ($defFields as $fld => $val){
+                    $form->setDefault($fld, $productionData[$val]);
+                }
+                if(isset($productionData['fixedAssets'])){
+                    $fixedAssetOptions = $productionData['fixedAssets'];
+                }
+            }
+
+            if(!empty($rec->employees)){
+                $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
+                if(countR($employeeOptions)){
+                    $form->setField('employees', 'input');
+                    $form->setSuggestions('employees', $employeeOptions);
                 }
             }
 
@@ -1066,7 +1089,7 @@ class planning_Tasks extends core_Master
             $productRec = cat_Products::fetch($productId4Form, 'canConvert,canStore,measureId');
             $similarMeasures = cat_UoM::getSameTypeMeasures($productRec->measureId);
             if($rec->isFinal == 'yes'){
-                $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция') . "</div>";
+                $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция към|* ') . $origin->getHyperlink(true) . "</div>";
                 $measureOptions = array();
                 if(array_key_exists($originRec->packagingId, $similarMeasures)){
                     $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
@@ -1219,15 +1242,6 @@ class planning_Tasks extends core_Master
             $form->setOptions('assetId', $fixedAssetOptions);
         } else {
             $form->setField('assetId', 'input=none');
-        }
-
-        // Добавяне на достъпните за избор оператори
-        $employees = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
-        if(countR($employees)){
-            $form->setField('employees', 'input');
-            $form->setSuggestions('employees', $employees);
-        } else {
-            $form->setField('employees', 'input=none');
         }
 
         // Ако има избрано оборудване се добавя след края на коя операция да започне тази
@@ -1557,7 +1571,6 @@ class planning_Tasks extends core_Master
     public static function getProducedQuantityForJob($jobId)
     {
         $jobRec = planning_Jobs::fetchRec($jobId);
-        $productMeasureId = cat_Products::fetchField($jobRec->productId, 'measureId');
 
         $sum = 0;
         $tQuery = planning_Tasks::getQuery();
@@ -1565,17 +1578,12 @@ class planning_Tasks extends core_Master
         $tQuery->where("#state != 'rejected' AND #state != 'pending'");
         $tQuery->show('totalQuantity,scrappedQuantity,measureId,quantityInPack');
         while($tRec = $tQuery->fetch()){
-            $sumRec = $tRec->totalQuantity - $tRec->scrappedQuantity;
-            $similarMeasures = cat_UoM::getSameTypeMeasures($tRec->measureId);
-
-            if(array_key_exists($jobRec->packagingId, $similarMeasures)){
-                $sumRec *= cat_UoM::convertValue($tRec->quantityInPack, $tRec->measureId, $jobRec->packagingId);
-            } elseif($tRec->measureId != $jobRec->packagingId){
-                if($tRec->measureId == $productMeasureId){
-                    $tRec->quantityInPack = $jobRec->quantityInPack;
-                }
-                $sumRec *= $tRec->quantityInPack;
+            $sumRec = ($tRec->totalQuantity - $tRec->scrappedQuantity) * $tRec->quantityInPack;
+            if($pQuantity = cat_products_Packagings::getPack($jobRec->productId, $jobRec->packagingId, 'quantity')){
+                $tRec->quantityInPack = $pQuantity;
+                $sumRec /= $tRec->quantityInPack;
             }
+
             $sum += $sumRec;
         }
 
@@ -1925,12 +1933,15 @@ class planning_Tasks extends core_Master
                 // и той има избрани параметри за планиране, добавят се в таблицата
                 $paramFields = array();
                 foreach ($data->listFieldsParams as $paramId) {
-                    $paramExt = explode(' » ', cat_Params::getVerbal($paramId, 'typeExt'));
+                    $fullName = cat_Params::getVerbal($paramId, 'typeExt');
+                    $paramExt = explode(' » ', $fullName);
                     if(countR($paramExt) == 1){
                         $paramExt[1] = $paramExt[0];
                         $paramExt[0] = " ";
                     }
-                    $paramExt[1] = ht::createHint($paramExt[1], cat_Params::getVerbal($paramId, 'typeExt'));
+                    if($fullName != $paramExt[1]){
+                        $paramExt[1] = ht::createHint($paramExt[1], $fullName);
+                    }
                     $paramFields["param_{$paramId}"] = "|*<small>{$paramExt[1]}</small>";
                     $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'tdClass=taskParamCol');
                 }
