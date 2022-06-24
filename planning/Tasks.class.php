@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title, progress, folderId, modifiedOn, modifiedBy, originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title,progress,folderId,originId=@';
     
     
     /**
@@ -374,12 +374,10 @@ class planning_Tasks extends core_Master
         
         $color = ($rec->progress <= 1) ? $blue : $red;
         $row->progressBar = "<div style='white-space: nowrap; display: inline-block;'><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$color}; width:{$progressPx}px;'> </div><div style='display:inline-block;top:-5px;border-bottom:solid 10px {$grey};width:{$progressRemainPx}px;'></div></div>";
-        
         $grey->setGradient($color, $rec->progress);
-        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
 
         $origin = doc_Containers::getDocument($rec->originId);
-        $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . "</small>" : $origin->getHyperlink(true);
+        $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . " / {$origin->getVerbal('dueDate')}</small>" : $origin->getHyperlink(true);
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
@@ -444,6 +442,11 @@ class planning_Tasks extends core_Master
 
         if($rec->freeTimeAfter == 'yes'){
             $row->expectedTimeStart = ht::createHint($row->expectedTimeStart, "Има свободно време между края на тази операция и началото на следващата|*!", 'warning');
+        }
+
+        if(!empty($rec->expectedTimeEnd) && $rec->expectedTimeEnd >= ($origin->fetchField('dueDate') . " 23:59:59")){
+            $useField = isset($fields['-list']) ? 'expectedTimeStart' : 'expectedTimeEnd';
+            $row->{$useField} = ht::createHint($row->{$useField}, "Планирания край е след падежа на заданието|*!", 'img/16/red-warning.png');
         }
 
         $expectedDuration = dt::secsBetween($rec->expectedTimeEnd, $rec->expectedTimeStart);
@@ -528,6 +531,9 @@ class planning_Tasks extends core_Master
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
         $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
+
+        $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ($mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId)) : $row->progress;
+        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
 
         return $row;
     }
