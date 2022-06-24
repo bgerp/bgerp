@@ -427,7 +427,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $rec->quantity = !empty($rec->quantity) ? $rec->quantity : ((!empty($rec->weight)) ? $rec->weight : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1));
                     $rec->weight = $rec->weight;
                 } else {
-                    $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : $masterRec->quantityInPack);
+                    $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
                 }
 
                 if($rec->type == 'production' && isset($rec->quantity)){
