@@ -290,9 +290,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
 
-        // Връща избрани оператори от операцията, или ако няма всички от центъра
-        if (!empty($masterRec->employees)) {
-            $employees = planning_Hr::getPersonsCodesArr($masterRec->employees);
+        $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
+        if (countR($employees)) {
             $form->setSuggestions('employees', $employees);
             $form->setField('employees', 'input');
             $mandatoryOperatorsInTasks = planning_Centers::fetchField("#folderId = {$masterRec->folderId}", 'mandatoryOperatorsInTasks');
