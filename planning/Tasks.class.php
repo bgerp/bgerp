@@ -506,8 +506,9 @@ class planning_Tasks extends core_Master
 
             $row->originId = $origin->getHyperlink(true);
         } else {
-            $quantityStr = str::getPlural($origin->fetchField('packQuantity'), $origin->getVerbal('packagingId'));
-            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} |от|* {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
+            $jobPackQuantity = $origin->fetchField('packQuantity');
+            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);// str::getPlural($origin->fetchField('packQuantity'), cat_UoM::getSmartName();
+            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
         }
         
         if(empty($rec->indTime)){
@@ -535,9 +536,7 @@ class planning_Tasks extends core_Master
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
         $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
-
-        $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ($mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId)) : $row->progress;
-        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
+        $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ("<i>" . $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId) . "</i>") : "<span style='color:{$grey};'>{$row->progress}</span>";
 
         return $row;
     }
@@ -770,7 +769,7 @@ class planning_Tasks extends core_Master
         while($dRec = $dQuery->fetch()){
             $quantity = $dRec->quantity / $rec->quantityInPack;
             $rec->totalQuantity += $quantity;
-            $rec->totalWeight += $dRec->sumWeight;
+            $rec->totalWeight += $dRec->weight;
             $rec->scrappedQuantity += $dRec->scrappedQuantity;
         }
         
@@ -1960,10 +1959,25 @@ class planning_Tasks extends core_Master
 
         $displayPlanningParamsCount = countR($data->listFieldsParams);
         $enableReorder = isset($data->listFilter->rec->assetId) &&  in_array($data->listFilter->rec->state, array('activeAndPending', 'pending', 'active', 'wakeup')) && countR($data->recs) > 1;
+
+        // Еднократно извличане на специфичните параметри за показваните операции
+        $taskSpecificParams = array();
+        if($displayPlanningParamsCount){
+
+            // Ако в операцията има конкретно избрани параметри - ще се използват те с приоритет
+            $taskParamQuery = cat_products_Params::getQuery();
+            $taskParamQuery->where("#classId = {$mvc->getClassId()}");
+            $taskParamQuery->in('productId', array_keys($data->recs));
+            while($taskParamRec = $taskParamQuery->fetch()){
+                $taskParamVal = cat_Params::toVerbal($taskParamRec->paramId, $mvc->getClassId(), $taskParamRec->productId, $taskParamRec->paramValue);
+                $taskSpecificParams[$taskParamRec->productId][$taskParamRec->paramId] = $taskParamVal;
+            }
+        }
+
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
-            // Добавяне на дата атрибуто за да може с драг и дроп да се преподреждат ПО в списъка
+            // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
             if($enableReorder){
                 if($mvc->haveRightFor('reordertask', $rec)){
@@ -1977,29 +1991,29 @@ class planning_Tasks extends core_Master
                 // Кои са параметрите от артикула на заданието за операцията
                 $origin = doc_Containers::getDocument($rec->originId);
                 $jobProductId = $origin->fetchField('productId');
-                $taskDisplayParams = array();
-                $jobParams = cat_Products::getParams($jobProductId, null, true);
-                foreach ($jobParams as $jParamId => $jParamValue){
-                    $taskDisplayParams[$jParamId] = array('value' => $jParamValue, 'type' => 'job');
-                }
 
-                // Ако в операцията има конкретно избрани параметри - ще се използват те с приоритет
-                $taskParamQuery = cat_products_Params::getQuery();
-                $taskParamQuery->where("#productId = {$rec->id} AND #classId = {$mvc->getClassId()}");
-                while($taskParamRec = $taskParamQuery->fetch()){
-                    $taskParamVal = cat_Params::toVerbal($taskParamRec->paramId, $mvc->getClassId(), $rec->id, $taskParamRec->paramValue);
-                    $taskDisplayParams[$taskParamRec->paramId] = array('value' => $taskParamVal, 'type' => 'task');
+                // Взимане с приотитет от кеша на параметрите на артикула от заданието
+                $jobParams = core_Permanent::get("taskListJobParams{$jobProductId}");
+                if(!is_array($jobParams)){
+                    $jobParams = cat_Products::getParams($jobProductId, null, true);
+                    core_Permanent::set("taskListJobParams{$jobProductId}", $jobParams, 5*60);
                 }
 
                 // Кои от продуктовите параметри ще се показват в лист изгледа за планиране
-                $displayParams = array_intersect_key($taskDisplayParams, $data->listFieldsParams);
-                foreach ($displayParams as $pId => $pArr){
+                $displayParams = array_intersect_key($jobParams, $data->listFieldsParams);
+                foreach ($displayParams as $pId => $pValue){
+                    $live = true;
+                    if(is_array($taskSpecificParams[$rec->id]) && array_key_exists($pId, $taskSpecificParams[$rec->id])){
+                        $pValue = $taskSpecificParams[$rec->id][$pId];
+                        $live = false;
+                    }
+
                     $pSuffix = cat_Params::getVerbal($pId, 'suffix');
-                    $row->{"param_{$pId}"} = $pArr['value'];
+                    $row->{"param_{$pId}"} = $pValue;
                     if(!empty($pSuffix)){
                         $row->{"param_{$pId}"} .= " {$pSuffix}";
                     }
-                    if($pArr['type'] == 'job'){
+                    if($live){
                         $row->{"param_{$pId}"} = "<span style='color:blue'>{$row->{"param_{$pId}"}}</span>";
                     }
                 }
@@ -2024,7 +2038,6 @@ class planning_Tasks extends core_Master
         $mQuery->limit(1);
         $res = md5(trim($mQuery->fetch()->modifiedOn));
     }
-
 
 
     /**

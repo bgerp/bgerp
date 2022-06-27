@@ -295,6 +295,7 @@ class planning_Jobs extends core_Master
         $options = $jobArr2 = array();
         $jQuery = planning_Jobs::getQuery();
         $jQuery->where("#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed'");
+        $jQuery->orderBy('id', 'DESC');
         $jQuery->show('id,productId,state');
 
         if(isset($saleId)){
