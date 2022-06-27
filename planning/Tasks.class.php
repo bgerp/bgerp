@@ -506,7 +506,8 @@ class planning_Tasks extends core_Master
 
             $row->originId = $origin->getHyperlink(true);
         } else {
-            $quantityStr = str::getPlural($origin->fetchField('packQuantity'), $origin->getVerbal('packagingId'));
+            $jobPackQuantity = $origin->fetchField('packQuantity');
+            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);// str::getPlural($origin->fetchField('packQuantity'), cat_UoM::getSmartName();
             $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
         }
         
