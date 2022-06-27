@@ -685,6 +685,8 @@ class planning_Tasks extends core_Master
     {
         if($rec->showadditionalUom == 'no'){
             unset($row->totalWeight);
+        } elseif(empty($rec->totalWeight)) {
+            $row->totalWeight = "<span class='quiet'>N/A</span>";
         }
 
         $canStore = cat_Products::fetchField($rec->productId, 'canStore');
