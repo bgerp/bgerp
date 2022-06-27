@@ -91,7 +91,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,weight=Тегло (кг),employees,date=Дата,info=@';
+    public $listFields = 'taskId,type=Операция,serial,productId,taskId,quantity,weight=Тегло (кг),employees,date=Дата,fixedAsset,info=@';
     
     
     /**
@@ -173,16 +173,27 @@ class planning_ProductionTaskDetails extends doc_Detail
         // Задаваме последно въведените данни
         if ($lastRec = $query->fetch()) {
             $form->setDefault('employees', $lastRec->employees);
-            $form->setDefault('fixedAsset', $lastRec->fixedAsset);
         }
 
         // Ако в мастъра са посочени машини, задават се като опции
         if (isset($masterRec->assetId)) {
-            $assetOptions = array($masterRec->assetId => planning_AssetResources::getTitleById($masterRec->assetId, false));
+            $allowedAssets = array($masterRec->assetId => $masterRec->assetId);
+            if($Driver = cat_Products::getDriver($masterRec->productId)){
+                $productionData = $Driver->getProductionData($masterRec->productId);
+                $allowedAssets += $productionData['fixedAssets'];
+            }
+
+            // Достъпни са посочените в етапа папки
+            $assetOptions = array();
+            $assetsInFolder = planning_AssetResources::getByFolderId($masterRec->folderId, $masterRec->assetId, 'planning_Tasks', true);
+            $allowedAssets = array_intersect_key($allowedAssets, $assetsInFolder);
+            foreach ($allowedAssets as $assetId){
+                $assetOptions[$assetId] = planning_AssetResources::getTitleById($assetId, false);
+            }
+
             $form->setOptions('fixedAsset', $assetOptions);
             $form->setField('fixedAsset', 'input,mandatory');
             if(!Mode::is('terminalProgressForm')){
-                $form->setReadOnly('fixedAsset', $masterRec->assetId);
                 $form->setDefault('fixedAsset', $masterRec->assetId);
             }
         } else {
@@ -410,6 +421,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $form->setError('productId,serial', 'Трябва да е избран артикул');
             }
 
+            if($masterRec->assetId != $rec->fixedAsset){
+                $form->setWarning('fixedAsset', "Избраното оборудване е различно от посоченото в операцията! Наистина ли желаете да снените оборудването в операцията?");
+            }
+
             if (!$form->gotErrors()) {
                 if(isset($serialInfo)){
                     if(empty($rec->quantity) && !empty($serialInfo['quantity'])){
@@ -446,6 +461,10 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if (isset($info->indTime)) {
                     $rec->norm = $info->indTime;
+                }
+
+                if($masterRec->assetId != $rec->fixedAsset){
+                    $rec->newAssetId = $rec->fixedAsset;
                 }
             }
         }
@@ -625,7 +644,11 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
         $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/y l');
-
+        if(empty($taskRec->prevAssetId)){
+            unset($row->fixedAsset);
+        } else {
+            $row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset, true);
+        }
     }
 
 
@@ -827,6 +850,10 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         // Ъпдейт на общото к-во в детайла
         planning_ProductionTaskProducts::updateTotalQuantity($rec->taskId, $rec->productId, $rec->type);
+
+        if(isset($rec->newAssetId)){
+            Mode::setPermanent("newAsset{$rec->taskId}", $rec->newAssetId);
+        }
     }
     
     
