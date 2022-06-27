@@ -777,18 +777,23 @@ class planning_Tasks extends core_Master
         }
         
         $rec->progress = max(array($rec->progress, 0));
-        
+
+        $producedQuantity = 0;
         $noteQuery = planning_DirectProductionNote::getQuery();
         $noteQuery->where("#productId = {$productId} AND #state = 'active' AND #originId = {$rec->containerId}");
-        $noteQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-        $noteQuery->show('totalQuantity');
-        $producedQuantity = $noteQuery->fetch()->totalQuantity;
+        while($nRec = $noteQuery->fetch()){
+            if($nRec->packagingId == $rec->measureId){
+                $producedQuantity += $nRec->packQuantity;
+            } else {
+                $producedQuantity += $nRec->quantity;
+            }
+        }
        
         // Обновяване на произведеното по заданието
         if($producedQuantity != $rec->producedQuantity){
             planning_Jobs::updateProducedQuantity($rec->originId);
         }
-        
+
         $rec->producedQuantity = $producedQuantity;
         
         // Ако няма зададено начало, тогава се записва времето на първо добавения запис
