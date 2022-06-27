@@ -507,7 +507,7 @@ class planning_Tasks extends core_Master
             $row->originId = $origin->getHyperlink(true);
         } else {
             $quantityStr = str::getPlural($origin->fetchField('packQuantity'), $origin->getVerbal('packagingId'));
-            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} |от|* {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
+            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
         }
         
         if(empty($rec->indTime)){
