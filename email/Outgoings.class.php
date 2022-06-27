@@ -2562,7 +2562,7 @@ class email_Outgoings extends core_Master
         }
         
         $text = core_Packs::getConfigValue('email', $key);
-        
+
         $textTpl = new ET($text);
         
         $placeArr = $textTpl->getPlaceholders();
@@ -2571,14 +2571,20 @@ class email_Outgoings extends core_Master
         
         foreach ((array) $placeArr as $placeHolder) {
             $placeHolderU = strtoupper($placeHolder);
-            
+
+            $yearMask = 'd-M';
+
+            $cYear = date('Y');
+            $eYear = date('Y', dt::mysql2timestamp($date));
+            $yearMask .= ($cYear != $eYear) ? '-Y' : '';
+
             switch ($placeHolderU) {
                 case 'DATETIME':
-                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M H:i', null, false);
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, $yearMask . ' H:i', null, false);
                 break;
                 
                 case 'DATE':
-                    $valArr[$placeHolder] = dt::mysql2verbal($date, 'd-M', null, false);
+                    $valArr[$placeHolder] = dt::mysql2verbal($date, $yearMask, null, false);
                 break;
                 
                 case 'MSG':
