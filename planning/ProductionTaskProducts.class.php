@@ -80,7 +80,7 @@ class planning_ProductionTaskProducts extends core_Detail
     /**
      * Кой може да го изтрие?
      */
-    public $canList = 'no_one';
+    public $canList = 'debug';
     
     
     /**
