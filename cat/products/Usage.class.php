@@ -50,18 +50,18 @@ class cat_products_Usage extends core_Manager
 
         // Промяна на таба взависимост дали артикула е стандартен или не
         if ($data->isPublic === true) {
-            if ((($masterRec->state == 'template') || ($data->jobData->notManifacturable === true)) && !countR($data->jobData->rows)) {
-                
+            if ((($masterRec->state == 'template') || ($data->jobData->notManifacturable === true)) && !countR($data->jobData->rows) && !countR($data->taskData->rows)) {
+
                 return;
             }
             if (!haveRole('ceo,planning,job')) {
-                
+
                 return;
             }
             $data->Tab = 'top';
             $data->TabCaption =  countR($data->taskData->rows) ? 'Документи' : 'Задания';
             if (!$prepareTab || $prepareTab != 'Usage') {
-                
+
                 return;
             }
         } else {

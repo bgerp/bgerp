@@ -535,9 +535,7 @@ class planning_Tasks extends core_Master
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
         $row->producedCaption = ($canStore == 'yes') ? tr('Заскладено') : tr('Изпълнено');
-
-        $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ($mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId)) : $row->progress;
-        $row->progress = "<span style='color:{$grey};'>{$row->progress}</span>";
+        $row->progress = (isset($fields['-list']) && empty($rec->progress)) ? ("<i>" . $mvc->getFieldType('plannedQuantity')->toVerbal($rec->plannedQuantity) . " " . cat_UoM::getShortName($rec->measureId) . "</i>") : "<span style='color:{$grey};'>{$row->progress}</span>";
 
         return $row;
     }
@@ -1978,7 +1976,7 @@ class planning_Tasks extends core_Master
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
-            // Добавяне на дата атрибуто за да може с драг и дроп да се преподреждат ПО в списъка
+            // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
             if($enableReorder){
                 if($mvc->haveRightFor('reordertask', $rec)){
@@ -2039,7 +2037,6 @@ class planning_Tasks extends core_Master
         $mQuery->limit(1);
         $res = md5(trim($mQuery->fetch()->modifiedOn));
     }
-
 
 
     /**
