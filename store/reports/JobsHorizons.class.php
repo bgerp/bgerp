@@ -201,7 +201,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                 'code' => $code,
                 'documentsReserved' => $documentsReserved,
                 'documentsExpected' => $documentsExpected,
-                'store' => $sRec->storeId,
 
             );
 
@@ -241,7 +240,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $fld->FLD('reserved', 'varchar', 'caption=Количество->Запазено,smartCenter');
             $fld->FLD('expected', 'varchar', 'caption=Количество->Очаквано,smartCenter');
             $fld->FLD('free', 'varchar', 'caption=Количество->Разполагаемо,smartCenter');
-            $fld->FLD('store', 'varchar', 'caption=Склад,smartCenter');
+
             if (core_Users::haveRole('debug')) {
                 $fld->FLD('delrow', 'text', 'caption=Пулт,smartCenter');
             }
@@ -496,6 +495,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
+                    $dCloneRec->store = $docRec->storeId;
+
                     unset ($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
@@ -522,9 +523,12 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $dCloneRec->date = $docExpected->date;
 
                     $dCloneRec->document = $Document->abbr . $docExpected->sourceId;
+
                     $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
+
+                    $dCloneRec->store = $docRec->storeId;
 
                     unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
 
