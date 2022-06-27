@@ -747,7 +747,10 @@ class planning_Tasks extends core_Master
         }
     }
 
-
+function act_Test()
+{
+    $this->updateMaster(537);
+}
     /**
      * Обновява данни в мастъра
      *
@@ -769,7 +772,7 @@ class planning_Tasks extends core_Master
         while($dRec = $dQuery->fetch()){
             $quantity = $dRec->quantity / $rec->quantityInPack;
             $rec->totalQuantity += $quantity;
-            $rec->totalWeight += $dRec->sumWeight;
+            $rec->totalWeight += $dRec->weight;
             $rec->scrappedQuantity += $dRec->scrappedQuantity;
         }
         
