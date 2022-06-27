@@ -180,7 +180,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             $allowedAssets = array($masterRec->assetId => $masterRec->assetId);
             if($Driver = cat_Products::getDriver($masterRec->productId)){
                 $productionData = $Driver->getProductionData($masterRec->productId);
-                $allowedAssets += $productionData['fixedAssets'];
+                if(is_array($productionData['fixedAssets'])){
+                    $allowedAssets += $productionData['fixedAssets'];
+                }
             }
 
             // Достъпни са посочените в етапа папки

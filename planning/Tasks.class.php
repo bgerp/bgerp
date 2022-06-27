@@ -769,6 +769,7 @@ class planning_Tasks extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetch($id);
+        $originalProgress = $rec->progress;
         $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId';
 
         // Ако е записано в сесията, че е подменена машината да се подмени и в операцията
@@ -826,6 +827,21 @@ class planning_Tasks extends core_Master
             $updateFields .= ',timeStart';
         }
 
+        // Ако има промяна в прогреса
+        if($rec->progress != $originalProgress){
+            $rec->orderByAssetId = null;
+            if($lastTaskWithProgressId = $this->getStartAfter($rec, true)){
+                $orderByAssetId = $this->fetchField($lastTaskWithProgressId, 'orderByAssetId');
+                $rec->orderByAssetId = $orderByAssetId + 0.5;
+            } else {
+                $rec->orderByAssetId = 0.5;
+            }
+
+            $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
+            $updateFields .= ',orderByAssetId';
+            $rec->_stopReorder = true;
+        }
+
         // При първо добавяне на прогрес, ако е в заявка - се активира автоматично
         if($rec->state == 'pending' && planning_ProductionTaskDetails::count("#taskId = {$rec->id}")){
             planning_plg_StateManager::changeState($this, $rec, 'activate');
@@ -835,8 +851,8 @@ class planning_Tasks extends core_Master
 
         return $this->save_($rec, $updateFields);
     }
-    
-    
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -1323,9 +1339,10 @@ class planning_Tasks extends core_Master
      * Изчисляване след коя задача ще се изпълни тази
      *
      * @param stdClass $rec
+     * @param boolean $withProgress
      * @return null|int
      */
-    private function getStartAfter($rec)
+    private function getStartAfter($rec, $withProgress = false)
     {
         if(empty($rec->assetId)) return null;
 
@@ -1334,6 +1351,10 @@ class planning_Tasks extends core_Master
         $query->orderBy('orderByAssetId', 'DESC');
         $query->show('id');
         $query->limit(1);
+
+        if($withProgress){
+            $query->where("#progress != 0");
+        }
 
         if(isset($rec->id) && isset($rec->orderByAssetId)){
             $query->where("#orderByAssetId < {$rec->orderByAssetId}");
@@ -2075,6 +2096,7 @@ class planning_Tasks extends core_Master
     {
         // Ако има избрано оборудване, задачата се поставя на правилното място и се преподреждат задачите на машината
         if(isset($rec->assetId)){
+            if($rec->_stopReorder) return;
 
             // Ако не е минато през формата
             if(!$rec->_fromForm && !$rec->_isDragAndDrop){
