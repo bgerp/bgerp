@@ -1960,6 +1960,21 @@ class planning_Tasks extends core_Master
 
         $displayPlanningParamsCount = countR($data->listFieldsParams);
         $enableReorder = isset($data->listFilter->rec->assetId) &&  in_array($data->listFilter->rec->state, array('activeAndPending', 'pending', 'active', 'wakeup')) && countR($data->recs) > 1;
+
+        // Еднократно извличане на специфичните параметри за показваните операции
+        $taskSpecificParams = array();
+        if($displayPlanningParamsCount){
+
+            // Ако в операцията има конкретно избрани параметри - ще се използват те с приоритет
+            $taskParamQuery = cat_products_Params::getQuery();
+            $taskParamQuery->where("#classId = {$mvc->getClassId()}");
+            $taskParamQuery->in('productId', array_keys($data->recs));
+            while($taskParamRec = $taskParamQuery->fetch()){
+                $taskParamVal = cat_Params::toVerbal($taskParamRec->paramId, $mvc->getClassId(), $taskParamRec->productId, $taskParamRec->paramValue);
+                $taskSpecificParams[$taskParamRec->productId][$taskParamRec->paramId] = $taskParamVal;
+            }
+        }
+
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
 
@@ -1977,29 +1992,29 @@ class planning_Tasks extends core_Master
                 // Кои са параметрите от артикула на заданието за операцията
                 $origin = doc_Containers::getDocument($rec->originId);
                 $jobProductId = $origin->fetchField('productId');
-                $taskDisplayParams = array();
-                $jobParams = cat_Products::getParams($jobProductId, null, true);
-                foreach ($jobParams as $jParamId => $jParamValue){
-                    $taskDisplayParams[$jParamId] = array('value' => $jParamValue, 'type' => 'job');
-                }
 
-                // Ако в операцията има конкретно избрани параметри - ще се използват те с приоритет
-                $taskParamQuery = cat_products_Params::getQuery();
-                $taskParamQuery->where("#productId = {$rec->id} AND #classId = {$mvc->getClassId()}");
-                while($taskParamRec = $taskParamQuery->fetch()){
-                    $taskParamVal = cat_Params::toVerbal($taskParamRec->paramId, $mvc->getClassId(), $rec->id, $taskParamRec->paramValue);
-                    $taskDisplayParams[$taskParamRec->paramId] = array('value' => $taskParamVal, 'type' => 'task');
+                // Взимане с приотитет от кеша на параметрите на артикула от заданието
+                $jobParams = core_Permanent::get("taskListJobParams{$jobProductId}");
+                if(!is_array($jobParams)){
+                    $jobParams = cat_Products::getParams($jobProductId, null, true);
+                    core_Permanent::set("taskListJobParams{$jobProductId}", $jobParams, 5*60);
                 }
 
                 // Кои от продуктовите параметри ще се показват в лист изгледа за планиране
-                $displayParams = array_intersect_key($taskDisplayParams, $data->listFieldsParams);
-                foreach ($displayParams as $pId => $pArr){
+                $displayParams = array_intersect_key($jobParams, $data->listFieldsParams);
+                foreach ($displayParams as $pId => $pValue){
+                    $live = true;
+                    if(is_array($taskSpecificParams[$rec->id]) && array_key_exists($pId, $taskSpecificParams[$rec->id])){
+                        $pValue = $taskSpecificParams[$rec->id][$pId];
+                        $live = false;
+                    }
+
                     $pSuffix = cat_Params::getVerbal($pId, 'suffix');
-                    $row->{"param_{$pId}"} = $pArr['value'];
+                    $row->{"param_{$pId}"} = $pValue;
                     if(!empty($pSuffix)){
                         $row->{"param_{$pId}"} .= " {$pSuffix}";
                     }
-                    if($pArr['type'] == 'job'){
+                    if($live){
                         $row->{"param_{$pId}"} = "<span style='color:blue'>{$row->{"param_{$pId}"}}</span>";
                     }
                 }
