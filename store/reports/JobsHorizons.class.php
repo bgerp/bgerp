@@ -495,6 +495,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
+                    $dCloneRec->store = $docRec->storeId;
+
                     unset ($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
 
                     $recs[] = $this->getExportRec($rec, $dCloneRec, $ExportClass);
