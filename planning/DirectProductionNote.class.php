@@ -275,10 +275,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $form->setDefault('packQuantity', round($quantityToStore / $originRec->quantityInPack, 5));
                 }
             } else {
-
                 // Ако задачата е за крайния артикул записваме к-то му от заданието
                 if($rec->productId == $jobRec->productId){
-                    $form->setDefault('jobQuantity', $jobRec->quantity);
+                    $form->setDefault('jobQuantity', $originRec->totalQuantity - $originRec->producedQuantity);
                 }
 
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
@@ -292,8 +291,9 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 }
 
                 $form->setDefault('packagingId', $originPackId);
-                if ($info->totalQuantity > 0) {
-                    $form->setDefault('packQuantity', $info->totalQuantity);
+                $toProduce = round($info->totalQuantity - $info->producedQuantity, 4);
+                if ($toProduce > 0) {
+                    $form->setDefault('packQuantity', $toProduce);
                 }
             }
 

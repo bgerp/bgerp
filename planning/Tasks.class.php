@@ -683,7 +683,7 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterGetFieldForLetterHead($mvc, &$resArr, $rec, $row)
     {
-        if($rec->showadditionalUom != 'yes'){
+        if($rec->showadditionalUom == 'no'){
             unset($row->totalWeight);
         } elseif(empty($rec->totalWeight)) {
             $row->totalWeight = "<span class='quiet'>N/A</span>";
