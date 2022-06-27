@@ -377,7 +377,6 @@ class planning_Tasks extends core_Master
         $grey->setGradient($color, $rec->progress);
 
         $origin = doc_Containers::getDocument($rec->originId);
-        $row->originId = (isset($fields['-list'])) ? "<small>" . $origin->getShortHyperlink() . " / {$origin->getVerbal('dueDate')}</small>" : $origin->getHyperlink(true);
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
         $row->productId = cat_Products::getHyperlink($rec->productId, true);
         
@@ -499,11 +498,16 @@ class planning_Tasks extends core_Master
                 $row->productCaption = tr('Етап');
                 unset($row->isFinal);
             }
-        }
-        
-        if (!empty($rec->employees)) {
-            $row->employees = planning_Hr::getPersonsCodesArr($rec->employees, true);
-            $row->employees = implode(', ', $row->employees);
+
+            if (!empty($rec->employees)) {
+                $row->employees = planning_Hr::getPersonsCodesArr($rec->employees, true);
+                $row->employees = implode(', ', $row->employees);
+            }
+
+            $row->originId = $origin->getHyperlink(true);
+        } else {
+            $quantityStr = str::getPlural($origin->fetchField('packQuantity'), $origin->getVerbal('packagingId'));
+            $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} |от|* {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
         }
         
         if(empty($rec->indTime)){
@@ -517,7 +521,7 @@ class planning_Tasks extends core_Master
                 $row->assetId = ht::createHint($row->assetId, "Подредба|*: {$row->orderByAssetId}", 'img/16/bug.png');
             }
 
-            if(!in_array($rec->state, array('closed', 'rejected'))){
+            if(isset($fields['-single']) && !in_array($rec->state, array('closed', 'rejected'))){
 
                 // Показва се след коя ще започне
                 $startAfter = $mvc->getStartAfter($rec);
@@ -777,18 +781,23 @@ class planning_Tasks extends core_Master
         }
         
         $rec->progress = max(array($rec->progress, 0));
-        
+
+        $producedQuantity = 0;
         $noteQuery = planning_DirectProductionNote::getQuery();
         $noteQuery->where("#productId = {$productId} AND #state = 'active' AND #originId = {$rec->containerId}");
-        $noteQuery->XPR('totalQuantity', 'double', 'SUM(#quantity)');
-        $noteQuery->show('totalQuantity');
-        $producedQuantity = $noteQuery->fetch()->totalQuantity;
+        while($nRec = $noteQuery->fetch()){
+            if($nRec->packagingId == $rec->measureId){
+                $producedQuantity += $nRec->packQuantity;
+            } else {
+                $producedQuantity += $nRec->quantity;
+            }
+        }
        
         // Обновяване на произведеното по заданието
         if($producedQuantity != $rec->producedQuantity){
             planning_Jobs::updateProducedQuantity($rec->originId);
         }
-        
+
         $rec->producedQuantity = $producedQuantity;
         
         // Ако няма зададено начало, тогава се записва времето на първо добавения запис
