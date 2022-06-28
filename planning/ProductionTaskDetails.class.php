@@ -1045,20 +1045,34 @@ class planning_ProductionTaskDetails extends doc_Detail
             if(($taskRec->isFinal == 'yes' && $rec->productId == $jobProductId) || $rec->productId == $taskRec->productId){
                 $productMeasureId = ($rec->productMeasureId) ? $rec->productMeasureId : cat_Products::fetchField($rec->productId, 'measureId');
                 $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
-                if($taskRec->measureId != $productMeasureId && array_key_exists($taskRec->measureId, $similarMeasures)){
+                $isSimilarMeasure = array_key_exists($taskRec->measureId, $similarMeasures);
+                if($taskRec->measureId != $productMeasureId && $isSimilarMeasure){
                     $quantity = cat_UoM::convertValue($quantity, $taskRec->measureId, $productMeasureId);
                 }
 
-                if ($indQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->indPackagingId, 'quantity')) {
-                    $quantity = ($quantity / $indQuantityInPack);
+                // Ако е в непроизводна мярка, конвертира се към нея
+                if(!$isSimilarMeasure){
+                    if(cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom'){
+                        if ($measureQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->measureId, 'quantity')) {
+                            $quantity *= $measureQuantityInPack;
+                        }
+                    }
+                }
+
+                if($taskRec->measureId != $taskRec->indPackagingId){
+                    if ($indQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->indPackagingId, 'quantity')) {
+                        $quantity = ($quantity / $indQuantityInPack);
+                    }
                 }
             }
         }
 
         $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
+        $normFormQuantity = round($normFormQuantity);
         if($verbal) {
             $normFormQuantity = "|Начислено|*: {$normFormQuantity} s";
             if(haveRole('debug')){
+                $quantity = round($quantity, 5);
                 $normFormQuantity .= " [N:{$rec->norm} - Q:{$quantity}]";
             }
         }
