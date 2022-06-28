@@ -530,7 +530,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
-                    $storeFieldName = self::getStoreFieldsName($docClassName);
+                    $storeFieldName =  trim(self::getStoreFieldsName($docClassName));
 
                     $dCloneRec->store = $docRec->$storeFieldName;
 
@@ -591,7 +591,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $res->docExpectedQuantyti = $dRec->docExpectedQuantyti;
         $res->docReservedQuantyti = $dRec->docReservedQuantyti;
-
 
         if($dRec->store){
             $res->store = store_Stores::fetch($dRec->store)->name;
@@ -998,11 +997,11 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         switch ($docClassName) {
             case 'planning_Jobs': $storeFieldName = 'storeId'; break;
             case 'store_Transfers': $storeFieldName = 'toStore'; break; //fromStore,toStore
-            case 'purchase_Purchases': $storeFieldName = 'shipmentStoreId '; break;
+            case 'purchase_Purchases': $storeFieldName = 'shipmentStoreId'; break;
             case 'store_Receipts': $storeFieldName = 'storeId'; break;
-            case 'sales_Sales': $storeFieldName = 'storeId'; break;
+            case 'sales_Sales': $storeFieldName = 'shipmentStoreId'; break;
             case 'store_ShipmentOrders': $storeFieldName = 'storeId'; break;
-
+            default: $storeFieldName = 'storeId'; break;
         }
 
         return $storeFieldName;
