@@ -654,7 +654,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         // Показване на хинт към изчисленото време
         if(!empty($rec->employees) && !empty($rec->norm) && $rec->state != 'rejected'){
-            $calcedNormHint = $mvc->getNormByRec($rec, null, true);
+            $calcedNormHint = $mvc->calcNormByRec($rec, null, true);
             $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
         }
     }
@@ -1028,10 +1028,12 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Връща изчислената норма, спрямо количеството
      *
-     * @param $rec
-     * @return string
+     * @param stdClass $rec          - запис
+     * @param stdClass|null $taskRec - запис на операция или null ако ще се извлича на момента
+     * @param boolean $verbal        - дали да е вербално или не
+     * @return string                - изчислената норма в секунди
      */
-    private static function getNormByRec($rec, $taskRec = null, $verbal = false)
+    public static function calcNormByRec($rec, $taskRec = null, $verbal = false)
     {
         $quantity = $rec->quantity;
 
@@ -1065,7 +1067,6 @@ class planning_ProductionTaskDetails extends doc_Detail
     }
 
 
-
     /**
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е използвал
@@ -1095,7 +1096,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('isFinal', 'planning_Tasks', 'externalName=isFinal,externalKey=taskId');
         $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
-        $query->where("#norm IS NOT NULL AND #employees IS NOT NULL");
+        $query->where("#taskModifiedOn >= '{$timeline}' AND #norm IS NOT NULL AND #employees IS NOT NULL");
 
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
@@ -1113,7 +1114,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $taskRec->{$fld} = $rec->{$fldAlias};
             }
 
-            $normFormQuantity = static::getNormByRec($rec, $taskRec);
+            $normFormQuantity = static::calcNormByRec($rec, $taskRec);
             $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
 
             $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
