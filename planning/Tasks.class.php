@@ -781,6 +781,7 @@ class planning_Tasks extends core_Master
             // Новата и старата машина се заопашават
             $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
             $this->reorderTasksInAssetId[$rec->prevAssetId] = $rec->prevAssetId;
+            $this->logWrite("Промяна на оборудването ", $rec->id);
         }
 
         // Колко е общото к-во досега

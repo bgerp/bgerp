@@ -1057,9 +1057,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
         if($verbal) {
-            $normFormQuantity = "|Време|*: {$normFormQuantity} s";
+            $normFormQuantity = "|Начислено|*: {$normFormQuantity} s";
             if(haveRole('debug')){
-                $normFormQuantity .= " (N){$rec->norm} - (Q){$quantity}";
+                $normFormQuantity .= " [N:{$rec->norm} - Q:{$quantity}]";
             }
         }
 
