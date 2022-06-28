@@ -1003,7 +1003,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         switch ($docClassName) {
             case 'planning_Jobs': $storeFieldName = 'storeId'; break;
             case $docClassName == 'store_Transfers' && $t == 'out': $storeFieldName = 'fromStore'; break;
-            case $docClassName == 'store_Transfers' && $t = 'in': $storeFieldName = 'toStore'; break; //fromStore,toStore
+            case $docClassName == 'store_Transfers' && $t == 'in': $storeFieldName = 'toStore'; break; //fromStore,toStore
             case 'purchase_Purchases': $storeFieldName = 'shipmentStoreId'; break;
             case 'store_Receipts': $storeFieldName = 'storeId'; break;
             case 'sales_Sales': $storeFieldName = 'shipmentStoreId'; break;
