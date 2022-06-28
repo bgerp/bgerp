@@ -651,6 +651,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         } else {
             $row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset, true);
         }
+
+        if(!empty($rec->employees) && !empty($rec->norm) && $rec->state != 'rejected'){
+            $calcedNormHint = $mvc->getNormByRec($rec);
+            $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
+        }
     }
 
 
@@ -1017,8 +1022,49 @@ class planning_ProductionTaskDetails extends doc_Detail
         $rec = &$data->form->rec;
         $data->singleTitle = ($rec->type == 'input') ? 'влагане' : (($rec->type == 'waste') ? 'отпадък' : 'произвеждане');
     }
-    
-    
+
+
+    /**
+     * Връща изчислената норма, спрямо количеството
+     *
+     * @param $rec
+     * @return string
+     */
+    private function getNormByRec($rec, $verbal = true)
+    {
+        $quantity = $rec->quantity;
+
+        if($rec->type == 'production') {
+
+            $taskRec = planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId');
+            $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
+            if(($taskRec->isFinal == 'yes' && $rec->productId == $jobProductId) || $rec->productId == $taskRec->productId){
+                $productMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
+                $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
+
+                if($taskRec->measureId != $productMeasureId && array_key_exists($taskRec->measureId, $similarMeasures)){
+                    $quantity = cat_UoM::convertValue($quantity, $taskRec->measureId, $productMeasureId);
+                }
+
+                if ($indQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->indPackagingId, 'quantity')) {
+                    $quantity = ($quantity / $indQuantityInPack);
+                }
+            }
+        }
+
+        $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
+        if($verbal) {
+            $normFormQuantity = "|Време|*: {$normFormQuantity}";
+            if(haveRole('debug')){
+                $normFormQuantity .= " (N){$rec->norm} - (Q){$quantity}";
+            }
+        }
+
+        return $normFormQuantity;
+    }
+
+
+
     /**
      * Метод за вземане на резултатност на хората. За определена дата се изчислява
      * успеваемостта на човека спрямо ресурса, които е използвал
@@ -1046,8 +1092,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('labelPackagingId', 'planning_Tasks', 'externalName=labelPackagingId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
         $query->where("#taskModifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
-
-        //$query->where("#taskId = 718 AND #id = 2215");
 
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
