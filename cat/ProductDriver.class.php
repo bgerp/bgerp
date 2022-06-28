@@ -1011,6 +1011,9 @@ abstract class cat_ProductDriver extends core_BaseClass
      *          array|null  ['planningParams']       - параметри за планиране
      *          string      ['isFinal']              - дали е финална
      *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
+     *          string      ['wasteProductId']       - ид на отпадък
+     *          string      ['wasteStart']           - начално количество отпадък
+     *          string      ['wastePercent']         - процент отпадък
      */
     public function getProductionData($productId)
     {
