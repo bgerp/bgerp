@@ -158,16 +158,16 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
             $storesRecsArr = $sQuery->fetchAll();
 
         } else {
-            $storesRecsArr = arr::extractValuesFromArray($sQuery->fetchAll(), 'productId');
+            $storesRecsArr = $sQuery->fetchAll();
         }
 
 
         foreach ($storesRecsArr as $sRec) {
 
 
-            if (!is_object($sRec)) {
-                $sRec = store_StockPlanning::fetch("#productId = $sRec");
-            }
+//            if (!is_object($sRec)) {
+//                $sRec = store_StockPlanning::fetch("#productId = $sRec");
+//            }
             $pRec   = (cat_Products::fetch($sRec->productId));
 
 
@@ -201,6 +201,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                 'code' => $code,
                 'documentsReserved' => $documentsReserved,
                 'documentsExpected' => $documentsExpected,
+                'store' => $sRec->storeId,
 
             );
 
@@ -495,11 +496,11 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
-                    $t = 'out';
-
-                    $storeFieldName = self::getStoreFieldsName($docClassName, $t);
-
-                    $dCloneRec->store = $docRec->$storeFieldName;
+//                    $t = 'out';
+//
+//                    $storeFieldName = self::getStoreFieldsName($docClassName, $t);
+//
+//                    $dCloneRec->store = $docRec->$storeFieldName;
 
                     unset ($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
 
@@ -534,11 +535,11 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
-                    $t = 'in';
-
-                    $storeFieldName =  trim(self::getStoreFieldsName($docClassName, $t));
-
-                    $dCloneRec->store = $docRec->$storeFieldName;
+//                    $t = 'in';
+//
+//                    $storeFieldName =  trim(self::getStoreFieldsName($docClassName, $t));
+//
+//                    $dCloneRec->store = $docRec->$storeFieldName;
 
                     unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
 
