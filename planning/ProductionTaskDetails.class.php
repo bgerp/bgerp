@@ -652,8 +652,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset, true);
         }
 
+        // Показване на хинт към изчисленото време
         if(!empty($rec->employees) && !empty($rec->norm) && $rec->state != 'rejected'){
-            $calcedNormHint = $mvc->getNormByRec($rec);
+            $calcedNormHint = $mvc->getNormByRec($rec, null, true);
             $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
         }
     }
@@ -1030,18 +1031,18 @@ class planning_ProductionTaskDetails extends doc_Detail
      * @param $rec
      * @return string
      */
-    private function getNormByRec($rec, $verbal = true)
+    private static function getNormByRec($rec, $taskRec = null, $verbal = false)
     {
         $quantity = $rec->quantity;
 
         if($rec->type == 'production') {
-
-            $taskRec = planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId');
+            $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation');
             $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
-            if(($taskRec->isFinal == 'yes' && $rec->productId == $jobProductId) || $rec->productId == $taskRec->productId){
-                $productMeasureId = cat_Products::fetchField($rec->productId, 'measureId');
-                $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
 
+            // Ако артикула е за финален етап вземат се данните от мастъра на операцията
+            if(($taskRec->isFinal == 'yes' && $rec->productId == $jobProductId) || $rec->productId == $taskRec->productId){
+                $productMeasureId = ($rec->productMeasureId) ? $rec->productMeasureId : cat_Products::fetchField($rec->productId, 'measureId');
+                $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
                 if($taskRec->measureId != $productMeasureId && array_key_exists($taskRec->measureId, $similarMeasures)){
                     $quantity = cat_UoM::convertValue($quantity, $taskRec->measureId, $productMeasureId);
                 }
@@ -1054,7 +1055,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
         if($verbal) {
-            $normFormQuantity = "|Време|*: {$normFormQuantity}";
+            $normFormQuantity = "|Време|*: {$normFormQuantity} s";
             if(haveRole('debug')){
                 $normFormQuantity .= " (N){$rec->norm} - (Q){$quantity}";
             }
@@ -1085,13 +1086,16 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $result = array();
         $query = self::getQuery();
-        $query->EXT('taskMeasureId', 'planning_Tasks', 'externalName=measureId,externalKey=taskId');
         $query->EXT('productMeasureId', 'cat_Products', 'externalName=measureId,externalKey=productId');
+        $query->EXT('taskMeasureId', 'planning_Tasks', 'externalName=measureId,externalKey=taskId');
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
         $query->EXT('labelPackagingId', 'planning_Tasks', 'externalName=labelPackagingId,externalKey=taskId');
+        $query->EXT('taskProductId', 'planning_Tasks', 'externalName=productId,externalKey=taskId');
+        $query->EXT('isFinal', 'planning_Tasks', 'externalName=isFinal,externalKey=taskId');
+        $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
-        $query->where("#taskModifiedOn >= '{$timeline}' AND #norm IS NOT NULL");
+        $query->where("#norm IS NOT NULL AND #employees IS NOT NULL");
 
         $iRec = hr_IndicatorNames::force('Време', __CLASS__, 1);
         $classId = planning_Tasks::getClassId();
@@ -1103,21 +1107,13 @@ class planning_ProductionTaskDetails extends doc_Detail
             $persons = keylist::toArray($rec->employees);
             if (!countR($persons)) continue;
 
-            $quantity = $rec->quantity;
-            if($rec->type == 'production'){
-
-                // Иначе взима се 1-ца колко е в мярката/опаковката и се изчислява на какво число от нея съответства
-                $quantityInPack = 1;
-                if(isset($rec->indPackagingId)){
-                    if($packRec = cat_products_Packagings::getPack($rec->productId, $rec->indPackagingId)){
-                        $quantityInPack = $packRec->quantity;
-                    }
-                }
-                $quantity = round(($rec->quantity / $quantityInPack), 3);
+            $taskRec = new stdClass();
+            $arr = arr::make("taskId=id,taskMeasureId=measureId,indTimeAllocation=indTimeAllocation,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId", true);
+            foreach ($arr as $fldAlias => $fld){
+                $taskRec->{$fld} = $rec->{$fldAlias};
             }
 
-            // Колко е заработката за 1 човек
-            $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
+            $normFormQuantity = static::getNormByRec($rec, $taskRec);
             $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
 
             $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
@@ -1125,13 +1121,13 @@ class planning_ProductionTaskDetails extends doc_Detail
             foreach ($persons as $personId) {
                 $key = "{$personId}|{$classId}|{$rec->taskId}|{$rec->state}|{$date}|{$indicatorId}";
                 if (!array_key_exists($key, $result)) {
-                    $result[$key] = (object) array('date' => $date,
-                        'personId' => $personId,
-                        'docId' => $rec->taskId,
-                        'docClass' => $classId,
-                        'indicatorId' => $indicatorId,
-                        'value' => 0,
-                        'isRejected' => ($rec->state == 'rejected'));
+                    $result[$key] = (object) array('date'        => $date,
+                                                   'personId'    => $personId,
+                                                   'docId'       => $rec->taskId,
+                                                   'docClass'    => $classId,
+                                                   'indicatorId' => $indicatorId,
+                                                   'value'       => 0,
+                                                   'isRejected'  => ($rec->state == 'rejected'));
                 }
                 
                 $result[$key]->value += $timePerson;
