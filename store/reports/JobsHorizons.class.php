@@ -89,7 +89,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $fieldset->FLD('groups', 'keylist(mvc=cat_Groups,select=name,allowEmpty)', 'caption=Група продукти,after=storeId,mandatory,silent,single=none');
 
         //Подредба на резултатите
-         $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
+        $fieldset->FLD('order', 'enum(desc=Низходящо, asc=Възходящо)', 'caption=Подреждане на резултата->Ред,maxRadio=2,after=orderBy,single=none');
     }
 
 
@@ -137,12 +137,10 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     protected function prepareRecs($rec, &$data = null)
     {
 
-
         $recs = $storesRecsArr = $storesArr = array();
 
         // Подготвяме заявката за извличането на записите от store_Products
 
-        //$sQuery = store_Products::getQuery();
         $sQuery = store_StockPlanning::getQuery();
 
         $sQuery->EXT('groups', 'cat_Products', 'externalName=groups,externalKey=productId');
@@ -164,12 +162,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         foreach ($storesRecsArr as $sRec) {
 
-
-//            if (!is_object($sRec)) {
-//                $sRec = store_StockPlanning::fetch("#productId = $sRec");
-//            }
-            $pRec   = (cat_Products::fetch($sRec->productId));
-
+            $pRec = (cat_Products::fetch($sRec->productId));
 
             if (!$sRec->measureId) {
                 $measureId = cat_Products::fetch($sRec->productId)->measureId;
@@ -201,17 +194,16 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                 'code' => $code,
                 'documentsReserved' => $documentsReserved,
                 'documentsExpected' => $documentsExpected,
-                'store' => $sRec->storeId,
 
             );
 
-            unset($documentsReserved,$documentsExpected,$Quantities,$code);
+            unset($documentsReserved, $documentsExpected, $Quantities, $code);
 
         }
 
         if (!empty($recs)) {
 
-            arr::sortObjects($recs, 'code', $rec->order,'stri');
+            arr::sortObjects($recs, 'code', $rec->order, 'stri');
         }
 
         return $recs;
@@ -288,7 +280,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $row = new stdClass();
 
-        $pRec   = (cat_Products::fetch($dRec->productId));
+        $pRec = (cat_Products::fetch($dRec->productId));
 
         $row->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
 
@@ -335,9 +327,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         $row->delrow = '';
         $row->delrow .= ht::createLink('', array('store_reports_JobsHorizons', 'editminmax', 'productId' => $dRec->productId, 'code' => $dRec->code, 'recId' => $rec->id, 'ret_url' => true), null, "ef_icon=img/16/edit.png");
 
-        if($dRec->store){
+        if ($dRec->store) {
             $row->store = store_Stores::getHyperlink($dRec->store);
-        }else{
+        } else {
             $row->store = 'Без';
         }
 
@@ -389,7 +381,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
             $fieldTpl->append('<b>' . $Date->toVerbal($data->rec->date) . '</b>', 'date');
         }
-
 
         if (isset($data->rec->stores)) {
 
@@ -477,7 +468,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec = clone $dRec;
 
-                    //$document = cls::get($docReserved->sourceClassId)->abbr . $docReserved->sourceId;
                     $DocumentRez = cls::get($docReserved->sourceClassId);
                     $docClassName = $DocumentRez->className;
                     $docRec = $docClassName::fetch($docReserved->sourceId);
@@ -492,15 +482,11 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->document = $DocumentRez->abbr . $docReserved->sourceId;
 
-                    $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
+                    $dCloneRec->note = ($docClassName === 'planning_Jobs') ? $docRec->notes : $docRec->note;
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
-//                    $t = 'out';
-//
-//                    $storeFieldName = self::getStoreFieldsName($docClassName, $t);
-//
-//                    $dCloneRec->store = $docRec->$storeFieldName;
+                    $dCloneRec->store = $docReserved->storeId;
 
                     unset ($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
 
@@ -517,9 +503,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $Document = cls::get($docExpected->sourceClassId);
 
                     $docClassName = $Document->className;
+
                     $docRec = $docClassName::fetch($docExpected->sourceId);
-
-
 
                     if ($markFirst == 1) {
                         $dCloneRec->markFirst = true;
@@ -531,15 +516,11 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->document = $Document->abbr . $docExpected->sourceId;
 
-                    $dCloneRec->note =($docClassName === 'planning_Jobs') ? $docRec->notes :$docRec->note;
+                    $dCloneRec->note = ($docClassName === 'planning_Jobs') ? $docRec->notes : $docRec->note;
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
-//                    $t = 'in';
-//
-//                    $storeFieldName =  trim(self::getStoreFieldsName($docClassName, $t));
-//
-//                    $dCloneRec->store = $docRec->$storeFieldName;
+                    $dCloneRec->store = $docExpected->storeId;
 
                     unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
 
@@ -572,13 +553,13 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
         $pRec = (cat_Products::fetch($dRec->productId));
 
-        if ( $dRec->markFirst) {
+        if ($dRec->markFirst) {
             $res->productId = $pRec->name;
             $res->code = (!empty($pRec->code)) ? $pRec->code : "Art{$pRec->id}";
             $res->quantity = $dRec->quantity;
             $res->free = $dRec->free;
             $res->expected = $dRec->expected;
-            $res->reserved =$dRec->reserved;
+            $res->reserved = $dRec->reserved;
         } else {
             $res->productId = '';
             $res->code = '';
@@ -594,14 +575,14 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
         }
 
         $res->date = $Date->toVerbal($dRec->date);
-        $res->note= $dRec->note;
+        $res->note = $dRec->note;
 
         $res->docExpectedQuantyti = $dRec->docExpectedQuantyti;
         $res->docReservedQuantyti = $dRec->docReservedQuantyti;
 
-        if($dRec->store){
+        if ($dRec->store) {
             $res->store = store_Stores::fetch($dRec->store)->name;
-        }else{
+        } else {
             $res->store = 'Без';
         }
 
@@ -1002,14 +983,30 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     {
 
         switch ($docClassName) {
-            case 'planning_Jobs': $storeFieldName = 'storeId'; break;
-            case $docClassName == 'store_Transfers' && $t == 'out': $storeFieldName = 'fromStore'; break;
-            case $docClassName == 'store_Transfers' && $t == 'in': $storeFieldName = 'toStore'; break; //fromStore,toStore
-            case 'purchase_Purchases': $storeFieldName = 'shipmentStoreId'; break;
-            case 'store_Receipts': $storeFieldName = 'storeId'; break;
-            case 'sales_Sales': $storeFieldName = 'shipmentStoreId'; break;
-            case 'store_ShipmentOrders': $storeFieldName = 'storeId'; break;
-            default: $storeFieldName = 'storeId'; break;
+            case 'planning_Jobs':
+                $storeFieldName = 'storeId';
+                break;
+            case $docClassName == 'store_Transfers' && $t == 'out':
+                $storeFieldName = 'fromStore';
+                break;
+            case $docClassName == 'store_Transfers' && $t == 'in':
+                $storeFieldName = 'toStore';
+                break; //fromStore,toStore
+            case 'purchase_Purchases':
+                $storeFieldName = 'shipmentStoreId';
+                break;
+            case 'store_Receipts':
+                $storeFieldName = 'storeId';
+                break;
+            case 'sales_Sales':
+                $storeFieldName = 'shipmentStoreId';
+                break;
+            case 'store_ShipmentOrders':
+                $storeFieldName = 'storeId';
+                break;
+            default:
+                $storeFieldName = 'storeId';
+                break;
         }
 
         return $storeFieldName;
