@@ -1325,7 +1325,7 @@ class planning_Tasks extends core_Master
             $form->setReadOnly('productId');
             if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
                 $form->setReadOnly('labelPackagingId');
-                $form->setReadOnly('labelQuantityInPack', $rec->labelQuantityInPack);
+                $form->setReadOnly('labelQuantityInPack');
                 $form->setReadOnly('measureId');
             }
 
