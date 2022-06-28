@@ -495,7 +495,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
-                    $storeFieldName = self::getStoreFieldsName($docClassName);
+                    $t = 'out';
+
+                    $storeFieldName = self::getStoreFieldsName($docClassName, $t);
 
                     $dCloneRec->store = $docRec->$storeFieldName;
 
@@ -516,6 +518,8 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                     $docClassName = $Document->className;
                     $docRec = $docClassName::fetch($docExpected->sourceId);
 
+
+
                     if ($markFirst == 1) {
                         $dCloneRec->markFirst = true;
                     } else {
@@ -530,7 +534,9 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
-                    $storeFieldName =  trim(self::getStoreFieldsName($docClassName));
+                    $t = 'in';
+
+                    $storeFieldName =  trim(self::getStoreFieldsName($docClassName, $t));
 
                     $dCloneRec->store = $docRec->$storeFieldName;
 
@@ -991,12 +997,13 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
     /**
      * Определяне името на полето за склад
      */
-    public static function getStoreFieldsName($docClassName)
+    public static function getStoreFieldsName($docClassName, $t)
     {
 
         switch ($docClassName) {
             case 'planning_Jobs': $storeFieldName = 'storeId'; break;
-            case 'store_Transfers': $storeFieldName = 'toStore'; break; //fromStore,toStore
+            case $docClassName == 'store_Transfers' && $t == 'out': $storeFieldName = 'fromStore'; break;
+            case $docClassName == 'store_Transfers' && $t = 'in': $storeFieldName = 'toStore'; break; //fromStore,toStore
             case 'purchase_Purchases': $storeFieldName = 'shipmentStoreId'; break;
             case 'store_Receipts': $storeFieldName = 'storeId'; break;
             case 'sales_Sales': $storeFieldName = 'shipmentStoreId'; break;
