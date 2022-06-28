@@ -201,7 +201,6 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
                 'code' => $code,
                 'documentsReserved' => $documentsReserved,
                 'documentsExpected' => $documentsExpected,
-                'store' => $sRec->storeId,
 
             );
 
@@ -496,11 +495,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docReservedQuantyti = $docReserved->quantityOut;
 
-//                    $t = 'out';
-//
-//                    $storeFieldName = self::getStoreFieldsName($docClassName, $t);
-//
-//                    $dCloneRec->store = $docRec->$storeFieldName;
+                    $dCloneRec->store = $docReserved->storeId;
 
                     unset ($dCloneRec->documentsReserved, $dCloneRec->documentsExpected);
 
@@ -535,11 +530,7 @@ class store_reports_JobsHorizons extends frame2_driver_TableData
 
                     $dCloneRec->docExpectedQuantyti = $docExpected->quantityIn;
 
-//                    $t = 'in';
-//
-//                    $storeFieldName =  trim(self::getStoreFieldsName($docClassName, $t));
-//
-//                    $dCloneRec->store = $docRec->$storeFieldName;
+                    $dCloneRec->store = $docExpected->storeId;
 
                     unset ($dCloneRec->documentsExpected, $dCloneRec->documentsExpected);
 
