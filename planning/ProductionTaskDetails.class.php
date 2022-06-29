@@ -1335,7 +1335,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $measureName = cat_UoM::getShortName($masterRec->measureId);
         $docTitle = planning_Tasks::getHyperlink($rec->taskId, true);
         $form->title = "Бракуване на произведено количество от|* <b style='color:#ffffcc;'>{$docTitle}</b>";
-        $form->FLD('scrappedQuantity', "double(min=0,Max={$quantity})", "caption=Брак,mandatory,unit=|* / {$quantity} {$measureName}");
+        $form->FLD('scrappedQuantity', "double(min=0,Max={$quantity})", "caption=Брак,mandatory,unit= от|* {$quantity} {$measureName}");
         if(!empty($rec->scrappedQuantity)){
             $form->setDefault('scrappedQuantity', $rec->scrappedQuantity / $masterRec->quantityInPack);
         }
