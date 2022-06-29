@@ -9,7 +9,7 @@
  * @package   cat
  *
  * @author    Milen Georgiev <milen@download.bg>
- * @copyright 2006 - 2018 Experta OOD
+ * @copyright 2006 - 2022 Experta OOD
  * @license   GPL 3
  *
  * @since     v 0.1
@@ -98,8 +98,14 @@ class cat_UoM extends core_Manager
      * Работен кеш
      */
     private static $cache = array();
-    
-    
+
+
+    /**
+     * Работен кеш
+     */
+    private static $cacheSimilarArr = array();
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -298,29 +304,33 @@ class cat_UoM extends core_Manager
      * @param int  $measureId
      * @param bool $short
      *
-     * @return array $options
+     * @return array
      */
     public static function getSameTypeMeasures($measureId, $short = false)
     {
-        expect($rec = static::fetch($measureId, 'baseUnitId,id'), 'Няма такава мярка');
-        
-        $query = static::getQuery();
-        $query->where("#state = 'active'");
-        $baseId = ($rec->baseUnitId) ? $rec->baseUnitId : $rec->id;
-        $query->where("#baseUnitId = {$baseId} OR #id = {$baseId}");
-        $query->show('shortName,name');
-        
-        $options = array();
-        while ($op = $query->fetch()) {
-            $cap = ($short) ? $op->shortName : $op->name;
-            $options[$op->id] = $cap;
+        if(!array_key_exists("{$measureId}|{$short}", static::$cacheSimilarArr)){
+            expect($rec = static::fetch($measureId, 'baseUnitId,id'), 'Няма такава мярка');
+
+            $query = static::getQuery();
+            $query->where("#state = 'active'");
+            $baseId = ($rec->baseUnitId) ? $rec->baseUnitId : $rec->id;
+            $query->where("#baseUnitId = {$baseId} OR #id = {$baseId}");
+            $query->show('shortName,name');
+
+            $options = array();
+            while ($op = $query->fetch()) {
+                $cap = ($short) ? $op->shortName : $op->name;
+                $options[$op->id] = $cap;
+            }
+
+            if (countR($options)) {
+                $options = array('' => '') + $options;
+            }
+
+            static::$cacheSimilarArr["{$measureId}|{$short}"] = $options;
         }
-        
-        if (countR($options)) {
-            $options = array('' => '') + $options;
-        }
-        
-        return $options;
+
+        return static::$cacheSimilarArr["{$measureId}|{$short}"];
     }
     
     
