@@ -1038,7 +1038,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $quantity = $rec->quantity;
 
         if($rec->type == 'production') {
-            $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation');
+            $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack');
             $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
 
             // Ако артикула е за финален етап вземат се данните от мастъра на операцията
@@ -1057,6 +1057,8 @@ class planning_ProductionTaskDetails extends doc_Detail
                             if ($measureQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->measureId, 'quantity')) {
                                 $quantity *= $measureQuantityInPack;
                             }
+                        } else {
+                            $quantity /= $taskRec->quantityInPack;
                         }
                     }
                 }
@@ -1109,6 +1111,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
         $query->EXT('labelPackagingId', 'planning_Tasks', 'externalName=labelPackagingId,externalKey=taskId');
         $query->EXT('taskProductId', 'planning_Tasks', 'externalName=productId,externalKey=taskId');
+        $query->EXT('taskQuantityInPack', 'planning_Tasks', 'externalName=quantityInPack,externalKey=taskId');
         $query->EXT('isFinal', 'planning_Tasks', 'externalName=isFinal,externalKey=taskId');
         $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
@@ -1125,7 +1128,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (!countR($persons)) continue;
 
             $taskRec = new stdClass();
-            $arr = arr::make("taskId=id,taskMeasureId=measureId,indTimeAllocation=indTimeAllocation,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId", true);
+            $arr = arr::make("taskId=id,taskMeasureId=measureId,indTimeAllocation=indTimeAllocation,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId,taskQuantityInPack=quantityInPack", true);
             foreach ($arr as $fldAlias => $fld){
                 $taskRec->{$fld} = $rec->{$fldAlias};
             }
