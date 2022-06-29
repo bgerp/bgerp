@@ -620,6 +620,17 @@ class planning_ProductionTaskDetails extends doc_Detail
             $measureId = $foundRec->measureId;
             $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $foundRec->measureId;
         }
+
+        if (isset($rec->employees)) {
+            $row->employees = self::getVerbalEmployees($rec->employees);
+        }
+
+        // Показване на хинт към изчисленото време
+        if(!empty($rec->employees) && !empty($rec->norm) && $rec->state != 'rejected'){
+            $calcedNormHint = $mvc->calcNormByRec($rec, null, true);
+            $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
+        }
+
         if($taskRec->isFinal == 'yes'){
             $rec->quantity /= $taskRec->quantityInPack;
         }
@@ -634,22 +645,12 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
         }
 
-        if (isset($rec->employees)) {
-            $row->employees = self::getVerbalEmployees($rec->employees);
-        }
-
         $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
         $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/y l');
         if(empty($taskRec->prevAssetId)){
             unset($row->fixedAsset);
         } else {
             $row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset, true);
-        }
-
-        // Показване на хинт към изчисленото време
-        if(!empty($rec->employees) && !empty($rec->norm) && $rec->state != 'rejected'){
-            $calcedNormHint = $mvc->calcNormByRec($rec, null, true);
-            $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
         }
 
         if($mvc->haveRightFor('scrap', $rec)){
@@ -1046,13 +1047,13 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
                 $isSimilarMeasure = array_key_exists($taskRec->measureId, $similarMeasures);
                 if($taskRec->measureId != $productMeasureId && $isSimilarMeasure){
-                    $quantity = cat_UoM::convertValue($quantity, $taskRec->measureId, $productMeasureId);
+                    $quantity = cat_UoM::convertValue($quantity, $productMeasureId, $taskRec->measureId);
                 }
 
                 // Ако е в непроизводна мярка, конвертира се към нея
                 if(!$isSimilarMeasure){
                     if(cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom'){
-                        if($taskRec->indPackagingId != $taskRec->measureId){
+                        if($taskRec->indPackagingId != $taskRec->measureId){   bp($quantity);
                             if ($measureQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->measureId, 'quantity')) {
                                 $quantity *= $measureQuantityInPack;
                             }
