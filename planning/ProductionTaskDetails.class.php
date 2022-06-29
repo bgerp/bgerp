@@ -1328,10 +1328,11 @@ class planning_ProductionTaskDetails extends doc_Detail
         $quantity = $rec->quantity / $masterRec->quantityInPack;
 
         $form = cls::get('core_Form');
-        $docTitle = planning_Tasks::getHyperlink($rec->taskId, true);
+        $form->info = "<div class='richtext-info-no-image'>" . tr('Артикул|*: ') . cat_Products::getHyperlink($rec->productId, true) . "</div>";
 
         // Подготовка на формата
         $measureName = cat_UoM::getShortName($masterRec->measureId);
+        $docTitle = planning_Tasks::getHyperlink($rec->taskId, true);
         $form->title = "Бракуване на произведено количество от|* <b style='color:#ffffcc;'>{$docTitle}</b>";
         $form->FLD('scrappedQuantity', "double(min=0,Max={$quantity})", "caption=Брак,mandatory,unit=|* / {$quantity} {$measureName}");
         if(!empty($rec->scrappedQuantity)){
