@@ -73,15 +73,21 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кой има право да редактира?
      */
-    public $canEdit = 'taskWorker,ceo';
+    public $canEdit = 'no_one';
     
     
     /**
      * Кой има право да листва?
      */
     public $canList = 'taskWorker,ceo';
-    
-    
+
+
+    /**
+     * Кой има право да бракува?
+     */
+    public $canScrap = 'taskWorker,ceo';
+
+
     /**
      * Кой има право да изтрива?
      */
@@ -220,18 +226,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         if ($rec->type == 'production') {
             if($masterRec->isFinal != 'yes'){
                 $form->setDefault('productId', $masterRec->productId);
-            }
-
-            // При редакция на производството само брака може да се променя
-            if (isset($rec->id)) {
-                $form->setReadOnly('productId');
-                $form->setReadOnly('serial');
-                $form->setReadOnly('quantity');
-                $form->setField('scrappedQuantity', 'input');
-                $form->setFieldTypeParams('scrappedQuantity', array('max' => $rec->quantity, 'min' => 0));
-                $form->setField('employees', 'input=none');
-                $form->setField('fixedAsset', 'input=none');
-                $form->setField('notes', 'input=none');
             }
         }
 
@@ -657,6 +651,11 @@ class planning_ProductionTaskDetails extends doc_Detail
             $calcedNormHint = $mvc->calcNormByRec($rec, null, true);
             $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
         }
+
+        if($mvc->haveRightFor('scrap', $rec)){
+            core_RowToolbar::createIfNotExists($row->_rowTools);
+            $row->_rowTools->addLink('Бракуване', array($mvc, 'scrap', $rec->id, 'ret_url' => true), 'title=Бракуване на произведено количество,ef_icon=img/16/bin_closed.png');
+        }
     }
 
 
@@ -732,7 +731,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $row->scrappedQuantity = '';
             if (!empty($rec->scrappedQuantity)) {
-                $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity);
+                $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity / $masterRec->quantityInPack);
                 $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
             }
 
@@ -984,7 +983,7 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
-        if (($action == 'add' || $action == 'reject' || $action == 'edit' || $action == 'delete') && isset($rec->taskId)) {
+        if (in_array($action, array('add', 'edit', 'delete', 'reject', 'scrap')) && isset($rec->taskId)) {
             $state = $mvc->Master->fetchField($rec->taskId, 'state');
             if (!in_array($state, array('active', 'wakeup', 'pending'))) {
                 $requiredRoles = 'no_one';
@@ -1001,14 +1000,14 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
         }
         
-        if ($action == 'edit' && isset($rec)) {
-            if ($rec->type != 'production' || $rec->state == 'rejected') {
+        if($action == 'printperipherallabel' && isset($rec)){
+            if($rec->type != 'production' || $rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
             }
         }
-        
-        if($action == 'printperipherallabel' && isset($rec)){
-            if($rec->type != 'production' || $rec->state == 'rejected'){
+
+        if($action == 'scrap' && isset($rec)){
+            if($rec->state == 'rejected' || $rec->type != 'production'){
                 $requiredRoles = 'no_one';
             }
         }
@@ -1313,5 +1312,48 @@ class planning_ProductionTaskDetails extends doc_Detail
         $average = round($sum / countR($arr), 4);
        
         return $average;
+    }
+
+
+    /**
+     * Екшън за бракуване
+     */
+    public function act_Scrap()
+    {
+        $this->requireRightFor('scrap');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('scrap', $rec);
+        $masterRec = planning_Tasks::fetch($rec->taskId);
+        $quantity = $rec->quantity / $masterRec->quantityInPack;
+
+        $form = cls::get('core_Form');
+        $docTitle = planning_Tasks::getHyperlink($rec->taskId, true);
+
+        // Подготовка на формата
+        $measureName = cat_UoM::getShortName($masterRec->measureId);
+        $form->title = "Бракуване на произведено количество от|* <b style='color:#ffffcc;'>{$docTitle}</b>";
+        $form->FLD('scrappedQuantity', "double(min=0,Max={$quantity})", "caption=Брак,mandatory,unit=|* / {$quantity} {$measureName}");
+        if(!empty($rec->scrappedQuantity)){
+            $form->setDefault('scrappedQuantity', $rec->scrappedQuantity / $masterRec->quantityInPack);
+        }
+        $form->input();
+
+        // Запис на бракуваното количество
+        if($form->isSubmitted()){
+            $scrappedQuantity = $form->rec->scrappedQuantity * $masterRec->quantityInPack;
+            $rec->scrappedQuantity = $scrappedQuantity;
+            $this->save_($rec, 'scrappedQuantity');
+            planning_Tasks::logWrite('Бракуване', $rec->taskId);
+            followRetUrl(null, 'Количеството е бракувано успешно');
+        }
+
+        $form->toolbar->addSbBtn('Бракуване', 'save', 'ef_icon = img/16/bin_closed.png, title = Бракуване на количество');
+        $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+        $tpl = $this->renderWrapping($form->renderHtml());
+        core_Form::preventDoubleSubmission($tpl, $form);
+
+        return $tpl;
     }
 }

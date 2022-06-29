@@ -794,7 +794,7 @@ class planning_Tasks extends core_Master
             $quantity = $dRec->quantity / $rec->quantityInPack;
             $rec->totalQuantity += $quantity;
             $rec->totalWeight += $dRec->weight;
-            $rec->scrappedQuantity += $dRec->scrappedQuantity;
+            $rec->scrappedQuantity += $dRec->scrappedQuantity / $rec->quantityInPack;
         }
         
         // Изчисляваме колко % от зададеното количество е направено
