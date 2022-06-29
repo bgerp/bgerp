@@ -1,0 +1,84 @@
+[#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
+
+<h3 class="centered" style="font-size:16pt">|ЗАПОВЕД|* </h3>
+
+<p class="centered">№ [#id#] / <!--ET_BEGIN createdDate-->[#createdDate#]<!--ET_END createdDate--> |г|*.</p>
+
+<br>
+
+<p class="indent centered">|На основание чл.121 във връзка с чл.215 от Кодекса на труда|* <br>| и чл.8 от Наредбата за командировките в страната,|*<br></p>
+<h2 class="centered" style="font-size:13pt">|КОМАНДИРОВАМ|* </h2>
+<table class="no-border-table inlineRichTable" style="margin-top: 5px;">
+    <tr>
+        <td><b>[#personId#]</b></td>
+    </tr>
+    <tr>
+        <td>
+        <div class='richtext-holder'>|До гр.(с.)|*:</b> [#place#]|и обратно|*</div>
+        </td>
+    </tr>
+    <tr>
+        <td >|в|* [#institution#]</td>
+    </tr>
+    <tr>
+        <td >
+            <div class='richtext-holder'>|за срок|*:[#days#]| дни - |*|от |*[#startDate#]|год.|* | до |*[#toDate#]|год.|*</div>
+        </td>
+    </tr>
+    <tr>
+        <td><div class='richtext-holder'>|със задача:|* [#purpose#]</div></td>
+    </tr>
+    <tr>
+        <td >|Командировката е с право на:|*</td>
+    </tr>
+    <tr>
+        <td >|1. Дневни пари по  |* [#perDay#]|лв. на ден|*</td>
+    </tr>
+    <tr>
+        <td >|2. Квартирни пари по  |* [#perNight#]|лв. на нощ|*</td>
+    </tr>
+    <tr>
+        <td >|3. Пътуването да се извърши със: |* </td>
+    </tr>
+    <tr>
+        <td >|При пътуване с ЛМПС: |* </td>
+    </tr>
+    <tr>
+        <td >|вид на МПС:|*[#car#]| марка  |*[#carModel#]|рег.№|* | [#regNum#]</td>
+    </tr>
+    <tr>
+        <td >|вид гориво:|*[#fuel#]| мин. разход на 100 км |*[#expense#]|л. Ед.цена на 1 л.|* | [#cost#] |лв.|*</td>
+    </tr>
+    <tr>
+        <td ><p >|В тридневен срок от завръщането да се докладва писмено (устно) за извършената работа.|*<br></p></td>
+    </tr>
+    <tr>
+        <td ><p >|Разходите за командировката да са за сметка на:|*[#onAccountOf#]</p></td>
+    </tr>
+</table>
+
+<br><br>
+
+<p>|По време на отсъствието|*:</p>
+<ul class='custom-ul'>
+    <li>|Ще отговарям на мобилен телефон|*: <b>[#answerGSM#]</b></li>
+    <li>|Ще имам достъп до системата|*: <b>[#answerSystem#]</b></li>
+    <!--ET_BEGIN alternatePerson-->
+    <li>|Ще ме замества|*: <b>[#alternatePerson#]</b></li>
+    <!--ET_END alternatePerson-->
+</ul>
+<!--ET_BEGIN note-->
+<div class="richtext-holder indent" style="margin-bottom: 10px;">|Бележки|*: [#note#] </div>
+<!--ET_END note-->
+<br><br>
+
+<table style='width:100%;'>
+    <tr>
+        <!--ET_BEGIN createdDateFooter-->
+        <td>|Дата|*: [#createdDate#] |г|*.</td>
+        <!--ET_END createdDateFooter-->
+        <td> </td>
+        <td class='aright'>|Подпис|*: ............................</td>
+    </tr>
+</table>
+[#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

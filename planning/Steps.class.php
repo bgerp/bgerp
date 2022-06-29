@@ -72,9 +72,9 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField';
-    
-    
+    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent';
+
+
     /**
      * Какъв да е интерфейса на позволените ембедъри
      *
@@ -108,6 +108,10 @@ class planning_Steps extends core_Extender
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
+        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,autohide,silent');
+        $this->FLD('wasteStart', 'cat_type_Weight', 'caption=Отпадък в производствена операция->Начален,autohide');
+        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък в производствена операция->Допустим,autohide');
+
         $this->setDbIndex('state');
     }
     
@@ -128,10 +132,14 @@ class planning_Steps extends core_Extender
         $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_storeIn");
         $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm");
         $form->setField("{$mvc->className}_labelPackagingId", "removeAndRefreshForm={$mvc->className}_labelQuantityInPack|{$mvc->className}_labelTemplate|{$mvc->className}_labelType");
+        $form->setField("{$mvc->className}_wasteProductId", "removeAndRefreshForm={$mvc->className}_wasteStart|{$mvc->className}_wastePercent");
         $form->setDefault("{$mvc->className}_canStore", 'yes');
 
         $form->setDefault("{$mvc->className}_centerId", planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
         $form->input("{$mvc->className}_canStore,{$mvc->className}_centerId,measureId,{$mvc->className}_labelPackagingId", 'silent');
+
+        $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
+        $form->setFieldTypeParams("{$mvc->className}_wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId, 'hasnotProperties' => 'generic'));
 
         // Добавяне на избор само на Параметрите за производствени операции
         $paramOptions = array();
@@ -242,6 +250,10 @@ class planning_Steps extends core_Extender
                 } elseif(!isset($rec->id) || isset($rec->clonedFromId)){
                     $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да е въвдено количество при добавяне на нова опаковка|*!');
                 }
+            }
+
+            if(empty($rec->{"{$mvc->className}_wasteProductId"}) && !empty($rec->{"{$mvc->className}_wasteStart"}) && !empty($rec->{"{$mvc->className}_wastePercent"})){
+                $form->setError("{$mvc->className}_wasteProductId,{$mvc->className}_wasteStart,{$mvc->className}_wastePercent", 'Няма избран отпадък');
             }
         }
     }
@@ -393,6 +405,10 @@ class planning_Steps extends core_Extender
             } else {
                 $row->name = "<span class='red'>" . tr('Проблем с показването') . "</span>";
             }
+        }
+
+        if(isset($rec->wasteProductId)){
+            $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
         }
 
         if($Extended = $mvc->getExtended($rec)){

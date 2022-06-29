@@ -143,11 +143,14 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          array|null  ['planningParams']       - параметри за планиране
      *          string      ['isFinal']              - дали е финална
      *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
+     *          string      ['wasteProductId']       - ид на отпадък
+     *          string      ['wasteStart']           - начално количество отпадък
+     *          string      ['wastePercent']         - процент отпадък
      */
     public function getProductionData($productId)
     {
         $rec = cat_Products::fetch($productId);
-        $res = array('centerId' => $rec->planning_Steps_centerId, 'storeIn' => $rec->planning_Steps_storeIn, 'inputStores' => $rec->planning_Steps_inputStores, 'norm' => $rec->planning_Steps_norm);
+        $res = array('centerId' => $rec->planning_Steps_centerId, 'storeIn' => $rec->planning_Steps_storeIn, 'inputStores' => $rec->planning_Steps_inputStores, 'norm' => $rec->planning_Steps_norm, 'wasteProductId' => $rec->planning_Steps_wasteProductId, 'wasteStart' => $rec->planning_Steps_wasteStart, 'wastePercent' => $rec->planning_Steps_wastePercent);
         $res['fixedAssets'] = !empty($rec->planning_Steps_fixedAssets) ? keylist::toArray($rec->planning_Steps_fixedAssets) : null;
         $res['employees'] = !empty($rec->planning_Steps_employees) ? keylist::toArray($rec->planning_Steps_employees) : null;
         $res['planningParams'] = !empty($rec->planning_Steps_planningParams) ? keylist::toArray($rec->planning_Steps_planningParams) : array();

@@ -192,7 +192,7 @@ class planning_Tasks extends core_Master
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeEnd,timeDuration,systemId,orderByAssetId';
+    public $fieldsNotToClone = 'progress,totalWeight,scrappedQuantity,producedQuantity,totalQuantity,plannedQuantity,timeStart,timeEnd,timeDuration,systemId,orderByAssetId,prevAssetId,expectedTimeStart,expectedTimeEnd';
     
     
     /**
@@ -237,6 +237,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Работен кеш
+     */
+    public $changedAssets = array();
+
+
+    /**
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
@@ -257,7 +263,8 @@ class planning_Tasks extends core_Master
 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|allowedInputProducts|freeTimeAfter');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,input=none');
+        $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,input=hidden,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
@@ -507,7 +514,7 @@ class planning_Tasks extends core_Master
             $row->originId = $origin->getHyperlink(true);
         } else {
             $jobPackQuantity = $origin->fetchField('packQuantity');
-            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);// str::getPlural($origin->fetchField('packQuantity'), cat_UoM::getSmartName();
+            $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);
             $row->originId = tr("|*<small> <span class='quiet'>|падеж|* </span>{$origin->getVerbal('dueDate')} <span class='quiet'>|по|*</span> {$origin->getShortHyperlink()}, <span class='quiet'>|к-во|*</span> {$quantityStr}</small>");
         }
         
@@ -518,6 +525,10 @@ class planning_Tasks extends core_Master
         // Ако има избрано оборудване
         if(isset($rec->assetId)){
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
+            if(isset($fields['-single']) && isset($rec->prevAssetId)){
+                $row->assetId = ht::createHint($row->assetId, "Предишно оборудване|*: " . planning_AssetResources::getTitleById($rec->prevAssetId), 'warning', false);
+            }
+
             if(haveRole('debug')){
                 $row->assetId = ht::createHint($row->assetId, "Подредба|*: {$row->orderByAssetId}", 'img/16/bug.png');
             }
@@ -758,7 +769,20 @@ class planning_Tasks extends core_Master
     public function updateMaster_($id)
     {
         $rec = $this->fetch($id);
-        $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy';
+        $originalProgress = $rec->progress;
+        $updateFields = 'totalQuantity,totalWeight,scrappedQuantity,producedQuantity,progress,modifiedOn,modifiedBy,prevAssetId,assetId';
+
+        // Ако е записано в сесията, че е подменена машината да се подмени и в операцията
+        if($newAssetId = Mode::get("newAsset{$rec->id}")){
+            $rec->prevAssetId = $rec->assetId;
+            $rec->assetId = $newAssetId;
+            Mode::setPermanent("newAsset{$rec->id}", null);
+
+            // Новата и старата машина се заопашават
+            $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
+            $this->reorderTasksInAssetId[$rec->prevAssetId] = $rec->prevAssetId;
+            $this->logWrite("Промяна на оборудването ", $rec->id);
+        }
 
         // Колко е общото к-во досега
         $dQuery = planning_ProductionTaskDetails::getQuery();
@@ -796,13 +820,27 @@ class planning_Tasks extends core_Master
         if($producedQuantity != $rec->producedQuantity){
             planning_Jobs::updateProducedQuantity($rec->originId);
         }
-
         $rec->producedQuantity = $producedQuantity;
-        
+
         // Ако няма зададено начало, тогава се записва времето на първо добавения запис
         if(empty($rec->timeStart) && !isset($rec->timeDuration, $rec->timeEnd) && planning_ProductionTaskDetails::count("#taskId = {$rec->id}")){
             $rec->timeStart = dt::now();
             $updateFields .= ',timeStart';
+        }
+
+        // Ако има промяна в прогреса
+        if($rec->progress != $originalProgress){
+            $rec->orderByAssetId = null;
+            if($lastTaskWithProgressId = $this->getStartAfter($rec, true)){
+                $orderByAssetId = $this->fetchField($lastTaskWithProgressId, 'orderByAssetId');
+                $rec->orderByAssetId = $orderByAssetId + 0.5;
+            } else {
+                $rec->orderByAssetId = 0.5;
+            }
+
+            $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
+            $updateFields .= ',orderByAssetId';
+            $rec->_stopReorder = true;
         }
 
         // При първо добавяне на прогрес, ако е в заявка - се активира автоматично
@@ -812,10 +850,10 @@ class planning_Tasks extends core_Master
             core_Statuses::newStatus('Операцията е активирана след добавяне на прогрес|*!');
         }
 
-        return $this->save($rec, $updateFields);
+        return $this->save_($rec, $updateFields);
     }
-    
-    
+
+
     /**
      * Проверка дали нов документ може да бъде добавен в
      * посочената папка като начало на нишка
@@ -1080,9 +1118,10 @@ class planning_Tasks extends core_Master
                 foreach ($defFields as $fld => $val){
                     $form->setDefault($fld, $productionData[$val]);
                 }
-                if(isset($productionData['fixedAssets'])){
-                    $fixedAssetOptions = $productionData['fixedAssets'];
-                }
+            }
+
+            if(isset($productionData['fixedAssets'])){
+                $fixedAssetOptions = $productionData['fixedAssets'];
             }
 
             if(!empty($rec->employees)){
@@ -1286,7 +1325,7 @@ class planning_Tasks extends core_Master
             $form->setReadOnly('productId');
             if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
                 $form->setReadOnly('labelPackagingId');
-                $form->setReadOnly('labelQuantityInPack', $rec->labelQuantityInPack);
+                $form->setReadOnly('labelQuantityInPack');
                 $form->setReadOnly('measureId');
             }
 
@@ -1301,9 +1340,10 @@ class planning_Tasks extends core_Master
      * Изчисляване след коя задача ще се изпълни тази
      *
      * @param stdClass $rec
+     * @param boolean $withProgress
      * @return null|int
      */
-    private function getStartAfter($rec)
+    private function getStartAfter($rec, $withProgress = false)
     {
         if(empty($rec->assetId)) return null;
 
@@ -1312,6 +1352,10 @@ class planning_Tasks extends core_Master
         $query->orderBy('orderByAssetId', 'DESC');
         $query->show('id');
         $query->limit(1);
+
+        if($withProgress){
+            $query->where("#progress != 0");
+        }
 
         if(isset($rec->id) && isset($rec->orderByAssetId)){
             $query->where("#orderByAssetId < {$rec->orderByAssetId}");
@@ -2053,6 +2097,7 @@ class planning_Tasks extends core_Master
     {
         // Ако има избрано оборудване, задачата се поставя на правилното място и се преподреждат задачите на машината
         if(isset($rec->assetId)){
+            if($rec->_stopReorder) return;
 
             // Ако не е минато през формата
             if(!$rec->_fromForm && !$rec->_isDragAndDrop){
@@ -2088,14 +2133,13 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId', false);
-            if($rec->orderByAssetId != $exRec->orderByAssetId){
+            if($rec->orderByAssetId != $rec->_exAssetId){
                 $mvc->save_($rec, 'orderByAssetId');
                 $mvc->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
             }
 
-            if(isset($exRec->assetId) && $rec->assetId != $exRec->assetId){
-                $mvc->reorderTasksInAssetId[$exRec->assetId] = $exRec->assetId;
+            if(isset($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
+                $mvc->reorderTasksInAssetId[$rec->_exAssetId] = $rec->_exAssetId;
             }
         }
     }
@@ -2225,5 +2269,14 @@ class planning_Tasks extends core_Master
         }
 
         $rec->freeTimeAfter = 'no';
+
+        if(isset($rec->id)){
+            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId', false);
+            $rec->_exAssetId = $exRec->assetId;
+            $rec->_exOrderByAssetId = $exRec->orderByAssetId;
+            if(isset($rec->assetId) && $rec->assetId != $rec->_exAssetId){
+                $rec->prevAssetId = $rec->_exAssetId;
+            }
+        }
     }
 }

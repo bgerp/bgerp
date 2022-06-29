@@ -968,10 +968,14 @@ class planning_AssetResources extends core_Master
         if(empty($duration)){
 
             // Ако няма изчислявам от нормата за планираното количество
-            $indProductIdKey = ($taskRec->isFinal == 'yes') ? $taskRec->jobProductId : $taskRec->productId;
-            $indQuantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"] : 1;
-            $quantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->measureId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->measureId}"] : 1;
-            $calcedPlannedQuantity = ($taskRec->plannedQuantity / $quantityInPack) / $indQuantityInPack;
+            if($taskRec->indPackagingId == $taskRec->measureId){
+                $calcedPlannedQuantity = $taskRec->plannedQuantity;
+            } else {
+                $indProductIdKey = ($taskRec->isFinal == 'yes') ? $taskRec->jobProductId : $taskRec->productId;
+                $indQuantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"] : 1;
+                $quantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->measureId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->measureId}"] : 1;
+                $calcedPlannedQuantity = round(($taskRec->plannedQuantity * $quantityInPack) / $indQuantityInPack);
+            }
 
             $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
             $duration = round($indTime / $assetRec->simultaneity);
