@@ -1053,7 +1053,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 // Ако е в непроизводна мярка, конвертира се към нея
                 if(!$isSimilarMeasure){
                     if(cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom'){
-                        if($taskRec->indPackagingId != $taskRec->measureId){   bp($quantity);
+                        if($taskRec->indPackagingId != $taskRec->measureId){
                             if ($measureQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->measureId, 'quantity')) {
                                 $quantity *= $measureQuantityInPack;
                             }
