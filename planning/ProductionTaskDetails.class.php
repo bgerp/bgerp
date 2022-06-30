@@ -620,6 +620,17 @@ class planning_ProductionTaskDetails extends doc_Detail
             $measureId = $foundRec->measureId;
             $labelPackagingId = (!empty($foundRec->labelPackagingId)) ? $foundRec->labelPackagingId : $foundRec->measureId;
         }
+
+        if (isset($rec->employees)) {
+            $row->employees = self::getVerbalEmployees($rec->employees);
+        }
+
+        // Показване на хинт към изчисленото време
+        if(!empty($rec->employees) && !empty($rec->norm) && $rec->state != 'rejected'){
+            $calcedNormHint = $mvc->calcNormByRec($rec, null, true);
+            $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
+        }
+
         if($taskRec->isFinal == 'yes'){
             $rec->quantity /= $taskRec->quantityInPack;
         }
@@ -634,22 +645,12 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
         }
 
-        if (isset($rec->employees)) {
-            $row->employees = self::getVerbalEmployees($rec->employees);
-        }
-
         $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
         $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/y l');
         if(empty($taskRec->prevAssetId)){
             unset($row->fixedAsset);
         } else {
             $row->fixedAsset = planning_AssetResources::getHyperlink($rec->fixedAsset, true);
-        }
-
-        // Показване на хинт към изчисленото време
-        if(!empty($rec->employees) && !empty($rec->norm) && $rec->state != 'rejected'){
-            $calcedNormHint = $mvc->calcNormByRec($rec, null, true);
-            $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
         }
 
         if($mvc->haveRightFor('scrap', $rec)){
@@ -1037,7 +1038,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $quantity = $rec->quantity;
 
         if($rec->type == 'production') {
-            $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation');
+            $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack');
             $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
 
             // Ако артикула е за финален етап вземат се данните от мастъра на операцията
@@ -1046,16 +1047,14 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
                 $isSimilarMeasure = array_key_exists($taskRec->measureId, $similarMeasures);
                 if($taskRec->measureId != $productMeasureId && $isSimilarMeasure){
-                    $quantity = cat_UoM::convertValue($quantity, $taskRec->measureId, $productMeasureId);
+                    $quantity = cat_UoM::convertValue($quantity, $productMeasureId, $taskRec->measureId);
                 }
 
                 // Ако е в непроизводна мярка, конвертира се към нея
                 if(!$isSimilarMeasure){
                     if(cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom'){
-                        if($taskRec->indPackagingId != $taskRec->measureId){
-                            if ($measureQuantityInPack = cat_products_Packagings::getPack($rec->productId, $taskRec->measureId, 'quantity')) {
-                                $quantity *= $measureQuantityInPack;
-                            }
+                        if($taskRec->indPackagingId == $taskRec->measureId){
+                            $quantity /= $taskRec->quantityInPack;
                         }
                     }
                 }
@@ -1108,6 +1107,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         $query->EXT('indPackagingId', 'planning_Tasks', 'externalName=indPackagingId,externalKey=taskId');
         $query->EXT('labelPackagingId', 'planning_Tasks', 'externalName=labelPackagingId,externalKey=taskId');
         $query->EXT('taskProductId', 'planning_Tasks', 'externalName=productId,externalKey=taskId');
+        $query->EXT('taskQuantityInPack', 'planning_Tasks', 'externalName=quantityInPack,externalKey=taskId');
         $query->EXT('isFinal', 'planning_Tasks', 'externalName=isFinal,externalKey=taskId');
         $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
         $query->EXT('taskModifiedOn', 'planning_Tasks', 'externalName=modifiedOn,externalKey=taskId');
@@ -1124,7 +1124,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             if (!countR($persons)) continue;
 
             $taskRec = new stdClass();
-            $arr = arr::make("taskId=id,taskMeasureId=measureId,indTimeAllocation=indTimeAllocation,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId", true);
+            $arr = arr::make("taskId=id,taskMeasureId=measureId,indTimeAllocation=indTimeAllocation,indPackagingId=indPackagingId,labelPackagingId=labelPackagingId,taskProductId=productId,isFinal=isFinal,originId=originId,taskQuantityInPack=quantityInPack", true);
             foreach ($arr as $fldAlias => $fld){
                 $taskRec->{$fld} = $rec->{$fldAlias};
             }
@@ -1328,12 +1328,13 @@ class planning_ProductionTaskDetails extends doc_Detail
         $quantity = $rec->quantity / $masterRec->quantityInPack;
 
         $form = cls::get('core_Form');
-        $docTitle = planning_Tasks::getHyperlink($rec->taskId, true);
+        $form->info = "<div class='richtext-info-no-image'>" . tr('Артикул|*: ') . cat_Products::getHyperlink($rec->productId, true) . "</div>";
 
         // Подготовка на формата
         $measureName = cat_UoM::getShortName($masterRec->measureId);
+        $docTitle = planning_Tasks::getHyperlink($rec->taskId, true);
         $form->title = "Бракуване на произведено количество от|* <b style='color:#ffffcc;'>{$docTitle}</b>";
-        $form->FLD('scrappedQuantity', "double(min=0,Max={$quantity})", "caption=Брак,mandatory,unit=|* / {$quantity} {$measureName}");
+        $form->FLD('scrappedQuantity', "double(min=0,Max={$quantity})", "caption=Брак,mandatory,unit= от|* {$quantity} {$measureName}");
         if(!empty($rec->scrappedQuantity)){
             $form->setDefault('scrappedQuantity', $rec->scrappedQuantity / $masterRec->quantityInPack);
         }

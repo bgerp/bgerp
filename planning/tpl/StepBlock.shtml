@@ -52,32 +52,44 @@
 			<td>[#planning_Steps_showPreviousJobField#]</td>
 		</tr>
 		<!--ET_END planning_Steps_showPreviousJobField-->
-		<!--ET_BEGIN planning_Steps_norm-->
-		<tr>
-			<td class='quiet'>|Норма|*:</td>
-			<td>[#planning_Steps_norm#]</td>
-		</tr>
-		<!--ET_END planning_Steps_norm-->
 
-		<!--ET_BEGIN planning_Steps_interruptOffset-->
-		<tr>
-			<td class='quiet'>|Отместване при прекъсване|*:</td>
-			<td>[#planning_Steps_interruptOffset#]</td>
-		</tr>
-		<!--ET_END planning_Steps_interruptOffset-->
-
-		<!--ET_BEGIN planning_Steps_planningParams-->
-		<tr>
-			<td class='quiet'>|Планиране|*:</td>
-			<td>[#planning_Steps_planningParams#]</td>
-		</tr>
-		<!--ET_END planning_Steps_planningParams-->
 		<!--ET_BEGIN PARAMS-->
 		<tr>
 			<td colspan = 2>[#PARAMS#]</td>
 		</tr>
 		<!--ET_END PARAMS-->
     </table>
+
+<!--ET_BEGIN PLANNING-->
+[#PLANNING#]
+	<div class="stepProductSingleGroup">|Планиране на производството|*</div>
+	<table class="stepParamTable">
+		<!--ET_BEGIN planning_Steps_planningParams-->
+		<tr>
+			<td class='quiet'>|Планиране|*:</td>
+			<td>[#planning_Steps_planningParams#]</td>
+		</tr>
+		<!--ET_END planning_Steps_planningParams-->
+		<!--ET_BEGIN planning_Steps_planningActions-->
+		<tr>
+			<td class='quiet'>|Действия|*:</td>
+			<td>[#planning_Steps_planningActions#]</td>
+		</tr>
+		<!--ET_END planning_Steps_planningActions-->
+		<!--ET_BEGIN planning_Steps_norm-->
+		<tr>
+			<td class='quiet'>|Норма|*:</td>
+			<td>[#planning_Steps_norm#]</td>
+		</tr>
+		<!--ET_END planning_Steps_norm-->
+		<!--ET_BEGIN planning_Steps_interruptOffset-->
+		<tr>
+			<td class='quiet'>|Отместване при прекъсване|*:</td>
+			<td>[#planning_Steps_interruptOffset#]</td>
+		</tr>
+		<!--ET_END planning_Steps_interruptOffset-->
+	</table>
+<!--ET_END PLANNING-->
 <!--ET_BEGIN LABELS-->
 	[#LABELS#]
 	<div class="stepProductSingleGroup">|Етикиране в производствена операция|*</div>
