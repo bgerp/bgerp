@@ -855,21 +855,56 @@ class planning_AssetResources extends core_Master
         $normOptions = planning_AssetResourcesNorms::getNormOptions($id, $notIn, true);
         $rec = static::fetchRec($id);
 
+        // Ако има операции с норми към оборудването
         if(countR($normOptions)){
+
+            // Извличане на нормите
+            $normValues = array();
+            $gQuery = planning_AssetResourcesNorms::getQuery();
+            $gQuery->where("#objectId = {$rec->groupId} AND #classId = " . planning_AssetGroups::getClassId());
+            $gQuery->show('productId,indTime');
+            while($gRec = $gQuery->fetch()){
+                $normValues[$gRec->productId] = $gRec->indTime;
+            }
+            $aQuery = planning_AssetResourcesNorms::getQuery();
+            $aQuery->where("#objectId = {$rec->id} AND #classId = " . static::getClassId());
+            $aQuery->show('productId,indTime');
+            while($aRec = $aQuery->fetch()){
+                $normValues[$aRec->productId] = $aRec->indTime;
+            }
+
             // Извличане от опциите само имената - без групите
             $taskIds = arr::extractValuesFromArray($tasks, 'id');
 
-            // Извличат се еднократно детайлите за влагане в засегнатите операции отнасящи се за действията с норми
+            $normsByTask = $stepCache = array();
+            foreach ($tasks as $taskRec){
+                // Кеш на продуктовата информация в етапите
+                if(!array_key_exists($taskRec->productId, $stepCache)){
+                    $stepCache[$taskRec->productId] = null;
+                    if($Driver = cat_Products::getDriver($taskRec->productId)){
+                        $stepCache[$taskRec->productId] = $Driver->getProductionData($taskRec->productId);
+                    }
+                }
+
+                // Ако има планиращи действия
+                if(is_array($stepCache[$taskRec->productId]['actions'])){
+
+                    // За всяко се извлича очакваната норма за 1-ца
+                    $intersectedActions = array_intersect_key($stepCache[$taskRec->productId]['actions'], $normValues);
+                    foreach ($intersectedActions as $actionProductId){
+                        $normsByTask[$taskRec->id][$actionProductId] = planning_type_ProductionRate::getInSecsByQuantity($normValues[$actionProductId], 1);
+                    }
+                }
+            }
+
+            // Ако има вложена някоя от нормите - няма да се начислява към продължителността на операцията
             $dQuery = planning_ProductionTaskDetails::getQuery();
             $dQuery->where("#type = 'input' AND #state != 'rejected'");
             $dQuery->in('taskId', $taskIds);
             $dQuery->in('productId', $assetNorms);
-            $dQuery->show('taskId,norm,quantity');
+            $dQuery->show('taskId,productId');
             while($dRec = $dQuery->fetch()){
-                if(!array_key_exists($dRec->taskId, $normsByTask)){
-                    $normsByTask[$dRec->taskId] = 0;
-                }
-                $normsByTask[$dRec->taskId] += planning_type_ProductionRate::getInSecsByQuantity($dRec->norm, $dRec->quantity);
+                unset($normsByTask[$dRec->taskId][$dRec->productId]);
             }
         }
 
@@ -988,10 +1023,9 @@ class planning_AssetResources extends core_Master
         // Към така изчислената продължителност се добавя тази от действията към машината
         $res->durationCalced = $duration;
         if(array_key_exists($taskRec->id, $normsByTask)){
-            $duration += $normsByTask[$taskRec->id];
-            $res->actionNorms = $normsByTask[$taskRec->id];
+            $duration += array_sum($normsByTask[$taskRec->id]);
+            $res->actionNorms = array_sum($normsByTask[$taskRec->id]);
         }
-
         $res->durationLeft = $duration;
 
         // Колко ще е отместването при прекъсване
