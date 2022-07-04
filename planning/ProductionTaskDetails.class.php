@@ -211,7 +211,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         $productOptions = planning_ProductionTaskProducts::getOptionsByType($rec->taskId, $rec->type);
         $form->setOptions('productId', array('' => '') + $productOptions);
         if(!Mode::is('terminalProgressForm')){
-            $form->setField('date', "placeholder=" . dt::mysql2verbal(dt::now()));
             $form->setFieldTypeParams('date', array('defaultTime' => trans_Setup::get('START_WORK_TIME')));
         }
         if(!empty($rec->date)){
