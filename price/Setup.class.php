@@ -4,7 +4,7 @@
 /**
  * Политики: значещи цифри
  */
-defIfNot('PRICE_SIGNIFICANT_DIGITS', '2');
+defIfNot('PRICE_SIGNIFICANT_DIGITS', '5');
 
 
 /**
