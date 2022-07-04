@@ -73,7 +73,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     /**
      * Кой има право да редактира?
      */
-    public $canEdit = 'no_one';
+    public $canEdit = 'taskWorker,ceo';
     
     
     /**
@@ -321,6 +321,14 @@ class planning_ProductionTaskDetails extends doc_Detail
             } elseif($masterRec->showadditionalUom == 'mandatory'){
                 $form->setField('weight', 'mandatory');
             }
+
+            if(isset($rec->id)){
+                $rec->quantity /= $masterRec->quantityInPack;
+                foreach (array('serial', 'productId', 'quantity') as $fld){
+                    $form->setReadOnly($fld);
+                }
+            }
+
         } else {
             $form->setField('weight', 'input=none');
         }
@@ -600,11 +608,11 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $taskRec = planning_Tasks::fetch($rec->taskId);
-       // bp($rec, $taskRec);
+
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
         $dateVerbal = $mvc->getFieldType('createdOn')->toVerbal($date);
-        $dateVerbal = !empty($rec->date) ? ht::createHint($dateVerbal, 'Датата е въведена от потребителя', 'notice', false) : $dateVerbal;
+        $dateVerbal = !empty($rec->date) ? ht::createHint($dateVerbal, 'Датата е ръчно въведена|*!', 'notice', false) : $dateVerbal;
 
         $row->date = "<div class='nowrap'>{$dateVerbal}";
         $row->date .= ' ' . tr('от||by') . ' ' . crm_Profiles::createLink($rec->createdBy) . '</div>';
@@ -1013,6 +1021,12 @@ class planning_ProductionTaskDetails extends doc_Detail
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'edit' && isset($rec)){
+            if($rec->type != 'production' || $rec->state == 'rejected' || (!empty($rec->weight) && !empty($rec->date))){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -1319,13 +1333,16 @@ class planning_ProductionTaskDetails extends doc_Detail
         $quantity = $rec->quantity / $masterRec->quantityInPack;
 
         $form = cls::get('core_Form');
-        $form->info = "<div class='richtext-info-no-image'>" . tr('Артикул|*: ') . cat_Products::getHyperlink($rec->productId, true) . "</div>";
+        $row = $this->recToVerbal($rec);
+        $infoTpl = new core_ET(tr("|*<div class='richtext-info-no-image'>|Артикул|*: [#productId#]<br>|Произ. №|*: [#serial#]<br><!--ET_BEGIN employees-->|Оператори|*: [#employees#]<!--ET_END employees--><br>[#date#]</div>"));
+        $infoTpl->placeObject($row);
+        $form->info = $infoTpl;
 
         // Подготовка на формата
         $measureName = cat_UoM::getShortName($masterRec->measureId);
         $docTitle = planning_Tasks::getHyperlink($rec->taskId, true);
         $form->title = "Бракуване на произведено количество от|* <b style='color:#ffffcc;'>{$docTitle}</b>";
-        $form->FLD('scrappedQuantity', "double(min=0,Max={$quantity})", "caption=Брак,mandatory,unit= от|* {$quantity} {$measureName}");
+        $form->FLD('scrappedQuantity', "double(Min=0,max={$quantity})", "caption=Брак,mandatory,unit= от|* {$quantity} {$measureName}");
         if(!empty($rec->scrappedQuantity)){
             $form->setDefault('scrappedQuantity', $rec->scrappedQuantity / $masterRec->quantityInPack);
         }
