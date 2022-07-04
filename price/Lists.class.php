@@ -722,7 +722,7 @@ class price_Lists extends core_Master
         
         // Колко да е точността на закръгляне
         $precision = max($rInfo->minDecimals, round($rInfo->significantDigits - $p));
-        
+        $precision = (is_infinite($precision) || is_nan($precision)) ? 0 : $precision;
         if ($verbal === true) {
             $Double = cls::get('type_Double', array('params' => array('decimals' => $precision)));
             $price = $Double->toVerbal($price);
