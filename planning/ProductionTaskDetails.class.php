@@ -1022,7 +1022,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         }
 
         if($action == 'edit' && isset($rec)){
-            if($rec->type != 'production' || $rec->state == 'rejected' || (!empty($rec->weight) && !empty($rec->date))){
+            if($rec->type != 'production' || $rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
             }
         }
