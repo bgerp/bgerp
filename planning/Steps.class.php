@@ -110,7 +110,7 @@ class planning_Steps extends core_Extender
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
-        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,autohide,silent');
+        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,autohide,silent,class=w100');
         $this->FLD('wasteStart', 'cat_type_Weight', 'caption=Отпадък в производствена операция->Начален,autohide');
         $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък в производствена операция->Допустим,autohide');
 
@@ -253,10 +253,6 @@ class planning_Steps extends core_Extender
                 } elseif(!isset($rec->id) || isset($rec->clonedFromId)){
                     $form->setError("{$mvc->className}_labelQuantityInPack", 'Трябва да е въвдено количество при добавяне на нова опаковка|*!');
                 }
-            }
-
-            if(empty($rec->{"{$mvc->className}_wasteProductId"}) && !empty($rec->{"{$mvc->className}_wasteStart"}) && !empty($rec->{"{$mvc->className}_wastePercent"})){
-                $form->setError("{$mvc->className}_wasteProductId,{$mvc->className}_wasteStart,{$mvc->className}_wastePercent", 'Няма избран отпадък');
             }
         }
     }
