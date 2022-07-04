@@ -600,6 +600,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec)
     {
         $taskRec = planning_Tasks::fetch($rec->taskId);
+       // bp($rec, $taskRec);
         $row->taskId = planning_Tasks::getLink($rec->taskId, 0);
         $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
         $dateVerbal = $mvc->getFieldType('createdOn')->toVerbal($date);
@@ -1043,19 +1044,9 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             // Ако артикула е за финален етап вземат се данните от мастъра на операцията
             if(($taskRec->isFinal == 'yes' && $rec->productId == $jobProductId) || $rec->productId == $taskRec->productId){
-                $productMeasureId = ($rec->productMeasureId) ? $rec->productMeasureId : cat_Products::fetchField($rec->productId, 'measureId');
-                $similarMeasures = cat_UoM::getSameTypeMeasures($productMeasureId);
-                $isSimilarMeasure = array_key_exists($taskRec->measureId, $similarMeasures);
-                if($taskRec->measureId != $productMeasureId && $isSimilarMeasure){
-                    $quantity = cat_UoM::convertValue($quantity, $productMeasureId, $taskRec->measureId);
-                }
-
-                // Ако е в непроизводна мярка, конвертира се към нея
-                if(!$isSimilarMeasure){
-                    if(cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom'){
-                        if($taskRec->indPackagingId == $taskRec->measureId){
-                            $quantity /= $taskRec->quantityInPack;
-                        }
+                if(cat_UoM::fetchField($taskRec->measureId, 'type') == 'uom'){
+                    if($taskRec->indPackagingId == $taskRec->measureId){
+                        $quantity /= $taskRec->quantityInPack;
                     }
                 }
 
