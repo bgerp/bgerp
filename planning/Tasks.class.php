@@ -780,7 +780,9 @@ class planning_Tasks extends core_Master
 
             // Новата и старата машина се заопашават
             $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
-            $this->reorderTasksInAssetId[$rec->prevAssetId] = $rec->prevAssetId;
+            if(isset($rec->prevAssetId)){
+                $this->reorderTasksInAssetId[$rec->prevAssetId] = $rec->prevAssetId;
+            }
             $this->logWrite("Промяна на оборудването ", $rec->id);
         }
 
@@ -2135,7 +2137,9 @@ class planning_Tasks extends core_Master
 
             if($rec->orderByAssetId != $rec->_exAssetId){
                 $mvc->save_($rec, 'orderByAssetId');
-                $mvc->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
+                if(isset($rec->assetId)){
+                    $mvc->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
+                }
             }
 
             if(isset($rec->_exAssetId) && $rec->assetId != $rec->_exAssetId){
