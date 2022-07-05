@@ -894,6 +894,7 @@ class planning_AssetResources extends core_Master
             }
 
             // Изчисляват се реално изпълнените операции
+            $detailsAssetNorms = array();
             $dQuery = planning_ProductionTaskDetails::getQuery();
             $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
             $dQuery->where("#type = 'input' AND #state != 'rejected' AND #canStore != 'yes'");
@@ -904,9 +905,18 @@ class planning_AssetResources extends core_Master
                 // Ако изпълненото влагане е от планиращите операции на артикула
                 if(isset($normsByTask[$dRec->taskId][$dRec->productId])){
 
-                    // Взима се по-голямото от планираното време и реално изпълненото
+                    // Сумира се реално изпълненото време
                     $calced = cls::get('planning_ProductionTaskDetails')->calcNormByRec($dRec, $tasks[$dRec->taskId]);
-                    $normsByTask[$dRec->taskId][$dRec->productId] = max($calced, $normsByTask[$pRec->taskId][$pRec->productId]);
+                    $detailsAssetNorms[$dRec->taskId][$dRec->productId] += $calced;
+                }
+            }
+        }
+
+        // Измежду планираните и реално изпълнените операции се взима това с по-голямата норма
+        foreach ($normsByTask as $tId => $actions){
+            foreach ($actions as $actionId => $value){
+                if(isset($detailsAssetNorms[$tId][$actionId])){
+                    $normsByTask[$tId][$actionId] = max($value, $detailsAssetNorms[$tId][$actionId]);
                 }
             }
         }
