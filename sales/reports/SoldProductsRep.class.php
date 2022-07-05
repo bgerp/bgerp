@@ -841,9 +841,10 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
             $iQuery->where("#type = 'dc_note'");
             $iQuery->where("#date >= '{$rec->from}' AND #date <= '{$rec->to}'");
             $iQuery->where("#changeAmount IS NOT NULL");
-            while ($iRec = $iQuery->fetch()) {
 
-                $correctionArr = array();
+            $correctionArr = array();
+
+            while ($iRec = $iQuery->fetch()) {
 
                 //$originRec rec-a  на фактурата към която е издадено кредитното
                 $originId = doc_Containers::getDocument($iRec->originId)->that;
@@ -861,20 +862,20 @@ class sales_reports_SoldProductsRep extends frame2_driver_TableData
                     $amountsArr = arr::extractValuesFromArray($dcAllInvQuery->fetchAll(), 'amount');
                     $sumAmounts = array_sum($amountsArr);
 
-                }
-                while ($originDetRec = $dcAllInvQuery->fetch()) {
+                    while ($originDetRec = $dcAllInvQuery->fetch()) {
 
-                    //Каква част от общата стойност е стойността на този ред
-                    if ($sumAmounts) {
-                        $partOfAmount = $originDetRec->amount / $sumAmounts;
-                    } else {
-                        $partOfAmount = 1;
+                        //Каква част от общата стойност е стойността на този ред
+                        if ($sumAmounts) {
+                            $partOfAmount = $originDetRec->amount / $sumAmounts;
+                        } else {
+                            $partOfAmount = 1;
+                        }
+
+
+                        //Масив с ключ productId и стойностите с които трябва да се коригира стойността на артикула в recs-a
+                        $correctionArr[$originDetRec->productId] = round($iRec->changeAmount * $partOfAmount, 2);
+
                     }
-
-
-                    //Масив с ключ productId и стойностите с които трябва да се коригира стойността на артикула в recs-a
-                    $correctionArr[$originDetRec->productId] = round($iRec->changeAmount * $partOfAmount, 2);
-
                 }
             }
 

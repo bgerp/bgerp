@@ -485,7 +485,7 @@ abstract class deals_InvoiceMaster extends core_Master
         }
         
         // Създаване на шаблона
-        $tpl = new ET(tr('Моля запознайте се с') . " [#type#]:\n#[#handle#]");
+        $tpl = new ET(tr('Моля, запознайте се с') . " [#type#]: #[#handle#]");
         $tpl->append($handle, 'handle');
         $tpl->append(tr($type), 'type');
         

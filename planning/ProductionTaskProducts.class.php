@@ -402,7 +402,7 @@ class planning_ProductionTaskProducts extends core_Detail
             $usedProducts[$rec->productId] = $rec->productId;
         }
         
-        if ($type == 'input' && $taskRec->allowedInputProducts != 'no') {
+        if ($type == 'input') {
 
             // Ако има избрано оборудване
             if (!empty($taskRec->assetId)) {

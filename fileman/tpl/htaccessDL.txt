@@ -1,4 +1,20 @@
-ForceType application/octet-stream
+<IfModule mod_rewrite.c>
+  AddType video/ogg .ogv
+  AddType video/mp4 .mp4
+  AddType video/webm .webm
+  AddType video/x-flv .flv
+
+  AddType audio/wav .wav
+  AddType audio/mpeg .mp3
+  AddType audio/ogg .oga
+  AddType audio/ogg .ogg
+  AddType audio/aac .aac
+</IfModule>
+
+<FilesMatch "(?<!\.ogv|\.mp4|\.webm|\.flv|\.wav|\.mp3|\.oga|\.ogg|\.aac)$">
+    ForceType application/octet-stream
+</FilesMatch>
+
 <IfModule mod_headers.c>
     Header set X-Robots-Tag "noindex"
     Header set Content-Disposition attachment
