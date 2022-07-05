@@ -1335,7 +1335,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         $form = cls::get('core_Form');
         $row = $this->recToVerbal($rec);
-        $infoTpl = new core_ET(tr("|*<div class='richtext-info-no-image'>|Артикул|*: [#productId#]<br>|Произ. №|*: [#serial#]<br><!--ET_BEGIN employees-->|Оператори|*: [#employees#]<!--ET_END employees--><br>[#date#]</div>"));
+        $infoTpl = new core_ET(tr("|*<div class='richtext-info-no-image'>|Артикул|*: [#productId#]<br>|Произв. №|*: [#serial#]<br><!--ET_BEGIN employees-->|Оператори|*: [#employees#]<!--ET_END employees--><br>[#date#]</div>"));
         $infoTpl->placeObject($row);
         $form->info = $infoTpl;
 
