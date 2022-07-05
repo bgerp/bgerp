@@ -365,7 +365,7 @@ class store_ShipmentOrders extends store_DocumentMaster
     {
         $rec = $this->fetchRec($id);
         $handle = $this->getHandle($id);
-        $tpl = new ET(tr('Моля запознайте се с нашето експедиционно нареждане') . ': #[#handle#]');
+        $tpl = new ET(tr('Моля, запознайте се с нашето експедиционно нареждане') . ': #[#handle#]');
         $tpl->replace($handle, 'handle');
 
         if ($rec->isReverse == 'no') {
