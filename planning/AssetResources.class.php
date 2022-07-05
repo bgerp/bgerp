@@ -1027,7 +1027,7 @@ class planning_AssetResources extends core_Master
         $res->durationCalced = $duration;
         if(array_key_exists($taskRec->id, $normsByTask)){
             $duration += array_sum($normsByTask[$taskRec->id]);
-            $res->actionNorms = array_sum($normsByTask[$taskRec->id]);
+            $res->actionNorms = $normsByTask[$taskRec->id];
         }
         $res->durationLeft = $duration;
 
