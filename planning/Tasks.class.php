@@ -262,14 +262,13 @@ class planning_Tasks extends core_Master
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=К-во в мярка,input=none');
 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
-        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|allowedInputProducts|freeTimeAfter');
+        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|freeTimeAfter');
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,input=hidden,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
         }
-        $this->FLD('allowedInputProducts', 'enum(yes=Всички за влагане,no=Само посочените в операцията)', 'caption=Влагане');
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,caption=Нормиране->Опаковка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=common');
@@ -1316,10 +1315,7 @@ class planning_Tasks extends core_Master
                     $form->setReadOnly('startAfter');
                 }
             }
-            $form->setDefault('allowedInputProducts', 'yes');
         } else {
-            $form->setDefault('allowedInputProducts', 'no');
-            $form->setField('allowedInputProducts', 'input=hidden');
             $form->setField('startAfter', 'input=none');
         }
 
@@ -1329,10 +1325,6 @@ class planning_Tasks extends core_Master
                 $form->setReadOnly('labelPackagingId');
                 $form->setReadOnly('labelQuantityInPack');
                 $form->setReadOnly('measureId');
-            }
-
-            if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id} AND #type = 'input'")){
-                $form->setReadOnly('allowedInputProducts');
             }
         }
     }
