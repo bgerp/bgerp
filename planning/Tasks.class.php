@@ -550,6 +550,9 @@ class planning_Tasks extends core_Master
                     $row->startAfter = tr('Първа за оборудването');
                 }
             }
+        } else {
+            $row->assetId = "<span class='quiet'>N/A</span>";
+            $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!');
         }
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
