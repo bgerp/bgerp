@@ -130,9 +130,9 @@ class planning_Steps extends core_Extender
         $rec = &$form->rec;
 
         if(isset($rec->id)){
-            $form->setField("wasteProductId", "autohide");
-            $form->setField("wasteStart", "autohide");
-            $form->setField("wastePercent", "autohide");
+            $form->setField("{$mvc->className}_wasteProductId", "autohide");
+            $form->setField("{$mvc->className}_wasteStart", "autohide");
+            $form->setField("{$mvc->className}_wastePercent", "autohide");
         }
 
         // Добавяне на полетата от екстендъра възможност за рефреш
