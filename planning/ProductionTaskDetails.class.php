@@ -639,7 +639,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
         }
 
-        if($taskRec->isFinal == 'yes'){
+        if($taskRec->isFinal == 'yes' && $rec->type == 'production'){
             $rec->quantity /= $taskRec->quantityInPack;
         }
 
