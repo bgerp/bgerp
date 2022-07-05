@@ -141,6 +141,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          string|null ['labelType']            - тип на етикета
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
+     *          array|null  ['actions']              - операции за планиране
      *          string      ['isFinal']              - дали е финална
      *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
      *          string      ['wasteProductId']       - ид на отпадък
@@ -154,6 +155,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
         $res['fixedAssets'] = !empty($rec->planning_Steps_fixedAssets) ? keylist::toArray($rec->planning_Steps_fixedAssets) : null;
         $res['employees'] = !empty($rec->planning_Steps_employees) ? keylist::toArray($rec->planning_Steps_employees) : null;
         $res['planningParams'] = !empty($rec->planning_Steps_planningParams) ? keylist::toArray($rec->planning_Steps_planningParams) : array();
+        $res['actions'] = !empty($rec->planning_Steps_planningActions) ? keylist::toArray($rec->planning_Steps_planningActions) : array();
         $res['isFinal'] = $rec->planning_Steps_isFinal;
         $res['showPreviousJobField'] = ($rec->planning_Steps_showPreviousJobField == 'yes');
         if($rec->canStore == 'yes'){

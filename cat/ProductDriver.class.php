@@ -1009,6 +1009,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      *          string|null ['labelType']            - тип на етикета
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
+     *          array|null  ['actions']              - операции за планиране
      *          string      ['isFinal']              - дали е финална
      *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
      *          string      ['wasteProductId']       - ид на отпадък

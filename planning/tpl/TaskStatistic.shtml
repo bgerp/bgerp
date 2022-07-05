@@ -42,9 +42,6 @@
                   <!--ET_BEGIN followBatchesForFinalProduct-->
                   <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
                   <!--ET_END followBatchesForFinalProduct-->
-                  <!--ET_BEGIN allowedInputProducts-->
-                  <span style='font-weight:normal'>|Влагане|*</span>: [#allowedInputProducts#]<br>
-                  <!--ET_END allowedInputProducts-->
     			</td>
            </tr>
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
