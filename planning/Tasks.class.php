@@ -2313,6 +2313,7 @@ class planning_Tasks extends core_Master
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
             if($exRecId = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'waste' AND #productId = {$rec->wasteProductId}")){
                 $wasteRec->id = $exRecId;
+                core_Statuses::newStatus('Предишно въведения отпадък е преизчислен|*!');
             }
 
             planning_ProductionTaskProducts::save($wasteRec);
