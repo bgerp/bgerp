@@ -110,9 +110,9 @@ class planning_Steps extends core_Extender
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
-        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,autohide,silent,class=w100');
-        $this->FLD('wasteStart', 'cat_type_Weight', 'caption=Отпадък в производствена операция->Начален,autohide');
-        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък в производствена операция->Допустим,autohide');
+        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
+        $this->FLD('wasteStart', 'cat_type_Weight', 'caption=Отпадък в производствена операция->Начален');
+        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък в производствена операция->Допустим');
 
         $this->setDbIndex('state');
     }
@@ -128,6 +128,12 @@ class planning_Steps extends core_Extender
     {
         $form = &$data->form;
         $rec = &$form->rec;
+
+        if(isset($rec->id)){
+            $form->setField("wasteProductId", "autohide");
+            $form->setField("wasteStart", "autohide");
+            $form->setField("wastePercent", "autohide");
+        }
 
         // Добавяне на полетата от екстендъра възможност за рефреш
         $form->setField("measureId", "removeAndRefreshForm,silent");
