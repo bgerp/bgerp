@@ -857,22 +857,6 @@ class planning_AssetResources extends core_Master
 
         // Ако има операции с норми към оборудването
         if(countR($normOptions)){
-
-            // Извличане на нормите
-            $normValues = array();
-            $gQuery = planning_AssetResourcesNorms::getQuery();
-            $gQuery->where("#objectId = {$rec->groupId} AND #classId = " . planning_AssetGroups::getClassId());
-            $gQuery->show('productId,indTime');
-            while($gRec = $gQuery->fetch()){
-                $normValues[$gRec->productId] = $gRec->indTime;
-            }
-            $aQuery = planning_AssetResourcesNorms::getQuery();
-            $aQuery->where("#objectId = {$rec->id} AND #classId = " . static::getClassId());
-            $aQuery->show('productId,indTime');
-            while($aRec = $aQuery->fetch()){
-                $normValues[$aRec->productId] = $aRec->indTime;
-            }
-
             // Извличане от опциите само имената - без групите
             $taskIds = arr::extractValuesFromArray($tasks, 'id');
 
@@ -886,25 +870,44 @@ class planning_AssetResources extends core_Master
                     }
                 }
 
-                // Ако има планиращи действия
+                // За всяка операция се подготвят планиращите действия с очаквано к-во 0
                 if(is_array($stepCache[$taskRec->productId]['actions'])){
-
-                    // За всяко се извлича очакваната норма за 1-ца
-                    $intersectedActions = array_intersect_key($stepCache[$taskRec->productId]['actions'], $normValues);
-                    foreach ($intersectedActions as $actionProductId){
-                        $normsByTask[$taskRec->id][$actionProductId] = planning_type_ProductionRate::getInSecsByQuantity($normValues[$actionProductId], 1);
+                    foreach ($stepCache[$taskRec->productId]['actions'] as $actionProductId){
+                        $normsByTask[$taskRec->id][$actionProductId] = 0;
                     }
                 }
             }
 
-            // Ако има вложена някоя от нормите - няма да се начислява към продължителността на операцията
+            // Изчисляват се времената на планираните операции за задачата
+            $pQuery = planning_ProductionTaskProducts::getQuery();
+            $pQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+            $pQuery->where("#type = 'input' AND #canStore != 'yes'");
+            $pQuery->in('taskId', $taskIds);
+            $pQuery->in('productId', $assetNorms);
+            $pQuery->show('productId,taskId,plannedQuantity,indTime');
+            while($pRec = $pQuery->fetch()){
+
+                // Ако планираното влагане е от планиращите операции на артикула
+                if(isset($normsByTask[$pRec->taskId][$pRec->productId])){
+                    $normsByTask[$pRec->taskId][$pRec->productId] = planning_type_ProductionRate::getInSecsByQuantity($pRec->indTime, $pRec->plannedQuantity);
+                }
+            }
+
+            // Изчисляват се реално изпълнените операции
             $dQuery = planning_ProductionTaskDetails::getQuery();
-            $dQuery->where("#type = 'input' AND #state != 'rejected'");
+            $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+            $dQuery->where("#type = 'input' AND #state != 'rejected' AND #canStore != 'yes'");
             $dQuery->in('taskId', $taskIds);
             $dQuery->in('productId', $assetNorms);
-            $dQuery->show('taskId,productId');
             while($dRec = $dQuery->fetch()){
-                unset($normsByTask[$dRec->taskId][$dRec->productId]);
+
+                // Ако изпълненото влагане е от планиращите операции на артикула
+                if(isset($normsByTask[$dRec->taskId][$dRec->productId])){
+
+                    // Взима се по-голямото от планираното време и реално изпълненото
+                    $calced = cls::get('planning_ProductionTaskDetails')->calcNormByRec($dRec, $tasks[$dRec->taskId]);
+                    $normsByTask[$dRec->taskId][$dRec->productId] = max($calced, $normsByTask[$pRec->taskId][$pRec->productId]);
+                }
             }
         }
 
