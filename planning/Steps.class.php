@@ -111,8 +111,8 @@ class planning_Steps extends core_Extender
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
 
         $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
-        $this->FLD('wasteStart', 'cat_type_Weight', 'caption=Отпадък в производствена операция->Начален');
-        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък в производствена операция->Допустим');
+        $this->FLD('wasteStart', 'double(min=0,smartRound)', 'caption=Отпадък в производствена операция->Начален');
+        $this->FLD('wastePercent', 'percent(min=0)', 'caption=Отпадък в производствена операция->Допустим');
 
         $this->setDbIndex('state');
     }
@@ -215,6 +215,11 @@ class planning_Steps extends core_Extender
                         $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
                     }
                 }
+            }
+
+            if(isset($rec->{"{$mvc->className}_wasteProductId"})){
+                $wasteProductMeasureId = cat_Products::fetchField($rec->{"{$mvc->className}_wasteProductId"}, 'measureId');
+                $form->setField("{$mvc->className}_wasteStart", "unit=" . cat_UoM::getShortName($wasteProductMeasureId));
             }
         }
     }
@@ -414,9 +419,18 @@ class planning_Steps extends core_Extender
 
         if(isset($rec->wasteProductId)){
             $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
+            $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
+            $row->wasteStart .= " " . cat_UoM::getShortName($wasteProductMeasureId);
         }
 
         if($Extended = $mvc->getExtended($rec)){
+            if($Extended->haveRightFor('editplanned')){
+                if(empty($rec->planningActions)){
+                    $row->planningActions = "<i class='quiet'>N/A</i>";
+                }
+                $row->planningActions .= ht::createLink('', array($Extended->getInstance(), 'editplanned', $Extended->that, 'ret_url' => true), false, 'ef_icon=img/16/edit.png');
+            }
+
             if(isset($rec->norm)){
                 $row->norm = core_Type::getByName("planning_type_ProductionRate(measureId={$Extended->fetchField('measureId')})")->toVerbal($rec->norm);
             } else {

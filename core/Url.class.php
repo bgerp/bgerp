@@ -1152,28 +1152,20 @@ class core_Url
      */
     public static function isUrlToSingle($string, &$reference = null)
     {
-        if (!core_Url::isValidUrl2($string)) {
-            
-            return false;
-        }
-        
-        if (!core_Url::isLocal($string)) {
-            
-            return false;
-        }
-        
-        $urlArr = explode('/', $string);
-        $len = countR($urlArr);
-        
-        $id = $urlArr[$len - 1];
-        $cls = $urlArr[$len - 3];
-        
-        if ($cls && cls::load($cls, true)) {
-            $clsInst = cls::get($cls);
-            if ($id = $clsInst->unprotectId($id)) {
-                $reference = new core_ObjectReference($cls, $id);
-                
-                return true;
+        if (!core_Url::isValidUrl2($string)) return false;
+        if (!core_Url::isLocal($string, $rest)) return false;
+
+        $parsedUrl = type_Richtext::parseInternalUrl($rest);
+        if($parsedUrl['Act'] == 'single' && cls::load($parsedUrl['Ctr'], true) && isset($parsedUrl['id'])){
+            $reference = new core_ObjectReference($parsedUrl['Ctr'], $parsedUrl['id']);
+
+            return true;
+        } elseif($parsedUrl['Act'] == 'S' && $parsedUrl['Ctr'] == 'L' && isset($parsedUrl['id'])){
+            try{
+                $reference = doc_Containers::getDocument($parsedUrl['id']);
+                return $reference;
+            } catch(core_exception_Expect $e){
+                return false;
             }
         }
         

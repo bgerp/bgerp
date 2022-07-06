@@ -254,7 +254,7 @@ class planning_Tasks extends core_Master
     public function description()
     {
         $this->FLD('title', 'varchar(128)', 'caption=Заглавие,width=100%,silent,input=hidden');
-        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal,silent');
+        $this->FLD('productId', 'key(mvc=cat_Products,select=name)', 'mandatory,caption=Етап,removeAndRefreshForm=packagingId|measureId|quantityInPack|paramcat|plannedQuantity|indPackagingId|storeId|assetId|employees|labelPackagingId|labelQuantityInPack|labelType|labelTemplate|indTime|isFinal|paramcat|isFinal|wasteProductId|wasteStart|wastePercent,silent');
         $this->FLD('measureId', 'key(mvc=cat_UoM,select=name,select=shortName)', 'mandatory,caption=Мярка,removeAndRefreshForm=quantityInPack|plannedQuantity|labelPackagingId|indPackagingId,silent,input=hidden');
         $this->FLD('totalWeight', 'cat_type_Weight', 'caption=Общо тегло,input=none');
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано');
@@ -277,6 +277,10 @@ class planning_Tasks extends core_Master
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
+
+        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
+        $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
+        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
 
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
@@ -511,6 +515,10 @@ class planning_Tasks extends core_Master
             }
 
             $row->originId = $origin->getHyperlink(true);
+            if(isset($rec->wasteProductId)){
+                $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
+                $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
+            }
         } else {
             $jobPackQuantity = $origin->fetchField('packQuantity');
             $quantityStr = core_Type::getByName('double(smartRound)')->toVerbal($jobPackQuantity) . " " . cat_UoM::getSmartName($origin->fetchField('packagingId'), $jobPackQuantity);
@@ -542,6 +550,9 @@ class planning_Tasks extends core_Master
                     $row->startAfter = tr('Първа за оборудването');
                 }
             }
+        } else {
+            $row->assetId = "<span class='quiet'>N/A</span>";
+            $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!');
         }
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
@@ -657,6 +668,16 @@ class planning_Tasks extends core_Master
             $whenToUnsetStartAfter = ((empty($rec->id) || $rec->state == 'draft') && !empty($rec->startAfter) && $form->cmd == 'save');
             if($whenToUnsetStartAfter){
                 $form->setWarning('startAfter', "Операцията е чернова. Автоматично ще се добави последна към избраното оборудване|*!");
+            }
+
+            if(isset($rec->wasteProductId)){
+                if(($rec->wasteStart + $rec->wastePercent) <= 0){
+                    $form->setError('wasteStart,wastePercent', "Количеството на отпадъка не може да се сметне|*!");
+                }
+            } else {
+                if(isset($rec->wasteStart) || isset($rec->wastePercent)){
+                    $form->setError('wasteProductId,wasteStart,wastePercent', "Не е посочен отпадък|*!");
+                }
             }
 
             if(!$form->gotErrors()){
@@ -911,7 +932,7 @@ class planning_Tasks extends core_Master
                 if($state == 'rejected'){
                     $requiredRoles = 'no_one';
                 }
-                if($r = static::fetch("#originId = {$rec->originId} AND #isFinal = 'yes' AND #state != 'rejected' AND #productId != {$rec->productId}")){
+                if(static::fetch("#originId = {$rec->originId} AND #isFinal = 'yes' AND #state != 'rejected' AND #productId != {$rec->productId}")){
                     $requiredRoles = 'no_one';
                 }
             }
@@ -1055,6 +1076,10 @@ class planning_Tasks extends core_Master
                 unset($rec->threadId);
                 $rec->folderId = $folderId;
             }
+        } else {
+            $form->setField('wasteProductId', 'input=hidden');
+            $form->setField('wasteStart', 'input=hidden');
+            $form->setField('wastePercent', 'input=hidden');
         }
         
         // За произвеждане може да се избере само артикула от заданието
@@ -1113,7 +1138,7 @@ class planning_Tasks extends core_Master
             }
 
             if(empty($rec->systemId) && empty($rec->id)){
-                $defFields = arr::make(array('employees', 'labelType', 'labelTemplate', 'isFinal'), true);
+                $defFields = arr::make(array('employees', 'labelType', 'labelTemplate', 'isFinal', 'wasteProductId', 'wastePercent', 'wasteStart'), true);
                 $defFields['storeId'] = 'storeIn';
                 $defFields['indTime'] = 'norm';
                 foreach ($defFields as $fld => $val){
@@ -1272,6 +1297,11 @@ class planning_Tasks extends core_Master
 
             if(isset($rec->indPackagingId)){
                 $form->setFieldTypeParams('indTime', array('measureId' => $rec->indPackagingId));
+            }
+
+            if(isset($rec->wasteProductId)){
+                $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
+                $form->setField("wasteStart", "unit=" . cat_UoM::getShortName($wasteProductMeasureId));
             }
         }
 
@@ -2273,6 +2303,27 @@ class planning_Tasks extends core_Master
             if(isset($rec->assetId) && $rec->assetId != $rec->_exAssetId){
                 $rec->prevAssetId = $rec->_exAssetId;
             }
+        }
+    }
+
+
+    /**
+     * Функция, която прихваща след активирането на документа
+     */
+    protected static function on_AfterActivation($mvc, &$rec)
+    {
+        if(isset($rec->wasteProductId)){
+
+            // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
+            if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'waste' AND #productId = {$rec->wasteProductId}")) return;
+
+            // Добавяне на отпадъка при първоначално активиране
+            $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
+            $calcedWasteQuantity = $rec->wasteStart + $rec->plannedQuantity * $rec->wastePercent;
+            $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
+            $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
+            $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
+            planning_ProductionTaskProducts::save($wasteRec);
         }
     }
 }
