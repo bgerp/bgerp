@@ -555,8 +555,8 @@ class hr_Leaves extends core_Master
         $prefix = "REQ-{$id}";
         
         $curDate = $rec->leaveFrom;
-        
-        while ($curDate < $rec->leaveTo) {
+
+        while ($curDate < dt::addDays(1, $rec->leaveTo) ){
             // Подготвяме запис за началната дата
             if ($curDate && $curDate >= $fromDate && $curDate <= $toDate && $rec->state == 'active') {
                 $calRec = new stdClass();
@@ -593,9 +593,10 @@ class hr_Leaves extends core_Master
                 
                 $events[] = $calRec;
             }
+
             $curDate = dt::addDays(1, $curDate);
         }
-        
+
         return cal_Calendar::updateEvents($events, $fromDate, $toDate, $prefix);
     }
     
