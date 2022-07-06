@@ -247,6 +247,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
                 if($exRec = planning_Steps::getRec($Embedder->getClassId(), $rec->id)){
                     $exRec->planningActions = $form->rec->planningActions;
                     cls::get('planning_Steps')->save_($exRec, 'planningActions');
+                    $Embedder->logWrite("Промяна на планиращите действия", $rec->id);
                 }
 
                 followRetUrl(null, 'Планиращите действия са променени успешно|*!');
