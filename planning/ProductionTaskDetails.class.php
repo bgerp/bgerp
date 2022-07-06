@@ -201,9 +201,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $form->setOptions('fixedAsset', $assetOptions);
             $form->setField('fixedAsset', 'input,mandatory');
-            if(!Mode::is('terminalProgressForm')){
-                $form->setDefault('fixedAsset', $masterRec->assetId);
-            }
+            $form->setDefault('fixedAsset', $masterRec->assetId);
         } else {
             $form->setField('fixedAsset', 'input=none');
         }
