@@ -61,7 +61,7 @@ class planning_AssetGroups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Вид,type,showInPlanningTasks,createdOn,createdBy,state';
+    public $listFields = 'name=Вид,type,showInPlanningTasks=Допустимост в ПО,createdOn,createdBy,state';
     
     
     /**
@@ -186,18 +186,19 @@ class planning_AssetGroups extends core_Master
     {
         $data->listFilter->view = 'horizontal';
         $data->listFilter->showFields = 'search,type,showInPlanningTasks';
-        $data->listFilter->setFieldType('type', 'enum(all=Всички,material=Материален, nonMaterial=Нематериален)');
-        $data->listFilter->setFieldType('showInPlanningTasks', 'enum(all=Всички,ъес=Допустими в ПО,no=Недопустими в ПО)');
+        $data->listFilter->setFieldType('type', 'enum(all=Всички,material=Материален,nonMaterial=Нематериален)');
+        $data->listFilter->setFieldType('showInPlanningTasks', 'enum(all=Всички,yes=Допустими в ПО,no=Недопустими в ПО)');
         $data->listFilter->setDefault('type', 'all');
         $data->listFilter->setDefault('showInPlanningTasks', 'all');
         $data->listFilter->input();
         $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
         if ($rec = $data->listFilter->rec) {
+
             if (!empty($rec->type) && $rec->type != 'all') {
                 $data->query->where("#type = '{$rec->type}'");
             }
 
-            if (!empty($rec->showInPlanningTasks) && $rec->type != 'all') {
+            if (!empty($rec->showInPlanningTasks) && $rec->showInPlanningTasks != 'all') {
                 $data->query->where("#showInPlanningTasks = '{$rec->showInPlanningTasks}'");
             }
         }
