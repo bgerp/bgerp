@@ -932,7 +932,7 @@ class planning_Tasks extends core_Master
                 if($state == 'rejected'){
                     $requiredRoles = 'no_one';
                 }
-                if($r = static::fetch("#originId = {$rec->originId} AND #isFinal = 'yes' AND #state != 'rejected' AND #productId != {$rec->productId}")){
+                if(static::fetch("#originId = {$rec->originId} AND #isFinal = 'yes' AND #state != 'rejected' AND #productId != {$rec->productId}")){
                     $requiredRoles = 'no_one';
                 }
             }

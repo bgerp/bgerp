@@ -211,6 +211,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if(!Mode::is('terminalProgressForm')){
             $form->setFieldTypeParams('date', array('defaultTime' => trans_Setup::get('START_WORK_TIME')));
         }
+
         if(!empty($rec->date)){
             $today = dt::today();
             $checkDate = dt::verbal2mysql($rec->date, false);
@@ -223,6 +224,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         if ($rec->type == 'production') {
             if($masterRec->isFinal != 'yes'){
                 $form->setDefault('productId', $masterRec->productId);
+            } else {
+                $form->setDefault('productId', planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId'));
             }
         }
 
@@ -446,7 +449,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $rec->quantity = (!empty($rec->quantity)) ? $rec->quantity : ((!empty($rec->_defaultQuantity)) ? $rec->_defaultQuantity : 1);
                 }
 
-                if($rec->type == 'production' && isset($rec->quantity)){
+                if($rec->type == 'production' && planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId) && isset($rec->quantity)){
                     $rec->quantity *= $masterRec->quantityInPack;
                 }
 
@@ -637,7 +640,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->employees = ht::createHint($row->employees, $calcedNormHint, 'notice', false);
         }
 
-        if($taskRec->isFinal == 'yes' && $rec->type == 'production'){
+        if(planning_ProductionTaskProducts::isProduct4Task($rec->taskId, $rec->productId)){
             $rec->quantity /= $taskRec->quantityInPack;
         }
 
@@ -798,7 +801,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             }
             
             if (isset($data->masterMvc)) {
-                if($rec->type != 'production' || ($masterRec->productId != $rec->productId && $data->masterData->rec->isFinal != 'yes')){
+                if($rec->type != 'production' || !planning_ProductionTaskProducts::isProduct4Task($masterRec->id, $rec->productId)){
                     $row->info = "{$row->productId}";
                 }
             }

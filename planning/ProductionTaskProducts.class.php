@@ -314,11 +314,6 @@ class planning_ProductionTaskProducts extends core_Detail
             } else {
                 $requiredRoles = 'no_one';
             }
-
-            // Финалната ПО може да има само един артикул за произвеждане
-            if($tRec->isFinal == 'yes' && $rec->type == 'production'){
-                $requiredRoles = 'no_one';
-            }
         }
         
         if ($action == 'delete' && isset($rec->taskId)) {
@@ -351,8 +346,7 @@ class planning_ProductionTaskProducts extends core_Detail
     public static function updateTotalQuantity($taskId, $productId, $type)
     {
         $rec = self::fetch("#taskId = {$taskId} AND #productId = {$productId} AND #type = '{$type}'");
-
-        if (empty($rec)) return;
+        if (empty($rec) || ($rec->type == 'production' && empty($rec->plannedQuantity))) return;
 
         $updateFields = 'totalQuantity';
         if(isset($rec->indTime)){
