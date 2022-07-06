@@ -658,8 +658,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
         }
 
-        $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
-        $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/y l');
+        $rec->_groupedDate = dt::verbal2mysql($date, false);
+        $row->_groupedDate = dt::mysql2verbal($rec->_groupedDate, 'd/m/y l');
         if(empty($taskRec->prevAssetId)){
             unset($row->fixedAsset);
         } else {
@@ -1227,11 +1227,12 @@ class planning_ProductionTaskDetails extends doc_Detail
         expect($productId, 'Не е посочен артикул');
         $options = planning_ProductionTaskProducts::getOptionsByType($taskRec->id, $params['type']);
         expect(array_key_exists($productId, $options), $options);
-        
+
         $quantity = ($params['quantity']) ? $params['quantity'] : 1;
         if(!empty($quantity)){
+            $quantity *= $taskRec->quantityInPack;
             expect($quantity = core_Type::getByName('double')->fromVerbal($quantity), 'Невалидно число');
-        } elseif($params['type'] == 'production' && isset($taskRec->packagingId)){
+        } elseif($params['type'] == 'production' && isset($taskRec->labelPackagingId)){
             $packRec = cat_products_Packagings::getPack($taskRec->productId, $taskRec->packagingId);
             $quantity = is_object($packRec) ? ($packRec->quantity / $taskRec->quantityInPack) : 1;
         }
@@ -1242,7 +1243,16 @@ class planning_ProductionTaskDetails extends doc_Detail
             $params['employees'] = arr::make($params['employees']);
             $rec->employees = keylist::fromArray(array_combine($params['employees'], $params['employees']));
         }
-        
+
+        if(!empty($params['date'])){
+            if(strlen($params['date']) == 10){
+                $params['date'] .= " " . trans_Setup::get('START_WORK_TIME') . ":00";
+            }
+
+            expect($date = dt::verbal2mysql($params['date']), 'Невалидна дата');
+            $rec->date = $date;
+        }
+
         $rec->fixedAsset = (!empty($params['fixedAsset'])) ? $params['fixedAsset'] : null;
         if(!empty($params['weight'])){
             expect($params['weight'] = core_Type::getByName('double')->fromVerbal($params['weight']), 'Невалидно число');
@@ -1292,7 +1302,7 @@ class planning_ProductionTaskDetails extends doc_Detail
         if($rejectId = self::fetchField("#taskId = {$taskId} AND #serial = '{$params['serial']}' AND #state != 'rejected'")){
             $rec->_rejectId = $rejectId;
         }
-        
+
         cls::get(get_called_class())->save($rec);
         
         return $rec;

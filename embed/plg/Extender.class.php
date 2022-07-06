@@ -27,7 +27,7 @@ class embed_plg_Extender extends core_Plugin
     {
         expect($Extender = cls::get($Driver->extenderClass));
         $extenderFields = $Extender->getExtenderFields();
-        
+
         // За всяко поле от екстендъра, добавя се
         foreach ($extenderFields as $key => $fld){
             $fld->name = "{$Extender->className}_{$key}";
@@ -80,13 +80,13 @@ class embed_plg_Extender extends core_Plugin
         foreach ($fieldArr as $k => $v){
             if(strpos($k, "{$Extender->className}_") !== false){
                 list(,$k1) = explode("{$Extender->className}_", $k);
-                if($exRec->{$k1} != $v){
+                if((isset($exRec->{$k1}) && is_null($v)) || (isset($v) && is_null($exRec->{$k1})) || $exRec->{$k1} != $v){
                     $exRec->{$k1} = $v;
                     $update = true;
                 }
             }
         }
-        
+
         // Ако има промяна обновява се
         if($update === true){
             $Extender->save($exRec);
@@ -110,6 +110,7 @@ class embed_plg_Extender extends core_Plugin
         
         // Ако има запис в екстендъра обновява се
         $exRec = $Extender->getRec($Embedder->getClassId(), $rec->id);
+
         if(is_object($exRec)){
             $extenderFields = array_keys($Extender->getExtenderFields());
             
