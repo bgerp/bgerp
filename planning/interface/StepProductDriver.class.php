@@ -205,4 +205,74 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
 
         return $tpl;
     }
+
+
+    /**
+     * Извиква се преди изпълняването на екшън
+     *
+     * @param cat_ProductDriver $Driver
+     * @param cat_Products $Embedder
+     * @param mixed $res
+     * @param string $action
+     */
+    public static function on_BeforeAction(cat_ProductDriver $Driver, cat_Products $Embedder, &$res, $action)
+    {
+        if($action == 'editplanned'){
+            $Embedder->requireRightFor('editplanned');
+            expect($id = Request::get('id', 'int'));
+            expect($rec = $Embedder->fetch($id));
+            $Embedder->requireRightFor('editplanned', $rec);
+
+            // Подготовка на формата
+            $form = cls::get('core_Form');
+            $form->title = "Промяна на планиращи параметри на|* " . $Embedder->getFormTitleLink($rec->id);
+            $form->info = tr("Оборудване|*: ") . $Embedder->recToVerbal($rec)->planning_Steps_fixedAssets;
+            $form->FLD('planningActions', 'keylist(mvc=cat_Products, select=id)', 'caption=Действия');
+
+            // Достъпните операции за избраните машини
+            $actionOptions = array();
+            $actionIds = keylist::toArray($rec->planning_Steps_planningActions);
+            $fixedAssets = keylist::toArray($rec->planning_Steps_fixedAssets);
+            foreach ($fixedAssets as $assetId){
+                $actionIds += planning_AssetResourcesNorms::getNormOptions($assetId, array(), true);
+            }
+            foreach ($actionIds as $actionId){
+                $actionOptions[$actionId] = cat_Products::getTitleById($actionId, false);
+            }
+            $form->setSuggestions('planningActions', $actionOptions);
+            $form->setDefault('planningActions', $rec->planning_Steps_planningActions);
+
+            $form->input();
+            if($form->isSubmitted()){
+                if($exRec = planning_Steps::getRec($Embedder->getClassId(), $rec->id)){
+                    $exRec->planningActions = $form->rec->planningActions;
+                    cls::get('planning_Steps')->save_($exRec, 'planningActions');
+                }
+
+                followRetUrl(null, 'Планиращите действия са променени успешно|*!');
+            }
+
+            $form->toolbar->addSbBtn('Промяна', 'save', 'ef_icon = img/16/arrow_refresh.png, title = Реконтиране');
+            $form->toolbar->addBtn('Отказ', getRetUrl(), 'ef_icon = img/16/close-red.png, title=Прекратяване на действията');
+
+            $res = $Embedder->renderWrapping($form->renderHtml());
+
+            return false;
+        }
+    }
+
+
+    /**
+     * Изпълнява се след подготовката на ролите, които могат да изпълняват това действие
+     */
+    public static function on_AfterGetRequiredRoles(cat_ProductDriver $Driver, cat_Products $Embedder, &$requiredRoles, $action, $rec = null, $userId = null)
+    {
+        if($action == 'editplanned' && isset($rec)){
+            if(empty($rec->planning_Steps_fixedAssets)){
+                $requiredRoles = 'no_one';
+            } else {
+                $requiredRoles = $Embedder->getRequiredRoles('edit', $rec, $userId);
+            }
+        }
+    }
 }

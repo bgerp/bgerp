@@ -295,6 +295,10 @@ class planning_ProductionTaskDetails extends doc_Detail
                     $form->setField('weight', "unit={$unit}");
                 }
             }
+
+            if(!Mode::is('terminalProgressForm')){
+                $form->setField('date', "placeholder=" . dt::now());
+            }
         }
 
         $employees = !empty($masterRec->employees) ? planning_Hr::getPersonsCodesArr($masterRec->employees) : planning_Hr::getByFolderId($masterRec->folderId);
@@ -808,7 +812,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             if(!empty($rec->notes)){
                 $notes = $mvc->getFieldType('notes')->toVerbal($rec->notes);
-                $row->type = ht::createHint($row->type, $notes);
+                $row->type = ht::createHint($row->type, $notes, 'img/16/comment.png');
             }
             
             if(Mode::is('taskProgressInTerminal')){
