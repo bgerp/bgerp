@@ -658,8 +658,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             $row->type = (!empty($labelPackagingName) && ($labelPackagingId !== $measureId)) ? tr("Произв.|* {$labelPackagingName}") : tr('Произвеждане');
         }
 
-        $rec->_createdDate = dt::verbal2mysql($rec->createdOn, false);
-        $row->_createdDate = dt::mysql2verbal($rec->_createdDate, 'd/m/y l');
+        $rec->_groupedDate = dt::verbal2mysql($date, false);
+        $row->_groupedDate = dt::mysql2verbal($rec->_groupedDate, 'd/m/y l');
         if(empty($taskRec->prevAssetId)){
             unset($row->fixedAsset);
         } else {

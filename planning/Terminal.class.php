@@ -344,8 +344,8 @@ class planning_Terminal extends peripheral_Terminal
             $data->masterData = (object)array('rec' => planning_Tasks::fetch($taskId));
             $Details->listItemsPerPage = false;
             $Details->prepareDetail_($data);
-            $data->groupByField = '_createdDate';
-            $data->listFields = array('_createdDate' => '@', 'typeExtended' => '@', 'serial' => '№', 'quantityExtended' => 'К-во', 'additional' => ' ');
+            $data->groupByField = '_groupedDate';
+            $data->listFields = array('_groupedDate' => '@', 'typeExtended' => '@', 'serial' => '№', 'quantityExtended' => 'К-во', 'additional' => ' ');
         }
         
         unset($data->toolbar);
