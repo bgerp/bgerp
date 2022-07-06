@@ -670,8 +670,14 @@ class planning_Tasks extends core_Master
                 $form->setWarning('startAfter', "Операцията е чернова. Автоматично ще се добави последна към избраното оборудване|*!");
             }
 
-            if(empty($rec->wasteProductId) && (isset($rec->wasteStart) || isset($rec->wastePercent))){
-                $form->setError('wasteProductId,wasteStart,wastePercent', "Не е посочен отпадък|*!");
+            if(isset($rec->wasteProductId)){
+                if(($rec->wasteStart + $rec->wastePercent) <= 0){
+                    $form->setError('wasteStart,wastePercent', "Количеството на отпадъка не може да се сметне|*!");
+                }
+            } else {
+                if(isset($rec->wasteStart) || isset($rec->wastePercent)){
+                    $form->setError('wasteProductId,wasteStart,wastePercent', "Не е посочен отпадък|*!");
+                }
             }
 
             if(!$form->gotErrors()){
@@ -2308,17 +2314,15 @@ class planning_Tasks extends core_Master
     {
         if(isset($rec->wasteProductId)){
 
+            // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
+            if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'waste' AND #productId = {$rec->wasteProductId}")) return;
+
             // Добавяне на отпадъка при първоначално активиране
             $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
             $calcedWasteQuantity = $rec->wasteStart + $rec->plannedQuantity * $rec->wastePercent;
             $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
             $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
-            if($exRecId = planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'waste' AND #productId = {$rec->wasteProductId}")){
-                $wasteRec->id = $exRecId;
-                core_Statuses::newStatus('Предишно въведения отпадък е преизчислен|*!');
-            }
-
             planning_ProductionTaskProducts::save($wasteRec);
         }
     }

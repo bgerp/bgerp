@@ -112,7 +112,7 @@ class planning_Steps extends core_Extender
 
         $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
         $this->FLD('wasteStart', 'double(min=0,smartRound)', 'caption=Отпадък в производствена операция->Начален');
-        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък в производствена операция->Допустим');
+        $this->FLD('wastePercent', 'percent(min=0)', 'caption=Отпадък в производствена операция->Допустим');
 
         $this->setDbIndex('state');
     }
