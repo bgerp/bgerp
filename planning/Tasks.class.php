@@ -1422,10 +1422,10 @@ class planning_Tasks extends core_Master
             $data->recs[$rec->id] = $rec;
             $row = planning_Tasks::recToVerbal($rec, $fields);
             if(!empty($rec->assetId)){
-                $aCode = "[" . planning_AssetResources::getVerbal($rec->assetId, 'code') . "]";
+                $row->assetId = "[" . planning_AssetResources::getVerbal($rec->assetId, 'code') . "]";
                 $assetSingleUrl = planning_AssetResources::getSingleUrlArray($rec->assetId);
-                if(countR($assetSingleUrl)){
-                    $row->assetId = ht::createLink($aCode, $assetSingleUrl);
+                if(countR($assetSingleUrl) && !Mode::isReadOnly()){
+                    $row->assetId = ht::createLink($row->assetId, $assetSingleUrl);
                 }
             }
 
