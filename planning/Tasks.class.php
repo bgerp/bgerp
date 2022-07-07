@@ -674,6 +674,12 @@ class planning_Tasks extends core_Master
                 if(($rec->wasteStart + $rec->wastePercent) <= 0){
                     $form->setError('wasteStart,wastePercent', "Количеството на отпадъка не може да се сметне|*!");
                 }
+
+                $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
+                if(!cat_Products::convertToUom($productId, $wasteMeasureId)){
+                    $wasteMeasureName = cat_UoM::getShortName($wasteMeasureId);
+                    $form->setWarning('wasteProductId', "Планираното к-во не може да се конвертира към мярката на отпадъка|*: <b>|{$wasteMeasureName}|*</b>");
+                }
             } else {
                 if(isset($rec->wasteStart) || isset($rec->wastePercent)){
                     $form->setError('wasteProductId,wasteStart,wastePercent', "Не е посочен отпадък|*!");
@@ -1077,9 +1083,11 @@ class planning_Tasks extends core_Master
                 $rec->folderId = $folderId;
             }
         } else {
-            $form->setField('wasteProductId', 'input=hidden');
-            $form->setField('wasteStart', 'input=hidden');
-            $form->setField('wastePercent', 'input=hidden');
+            if(in_array($rec->state, array('active', 'wakeup', 'stopped'))){
+                $form->setField('wasteProductId', 'input=hidden');
+                $form->setField('wasteStart', 'input=hidden');
+                $form->setField('wastePercent', 'input=hidden');
+            }
         }
         
         // За произвеждане може да се избере само артикула от заданието
@@ -1122,6 +1130,8 @@ class planning_Tasks extends core_Master
         }
         
         if (isset($rec->productId)) {
+            $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
+            $form->setFieldTypeParams("wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId, 'hasnotProperties' => 'generic'));
             $form->setField('labelType', 'input');
             $form->setField('measureId', 'input');
 
@@ -2319,9 +2329,16 @@ class planning_Tasks extends core_Master
 
             // Добавяне на отпадъка при първоначално активиране
             $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
-            $calcedWasteQuantity = $rec->wasteStart + $rec->plannedQuantity * $rec->wastePercent;
-            $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
-            $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
+            $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
+            if($conversionRate = cat_Products::convertToUom($productId, $wasteMeasureId)){
+                $calcedWasteQuantity = $rec->wasteStart + ($rec->plannedQuantity * $rec->quantityInPack * $conversionRate) * $rec->wastePercent;
+                $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
+                $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
+            } else {
+                $calcedWasteQuantity = 0;
+                core_Statuses::newStatus('Прогнозното количество на отпадъка не може да бъде изчислено|*!', 'warning');
+            }
+
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
             planning_ProductionTaskProducts::save($wasteRec);
         }
