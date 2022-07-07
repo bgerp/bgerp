@@ -651,6 +651,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      *
      * @param int $productId
      * @return array
+     *          int|null    ['name']                 - наименование
      *          int|null    ['centerId']             - ид на център на дейност
      *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
      *          int|null    ['inputStores']          - ид на складове за влагане (ако е складируем)
@@ -662,7 +663,6 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      *          string|null ['labelType']            - тип на етикета
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
-     *          array|null  ['actions']              - операции за планиране
      *          array|null  ['actions']              - операции за планиране
      *          string      ['isFinal']              - дали е финална
      *          string      ['showPreviousJobField'] - дали да се изисква предходно задание

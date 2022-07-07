@@ -130,6 +130,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *
      * @param int $productId
      * @return array
+     *          int|null    ['name']                 - наименование
      *          int|null    ['centerId']             - ид на център на дейност
      *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
      *          int|null    ['inputStores']          - ид на складове за влагане (ако е складируем)
@@ -150,19 +151,20 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      */
     public function getProductionData($productId)
     {
-        $rec = cat_Products::fetch($productId);
-        $res = array('centerId' => $rec->planning_Steps_centerId, 'storeIn' => $rec->planning_Steps_storeIn, 'inputStores' => $rec->planning_Steps_inputStores, 'norm' => $rec->planning_Steps_norm, 'wasteProductId' => $rec->planning_Steps_wasteProductId, 'wasteStart' => $rec->planning_Steps_wasteStart, 'wastePercent' => $rec->planning_Steps_wastePercent);
-        $res['fixedAssets'] = !empty($rec->planning_Steps_fixedAssets) ? keylist::toArray($rec->planning_Steps_fixedAssets) : null;
-        $res['employees'] = !empty($rec->planning_Steps_employees) ? keylist::toArray($rec->planning_Steps_employees) : null;
-        $res['planningParams'] = !empty($rec->planning_Steps_planningParams) ? keylist::toArray($rec->planning_Steps_planningParams) : array();
-        $res['actions'] = !empty($rec->planning_Steps_planningActions) ? keylist::toArray($rec->planning_Steps_planningActions) : array();
-        $res['isFinal'] = $rec->planning_Steps_isFinal;
-        $res['showPreviousJobField'] = ($rec->planning_Steps_showPreviousJobField == 'yes');
+        $rec = planning_Steps::getRec('cat_Products', $productId);
+
+        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'norm' => $rec->norm, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent);
+        $res['fixedAssets'] = !empty($rec->fixedAssets) ? keylist::toArray($rec->fixedAssets) : null;
+        $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
+        $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();
+        $res['actions'] = !empty($rec->planningActions) ? keylist::toArray($rec->planningActions) : array();
+        $res['isFinal'] = $rec->isFinal;
+        $res['showPreviousJobField'] = ($rec->showPreviousJobField == 'yes');
         if($rec->canStore == 'yes'){
-            $res['labelPackagingId'] = $rec->planning_Steps_labelPackagingId;
-            $res['labelQuantityInPack'] = $rec->planning_Steps_labelQuantityInPack;
-            $res['labelType'] = $rec->planning_Steps_labelType;
-            $res['labelTemplate'] = $rec->planning_Steps_labelTemplate;
+            $res['labelPackagingId'] = $rec->labelPackagingId;
+            $res['labelQuantityInPack'] = $rec->labelQuantityInPack;
+            $res['labelType'] = $rec->labelType;
+            $res['labelTemplate'] = $rec->labelTemplate;
         }
 
         return $res;

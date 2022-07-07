@@ -54,7 +54,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Етап,centerId=Център,fixedAssets,employees,norm,storeIn,inputStores,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
+    public $listFields = 'name=Етап,centerId=Център,fixedAssets,employees,storeIn,inputStores,norm,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
 
 
     /**
@@ -89,7 +89,7 @@ class planning_Steps extends core_Extender
     public function description()
     {
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name)', 'caption=Използване в производството->Център,mandatory,silent');
-        $this->FLD('name', 'varchar', 'caption=Използване в производството->Наименование,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
+        $this->FLD('name', 'varchar', 'caption=Използване в производството->Операция,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Складируем,notNull,value=yes,silent');
 
         $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
@@ -138,7 +138,7 @@ class planning_Steps extends core_Extender
         // Добавяне на полетата от екстендъра възможност за рефреш
         $form->setField("measureId", "removeAndRefreshForm,silent");
         $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_storeIn");
-        $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm|{$mvc->className}_planningActions");
+        $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm|{$mvc->className}_planningActions|{$mvc->className}_showPreviousJobField");
         $form->setField("{$mvc->className}_labelPackagingId", "removeAndRefreshForm={$mvc->className}_labelQuantityInPack|{$mvc->className}_labelTemplate|{$mvc->className}_labelType");
         $form->setField("{$mvc->className}_wasteProductId", "removeAndRefreshForm={$mvc->className}_wasteStart|{$mvc->className}_wastePercent");
         $form->setDefault("{$mvc->className}_canStore", 'yes');
@@ -172,11 +172,14 @@ class planning_Steps extends core_Extender
 
         // Добавяне на достъпните ресурси от центъра
         if(isset($rec->{"{$mvc->className}_centerId"})){
-            $folderId = planning_Centers::fetchField($rec->{"{$mvc->className}_centerId"}, 'folderId');
+            $centerRec = planning_Centers::fetch($rec->{"{$mvc->className}_centerId"}, 'folderId,showPreviousJobField');
             $actionOptions = planning_AssetResourcesNorms::getAllNormOptions($rec->{"{$mvc->className}_centerId"}, $rec->{"{$mvc->className}_planningActions"});
             $form->setSuggestions("{$mvc->className}_planningActions", $actionOptions);
-            $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($folderId, $rec->{"{$mvc->className}_employees"}));
-            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($folderId, $rec->{"{$mvc->className}_fixedAssets"}, 'planning_Tasks',true));
+            $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_employees"}));
+            $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_fixedAssets"}, 'planning_Tasks',true));
+
+            $defaultShowPreviousJobField = ($centerRec->showPreviousJobField == 'auto') ? planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK') : $centerRec->showPreviousJobField;
+            $form->setDefault("{$mvc->className}_showPreviousJobField", $defaultShowPreviousJobField);
         }
 
         if(isset($rec->measureId)){
@@ -426,15 +429,14 @@ class planning_Steps extends core_Extender
         if($Extended = $mvc->getExtended($rec)){
             if($Extended->haveRightFor('editplanned')){
                 if(empty($rec->planningActions)){
-                    $row->planningActions = "<i class='quiet'>N/A</i>";
+                    $row->planningActions = "<i class='quiet'>n/a</i>";
                 }
                 $row->planningActions .= ht::createLink('', array($Extended->getInstance(), 'editplanned', $Extended->that, 'ret_url' => true), false, 'ef_icon=img/16/edit.png');
             }
 
+            $row->norm = null;
             if(isset($rec->norm)){
                 $row->norm = core_Type::getByName("planning_type_ProductionRate(measureId={$Extended->fetchField('measureId')})")->toVerbal($rec->norm);
-            } else {
-                $row->norm = null;
             }
 
             if(isset($rec->storeIn)){
