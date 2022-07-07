@@ -54,7 +54,7 @@ class planning_Steps extends core_Extender
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Етап,centerId=Център,fixedAssets,employees,norm,storeIn,inputStores,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
+    public $listFields = 'name=Етап,centerId=Център,fixedAssets,employees,storeIn,inputStores,norm,state,modifiedOn=Модифицирано->На,modifiedBy=Модифицирано->От||By';
 
 
     /**

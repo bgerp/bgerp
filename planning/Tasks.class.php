@@ -406,7 +406,9 @@ class planning_Tasks extends core_Master
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
 
         $row->productId = $mvc->getStepTitle($rec->productId);
-        $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
+        if(!Mode::isReadOnly()){
+            $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
+        }
         
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
