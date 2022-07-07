@@ -1100,7 +1100,7 @@ class planning_Tasks extends core_Master
                 $rec->folderId = $folderId;
             }
         } else {
-            if(in_array($rec->state, array('active', 'wakeup', 'stopped'))){
+            if($data->action != 'clone' && in_array($rec->state, array('active', 'wakeup', 'stopped'))){
                 $form->setField('wasteProductId', 'input=hidden');
                 $form->setField('wasteStart', 'input=hidden');
                 $form->setField('wastePercent', 'input=hidden');
