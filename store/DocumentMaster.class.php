@@ -168,9 +168,10 @@ abstract class store_DocumentMaster extends core_Master
 
         $form->setDefault('currencyId', $dealInfo->get('currency'));
         $form->setDefault('currencyRate', $dealInfo->get('rate'));
-        $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
-
-        $form->setDefault('deliveryOn', $dealInfo->get('deliveryTime'));
+        if(empty($rec->id)){
+            $form->setDefault('locationId', $dealInfo->get('deliveryLocation'));
+            $form->setDefault('deliveryOn', $dealInfo->get('deliveryTime'));
+        }
         $form->setDefault('chargeVat', $dealInfo->get('vatType'));
         $form->setDefault('storeId', $dealInfo->get('storeId'));
 

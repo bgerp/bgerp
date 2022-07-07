@@ -2,7 +2,7 @@
 <div class="stepProductSingleGroup">|Етап в производството - параметри|*</div>
     <table class="stepParamTable">
     	<tr>
-    		<td class='quiet'>|Наименование|*:</td>
+    		<td class='quiet'>|Операция|*:</td>
     		<td>[#planning_Steps_name#]</td>
     	</tr>
 		<tr>

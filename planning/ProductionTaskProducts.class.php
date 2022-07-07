@@ -589,4 +589,15 @@ class planning_ProductionTaskProducts extends core_Detail
 
         return ($taskRec->isFinal == 'yes') ? ($productId == planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId')) : ($productId == $taskRec->productId);
     }
+
+
+    /**
+     * Изпълнява се преди клониране
+     */
+    protected static function on_BeforeSaveClonedDetail($mvc, &$rec, $oldRec)
+    {
+        // При клониране да се пропуска прогнозния отпадъка посочен в операцията (той ще се запише при активиране)
+        $newTask = planning_Tasks::fetch($rec->taskId);
+        if($rec->type == 'waste' && $rec->productId == $newTask->wasteProductId) return false;
+    }
 }

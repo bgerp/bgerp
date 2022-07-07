@@ -122,6 +122,12 @@ defIfNot('PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS', 'no');
 
 
 /**
+ * Показване на предишно задание в ПО
+ */
+defIfNot('PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK', 'yes');
+
+
+/**
  * Задължителен избор за оператор в ПО
  */
 defIfNot('PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR', 'yes');
@@ -195,7 +201,8 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_MIN_TASK_DURATION' => array('time', 'caption=Планиране на производствени операции към оборудване->Мин. прод.'),
         'PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Въвеждане на производ. № в ПО от друга операция->Избор'),
         'PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR' => array('enum(yes=Задължително,no=Опционално)', 'caption=Въвеждане на прогрес в ПО->Оператор(и)'),
-        );
+        'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
+    );
 
 
     /**

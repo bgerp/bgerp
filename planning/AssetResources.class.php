@@ -1125,4 +1125,26 @@ class planning_AssetResources extends core_Master
         // Проверява зависимостите между операциите
         planning_StepConditions::checkTaskConditions();
     }
+
+
+    /**
+     * Връща краткото име на оборудването
+     *
+     * @param int $id               - ид на оборудване
+     * @param bool $link            - дали да е линк
+     * @return core_ET|string $name - името или линка
+     */
+    public static function getShortName($id, $link = true)
+    {
+        $title = static::getTitleById($id);
+        $name = "<span title='{$title}'>[" . static::getVerbal($id, 'code') . "]</span>";
+        if($link){
+            $assetSingleUrl = planning_AssetResources::getSingleUrlArray($id);
+            if(countR($assetSingleUrl)){
+                $name = ht::createLink($name, $assetSingleUrl);
+            }
+        }
+
+        return $name;
+    }
 }
