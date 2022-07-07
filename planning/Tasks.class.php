@@ -361,8 +361,25 @@ class planning_Tasks extends core_Master
             $tpl->append($paramTpl, 'PARAMS');
         }
     }
-    
-    
+
+
+    /**
+     * Какво е заглавието на етапа в операцията
+     *
+     * @param int $productId
+     * @return mixed|string
+     */
+    private function getStepTitle($productId)
+    {
+        if($Driver = cat_Products::getDriver($productId)){
+            $pData = $Driver->getProductionData($productId);
+            if(!empty($pData['name'])) return $pData['name'];
+        }
+
+        return cat_Products::getTitleById($productId, false);
+    }
+
+
     /**
      * Конвертира един запис в разбираем за човека вид
      * Входният параметър $rec е оригиналният запис от модела
@@ -388,7 +405,9 @@ class planning_Tasks extends core_Master
 
         $origin = doc_Containers::getDocument($rec->originId);
         $row->folderId = doc_Folders::getFolderTitle($rec->folderId);
-        $row->productId = cat_Products::getHyperlink($rec->productId, true);
+
+        $row->productId = $mvc->getStepTitle($rec->productId);
+        $row->productId = ht::createLink($row->productId, cat_Products::getSingleUrlArray($rec->productId));
         
         foreach (array('plannedQuantity', 'totalQuantity', 'scrappedQuantity', 'producedQuantity') as $quantityFld) {
             $row->{$quantityFld} = ($rec->{$quantityFld}) ? $row->{$quantityFld} : 0;
@@ -613,15 +632,7 @@ class planning_Tasks extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $pName = null;
-        if($Driver = cat_Products::getDriver($rec->productId)){
-            $pData = $Driver->getProductionData($rec->productId);
-            if(!empty($pData['name'])){
-                $pName = $pData['name'];
-            }
-        }
-        $pName = isset($pName) ? $pName : cat_Products::getTitleById($rec->productId, $escaped);
-        $title = "Opr{$rec->id} - {$pName}";
+        $title = "Opr{$rec->id} - " . cls::get(get_called_class())->getStepTitle($rec->productId);
         
         return $title;
     }
