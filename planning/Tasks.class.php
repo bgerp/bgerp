@@ -387,7 +387,6 @@ class planning_Tasks extends core_Master
      */
     public static function recToVerbal_($rec, &$fields = '*')
     {
-        static::fillGapsInRec($rec);
         $row = parent::recToVerbal_($rec, $fields);
         $mvc = cls::get(get_called_class());
         $row->title = self::getHyperlink($rec->id, isset($fields['-list']));
@@ -1450,11 +1449,7 @@ class planning_Tasks extends core_Master
             $data->recs[$rec->id] = $rec;
             $row = planning_Tasks::recToVerbal($rec, $fields);
             if(!empty($rec->assetId)){
-                $row->assetId = "[" . planning_AssetResources::getVerbal($rec->assetId, 'code') . "]";
-                $assetSingleUrl = planning_AssetResources::getSingleUrlArray($rec->assetId);
-                if(countR($assetSingleUrl) && !Mode::isReadOnly()){
-                    $row->assetId = ht::createLink($row->assetId, $assetSingleUrl);
-                }
+                $row->assetId = planning_AssetResources::getShortName($rec->assetId, !Mode::isReadOnly());
             }
 
             $row->plannedQuantity .= " " . $row->measureId;
@@ -1618,40 +1613,11 @@ class planning_Tasks extends core_Master
     
     
     /**
-     * Ако са въведени две от времената (начало, продължителност, край) а третото е празно, изчисляваме го.
-     * ако е въведено само едно време или всички не правим нищо
-     *
-     * @param stdClass $rec - записа който ще попълним
-     *
-     * @return void
-     */
-    protected static function fillGapsInRec(&$rec)
-    {
-        if (isset($rec->timeStart, $rec->timeDuration) && empty($rec->timeEnd)) {
-            
-            // Ако има начало и продължителност, изчисляваме края
-            $rec->timeEnd = dt::addSecs($rec->timeDuration, $rec->timeStart);
-        } elseif (isset($rec->timeStart, $rec->timeEnd) && empty($rec->timeDuration)) {
-            
-            // Ако има начало и край, изчисляваме продължителността
-            $rec->timeDuration = strtotime($rec->timeEnd) - strtotime($rec->timeStart);
-        } elseif (isset($rec->timeDuration, $rec->timeEnd) && empty($rec->timeStart)) {
-            
-            // Ако има продължителност и край, изчисляваме началото
-            $rec->timeStart = dt::addSecs(-1 * $rec->timeDuration, $rec->timeEnd);
-        }
-    }
-    
-    
-    /**
      * Добавя ключови думи за пълнотекстово търсене
      */
     protected static function on_AfterGetSearchKeywords($mvc, &$res, $rec)
     {
-        if (empty($rec->id)) {
-            
-            return;
-        }
+        if (empty($rec->id)) return;
         
         // Добавяне на всички ключови думи от прогреса
         $dQuery = planning_ProductionTaskDetails::getQuery();
@@ -2349,6 +2315,8 @@ class planning_Tasks extends core_Master
             $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
             $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
             if($conversionRate = cat_Products::convertToUom($productId, $wasteMeasureId)){
+
+                // Калкулира се прогнозното количество на отпадъка
                 $calcedWasteQuantity = $rec->wasteStart + ($rec->plannedQuantity * $rec->quantityInPack * $conversionRate) * $rec->wastePercent;
                 $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
                 $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
