@@ -2336,7 +2336,7 @@ class planning_Tasks extends core_Master
                 $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
             } else {
                 $calcedWasteQuantity = 0;
-                core_Statuses::newStatus('Прогнозното количество на отпадъка не може да бъде изчислено|*!', 'warning');
+                core_Statuses::newStatus('Прогнозното количество на отпадъка не може да бъде изчислено и ще бъде записано като|* "0"!', 'warning');
             }
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
