@@ -998,6 +998,7 @@ abstract class cat_ProductDriver extends core_BaseClass
      *
      * @param int $productId
      * @return array
+     *          int|null    ['name']                 - наименование
      *          int|null    ['centerId']             - ид на център на дейност
      *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
      *          int|null    ['inputStores']          - ид на складове за влагане (ако е складируем)

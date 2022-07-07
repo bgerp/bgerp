@@ -613,8 +613,15 @@ class planning_Tasks extends core_Master
      */
     public static function getRecTitle($rec, $escaped = true)
     {
-        $title = cat_Products::getTitleById($rec->productId, $escaped);
-        $title = "Opr{$rec->id} - " . $title;
+        $pName = null;
+        if($Driver = cat_Products::getDriver($rec->productId)){
+            $pData = $Driver->getProductionData($rec->productId);
+            if(!empty($pData['name'])){
+                $pName = $pData['name'];
+            }
+        }
+        $pName = isset($pName) ? $pName : cat_Products::getTitleById($rec->productId, $escaped);
+        $title = "Opr{$rec->id} - {$pName}";
         
         return $title;
     }

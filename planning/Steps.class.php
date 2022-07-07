@@ -89,7 +89,7 @@ class planning_Steps extends core_Extender
     public function description()
     {
         $this->FLD('centerId', 'key(mvc=planning_Centers,select=name)', 'caption=Използване в производството->Център,mandatory,silent');
-        $this->FLD('name', 'varchar', 'caption=Използване в производството->Наименование,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
+        $this->FLD('name', 'varchar', 'caption=Използване в производството->Операция,placeholder=Ако не се попълни - името на артикула,tdClass=leftCol');
         $this->FLD('canStore', 'enum(yes=Да,no=Не)', 'caption=Използване в производството->Складируем,notNull,value=yes,silent');
 
         $this->FLD('state', 'enum(draft=Чернова, active=Активен, rejected=Оттеглен, closed=Затворен)', 'caption=Състояние');
