@@ -63,6 +63,31 @@ class tags_plg_Add extends core_Plugin
 
 
     /**
+     * Изпълнява се след подготовката на единичния изглед
+     * Подготвя иконата за единичния изглед
+     *
+     * @param core_Mvc $mvc
+     * @param object   $res
+     * @param object   $data
+     */
+    public function on_PrepareHiddenDocTitle($mvc, &$rec, &$row)
+    {
+        $tagsArr = tags_Logs::getTagsFor($mvc->getClassId(), $rec->id);
+
+        if (!empty($tagsArr)) {
+            $tags = '';
+
+            foreach ($tagsArr as $tagArr) {
+                $tags .= $tagArr['span'];
+            }
+
+            $row->DocumentSettingsLeft = new ET($row->DocumentSettingsLeft);
+            $row->DocumentSettingsLeft->prepend("<span class='documentTags'>{$tags}</span>");
+        }
+    }
+
+
+    /**
      * След подготовка на тулбара на единичен изглед
      */
     public static function on_AfterPrepareSingleToolbar($mvc, &$data)

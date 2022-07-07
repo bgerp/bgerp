@@ -61,6 +61,12 @@ function planningActions() {
 				quantity = 1;
 			}
 		}
+
+		var date = $("input[name=date]").val();
+		if(!date){
+			date = $("input[name=date]").attr('placeholder');
+		}
+
 		var employees = [];
 		if ($("select#employeeSelect").length) {
 			employees = $("select#employeeSelect").val();
@@ -68,7 +74,6 @@ function planningActions() {
 			$('input[id^="employees"]:checked').each(function () {
 				employees.push($(this).val());
 			});
-
 		}
 
 		var fixedAsset = $("#fixedAssetSelect").val();
@@ -81,8 +86,9 @@ function planningActions() {
 				weight = weightLive;
 			}
 		}
-		
-		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type};
+
+		var data = {serial:serial,taskId:taskId,productId:productId,quantity:quantity,employees:employees,fixedAsset:fixedAsset,weight:weight,type:type,date:date};
+
 		getEfae().process(resObj, data);
 		$("input[name=serial]").val("");
 		if($('.select2').length){

@@ -18,7 +18,7 @@
 			<td>[#planning_Steps_centerId#]</td>
 		</tr>
 		<tr>
-			<td class='quiet'>|Финален етап|*:</td>
+			<td class='quiet'>|Вид|*:</td>
 			<td>[#planning_Steps_isFinal#]</td>
 		</tr>
 		<!--ET_BEGIN planning_Steps_inputStores-->
@@ -46,37 +46,50 @@
 			<td>[#planning_Steps_employees#]</td>
 		</tr>
 		<!--ET_END planning_Steps_employees-->
+		<!--ET_BEGIN planning_Steps_showPreviousJobField-->
+		<tr>
+			<td class='quiet'>|Предишно задание|*:</td>
+			<td>[#planning_Steps_showPreviousJobField#]</td>
+		</tr>
+		<!--ET_END planning_Steps_showPreviousJobField-->
+
+		<!--ET_BEGIN PARAMS-->
+		<tr>
+			<td colspan = 2>[#PARAMS#]</td>
+		</tr>
+		<!--ET_END PARAMS-->
+    </table>
+
+<!--ET_BEGIN PLANNING-->
+[#PLANNING#]
+	<div class="stepProductSingleGroup">|Планиране на производството|*</div>
+	<table class="stepParamTable">
+		<!--ET_BEGIN planning_Steps_planningParams-->
+		<tr>
+			<td class='quiet'>|Планиране|*:</td>
+			<td>[#planning_Steps_planningParams#]</td>
+		</tr>
+		<!--ET_END planning_Steps_planningParams-->
+		<!--ET_BEGIN planning_Steps_planningActions-->
+		<tr>
+			<td class='quiet'>|Действия|*:</td>
+			<td>[#planning_Steps_planningActions#]</td>
+		</tr>
+		<!--ET_END planning_Steps_planningActions-->
 		<!--ET_BEGIN planning_Steps_norm-->
 		<tr>
 			<td class='quiet'>|Норма|*:</td>
 			<td>[#planning_Steps_norm#]</td>
 		</tr>
 		<!--ET_END planning_Steps_norm-->
-
 		<!--ET_BEGIN planning_Steps_interruptOffset-->
 		<tr>
 			<td class='quiet'>|Отместване при прекъсване|*:</td>
 			<td>[#planning_Steps_interruptOffset#]</td>
 		</tr>
 		<!--ET_END planning_Steps_interruptOffset-->
-
-		<!--ET_BEGIN planning_Steps_planningParams-->
-		<tr>
-			<td class='quiet'>|Планиране (Параметри)|*:</td>
-			<td>[#planning_Steps_planningParams#]</td>
-		</tr>
-		<!--ET_END planning_Steps_planningParams-->
-
-
-		<!--ET_BEGIN LABELS-->
-		<tr>
-			<td colspan = 2>[#PARAMS#]</td>
-		</tr>
-		<!--ET_END LABELS-->
-
-
-    </table>
-
+	</table>
+<!--ET_END PLANNING-->
 <!--ET_BEGIN LABELS-->
 	[#LABELS#]
 	<div class="stepProductSingleGroup">|Етикиране в производствена операция|*</div>
@@ -110,3 +123,30 @@
 		<!--ET_END planning_Steps_labelTemplate-->
 	</table>
 <!--ET_END LABELS-->
+
+<!--ET_BEGIN WASTE-->
+[#WASTE#]
+<div class="stepProductSingleGroup">|Отпадък в производствена операция|*</div>
+<table class="stepParamTable">
+	<!--ET_BEGIN planning_Steps_wasteProductId-->
+	<tr>
+		<td class='quiet'>|Отпадък|*:</td>
+		<td>[#planning_Steps_wasteProductId#]</td>
+	</tr>
+	<!--ET_END planning_Steps_wasteProductId-->
+
+	<!--ET_BEGIN planning_Steps_wasteStart-->
+	<tr>
+		<td class='quiet'>|Начален отпадък|*:</td>
+		<td>[#planning_Steps_wasteStart#]</td>
+	</tr>
+	<!--ET_END planning_Steps_wasteStart-->
+
+	<!--ET_BEGIN planning_Steps_wastePercent-->
+	<tr>
+		<td class='quiet'>|Допустим отпадък|*:</td>
+		<td>[#planning_Steps_wastePercent#]</td>
+	</tr>
+	<!--ET_END planning_Steps_wastePercent-->
+</table>
+<!--ET_END WASTE-->

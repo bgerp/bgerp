@@ -552,7 +552,7 @@ class store_StockPlanning extends core_Manager
         }
 
         $query->EXT('measureId', 'cat_Products', 'externalKey=productId');
-        $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId');
+        $query->show('sourceClassId,sourceId,date,quantityOut,quantityIn,measureId,storeId');
 
         return $query->fetchAll();
     }

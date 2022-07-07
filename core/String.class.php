@@ -1248,8 +1248,14 @@ class core_String
         }
         
         $plural = $word[$cnt == 1 ? 0 : 1];
+
+
         $res = ($onlyWord === false) ? "{$cnt} {$plural}" : $plural;
-        
+
+        // Оправяне в някои случаи
+        $res = str_replace('метъра', 'метра', $res);
+        $res = str_replace('литъра', 'литра', $res);
+
         return $res;
     }
     

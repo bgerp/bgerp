@@ -345,4 +345,49 @@ class planning_AssetResourcesNorms extends core_Manager
             }
         }
     }
+
+
+    /**
+     * Връща зададените норми в центъра на дейност
+     *
+     * @param int $centerId
+     * @param null|string $exIds
+     * @return array $options
+     */
+    public static function getAllNormOptions($centerId, $exIds = null)
+    {
+        $options = array();
+        $folderId = planning_Centers::fetchField($centerId, 'folderId');
+        $assetOptions = planning_AssetResources::getByFolderId($folderId);
+        $assetIds = array_keys($assetOptions);
+        if(!countR($assetIds)) return $options;
+
+        // Всички нормиз ададени към конкретни оборудвания
+        $assetClassId = planning_AssetResources::getClassId();
+        $query = static::getQuery();
+        $query->where("#classId = {$assetClassId} AND #objectId IN (" . implode(',', $assetIds). ")");
+        $query->show('productId');
+
+        if(countR($assetIds)){
+
+            // Добавят се и всички норми зададени към групите на оборудванията
+            $groupClassId = planning_AssetGroups::getClassId();
+            $gQuery = planning_AssetResources::getQuery();
+            $gQuery->in('id', $assetIds);
+            $gQuery->show('groupId');
+            $groupIds = arr::extractValuesFromArray($gQuery->fetchAll(), 'groupId');
+            $query->orWhere("#classId = {$groupClassId} AND #objectId IN (" . implode(',', $groupIds). ")");
+        }
+        $productIds = arr::extractValuesFromArray($query->fetchAll(), 'productId');
+        if(isset($exIds)){
+            $productIds += keylist::toArray($exIds);
+        }
+
+        foreach ($productIds as $productId){
+            $options[$productId] = cat_Products::getTitleById($productId, false);
+        }
+
+        return $options;
+
+    }
 }

@@ -97,7 +97,7 @@ class cat_GeneralProductDriver extends cat_ProductDriver
 
                 $position = "before=InfoInt";
                 if($Driver instanceof planning_interface_StepProductDriver){
-                    $position = "after=planning_Steps_labelTemplate";
+                    $position = "after=planning_Steps_wastePercent";
                 }
                 $form->FLD("paramcat{$id}", 'double', "caption={$caption},categoryParams,{$position}");
                 $form->setFieldType("paramcat{$id}", cat_Params::getTypeInstance($id, $Embedder, $rec->id));

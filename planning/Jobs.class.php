@@ -284,36 +284,50 @@ class planning_Jobs extends core_Master
 
 
     /**
-     * Връща последните валидни задания за артикула
+     * Връща последните валидни задания
      *
-     * @param int $productId - ид на артикул
-     * @param int $id        - ид на текущото задание
-     *
-     * @return array $res    - масив с предишните задания
+     * @param int $productId   - ид на артикул
+     * @param int|null $saleId - ид на продажба, ако има
+     * @return array $res      - масив с предишните задания
      */
-    private static function getOldJobs($productId, $id, $folderId)
+    private static function getPreviousJob($productId, $saleId = null)
     {
-        $res = array();
+        $options = $jobArr2 = array();
+        $jQuery = planning_Jobs::getQuery();
+        $jQuery->where("#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed'");
+        $jQuery->orderBy('id', 'DESC');
+        $jQuery->show('id,productId,state');
 
-        // Старите задания към артикула или към артикулите в неговата папка
-        $pQuery = cat_Products::getQuery();
-        $pQuery->where("#folderId = {$folderId}");
-        $pQuery->show('id');
-        $products = arr::extractValuesFromArray($pQuery->fetchAll(), 'id');
-        $products[$productId] = $productId;
+        if(isset($saleId)){
+            $saleFolderId = sales_Sales::fetchField($saleId, 'folderId');
+            $saleQuery = sales_Sales::getQuery();
+            $saleQuery->where("#folderId = {$saleFolderId} AND (#state = 'active' OR #state = 'closed')");
+            $saleQuery->show('id');
+            $otherSaleIds = arr::extractValuesFromArray($saleQuery->fetchAll(), 'id');
 
-        $query = self::getQuery();
-        $query->in('productId', $products);
-        $query->where("#id != '{$id}' AND (#state = 'active' OR #state = 'wakeup' OR #state = 'stopped' OR #state = 'closed')");
-
-        $query->orderBy('id', 'DESC');
-        $query->show('id,productId,state');
-
-        while ($rec = $query->fetch()) {
-            $res[$rec->id] = self::getRecTitle($rec);
+            if(countR($otherSaleIds)){
+                $jQuery2 = clone $jQuery;
+                $jQuery2->in('saleId', $otherSaleIds);
+                $jobArr2 = $jQuery2->fetchAll();
+            }
         }
 
-        return $res;
+        $jQuery->where("#productId = {$productId}");
+        $jobArr1 = $jQuery->fetchAll();
+        foreach (array('jobArr1' => tr('Предходни'), 'jobArr2' => tr('Подобни')) as $varName => $caption){
+            $state = ($varName == 'jobArr1') ? 'state-waiting' : 'state-template';
+            $var = ${"{$varName}"};
+            if(countR($var)){
+                $options += array("{$varName}" => (object) array('group' => true, 'title' => $caption));
+                foreach ($var as $jobRec){
+                    if(!array_key_exists($jobRec->id, $options)){
+                        $options[$jobRec->id] = (object)array('title' => self::getRecTitle($jobRec), 'attr' => array('class' => $state));
+                    }
+                }
+            }
+        }
+
+        return $options;
     }
 
 
@@ -345,11 +359,10 @@ class planning_Jobs extends core_Master
 
         // Ако има предишни задания зареждат се за избор
         if(isset($rec->productId)){
-
-            $oldJobs = self::getOldJobs($rec->productId, $rec->id, $rec->folderId);
-            if (countR($oldJobs)) {
+            $previousJobs = self::getPreviousJob($rec->productId, $rec->saleId);
+            if (countR($previousJobs)) {
                 $form->setField('oldJobId', 'input');
-                $form->setOptions('oldJobId', array('' => '') + $oldJobs);
+                $form->setOptions('oldJobId', array('' => '') + $previousJobs);
             }
 
             $packs = cat_Products::getPacks($rec->productId, false, $rec->secondMeasureId);

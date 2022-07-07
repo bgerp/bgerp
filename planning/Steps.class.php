@@ -48,7 +48,7 @@ class planning_Steps extends core_Extender
     /**
      * Кой има достъп до лист изгледа
      */
-    public $canList = 'ceo,planning';
+    public $canList = 'ceo,planning,name';
     
     
     /**
@@ -66,15 +66,15 @@ class planning_Steps extends core_Extender
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'centerId,name';
+    public $searchFields = 'centerId,name,fixedAssets,storeIn,inputStores';
     
     
     /**
      * Полета, които ще се показват в листов изглед
      */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,labelQuantityInPack,labelType,labelTemplate';
-    
-    
+    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent';
+
+
     /**
      * Какъв да е интерфейса на позволените ембедъри
      *
@@ -97,15 +97,22 @@ class planning_Steps extends core_Extender
         $this->FLD('storeIn', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Използване в производството->Произвеждане В');
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
-        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Използване в производството->Параметри');
-        $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Използване в производството->Норма');
-        $this->FLD('isFinal', 'enum(no=Не,yes=Да)', 'caption=Използване в производството->Финален,notNull,value=no');
-        $this->FLD('interruptOffset', 'time', 'caption=Използване в производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
+        $this->FLD('isFinal', 'enum(no=Междинен етап,yes=Финален етап)', 'caption=Използване в производството->Вид,notNull,value=no');
+        $this->FLD('showPreviousJobField', 'enum(no=Скриване,yes=Показване)', 'caption=Използване в производството->Предходно задание,notNull,value=no');
+
+        $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Планиране на производството->Параметри');
+        $this->FLD('planningActions', 'keylist(mvc=cat_Products,select=name,makeLink)', 'caption=Планиране на производството->Действия');
+        $this->FLD('norm', 'planning_type_ProductionRate', 'caption=Планиране на производството->Норма');
+        $this->FLD('interruptOffset', 'time', 'caption=Планиране на производството->Отместване,hint=Отместване при прекъсване в графика на оборудването');
 
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name,allowEmpty)', 'caption=Етикиране в производството->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране в производството->В опаковка,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране в производството->Производ. №,tdClass=small-field nowrap,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране в производството->Шаблон,tdClass=small-field nowrap,input=hidden');
+
+        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък в производствена операция->Артикул,silent,class=w100');
+        $this->FLD('wasteStart', 'double(min=0,smartRound)', 'caption=Отпадък в производствена операция->Начален');
+        $this->FLD('wastePercent', 'percent(min=0)', 'caption=Отпадък в производствена операция->Допустим');
 
         $this->setDbIndex('state');
     }
@@ -122,15 +129,24 @@ class planning_Steps extends core_Extender
         $form = &$data->form;
         $rec = &$form->rec;
 
+        if(isset($rec->id)){
+            $form->setField("{$mvc->className}_wasteProductId", "autohide");
+            $form->setField("{$mvc->className}_wasteStart", "autohide");
+            $form->setField("{$mvc->className}_wastePercent", "autohide");
+        }
+
         // Добавяне на полетата от екстендъра възможност за рефреш
         $form->setField("measureId", "removeAndRefreshForm,silent");
         $form->setField("{$mvc->className}_canStore", "removeAndRefreshForm={$mvc->className}_storeIn");
-        $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm");
+        $form->setField("{$mvc->className}_centerId", "removeAndRefreshForm={$mvc->className}_fixedAssets|{$mvc->className}_employees|{$mvc->className}_norm|{$mvc->className}_planningActions");
         $form->setField("{$mvc->className}_labelPackagingId", "removeAndRefreshForm={$mvc->className}_labelQuantityInPack|{$mvc->className}_labelTemplate|{$mvc->className}_labelType");
+        $form->setField("{$mvc->className}_wasteProductId", "removeAndRefreshForm={$mvc->className}_wasteStart|{$mvc->className}_wastePercent");
         $form->setDefault("{$mvc->className}_canStore", 'yes');
 
         $form->setDefault("{$mvc->className}_centerId", planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
         $form->input("{$mvc->className}_canStore,{$mvc->className}_centerId,measureId,{$mvc->className}_labelPackagingId", 'silent');
+        $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
+        $form->setFieldTypeParams("{$mvc->className}_wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId, 'hasnotProperties' => 'generic'));
 
         // Добавяне на избор само на Параметрите за производствени операции
         $paramOptions = array();
@@ -157,6 +173,8 @@ class planning_Steps extends core_Extender
         // Добавяне на достъпните ресурси от центъра
         if(isset($rec->{"{$mvc->className}_centerId"})){
             $folderId = planning_Centers::fetchField($rec->{"{$mvc->className}_centerId"}, 'folderId');
+            $actionOptions = planning_AssetResourcesNorms::getAllNormOptions($rec->{"{$mvc->className}_centerId"}, $rec->{"{$mvc->className}_planningActions"});
+            $form->setSuggestions("{$mvc->className}_planningActions", $actionOptions);
             $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($folderId, $rec->{"{$mvc->className}_employees"}));
             $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($folderId, $rec->{"{$mvc->className}_fixedAssets"}, 'planning_Tasks',true));
         }
@@ -197,6 +215,11 @@ class planning_Steps extends core_Extender
                         $form->setField("{$mvc->className}_labelQuantityInPack", "placeholder={$quantityInPack}");
                     }
                 }
+            }
+
+            if(isset($rec->{"{$mvc->className}_wasteProductId"})){
+                $wasteProductMeasureId = cat_Products::fetchField($rec->{"{$mvc->className}_wasteProductId"}, 'measureId');
+                $form->setField("{$mvc->className}_wasteStart", "unit=" . cat_UoM::getShortName($wasteProductMeasureId));
             }
         }
     }
@@ -394,7 +417,20 @@ class planning_Steps extends core_Extender
             }
         }
 
+        if(isset($rec->wasteProductId)){
+            $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
+            $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
+            $row->wasteStart .= " " . cat_UoM::getShortName($wasteProductMeasureId);
+        }
+
         if($Extended = $mvc->getExtended($rec)){
+            if($Extended->haveRightFor('editplanned')){
+                if(empty($rec->planningActions)){
+                    $row->planningActions = "<i class='quiet'>N/A</i>";
+                }
+                $row->planningActions .= ht::createLink('', array($Extended->getInstance(), 'editplanned', $Extended->that, 'ret_url' => true), false, 'ef_icon=img/16/edit.png');
+            }
+
             if(isset($rec->norm)){
                 $row->norm = core_Type::getByName("planning_type_ProductionRate(measureId={$Extended->fetchField('measureId')})")->toVerbal($rec->norm);
             } else {
@@ -431,15 +467,26 @@ class planning_Steps extends core_Extender
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search,centerId';
+        $data->listFilter->FLD('finalType', 'enum(all=Всички,no=Междинен етап,yes=Финален етап)');
+        $data->listFilter->FLD('assetId', 'key(mvc=planning_AssetResources,select=name,allowEmpty)', 'caption=Оборудване');
+        $data->listFilter->setOptions('assetId', planning_AssetResources::getByFolderId());
+        $data->listFilter->setDefault('finalType', 'all');
+        $data->listFilter->showFields = 'search,centerId,assetId,finalType';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->input();
+
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
         $data->query->orderBy('centerId,state', 'asc');
         
         if($filterRec = $data->listFilter->rec){
             if(!empty($filterRec->centerId)){
                 $data->query->where("#centerId = {$filterRec->centerId}");
+            }
+            if($filterRec->finalType != 'all'){
+                $data->query->where("#isFinal = '{$filterRec->finalType}'");
+            }
+            if(isset($filterRec->assetId)){
+                $data->query->where("LOCATE('|{$filterRec->assetId}|', #fixedAssets)");
             }
         }
     }

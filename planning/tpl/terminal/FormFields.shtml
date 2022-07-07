@@ -36,6 +36,11 @@
 				<td colspan='2'>[#fixedAsset#]</td>
 			</tr>
 			<!--ET_END fixedAsset-->
+			<!--ET_BEGIN date-->
+			<tr>
+				<td colspan='2'>[#date#]</td>
+			</tr>
+			<!--ET_END date-->
 			<tr>
 				<td colspan='2'>[#SEND_BTN#]</td>
 			</tr>

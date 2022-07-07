@@ -799,6 +799,8 @@ class purchase_Purchases extends deals_DealMaster
         
         if (countR($shipped)) {
             foreach ($shipped as $ship) {
+                if($ship->quantity <= 0) continue;
+
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
                 

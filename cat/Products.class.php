@@ -502,6 +502,7 @@ class cat_Products extends embed_Manager
                     
                     // Ако корицата е категория и няма въведен код, генерира се дефолтен, ако може
                     $CategoryRec = $cover->rec();
+
                     if(empty($rec->code)){
                         if ($code = $cover->getDefaultProductCode()) {
                             $form->setDefault('code', $code);
@@ -511,7 +512,7 @@ class cat_Products extends embed_Manager
                     if($data->action == 'clone'){
                         $data->form->setField('code', 'focus');
                     }
-                    $form->setDefault('groups', $CategoryRec->markers);
+                    $form->setDefault('groupsInput', $CategoryRec->markers);
                     
                     // Ако има избрани мерки, оставяме от всички само тези които са посочени в корицата +
                     // вече избраната мярка ако има + дефолтната за драйвера

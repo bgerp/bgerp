@@ -1490,6 +1490,8 @@ class sales_Sales extends deals_DealMaster
                     if($canStore != 'yes') continue;
                 }
 
+                if($ship->quantity <= 0) continue;
+
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);
                 

@@ -855,21 +855,69 @@ class planning_AssetResources extends core_Master
         $normOptions = planning_AssetResourcesNorms::getNormOptions($id, $notIn, true);
         $rec = static::fetchRec($id);
 
+        // Ако има операции с норми към оборудването
         if(countR($normOptions)){
             // Извличане от опциите само имената - без групите
             $taskIds = arr::extractValuesFromArray($tasks, 'id');
 
-            // Извличат се еднократно детайлите за влагане в засегнатите операции отнасящи се за действията с норми
+            $normsByTask = $stepCache = array();
+            foreach ($tasks as $taskRec){
+                // Кеш на продуктовата информация в етапите
+                if(!array_key_exists($taskRec->productId, $stepCache)){
+                    $stepCache[$taskRec->productId] = null;
+                    if($Driver = cat_Products::getDriver($taskRec->productId)){
+                        $stepCache[$taskRec->productId] = $Driver->getProductionData($taskRec->productId);
+                    }
+                }
+
+                // За всяка операция се подготвят планиращите действия с очаквано к-во 0
+                if(is_array($stepCache[$taskRec->productId]['actions'])){
+                    foreach ($stepCache[$taskRec->productId]['actions'] as $actionProductId){
+                        $normsByTask[$taskRec->id][$actionProductId] = 0;
+                    }
+                }
+            }
+
+            // Изчисляват се времената на планираните операции за задачата
+            $pQuery = planning_ProductionTaskProducts::getQuery();
+            $pQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+            $pQuery->where("#type = 'input' AND #canStore != 'yes'");
+            $pQuery->in('taskId', $taskIds);
+            $pQuery->in('productId', $assetNorms);
+            $pQuery->show('productId,taskId,plannedQuantity,indTime');
+            while($pRec = $pQuery->fetch()){
+
+                // Ако планираното влагане е от планиращите операции на артикула
+                if(isset($normsByTask[$pRec->taskId][$pRec->productId])){
+                    $normsByTask[$pRec->taskId][$pRec->productId] = planning_type_ProductionRate::getInSecsByQuantity($pRec->indTime, $pRec->plannedQuantity);
+                }
+            }
+
+            // Изчисляват се реално изпълнените операции
+            $detailsAssetNorms = array();
             $dQuery = planning_ProductionTaskDetails::getQuery();
-            $dQuery->where("#type = 'input' AND #state != 'rejected'");
+            $dQuery->EXT('canStore', 'cat_Products', "externalName=canStore,externalKey=productId");
+            $dQuery->where("#type = 'input' AND #state != 'rejected' AND #canStore != 'yes'");
             $dQuery->in('taskId', $taskIds);
             $dQuery->in('productId', $assetNorms);
-            $dQuery->show('taskId,norm,quantity');
             while($dRec = $dQuery->fetch()){
-                if(!array_key_exists($dRec->taskId, $normsByTask)){
-                    $normsByTask[$dRec->taskId] = 0;
+
+                // Ако изпълненото влагане е от планиращите операции на артикула
+                if(isset($normsByTask[$dRec->taskId][$dRec->productId])){
+
+                    // Сумира се реално изпълненото време
+                    $calced = cls::get('planning_ProductionTaskDetails')->calcNormByRec($dRec, $tasks[$dRec->taskId]);
+                    $detailsAssetNorms[$dRec->taskId][$dRec->productId] += $calced;
                 }
-                $normsByTask[$dRec->taskId] += planning_type_ProductionRate::getInSecsByQuantity($dRec->norm, $dRec->quantity);
+            }
+        }
+
+        // Измежду планираните и реално изпълнените операции се взима това с по-голямата норма
+        foreach ($normsByTask as $tId => $actions){
+            foreach ($actions as $actionId => $value){
+                if(isset($detailsAssetNorms[$tId][$actionId])){
+                    $normsByTask[$tId][$actionId] = max($value, $detailsAssetNorms[$tId][$actionId]);
+                }
             }
         }
 
@@ -968,10 +1016,14 @@ class planning_AssetResources extends core_Master
         if(empty($duration)){
 
             // Ако няма изчислявам от нормата за планираното количество
-            $indProductIdKey = ($taskRec->isFinal == 'yes') ? $taskRec->jobProductId : $taskRec->productId;
-            $indQuantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"] : 1;
-            $quantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->measureId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->measureId}"] : 1;
-            $calcedPlannedQuantity = ($taskRec->plannedQuantity / $quantityInPack) / $indQuantityInPack;
+            if($taskRec->indPackagingId == $taskRec->measureId){
+                $calcedPlannedQuantity = $taskRec->plannedQuantity;
+            } else {
+                $indProductIdKey = ($taskRec->isFinal == 'yes') ? $taskRec->jobProductId : $taskRec->productId;
+                $indQuantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"] : 1;
+                $quantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->measureId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->measureId}"] : 1;
+                $calcedPlannedQuantity = round(($taskRec->plannedQuantity * $quantityInPack) / $indQuantityInPack);
+            }
 
             $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
             $duration = round($indTime / $assetRec->simultaneity);
@@ -984,10 +1036,9 @@ class planning_AssetResources extends core_Master
         // Към така изчислената продължителност се добавя тази от действията към машината
         $res->durationCalced = $duration;
         if(array_key_exists($taskRec->id, $normsByTask)){
-            $duration += $normsByTask[$taskRec->id];
+            $duration += array_sum($normsByTask[$taskRec->id]);
             $res->actionNorms = $normsByTask[$taskRec->id];
         }
-
         $res->durationLeft = $duration;
 
         // Колко ще е отместването при прекъсване

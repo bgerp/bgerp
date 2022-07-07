@@ -275,25 +275,18 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                     $form->setDefault('packQuantity', round($quantityToStore / $originRec->quantityInPack, 5));
                 }
             } else {
-
                 // Ако задачата е за крайния артикул записваме к-то му от заданието
                 if($rec->productId == $jobRec->productId){
-                    $form->setDefault('jobQuantity', $jobRec->quantity);
+                    $form->setDefault('jobQuantity', $originRec->totalQuantity - $originRec->producedQuantity);
                 }
 
                 $info = planning_ProductionTaskProducts::getInfo($originDoc->that, $rec->productId, 'production');
                 $originRec = $originDoc->fetch('productId,producedQuantity,measureId,isFinal');
-                if($originRec->isFinal == 'yes'){
-                    $producedQuantity = $originDoc->fetchField('producedQuantity');
-                    $info->totalQuantity -= $producedQuantity;
-                    $originPackId = $originRec->measureId;
-                } else {
-                    $originPackId = $info->labelPackagingId;
-                }
-
+                $originPackId = ($originRec->isFinal == 'yes') ? $originRec->measureId : $info->measureId;
                 $form->setDefault('packagingId', $originPackId);
-                if ($info->totalQuantity > 0) {
-                    $form->setDefault('packQuantity', $info->totalQuantity);
+                $toProduce = round($info->totalQuantity - $info->producedQuantity, 4);
+                if ($toProduce > 0) {
+                    $form->setDefault('packQuantity', $toProduce);
                 }
             }
 
@@ -896,10 +889,12 @@ class planning_DirectProductionNote extends planning_ProductionDocument
         }
 
         if ($data->toolbar->haveButton('btnConto')) {
-            if ($mvc->haveRightFor('adddebitamount', $rec)) {
-                $data->toolbar->removeBtn('btnConto');
-                $attr = (!haveRole('seePrice,ceo') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документът не може да бъде контиран, защото артикула няма себестойност') : ((!haveRole('seePrice,ceo') ? array('warning' => 'Наистина ли желаете документът да бъде контиран') : array()));
-                $data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), 'id=btnConto,ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производство', $attr);
+            if (!$data->toolbar->isErrorBtn('btnConto')) {
+                if ($mvc->haveRightFor('adddebitamount', $rec)) {
+                    $data->toolbar->removeBtn('btnConto');
+                    $attr = (!haveRole('seePrice,ceo') && !self::getDefaultDebitPrice($rec)) ? array('error' => 'Документът не може да бъде контиран, защото артикула няма себестойност') : ((!haveRole('seePrice,ceo') ? array('warning' => 'Наистина ли желаете документът да бъде контиран') : array()));
+                    $data->toolbar->addBtn('Контиране', array($mvc, 'addDebitAmount', $rec->id, 'ret_url' => array($mvc, 'single', $rec->id)), 'id=btnConto,ef_icon = img/16/tick-circle-frame.png,title=Контиране на протокола за производство', $attr);
+                }
             }
         }
 
