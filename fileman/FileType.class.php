@@ -125,7 +125,7 @@ class fileman_FileType extends type_Varchar
             }
         ", 'SCRIPTS');
 
-        $tpl->appendOnce(" document.getElementsByClassName('focus')[0].focus(); ", 'SCRIPTS');
+        $tpl->appendOnce("var focusElements = document.getElementsByClassName('focus'); if (focusElements && focusElements.length) { document.getElementsByClassName('focus')[0].focus(); } ", 'SCRIPTS');
     }
     
     
