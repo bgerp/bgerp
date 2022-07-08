@@ -98,7 +98,7 @@ class planning_Steps extends core_Extender
         $this->FLD('fixedAssets', 'keylist(mvc=planning_AssetResources,select=name,makeLinks=hyperlink)', 'caption=Използване в производството->Оборудване');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks)', 'caption=Използване в производството->Оператори');
         $this->FLD('isFinal', 'enum(no=Междинен етап,yes=Финален етап)', 'caption=Използване в производството->Вид,notNull,value=no');
-        $this->FLD('showPreviousJobField', 'enum(no=Скриване,yes=Показване)', 'caption=Използване в производството->Предходно задание,notNull,value=no');
+        $this->FLD('showPreviousJobField', 'enum(auto=Автоматично,no=Скриване,yes=Показване)', 'caption=Използване в производството->Предходно задание,notNull,value=no');
 
         $this->FLD('planningParams', 'keylist(mvc=cat_Params,select=typeExt)', 'caption=Планиране на производството->Параметри');
         $this->FLD('planningActions', 'keylist(mvc=cat_Products,select=name,makeLink)', 'caption=Планиране на производството->Действия');
@@ -173,13 +173,12 @@ class planning_Steps extends core_Extender
         // Добавяне на достъпните ресурси от центъра
         if(isset($rec->{"{$mvc->className}_centerId"})){
             $centerRec = planning_Centers::fetch($rec->{"{$mvc->className}_centerId"}, 'folderId,showPreviousJobField');
+
             $actionOptions = planning_AssetResourcesNorms::getAllNormOptions($rec->{"{$mvc->className}_centerId"}, $rec->{"{$mvc->className}_planningActions"});
             $form->setSuggestions("{$mvc->className}_planningActions", $actionOptions);
             $form->setSuggestions("{$mvc->className}_employees", planning_Hr::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_employees"}));
             $form->setSuggestions("{$mvc->className}_fixedAssets", planning_AssetResources::getByFolderId($centerRec->folderId, $rec->{"{$mvc->className}_fixedAssets"}, 'planning_Tasks',true));
-
-            $defaultShowPreviousJobField = ($centerRec->showPreviousJobField == 'auto') ? planning_Setup::get('SHOW_PREVIOUS_JOB_FIELD_IN_TASK') : $centerRec->showPreviousJobField;
-            $form->setDefault("{$mvc->className}_showPreviousJobField", $defaultShowPreviousJobField);
+            $form->setDefault("{$mvc->className}_showPreviousJobField", $centerRec->showPreviousJobField);
         }
 
         if(isset($rec->measureId)){
