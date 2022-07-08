@@ -14,7 +14,7 @@
     		<td>[#planning_Steps_canStore#]</td>
     	</tr>
 		<tr>
-			<td class='quiet'>|Център на дейност|*:</td>
+			<td class='quiet'>|Център на д-ст|*:</td>
 			<td>[#planning_Steps_centerId#]</td>
 		</tr>
 		<tr>
@@ -46,6 +46,12 @@
 			<td>[#planning_Steps_employees#]</td>
 		</tr>
 		<!--ET_END planning_Steps_employees-->
+		<!--ET_BEGIN planning_Steps_planningParams-->
+		<tr>
+			<td class='quiet'>|Планиране|*:</td>
+			<td>[#planning_Steps_planningParams#]</td>
+		</tr>
+		<!--ET_END planning_Steps_planningParams-->
 		<!--ET_BEGIN planning_Steps_showPreviousJobField-->
 		<tr>
 			<td class='quiet'>|Предишно задание|*:</td>
@@ -64,12 +70,6 @@
 [#PLANNING#]
 	<div class="stepProductSingleGroup">|Планиране на производството|*</div>
 	<table class="stepParamTable">
-		<!--ET_BEGIN planning_Steps_planningParams-->
-		<tr>
-			<td class='quiet'>|Планиране|*:</td>
-			<td>[#planning_Steps_planningParams#]</td>
-		</tr>
-		<!--ET_END planning_Steps_planningParams-->
 		<!--ET_BEGIN planning_Steps_planningActions-->
 		<tr>
 			<td class='quiet'>|Действия|*:</td>
