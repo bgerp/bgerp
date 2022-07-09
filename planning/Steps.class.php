@@ -70,17 +70,17 @@ class planning_Steps extends core_Extender
     
     
     /**
-     * Полета, които ще се показват в листов изглед
-     */
-    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent';
-    
-    
-    /**
      * Полета, които при клониране да не са попълнени
      *
      * @see plg_Clone
      */
     public $fieldsNotToClone = 'name';
+    
+    
+    /**
+     * Полета, които ще се показват в листов изглед
+     */
+    protected $extenderFields = 'centerId,name,canStore,norm,inputStores,storeIn,fixedAssets,planningParams,employees,isFinal,interruptOffset,labelPackagingId,planningActions,labelQuantityInPack,labelType,labelTemplate,showPreviousJobField,wasteProductId,wasteStart,wastePercent';
 
 
     /**
