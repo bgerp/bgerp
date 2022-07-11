@@ -81,8 +81,16 @@ class planning_Steps extends core_Extender
      * @var string
      */
     protected $extenderClassInterfaces = 'cat_ProductAccRegIntf';
-    
-    
+
+
+    /**
+     * Полета, които при клониране да не са попълнени
+     *
+     * @see plg_Clone
+     */
+    public $fieldsNotToClone = 'name';
+
+
     /**
      * Описание на модела
      */
