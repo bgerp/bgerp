@@ -8,11 +8,7 @@
 		<tr>
 			<td class='quiet'>|Мярка|*:</td>
 			<td>[#measureId#]</td>
-		</tr>
-    	<tr>
-    		<td class='quiet'>|Складируем|*:</td>
-    		<td>[#planning_Steps_canStore#]</td>
-    	</tr>
+		</tr>    	
 		<tr>
 			<td class='quiet'>|Център на д-ст|*:</td>
 			<td>[#planning_Steps_centerId#]</td>
@@ -21,19 +17,6 @@
 			<td class='quiet'>|Вид|*:</td>
 			<td>[#planning_Steps_isFinal#]</td>
 		</tr>
-		<!--ET_BEGIN planning_Steps_inputStores-->
-		<tr>
-			<td class='quiet'>|Материали ОТ|*:</td>
-			<td>[#planning_Steps_inputStores#]</td>
-		</tr>
-		<!--ET_END planning_Steps_inputStores-->
-
-		<!--ET_BEGIN planning_Steps_storeIn-->
-		<tr>
-			<td class='quiet'>|Произвеждане В|*:</td>
-			<td>[#planning_Steps_storeIn#]</td>
-		</tr>
-		<!--ET_END planning_Steps_storeIn-->
 		<!--ET_BEGIN planning_Steps_fixedAssets-->
 		<tr>
 			<td class='quiet'>|Оборудване|*:</td>
@@ -64,6 +47,28 @@
 			<td colspan = 2>[#PARAMS#]</td>
 		</tr>
 		<!--ET_END PARAMS-->
+    </table>
+    
+<div class="stepProductSingleGroup">|Складове при производството|*</div>
+    <table class="stepParamTable">
+    		<tr>
+    			<td class='quiet'>|Складируем|*:</td>
+    			<td>[#planning_Steps_canStore#]</td>
+    		</tr>		
+		<!--ET_BEGIN planning_Steps_inputStores-->
+		<tr>
+			<td class='quiet'>|Материали|*:</td>
+			<td>[#planning_Steps_inputStores#]</td>
+		</tr>
+		<!--ET_END planning_Steps_inputStores-->
+
+		<!--ET_BEGIN planning_Steps_storeIn-->
+		<tr>
+			<td class='quiet'>|Произвеждане|*:</td>
+			<td>[#planning_Steps_storeIn#]</td>
+		</tr>
+		<!--ET_END planning_Steps_storeIn-->
+		
     </table>
 
 <!--ET_BEGIN PLANNING-->
