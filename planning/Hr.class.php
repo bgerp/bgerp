@@ -36,7 +36,7 @@ class planning_Hr extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'planning_Wrapper,plg_Sorting,plg_Created,plg_RowTools2,plg_Search,label_plg_Print';
+    public $loadList = 'planning_Wrapper,plg_PrevAndNext,plg_Select,plg_Sorting,plg_Created,plg_RowTools2,plg_Search,label_plg_Print';
     
     
     /**
