@@ -57,14 +57,14 @@
     		</tr>		
 		<!--ET_BEGIN planning_Steps_inputStores-->
 		<tr>
-			<td class='quiet'>|Материали|*:</td>
+			<td class='quiet'>|Материали от|*:</td>
 			<td>[#planning_Steps_inputStores#]</td>
 		</tr>
 		<!--ET_END planning_Steps_inputStores-->
 
 		<!--ET_BEGIN planning_Steps_storeIn-->
 		<tr>
-			<td class='quiet'>|Произвеждане|*:</td>
+			<td class='quiet'>|Произвеждане в|*:</td>
 			<td>[#planning_Steps_storeIn#]</td>
 		</tr>
 		<!--ET_END planning_Steps_storeIn-->
