@@ -585,6 +585,7 @@ class blast_ListDetails extends doc_Detail
         $exp->ASSUME('#documentType', 'getDocumentTypesAssume()');
         $exp->DEF('#catGroups=Продуктови групи', 'keylist(mvc=cat_Groups,select=name, allowEmpty)', 'placeholder=Всички, notNull');
         $exp->DEF('#contragentType=Вид контрагент->Избор', 'enum(,crm_Companies=Фирми,crm_Persons=Лица)', 'placeholder=Всички, notNull');
+        $exp->DEF('#contragentAccess=Вид контрагент->Достъп', 'enum(, noAccess=Без Достъп, withAccess=С достъп)', 'placeholder=Без значение, notNull');
         $exp->DEF('#docFrom=Период->От', 'date', 'notNull');
         $exp->DEF('#docTo=Период->До', 'date', 'notNull');
         $exp->DEF('#amountTo=Сума->От', 'int', 'notNull');
@@ -592,7 +593,7 @@ class blast_ListDetails extends doc_Detail
         
         $exp->question('#countriesInclude,#countriesExclude', tr('Филтър по държави') . ':', "#source == 'groupCompanies' || #source == 'groupPersons'", 'title=' . tr('Филтър по държави'));
         
-        $exp->question('#documentType,#catGroups,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo, #amountTo, #amountFrom', tr('Избор на вид документ') . ':', "#source == 'document'", 'title=' . tr('Избор на вид документ'));
+        $exp->question('#documentType,#catGroups,#countriesInclude,#countriesExclude,#contragentType,#contragentAccess,#docFrom,#docTo, #amountTo, #amountFrom', tr('Избор на вид документ') . ':', "#source == 'document'", 'title=' . tr('Избор на вид документ'));
         
         $exp->rule('#delimiter', "','", "#source == 'groupPersons' || #source == 'groupCompanies' || #source == 'document' || #source == 'blastList'");
         $exp->rule('#delimiterAsk', '#delimiter');
@@ -602,7 +603,7 @@ class blast_ListDetails extends doc_Detail
         $exp->rule('#csvData', "importCsvFromContacts('crm_Companies', #companiesGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers)");
         $exp->rule('#csvData', "importCsvFromContacts('crm_Persons', #personsGroup, #listId, #countriesInclude, #countriesExclude, #inChargeUsers)");
         
-        $exp->rule('#csvData', 'importCsvFromDocuments(#documentType,#catGroups,#listId,#countriesInclude,#countriesExclude,#contragentType,#docFrom,#docTo, #amountTo, #amountFrom)');
+        $exp->rule('#csvData', 'importCsvFromDocuments(#documentType,#catGroups,#listId,#countriesInclude,#countriesExclude,#contragentType,#contragentAccess,#docFrom,#docTo, #amountTo, #amountFrom)');
         
         $exp->DEF('#blastList=Списък', 'key(mvc=blast_Lists,select=title)', 'mandatory');
         
@@ -1074,7 +1075,7 @@ class blast_ListDetails extends doc_Detail
      *
      * @return array
      */
-    public static function importCsvFromDocuments($documentType, $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType, $docFrom, $docTo, $amountFrom, $amountTo)
+    public static function importCsvFromDocuments($documentType, $groupIds, $listId, $countriesInclude, $countriesExlude, $contragentType,$contragentAccess, $docFrom, $docTo, $amountFrom, $amountTo)
     {
         core_App::setTimeLimit(600);
 
@@ -1186,7 +1187,7 @@ class blast_ListDetails extends doc_Detail
                     $query->EXT('contragentClassId', $masterClass, "externalName=contragentClassId,externalKey={$docDetailsInst->masterKey}");
                     $query->where(array("#contragentClassId = '[#1#]'", $contragentType::getClassId()));
                 }
-                
+
                 // Филтрираме по дата
                 if ($docFrom || $docTo) {
                     $query->EXT('masterCreatedOn', $masterClass, "externalName=createdOn,externalKey={$docDetailsInst->masterKey}");
@@ -1289,8 +1290,13 @@ class blast_ListDetails extends doc_Detail
                     if ($allEmailArr[$email]) {
                         continue;
                     }
-                    
+
                     $allEmailArr[$email] = $email;
+
+                    if (!self::isContragentEmailHaveRightAccess($contragentAccess, $email)) {
+
+                        continue;
+                    }
 
                     $countryName = '';
                     if ($cInstRec && $cInstRec->country) {
@@ -1399,7 +1405,12 @@ class blast_ListDetails extends doc_Detail
                     }
 
                     $allEmailArr[$email] = $email;
-                    
+
+                    if (self::isContragentEmailHaveRightAccess($contragentAccess, $email)) {
+
+                        continue;
+                    }
+
                     $name = '';
                     if ($contragentType) {
                         if ($contragentType == 'crm_Persons') {
@@ -1420,7 +1431,42 @@ class blast_ListDetails extends doc_Detail
 
         return $csvArr;
     }
-    
+
+
+    /**
+     * Помощна функция за проверка дали този имейл трябва да присъства в списъка
+     *
+     * @param $accessType - noAccess|withAccess|
+     * @param $email
+     *
+     * @return boolean
+     */
+    protected static function isContragentEmailHaveRightAccess($accessType, $email)
+    {
+        $res = true;
+
+        if (!trim($accessType)) {
+
+            return $res;
+        }
+
+        $user = core_Users::fetch(array("#email = '[#1#]'", $email));
+
+        if ($accessType == 'noAccess') {
+            if ($user && ($user->state != 'draft') && ($user->state != 'rejected')) {
+                $res = false;
+            }
+        }
+
+        if ($accessType == 'withAccess') {
+            if (!$user || ($user->state == 'draft') || ($user->state == 'rejected')) {
+                $res = false;
+            }
+        }
+
+        return $res;
+    }
+
     
     /**
      * Импортира CSV от моделите на визитника
