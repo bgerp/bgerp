@@ -838,9 +838,10 @@ class sales_Sales extends deals_DealMaster
         $conf = core_Packs::getConfig('sales');
         $olderThan = $conf->SALE_CLOSE_OLDER_THAN;
         $limit = $conf->SALE_CLOSE_OLDER_NUM;
+        $daysAfterAcc = $conf->SALE_CURRENCY_CLOSE_AFTER_ACC_DATE;
         $ClosedDeals = cls::get('sales_ClosedDeals');
         
-        $this->closeOldDeals($olderThan, $ClosedDeals, $limit);
+        $this->closeOldDeals($olderThan, $daysAfterAcc, $ClosedDeals, $limit);
     }
     
     

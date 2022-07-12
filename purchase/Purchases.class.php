@@ -709,9 +709,10 @@ class purchase_Purchases extends deals_DealMaster
         $conf = core_Packs::getConfig('purchase');
         $olderThan = $conf->PURCHASE_CLOSE_OLDER_THAN;
         $limit = $conf->PURCHASE_CLOSE_OLDER_NUM;
+        $daysAfterAcc = $conf->PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE;
         $ClosedDeals = cls::get('purchase_ClosedDeals');
         
-        $this->closeOldDeals($olderThan, $ClosedDeals, $limit);
+        $this->closeOldDeals($olderThan, $daysAfterAcc, $ClosedDeals, $limit);
     }
     
     
