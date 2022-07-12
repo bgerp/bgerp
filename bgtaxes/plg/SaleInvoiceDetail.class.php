@@ -108,7 +108,7 @@ class bgtaxes_plg_SaleInvoiceDetail extends core_Plugin
     /**
      * Дали да се обнови записа при активиране
      */
-    public static function on_AfterCalcFieldsOnActivation($mvc, $res, &$rec, $masterRec, $params)
+    public static function on_AfterCalcFieldsOnActivation($mvc, &$res, &$rec, $masterRec, $params)
     {
         $exciseId = cat_Params::fetchIdBySysId('exciseBgn');
         if(!isset($rec->exciseTax)){
