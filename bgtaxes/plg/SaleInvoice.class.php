@@ -55,11 +55,11 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
             }
 
             if(isset($excise)){
-                $exciseAmount += ($dRec->quantity / $dRec->quantityInPack) * $excise;
+                $exciseAmount += ($dRec->quantity * $dRec->quantityInPack) * $excise;
             }
 
             if(isset($productTax)){
-                $productTaxAmount += ($dRec->quantity / $dRec->quantityInPack) * $productTax;
+                $productTaxAmount += ($dRec->quantity * $dRec->quantityInPack) * $productTax;
             }
         }
 
