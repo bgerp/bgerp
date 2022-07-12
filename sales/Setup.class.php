@@ -209,7 +209,7 @@ defIfNot('SALES_SHOW_PRICE_IN_PRODUCT_SELECTION', 'no');
 /**
  * Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки
  */
-defIfNot('SALE_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
+defIfNot('SALES_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
 
 
 /**
@@ -263,7 +263,7 @@ class sales_Setup extends core_ProtoSetup
             'time(uom=days,suggestions=1 ден|2 дена|3 дена)',
             'caption=Изчакване преди автоматично приключване на продажби в BGN / EUR->Дни'
         ),
-        'SALE_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
+        'SALES_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
             'int(Min=0)',
             'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'
         ),
