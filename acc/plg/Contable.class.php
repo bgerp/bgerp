@@ -181,10 +181,13 @@ class acc_plg_Contable extends core_Plugin
     public static function on_AfterPrepareSingleToolbar($mvc, $data)
     {
         $rec = &$data->rec;
-        
+
         $error = $mvc->getContoBtnErrStr($rec);
-        $error = $error ? "error={$error}," : '';
-       
+        $contoAttr = array('ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Контиране на документа');
+        if(!empty($error)){
+            $contoAttr['error'] = $error;
+        }
+
         if (haveRole('debug')) {
             $data->toolbar->addBtn('Транзакция', array($mvc, 'getTransaction', $rec->id), 'ef_icon=img/16/bug.png,title=Дебъг информация,row=2');
         }
@@ -197,7 +200,7 @@ class acc_plg_Contable extends core_Plugin
             // Урл-то за контиране
             $contoUrl = $mvc->getContoUrl($rec->id);
             $warning = $mvc->getContoWarning($rec->id, $rec->isContable);
-            $data->toolbar->addBtn($caption, $contoUrl, array('id' => 'btnConto', 'warning' => $warning), "{$error}ef_icon = img/16/tick-circle-frame.png,title=Контиране на документа");
+            $data->toolbar->addBtn($caption, $contoUrl, array('id' => 'btnConto', 'warning' => $warning), $contoAttr);
         }
         
         // Бутон за заявка
