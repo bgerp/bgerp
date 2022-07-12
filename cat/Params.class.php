@@ -241,6 +241,10 @@ class cat_Params extends bgerp_ProtoParam
         if($sysId){
             $id = self::fetchIdBySysId($sysId);
             if (!empty($id)) {
+                $pRec = cat_Params::fetch($id);
+                $pRec->name = $name;
+                $pRec->group = $groupName;
+                cat_Params::save($pRec, 'name,group');
 
                 return $id;
             }
