@@ -239,10 +239,14 @@ class cat_Params extends bgerp_ProtoParam
     {
         // Ако има параметър с това систем ид,връща се
         if($sysId){
-            $id = self::fetchIdBySysId($sysId);
-            if (!empty($id)) {
+            $rec = static::fetch("#sysId = '{$sysId}'", 'id,name,group');
+            if (!empty($rec)) {
+                if($rec->group != $groupName){
+                    $rec->group = $groupName;
+                    static::save($rec, 'group');
+                }
 
-                return $id;
+                return $rec->id;
             }
         } else {
 

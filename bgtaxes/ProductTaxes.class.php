@@ -148,7 +148,7 @@ class bgtaxes_ProductTaxes extends core_Manager
      */
     protected function on_AfterImportRec($mvc, $rec)
     {
-        $paramId = cat_Params::force("product_pack_{$rec->id}", $rec->name, 'double', null, 'kg', false, false, 'Материал', "min=0");
+        $paramId = cat_Params::force("product_pack_{$rec->id}", $rec->name, 'double', null, 'kg', false, false, 'Опаковка', "min=0");
         $rec->paramId = $paramId;
         $mvc->save_($rec, 'paramId');
     }
