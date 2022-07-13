@@ -1132,7 +1132,7 @@ class sales_Sales extends deals_DealMaster
     protected function prepareJobsInfo($data)
     {
         $rec = $data->rec;
-        $manifacturableProducts = static::getManifacurableProducts($data->rec);
+        $manifacturableProducts = static::getManifacturableProducts($data->rec);
         if (!countR($manifacturableProducts)) {
             return;
         }
@@ -1187,7 +1187,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @return array $res - масив с производимите артикули
      */
-    public static function getManifacurableProducts($id, $onlyActive = false)
+    public static function getManifacturableProducts($id, $onlyActive = false)
     {
         $rec = static::fetchRec($id);
         $res = array();
@@ -1197,6 +1197,7 @@ class sales_Sales extends deals_DealMaster
         $saleQuery->where("#saleId = {$rec->id}");
         $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
         $saleQuery->where("#canManifacture = 'yes'");
+        $saleQuery->orderBy('productId', 'ASC');
         if($onlyActive){
             $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
             $saleQuery->where("#state = 'active'");

@@ -52,7 +52,7 @@ class planning_Jobs extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords';
+    public $loadList = 'plg_RowTools2, store_plg_StockPlanning, doc_DocumentPlg, planning_plg_StateManager, doc_SharablePlg, planning_Wrapper, plg_Sorting, acc_plg_DocumentSummary, plg_Search, change_Plugin, plg_Clone, plg_Printing, doc_plg_SelectFolder, cat_plg_AddSearchKeywords, plg_SaveAndNew';
     
     
     /**
@@ -241,7 +241,7 @@ class planning_Jobs extends core_Master
     {
         $this->FLD('productId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,hasProperties=canManifacture,hasnotProperties=generic,maxSuggestions=100,forceAjax)', 'class=w100,silent,mandatory,caption=Артикул,removeAndRefreshForm=packagingId|packQuantity|quantityInPack|tolerance|quantity|oldJobId');
         $this->FLD('oldJobId', 'int', 'silent,after=productId,caption=Предходно задание,removeAndRefreshForm=notes|department|packagingId|quantityInPack|storeId,input=none');
-        $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory');
+        $this->FLD('dueDate', 'date(smartTime)', 'caption=Падеж,mandatory,remember');
         
         $this->FLD('packagingId', 'key(mvc=cat_UoM, select=shortName, select2MinItems=0)', 'caption=Мярка', 'smartCenter,mandatory,input=hidden,before=packQuantity,silent,removeAndRefreshForm');
         $this->FNC('packQuantity', 'double(Min=0,smartRound)', 'caption=Количество,input,mandatory,after=jobQuantity');
@@ -255,10 +255,10 @@ class planning_Jobs extends core_Master
         $this->FLD('quantityProduced', 'double(decimals=2)', 'input=none,caption=Количество->Заскладено,notNull,value=0');
         $this->FLD('tolerance', 'percent(suggestions=5 %|10 %|15 %|20 %|25 %|30 %,warningMax=0.1)', 'caption=Толеранс,silent');
         $this->FLD('allowSecondMeasure', 'enum(no=Без,yes=Задължителна)', 'caption=Втора мярка,notNull,value=no,silent,removeAndRefreshForm=secondMeasureId');
-        $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност');
-        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане в');
-        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLinks)', 'caption=Влагане от,after=storeId');
-        $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Забележки');
+        $this->FLD('department', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Ц-р дейност,remember');
+        $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Произвеждане в,remember');
+        $this->FLD('inputStores', 'keylist(mvc=store_Stores,select=name,allowEmpty,makeLinks)', 'caption=Влагане от,after=storeId,remember');
+        $this->FLD('notes', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Забележки,remember');
 
         $this->FLD('deliveryDate', 'date(smartTime)', 'caption=Данни от договора->Срок');
         $this->FLD('deliveryTermId', 'key(mvc=cond_DeliveryTerms,select=codeName,allowEmpty)', 'caption=Данни от договора->Условие');
@@ -347,8 +347,21 @@ class planning_Jobs extends core_Master
         }
 
         if (isset($rec->saleId)) {
-            $products = sales_Sales::getManifacurableProducts($rec->saleId, true);
+
+            // Ако заданието е към продажба, може да се избират само измежду артикулите в нея
+            $products = sales_Sales::getManifacturableProducts($rec->saleId, true);
             $form->setFieldType('productId', 'key(mvc=cat_Products)');
+
+            // Дефолтния артикул е първия без задание към продажбата
+            $defaultProductId = null;
+            foreach ($products as $pId => $pName){
+                if(!static::fetchField("#productId = {$pId} AND #saleId = {$rec->saleId} AND #state != 'rejected'")){
+                    $defaultProductId = $pId;
+                    break;
+                }
+            }
+            $form->setDefault('productId', $defaultProductId);
+
             if(countR($products) == 1){
                 $form->setDefault('productId', key($products));
                 $form->setOptions('productId', $products);
@@ -457,8 +470,24 @@ class planning_Jobs extends core_Master
             $form->setReadOnly('department');
         }
     }
-    
-    
+
+
+    /**
+     * Подготовка на бутоните на формата за добавяне/редактиране
+     */
+    protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
+    {
+        // Преименуване на бутона за запис и нов
+        if(isset($data->form->rec->saleId)){
+            if (!empty($data->form->toolbar->buttons['saveAndNew'])) {
+                $data->form->toolbar->renameBtn('saveAndNew', 'Активиране и нов');
+            }
+        } else {
+            $data->form->toolbar->removeBtn('saveAndNew');
+        }
+    }
+
+
     /**
      * Дефолтна дата на падеж
      *
@@ -679,10 +708,12 @@ class planning_Jobs extends core_Master
 
             //  Проверка има ли други активни задания
             $id = isset($rec->clonedFromId) ? null : $rec->id;
-            if ($aCount = self::count("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$id}'")) {
-                $aCount = core_Type::getByName('int')->toVerbal($aCount);
-                $msg = ($aCount == 1) ? 'активно задание' : 'активни задания';
-                $form->setWarning('productId', "В момента артикулът има още|* <b>{$aCount}</b> |{$msg}|*. |Желаете ли да създадете още едно|*?");
+            if(!haveRole('debug')){
+                if ($aCount = self::count("#productId = {$rec->productId} AND (#state = 'active' OR #state = 'stopped' OR #state = 'wakeup') AND #id != '{$id}'")) {
+                    $aCount = core_Type::getByName('int')->toVerbal($aCount);
+                    $msg = ($aCount == 1) ? 'активно задание' : 'активни задания';
+                    $form->setWarning('productId', "В момента артикулът има още|* <b>{$aCount}</b> |{$msg}|*. |Желаете ли да създадете още едно|*?");
+                }
             }
 
             $productInfo = cat_Products::getProductInfo($form->rec->productId);
@@ -698,6 +729,10 @@ class planning_Jobs extends core_Master
 
             if($rec->allowSecondMeasure == 'no'){
                 unset($rec->secondMeasureId);
+            }
+
+            if($form->cmd == 'save_n_new'){
+                $rec->_activateAfterCreation = true;
             }
         }
     }
@@ -740,7 +775,7 @@ class planning_Jobs extends core_Master
             doc_Threads::updateThread($oldThreadId);
         }
 
-        if ($rec->isEdited === true && isset($rec->id) && $rec->_isClone !== true) {
+        if ($rec->isEdited === true && isset($rec->id) && $rec->_isClone !== true && empty($rec->_activateAfterCreation)) {
             self::addToHistory($rec->history, 'edited', $rec->modifiedOn, $rec->modifiedBy);
         }
     }
@@ -754,6 +789,10 @@ class planning_Jobs extends core_Master
         // Записваме в историята на действията, че кога и от кого е създаден документа
         self::addToHistory($rec->history, 'created', $rec->createdOn, $rec->createdBy);
         $mvc->save_($rec, 'history');
+
+        if(isset($rec->_activateAfterCreation)){
+            planning_plg_StateManager::changeState($mvc, $rec, 'activate');
+       }
     }
     
     
@@ -1017,7 +1056,7 @@ class planning_Jobs extends core_Master
                 if ($saleState != 'active' && $saleState != 'closed') {
                     $res = 'no_one';
                 } else {
-                    $products = sales_Sales::getManifacurableProducts($rec->saleId, true);
+                    $products = sales_Sales::getManifacturableProducts($rec->saleId, true);
                     if (!countR($products)) {
                         $res = 'no_one';
                     }
@@ -2049,6 +2088,25 @@ class planning_Jobs extends core_Master
         if(countR($taskRecs)){
             core_Statuses::newStatus("Не може да се оттегли, докато следните операции не са оттеглени/приключени|*: " . implode(', ', $taskRecs), 'warning');
             return false;
+        }
+    }
+
+
+    /**
+     * Пренасочва URL за връщане след запис към сингъл изгледа
+     */
+    protected static function on_AfterPrepareRetUrl($mvc, $res, $data)
+    {
+        // Ако има форма, и тя е събмитната и действието е 'запис и нов'
+        if ($data->form && $data->form->isSubmitted() && $data->form->cmd == 'save_n_new') {
+
+            // и заданието е към продажба
+            if(isset($data->form->rec->saleId)){
+
+                // Редиректва се към същата форма за пускане на задание за следващия артикул
+                $saleRec = sales_Sales::fetch($data->form->rec->saleId, 'id,threadId,containerId');
+                $data->retUrl = $data->addJobUrl = array('planning_Jobs', 'add', 'saleId' => $saleRec->id, 'threadId' => $saleRec->threadId, 'foreignId' => $saleRec->containerId, 'ret_url' => getRetUrl());
+            }
         }
     }
 }
