@@ -879,7 +879,10 @@ class planning_Tasks extends core_Master
                 $rec->orderByAssetId = 0.5;
             }
 
-            $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
+            if(isset($rec->assetId)){
+                $this->reorderTasksInAssetId[$rec->assetId] = $rec->assetId;
+            }
+
             $updateFields .= ',orderByAssetId';
             $rec->_stopReorder = true;
         }
@@ -2168,7 +2171,9 @@ class planning_Tasks extends core_Master
         // Задачите към заопашените оборудвания се преподреждат
         if (countR($mvc->reorderTasksInAssetId)) {
             foreach ($mvc->reorderTasksInAssetId as $assetId) {
-                planning_AssetResources::reOrderTasks($assetId);
+                if(isset($assetId)){
+                    planning_AssetResources::reOrderTasks($assetId);
+                }
             }
         }
     }
