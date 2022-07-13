@@ -36,7 +36,7 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
         $Detail = cls::get($mvc->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
-        $isForBg = ($data->masterRec->contragentCountryId == drdata_Countries::getIdByName('Bulgaria'));
+        $isForBg = ($rec->contragentCountryId == drdata_Countries::getIdByName('Bulgaria'));
 
         while($dRec = $dQuery->fetch()){
             if($rec->state == 'draft'){

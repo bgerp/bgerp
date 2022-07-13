@@ -79,14 +79,22 @@ class bgtaxes_plg_SaleInvoiceDetail extends core_Plugin
      */
     public static function on_AfterCalcFieldsOnActivation($mvc, &$res, &$rec, $masterRec, $params)
     {
+        // Ако няма акциз се записва
         $exciseId = cat_Params::fetchIdBySysId('exciseBgn');
         if(!isset($rec->exciseTax)){
             $rec->exciseTax = $params[$exciseId];
             $res = true;
         }
 
+        // Ако е за България и няма въведена екотакса се изчислява на момента
+        $is4Bg = $masterRec->contragentCountryId == drdata_Countries::getIdByName('Bulgaria');
         if(!isset($rec->productTax)){
-            $rec->productTax = bgtaxes_ProductTaxes::calcTax($rec->productId, $masterRec->date, $params);
+            if($is4Bg){
+                $rec->productTax = bgtaxes_ProductTaxes::calcTax($rec->productId, $masterRec->date, $params);
+                $res = true;
+            }
+        } elseif(!$is4Bg) {
+            $rec->productTax = null;
             $res = true;
         }
     }
