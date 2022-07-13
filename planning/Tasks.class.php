@@ -697,7 +697,7 @@ class planning_Tasks extends core_Master
                 $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
                 if(!cat_Products::convertToUom($productId, $wasteMeasureId)){
                     $wasteMeasureName = cat_UoM::getShortName($wasteMeasureId);
-                    $form->setWarning('wasteProductId', "Планираното к-во не може да се конвертира към мярката на отпадъка|*: <b>|{$wasteMeasureName}|*</b>");
+                    $form->setWarning('wasteProductId', "Планираното к-во не може да се конвертира към мярката на отпадъка|* <b>|{$wasteMeasureName}|*</b> |и ще бъде записано като 0|*");
                 }
             } else {
                 if(isset($rec->wasteStart) || isset($rec->wastePercent)){
@@ -1161,9 +1161,8 @@ class planning_Tasks extends core_Master
             }
 
             if(empty($rec->systemId) && empty($rec->id)){
-                $defFields = arr::make(array('employees', 'labelType', 'labelTemplate', 'isFinal', 'wasteProductId', 'wastePercent', 'wasteStart'), true);
-                $defFields['storeId'] = 'storeIn';
-                $defFields['indTime'] = 'norm';
+                $defFields = arr::make("employees=employees,labelType=labelType,labelTemplate=labelTemplate,isFinal=isFinal,wasteProductId=wasteProductId,wastePercent=wastePercent,wasteStart=wasteStart,storeId=storeIn,indTime=norm,indPackagingId=normPackagingId");
+
                 foreach ($defFields as $fld => $val){
                     $form->setDefault($fld, $productionData[$val]);
                 }
