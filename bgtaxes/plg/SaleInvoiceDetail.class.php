@@ -24,7 +24,7 @@ class bgtaxes_plg_SaleInvoiceDetail extends core_Plugin
      */
     public static function on_AfterDescription(core_Mvc $mvc)
     {
-        $mvc->FLD('productTax', 'double(min=0)', 'caption=Допълнително->Екотакса,after=discount');
+        $mvc->FLD('productTax', 'double(min=0)', 'caption=Допълнително->Екотакса,after=discount,input=none');
         $mvc->FLD('exciseTax', 'double(min=0)', 'caption=Допълнително->Акциз,after=exciseTax');
     }
 
@@ -41,50 +41,19 @@ class bgtaxes_plg_SaleInvoiceDetail extends core_Plugin
         $rec = &$form->rec;
 
         if(isset($rec->productId)){
+            $baseCurrencyId = acc_Periods::getBaseCurrencyCode($data->masterRec->date);
             $measureName = cat_UoM::getShortName(cat_Products::fetchField($rec->productId, 'measureId'));
-            $fieldUnit = "|*{$data->masterRec->currencyId}, |за|* 1 {$measureName}";
-            $rate = ($data->masterRec->displayRate) ? $data->masterRec->displayRate : $data->masterRec->rate;
+            $fieldUnit = "|*{$baseCurrencyId}, |за|* 1 {$measureName}";
 
             // Показване на подсказка с текущия акциз
             $exciseId = cat_Params::fetchIdBySysId('exciseBgn');
             $params = cat_Products::getParams($rec->productId);
-            $form->setField('exciseTax', array('placeholder' => round($params[$exciseId] / $rate, 4), 'unit' => $fieldUnit));
+            $form->setField('exciseTax', array('placeholder' => $params[$exciseId], 'unit' => $fieldUnit));
 
             // Показване на подсказка с текущата продуктова такса
-            $productTax = bgtaxes_ProductTaxes::calcTax($rec->productId, $data->masterRec->date, $params);
-            $form->setField('productTax', array('placeholder' => round($productTax / $rate, 4), 'unit' => $fieldUnit));
-
-            if(isset($rec->productTax)){
-                $rec->productTax = deals_Helper::getDisplayPrice($rec->productTax, 0, $rate, 'no');
-            }
-
-            if(isset($rec->exciseTax)){
-                $rec->exciseTax = deals_Helper::getDisplayPrice($rec->exciseTax, 0, $rate, 'no');
-            }
-        }
-    }
-
-
-    /**
-     * Извиква се след въвеждането на данните от Request във формата ($form->rec)
-     *
-     * @param core_Mvc  $mvc
-     * @param core_Form $form
-     */
-    public static function on_AfterInputEditForm($mvc, &$form)
-    {
-        $rec = &$form->rec;
-
-        if ($form->isSubmitted()) {
-            $masterRec = sales_Invoices::fetch($rec->invoiceId);
-            $rate = ($masterRec->displayRate) ? $masterRec->displayRate : $masterRec->rate;
-
-            if(isset($rec->productTax)){
-                $rec->productTax = deals_Helper::getPurePrice($rec->productTax, 0, $rate, 'no');
-            }
-
-            if(isset($rec->exciseTax)){
-                $rec->exciseTax = deals_Helper::getPurePrice($rec->exciseTax, 0, $rate, 'no');
+            if($data->masterRec->contragentCountryId == drdata_Countries::getIdByName('Bulgaria')){
+                $productTax = bgtaxes_ProductTaxes::calcTax($rec->productId, $data->masterRec->date, $params);
+                $form->setField('productTax', array('placeholder' => $productTax, 'unit' => $fieldUnit, 'input' => 'input'));
             }
         }
     }

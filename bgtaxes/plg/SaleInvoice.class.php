@@ -36,8 +36,8 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
         $Detail = cls::get($mvc->mainDetail);
         $dQuery = $Detail->getQuery();
         $dQuery->where("#invoiceId = {$rec->id}");
+        $isForBg = ($data->masterRec->contragentCountryId == drdata_Countries::getIdByName('Bulgaria'));
 
-        $rate = ($rec->displayRate) ? $rec->displayRate : $rec->rate;
         while($dRec = $dQuery->fetch()){
             if($rec->state == 'draft'){
                 if(!array_key_exists($dRec->productId, $paramCache)){
@@ -47,11 +47,15 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
                 $excise = isset($dRec->exciseTax) ? $dRec->exciseTax : $paramCache[$dRec->productId][$exciseId];
                 $isExciseLive = true;
 
-                $productTax = isset($dRec->productTax) ? $dRec->productTax : bgtaxes_ProductTaxes::calcTax($dRec->productId, $rec->date, $paramCache[$dRec->productId]);
-                $isProductTaxLive = true;
+                if($isForBg){
+                    $productTax = isset($dRec->productTax) ? $dRec->productTax : bgtaxes_ProductTaxes::calcTax($dRec->productId, $rec->date, $paramCache[$dRec->productId]);
+                    $isProductTaxLive = true;
+                }
             } else {
                 $excise = $dRec->exciseTax;
-                $productTax = $dRec->productTax;
+                if($isForBg){
+                    $productTax = $dRec->productTax;
+                }
             }
 
             if(isset($excise)){
@@ -64,9 +68,10 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
         }
 
         // Показване на акциза
+        $baseCurrencyCode = acc_Periods::getBaseCurrencyCode($rec->date);
         if(isset($exciseAmount)){
-            $row->exciseCurrencyCode = $row->currencyId;
-            $row->totalExciseAmount = core_Type::getByName('double(decimals=2)')->toVerbal($exciseAmount / $rate);
+            $row->exciseCurrencyCode = $baseCurrencyCode;
+            $row->totalExciseAmount = core_Type::getByName('double(decimals=2)')->toVerbal($exciseAmount);
             if($isExciseLive){
                 $row->totalExciseAmount = ht::createHint("<span style='color:blue'>{$row->totalExciseAmount}</span>", 'Общата сума на акциза, ще се запише при активиране|*!', 'notice', false);
             }
@@ -74,8 +79,8 @@ class bgtaxes_plg_SaleInvoice extends core_Plugin
 
         // Показване на продуктовата такса
         if(isset($productTaxAmount)){
-            $row->productTaxCurrencyCode = $row->currencyId;
-            $row->totalProductTax = core_Type::getByName('double(decimals=2)')->toVerbal($productTaxAmount / $rate);
+            $row->productTaxCurrencyCode = $baseCurrencyCode;
+            $row->totalProductTax = core_Type::getByName('double(decimals=2)')->toVerbal($productTaxAmount);
             if($isProductTaxLive){
                 $row->totalProductTax = ht::createHint("<span style='color:blue'>{$row->totalProductTax}</span>", 'Събраната екотакса, ще се запише при активиране|*!', 'notice', false);
             }
