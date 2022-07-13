@@ -288,7 +288,7 @@ class cat_Params extends bgerp_ProtoParam
     public static function getTaskParamIds()
     {
         $query = self::getQuery();
-        $query->where("#showInTasks = 'yes'");
+        $query->where("#showInTasks = 'yes' AND #state != 'closed'");
         $res = arr::extractValuesFromArray($query->fetchAll(), 'id');
         
         return $res;
