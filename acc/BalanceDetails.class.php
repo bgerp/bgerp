@@ -182,13 +182,14 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
             
-            if (!countR($data->recs)) {
-                
-                return;
-            }
+            if (!countR($data->recs)) return;
             
             // Сортиране на резултатите
             if (is_array($by) && ($sortBy = $by['sortBy'])) {
+                if($sortBy == 'blAmountPositive'){
+                    $data->recs = array_filter($data->recs, function($a) {return round($a->blAmount, 2) > 0;});
+                    $sortBy = 'blAmount';
+                }
                 arr::sortObjects($data->recs, $sortBy, 'desc');
             }
             
@@ -784,7 +785,7 @@ class acc_BalanceDetails extends core_Detail
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
-        $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо)', 'caption=Подредба,input');
+        $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо,blAmountPositive=Крайно салдо (Положително))', 'caption=Подредба,input');
         $form->showFields .= 'sortBy,';
         $form->showFields = trim($form->showFields, ',');
         
