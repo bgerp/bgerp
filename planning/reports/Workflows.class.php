@@ -151,7 +151,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 //                $rec->start . ' 00:00:00'
 //            ));
 
-            $query->where("(#date IS NOT NULL AND #date >= '$rec->start .00:00:00') OR (#date IS NULL AND #createdOn >= '$rec->start .00:00:00')");
+            $query->where("(#date IS NOT NULL AND #date >= '$rec->start .00:00:01') OR (#date IS NULL AND #createdOn >= '$rec->start .00:00:01')");
         }
 
         //Крайна дата / 'към дата'
@@ -212,7 +212,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $quantity = round(($tRec->quantity / $quantityInPack), 3);
                 }
 
-                $normTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $quantity);
+               // $normTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $quantity);
+                $normTime = planning_ProductionTaskDetails::calcNormByRec($tRec);
 
                 $divisor = countR(keylist::toArray($tRec->employees));
                 if ($rec->typeOfReport == 'short') {
