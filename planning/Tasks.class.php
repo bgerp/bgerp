@@ -1131,7 +1131,6 @@ class planning_Tasks extends core_Master
         $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
         if (isset($rec->systemId, $tasks[$rec->systemId]) && empty($rec->id)) {
             $taskData = (array)$tasks[$rec->systemId];
-
             unset($taskData['products']);
             foreach ($taskData as $fieldName => $defaultValue) {
                 $form->setDefault($fieldName, $defaultValue);
@@ -1189,16 +1188,19 @@ class planning_Tasks extends core_Master
             if($rec->isFinal == 'yes'){
                 $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция към|* ') . $origin->getHyperlink(true) . "</div>";
                 $measureOptions = array();
+
                 if(array_key_exists($originRec->packagingId, $similarMeasures)){
                     $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
-                }
-
-                if(!array_key_exists($productRec->measureId, $measureOptions)){
-                    $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
+                    if($originRec->packagingId != $productRec->measureId){
+                        $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
+                    }
                 }
                 if(isset($originRec->secondMeasureId)){
-                    $secondMeasureId = ($originRec->secondMeasureId == $originRec->packagingId) ? $productRec->measureId : $originRec->secondMeasureId;
-                    $measureOptions[$secondMeasureId] = cat_UoM::getTitleById($secondMeasureId, false);
+                    $measureOptions[$originRec->secondMeasureId] = cat_UoM::getTitleById($originRec->secondMeasureId, false);
+                }
+
+                if(cat_UoM::fetchField($originRec->packagingId, 'type') != 'uom' || $originRec->allowSecondMeasure == 'yes'){
+                    $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
                 }
             } else {
                 $measureOptions = cat_Products::getPacks($rec->productId, true);
