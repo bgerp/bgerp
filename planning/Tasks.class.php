@@ -1194,6 +1194,15 @@ class planning_Tasks extends core_Master
                     if($originRec->packagingId != $productRec->measureId){
                         $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
                     }
+
+                    $packMeasures = cat_Products::getPacks($productRec->id, true);
+                    $leftMeasures = array_intersect_key($similarMeasures, $packMeasures);
+                    unset($leftMeasures[$productRec->measureId]);
+                    unset($leftMeasures[$originRec->packagingId]);
+                    $leftMeasures = array_keys($leftMeasures);
+                    foreach ($leftMeasures as $lMeasureId){
+                        $measureOptions[$lMeasureId] = cat_UoM::getTitleById($lMeasureId, false);
+                    }
                 }
                 if(isset($originRec->secondMeasureId)){
                     $measureOptions[$originRec->secondMeasureId] = cat_UoM::getTitleById($originRec->secondMeasureId, false);
