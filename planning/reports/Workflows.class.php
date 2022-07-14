@@ -151,7 +151,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 //                $rec->start . ' 00:00:00'
 //            ));
 
-            $query->where("(#date IS NOT NULL AND #date >= '$rec->start') OR (#date IS NULL AND #createdOn >= '$rec->start')");
+            $query->where("(#date IS NOT NULL AND #date >= '$rec->start .00:00:00') OR (#date IS NULL AND #createdOn >= '$rec->start .00:00:00')");
         }
 
         //Крайна дата / 'към дата'
@@ -161,7 +161,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 //                $rec->to . ' 23:59:59'
 //            ));
 
-            $query->where("(#date IS NOT NULL AND #date <= '$rec->to') OR (#date IS NULL AND #createdOn <= '$rec->to')");
+            $query->where("(#date IS NOT NULL AND #date <= '$rec->to.23:59:59') OR (#date IS NULL AND #createdOn <= '$rec->to.23:59:59')");
         }
 
         //Филтър по център на дейност
