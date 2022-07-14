@@ -82,7 +82,7 @@ class planning_reports_ConsumedItemsByJob extends frame2_driver_TableData
         $fieldset->FLD('jobses', 'keylist(mvc=planning_Jobs,allowEmpty)', 'caption=Задания,placeholder=Всички активни,after=department,single=none');
 
         //Да има ли филтър по артикул
-        $fieldset->FLD('option', 'set(yes = )', 'caption=Филтър по артикул,after=jobses,single=none,removeAndRefreshForm,silent');
+        $fieldset->FLD('option', 'set(yes = )', 'caption=Филтър по артикул,after=jobses,removeAndRefreshForm,silent');
 
         //Артикули
         $fieldset->FLD('products', 'keylist(mvc=cat_Products,select=name)', 'caption=Артикули,placeholder=Всички,after=option,single=none,input=none,class=w100');
