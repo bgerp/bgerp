@@ -1194,7 +1194,16 @@ class planning_Tasks extends core_Master
                     if($originRec->packagingId != $productRec->measureId){
                         $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
                     }
+                }
+                if(isset($originRec->secondMeasureId)){
+                    $measureOptions[$originRec->secondMeasureId] = cat_UoM::getTitleById($originRec->secondMeasureId, false);
+                }
 
+                if(cat_UoM::fetchField($originRec->packagingId, 'type') != 'uom' || $originRec->allowSecondMeasure == 'yes'){
+                    $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
+                }
+
+                if(array_key_exists($productRec->measureId, $measureOptions)){
                     $packMeasures = cat_Products::getPacks($productRec->id, true);
                     $leftMeasures = array_intersect_key($similarMeasures, $packMeasures);
                     unset($leftMeasures[$productRec->measureId]);
@@ -1203,13 +1212,6 @@ class planning_Tasks extends core_Master
                     foreach ($leftMeasures as $lMeasureId){
                         $measureOptions[$lMeasureId] = cat_UoM::getTitleById($lMeasureId, false);
                     }
-                }
-                if(isset($originRec->secondMeasureId)){
-                    $measureOptions[$originRec->secondMeasureId] = cat_UoM::getTitleById($originRec->secondMeasureId, false);
-                }
-
-                if(cat_UoM::fetchField($originRec->packagingId, 'type') != 'uom' || $originRec->allowSecondMeasure == 'yes'){
-                    $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
                 }
             } else {
                 $measureOptions = cat_Products::getPacks($rec->productId, true);
