@@ -1381,12 +1381,13 @@ abstract class deals_Helper
                 }
             }
         }
-        
+        $rec->_recalcRate = true;
+
         $masterMvc->save($rec);
         $masterMvc->logWrite('Ръчна промяна на курса', $rec->id);
 
         if ($updateMaster) {
-            $masterMvc->updateMaster_($rec->id);
+            $masterMvc->updateMaster_($rec);
         }
         
         if ($rec->state == 'active') {
