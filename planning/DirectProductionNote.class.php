@@ -1460,8 +1460,8 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     protected static function on_BeforeConto(core_Mvc $mvc, &$res, $id)
     {
         $rec = $mvc->fetchRec($id);
-        if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #productId = {$rec->productId}")) {
-            core_Statuses::newStatus('Произвежданият артикул не може да бъде влаган в същия протокол|*!', 'error');
+        if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #productId = {$rec->productId} AND #storeId IS NOT NULL")) {
+            core_Statuses::newStatus('Произвежданият артикул не може да бъде влаган от склад в същия протокол|*!', 'error');
 
             return false;
         }
