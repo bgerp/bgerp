@@ -1461,7 +1461,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
     {
         $rec = $mvc->fetchRec($id);
         if (planning_DirectProductNoteDetails::fetchField("#noteId = {$rec->id} AND #productId = {$rec->productId} AND #storeId IS NOT NULL")) {
-            core_Statuses::newStatus('Произвежданият артикул не може да бъде влаган от склад в същия протокол|*!', 'error');
+            core_Statuses::newStatus('Произвежданият артикул не може да бъде влаган директно от склад в същия протокол|*!', 'error');
 
             return false;
         }
