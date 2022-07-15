@@ -193,8 +193,12 @@ class acc_BalanceDetails extends core_Detail
             }
             
             $data->allRecs = $data->recs;
-            static::sortRecsByNum($data->recs, $data->listFields, $sortBy == '');
-            
+
+            // Динамично дигане на тайм лимита според записите
+            $count = countR($data->allRecs);
+            core_App::setTimeLimit(0.3 * $count, false, 60);
+
+            static::sortRecsByNum($data->recs, $data->listFields, '');
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
             
