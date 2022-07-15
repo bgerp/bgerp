@@ -1116,7 +1116,6 @@ class planning_Tasks extends core_Master
             $options = array("{$rec->productId}" => cat_Products::getTitleById($rec->productId, false)) + $options;
         }
 
-
         // Ако няма ПЕ - редирект, ако е само един избира се той, ако са повече от един потребителя трябва да избере
         $stepOptionsCount = countR($options);
         if(!countR($options)){
@@ -1257,7 +1256,9 @@ class planning_Tasks extends core_Master
                 } else {
                     $defaultPlannedQuantity /= $originRec->quantityInPack;
                 }
-                $form->setDefault('plannedQuantity', $defaultPlannedQuantity);
+
+                $round = cat_UoM::fetchField($rec->measureId, 'round');
+                $form->setDefault('plannedQuantity', round($defaultPlannedQuantity, $round));
             }
 
             if(countR($fixedAssetOptions)){
