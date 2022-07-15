@@ -317,6 +317,15 @@ class blast_Lists extends core_Master
         if (($action == 'edit' || $action == 'delete') && $rec->state != 'draft' && isset($rec->state)) {
             $roles = 'no_one';
         }
+
+        if (($action == 'add') && $roles != 'no_one') {
+            if (!$rec->folderId) {
+                $defFolderId = $mvc->getDefaultFolder($userId);
+                if (!blast_Lists::haveRightFor('add', (object)array('folderId' => $defFolderId), $userId)) {
+                    $roles = 'no_one';
+                }
+            }
+        }
     }
     
     

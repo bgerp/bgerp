@@ -4205,12 +4205,10 @@ class cat_Products extends embed_Manager
     {
         // В коя мярка ще се преобразува 1-ца от артикила
         expect($measureId = self::fetchField($productId, 'measureId'));
-        expect($toUomId = cat_UoM::fetchBySinonim($uom)->id);
+        expect($toUomId = is_numeric($uom) ? $uom : cat_UoM::fetchBySinonim($uom)->id);
         
         // Ако основната мярка е подадената, то стойноста е 1
-        if ($toUomId == $measureId) {
-            return 1;
-        }
+        if ($toUomId == $measureId) return 1;
         
         // Извличане на мерките от същата група, като на $toUomId
         $sameTypeMeasures = cat_UoM::getSameTypeMeasures($toUomId);
