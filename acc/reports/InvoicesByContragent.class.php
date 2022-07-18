@@ -186,7 +186,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $isRec = array();
             $totalInvoiceContragent = $totalInvoiceContragentAll = array();
 
-            foreach (array('sales_Invoices','sales_Proformas') as $InvDoc) {
+            foreach (array('sales_Invoices', 'sales_Proformas') as $InvDoc) {
 
                 //Ако са  избрани само неплатени фактури, не отчита проформите
                 if ($InvDoc == 'sales_Proformas' && $rec->unpaid == 'unpaid') continue;
@@ -293,7 +293,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
                     //Ако към проформата НЯМА изрично насочени плащания, НЕ Я ВКЛЮЧВАМЕ в справката
                     $proformWithPayDocArr = array_keys(self::getProformsWithPaymant());
-                    if (($InvDoc == 'sales_Proformas') && (!in_array($salesInvoice->id,$proformWithPayDocArr )))continue;
+
+                    if (($InvDoc == 'sales_Proformas') && (!in_array($salesInvoice->id, $proformWithPayDocArr))) continue;
 
                     $firstDocument = doc_Threads::getFirstDocument($salesInvoice->threadId);
 
@@ -363,10 +364,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 }
                             }
                         }
-                        $subKey = ($InvDoc == 'sales_Proformas') ? 'P':'S';
-                        $key = $salesInvoice->id.$subKey;
+                        $subKey = ($InvDoc == 'sales_Proformas') ? 'P' : 'S';
+                        $key = $salesInvoice->id . $subKey;
 
                         $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) / $salesInvoice->rate + $salesInvoice->vatAmount;
+
                         $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
 
                         // масива с фактурите за показване
@@ -394,7 +396,13 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                         }
 
                         // Масив с данни за сумите от фактурите  обединени по контрагенти
+
+
+                        if ($InvDoc == 'sales_Invoices') {  //Да не влизат сумите на проформите в общата стойност по контрагент
+
                         if (!array_key_exists($salesInvoice->contragentName, $totalInvoiceContragentAll)) {
+
+
                             $totalInvoiceContragentAll[$salesInvoice->contragentName] = (object)array(
                                 'totalInvoiceValue' => $invoiceValue,                                        //общо стойност на фактурите за контрагента
                                 'totalInvoiceVAT' => $salesInvoice->vatAmount,                               //общо стойност на ДДС по фактурите за контрагента
@@ -406,6 +414,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             $obj->totalInvoiceValue += $invoiceValue;
                             $obj->totalInvoiceVAT += $salesInvoice->vatAmount;
                         }
+                    } //Да не влизат сумите на проформите в общата стойност по контрагент
                         continue;
                     }
                 }
@@ -416,6 +425,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                 $checkedSInvoices = array();
 
                 foreach ($threadsId as $thread) {
+
                     $salesInvoiceNotPaid = 0;
 
 
@@ -857,6 +867,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($rec->typeOfInvoice == 'out') {
 
                 foreach ($sRecsAll as $v) {
+
                     if ($v->type == 'invoice') {
 
                         $v->invoicePayout += $invAdjustmentArr[$v->invoiceId];
