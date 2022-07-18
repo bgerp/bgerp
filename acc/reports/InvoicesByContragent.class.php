@@ -991,6 +991,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
             }
 
+            if (countR($recs)) {
+                arr::sortObjects($recs, 'className', 'ASC', 'stri');
+            }
+
         }
 
         return $recs;
@@ -1233,23 +1237,23 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             if ($dRec->totalInvoiceOverPaid > 0.01) {
                 $row->contragent .= ' »  ' . "<span class= 'quiet'>" . 'Надплатено:' . '</span>' . $dRec->totalInvoiceOverPaid;
             }
-            if ($dRec->type != 'invoice') {
-                foreach ((array)$dRec->dcPay as $k => $val) {
-                    $row->paidAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($val->amount * $dcMark) . "</br>";
+
+                if ($dRec->type != 'invoice') {
+                    foreach ((array)$dRec->dcPay as $k => $val) {
+                        $row->paidAmount .= core_Type::getByName('double(decimals=2)')->toVerbal($val->amount * $dcMark) . "</br>";
+                    }
+                } else {
+                    $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
                 }
-            } else {
-                $row->paidAmount = core_Type::getByName('double(decimals=2)')->toVerbal(self::getPaidAmount($dRec));
-            }
 
 
-            if ($dRec->type != 'invoice') {
-                foreach ((array)$dRec->dcPay as $k => $val) {
-                    $row->paidDates .= "<span class= 'small'>" . $Date->toVerbal($val->payDate) . '</span>' . "</br>";
+                if ($dRec->type != 'invoice') {
+                    foreach ((array)$dRec->dcPay as $k => $val) {
+                        $row->paidDates .= "<span class= 'small'>" . $Date->toVerbal($val->payDate) . '</span>' . "</br>";
+                    }
+                } else {
+                    $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
                 }
-            } else {
-                $row->paidDates = "<span class= 'small'>" . self::getPaidDates($dRec, true) . '</span>';
-            }
-
 
         }
 
