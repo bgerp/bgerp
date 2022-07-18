@@ -1202,7 +1202,9 @@ class planning_Tasks extends core_Master
                 if($originRec->allowSecondMeasure == 'yes'){
                     // добавя се и тя
                     $measureOptions[$originRec->secondMeasureId] = cat_UoM::getTitleById($originRec->secondMeasureId, false);
+                }
 
+                if(array_key_exists($productRec->measureId, $measureOptions)){
                     // както и производните на основната му мярка, които са опаковки
                     $packMeasures = cat_Products::getPacks($productRec->id, true);
                     $leftMeasures = array_intersect_key($similarMeasures, $packMeasures);
@@ -1252,6 +1254,8 @@ class planning_Tasks extends core_Master
                                 $defaultPlannedQuantity = cat_UoM::convertValue($defaultPlannedQuantity, $productRec->measureId, $rec->measureId);
                             }
                         }
+                    } else {
+                        $defaultPlannedQuantity = cat_UoM::convertValue($defaultPlannedQuantity, $productRec->measureId, $rec->measureId);
                     }
                 } else {
                     $defaultPlannedQuantity /= $originRec->quantityInPack;
