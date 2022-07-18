@@ -90,7 +90,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($rec->unpaid == 'all') {
             $form->setDefault('fromDate', null);
         }
-        if ($rec->unpaid == 'all' ){
+        if ($rec->unpaid == 'all') {
             $checkDate = dt::today();
             $form->setDefault('checkDate', "{$checkDate}");
         }
@@ -170,9 +170,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected function prepareRecs($rec, &$data = null)
     {
-        if ($rec->unpaid == 'unpaid' && !$rec->checkDate ){
+        if ($rec->unpaid == 'unpaid' && !$rec->checkDate) {
             $checkDate = dt::now();
-        }else{
+        } else {
             $checkDate = $rec->checkDate;
         }
 
@@ -187,7 +187,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $totalInvoiceContragent = $totalInvoiceContragentAll = array();
 
             foreach (array('sales_Invoices','sales_Proformas') as $InvDoc) {
-             if ($InvDoc == 'sales_Proformas' && $rec->unpaid == 'unpaid')continue;
+
+                //Ако са  избрани само неплатени фактури, не отчита проформите
+                if ($InvDoc == 'sales_Proformas' && $rec->unpaid == 'unpaid') continue;
 
                 $invQuery = $InvDoc::getQuery();
 
@@ -288,6 +290,11 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
 
                 while ($salesInvoice = $invQuery->fetch()) {
+
+                    //Ако към проформата НЯМА изрично насочени плащания, НЕ Я ВКЛЮЧВАМЕ в справката
+                    $proformWithPayDocArr = array_keys(self::getProformsWithPaymant());
+                    if (($InvDoc == 'sales_Proformas') && (!in_array($salesInvoice->id,$proformWithPayDocArr )))continue;
+
                     $firstDocument = doc_Threads::getFirstDocument($salesInvoice->threadId);
 
                     $firstDocumentArr[$salesInvoice->threadId] = $firstDocument->that;
@@ -356,13 +363,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                 }
                             }
                         }
+                        $subKey = ($InvDoc == 'sales_Proformas') ? 'P':'S';
+                        $key = $salesInvoice->id.$subKey;
 
                         $invoiceValue = ($salesInvoice->dealValue - $salesInvoice->discountAmount) / $salesInvoice->rate + $salesInvoice->vatAmount;
                         $Invoice = doc_Containers::getDocument($salesInvoice->containerId);
 
                         // масива с фактурите за показване
-                        if (!array_key_exists($salesInvoice->id, $sRecsAll)) {
-                            $sRecsAll[$salesInvoice->id] = (object)array(
+                        if (!array_key_exists($key, $sRecsAll)) {
+                            $sRecsAll[$key] = (object)array(
 
                                 'threadId' => $salesInvoice->threadId,
                                 'className' => $Invoice->className,
@@ -422,7 +431,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             $salesInvoiceOverDue = 0;
 
                             //Проверка дали отчетена вече фактура не се повтаря
-                            if (in_array($inv,$checkedSInvoices)) continue;
+                            if (in_array($inv, $checkedSInvoices)) continue;
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -508,7 +517,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'invoiceValue' => $paydocs->amount,
                                     'invoiceVAT' => $iRec->vatAmount,
                                     'invoicePayout' => $paydocs->payout,
-                                    'fastMarker'=> $fastMarker,
+                                    'fastMarker' => $fastMarker,
                                     'invoiceCurrentSumm' => $invDiff,
                                     'payDocuments' => $paydocs->used,
                                     'contragent' => $iRec->contragentName
@@ -678,7 +687,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             'type' => $purchaseInvoices->type,
                             'payDocuments' => $paydocs->used,
                             'invoicePayout' => $paydocs->payout,
-                            'fastMarker'=> $fastMarker,
+                            'fastMarker' => $fastMarker,
                             'dcPay' => $dcPay
                         );
                     }
@@ -717,7 +726,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     }
                 }
 
-                if (!in_array($purchaseInvoices->threadId,$pThreadsId)){
+                if (!in_array($purchaseInvoices->threadId, $pThreadsId)) {
                     $pThreadsId[$purchaseInvoices->threadId] = $purchaseInvoices->threadId;
                 }
 
@@ -742,8 +751,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             $purchaseInvoiceOverDue = 0;
                             $purchaseInvoiceOverPaid = 0;
 
-                         //Проверка дали отчетена вече фактура не се повтаря
-                         if (in_array($pInv,$checkedPInvoices)) continue;
+                            //Проверка дали отчетена вече фактура не се повтаря
+                            if (in_array($pInv, $checkedPInvoices)) continue;
 
                             //Разлика между стойност и платено по фактурата
                             $invDiff = $paydocs->amount - $paydocs->payout;
@@ -829,7 +838,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                                     'invoiceValue' => $paydocs->amount,
                                     'invoiceVAT' => $iRec->vatAmount,
                                     'invoicePayout' => $paydocs->payout,
-                                    'fastMarker'=> $fastMarker,
+                                    'fastMarker' => $fastMarker,
                                     'invoiceCurrentSumm' => $invDiff,
                                     'payDocuments' => $paydocs->used,
                                     'contragent' => $iRec->contragentName
@@ -1050,10 +1059,10 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
     private static function getPaidAmount($dRec, $verbal = true)
     {
 
-        if ($dRec->fastMarker == 1){
+        if ($dRec->fastMarker == 1) {
 
             $paidAmount = $dRec->invoicePayout * $dRec->rate;
-        }else{
+        } else {
             $paidAmount = $dRec->invoicePayout;
         }
 
@@ -1136,9 +1145,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     private static function getDueDate($dRec, $verbal = true, $rec)
     {
-        if ($rec->unpaid == 'unpaid' && !$rec->checkDate ){
+        if ($rec->unpaid == 'unpaid' && !$rec->checkDate) {
             $checkDate = dt::now();
-        }else{
+        } else {
             $checkDate = $rec->checkDate;
         }
         if ($verbal === true) {
@@ -1197,9 +1206,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         if ($rec->unpaid == 'all') {
             if ($dRec->type != 'invoice') {
 
-                if ($dRec->className == 'sales_Proformas'){
+                if ($dRec->className == 'sales_Proformas') {
                     $type = 'Проформа фактура';
-                }else{
+                } else {
                     $type = $dRec->invoiceValue < 0 ? 'Кредитно известие' : 'Дебитно известие';
                 }
 
@@ -1472,24 +1481,24 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $proformWithPayDocArr = array();
 
-        foreach (array('cash_Pko','bank_IncomeDocuments') as $payDocs){
+        foreach (array('cash_Pko', 'bank_IncomeDocuments') as $payDocs) {
             $payDocsClassId = $payDocs::getClassId();
             $payDocQuery = $payDocs::getQuery();
-            $payDocQuery->in('threadId',$profomInvArr);
-            while ($pDocRec =$payDocQuery->fetch()){
+            $payDocQuery->in('threadId', $profomInvArr);
+            while ($pDocRec = $payDocQuery->fetch()) {
 
                 $invArr = deals_InvoicesToDocuments::getInvoiceArr($pDocRec->containerId);
                 if (!empty($invArr)) {
                     foreach ($invArr as $key => $val) {
 
-                        $pDocoment =doc_Containers::getDocument($val->containerId);
+                        $pDocoment = doc_Containers::getDocument($val->containerId);
 
                         if ($pDocoment->className != 'sales_Proformas') {
                             continue;
                         } else {
 
                             if (!array_key_exists($pDocoment->that, $proformWithPayDocArr)) {
-                                $proformWithPayDocArr[$pDocoment->that] = (object) array(
+                                $proformWithPayDocArr[$pDocoment->that] = (object)array(
 
                                     'documents' => array($pDocRec->id),
                                     'docClassId' => $payDocsClassId,
@@ -1499,7 +1508,7 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                             } else {
                                 $obj = &$proformWithPayDocArr[$pDocoment->that];
 
-                                array_push($obj->documents,$pDocRec->id);
+                                array_push($obj->documents, $pDocRec->id);
 
 
                             }
@@ -1526,9 +1535,9 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
      */
     protected static function on_AfterGetExportRec(frame2_driver_Proto $Driver, &$res, $rec, $dRec, $ExportClass)
     {
-        if ($rec->unpaid == 'unpaid' && !$rec->checkDate ){
+        if ($rec->unpaid == 'unpaid' && !$rec->checkDate) {
             $checkDate = dt::now();
-        }else{
+        } else {
             $checkDate = $rec->checkDate;
         }
 
