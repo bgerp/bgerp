@@ -49,10 +49,10 @@ function displayByClass(baseClass, displayClass) {
 		var display = 'block';
 		if(elements[i].classList.contains(displayClass)) {
 			if(elements[i].getAttribute('data-display')  != null) {
-				var display = elements[i].getAttribute('data-display');
+				display = elements[i].getAttribute('data-display');
 			}
 		} else {
-			if(elements[i].style.display != 'none') {
+			if(elements[i].style.display != 'none' && elements[i].style.display != null && elements[i].style.display != '') {
 				elements[i].setAttribute('data-display', elements[i].style.display);
 			}
 			display = 'none';
