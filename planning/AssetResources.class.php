@@ -105,7 +105,7 @@ class planning_AssetResources extends core_Master
     /**
      * Полета от които се генерират ключови думи за търсене (@see plg_Search)
      */
-    public $searchFields = 'name, code, groupId, protocolId';
+    public $searchFields = 'name, code, groupId, description, protocolId';
     
     
     /**
