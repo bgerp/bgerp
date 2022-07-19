@@ -231,17 +231,22 @@ class cat_Params extends bgerp_ProtoParam
      * @param NULL|string $suffix      - наставка
      * @param NULL|bool   $showInTasks - може ли да се показва в производствена операция
      * @param NULL|bool   $groupName   - група
+     *@param NULL|bool   $params   - параметри
      *
      * @return int - ид на параметъра
      */
-    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true, $groupName = null)
+    public static function force($sysId, $name, $type, $options = array(), $suffix = null, $showInTasks = false, $showInPublicDocuments = true, $groupName = null, $params = null)
     {
         // Ако има параметър с това систем ид,връща се
         if($sysId){
-            $id = self::fetchIdBySysId($sysId);
-            if (!empty($id)) {
+            $rec = static::fetch("#sysId = '{$sysId}'", 'id,name,group');
+            if (!empty($rec)) {
+                if($rec->group != $groupName){
+                    $rec->group = $groupName;
+                    static::save($rec, 'group');
+                }
 
-                return $id;
+                return $rec->id;
             }
         } else {
 
@@ -257,6 +262,14 @@ class cat_Params extends bgerp_ProtoParam
         $nRec = static::makeNewRec($sysId, $name, $type, $options, $suffix, $groupName);
         $nRec->showInTasks = ($showInTasks) ? 'yes' : 'no';
         $nRec->showInPublicDocuments = ($showInPublicDocuments) ? 'yes' : 'no';
+        if (isset($params)) {
+            $params = arr::make($params);
+            foreach ($params as $k => $v) {
+                if (!isset($rec->{$k})) {
+                    $nRec->{$k} = $v;
+                }
+            }
+        }
 
         // Създаване на параметъра
         core_Users::forceSystemUser();
@@ -275,7 +288,7 @@ class cat_Params extends bgerp_ProtoParam
     public static function getTaskParamIds()
     {
         $query = self::getQuery();
-        $query->where("#showInTasks = 'yes'");
+        $query->where("#showInTasks = 'yes' AND #state != 'closed'");
         $res = arr::extractValuesFromArray($query->fetchAll(), 'id');
         
         return $res;

@@ -475,7 +475,7 @@ class deals_InvoicesToDocuments extends core_Manager
      * @param int $documentContainerId
      * @return array
      */
-    public static function getInvoiceArr($documentContainerId, $skipClasses = array())
+    public static function getInvoiceArr($documentContainerId, $skipClasses = array(), $verbal = false)
     {
         $query = static::getQuery();
         $query->where("#documentContainerId = {$documentContainerId}");
@@ -490,7 +490,25 @@ class deals_InvoicesToDocuments extends core_Manager
             $query->where("#docClass NOT IN ({$classIds})");
         }
 
-        return $query->fetchAll();
+        $res = array();
+        while ($rec = $query->fetch()){
+            if($verbal){
+                $Document = doc_Containers::getDocument($rec->containerId);
+
+                if ($Document->getInstance()->getField('number', false)) {
+                    $res[$rec->id] = $Document->getInstance()->getVerbal($Document->fetch(), 'number');
+                    if (!Mode::isReadOnly() && !Mode::is('text', 'plain')) {
+                        $res[$rec->id] = ht::createLink($res[$rec->id], $Document->getSingleurlArray())->getContent();
+                    }
+                } else {
+                    $res[$rec->id] = $Document->getLink(0);
+                }
+            } else{
+                $res[$rec->id] = $rec;
+            }
+        }
+
+        return $res;
     }
 
 

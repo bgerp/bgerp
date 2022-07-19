@@ -160,8 +160,8 @@ class batch_plg_DocumentMovement extends core_Plugin
      */
     public static function on_AfterSave(core_Mvc $mvc, &$id, $rec, $saveFields = null)
     {
-        // Ако документа се променя от бутона за промяна да не се дублират партидите
-        if($rec->__isBeingChanged) return;
+        // Ако документа се променя от бутона за промяна или при преизчисляване на курса да не се дублират партидите
+        if($rec->__isBeingChanged || $rec->_recalcRate) return;
 
         if ($rec->state == 'active') {
             if ($mvc->hasPlugin('acc_plg_Contable')) {

@@ -838,9 +838,10 @@ class sales_Sales extends deals_DealMaster
         $conf = core_Packs::getConfig('sales');
         $olderThan = $conf->SALE_CLOSE_OLDER_THAN;
         $limit = $conf->SALE_CLOSE_OLDER_NUM;
+        $daysAfterAcc = $conf->SALES_CURRENCY_CLOSE_AFTER_ACC_DATE;
         $ClosedDeals = cls::get('sales_ClosedDeals');
         
-        $this->closeOldDeals($olderThan, $ClosedDeals, $limit);
+        $this->closeOldDeals($olderThan, $daysAfterAcc, $ClosedDeals, $limit);
     }
     
     
@@ -1131,7 +1132,7 @@ class sales_Sales extends deals_DealMaster
     protected function prepareJobsInfo($data)
     {
         $rec = $data->rec;
-        $manifacturableProducts = static::getManifacurableProducts($data->rec);
+        $manifacturableProducts = static::getManifacturableProducts($data->rec);
         if (!countR($manifacturableProducts)) {
             return;
         }
@@ -1186,7 +1187,7 @@ class sales_Sales extends deals_DealMaster
      *
      * @return array $res - масив с производимите артикули
      */
-    public static function getManifacurableProducts($id, $onlyActive = false)
+    public static function getManifacturableProducts($id, $onlyActive = false)
     {
         $rec = static::fetchRec($id);
         $res = array();
@@ -1196,6 +1197,7 @@ class sales_Sales extends deals_DealMaster
         $saleQuery->where("#saleId = {$rec->id}");
         $saleQuery->EXT('canManifacture', 'cat_Products', 'externalName=canManifacture,externalKey=productId');
         $saleQuery->where("#canManifacture = 'yes'");
+        $saleQuery->orderBy('productId', 'ASC');
         if($onlyActive){
             $saleQuery->EXT('state', 'cat_Products', 'externalName=state,externalKey=productId');
             $saleQuery->where("#state = 'active'");
@@ -1489,6 +1491,8 @@ class sales_Sales extends deals_DealMaster
                     $canStore = cat_Products::fetchField($ship->productId, 'canStore');
                     if($canStore != 'yes') continue;
                 }
+
+                if($ship->quantity <= 0) continue;
 
                 unset($ship->price);
                 $ship->name = cat_Products::getTitleById($ship->productId, false);

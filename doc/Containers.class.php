@@ -3493,7 +3493,9 @@ class doc_Containers extends core_Manager
         $document = self::getDocument($id);
         $dRec = $document->rec();
         $dRow = $document->getInstance()->recToVerbal($dRec, array('state', '-single'));
-        
+
+        $document->invoke('prepareHiddenDocTitle', array($dRec, $dRow));
+
         $iconStyle = 'background-image:url(' . sbf($document->getIcon(), '"') . ');';
         $tpl->replace($iconStyle, 'iconStyle');
         
@@ -3502,16 +3504,16 @@ class doc_Containers extends core_Manager
         
         if ($document->haveRightFor('single') || doc_Threads::haveRightFor('single', $dRec->threadId)) {
             $url = array(get_called_class(), 'ShowDocumentInThread', $id);
-            
+
             $attr = array();
             $attr['ef_icon'] = 'img/16/toggle1.png';
             $attr['class'] = 'settings-show-document';
             $attr['title'] = 'Показване на целия документ';
             $attr['onclick'] = 'return startUrlFromDataAttr(this, true);';
             $attr['data-url'] = toUrl($url, 'local');
-            
+
             $showDocument = ht::createLink('', $url, null, $attr);
-            
+
             $dRow->DocumentSettings = new ET($dRow->DocumentSettings);
             $dRow->DocumentSettings->append($showDocument);
         }

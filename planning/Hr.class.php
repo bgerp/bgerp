@@ -36,7 +36,7 @@ class planning_Hr extends core_Master
     /**
      * Плъгини и MVC класове, които се зареждат при инициализация
      */
-    public $loadList = 'planning_Wrapper,plg_Sorting,plg_Created,plg_RowTools2,plg_Search,label_plg_Print';
+    public $loadList = 'planning_Wrapper,plg_PrevAndNext,plg_Select,plg_Sorting,plg_Created,plg_RowTools2,plg_Search,label_plg_Print';
     
     
     /**
@@ -431,9 +431,26 @@ class planning_Hr extends core_Master
      */
     protected static function on_AfterPrepareListFilter($mvc, &$data)
     {
-        $data->listFilter->showFields = 'search';
+        $data->listFilter->FLD('centerId', 'key(mvc=planning_Centers,select=name,allowEmpty)', 'caption=Център на дейност');
+        $data->listFilter->showFields = 'search,centerId';
         $data->listFilter->view = 'horizontal';
         $data->listFilter->toolbar->addSbBtn('Филтрирай', 'default', 'id=filter', 'ef_icon = img/16/funnel.png');
+        $data->listFilter->input();
+
+        if($rec = $data->listFilter->rec){
+            if(isset($rec->centerId)){
+                $folderId = planning_Centers::fetchField($rec->centerId, 'folderId');
+
+                $folderQuery = planning_AssetResourceFolders::getQuery();
+                $folderQuery->where("#classId = {$mvc->getClassId()} AND #folderId = {$folderId}");
+                $ids = arr::extractValuesFromArray($folderQuery->fetchAll(), 'objectId');
+                if(countR($ids)){
+                    $data->query->in('id', $ids);
+                } else {
+                    $data->query->where("1=2");
+                }
+            }
+        }
     }
     
     

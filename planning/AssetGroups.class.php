@@ -25,9 +25,9 @@ class planning_AssetGroups extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2';
-    
-    
+    public $loadList = 'plg_RowTools2, plg_Created, planning_Wrapper, plg_State2, plg_Search, plg_Sorting';
+
+
     /**
      * Кой има право да променя?
      */
@@ -61,7 +61,7 @@ class planning_AssetGroups extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'name=Вид,type,showInPlanningTasks,createdOn,createdBy,state';
+    public $listFields = 'name=Вид,type,showInPlanningTasks=Допустимост в ПО,createdOn,createdBy,state';
     
     
     /**
@@ -86,8 +86,14 @@ class planning_AssetGroups extends core_Master
      * Хипервръзка на даденото поле и поставяне на икона за индивидуален изглед пред него
      */
     public $rowToolsSingleField = 'name';
-    
-    
+
+
+    /**
+     * Полета от които се генерират ключови думи за търсене (@see plg_Search)
+     */
+    public $searchFields = 'name';
+
+
     /**
      * Описание на модела (таблицата)
      */
@@ -170,5 +176,31 @@ class planning_AssetGroups extends core_Master
         $res = $cntObj->html;
         
         return $res;
+    }
+
+
+    /**
+     * Подредба на записите
+     */
+    protected static function on_AfterPrepareListFilter($mvc, &$data)
+    {
+        $data->listFilter->view = 'horizontal';
+        $data->listFilter->showFields = 'search,type,showInPlanningTasks';
+        $data->listFilter->setFieldType('type', 'enum(all=Всички,material=Материален,nonMaterial=Нематериален)');
+        $data->listFilter->setFieldType('showInPlanningTasks', 'enum(all=Всички,yes=Допустими в ПО,no=Недопустими в ПО)');
+        $data->listFilter->setDefault('type', 'all');
+        $data->listFilter->setDefault('showInPlanningTasks', 'all');
+        $data->listFilter->input();
+        $data->listFilter->toolbar->addSbBtn('Филтрирай', array($mvc, 'list'), 'id=filter', 'ef_icon = img/16/funnel.png');
+        if ($rec = $data->listFilter->rec) {
+
+            if (!empty($rec->type) && $rec->type != 'all') {
+                $data->query->where("#type = '{$rec->type}'");
+            }
+
+            if (!empty($rec->showInPlanningTasks) && $rec->showInPlanningTasks != 'all') {
+                $data->query->where("#showInPlanningTasks = '{$rec->showInPlanningTasks}'");
+            }
+        }
     }
 }

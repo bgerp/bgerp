@@ -142,9 +142,9 @@ class bgerp_Setup extends core_ProtoSetup
      * Описание на конфигурационните константи
      */
     public $configDescription = array(
-        'BGERP_COMPANY_LOGO' => array('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
+        'BGERP_COMPANY_LOGO' => array('fileman_FileType(bucket=pictures,focus=none)', 'caption=Фирмена бланка->На български, customizeBy=powerUser'),
         
-        'BGERP_COMPANY_LOGO_EN' => array('fileman_FileType(bucket=pictures)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
+        'BGERP_COMPANY_LOGO_EN' => array('fileman_FileType(bucket=pictures,focus=none)', 'caption=Фирмена бланка->На английски, customizeBy=powerUser'),
         
         'BGERP_NON_WORKING_CRON_TIME' => array('time(suggestions=30 мин.|1 час| 3 часа)', 'caption=След колко време да дава нотификация за неработещ cron->Време'),
         

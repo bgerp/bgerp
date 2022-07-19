@@ -102,7 +102,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $resData->calendarState->query->where("#users IS NULL OR #users = ''");
         $resData->calendarState->query->orLikeKeylist('users', $userId);
         $resData->calendarState->query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $from, $to));
-        
+
         // Само бележки за текущия потребител или за всички потребители
         // Последния запис в модела - за деактивиране на кеша
         $resData->agendaData = new stdClass();
@@ -115,7 +115,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $resData->cacheType = $this->getCacheTypeName($userId);
         
         $resData->tpl = core_Cache::get($resData->cacheType, $resData->cacheKey);
-        
+
         if (!$resData->tpl) {
             $Calendar->searchInputField = bgerp_Portal::getPortalSearchInputFieldName($Calendar->searchInputField, $dRec->originIdCalc);
             
@@ -244,7 +244,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
                                     ));
             
             $tArr = $data->EventsData;
-            
+
             $today = dt::now(false);
             $tomorrow = dt::addDays(1, $today, false);
             $nextDay = dt::addDays(2, $today, false);
@@ -283,7 +283,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
             }
             
             ksort($tArr['now']);
-            
+
             // Показваме събитията близките дни
             foreach ((array) $tArr['now'] as $tDate => $tRowArr) {
 
@@ -653,7 +653,9 @@ class bgerp_drivers_Calendar extends core_BaseClass
         
         $query->where("#state != 'rejected'");
         $query->where("#state != 'draft'");
-        
+        $query->where("#state != 'closed'");
+        $query->where("#state != 'stopped'");
+
         $query->likeKeylist('sharedUsers', $pArr['_userId']);
         
         $todayF = $pArr['_todayF'];
@@ -711,7 +713,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         }
         
         $query->where("#state != 'rejected'");
-        
+
         $query->where(array("#time >= '[#1#]' AND #time <= '[#2#]'", $pArr['_todayF'], $pArr['_endWorkingDay']));
         
         $query->where(array("#key NOT LIKE 'REM-%'"));
@@ -902,7 +904,7 @@ class bgerp_drivers_Calendar extends core_BaseClass
         $calendarStateQueryClone->limit(1);
         $lastCalendarEventRec = serialize($calendarStateQueryClone->fetch());
         $cArr[] = $lastCalendarEventRec;
-        
+
         return md5(implode('|', $cArr));
     }
     

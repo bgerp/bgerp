@@ -651,19 +651,25 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      *
      * @param int $productId
      * @return array
+     *          int|null    ['name']                 - наименование
      *          int|null    ['centerId']             - ид на център на дейност
      *          int|null    ['storeIn']              - ид на склад за засклаждане (ако е складируем)
      *          int|null    ['inputStores']          - ид на складове за влагане (ако е складируем)
      *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
      *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
      *          int|null    ['norm']                 - норма за производство
+     *          int|null    ['normPackagingId']      - ид на опаковката/мярката на нормата
      *          int|null    ['labelPackagingId']     - ид на опаковка за етикет
      *          double|null ['labelQuantityInPack']  - к-во в опаковка за етикет
      *          string|null ['labelType']            - тип на етикета
      *          int|null    ['labelTemplate']        - шаблон за етикет
      *          array|null  ['planningParams']       - параметри за планиране
+     *          array|null  ['actions']              - операции за планиране
      *          string      ['isFinal']              - дали е финална
      *          string      ['showPreviousJobField'] - дали да се изисква предходно задание
+     *          string      ['wasteProductId']       - ид на отпадък
+     *          string      ['wasteStart']           - начално количество отпадък
+     *          string      ['wastePercent']         - процент отпадък
      */
     public function getProductionData($productId)
     {
