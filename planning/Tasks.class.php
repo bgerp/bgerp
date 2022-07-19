@@ -1111,10 +1111,7 @@ class planning_Tasks extends core_Master
         $originRec = $origin->fetch();
         
         // Добавяне на допустимите опции
-        $options = planning_Centers::getManifacturableOptions($rec->folderId);
-        if(isset($rec->productId) && !array_key_exists($rec->productId, $options)){
-            $options = array("{$rec->productId}" => cat_Products::getTitleById($rec->productId, false)) + $options;
-        }
+        $options = planning_Centers::getPlanningStepOptionsByFolderId($rec->folderId, $rec->productId, true);
 
         // Ако няма ПЕ - редирект, ако е само един избира се той, ако са повече от един потребителя трябва да избере
         $stepOptionsCount = countR($options);
@@ -1205,7 +1202,7 @@ class planning_Tasks extends core_Master
                 }
 
                 // Ако някоя от произовдните на основната му мярка е налична в опциите - добавят се и останалите
-                if(countR(array_intersect_key($measureOptions, $similarMeasures))){
+                if(countR(array_intersect_key($measureOptions, $similarMeasures)) || $originRec->allowSecondMeasure == 'yes'){
                     // както и производните на основната му мярка, които са опаковки
                     $packMeasures = cat_Products::getPacks($productRec->id, true);
                     $leftMeasures = array_intersect_key($similarMeasures, $packMeasures);
