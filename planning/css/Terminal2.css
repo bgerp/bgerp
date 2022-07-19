@@ -183,7 +183,7 @@ div, input, dialog, article {
   padding: 0.5em 0.8em;
 }
 
-@media only screen and (max-width: 719px) {
+@media only screen and (max-width: 680px) {
   .left {
     float: none;
     width: 100%;
