@@ -1193,6 +1193,9 @@ class planning_Tasks extends core_Master
                 // Ако заданието е в мярка тя е по-дефолт първата избрана
                 if($jobPackagingType == 'uom'){
                     $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
+                    if($originRec->packagingId != $productRec->measureId && array_key_exists($originRec->packagingId, $similarMeasures)){
+                        $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
+                    }
                 } else {
                     // Ако е за опаковка, то дефолт е основната мярка
                     $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
