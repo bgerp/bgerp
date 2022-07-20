@@ -929,7 +929,7 @@ class sales_Sales extends deals_DealMaster
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if (sales_SalesDetails::fetch("#saleId = {$rec->id}")) {
+            if ($rec->state != 'active' && sales_SalesDetails::fetch("#saleId = {$rec->id}")) {
                 $res = 'no_one';
             } elseif (!haveRole('sales,ceo', $userId)) {
                 $res = 'no_one';

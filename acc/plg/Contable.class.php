@@ -465,7 +465,10 @@ class acc_plg_Contable extends core_Plugin
         }
         
         if ($action == 'closewith' && isset($rec)) {
-            if ($rec->state == 'pending') {
+            $periodRec = acc_Periods::fetchByDate($mvc->getValiorValue($rec));
+            if ($periodRec->state == 'closed' && $rec->brState != 'draft') {
+                $requiredRoles = 'no_one';
+            } elseif($rec->state == 'pending'){
                 $requiredRoles = 'no_one';
             }
         }
