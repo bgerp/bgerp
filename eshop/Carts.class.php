@@ -1780,8 +1780,7 @@ class eshop_Carts extends core_Master
     private static function renderViewCart($rec)
     {
         $rec = self::fetchRec($rec);
-        
-        $tpl = new core_ET('');
+
         $fields = cls::get('eshop_Carts')->selectFields();
         $fields['-external'] = true;
         
