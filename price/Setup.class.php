@@ -104,6 +104,7 @@ class price_Setup extends core_ProtoSetup
         'price_ProductCosts',
         'price_Updates',
         'price_Cache',
+        'migrate::deleteOldPriceCosts',
     );
 
 
@@ -170,5 +171,14 @@ class price_Setup extends core_ProtoSetup
         $html .= core_Cron::addOnce($rec);
 
         return $html;
+    }
+
+
+    /**
+     * Мигриране на стари записи
+     */
+    public function deleteOldPriceCosts()
+    {
+        price_ProductCosts::delete("#classId IS NULL");
     }
 }
