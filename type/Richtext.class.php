@@ -149,9 +149,11 @@ class type_Richtext extends type_Blob
         // Ако е зададено да се аппендва маркирания текст, като цитата
         if ($this->params['appendQuote']) {
             $line = is_numeric($this->params['appendQuote']) ? $this->params['appendQuote'] : 0;
-            
+
+            $useParagraph = doc_Setup::get('SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE');
+
             // Добавяме функцията за апендване на цитата
-            jquery_Jquery::run($tpl, "appendQuote('{$attr['id']}', {$line});");
+            jquery_Jquery::run($tpl, "appendQuote('{$attr['id']}', {$line}, '{$useParagraph}');");
         }
         
         jquery_Jquery::run($tpl, 'hideRichtextEditGroups();', true);
