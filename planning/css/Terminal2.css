@@ -5,6 +5,7 @@
 
 body {
   margin: 0;
+  background-color: #666;
   padding: 0;
   border: none;
   font-family: Arial, sans-serif;
@@ -17,7 +18,7 @@ div, input, dialog, article {
 
 .row {
   overflow-x: hidden;
-  background-color: #ccc;
+  background-color: #666;
 }
 
 .row:after {
@@ -220,6 +221,10 @@ div, input, dialog, article {
   .kb-row div.triple {
     width: 26.1vw;
   }
+
+  .progress {
+    height: calc(100vh - 15.1em - 0.85vh - 5 * 8.7vw);
+   }
 
 }
 
