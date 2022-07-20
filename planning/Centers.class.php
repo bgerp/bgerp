@@ -378,27 +378,63 @@ class planning_Centers extends core_Master
             }
         }
     }
-    
-    
+
+
     /**
      * Производствени етапи в папката на центъра на дейност
-     * 
-     * @param int $folderId
-     * @return array $options
+     *
+     * @param int $folderId   - ид на папка
+     * @param int|null $exId  - ид на предишно избран артикул
+     * @param bool $verbal    - само ид-та или имена на артикулите
+     * @return array $options - върнатите опции
      */
-    public static function getManifacturableOptions($folderId)
+    public static function getPlanningStepOptionsByFolderId($folderId, $exId = null, $verbal = false)
     {
         $Cover = doc_Folders::getCover($folderId);
-        $options = array();
+        $finalSteps = $nonFinalSteps = array();
         $sQuery = planning_Steps::getQuery();
 
-        $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = " . cat_Products::getClassId());
+        // Извличат се ПЕ към този център на дейност
+        $productClassId = cat_Products::getClassId();
+        $sQuery->where("#centerId = {$Cover->that} AND #state != 'closed' AND #state != 'rejected' AND #classId = {$productClassId}");
         while($sRec = $sQuery->fetch()){
+
+            // Разделят се дали са финални или междинни
             if($Extended = planning_Steps::getExtended($sRec)){
-                $options[$Extended->that] = $Extended->getTitleById(false);
+                if($sRec->isFinal == 'yes'){
+                    $finalSteps[$Extended->that] = ($verbal) ? $Extended->getTitleById(false) : $Extended->that;
+                } else {
+                    $nonFinalSteps[$Extended->that] = ($verbal) ? $Extended->getTitleById(false) : $Extended->that;
+                }
             }
         }
-        
+
+        // Ако има съществуващо ид и то не е сред наличните добавям го в правилния масив
+        if(isset($exId)){
+            if(!array_key_exists($exId, $finalSteps) || !array_key_exists($exId, $nonFinalSteps)){
+                $isExIdFinal = planning_Steps::fetchField("#classId = {$productClassId} AND #objectId = {$exId}", 'isFinal');
+                $exIdVal = ($verbal) ? cat_Products::getTitleById($exId) : $exId;
+                if($isExIdFinal == 'no'){
+                    $nonFinalSteps[$exId] = $exIdVal;
+                } else {
+                    $finalSteps[$exId] = $exIdVal;
+                }
+            }
+        }
+
+        // Ако се показват вербални опции - слага се група на опциите и се обръщат имената на артикулите
+        if($verbal){
+            $options = array();
+            if(countR($finalSteps)){
+                $options += array('fs' => (object) array('group' => true, 'title' => tr('Финални етапи'))) + $finalSteps;
+            }
+            if(countR($nonFinalSteps)){
+                $options += array('nfs' => (object) array('group' => true, 'title' => tr('Междинни етапи'))) + $nonFinalSteps;
+            }
+        } else {
+            $options = $finalSteps + $nonFinalSteps;
+        }
+
         return $options;
     }
     

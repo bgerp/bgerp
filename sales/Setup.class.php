@@ -206,6 +206,11 @@ defIfNot('SALES_SET_DEFAULT_DEALER_ID', 'yes');
 defIfNot('SALES_SHOW_PRICE_IN_PRODUCT_SELECTION', 'no');
 
 
+/**
+ * Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки
+ */
+defIfNot('SALES_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
+
 
 /**
  * Продажби - инсталиране / деинсталиране
@@ -256,7 +261,11 @@ class sales_Setup extends core_ProtoSetup
         ),
         'SALE_CLOSE_OLDER_THAN' => array(
             'time(uom=days,suggestions=1 ден|2 дена|3 дена)',
-            'caption=Изчакване преди автоматично приключване на продажбата->Дни'
+            'caption=Изчакване преди автоматично приключване на продажби в BGN / EUR->Дни'
+        ),
+        'SALES_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
+            'int(Min=0)',
+            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'
         ),
         'SALE_CLOSE_OLDER_NUM' => array(
             'int',

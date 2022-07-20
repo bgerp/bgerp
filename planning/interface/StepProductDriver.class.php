@@ -137,6 +137,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
      *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
      *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
      *          int|null    ['norm']                 - норма за производство
+     *          int|null    ['normPackagingId']      - ид на опаковката/мярката на нормата
      *          int|null    ['labelPackagingId']     - ид на опаковка за етикет
      *          double|null ['labelQuantityInPack']  - к-во в опаковка за етикет
      *          string|null ['labelType']            - тип на етикета
@@ -153,7 +154,7 @@ class planning_interface_StepProductDriver extends cat_GeneralProductDriver
     {
         $rec = planning_Steps::getRec('cat_Products', $productId);
 
-        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'norm' => $rec->norm, 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent);
+        $res = array('name' => $rec->name, 'centerId' => $rec->centerId, 'storeIn' => $rec->storeIn, 'inputStores' => $rec->inputStores, 'norm' => $rec->norm, 'normPackagingId' => cat_Products::fetchField($productId, 'measureId'), 'wasteProductId' => $rec->wasteProductId, 'wasteStart' => $rec->wasteStart, 'wastePercent' => $rec->wastePercent);
         $res['fixedAssets'] = !empty($rec->fixedAssets) ? keylist::toArray($rec->fixedAssets) : null;
         $res['employees'] = !empty($rec->employees) ? keylist::toArray($rec->employees) : null;
         $res['planningParams'] = !empty($rec->planningParams) ? keylist::toArray($rec->planningParams) : array();

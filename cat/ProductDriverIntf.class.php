@@ -658,6 +658,7 @@ class cat_ProductDriverIntf extends embed_DriverIntf
      *          array|null  ['fixedAssets']          - масив от ид-та на оборудвания (@see planning_AssetResources)
      *          array|null  ['employees']            - масив от ид-та на оператори (@see planning_Hr)
      *          int|null    ['norm']                 - норма за производство
+     *          int|null    ['normPackagingId']      - ид на опаковката/мярката на нормата
      *          int|null    ['labelPackagingId']     - ид на опаковка за етикет
      *          double|null ['labelQuantityInPack']  - к-во в опаковка за етикет
      *          string|null ['labelType']            - тип на етикета

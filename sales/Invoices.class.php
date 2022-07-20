@@ -758,7 +758,7 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $error = null;
         if (!$mvc->isAllowedToBePosted($rec, $error, true)) {
-            $res = $error;
+            $res = strip_tags($error);
         }
     }
     
@@ -772,7 +772,7 @@ class sales_Invoices extends deals_InvoiceMaster
         if ($rec->date > dt::today()) {
             $res = 'Фактурата е с бъдещата дата и не може да бъде контирана';
         } elseif (!$mvc->isAllowedToBePosted($rec, $error)) {
-            $res = $error;
+            $res = strip_tags($error);
         }
     }
     
@@ -820,14 +820,10 @@ class sales_Invoices extends deals_InvoiceMaster
     {
         $pId = $parsedHandle['id'];
         $pLen = strlen($pId);
-
         $rec = null;
 
         if ($pLen != 10) {
-            if (!$parsedHandle['endDs']) {
-
-                return null;
-            }
+            if (!$parsedHandle['endDs']) return null;
         }
 
         if ($parsedHandle['endDs'] && ($pLen != 10)) {
@@ -841,8 +837,8 @@ class sales_Invoices extends deals_InvoiceMaster
 
         return $rec;
     }
-    
-    
+
+
     /**
      * Функция, която се извиква след активирането на документа
      */
@@ -870,20 +866,26 @@ class sales_Invoices extends deals_InvoiceMaster
             }
         }
 
-        // Ако има задължителен експортен параметър - кешира се към момента на активиране
-        if($exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')){
-            $Details = cls::get('sales_InvoiceDetails');
+        // Има ли полета, чиито стойности да се преизчислят при активиране
+        $Detail = cls::get('sales_InvoiceDetails');
+        $cacheFields = $Detail->getFieldsToCalcOnActivation($rec);
+
+        if(countR($cacheFields)){
             $saveDetails = array();
-            $dQuery = $Details->getQuery();
-            $dQuery->where("#invoiceId = {$rec->id} AND (#exportParamValue IS NULL OR #exportParamValue = '')");
-            $dQuery->show('productId,exportParamValue');
+            $updateFields = implode(',', $cacheFields);
+
+            // Извличат се детайлите
+            $dQuery = $Detail->getQuery();
+            $dQuery->where("#invoiceId = {$rec->id}");
             while($dRec = $dQuery->fetch()){
-                $dRec->exportParamValue = cat_Products::getParams($dRec->productId, $exportParamId);
-                $saveDetails[] = $dRec;
+                $params = cat_Products::getParams($dRec->productId);
+                if($Detail->calcFieldsOnActivation($dRec, $rec, $params)){
+                    $saveDetails[] = $dRec;
+                }
             }
 
             if(countR($saveDetails)){
-                $Details->saveArray($saveDetails, 'id,exportParamValue');
+                $Detail->saveArray($saveDetails, "id,{$updateFields}");
             }
         }
     }

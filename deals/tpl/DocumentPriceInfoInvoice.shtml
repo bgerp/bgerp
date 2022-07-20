@@ -20,6 +20,29 @@
    </tr>
    <!--ET_END neto-->
 
+   <!--ET_BEGIN TAXES-->
+   [#TAXES#]
+   <tr>
+      <td colspan='4' style='padding:0px'>
+         <hr>
+      </td>
+   </tr>
+   <!--ET_BEGIN totalProductTax-->
+   <tr class='nowrap'>
+      <td class='aright' colspan="2">|Събрана екотакса|*:</td>
+      <td class='info-right'><span class='cCode'>[#productTaxCurrencyCode#]</span></td>
+      <td class='aright'><b class="lighterBold">[#totalProductTax#]</b></td>
+   </tr>
+   <!--ET_END totalProductTax-->
+   <!--ET_BEGIN totalExciseAmount-->
+   <tr class='nowrap'>
+      <td class='aright' colspan="2">|Платен акциз|*:</td>
+      <td class='info-right'><span class='cCode'>[#exciseCurrencyCode#]</span></td>
+      <td class='aright'><b class="lighterBold">[#totalExciseAmount#]</b></td>
+   </tr>
+   <!--ET_END totalExciseAmount-->
+   <!--ET_END TAXES-->
+
    <!--ET_BEGIN VAT_INFO-->
    [#VAT_INFO#]
 

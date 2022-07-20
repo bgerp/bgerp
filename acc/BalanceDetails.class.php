@@ -182,19 +182,24 @@ class acc_BalanceDetails extends core_Detail
                 }
             }
             
-            if (!countR($data->recs)) {
-                
-                return;
-            }
+            if (!countR($data->recs)) return;
             
             // Сортиране на резултатите
             if (is_array($by) && ($sortBy = $by['sortBy'])) {
+                if(strpos($sortBy, 'NotNull') !== false){
+                    $sortBy = str_replace('NotNull', '', $sortBy);
+                    $data->recs = array_filter($data->recs, function($a) use($sortBy) {return abs(round($a->{$sortBy}, 2)) > 0;});
+                }
                 arr::sortObjects($data->recs, $sortBy, 'desc');
             }
             
             $data->allRecs = $data->recs;
-            static::sortRecsByNum($data->recs, $data->listFields, $sortBy == '');
-            
+
+            // Динамично дигане на тайм лимита според записите
+            $count = countR($data->allRecs);
+            core_App::setTimeLimit(0.3 * $count, false, 60);
+
+            static::sortRecsByNum($data->recs, $data->listFields, '');
             // Преизчисляваме пейджъра с новия брой на записите
             $conf = core_Packs::getConfig('acc');
             
@@ -784,7 +789,7 @@ class acc_BalanceDetails extends core_Detail
         foreach ($listRecs as $i => $listRec) {
             $this->setGroupingForField($i, $listRec, $form, $items[$i]);
         }
-        $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо)', 'caption=Подредба,input');
+        $form->FLD('sortBy', 'enum(,baseAmount=Начално салдо,debitAmount=Дебитен оборот,creditAmount=Кредитен оборот,blAmount=Крайно салдо,baseAmountNotNull=Начално салдо (Различно от 0),debitAmountNotNull=Дебитен оборот (Различно от 0),creditAmountNotNull=Кредитен оборот (Различно от 0),blAmountNotNull=Крайно салдо (Различно от 0))', 'caption=Подредба,input');
         $form->showFields .= 'sortBy,';
         $form->showFields = trim($form->showFields, ',');
         

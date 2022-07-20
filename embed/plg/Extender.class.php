@@ -162,4 +162,24 @@ class embed_plg_Extender extends core_Plugin
             $Extender->invoke('AfterRenderSingle', array(&$tpl, &$data));
         }
     }
+
+    /**
+     * След взимане на полетата, които да не се клонират
+     *
+     * @param core_Mvc $mvc
+     * @param stdClass $res
+     * @param stdClass $rec
+     */
+    public static function on_AfterGetFieldsNotToClone($Driver, embed_Manager $Embedder, &$res, $rec)
+    {
+        if($Extender = cls::get($Driver->extenderClass)){
+            if(isset($Extender->fieldsNotToClone)){
+                $notToClone = arr::make($Extender->fieldsNotToClone, true);
+                foreach ($notToClone as $field){
+                    $extenderField = "{$Extender->className}_{$field}";
+                    $res[$extenderField] = $extenderField;
+                }
+            }
+        }
+    }
 }
