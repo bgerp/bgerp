@@ -232,7 +232,32 @@ function init(evn) {
 			doCmd();
 		}
 	});
+
+	document.addEventListener("keydown", function(e) {
+	  if (e.key === "Enter") {
+		toggleFullScreen();
+	  }
+	}, false);
 }
+
+
+/**
+ * Превключва към пълен екран и обратно
+ */
+function toggleFullScreen() {
+  const fullScreen = document.getElementById('fullScreenToggleBtn');
+  if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+	  fullScreen.innerHTML = 'fullscreen_exit';
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+	  fullScreen.innerHTML = 'fullscreen';
+    }
+  }
+}
+
+
 
 /**
  * Компонент за модален диалог

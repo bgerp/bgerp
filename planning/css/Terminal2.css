@@ -135,9 +135,14 @@ div, input, dialog, article {
   width: 100%;
   font-size: 1.5em;
   padding: 0.25em;
+  border:solid 1px black;
   border-radius: 5px;
   margin-top: 0.4em;
   margin-bottom: 0.4em;
+}
+
+.toolbar input:focus {
+	outline:solid 2px blue;
 }
 
 .prompt {
@@ -168,7 +173,7 @@ div, input, dialog, article {
 }
 
 .label {
-  font-size: 0.7em;
+  font-size: 0.65em;
 }
 
 .value {
@@ -316,4 +321,35 @@ dialog > article {
   flex-direction: column;
 
 
+}
+
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/materialicons/v117/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+}
+
+.material-icons {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 1em;
+    line-height: 1;
+    letter-spacing: normal;
+    vertical-align: text-bottom;
+    padding-right: 3px;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -moz-font-feature-settings: 'liga';
+    -moz-osx-font-smoothing: grayscale;
 }
