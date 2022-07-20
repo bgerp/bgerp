@@ -165,9 +165,13 @@ abstract class deals_DealBase extends core_Master
         
         // Ако няма документи с които може да се затвори или е чернова не може да се приключи с друга сделка
         if ($action == 'closewith' && isset($rec)) {
-            $options = $mvc->getDealsToCloseWith($rec);
-            if (!countR($options) || ($rec->state != 'draft' && $rec->state != 'pending' && $rec->state != 'active')) {
+            if (($rec->state != 'draft' && $rec->state != 'pending' && $rec->state != 'active') || empty($rec->closedDocuments)) {
                 $res = 'no_one';
+            } else {
+                $options = $mvc->getDealsToCloseWith($rec);
+                if(!countR($options)){
+                    $res = 'no_one';
+                }
             }
         }
         
