@@ -6,9 +6,12 @@
   <title>Production Terminal</title>
   <!--ET_BEGIN HEAD-->[#HEAD#]<!--ET_END HEAD-->
  </head>
- <body>
+ <body id="body">
 	<div class="header">
 		bgERP
+		<div style="position:absolute; right:0.3em; top:0.25em;" onClick="toggleFullScreen()">
+			<span class="material-icons" id="fullScreenToggleBtn" style="font-size:1.5em;">fullscreen</span>
+		</div>
 	</div>
 	<div class="row">
 		<div class=left>
@@ -135,12 +138,12 @@
 				</div>
 				<input id="cmdInput" inputmode="none" onFocus="displayByClass('panel', 'keyboard');" type=text>
 				<div class="prompt">
-					<div title="Артикул" class='btn' onClick="setProduct()">Ар</div>
-					<div title="Етикет" class='btn' onClick="setLabel()">Ет</div>
-					<div title="Търсене" class='btn' onClick="setSearch()">Тр</div>
-					<div title="Операция" class='btn'  onClick="setOperation()">Оп</div>
-					<div title="Задание" class='btn' onClick="setJob()">Зд</div>
-					<div title="Сигнал" class='btn' onClick="setSignal()">Сг</div>
+					<div title="Артикул" class='btn' onClick="setProduct()"><span class="material-icons">shopping_cart</span></div>
+					<div title="Етикет" class='btn' onClick="setLabel()"><span class="material-icons">label</span></div>
+					<div title="Търсене" class='btn' onClick="setSearch()"><span class="material-icons">search</span></div>
+					<div title="Операция" class='btn'  onClick="setOperation()"><span class="material-icons">precision_manufacturing</span></div>
+					<div title="Задание" class='btn' onClick="setJob()"><span class="material-icons">article</span></div>
+					<div title="Сигнал" class='btn' onClick="setSignal()"><span class="material-icons">support</span></div>
 				</div>
 
 			</div>

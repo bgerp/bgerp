@@ -49,10 +49,10 @@ function displayByClass(baseClass, displayClass) {
 		var display = 'block';
 		if(elements[i].classList.contains(displayClass)) {
 			if(elements[i].getAttribute('data-display')  != null) {
-				var display = elements[i].getAttribute('data-display');
+				display = elements[i].getAttribute('data-display');
 			}
 		} else {
-			if(elements[i].style.display != 'none') {
+			if(elements[i].style.display != 'none' && elements[i].style.display != null && elements[i].style.display != '') {
 				elements[i].setAttribute('data-display', elements[i].style.display);
 			}
 			display = 'none';
@@ -232,7 +232,32 @@ function init(evn) {
 			doCmd();
 		}
 	});
+
+	document.addEventListener("keydown", function(e) {
+	  if (e.key === "Enter") {
+		toggleFullScreen();
+	  }
+	}, false);
 }
+
+
+/**
+ * Превключва към пълен екран и обратно
+ */
+function toggleFullScreen() {
+  const fullScreen = document.getElementById('fullScreenToggleBtn');
+  if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+	  fullScreen.innerHTML = 'fullscreen_exit';
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+	  fullScreen.innerHTML = 'fullscreen';
+    }
+  }
+}
+
+
 
 /**
  * Компонент за модален диалог
