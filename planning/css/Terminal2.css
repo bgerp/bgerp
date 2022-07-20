@@ -223,7 +223,7 @@ div, input, dialog, article {
   }
 
   .progress {
-    height: calc(100vh - 15.1em - 0.85vh - 5 * 8.7vw);
+    height: calc(100vh - 15.2em - 0.85vh - 5 * 8.7vw);
    }
 
 }
