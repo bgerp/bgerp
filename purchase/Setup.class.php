@@ -80,6 +80,12 @@ defIfNot('PURCHASE_SET_DEFAULT_DEALER_ID', 'yes');
 
 
 /**
+ * Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки
+ */
+defIfNot('PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE', '5');
+
+
+/**
  * Покупки - инсталиране / деинсталиране
  *
  *
@@ -149,7 +155,11 @@ class purchase_Setup extends core_ProtoSetup
      */
     public $configDescription = array(
         'PURCHASE_OVERDUE_CHECK_DELAY' => array('time', 'caption=Толеранс за просрочване на покупката->Време'),
-        'PURCHASE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на покупката->Дни'),
+        'PURCHASE_CLOSE_OLDER_THAN' => array('time(uom=days,suggestions=1 ден|2 дена|3 дена)', 'caption=Изчакване преди автоматично приключване на продажби в BGN / EUR->Дни'),
+        'PURCHASE_CURRENCY_CLOSE_AFTER_ACC_DATE' => array(
+            'int(Min=0)',
+            'caption=Дни след "Ден от месеца за изчисляване на Счетоводна дата на входяща фактура" за приключване на валутни сделки->Дни'
+        ),
         'PURCHASE_CLOSE_OLDER_NUM' => array('int', 'caption=По колко покупки да се приключват автоматично на опит->Брой'),
         'PURCHASE_USE_RATE_IN_CONTRACTS' => array('enum(no=Не,yes=Да)', 'caption=Ръчно въвеждане на курс в покупките->Избор'),
         'PURCHASE_INVOICE_DEFAULT_VALID_FOR' => array('time', 'caption=Срок за плащане по подразбиране->Срок'),

@@ -34,7 +34,10 @@ class acc_WrapperSettings extends plg_ProtoWrapper
         $this->TAB('acc_Limits', 'Лимити', 'ceo,acc');
         $this->TAB('acc_VatGroups', 'ДДС групи', 'ceo,acc');
         $this->TAB('acc_Operations', 'Операции', 'debug');
-        
+        if(core_Packs::isInstalled('bgtaxes')){
+            $this->TAB('bgtaxes_ProductTaxes', 'Продуктови такси', 'ceo,acc');
+        }
+
         $this->title = 'Настройки « Счетоводство';
         Mode::set('menuPage', 'Счетоводство:Настройки');
     }

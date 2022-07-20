@@ -1111,10 +1111,7 @@ class planning_Tasks extends core_Master
         $originRec = $origin->fetch();
         
         // Добавяне на допустимите опции
-        $options = planning_Centers::getManifacturableOptions($rec->folderId);
-        if(isset($rec->productId) && !array_key_exists($rec->productId, $options)){
-            $options = array("{$rec->productId}" => cat_Products::getTitleById($rec->productId, false)) + $options;
-        }
+        $options = planning_Centers::getPlanningStepOptionsByFolderId($rec->folderId, $rec->productId, true);
 
         // Ако няма ПЕ - редирект, ако е само един избира се той, ако са повече от един потребителя трябва да избере
         $stepOptionsCount = countR($options);
@@ -1131,7 +1128,6 @@ class planning_Tasks extends core_Master
         $tasks = cat_Products::getDefaultProductionTasks($originRec, $originRec->quantity);
         if (isset($rec->systemId, $tasks[$rec->systemId]) && empty($rec->id)) {
             $taskData = (array)$tasks[$rec->systemId];
-
             unset($taskData['products']);
             foreach ($taskData as $fieldName => $defaultValue) {
                 $form->setDefault($fieldName, $defaultValue);
@@ -1189,16 +1185,33 @@ class planning_Tasks extends core_Master
             if($rec->isFinal == 'yes'){
                 $form->info = "<div class='richtext-info-no-image'>" . tr('Финална операция към|* ') . $origin->getHyperlink(true) . "</div>";
                 $measureOptions = array();
-                if(array_key_exists($originRec->packagingId, $similarMeasures)){
-                    $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
-                }
+                $jobPackagingType = cat_UoM::fetchField($originRec->packagingId, 'type');
 
-                if(!array_key_exists($productRec->measureId, $measureOptions)){
+                // Ако заданието е в мярка тя е по-дефолт първата избрана
+                if($jobPackagingType == 'uom'){
+                    $measureOptions[$originRec->packagingId] = cat_UoM::getTitleById($originRec->packagingId, false);
+                } else {
+                    // Ако е за опаковка, то дефолт е основната мярка
                     $measureOptions[$productRec->measureId] = cat_UoM::getTitleById($productRec->measureId, false);
                 }
-                if(isset($originRec->secondMeasureId)){
-                    $secondMeasureId = ($originRec->secondMeasureId == $originRec->packagingId) ? $productRec->measureId : $originRec->secondMeasureId;
-                    $measureOptions[$secondMeasureId] = cat_UoM::getTitleById($secondMeasureId, false);
+
+                // Ако има втора мярка
+                if($originRec->allowSecondMeasure == 'yes'){
+                    // добавя се и тя
+                    $measureOptions[$originRec->secondMeasureId] = cat_UoM::getTitleById($originRec->secondMeasureId, false);
+                }
+
+                // Ако някоя от произовдните на основната му мярка е налична в опциите - добавят се и останалите
+                if(countR(array_intersect_key($measureOptions, $similarMeasures)) || $originRec->allowSecondMeasure == 'yes'){
+                    // както и производните на основната му мярка, които са опаковки
+                    $packMeasures = cat_Products::getPacks($productRec->id, true);
+                    $leftMeasures = array_intersect_key($similarMeasures, $packMeasures);
+                    $leftMeasures = array_keys($leftMeasures);
+                    foreach ($leftMeasures as $lMeasureId){
+                        if(!array_key_exists($lMeasureId, $measureOptions)){
+                            $measureOptions[$lMeasureId] = cat_UoM::getTitleById($lMeasureId, false);
+                        }
+                    }
                 }
             } else {
                 $measureOptions = cat_Products::getPacks($rec->productId, true);
@@ -1212,19 +1225,42 @@ class planning_Tasks extends core_Master
             }
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
             if($rec->isFinal == 'yes'){
+                $packType = cat_UoM::fetchField($originRec->packagingId, 'type');
                 $defaultPlannedQuantity = $originRec->quantity;
-                if($rec->measureId && array_key_exists($rec->measureId, $similarMeasures)){
-                    $defaultPlannedQuantity = cat_UoM::convertValue($defaultPlannedQuantity, $productRec->measureId, $rec->measureId);
+                if($rec->measureId != $originRec->packagingId){
+                    if($originRec->allowSecondMeasure == 'yes'){
+                        if($packType == 'uom') {
+                            if(!array_key_exists($originRec->packagingId, $similarMeasures)){
+                                if ($pQuantity = cat_products_Packagings::getPack($productRec->id, $originRec->packagingId, 'quantity')) {
+                                    $defaultPlannedQuantity *= $pQuantity;
+                                }
+                            }
+
+                            if(array_key_exists($rec->measureId, $similarMeasures)){
+                                $defaultPlannedQuantity = cat_UoM::convertValue($defaultPlannedQuantity, $productRec->measureId, $rec->measureId);
+                            } else {
+                                if ($pQuantity = cat_products_Packagings::getPack($productRec->id, $rec->measureId, 'quantity')) {
+                                    $defaultPlannedQuantity /= $pQuantity;
+                                }
+                            }
+                        } else {
+                            if(!array_key_exists($rec->measureId, $similarMeasures)){
+                                if ($pQuantity = cat_products_Packagings::getPack($productRec->id, $originRec->secondMeasureId, 'quantity')) {
+                                    $defaultPlannedQuantity /= $pQuantity;
+                                }
+                            } else {
+                                $defaultPlannedQuantity = cat_UoM::convertValue($defaultPlannedQuantity, $productRec->measureId, $rec->measureId);
+                            }
+                        }
+                    } else {
+                        $defaultPlannedQuantity = cat_UoM::convertValue($defaultPlannedQuantity, $productRec->measureId, $rec->measureId);
+                    }
+                } else {
+                    $defaultPlannedQuantity /= $originRec->quantityInPack;
                 }
 
-                if(isset($originRec->secondMeasureId) && $rec->measureId == $originRec->secondMeasureId){
-                    if($secondMeasureRec = cat_products_Packagings::getPack($originRec->productId, $rec->measureId)){
-                        $defaultPlannedQuantity /= $secondMeasureRec->quantity;
-                        $round = cat_Uom::fetchField($originRec->secondMeasureId, 'round');
-                        $defaultPlannedQuantity = round($defaultPlannedQuantity, $round);
-                    }
-                }
-                $form->setDefault('plannedQuantity', $defaultPlannedQuantity);
+                $round = cat_UoM::fetchField($rec->measureId, 'round');
+                $form->setDefault('plannedQuantity', round($defaultPlannedQuantity, $round));
             }
 
             if(countR($fixedAssetOptions)){
@@ -1321,7 +1357,7 @@ class planning_Tasks extends core_Master
             }
 
             if(isset($rec->indPackagingId)){
-                $form->setFieldTypeParams('indTime', array('measureId' => $rec->indPackagingId));
+                $form->setFieldTypeParams('indTime', array('measureId' => $rec->measureId));
             }
 
             if(isset($rec->wasteProductId)){

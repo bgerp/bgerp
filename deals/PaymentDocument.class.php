@@ -103,13 +103,9 @@ abstract class deals_PaymentDocument extends core_Master
     protected static function on_AfterRecToVerbal($mvc, &$row, $rec, $fields = array())
     {
         if(isset($fields['-list'])){
-            $invoicesArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId);
+            $invoicesArr = deals_InvoicesToDocuments::getInvoiceArr($rec->containerId, array(), true);
             if(countR($invoicesArr)){
-                $invLinkArr = array();
-                foreach ($invoicesArr as $iArr){
-                    $invLinkArr[] = doc_Containers::getDocument($iArr->containerId)->getLink(0)->getContent();
-                }
-                $row->invoices = implode(',', $invLinkArr);
+                $row->invoices = implode(',', $invoicesArr);
             }
         }
     }

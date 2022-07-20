@@ -95,7 +95,7 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
      *
      * @see plg_Clone
      */
-    public $fieldsNotToClone = 'exportParamValue';
+    public $fieldsNotToClone = 'exportParamValue,exciseTax,productTax';
 
 
     /**
@@ -209,5 +209,36 @@ class sales_InvoiceDetails extends deals_InvoiceDetail
         }
 
         followRetUrl(null, $msg);
+    }
+
+
+    /**
+     * Кои полета да се преизичслят при активиране
+     *
+     * @param stdClass $invoiceRec;
+     */
+    public function getFieldsToCalcOnActivation_($invoiceRec)
+    {
+        return (acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')) ? array('exportParamValue') : array();
+    }
+
+
+    /**
+     * Дали да се обнови записа при активиране
+     *
+     * @param stdClass $dRec      - ид на запис
+     * @param stdClass $masterRec - ид на мастъра на записа
+     * @param array $params       - продуктовите параметри
+     * @return bool               - ще се обновява ли реда или не
+     */
+    public function calcFieldsOnActivation_(&$dRec, $masterRec, $params)
+    {
+        // При активиране ще се запише стойността на експортния параметър при нужда
+        if($exportParamId = acc_Setup::get('INVOICE_MANDATORY_EXPORT_PARAM')){
+            $dRec->exportParamValue = $params[$exportParamId];
+            return true;
+        }
+
+        return false;
     }
 }

@@ -160,6 +160,12 @@ defIfNot('DOC_MOVE_LAST_DOCUMENT', 'yes');
 
 
 /**
+ * Преместване на последен документ от нишка
+ */
+defIfNot('DOC_SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE', 'no');
+
+
+/**
  * Инсталиране/Деинсталиране на
  * мениджъри свързани с DOC
  *
@@ -240,6 +246,7 @@ class doc_Setup extends core_ProtoSetup
         'DOC_LINKED_LAST_SHOW_LIMIT' => array('int(min=0)', 'caption=До колко документа от последните добавени връзки да се показват при нова->Брой, customizeBy=powerUser'),
         'DOC_LIST_FIELDS_EXTRA_LINE' => array('enum(yes=Да,no=Не)', 'caption=Допълнителен ред в листовия изглед->Избор, customizeBy=powerUser'),
         'DOC_MOVE_LAST_DOCUMENT' => array('enum(yes=Да,no=Не)', 'caption=Възможност за преместване на последния документ в нишката->Избор'),
+        'DOC_SEPARATE_TEXT_TO_PARAGRAPH_ON_QUOTE' => array('enum(no=Не,yes=Да)', 'caption=Разбиване на цитиран текст на параграфи->Избор, customizeBy=user'),
     );
 
 

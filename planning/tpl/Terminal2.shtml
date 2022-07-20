@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Production Terminal</title>
+  <!--ET_BEGIN HEAD-->[#HEAD#]<!--ET_END HEAD-->
+ </head>
+ <body id="body">
+	<div class="header">
+		bgERP
+		<div style="position:absolute; right:0.3em; top:0.25em;" onClick="toggleFullScreen()">
+			<span class="material-icons" id="fullScreenToggleBtn" style="font-size:1.5em;">fullscreen</span>
+		</div>
+	</div>
+	<div class="row">
+		<div class=left>
+			<div class="progress">
+
+				<div class="progress-node">
+				<table width=100% >
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+				<div class="progress-node">
+				<table width=100%>
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+				<div class="progress-node">
+				<table width=100% >
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+				<div class="progress-node">
+				<table width=100%>
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+				<div class="progress-node">
+				<table width=100%>
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+				<div class="progress-node">
+				<table width=100%>
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+				<div class="progress-node">
+				<table width=100%>
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+				<div class="progress-node">
+				<table width=100%>
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+				<div class="progress-node">
+				<table width=100%>
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+				<div class="progress-node">
+				<table width=100%>
+					<tr>
+						<td colspan=3><a>0987654321</a> Naimenowanie операцията</td>
+					</tr>
+					<tr>
+						<td>2000</td><td>15.34</td><td>Wr21, Wr25</td>
+					</tr>
+				</table>
+				</div>
+
+
+
+			</div>
+			<div class="toolbar">
+				<div class="prompt">
+					<div class='btn' onClick="setQuantity()"><div class='label'>Количество</div><div class='value' id="quantity">2000</div></div>
+					<div class='btn' onClick="setWeight()"><div class='label'>Тегло</div><div class='value' id="weight">13.55</div></div>
+					<div class='btn' onClick="setWorkers()"><div class='label'>Изпълнители</div><div class='value' id="workers">B21, B890, B234</div></div>
+				</div>
+				<input id="cmdInput" inputmode="none" onFocus="displayByClass('panel', 'keyboard');" type=text>
+				<div class="prompt">
+					<div title="Артикул" class='btn' onClick="setProduct()"><span class="material-icons">shopping_cart</span></div>
+					<div title="Етикет" class='btn' onClick="setLabel()"><span class="material-icons">label</span></div>
+					<div title="Търсене" class='btn' onClick="setSearch()"><span class="material-icons">search</span></div>
+					<div title="Операция" class='btn'  onClick="setOperation()"><span class="material-icons">precision_manufacturing</span></div>
+					<div title="Задание" class='btn' onClick="setJob()"><span class="material-icons">article</span></div>
+					<div title="Сигнал" class='btn' onClick="setSignal()"><span class="material-icons">support</span></div>
+				</div>
+
+			</div>
+		</div>
+		<div class=right>
+		<div class="selectMenu panel" id="selectMenu"></div>
+		<div class="keyboard panel">
+			<div class="prompt kb-row bg lt">
+				<div>1</div>
+				<div>2</div>
+				<div>3</div>
+				<div>4</div>
+				<div>5</div>
+				<div>6</div>
+				<div>7</div>
+				<div>8</div>
+				<div>9</div>
+				<div>0</div>
+				<div onClick="bckSp('cmdInput')">⇐</div>
+			</div>
+		    <div class="prompt kb-row lt" style='display:none;'>
+				<div>Q</div>
+				<div>W</div>
+				<div>E</div>
+				<div>R</div>
+				<div>T</div>
+				<div>Y</div>
+				<div>U</div>
+				<div>I</div>
+				<div>O</div>
+				<div>P</div>
+				<div>?</div>
+			 </div>
+			<div class="prompt kb-row lt" style='display:none;'>
+				<div>A</div>
+				<div>S</div>
+				<div>D</div>
+				<div>F</div>
+				<div>G</div>
+				<div>H</div>
+				<div>J</div>
+				<div>K</div>
+				<div>L</div>
+				<div>"</div>
+				<div>#</div>
+			 </div>
+			 <div class="prompt kb-row lt" style='display:none;'>
+				<div>:</div>					
+				<div>Z</div>
+				<div>X</div>
+				<div>C</div>
+				<div>V</div>
+				<div>B</div>
+				<div>N</div>
+				<div>M</div>
+				<div>,</div>
+				<div class='double' style='font-size:2em;' onClick='doCmd()'>⏎</div>
+			 </div>
+			 <div class="prompt kb-row bg">
+				<div>Я</div>
+				<div>В</div>
+				<div>Е</div>
+				<div>Р</div>
+				<div>Т</div>
+				<div>Ъ</div>
+				<div>У</div>
+				<div>И</div>
+				<div>О</div>
+				<div>П</div>
+				<div>Ч</div>
+			 </div>
+			 <div class="prompt kb-row bg">
+				<div>А</div>
+				<div>С</div>
+				<div>Д</div>
+				<div>Ф</div>
+				<div>Г</div>
+				<div>Х</div>
+				<div>Й</div>
+				<div>К</div>
+				<div>Л</div>
+				<div>Ш</div>
+				<div>Щ</div>
+			 </div>
+			 <div class="prompt kb-row bg">
+				<div>:</div>
+				<div>З</div>
+				<div>Ь</div>
+				<div>Ц</div>
+				<div>Ж</div>
+				<div>Б</div>
+				<div>Н</div>
+				<div>М</div>
+				<div>Ю</div>
+				<div class='double' onClick='doCmd()'>⏎</div>
+			 </div>
+			 <div class="prompt kb-row bg lt">
+				<div style='font-size:1.3em;' onClick="displayByClass('kb-row', 'bg')">Bg</div>
+				<div style='font-size:1.3em;' onClick="displayByClass('kb-row', 'lt')">En</div>
+				<div></div>
+				<div></div>
+				<div class="triple"> </div>
+				<div>,</div>
+				<div>.</div>
+				<div></div>
+				<div></div>
+			 </div>
+			</div>
+		</div>
+	</div>
+
+	<!-- The Modal -->
+		<dialog id='modalWindowDialog' open>
+                        
+                          <!-- Modal content -->
+                          <article>
+                            
+                            <header class='inner-block'>
+                              <span class='close'></span>
+                            </header>
+                            
+                            <section class='modal-body' id='modalWindow'>
+                                
+                            </section>
+                            
+                             
+                          </article>
+                        
+	</dialog>
+
+</body>
+</html>

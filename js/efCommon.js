@@ -2141,7 +2141,7 @@ var quoteLine;
  * @param id
  * @param line
  */
-function appendQuote(id, line) {
+function appendQuote(id, line, useParagraph) {
 
 	quoteId = id;
 	quoteLine = line;
@@ -2165,22 +2165,79 @@ function appendQuote(id, line) {
         text = sessionStorage.getItem('selText');
 
         if (text) {
-			// Вземаме манипулатора на документа
-			selHandle = sessionStorage.getItem('selHandle');
-			
-			// Стринга, който ще добавим
-			quoteText = "[bQuote";
-			
-			// Ако има манипулато, го добавяме
-			if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
-				quoteText += "=" + selHandle + "]";
-			} else {
-				quoteText += "]";
-			}
-			quoteText += text + "[/bQuote]";
+
+            if (typeof useParagraph === "undefined") {
+                useParagraph = 'no';
+            }
+
+            if (useParagraph == 'no') {
+                // Вземаме манипулатора на документа
+                selHandle = sessionStorage.getItem('selHandle');
+
+                // Стринга, който ще добавим
+                quoteText = "[bQuote";
+
+                // Ако има манипулато, го добавяме
+                if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
+                    quoteText += "=" + selHandle + "]";
+                } else {
+                    quoteText += "]";
+                }
+                quoteText += text + "[/bQuote]";
+            } else {
+                text = text.replace(/^\s+|\s+$/g, '');
+                text = text.replace(/\n{2,}/g, "\n\n");
+
+                if (text.length) {
+
+                    var textSplit = text.split("\n");
+
+                    // Вземаме манипулатора на документа
+                    selHandle = sessionStorage.getItem('selHandle');
+
+                    var isBegin = true;
+                    newText = new Array();
+
+                    $.each( textSplit, function( key, value ) {
+                        if (value.trim()) {
+                            if (isBegin) {
+
+                                var quoteStr = '';
+                                if (key) {
+                                    quoteStr = '\n\n\n';
+                                }
+
+                                quoteStr += '[bQuote';
+
+                                // Ако има манипулато, го добавяме
+                                if (selHandle && (typeof selHandle != "undefined") && (selHandle != 'undefined')) {
+                                    quoteStr += "=" + selHandle + "]";
+                                } else {
+                                    quoteStr += "]";
+                                }
+
+                                value = quoteStr + value.trim();
+                            }
+
+                            newText.push(value);
+
+                            isBegin = false;
+                        } else {
+                            lastVal = newText.pop();
+                            newText.push(lastVal + "[/bQuote]");
+                            isBegin = true;
+                        }
+                    });
+                    lastVal = newText.pop();
+                    newText.push(lastVal + "[/bQuote]");
+
+                    quoteText = newText.join("\n");
+
+                }
+            }
 		}
 	}
-	
+
     if (quoteText) {
         var textVal = get$(id).value;
     	

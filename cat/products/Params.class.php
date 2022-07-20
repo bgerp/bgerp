@@ -652,7 +652,9 @@ class cat_products_Params extends doc_Detail
         if(isset($planningStepProductId)){
             if($StepDriver = cat_Products::getDriver($planningStepProductId)){
                 $pData = $StepDriver->getProductionData($planningStepProductId);
-                $params = $pData['planningParams'];
+                if(is_array($pData['planningParams'])){
+                    $params = $pData['planningParams'];
+                }
                 $stepParams = cat_Products::getParams($planningStepProductId);
             }
         }
