@@ -63,7 +63,7 @@ div, input, dialog, article {
 .kb-row div {
   display: table-cell;
   padding: 0.2vw;
-  font-size: 1.8em;
+  font-size: 1.6em;
   color: white;
   outline: white solid 1px;
   outline-offset: -3px;
