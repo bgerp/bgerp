@@ -60,7 +60,7 @@ class planning_Terminal2 extends core_Mvc
         }
 
         if(strpos($cmd, 'Операция:') === 0) {
-            $res['modalWindow'] = "Операции...";
+            $res['modalWindow'] = cls::get('planning_Terminal')->getJobHtml(775)->getContent();
         }
 
         $res = json_encode($res);

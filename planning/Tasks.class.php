@@ -511,7 +511,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $row->labelTemplate = (isset($rec->labelTemplate)) ? label_Templates::getHyperlink($rec->labelTemplate) : "<span class='quiet'>N/A</span>";
+            $row->labelTemplate = (isset($rec->labelTemplate)) ? ht::createHint(ht::createLink("№{$rec->labelTemplate}", label_Templates::getSingleUrlArray($rec->labelTemplate)), label_Templates::getTitleById($rec->labelTemplate)) : "<span class='quiet'>N/A</span>";
 
             // Линк към отпечаванията ако има
             if(label_Prints::haveRightFor('list')){
@@ -771,6 +771,11 @@ class planning_Tasks extends core_Master
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#indPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|Разпределяне|*:</td><td>[#indTimeAllocation#]</td></tr>
                 </table>"));
+
+        $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
+        if($batchTpl instanceof core_ET){
+            $resArr['batches'] = array('name' => tr('Партиди'), 'val' => $batchTpl->getContent());
+        }
 
         if(empty($rec->weightDeviationWarning)){
             $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));
