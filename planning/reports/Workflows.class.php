@@ -60,6 +60,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
 
         $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,maxRadio=4,columns=4,after=typeOfReport,single=none');
+
+        $fieldset->FNC('indTimeSumArr', 'blob', 'caption=Времена,input=none,single=none');
     }
 
 
@@ -149,7 +151,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 //            $query->where(array(
 //                "#date >= '[#1#]'",
 //                $rec->start . ' 00:00:00'
-//            ));
+//            ));$indTimeSumArr
 
             $query->where("(#date IS NOT NULL AND #date >= '$rec->start .00:00:01') OR (#date IS NULL AND #createdOn >= '$rec->start .00:00:01')");
         }
@@ -182,7 +184,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $query->in('fixedAsset', $assetArr);
         }
-
+        $indTimeSumArr = array();
         while ($tRec = $query->fetch()) {
             $id = self::breakdownBy($tRec, $rec);
 
@@ -212,7 +214,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $quantity = round(($tRec->quantity / $quantityInPack), 3);
                 }
 
-               // $normTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $quantity);
+                // $normTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $quantity);
                 $normTime = planning_ProductionTaskDetails::calcNormByRec($tRec);
 
                 $divisor = countR(keylist::toArray($tRec->employees));
@@ -261,6 +263,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'labelQuantity' => $labelQuantity,
 
                         'weight' => $tRec->weight,
+                        'indTimeSumArr' => '',
 
                     );
                 } else {
@@ -278,6 +281,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
+            if ($rec->resultsOn == 'users') {
+                $this->groupByField = 'employees';
+            }
 
             //Разпределяне по работници, когато са повече от един
             foreach ($recs as $key => $val) {
@@ -342,6 +348,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                                 'weight' => $clone->weight / $divisor,
 
+
                             );
                         } else {
                             $obj = &$recs[$id];
@@ -357,8 +364,17 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 }
             }
 
+            foreach ($recs as $key => $val) {
+
+                $k = trim($val->employees, '|');
+                $indTimeSumArr[$k] += $val->indTimeSum / 60;
+
+
+            }
             arr::sortObjects($recs, 'taskId', 'asc');
         }
+
+        $rec->indTimeSumArr = $indTimeSumArr;
 
         return $recs;
     }
@@ -464,7 +480,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
         } else {
             if (isset($dRec->employees)) {
                 foreach (keylist::toArray($dRec->employees) as $key => $val) {
-                    $pers = (planning_Hr::getCodeLink(($val)));
+                    //  $pers = (planning_Hr::getCodeLink(($val)));
+                    $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val]);
+                    $pers = crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ' - ' . $indTimeSum . ' мин.';
 
                     $row->employees .= $pers . '</br>';
                 }
@@ -477,7 +495,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
 
-        $row->min = $Double->toVerbal($dRec->indTimeSum / 60 );
+        $row->min = $Double->toVerbal($dRec->indTimeSum / 60);
         return $row;
     }
 
