@@ -537,7 +537,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $res = array();
         if($exRec = self::fetch(array("#serial = '[#1#]'", $serial))){
-            $res['quantity'] = $exRec->quantity;
+            $res['quantity'] = $exRec->quantity - $exRec->scrappedQuantity;
             $res['productId'] = $exRec->productId;
         } else {
             if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
