@@ -79,14 +79,13 @@ div, input, dialog, article {
 
 .kb-row div:hover {
   background-color: #333;
-
-  outline: #ffff99 solid 1px;
+  outline: orange solid 1px;
 }
 
 .kb-row div:active {
   background-color: #666;
 
-  outline: #ffff99 solid 2px;
+  outline: orange solid 2px;
   outline-offset: -4px;
 }
 
@@ -123,7 +122,7 @@ div, input, dialog, article {
 }
 
 .progress-node:hover {
-	background-color:#ffffcc;
+	background-color:#ffeecc;
 }
 
 .toolbar {
@@ -142,8 +141,9 @@ div, input, dialog, article {
   margin-bottom: 0.4em;
 }
 
-.toolbar input:focus {
+.toolbar input:focus-visible {
 	outline:solid 2px blue;
+    outline-offset: -2px;
 }
 
 .prompt {
