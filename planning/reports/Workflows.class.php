@@ -59,7 +59,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $fieldset->FLD('typeOfReport', 'enum(full=Подробен,short=Опростен)', 'caption=Тип на отчета,after=employees,mandatory,removeAndRefreshForm,single=none');
 
-        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини,jobses=Задания)', 'caption=Разбивка по,maxRadio=5,columns=3,after=typeOfReport,single=none');
+        $fieldset->FLD('resultsOn', 'enum(arts=Артикули,users=Служители,usersMachines=Служители по машини,machines=Машини)', 'caption=Разбивка по,maxRadio=4,columns=4,after=typeOfReport,single=none');
 
         $fieldset->FNC('indTimeSumArr', 'blob', 'caption=Времена,input=none,single=none');
     }
@@ -273,7 +273,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
-            if ($rec->resultsOn == 'users') {
+            if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                 $this->groupByField = 'employees';
             }
 
@@ -368,7 +368,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         $rec->indTimeSumArr = $indTimeSumArr;
-//bp($recs);
+
         return $recs;
     }
 
