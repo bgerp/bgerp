@@ -480,7 +480,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         } else {
             if (isset($dRec->employees)) {
                 foreach (keylist::toArray($dRec->employees) as $key => $val) {
-                    //  $pers = (planning_Hr::getCodeLink(($val)));
+
                     $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val]);
 
                     $name = crm_Persons::fetch($val)->name;
