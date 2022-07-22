@@ -540,7 +540,11 @@ class doc_Folders extends core_Master
            // Добавяме към класа да е оттеглено
             $attr['class'] .= ' state-rejected';
         }
-        
+
+        if ($rec->last > bgerp_Recently::getLastFolderSee($rec->id)) {
+            $attr['class'] .= ' tUnsighted';
+        }
+
         if ($haveRight) {
             $attr['style'] = 'background-image:url(' . $img . ');';
             
