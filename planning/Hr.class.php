@@ -372,7 +372,7 @@ class planning_Hr extends core_Master
      */
     public static function getByFolderId($folderId = null, $exIds = null)
     {
-        $options = array();
+        $options = $codes = array();
         $noOptions = false;
 
         // Ако папката не поддържа ресурси оператори да не се връща нищо
@@ -408,7 +408,8 @@ class planning_Hr extends core_Master
             }
 
             while ($rec = $query->fetch()) {
-                $options[$rec->personId] = $rec->code;
+                $codes[$rec->personId] = $rec->code;
+                $options[$rec->personId] = crm_Persons::getVerbal($rec->personId, 'name');
             }
         }
 
@@ -417,9 +418,16 @@ class planning_Hr extends core_Master
             $exOptions = keylist::isKeylist($exIds) ? keylist::toArray($exIds) : arr::make($exIds, true);
             foreach ($exOptions as $eId) {
                 if (!array_key_exists($eId, $options)) {
-                    $options[$eId] = static::fetchField("#personId = {$eId}", 'code');
+                    $exCode = static::fetchField("#personId = {$eId}", 'code');
+                    $codes[$eId] = $exCode;
+                    $options[$eId] = crm_Persons::getVerbal($eId, 'name');
                 }
             }
+        }
+
+        asort($options);
+        foreach ($options as $personId => $val){
+            $options[$personId] = "{$codes[$personId]} - {$val}";
         }
 
         return $options;
@@ -535,25 +543,25 @@ class planning_Hr extends core_Master
      */
     public static function getPersonsCodesArr($arr, $withLinks = false)
     {
-        $res = array();
+        $res = $codes = array();
         $arr = (keylist::isKeylist($arr)) ? keylist::toArray($arr) : arr::make($arr, true);
-        if (empty($arr)) {
-            
-            return $res;
-        }
-        
+        if (empty($arr)) return $res;
+
         $arr = array_keys($arr);
-        if (is_array($arr)) {
-            foreach ($arr as $id) {
-                $rec = planning_Hr::fetch("#personId = {$id}");
-                if (empty($rec)) {
-                    continue;
-                }
-                $code = ($withLinks === true) ? self::getCodeLink($id) : $rec->code;
-                $res[$id] = $code;
-            }
+        foreach ($arr as $id) {
+            $rec = planning_Hr::fetch("#personId = {$id}");
+            if (empty($rec)) continue;
+
+            $res[$id] = crm_Persons::getVerbal($id, 'name');
+            $code = ($withLinks === true) ? self::getCodeLink($id) : $rec->code;
+            $codes[$id] = $code;
         }
-        
+
+        asort($res);
+        foreach ($res as $k => $v) {
+            $res[$k] = "{$codes[$k]} - {$v}";
+        }
+
         return $res;
     }
     

@@ -537,7 +537,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $res = array();
         if($exRec = self::fetch(array("#serial = '[#1#]'", $serial))){
-            $res['quantity'] = $exRec->quantity;
+            $res['quantity'] = $exRec->quantity - $exRec->scrappedQuantity;
             $res['productId'] = $exRec->productId;
         } else {
             if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
@@ -637,7 +637,9 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
 
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
-        $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+        $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+        $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
+        $row->productId = countR($singleUrl) ? ht::createLinkRef($row->productId, $singleUrl) : $row->productId;
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
 
         if($taskRec->productId != $foundRec->productId){

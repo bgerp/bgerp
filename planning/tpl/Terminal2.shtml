@@ -162,7 +162,7 @@
 				<div>8</div>
 				<div>9</div>
 				<div>0</div>
-				<div onClick="bckSp('cmdInput')">⇐</div>
+				<div onClick="bckSp('cmdInput')"><span class="material-icons">backspace</span></div>
 			</div>
 		    <div class="prompt kb-row lt" style='display:none;'>
 				<div>Q</div>
@@ -238,7 +238,7 @@
 				<div>Н</div>
 				<div>М</div>
 				<div>Ю</div>
-				<div class='double' onClick='doCmd()'>⏎</div>
+				<div class='double' onClick='doCmd()'><span class="material-icons">keyboard_return</span></div>
 			 </div>
 			 <div class="prompt kb-row bg lt">
 				<div style='font-size:1.3em;' onClick="displayByClass('kb-row', 'bg')">Bg</div>

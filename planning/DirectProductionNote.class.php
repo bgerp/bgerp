@@ -284,7 +284,7 @@ class planning_DirectProductionNote extends planning_ProductionDocument
                 $originRec = $originDoc->fetch('productId,producedQuantity,measureId,isFinal');
                 $originPackId = ($originRec->isFinal == 'yes') ? $originRec->measureId : $info->measureId;
                 $form->setDefault('packagingId', $originPackId);
-                $toProduce = round($info->totalQuantity - $info->producedQuantity, 4);
+                $toProduce = round($info->totalQuantity - $info->producedQuantity - $info->scrappedQuantity, 4);
                 if ($toProduce > 0) {
                     $form->setDefault('packQuantity', $toProduce);
                 }

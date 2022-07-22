@@ -196,8 +196,13 @@ class cash_Cases extends core_Master
      */
     protected static function on_AfterRecToVerbal(&$mvc, &$row, &$rec, $fields = array())
     {
-        $row->STATE_CLASS .= ($rec->state == 'rejected') ? ' state-rejected' : ' state-active';
-        
+        $stateClass = ($rec->state == 'rejected') ? ' state-rejected' : (($rec->state == 'closed' ? ' state-closed': ' state-active'));
+        $row->STATE_CLASS .= $stateClass;
+
+        if($mvc->getCurrent('id', false) != $rec->id){
+            $row->ROW_ATTR['class'] = $stateClass;
+        }
+
         if (isset($fields['-list'])) {
             if (bgerp_plg_FLB::canUse($mvc, $rec)) {
                 $rec->blAmount = 0;
