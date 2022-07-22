@@ -265,7 +265,7 @@ class planning_ProductionTaskProducts extends core_Detail
     public function prepareDetail_($data)
     {
         if(!Mode::is('taskInTerminal')){
-            $data->TabCaption = 'Артикули';
+            $data->TabCaption = 'Планиране';
             $data->Tab = 'top';
         }
         
