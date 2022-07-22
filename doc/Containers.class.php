@@ -457,9 +457,14 @@ class doc_Containers extends core_Manager
         }
         
         expect($data->threadRec->firstContainerId, 'Проблемен запис на нишка', $data->threadRec);
-        
+
         bgerp_Recently::add('document', $data->threadRec->firstContainerId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
-        
+        $otherDocChanges = doc_Threads::fetch(array("#id != '[#1#]' AND #folderId = '[#2#]' AND #state != 'rejected' AND #last > '[#3#]'",
+                                        $data->threadRec->id, $data->threadRec->folderId, $data->threadRec->last));
+        if (!$otherDocChanges) {
+            bgerp_Recently::add('folder', $data->threadRec->folderId, null, ($data->threadRec->state == 'rejected') ? 'yes' : 'no');
+        }
+
         $data->query->orderBy('#createdOn, #id');
         
         $threadId = Request::get('threadId', 'int');
