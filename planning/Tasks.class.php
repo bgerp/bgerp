@@ -122,7 +122,7 @@ class planning_Tasks extends core_Master
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,taskPlanning';
+    public $canSingle = 'ceo,taskWorker';
 
 
     /**
