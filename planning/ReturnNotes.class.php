@@ -58,7 +58,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кой има право да чете?
      */
-    public $canConto = 'ceo,planning,store,production';
+    public $canConto = 'ceo,planning,store';
     
     
     /**
@@ -140,7 +140,7 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кой може да го прави документа чакащ/чернова?
      */
-    public $canPending = 'ceo,planning,store';
+    public $canPending = 'ceo,planning,store,production';
     
     
     /**
