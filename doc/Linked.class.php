@@ -1610,8 +1610,8 @@ class doc_Linked extends core_Manager
                 
                 // Ако документа е оттеглен
                 $dRec = $doc->fetch();
+                $attr['class'] = 'state-' . $dRec->state;
                 if ($dRec->state == 'rejected') {
-                    $attr['class'] = 'state-rejected';
                     $attr['style'] = 'text-decoration: line-through; color: #666;';
                 }
                 $comment = $doc->getDefaultLinkedComment($comment);
