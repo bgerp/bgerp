@@ -425,14 +425,14 @@ class planning_Centers extends core_Master
         // Ако се показват вербални опции - слага се група на опциите и се обръщат имената на артикулите
         if($verbal){
             $options = array();
-            if(countR($finalSteps)){
-                $options += array('fs' => (object) array('group' => true, 'title' => tr('Финални етапи'))) + $finalSteps;
-            }
-            if(countR($nonFinalSteps)){
+	    if(countR($nonFinalSteps)){
                 $options += array('nfs' => (object) array('group' => true, 'title' => tr('Междинни етапи'))) + $nonFinalSteps;
             }
+            if(countR($finalSteps)){
+                $options += array('fs' => (object) array('group' => true, 'title' => tr('Финални етапи'))) + $finalSteps;
+            }            
         } else {
-            $options = $finalSteps + $nonFinalSteps;
+            $options = $nonFinalSteps + $finalSteps;
         }
 
         return $options;
