@@ -64,25 +64,25 @@ class planning_ReturnNotes extends deals_ManifactureMaster
     /**
      * Кой може да го разглежда?
      */
-    public $canList = 'ceo,planning,store';
+    public $canList = 'ceo,planning,store,production';
     
     
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,planning,store';
+    public $canSingle = 'ceo,planning,store,production';
     
     
     /**
      * Кой има право да променя?
      */
-    public $canEdit = 'ceo,planning,store';
+    public $canEdit = 'ceo,planning,store,production';
     
     
     /**
      * Кой има право да добавя?
      */
-    public $canAdd = 'ceo,planning,store';
+    public $canAdd = 'ceo,planning,store,production';
     
     
     /**
