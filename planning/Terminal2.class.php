@@ -56,11 +56,21 @@ class planning_Terminal2 extends core_Mvc
         }
 
         if(strpos($cmd, 'Сигнал:') === 0) {
-            $res['selectMenu'] = "Машини";
+            $res['menuTitle'] = "Оборудване";
+            $res['menuBody'] = "
+                <div>Машина 1</div>
+                <div>Машина 2</div>
+            ";
+            $res['menuBackgroundColor'] = "#669";
         }
 
         if(strpos($cmd, 'Операция:') === 0) {
-            $res['modalWindow'] = "Операции...";
+            $res['menuTitle'] = "Производствени операции";
+            $res['menuBody'] = "
+                <div>Операция 1</div>
+                <div>Операция 2</div>
+            ";
+            $res['menuBackgroundColor'] = "#696";
         }
 
         $res = json_encode($res);
