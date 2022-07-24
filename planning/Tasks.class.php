@@ -122,7 +122,7 @@ class planning_Tasks extends core_Master
     /**
      * Кой може да разглежда сингъла на документите?
      */
-    public $canSingle = 'ceo,taskPlanning';
+    public $canSingle = 'ceo,taskWorker';
 
 
     /**
@@ -134,7 +134,7 @@ class planning_Tasks extends core_Master
     /**
      * Кой може да го активира?
      */
-    public $canChangestate = 'ceo, taskPlanning';
+    public $canChangestate = 'ceo, taskWorker';
     
     
     /**
@@ -300,7 +300,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('progress', 'percent', 'caption=Прогрес,input=none,notNull,value=0');
         $this->FLD('systemId', 'int', 'silent,input=hidden');
-        $this->FLD('description', 'richtext(rows=2,bucket=Notes)', 'caption=Допълнително->Описание,autoHide');
+        $this->FLD('description', 'richtext(rows=2,bucket=Notes,passage)', 'caption=Допълнително->Описание,autoHide');
         $this->FLD('orderByAssetId', 'double(smartRound)', 'silent,input=hidden,caption=Подредба,smartCenter');
 
         $this->FLD('prevErrId', 'key(mvc=planning_Tasks,select=title)', 'input=none,caption=Предишна грешка');
@@ -511,7 +511,7 @@ class planning_Tasks extends core_Master
                 }
             }
 
-            $row->labelTemplate = (isset($rec->labelTemplate)) ? label_Templates::getHyperlink($rec->labelTemplate) : "<span class='quiet'>N/A</span>";
+            $row->labelTemplate = (isset($rec->labelTemplate)) ? ht::createHint(ht::createLink("№{$rec->labelTemplate}", label_Templates::getSingleUrlArray($rec->labelTemplate)), label_Templates::getTitleById($rec->labelTemplate)) : "<span class='quiet'>N/A</span>";
 
             // Линк към отпечаванията ако има
             if(label_Prints::haveRightFor('list')){
@@ -771,6 +771,11 @@ class planning_Tasks extends core_Master
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#indPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|Разпределяне|*:</td><td>[#indTimeAllocation#]</td></tr>
                 </table>"));
+
+        $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
+        if($batchTpl instanceof core_ET){
+            $resArr['batches'] = array('name' => tr('Партиди'), 'val' => $batchTpl->getContent());
+        }
 
         if(empty($rec->weightDeviationWarning)){
             $row->weightDeviationWarning = core_Type::getByName('percent')->toVerbal(planning_Setup::get('TASK_WEIGHT_TOLERANCE_WARNING'));

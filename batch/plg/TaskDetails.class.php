@@ -126,6 +126,13 @@ class batch_plg_TaskDetails extends core_Plugin
                         if (!$BatchClass->isValid($rec->batch, $quantity, $msg)) {
                             $form->setError('batch', $msg);
                         }
+
+                        if(!$form->gotErrors()){
+                            $BatchClass = batch_Defs::getBatchDef($jobProductId);
+                            if (is_object($BatchClass)) {
+                                $rec->batch = $BatchClass->normalize($rec->batch);
+                            }
+                        }
                     }
                 }
             }
@@ -168,5 +175,76 @@ class batch_plg_TaskDetails extends core_Plugin
             $jobDoc = doc_Containers::getDocument($taskRec->originId);
             $res = $jobDoc->getInstance()->getAllowedBatchesForJob($taskRec->originId);
         }
+    }
+
+
+    /**
+     * Сумарно рендиране на партидите от детайлите на една ПО
+     *
+     * @param $mvc
+     * @param $res
+     * @param $masterId
+     * @return void
+     */
+    public static function on_AfterRenderBatchesSummary($mvc, &$res, $masterId)
+    {
+        $masterRec = planning_Tasks::fetchRec($masterId);
+        $jobRec = planning_Jobs::fetch("#containerId = {$masterRec->originId}");
+        $batchDef = batch_Defs::getBatchDef($jobRec->productId);
+        if(!is_object($batchDef)) return;
+
+        $batchesSummary = array();
+        $bQuery = batch_BatchesInDocuments::getQuery();
+        $bQuery->where("#containerId = {$masterRec->originId}");
+        while($bRec = $bQuery->fetch()){
+            $batchesSummary[$bRec->batch] = array('planned' => $bRec->quantity / $masterRec->quantityInPack, 'produced' => 0, 'batch' => $batchDef->toVerbal($bRec->batch));
+        }
+        if(!countR($batchesSummary)) return;
+
+        $plannedByNow = arr::sumValuesArray($batchesSummary, 'planned');
+        $withoutBatch = ($jobRec->quantity / $masterRec->quantityInPack) - $plannedByNow;
+        if($withoutBatch > 0){
+            $batchesSummary[null] = array('planned' => $withoutBatch, 'produced' => 0, 'batch' => null);
+        }
+
+        $dQuery = planning_ProductionTaskDetails::getQuery();
+        $dQuery->where("#taskId = {$masterRec->id} AND #type = 'production'");
+        while($dRec = $dQuery->fetch()){
+            $batchesSummary[$dRec->batch]['produced'] += $dRec->quantity / $masterRec->quantityInPack;
+        }
+
+        $tpl = new core_ET("<table>[#ROWS#]</table>");
+        $block = new core_ET("<tr ><td><span style='font-weight:normal'><!--ET_BEGIN label-->[#label#]: <!--ET_END label-->[#batch#]</span></td><td>[#produced#] <i style='font-weight:normal'>([#planned#])</i></td>");
+        foreach ($batchesSummary as $arr){
+            $arr['planned'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['planned']) . " " . cat_UoM::getShortName($masterRec->measureId);
+            $arr['produced'] = core_Type::getByName('double(smartRound)')->toVerbal($arr['produced']);
+
+            $batchArr = array();
+            if(!empty($arr['batch'])){
+                $caption = $batchDef->getFieldCaption();
+                $arr['label'] = (!empty($caption)) ? tr($caption) : 'lot';
+                $batch = batch_Movements::getLinkArr($jobRec->productId, $arr['batch']);
+
+                if (is_array($batch)) {
+                    foreach ($batch as $key => &$b) {
+                        $clone = $arr;
+                        $clone['batch'] = $b;
+                        $batchArr[] = $clone;
+                    }
+                }
+            } else {
+                $arr['batch'] = "<i>" . tr('Без партида') . "</i>: ";
+                $batchArr[] = $arr;
+            }
+
+            foreach ($batchArr as $arr2) {
+                $bTpl = clone $block;
+                $bTpl->placeArray($arr2);
+                $bTpl->removeBlocksAndPlaces();
+                $tpl->append($bTpl, 'ROWS');
+            }
+        }
+
+        $res = $tpl;
     }
 }

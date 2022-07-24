@@ -143,26 +143,17 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         $query->EXT('indTimeAllocation', 'planning_Tasks', 'externalName=indTimeAllocation,externalKey=taskId');
         $query->EXT('folderId', 'planning_Tasks', 'externalName=folderId,externalKey=taskId');
+        $query->EXT('originId', 'planning_Tasks', 'externalName=originId,externalKey=taskId');
 
         $query->where("#state != 'rejected' ");
 
         // Ако е посочена начална дата на период
         if ($rec->start) {
-//            $query->where(array(
-//                "#date >= '[#1#]'",
-//                $rec->start . ' 00:00:00'
-//            ));$indTimeSumArr
-
             $query->where("(#date IS NOT NULL AND #date >= '$rec->start .00:00:01') OR (#date IS NULL AND #createdOn >= '$rec->start .00:00:01')");
         }
 
         //Крайна дата / 'към дата'
         if ($rec->to) {
-//            $query->where(array(
-//                "#date <= '[#1#]'",
-//                $rec->to . ' 23:59:59'
-//            ));
-
             $query->where("(#date IS NOT NULL AND #date <= '$rec->to.23:59:59') OR (#date IS NULL AND #createdOn <= '$rec->to.23:59:59')");
         }
 
@@ -199,7 +190,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             foreach ($counter as $val) {
                 $Task = doc_Containers::getDocument(planning_Tasks::fetchField($tRec->taskId, 'containerId'));
-                $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity');
+                $iRec = $Task->fetch('id,containerId,measureId,folderId,quantityInPack,labelPackagingId,indTime,indPackagingId,indTimeAllocation,totalQuantity,originId');
 
                 $quantity = $tRec->quantity;
 
@@ -243,6 +234,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $recs[$id] = (object)array(
 
                         'taskId' => $tRec->taskId,
+                        'originId' => $tRec->originId,
                         'detailId' => $tRec->id,
                         'indTime' => $normTime,
                         'indTimeSum' => $indTimeSum,
@@ -281,7 +273,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
-            if ($rec->resultsOn == 'users') {
+            if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                 $this->groupByField = 'employees';
             }
 
@@ -327,6 +319,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             $recs[$id] = (object)array(
 
                                 'taskId' => $clone->taskId,
+                                'originId' => $tRec->originId,
                                 'detailId' => $clone->detailId,
                                 'indTime' => $clone->indTime,
                                 'indPackagingId' => $clone->indPackagingId,
@@ -396,6 +389,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
         if ($export === false) {
             if ($rec->typeOfReport == 'full') {
+                $fld->FLD('jobs', 'varchar', 'caption=Задание');
                 $fld->FLD('taskId', 'varchar', 'caption=Операция');
                 $fld->FLD('article', 'varchar', 'caption=Артикул');
 
@@ -458,6 +452,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
         $row = new stdClass();
 
 
+
+        if ($dRec->originId) {
+            $Job = doc_Containers::getDocument($dRec->originId);
+            $row->jobs = ht::createLink($Job->getHandle(), array($Job->getInstance(), 'single', $Job->that));
+        }
+
         $row->taskId = planning_Tasks::getHyperlink($dRec->taskId, true);
         $row->article = cat_Products::getHyperlink($dRec->productId, true);
 
@@ -480,9 +480,11 @@ class planning_reports_Workflows extends frame2_driver_TableData
         } else {
             if (isset($dRec->employees)) {
                 foreach (keylist::toArray($dRec->employees) as $key => $val) {
-                    //  $pers = (planning_Hr::getCodeLink(($val)));
+
                     $indTimeSum = $Double->toVerbal($rec->indTimeSumArr[$val]);
-                    $pers = crm_Persons::getTitleById(($val)) . ' - ' . planning_Hr::getCodeLink($val) . ' - ' . $indTimeSum . ' мин.';
+
+                    $name = crm_Persons::fetch($val)->name;
+                    $pers = ht::createLink($name,array('crm_Persons', 'single',$val)) . ' - ' . $indTimeSum . ' мин.';
 
                     $row->employees .= $pers . '</br>';
                 }
@@ -665,6 +667,10 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             case 'machines':
                 $key = $tRec->taskId . '|' . $tRec->productId . '|' . $tRec->fixedAsset;
+                break;
+
+            case 'jobses':
+                $key = $tRec->originId . '|' . $tRec->productId . '|' . $tRec->employees;
                 break;
 
         }
