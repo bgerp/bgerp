@@ -1055,7 +1055,7 @@ class planning_Tasks extends core_Master
     {
         // Ако записа е създаден с клониране не се прави нищо
         if ($rec->_isClone === true) return;
-        
+
         if (isset($rec->originId)) {
             $originDoc = doc_Containers::getDocument($rec->originId);
             $originRec = $originDoc->fetch();
@@ -1099,8 +1099,8 @@ class planning_Tasks extends core_Master
             cat_products_Params::saveParams($mvc, $rec);
         }
     }
-    
-    
+
+
     /**
      * Подготовка на формата за добавяне/редактиране
      */
@@ -2375,6 +2375,7 @@ class planning_Tasks extends core_Master
      */
     protected static function on_AfterActivation($mvc, &$rec)
     {
+        $saveRecs = array();
         if(isset($rec->wasteProductId)){
 
             // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
@@ -2395,7 +2396,31 @@ class planning_Tasks extends core_Master
             }
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
-            planning_ProductionTaskProducts::save($wasteRec);
+            $saveRecs[] = $wasteRec;
+        }
+
+        if($Driver = cat_Products::getDriver($rec->productId)){
+            $pData = $Driver->getProductionData($rec->productId);
+
+            // Ако има планиращи действия
+            if(is_array($pData['actions'])){
+                foreach ($pData['actions'] as $actionId){
+                    if(planning_ProductionTaskProducts::fetchField("#taskId = {$rec->id} AND #type = 'input' AND #productId = {$actionId}")) continue;
+
+                    // Ще се създава запис за планираното действие за влагане
+                    $inputRec = (object)array('taskId' => $rec->id, 'productId' => $actionId, 'type' => 'input', 'quantityInPack' => 1, 'plannedQuantity' => 1, 'packagingId' => cat_Products::fetchField($actionId, 'measureId'));
+                    if($normRec = planning_AssetResources::getNormRec($rec->assetId, $actionId)){
+                        $inputRec->indTime = $normRec->indTime;
+                    }
+                    $saveRecs[] = $inputRec;
+                }
+
+                core_Statuses::newStatus('Добавени са планираните действия за операцията|*!');
+            }
+        }
+
+        if(countR($saveRecs)){
+            cls::get('planning_ProductionTaskProducts')->saveArray($saveRecs);
         }
     }
 }
