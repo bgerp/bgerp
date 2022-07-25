@@ -175,9 +175,15 @@ class bgerp_plg_FLB extends core_Plugin
         // Ако се проверява за избор на текущ, допълнително се проверява, дали потребителя може да избира обекта
         if ($action == 'select') {
             $res = isset($mvc->canSelect) ? $mvc->canSelect : $mvc->canActivate;
-            
-            if (isset($rec) && !self::canUse($mvc, $rec, $userId, 'select')) {
-                $res = 'no_one';
+
+            if(isset($rec)){
+                if(!self::canUse($mvc, $rec, $userId, 'select')){
+                    $res = 'no_one';
+                }
+
+                if(in_array($rec->state, array('closed', 'rejected'))){
+                    $res = 'no_one';
+                }
             }
         }
     }
@@ -217,10 +223,13 @@ class bgerp_plg_FLB extends core_Plugin
         
         $default = $data->listFilter->getField('users')->type->fitInDomain('all_users');
         $data->listFilter->setDefault('users', $default);
-        
+        $data->query->orderBy('state', 'ASC');
+
         // Скриване на записите до които няма достъп
         if ($selectedUsers = $data->listFilter->rec->users) {
-            self::addUserFilterToQuery($mvc, $data->query, $selectedUsers);
+            if(!haveRole('ceo,debug,admin')){
+                self::addUserFilterToQuery($mvc, $data->query, $selectedUsers);
+            }
         }
     }
     
@@ -268,7 +277,11 @@ class bgerp_plg_FLB extends core_Plugin
             $cond .= " OR #inCharge = {$userId} ";
             $count++;
         }
-        
+
+        if($mvc->getField('state', false)){
+            $cond = "(#state != 'rejected' AND #state != 'closed') AND ($cond)";
+        }
+
         $query->where($cond);
     }
     
