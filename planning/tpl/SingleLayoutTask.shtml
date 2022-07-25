@@ -17,6 +17,6 @@
 
 
 <!--ET_BEGIN description-->
-<div style="margin-bottom: 10px;"><div style="display:inline-block"><div style="display:inline-block">|Описание|*:</div> [#description#]</div></div>
+<div style="margin-bottom: 10px;"><div style="display:inline-block"><div style="display:inline-block"><b>|Описание|*</b>:</div> [#description#]</div></div>
 <!--ET_END description-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]
