@@ -740,7 +740,7 @@ class planning_AssetResources extends core_Master
         $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
         $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
         $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending', 'stopped')))) AND #assetId = {$assetId}");
-        $tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId,timeStart,isFinal,jobProductId,labelQuantityInPack,labelPackagingId');
+        $tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId,timeStart,isFinal,jobProductId,labelQuantityInPack,labelPackagingId,simultaneity');
         $tQuery->orderBy('orderByAssetIdCalc,id', $order);
         $taskRecs = $tQuery->fetchAll();
 
@@ -1033,7 +1033,8 @@ class planning_AssetResources extends core_Master
             }
 
             $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
-            $duration = round($indTime / $assetRec->simultaneity);
+            $simultaneity = isset($taskRec->simultaneity) ? : $assetRec->simultaneity;
+            $duration = round($indTime / $simultaneity);
         }
 
         // От продължителността, се приспада произведеното досега

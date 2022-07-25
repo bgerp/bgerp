@@ -262,7 +262,9 @@ class planning_Tasks extends core_Master
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=К-во в мярка,input=none');
 
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
-        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|freeTimeAfter');
+        $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|freeTimeAfter|simultaneity');
+        $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
+
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,input=hidden,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
@@ -284,7 +286,7 @@ class planning_Tasks extends core_Master
 
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
-        $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност');
+        $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,formOrder=103');
 
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes,autohide');
@@ -554,6 +556,17 @@ class planning_Tasks extends core_Master
 
         // Ако има избрано оборудване
         if(isset($rec->assetId)){
+            $hintSimultaneity = false;
+            $assetSimultaneity = $rec->simultaneity;
+            if(!isset($assetSimultaneity)){
+                $assetSimultaneity = planning_AssetResources::fetchField($rec->assetId, 'simultaneity');
+                $hintSimultaneity = true;
+            }
+            $row->simultaneity = core_Type::getByName('int')->toVerbal($assetSimultaneity);
+            if($hintSimultaneity){
+                $row->simultaneity = ht::createHint("<span style='color:blue'>{$row->simultaneity}</span>", 'Зададена е в оборудването');
+            }
+
             $row->assetId = planning_AssetResources::getHyperlink($rec->assetId, true);
             if(isset($fields['-single']) && isset($rec->prevAssetId)){
                 $row->assetId = ht::createHint($row->assetId, "Предишно оборудване|*: " . planning_AssetResources::getTitleById($rec->prevAssetId), 'warning', false);
@@ -773,6 +786,7 @@ class planning_Tasks extends core_Master
                 <tr><td style='font-weight:normal'>|Норма|*:</td><td>[#indTime#]</td></tr>
                 <tr><td style='font-weight:normal'>|Опаковка|*:</td><td>[#indPackagingId#]</td></tr>
                 <tr><td style='font-weight:normal'>|Разпределяне|*:</td><td>[#indTimeAllocation#]</td></tr>
+                <!--ET_BEGIN simultaneity--><tr><td style='font-weight:normal'>|Едновременност|*:</td><td>[#simultaneity#]</td></tr><!--ET_END simultaneity-->
                 </table>"));
 
         $batchTpl = planning_ProductionTaskDetails::renderBatchesSummary($rec);
@@ -1395,6 +1409,8 @@ class planning_Tasks extends core_Master
         // Ако има избрано оборудване се добавя след края на коя операция да започне тази
         $form->input('assetId', 'silent');
         if(isset($rec->assetId)){
+            $assetSimultaneity = planning_AssetResources::fetchField($rec->assetId, 'simultaneity');
+            $form->setField('simultaneity', "input,placeholder={$assetSimultaneity}");
             if($data->action != 'clone'){
                 $assetTasks = planning_AssetResources::getAssetTaskOptions($rec->assetId, true);
                 unset($assetTasks[$rec->id]);
@@ -1416,6 +1432,7 @@ class planning_Tasks extends core_Master
                 }
             }
         } else {
+            $form->setField('simultaneity', 'input=none');
             $form->setField('startAfter', 'input=none');
         }
 
