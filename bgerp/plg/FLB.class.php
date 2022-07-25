@@ -268,7 +268,11 @@ class bgerp_plg_FLB extends core_Plugin
             $cond .= " OR #inCharge = {$userId} ";
             $count++;
         }
-        
+
+        if($mvc->getField('state', false)){
+            $cond = "(#state != 'rejected' AND #state != 'closed') AND ($cond)";
+        }
+
         $query->where($cond);
     }
     
