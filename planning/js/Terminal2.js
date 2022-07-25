@@ -78,20 +78,32 @@ function setCmd(cmd) {
 	if(str.charAt(len - 1) == ':') {
 		str = '';
 	}
-
 	input.value = cmd + ': ' + str;
+	cmdFocus()
+	doCmd();
+}
+
+
+function cmdFocus() {
+	const input = document.getElementById('cmdInput');
 	const end = input.value.length;
 	input.setSelectionRange(end, end);
-	doCmd();
-	 
+	input.focus();
 }
+
 
 /**
  * Задава команда за количество
  */
 function setQuantity()
 {
-	setCmd('Количество');
+	const quantity = getFloat();
+	const quantityInput = document.getElementById('quantity');
+	if(!isNaN(quantity) && quantity > 0) {
+		quantityInput.innerHTML = quantity;
+	} else {
+		quantityInput.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+	}
 }
 
 /**
@@ -99,7 +111,15 @@ function setQuantity()
  */
 function setWeight()
 {
-	setCmd('Тегло');
+	const weight = getFloat();
+	const weightInput = document.getElementById('weight');
+	if(!isNaN(weight) && weight > 0) {
+		weightInput.innerHTML = weight.toFixed(2);
+		weightInput.setAttribute('data-manual', 'yes');
+	} else {
+		weightInput.innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+		weightInput.setAttribute('data-manual', 'no');
+	}
 }
 
 /**
@@ -160,13 +180,28 @@ function setSignal()
 }
 
 
+function getFloat()
+{
+	const cmdInput = document.getElementById('cmdInput');
+
+	str = cmdInput.value;
+ 
+	cmdInput.value = '';
+
+	cmdFocus();
+
+	return parseFloat(str);
+}
+
+
 /**
  * Изпълнява зададената команда в главния инпут
  */
 function doCmd() {
-	const elem = document.getElementById('cmdInput');
 
-	cmd = elem.value;
+	const cmdInput = document.getElementById('cmdInput');
+
+	cmd = cmdInput.value;
 	
 	// Създаваме XMLHttpRequest обект 
     var xhr = new XMLHttpRequest();
@@ -179,8 +214,7 @@ function doCmd() {
     xhr.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             setResponse(this.responseText);
-			const input = document.getElementById('cmdInput');
-			input.value = '';
+			cmdInput.value = '';
         }
     }
 
@@ -196,24 +230,62 @@ function setResponse(res)
 	const resArr = JSON.parse(res);
 	
 	console.log(resArr);
-	console.log('quantity' in resArr);
-	if('quantity' in resArr) {
-		var elem = document.getElementById('quantity');
-		elem.innerHTML = resArr['quantity'];
-	}
+	
+	const selectTitle = document.getElementById('selectTitle');
+	selectTitle.innerHtml = '';
+	
+	const selectBody = document.getElementById('selectBody');
+	selectBody.innerHtml = '';
 
-	if('selectMenu' in resArr) {
-		var elem = document.getElementById('selectMenu');
-		elem.innerHTML = resArr['selectMenu'];
-		displayByClass('panel', 'selectMenu')
-	}
-    
-	if('modalWindow' in resArr) {
-		var elem = document.getElementById('modalWindow');
-		elem.innerHTML = resArr['modalWindow'];
-		modal.open('modalWindowDialog');
+	const modalTitle = document.getElementById('modalTitle');
+	modalTitle.innerHtml = '';
+
+	const modalBody = document.getElementById('modalBody');
+	modalBody.innerHtml = '';
+
+	if('menuBody' in resArr && 'menuTitle' in resArr) {
+		
+		const right = document.getElementById('right');
+
+		if(right.clientWidth >= 680) {
+			selectTitle.innerHTML = resArr['menuTitle'];
+			selectBody.innerHTML = resArr['menuBody'];
+			if('menuBackgroundColor' in resArr) {
+				const selectMenu = document.getElementById('selectMenu');
+				selectMenu.style.backgroundColor = resArr['menuBackgroundColor'];
+			}
+			displayByClass('panel', 'selectMenu');
+		} else {
+			modalTitle.innerHTML = resArr['menuTitle'];
+			modalBody.innerHTML = resArr['menuBody'];
+			if('menuBackgroundColor' in resArr) {
+				const modalMenu = document.getElementById('modalMenu');
+				modalMenu.style.backgroundColor = resArr['menuBackgroundColor'];
+			}
+			modal.open('modalWindowDialog');
+		}
 	}
 }
+
+
+/**
+ * Ако е зададено, обновява през малък интервал показанията на везната
+ */
+function updateWeight()
+{
+	const weightInput = document.getElementById('weight');
+	
+	if(weightInput.getAttribute('data-manual') != 'yes') {
+
+		// TODO: Тук трябва да се направи определянето на теглото от кантара, чрез заявка към localhost
+		const weight = (Math.random() * 0.5 + 13.5).toFixed(2);
+
+		weightInput.innerHTML = weight;
+	}
+}
+
+
+ 
 
 /**
  * Начално инициализиране на терминала
@@ -226,18 +298,21 @@ function init(evn) {
 		}
 	}
 
-	const elem = document.getElementById('cmdInput');
-	elem.addEventListener("keyup", function(event) {
+	const cmdInput = document.getElementById('cmdInput');
+	cmdInput.addEventListener("keyup", function(event) {
 		if (event.key === "Enter") {
 			doCmd();
 		}
 	});
+	cmdFocus();
 
 	document.addEventListener("keydown", function(e) {
 	  if (e.key === "Enter") {
 		toggleFullScreen();
 	  }
 	}, false);
+
+	setInterval(updateWeight, 1000);
 }
 
 
@@ -277,6 +352,7 @@ modal = {
         // When the user clicks on <span> (x), close the modal
         span.onclick = function() {
             modal.classList.remove("visible");
+			cmdFocus();
         }
 
         // When the user clicks anywhere outside of the modal, close it

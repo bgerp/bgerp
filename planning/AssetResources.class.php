@@ -1031,7 +1031,11 @@ class planning_AssetResources extends core_Master
 
         // От продължителността, се приспада произведеното досега
         $duration = round((1 - $taskRec->progress) * $duration);
-        $duration = max($duration, $minDuration);
+
+        // Ако има още за изпълнение взема се по-голямото от мин. продължителност и оставащото време
+        if($taskRec->progress < 1){
+            $duration = max($duration, $minDuration);
+        }
 
         // Към така изчислената продължителност се добавя тази от действията към машината
         $res->durationCalced = $duration;

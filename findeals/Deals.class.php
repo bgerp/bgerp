@@ -766,25 +766,6 @@ class findeals_Deals extends deals_DealBase
     
     
     /**
-     * Филтър на продажбите
-     */
-    protected static function on_AfterPrepareListFilter(core_Mvc $mvc, &$data)
-    {
-        if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->setOptions('state', array('' => '') + arr::make('draft=Чернова, active=Активиран, closed=Приключен', true));
-            $data->listFilter->setField('state', 'placeholder=Всички');
-            $data->listFilter->showFields .= ',state';
-            
-            $data->listFilter->input();
-            
-            if ($state = $data->listFilter->rec->state) {
-                $data->query->where("#state = '{$state}'");
-            }
-        }
-    }
-    
-    
-    /**
      * @param int $id key(mvc=findeals_Deals)
      *
      * @see doc_DocumentIntf::getDocumentRow()

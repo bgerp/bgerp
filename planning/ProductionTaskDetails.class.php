@@ -1096,7 +1096,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
         $normFormQuantity = round($normFormQuantity);
         if($verbal) {
-            $normFormQuantity = "|Заработка|*: {$normFormQuantity} s";
+            $normFormQuantityVerbal = ($normFormQuantity > 60) ? round($normFormQuantity / 60, 2) . " min" : $normFormQuantity . " s";
+            $normFormQuantity = "|Заработка|*: {$normFormQuantityVerbal}";
             if(haveRole('debug')){
                 $quantity = round($quantity, 5);
                 $normFormQuantity .= " [N:{$rec->norm} - Q:{$quantity}]";

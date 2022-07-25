@@ -1228,6 +1228,7 @@ class planning_Tasks extends core_Master
             if($measuresCount == 1){
                 $form->setField('measureId', 'input=hidden');
             }
+
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
             if($rec->isFinal == 'yes'){
                 $packType = cat_UoM::fetchField($originRec->packagingId, 'type');
@@ -1362,7 +1363,7 @@ class planning_Tasks extends core_Master
             }
 
             if(isset($rec->indPackagingId)){
-                $form->setFieldTypeParams('indTime', array('measureId' => $rec->measureId));
+                $form->setFieldTypeParams('indTime', array('measureId' => $rec->indPackagingId));
             }
 
             if(isset($rec->wasteProductId)){
@@ -2031,6 +2032,13 @@ class planning_Tasks extends core_Master
     {
         $rows = &$data->rows;
         if (!countR($rows)) return;
+
+        if(Mode::is('printing')){
+            $uniqueFolders = arr::extractValuesFromArray($data->recs, 'folderId');
+            if(countR($uniqueFolders) == 1){
+                unset($data->listFields['folderId']);
+            }
+        }
 
         // Ако е филтрирано по център на дейност
         if ($data->listFilter->rec->folder) {
