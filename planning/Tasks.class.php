@@ -2033,6 +2033,13 @@ class planning_Tasks extends core_Master
         $rows = &$data->rows;
         if (!countR($rows)) return;
 
+        if(Mode::is('printing')){
+            $uniqueFolders = arr::extractValuesFromArray($data->recs, 'folderId');
+            if(countR($uniqueFolders) == 1){
+                unset($data->listFields['folderId']);
+            }
+        }
+
         // Ако е филтрирано по център на дейност
         if ($data->listFilter->rec->folder) {
             $Cover = doc_Folders::getCover($data->listFilter->rec->folder);
