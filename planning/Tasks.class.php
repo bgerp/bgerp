@@ -1228,6 +1228,7 @@ class planning_Tasks extends core_Master
             if($measuresCount == 1){
                 $form->setField('measureId', 'input=hidden');
             }
+
             $form->setFieldTypeParams("indTime", array('measureId' => $rec->measureId));
             if($rec->isFinal == 'yes'){
                 $packType = cat_UoM::fetchField($originRec->packagingId, 'type');
@@ -1362,7 +1363,7 @@ class planning_Tasks extends core_Master
             }
 
             if(isset($rec->indPackagingId)){
-                $form->setFieldTypeParams('indTime', array('measureId' => $rec->measureId));
+                $form->setFieldTypeParams('indTime', array('measureId' => $rec->indPackagingId));
             }
 
             if(isset($rec->wasteProductId)){
