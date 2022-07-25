@@ -64,7 +64,7 @@
             <tr>
                 <td>[#expectedTimeStart#]</td>
                 <td>[#expectedTimeEnd#]</td>
-                <td>[#expectedDuration#]<!--ET_BEGIN calcedDuration--> <div style="font-size:0.6em;font-weight:normal;">( |Изч.|*: [#calcedDuration#] )</div><!--ET_END calcedDuration--></td>
+                <td>[#expectedDuration#]<!--ET_BEGIN calcedDuration--> <div style="font-size:0.6em;font-weight:normal;">( |нето|*: [#calcedDuration#] )</div><!--ET_END calcedDuration--></td>
                 <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
                     <!--ET_BEGIN assetId-->
                     <span style='font-weight:normal'>|Оборудване|*</span>: [#assetId#]<br>
