@@ -740,7 +740,7 @@ class planning_AssetResources extends core_Master
         $tQuery->EXT('jobProductId', 'planning_Jobs', 'externalName=productId,remoteKey=containerId,externalFieldName=originId');
         $tQuery->XPR('orderByAssetIdCalc', 'double', "COALESCE(#orderByAssetId, 9999)");
         $tQuery->where("(#orderByAssetId IS NOT NULL OR (#orderByAssetId IS NULL AND (#state IN ('active', 'wakeup', 'pending', 'stopped')))) AND #assetId = {$assetId}");
-        $tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId,timeStart,isFinal,jobProductId');
+        $tQuery->show('id,orderByAssetId,productId,measureId,originId,plannedQuantity,indTime,progress,timeDuration,indPackagingId,timeStart,isFinal,jobProductId,labelQuantityInPack,labelPackagingId,simultaneity');
         $tQuery->orderBy('orderByAssetIdCalc,id', $order);
         $taskRecs = $tQuery->fetchAll();
 
@@ -983,7 +983,7 @@ class planning_AssetResources extends core_Master
 
         // Запис на преизчислените начала и краища на операциите
         $Tasks = cls::get('planning_Tasks');
-        $Tasks->saveArray($updateRecs, 'id,freeTimeAfter,expectedTimeStart,expectedTimeEnd,orderByAssetId');
+        $Tasks->saveArray($updateRecs, 'id,freeTimeAfter,expectedTimeStart,expectedTimeEnd,orderByAssetId,calcedDuration');
 
         // Записване на времето за обновяване
         $me = cls::get(get_called_class());
@@ -1020,29 +1020,39 @@ class planning_AssetResources extends core_Master
                 $calcedPlannedQuantity = $taskRec->plannedQuantity;
             } else {
                 $indProductIdKey = ($taskRec->isFinal == 'yes') ? $taskRec->jobProductId : $taskRec->productId;
-                $indQuantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"] : 1;
+
+                // Ако мярката за нормиране е същата като тази от етикета - взема се неговото к-во
+                if($taskRec->indPackagingId == $taskRec->labelPackagingId && $taskRec->labelQuantityInPack){
+                    $indQuantityInPack = $taskRec->labelQuantityInPack;
+                } else {
+                    $indQuantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->indPackagingId}"] : 1;
+                }
+
                 $quantityInPack = isset($pPacks["{$indProductIdKey}|{$taskRec->measureId}"]) ? $pPacks["{$indProductIdKey}|{$taskRec->measureId}"] : 1;
                 $calcedPlannedQuantity = round(($taskRec->plannedQuantity * $quantityInPack) / $indQuantityInPack);
             }
 
             $indTime = planning_type_ProductionRate::getInSecsByQuantity($taskRec->indTime, $calcedPlannedQuantity);
-            $duration = round($indTime / $assetRec->simultaneity);
+            $simultaneity = isset($taskRec->simultaneity) ? : $assetRec->simultaneity;
+            $duration = round($indTime / $simultaneity);
         }
 
         // От продължителността, се приспада произведеното досега
+        $nettDuration = $duration;
         $duration = round((1 - $taskRec->progress) * $duration);
 
         // Ако мин прогреса е под 100%, то се използва мин. продължителността, иначе за мин. прод. се използва 0
-        $minDuration = ($taskRec->progress < 1) ? 0 : $minDuration;
+        $minDuration = ($taskRec->progress >= 1) ? 1 : $minDuration;
         $duration = max($duration, $minDuration);
 
         // Към така изчислената продължителност се добавя тази от действията към машината
         $res->durationCalced = $duration;
         if(array_key_exists($taskRec->id, $normsByTask)){
             $duration += array_sum($normsByTask[$taskRec->id]);
+            $nettDuration += array_sum($normsByTask[$taskRec->id]);
             $res->actionNorms = $normsByTask[$taskRec->id];
         }
-        $res->durationLeft = $duration;
+        $res->calcedDuration = $nettDuration;
 
         // Колко ще е отместването при прекъсване
         $interruptOffset = array_key_exists($taskRec->productId, $interruptionArr) ? $interruptionArr[$taskRec->productId] : null;
@@ -1054,7 +1064,6 @@ class planning_AssetResources extends core_Master
             $begin = max($taskRec->timeStart, $now);
             $begin = strtotime($begin);
         }
-
         $timeArr = $Interval->consume($duration, $begin, null, $interruptOffset);
 
         // Ако е успешно записват се началото и края
