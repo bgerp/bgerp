@@ -145,6 +145,9 @@
                 <!--ET_BEGIN lg-->
                 <div>Език: [#lg#]</div>
                 <!--ET_END lg-->
+                <!--ET_BEGIN canUnsubscribe-->
+                <div>Възможност за отипсване: [#canUnsubscribe#]</div>
+                <!--ET_END canUnsubscribe-->
                 <div style='clear: both;'></div>
                 <div  style='margin-top: 10px; margin-bottom: 10px;'>
                     <div class='blast-table'>
@@ -155,6 +158,13 @@
                     <div class='details'>[#DETAILS#]</div>
                     <!--ET_END DETAILS-->
                 </div>
+
+                <!--ET_BEGIN shareLog-->
+                <div class='sharing-history clearfix21'>
+                    <span class='sharing-history-title'>|Споделяне|*</span>
+                    [#shareLog#]
+                </div>
+                <!--ET_END shareLog-->
             </div>
         </div>
     </div>
