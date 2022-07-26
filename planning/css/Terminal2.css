@@ -389,7 +389,6 @@ dialog > article {
 .ef-drag-scroll {
   overflow: hidden;
   white-space: nowrap;
-  scroll-behavior: smooth;
 }
 
 .ef-drag-scroll.ef-ds-active > * {
