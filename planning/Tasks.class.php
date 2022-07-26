@@ -667,7 +667,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        
+
         if ($form->isSubmitted()) {
 
             // Ако е финална операция
@@ -1117,7 +1117,11 @@ class planning_Tasks extends core_Master
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
 
-        if($rec->showadditionalUom)
+        if($form->cmd == 'save_pending_new'){
+            $form->cmd = 'save_pending';
+            $form->_pendingAndNew = true;
+        }
+
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
         }
@@ -2007,7 +2011,7 @@ class planning_Tasks extends core_Master
 
             $retUrl = getRetUrl();
             if($retUrl['Ctr'] == 'planning_Jobs' && $retUrl['Act'] == 'selectTaskAction'){
-                if($data->form->cmd == 'save_pending'){
+                if($data->form->_pendingAndNew){
                     $data->retUrl = $retUrl;
                 }
             }
@@ -2338,9 +2342,12 @@ class planning_Tasks extends core_Master
         }
 
         if($form->toolbar->haveButton('btnPending')){
+            $data->form->toolbar->addSbBtn('Запис и Нов', 'save_pending_new', null, array('id' => 'saveAndNew', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Записване на операцията и към следващата'));
+
             $form->toolbar->renameBtn('btnPending', 'Запис');
+            $form->toolbar->setBtnOrder('saveAndNew', '2');
             $form->toolbar->setBtnOrder('btnPending', '1');
-            $form->toolbar->setBtnOrder('save', '2');
+            $form->toolbar->setBtnOrder('save', '3');
             if(isset($rec->id) && $rec->state != 'draft'){
                 $form->toolbar->removeBtn('save');
             }
