@@ -489,6 +489,12 @@ class planning_Tasks extends core_Master
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
+            if(isset($rec->assetId)){
+                if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $rec->assetId))){
+                    $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+                }
+            }
+
             $row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
             $row->productDescription = cat_Products::getAutoProductDesc($rec->productId, null, 'detailed', 'job');
             $row->tId = $rec->id;
@@ -2421,6 +2427,20 @@ class planning_Tasks extends core_Master
 
         if(countR($saveRecs)){
             cls::get('planning_ProductionTaskProducts')->saveArray($saveRecs);
+        }
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        $assetId = Request::get('assetId', 'int');
+        if(isset($assetId)){
+            if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $assetId))){
+                $data->toolbar->addBtn('Преизчисляване', array('planning_AssetResources', 'recalcTimes', $assetId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+            }
         }
     }
 }
