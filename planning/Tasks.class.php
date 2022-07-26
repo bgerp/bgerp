@@ -2342,7 +2342,9 @@ class planning_Tasks extends core_Master
         }
 
         if($form->toolbar->haveButton('btnPending')){
-            $data->form->toolbar->addSbBtn('Запис и Нов', 'save_pending_new', null, array('id' => 'saveAndNew', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Записване на операцията и към следващата'));
+            if(empty($form->rec->id)){
+                $data->form->toolbar->addSbBtn('Запис и Нов', 'save_pending_new', null, array('id' => 'saveAndNew', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Записване на операцията и към следващата'));
+            }
 
             $form->toolbar->renameBtn('btnPending', 'Запис');
             $form->toolbar->setBtnOrder('saveAndNew', '2');
