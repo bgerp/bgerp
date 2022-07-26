@@ -158,7 +158,7 @@
           </div>
         </div>
         <div class="toolbar">
-          <div class="prompt">
+          <div class="prompt ef-drag-scroll">
             <div class='btn' onClick="setQuantity()">
               <div class='label'>Количество</div>
               <div class='value' id="quantity">2000</div>
@@ -173,12 +173,15 @@
             </div>
           </div>
           <input id="cmdInput" inputmode="none" onFocus="displayByClass('panel', 'keyboard');" type=text>
-          <div class="prompt">
-            <div title="Артикул" class='btn' onClick="setProduct()">
-              <span class="material-icons">shopping_cart</span>
+          <div class="prompt ef-drag-scroll">
+            <div title="Производство" class='btn' onClick="setProduct()">
+              <span class="material-icons">add_shopping_cart</span>
             </div>
-            <div title="Етикет" class='btn' onClick="setLabel()">
-              <span class="material-icons">label</span>
+            <div title="Влагане" class='btn' onClick="setPutting()">
+              <span class="material-icons">input</span>
+            </div>
+			<div title="Отпадък" class='btn' onClick="setWaste()">
+              <span class="material-icons">delete_outline</span>
             </div>
             <div title="Търсене" class='btn' onClick="setSearch()">
               <span class="material-icons">search</span>

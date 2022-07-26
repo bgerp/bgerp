@@ -384,3 +384,14 @@ dialog > article {
     -moz-font-feature-settings: 'liga';
     -moz-osx-font-smoothing: grayscale;
 }
+
+
+.ef-drag-scroll {
+  overflow: hidden;
+  white-space: nowrap;
+  scroll-behavior: smooth;
+}
+
+.ef-drag-scroll.ef-ds-active > * {
+  pointer-events: none;
+}
