@@ -319,6 +319,10 @@ class blast_Emails extends core_Master
             $rec->lg = $otherParamsArr['lg'];
         }
 
+        if ($otherParamsArr['folderId']) {
+            $rec->folderId = $otherParamsArr['folderId'];
+        }
+
         // Записваме
         $id = self::save($rec);
 
@@ -2462,6 +2466,7 @@ class blast_Emails extends core_Master
      * canUnsubscribe - дали имейла е системен - дали ще може да се отписват от него - yes|no
      * sharedUser - списък със споделените потребители към документа
      * lg - език на циркулярния имейл
+     * folderId - език на циркулярния имейл
      *
      * @return array
      * [listId]
@@ -2489,6 +2494,10 @@ class blast_Emails extends core_Master
 
         if ($emailParams['lg']) {
             $eParamsArr['lg'] = $emailParams['lg'];
+        }
+
+        if ($emailParams['folderId']) {
+            $eParamsArr['folderId'] = $emailParams['folderId'];
         }
 
         $blId = self::createEmail('blast_Lists', $listId, $emailParams['text'], $emailParams['subject'], $emailParams['fields'], $eParamsArr);
