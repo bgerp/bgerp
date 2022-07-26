@@ -13,7 +13,7 @@
  * @license   GPL 3
  *
  * @since     v 0.1
- * @title     Драйвер на притежатели на RFID номер
+ * @title     Драйвер за лица на RFID номер
  */
 class rfid_driver_HolderPerson
 {
@@ -50,6 +50,7 @@ class rfid_driver_HolderPerson
      */
     protected function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
+        //bp($rec);
         $row->driverClass = crm_Persons::getLinkToSingle($rec->holderId, 'name');
     }
     
@@ -62,6 +63,7 @@ class rfid_driver_HolderPerson
      */
     public function canSelectDriver($userId = null)
     {
+        //bp();
         
         return true;
     }

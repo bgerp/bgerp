@@ -361,8 +361,8 @@ class planning_Jobs extends core_Master
                 }
             }
             $form->setDefault('productId', $defaultProductId);
-
-            if(countR($products) == 1){
+            $form->rec->_allowedProductsCnt = countR($products);
+            if($form->rec->_allowedProductsCnt == 1){
                 $form->setDefault('productId', key($products));
                 $form->setOptions('productId', $products);
             } else {
@@ -478,7 +478,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterPrepareEditToolbar($mvc, &$res, $data)
     {
         // Преименуване на бутона за запис и нов
-        if(isset($data->form->rec->saleId)){
+        if(isset($data->form->rec->saleId) && $data->form->rec->_allowedProductsCnt > 1){
             if (!empty($data->form->toolbar->buttons['saveAndNew'])) {
                 $data->form->toolbar->renameBtn('saveAndNew', 'Активиране и нов');
             }
@@ -1492,7 +1492,7 @@ class planning_Jobs extends core_Master
 
         $notClosedTasks = array();
         $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#originId = {$rec->containerId} AND #state IN ('active', 'wakeup', 'stopped')");
+        $tQuery->where("#originId = {$rec->containerId} AND #state IN ('active', 'wakeup', 'stopped', 'pending')");
         $tQuery->show('id');
         while($tRec = $tQuery->fetch()){
             $notClosedTasks[] = "#" . planning_Tasks::getHandle($tRec->id);
