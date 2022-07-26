@@ -312,7 +312,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         } else {
                             $indTimeSum = 0;
                         }
-
+                        $indTimeSum = $clone->indTimeSum;
                         $clone = clone $val;
 
                         if (!array_key_exists($id, $recs)) {
@@ -361,7 +361,6 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                 $k = trim($val->employees, '|');
                 $indTimeSumArr[$k] += $val->indTimeSum / 60;
-
 
             }
             arr::sortObjects($recs, 'taskId', 'asc');
