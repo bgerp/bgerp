@@ -489,6 +489,12 @@ class planning_Tasks extends core_Master
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
+            if(isset($rec->assetId)){
+                if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $rec->assetId))){
+                    $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+                }
+            }
+
             $row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
             $row->productDescription = cat_Products::getAutoProductDesc($rec->productId, null, 'detailed', 'job');
             $row->tId = $rec->id;
@@ -661,7 +667,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        
+
         if ($form->isSubmitted()) {
 
             // Ако е финална операция
@@ -1111,7 +1117,11 @@ class planning_Tasks extends core_Master
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
 
-        if($rec->showadditionalUom)
+        if($form->cmd == 'save_pending_new'){
+            $form->cmd = 'save_pending';
+            $form->_pendingAndNew = true;
+        }
+
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
         }
@@ -2001,7 +2011,7 @@ class planning_Tasks extends core_Master
 
             $retUrl = getRetUrl();
             if($retUrl['Ctr'] == 'planning_Jobs' && $retUrl['Act'] == 'selectTaskAction'){
-                if($data->form->cmd == 'save_pending'){
+                if($data->form->_pendingAndNew){
                     $data->retUrl = $retUrl;
                 }
             }
@@ -2332,9 +2342,14 @@ class planning_Tasks extends core_Master
         }
 
         if($form->toolbar->haveButton('btnPending')){
+            if(empty($form->rec->id)){
+                $data->form->toolbar->addSbBtn('Запис и Нов', 'save_pending_new', null, array('id' => 'saveAndNew', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Записване на операцията и към следващата'));
+            }
+
             $form->toolbar->renameBtn('btnPending', 'Запис');
+            $form->toolbar->setBtnOrder('saveAndNew', '2');
             $form->toolbar->setBtnOrder('btnPending', '1');
-            $form->toolbar->setBtnOrder('save', '2');
+            $form->toolbar->setBtnOrder('save', '3');
             if(isset($rec->id) && $rec->state != 'draft'){
                 $form->toolbar->removeBtn('save');
             }
@@ -2421,6 +2436,20 @@ class planning_Tasks extends core_Master
 
         if(countR($saveRecs)){
             cls::get('planning_ProductionTaskProducts')->saveArray($saveRecs);
+        }
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        $assetId = Request::get('assetId', 'int');
+        if(isset($assetId)){
+            if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $assetId))){
+                $data->toolbar->addBtn('Преизчисляване', array('planning_AssetResources', 'recalcTimes', $assetId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+            }
         }
     }
 }

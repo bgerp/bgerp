@@ -58,7 +58,7 @@
             <tr>
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
-                <td class='sum-th'><b>|Продължителност|*</b></td>
+                <td class='sum-th'><b>|Продължителност|* [#recalcBtn#]</b></td>
                 <td class='sum-th'>[#productCaption#] <b>[#productId#]</b></td>
             </tr>
             <tr>
