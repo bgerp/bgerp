@@ -44,5 +44,12 @@
             <!-- ET_END DETAILS -->
         </div>
     </div>
+
+    <!--ET_BEGIN shareLog-->
+    <div class='sharing-history clearfix21'>
+        <span class='sharing-history-title'>|Споделяне|*</span>
+        [#shareLog#]
+    </div>
+    <!--ET_END shareLog-->
 </div>
 <div style='clear: both;'></div>
