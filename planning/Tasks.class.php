@@ -722,19 +722,21 @@ class planning_Tasks extends core_Master
                 $form->setWarning('startAfter', "Операцията е чернова. Автоматично ще се добави последна към избраното оборудване|*!");
             }
 
-            if(isset($rec->wasteProductId)){
-                if(($rec->wasteStart + $rec->wastePercent) <= 0){
-                    $form->setError('wasteStart,wastePercent', "Количеството на отпадъка не може да се сметне|*!");
-                }
+            if(!$form->rec->_editActive){
+                if(isset($rec->wasteProductId)){
+                    $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
+                    if(!cat_Products::convertToUom($productId, $wasteMeasureId)){
+                        $wasteMeasureName = cat_UoM::getShortName($wasteMeasureId);
+                        $form->setWarning('wasteProductId', "Планираното к-во не може да се конвертира към мярката на отпадъка|* <b>|{$wasteMeasureName}|*</b> |и ще бъде записано като 0|*");
+                    }
 
-                $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
-                if(!cat_Products::convertToUom($productId, $wasteMeasureId)){
-                    $wasteMeasureName = cat_UoM::getShortName($wasteMeasureId);
-                    $form->setWarning('wasteProductId', "Планираното к-во не може да се конвертира към мярката на отпадъка|* <b>|{$wasteMeasureName}|*</b> |и ще бъде записано като 0|*");
-                }
-            } else {
-                if(isset($rec->wasteStart) || isset($rec->wastePercent)){
-                    $form->setError('wasteProductId,wasteStart,wastePercent', "Не е посочен отпадък|*!");
+                    if(($rec->wasteStart + $rec->wastePercent) <= 0){
+                        $form->setError('wasteStart,wastePercent', "Количеството на отпадъка не може да се сметне|*!");
+                    }
+                } else {
+                    if(isset($rec->wasteStart) || isset($rec->wastePercent)){
+                        $form->setError('wasteProductId,wasteStart,wastePercent', "Не е посочен отпадък|*!");
+                    }
                 }
             }
 
@@ -1143,9 +1145,10 @@ class planning_Tasks extends core_Master
             }
         } else {
             if($data->action != 'clone' && in_array($rec->state, array('active', 'wakeup', 'stopped'))){
-                $form->setField('wasteProductId', 'input=hidden');
-                $form->setField('wasteStart', 'input=hidden');
-                $form->setField('wastePercent', 'input=hidden');
+                $form->setField('wasteProductId', 'input=none');
+                $form->setField('wasteStart', 'input=none');
+                $form->setField('wastePercent', 'input=none');
+                $form->rec->_editActive = true;
             }
         }
         
@@ -1407,6 +1410,8 @@ class planning_Tasks extends core_Master
                 $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
                 $form->setField("wasteStart", "unit=" . cat_UoM::getShortName($wasteProductMeasureId));
             }
+        } else {
+            $form->setField('employees', 'input=hidden');
         }
 
         // Добавяне на наличните за избор оборудвания
@@ -2433,6 +2438,9 @@ class planning_Tasks extends core_Master
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
             $saveRecs[] = $wasteRec;
+
+            //$rec->wasteProductId = $rec->wasteStart = $rec->wastePercent = null;
+            //$mvc->save_($rec, 'wasteProductId,wasteStart,wastePercent');
         }
 
         if($Driver = cat_Products::getDriver($rec->productId)){
