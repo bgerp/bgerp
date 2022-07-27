@@ -1021,9 +1021,12 @@ class planning_ProductionTaskDetails extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (in_array($action, array('add', 'edit', 'delete', 'reject', 'fix')) && isset($rec->taskId)) {
-            $state = $mvc->Master->fetchField($rec->taskId, 'state');
-            if (!in_array($state, array('active', 'wakeup', 'pending'))) {
-                $requiredRoles = 'no_one';
+            $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state');
+            if (!in_array($masterRec->state, array('active', 'wakeup', 'pending'))) {
+                $howLong = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+                if(dt::now() >= $howLong){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         

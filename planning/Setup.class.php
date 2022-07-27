@@ -134,6 +134,12 @@ defIfNot('PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR', 'yes');
 
 
 /**
+ * Колко време след приключване на ПО може да се въвежда прогрес по нея
+ */
+defIfNot('PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE', 60 * 60 * 24 * 5);
+
+
+/**
  * Производствено планиране - инсталиране / деинсталиране
  *
  *
@@ -202,6 +208,7 @@ class planning_Setup extends core_ProtoSetup
         'PLANNING_ALLOW_SERIAL_FROM_DIFFERENT_TASKS' => array('enum(yes=Разрешено,no=Забранено)', 'caption=Въвеждане на производ. № в ПО от друга операция->Избор'),
         'PLANNING_TASK_PROGRESS_MANDATORY_OPERATOR' => array('enum(yes=Задължително,no=Опционално)', 'caption=Въвеждане на прогрес в ПО->Оператор(и)'),
         'PLANNING_SHOW_PREVIOUS_JOB_FIELD_IN_TASK' => array('enum(yes=Показване,no=Скриване)', 'caption=Показване на предишно задание в ПО->Избор'),
+        'PLANNING_TASK_PROGRESS_ALLOWED_AFTER_CLOSURE' => array('time', 'caption=Колко време след приключване на ПО може да се въвежда прогрес по нея->Време'),
     );
 
 
