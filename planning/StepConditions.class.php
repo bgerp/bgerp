@@ -287,14 +287,88 @@ class planning_StepConditions extends core_Detail
 
 
     /**
-     * @todo тестово да се махне
+     * Върща масив с прогреса на предходните операции на подадените такива
+     *
+     * @param array|stdClass $taskArr
+     * @param bool $verbal
+     * @return array $res
      */
-    public function act_Test()
+    public static function getDependantTasksProgress($taskArr, $verbal = false)
     {
-        requireRole('debug');
+        $arr = is_array($taskArr) ? $taskArr : array($taskArr);
 
-        $conditions = static::checkTaskConditions();
+        $dependantArr = $conditions = $tasks = array();
+        if(!countR($arr)) return $dependantArr;
 
-        bp($conditions);
+        $ids = arr::extractValuesFromArray($arr, 'productId');
+        $originIds = arr::extractValuesFromArray($arr, 'originId');
+
+        $query = static::getQuery();
+        $query->in('stepId', $ids);
+        $query->show('prevStepId,stepId');
+        while($rec = $query->fetch()){
+            $conditions[$rec->stepId][$rec->prevStepId] = $rec->prevStepId;
+        }
+
+        $taskQuery = planning_Tasks::getQuery();
+        $taskQuery->in('originId', $originIds);
+        $taskQuery->where("#state != 'rejected'");
+        while($tRec = $taskQuery->fetch()){
+            $timeStart = !empty($rec->timeStart) ? $rec->timeStart : "9999-99-{$tRec->id}";
+            $tasks[$tRec->originId][$tRec->productId] = array('id' => $tRec->id, 'progress' => $tRec->progress, 'timeStart' => $timeStart);
+        }
+
+        foreach ($arr as $taskRec){
+            $dependantArr[$taskRec->id] = array();
+            if(array_key_exists($taskRec->productId, $conditions)){
+                foreach ($conditions[$taskRec->productId] as $stepId){
+                    if(isset($tasks[$taskRec->originId][$stepId])){
+                        $dependantArr[$taskRec->id][] = $tasks[$taskRec->originId][$stepId];
+                    }
+                }
+                arr::sortObjects($dependantArr[$taskRec->id], 'timeStart', 'ASC');
+            }
+        }
+
+        $res = array();
+        foreach ($dependantArr as $taskId => $depArr){
+            $count = countR($depArr);
+            if($count){
+                $eachWith = 90 / $count;
+                foreach ($depArr as $depTaskArr){
+                    if($verbal){
+                        $depTaskArr = static::getDependantTaskBlock($eachWith, 10, $depTaskArr['progress'], $depTaskArr['id']);
+                    }
+                    $res[$taskId][] = $depTaskArr;
+                }
+            }
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Помощна функция рендираща прогреса на подадена ПО като прогрес бар
+     *
+     * @param int $width   - широчина
+     * @param int$height   - височина
+     * @param int $percent - процент
+     * @param int $taskId  - ид на операция
+     * @return string $div - хтмл на прогрес бара
+     */
+    private static function getDependantTaskBlock($width, $height, $percent, $taskId)
+    {
+        $percent = $percent * 100;
+        $percent = ($percent > 100) ? 100 : $percent;
+        $style = "border:0.1px solid #eee;display:inline-block;width:{$width}px;height:{$height}px;background:linear-gradient(90deg, green 0%, green {$percent}%, red {$percent}%, red 100%)";
+        $title = "#" . planning_Tasks::getHandle($taskId);
+        $div = "<div style='{$style}' title='{$title}'></div>";
+        if(planning_Tasks::haveRightFor('single', $taskId)){
+            $div = ht::createLink($div, planning_Tasks::getSingleUrlArray($taskId));
+        }
+        $div = "<div style='display:inline-block;padding-left:0.1px;'>{$div}</div>";
+
+        return $div;
     }
 }

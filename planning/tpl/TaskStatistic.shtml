@@ -45,6 +45,9 @@
                   <!--ET_BEGIN followBatchesForFinalProduct-->
                   <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
                   <!--ET_END followBatchesForFinalProduct-->
+                  <!--ET_BEGIN dependantProgress-->
+                  <span style='font-weight:normal'>|Предх.Оп.|*</span>: [#dependantProgress#]<br>
+                  <!--ET_END dependantProgress-->
     			</td>
            </tr>
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>
@@ -58,13 +61,13 @@
             <tr>
                 <td class='sum-th'><b>|Планирано начало|*</b></td>
                 <td class='sum-th'><b>|Планиран край|*</b></td>
-                <td class='sum-th'><b>|Продължителност|*</b></td>
+                <td class='sum-th'><b>|Продължителност|* [#recalcBtn#]</b></td>
                 <td class='sum-th'>[#productCaption#] <b>[#productId#]</b></td>
             </tr>
             <tr>
                 <td>[#expectedTimeStart#]</td>
                 <td>[#expectedTimeEnd#]</td>
-                <td>[#expectedDuration#]<!--ET_BEGIN calcedDuration--> <div style="font-size:0.6em;font-weight:normal;">( |Изч.|*: [#calcedDuration#] )</div><!--ET_END calcedDuration--></td>
+                <td>[#expectedDuration#]<!--ET_BEGIN calcedDuration--> <div style="font-size:0.6em;font-weight:normal;">( |нето|*: [#calcedDuration#] )</div><!--ET_END calcedDuration--></td>
                 <td rowspan = '2' class='vtop' style='font-size:0.8em;text-align:left'>
                     <!--ET_BEGIN assetId-->
                     <span style='font-weight:normal'>|Оборудване|*</span>: [#assetId#]<br>
