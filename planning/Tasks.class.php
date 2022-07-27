@@ -272,7 +272,7 @@ class planning_Tasks extends core_Master
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
 
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,input=hidden,silent');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
@@ -1214,12 +1214,11 @@ class planning_Tasks extends core_Master
                 $fixedAssetOptions = $productionData['fixedAssets'];
             }
 
-            if(!empty($rec->employees)){
-                $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
-                if(countR($employeeOptions)){
-                    $form->setField('employees', 'input');
-                    $form->setSuggestions('employees', $employeeOptions);
-                }
+            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
+            if(countR($employeeOptions)){
+                $form->setSuggestions('employees', $employeeOptions);
+            } else {
+                $form->setField('employees', 'input=none');
             }
 
             $productId4Form = ($rec->isFinal == 'yes') ? $originRec->productId : $rec->productId;
