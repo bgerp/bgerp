@@ -59,7 +59,8 @@ class doc_plg_SelectFolder extends core_Plugin
             $fId = Request::get('folderId', 'key(mvc=doc_Folders)');
             if (!empty($fId)) {
                 if (!$mvc->haveRightFor('add', (object) array('folderId' => $fId))) {
-                    followRetUrl(array($mvc, 'list'), 'Документа не може да бъде създаден в папката', 'error');
+                    $folderTitle = doc_Folders::getTitleById($fId);
+                    followRetUrl(array($mvc, 'list'), "Документът не може да бъде създаден в папката|*: {$folderTitle}", 'error');
                 }
             }
             

@@ -1,0 +1,386 @@
+:root {
+  --left-width: max(300px, min(50vw, 800px));
+  --kb-btn-width: calc((97vw - var(--left-width)) / 11);
+}
+
+body {
+  margin: 0;
+  background-color: #666;
+  padding: 0;
+  border: none;
+  font-family: Arial, sans-serif;
+  font-size: max(13px, 13 * min(calc(100vw / 800), calc(100vh / 400)));
+}
+
+div, input, dialog, article {
+  box-sizing: border-box;
+}
+
+.row {
+  overflow-x: hidden;
+  background-color: #666;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.left {
+  width: var(--left-width);
+  height: calc(100vh - 2em);
+  float: left;
+}
+
+#right {
+  background-color: #666;
+  height: calc(100vh - 2em);
+  padding-left:var(--left-width);
+}
+
+.keyboard {
+  display:block;
+  position: absolute;
+  bottom: 0.75em;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left:0.8em;
+}
+
+.selectMenu {
+	display:none;
+	width:100%;
+	height: calc(100vh - 2em);
+	padding:0.8em;
+	overflow: hidden;
+	overflow-Y:auto;
+}
+
+
+.menu {
+  background-color: #666;
+  color:white;
+  font-size:1em;
+}
+
+.menu h2 {
+	margin-top:0;
+}
+
+.kb-row div {
+  display: table-cell;
+  padding: 0.2vw;
+  font-size: 1.6em;
+  color: white;
+  outline: white solid 1px;
+  outline-offset: -3px;
+  text-align: center;
+  vertical-align: middle;
+  width: var(--kb-btn-width);
+  height: min(calc(1.2 * var(--kb-btn-width)), calc((100vh - 2em)/ 5));
+  text-overflow: clip;
+  user-select: none;
+  cursor: pointer;
+  background-color: #000;
+}
+
+.kb-row div:hover {
+  background-color: #333;
+  outline: orange solid 1px;
+}
+
+.kb-row div:active {
+  background-color: #666;
+  outline: orange solid 2px;
+  outline-offset: -4px;
+}
+
+.kb-row div.double {
+  width: calc(2 * var(--kb-btn-width));
+}
+
+.kb-row div.triple {
+  width: calc(3 * var(--kb-btn-width));
+}
+
+.progress {
+  height: calc(100vh - 14.5em);
+  background-color: white;
+  min-height: 10em;
+  overflow: hidden;
+  overflow-Y:auto;
+}
+
+.progress-node {
+	font-size:max(1.2em, 16px);
+	padding:0.5em;
+	padding-top:0.2em;
+	padding-bottom:0.2em;
+	border-bottom:solid 1px #ccc;
+    background-color:#ffe;
+}
+
+.progress-node:hover {
+	background-color:#f8f8a0;
+}
+
+.progress-node.putting {
+	background-color:#efe;
+}
+.progress-node.putting:hover {
+	background-color:#aea;
+}
+ 
+.progress-node.scrap {
+	background-color:#fee;
+}
+.progress-node.scrap:hover {
+	background-color:#fbb;
+}
+
+.progress-node a {
+	font-size:0.8em;
+	padding:4px;
+	background-color:rgba(220, 220, 220, 0.5);
+	color:black;
+	border-radius:3px;
+}
+
+.toolbar {
+  height: 12.5em;
+  background-color: orange;
+  padding: 0.8em;
+}
+
+.toolbar input {
+  width: 100%;
+  font-size: 1.5em;
+  padding: 0.25em;
+  border:solid 1px black;
+  border-radius: 5px;
+  margin-top: 0.4em;
+  margin-bottom: 0.4em;
+}
+
+.toolbar input:focus-visible {
+	outline:solid 2px blue;
+    outline-offset: -2px;
+}
+
+.prompt {
+  color: white;
+  width: 100%;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.btn {
+  border-radius: 5px;
+  display: inline-block;
+  font-size: 1.5em;
+  margin-right: 0.3em;
+  background-color: #000;
+  padding: 0.35em;
+  user-select: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #333;
+}
+
+.btn:active {
+  background-color: #666;
+}
+
+.label {
+  font-size: 0.65em;
+}
+
+.value {
+  color: #ffff99;
+  padding-top:0.1em;
+  font-family: monospace;
+  font-size:0.95em;
+}
+
+.value[data-manual]:not([data-manual="yes"]) {
+	color:#99ffff;
+}
+
+.header {
+  background-color: #000;
+  color: #fff;
+  height: 2em;
+  padding: 0.5em 0.8em;
+}
+
+@media only screen and (max-width: 680px) {
+  .left {
+    float: none;
+    width: 100%;
+    height: inherit;
+  }
+  .progress, #right {
+    height: auto;
+  }
+
+  #right {
+    padding-left: 0;
+	padding-top:0;
+  }
+
+  .keyboard {
+    position: relative;
+	padding-top:1em;
+  }
+
+  .kb-row div {
+    width: 8.7vw;
+    height: 8.7vw;
+  }
+
+  .kb-row div.double {
+    width: 17.4vw;
+  }
+
+  .kb-row div.triple {
+    width: 26.1vw;
+  }
+
+  .progress {
+    height: calc(100vh - 15.2em - 0.85vh - 5 * 8.7vw);
+   }
+
+}
+
+
+dialog {
+  background-color: inherit;
+  border: solid;
+  color: inherit;
+  display: block;
+  height: fit-content;
+  left: 0;
+  margin: auto;
+  padding: 1em;
+  position: absolute;
+  right: 0;
+  width: fit-content;
+}
+
+dialog:not([open]) {
+  display: none;
+}
+
+/* The Modal Overlay (background) */
+dialog {
+  visibility: hidden;
+  /* Hidden by default */
+  opacity: 0;
+  position: fixed;
+  /* Stay in place */
+  z-index: 10;
+  /* Sit on top */
+  padding: 0;
+  /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%;
+  /* Full width */
+  height: 100%;
+  /* Full height */
+  overflow-y: hidden;
+  /* Enable scroll if needed */
+  overflow-x: hidden;
+  /* Enable scroll if needed */
+  background-color: black;
+  /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.6);
+  /* Black w/ opacity */
+  transition: visibility 0.2s linear, opacity 0.2s linear;
+  /* Modal Content */
+}
+dialog.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+dialog.visible > article {
+  opacity: 1;
+  transform: scale(1, 1) translateY(-50%);
+}
+dialog > article {
+  top: 50%;
+  position: relative;
+  margin: auto;
+  border: 2px solid black;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  transform: scale(0.5, 0.5) translateY(-80%);
+  transition: transform 0.2s linear, opacity 0.2s linear;
+  height:98vh !important;
+  width:98vw !important;
+  padding:1em;
+}
+/* The Close Button */
+.close {
+  color: white;
+  position: absolute;
+  right: 0.5em;
+  top:0.2em;
+  font-size: 2em;
+  font-weight: bold;
+}
+.close::after {
+  content: "✕";
+}
+.close:hover, .close:focus {
+  color: red;
+  text-decoration: none;
+  cursor: pointer;
+}
+.modal-body {
+  overflow-y: auto;
+  /* Enable scroll if needed */
+  overflow-x: hidden;
+  /* Enable scroll if needed */
+ 
+  border: none;
+  display: flex;
+  flex-direction: column;
+
+
+}
+
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url(https://fonts.gstatic.com/s/materialicons/v117/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+}
+
+.material-icons {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 1em;
+    line-height: 1;
+    letter-spacing: normal;
+    vertical-align: text-bottom;
+    padding-right: 3px;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -moz-font-feature-settings: 'liga';
+    -moz-osx-font-smoothing: grayscale;
+}

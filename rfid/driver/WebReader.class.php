@@ -40,7 +40,7 @@ class rfid_driver_WebReader extends embed_DriverIntf
      */
     public function addFields(core_Fieldset &$fieldset)
     {
-        // $form->FLD('holderId', 'key(mvc=crm_Persons, select=name, allowEmpty)', 'caption=Лице,mandatory,silent,after=tag');
+        $form->FLD('readerId', 'key(mvc=rfid_Readers, select=name, allowEmpty)', 'caption=Четец,mandatory,silent,after=tag');
     }
 
     /**
@@ -54,7 +54,7 @@ class rfid_driver_WebReader extends embed_DriverIntf
      */
     protected static function on_AfterRecToVerbal($Driver, embed_Manager $Embedder, $row, $rec, $fields = array())
     {
-        // $row->driverClass = crm_Persons::getLinkToSingle($rec->holderId, 'name');
+        $row->driverClass = rfid_Readers::getLinkToSingle($rec->readerId, 'name');
     }
     
     /**

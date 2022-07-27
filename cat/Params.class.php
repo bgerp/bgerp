@@ -240,10 +240,7 @@ class cat_Params extends bgerp_ProtoParam
         // Ако има параметър с това систем ид,връща се
         if($sysId){
             $id = self::fetchIdBySysId($sysId);
-            if (!empty($id)) {
-
-                return $id;
-            }
+            if (!empty($id)) return $id;
         } else {
 
             // Ако няма сис ид все пак се проверява дали няма такъв параметър

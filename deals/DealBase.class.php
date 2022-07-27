@@ -165,9 +165,13 @@ abstract class deals_DealBase extends core_Master
         
         // Ако няма документи с които може да се затвори или е чернова не може да се приключи с друга сделка
         if ($action == 'closewith' && isset($rec)) {
-            $options = $mvc->getDealsToCloseWith($rec);
-            if (!countR($options) || ($rec->state != 'draft' && $rec->state != 'pending')) {
+            if (($rec->state != 'draft' && $rec->state != 'pending' && $rec->state != 'active') || (empty($rec->closedDocuments) && $rec->state == 'active')) {
                 $res = 'no_one';
+            } else {
+                $options = $mvc->getDealsToCloseWith($rec);
+                if(!countR($options)){
+                    $res = 'no_one';
+                }
             }
         }
         
@@ -223,7 +227,11 @@ abstract class deals_DealBase extends core_Master
         $rec = &$data->rec;
         
         if ($mvc->haveRightFor('closeWith', $rec)) {
-            $data->toolbar->addBtn('Обединяване', array($mvc, 'closeWith', $rec->id), "id=btnCloseWith", 'ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки');
+            $attr = arr::make("id=btnCloseWith,ef_icon = img/16/tick-circle-frame.png,title=Обединяване на сделката с други сделки");
+            if($rec->state == 'active'){
+                $attr['row'] = 2;
+            }
+            $data->toolbar->addBtn('Обединяване', array($mvc, 'closeWith', $rec->id), $attr);
         }
         
         if ($mvc->haveRightFor('changerate', $rec)) {
@@ -331,20 +339,20 @@ abstract class deals_DealBase extends core_Master
      */
     public function act_Closewith()
     {
+        $this->requireRightFor('closewith');
         core_App::setTimeLimit(2000);
         $id = Request::get('id', 'int');
         expect($rec = $this->fetch($id));
-        expect($rec->state == 'draft' || $rec->state == 'pending');
-        
+
         // Трябва потребителя да може да контира
-        $this->requireRightFor('conto', $rec);
-        
+        $this->requireRightFor('closewith', $rec);
+        $originalState = $rec->state;
         $options = $this->getDealsToCloseWith($rec);
-        expect(countR($options));
-        
+
         // Подготовка на формата за избор на опция
+        $title = ($rec->state == 'active') ? tr('Обединяване към') : tr('Активиране на');
         $form = cls::get('core_Form');
-        $form->title = '|Активиране на|* <b>' . $this->getFormTitleLink($id). '</b>' . ' ?';
+        $form->title = "|*{$title} <b>" . $this->getFormTitleLink($id). '</b>' . ' ?';
         $form->info = 'Посочете кои сделки желаете да обедините с тази сделка';
         $form->FLD('closeWith', "keylist(mvc={$this->className})", 'caption=Приключи и,column=1,mandatory');
         $form->setSuggestions('closeWith', $options);
@@ -368,10 +376,10 @@ abstract class deals_DealBase extends core_Master
                     $msg = '|В следните ' . mb_strtolower($this->title) . ' има документи в заявка и/или чернова|*: ' . implode(',', $err);
                     $form->setError('closeWith', $msg);
                 }
-                
-                $rec->closedDocuments = $form->rec->closeWith;
+
+                $rec->closedDocuments = keylist::merge($rec->closedDocuments, $form->rec->closeWith);
             }
-            
+
             if (!$form->gotErrors()) {
                 setIfNot($rec->valior, dt::today());
                 $this->save($rec);
@@ -399,9 +407,13 @@ abstract class deals_DealBase extends core_Master
                 return new Redirect(array($this, 'single', $id));
             }
         }
-        
-        $form->toolbar->addSbBtn('Обединяване', 'save', 'ef_icon = img/16/tick-circle-frame.png');
-        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png');
+
+        $arr = arr::make("ef_icon = img/16/tick-circle-frame.png");
+        if($originalState == 'active'){
+            $arr['warning'] = 'Договорът е вече активен. Наистина ли желаете да обедините друг(и) договори към него?';
+        }
+        $form->toolbar->addSbBtn('Обединяване', 'save', $arr);
+        $form->toolbar->addBtn('Отказ', array($this, 'single', $id), 'ef_icon = img/16/close-red.png,order=9999');
         
         $tpl = $this->renderWrapping($form->renderHtml());
         core_Form::preventDoubleSubmission($tpl, $form);

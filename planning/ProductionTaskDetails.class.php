@@ -385,13 +385,14 @@ class planning_ProductionTaskDetails extends doc_Detail
                 if(!empty($rec->serial)){
                     $rec->serial = plg_Search::normalizeText($rec->serial);
                     if(!empty($rec->serial)){
+                        $checkProductId = ($rec->type == 'production') ? planning_Jobs::fetchField("#containerId = {$masterRec->originId}", 'productId') : $rec->productId;
                         $rec->serial = str::removeWhiteSpace($rec->serial);
-                        if ($Driver = cat_Products::getDriver($rec->productId)) {
-                            $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+                        if ($Driver = cat_Products::getDriver($checkProductId)) {
+                            $rec->serial = $Driver->canonizeSerial($checkProductId, $rec->serial);
                         }
 
                         // Проверка на сериния номер
-                        $serialInfo = self::fetchSerialInfo($rec->serial, $rec->productId, $rec->taskId, $rec->type);
+                        $serialInfo = self::fetchSerialInfo($rec->serial, $checkProductId, $rec->taskId, $rec->type);
                         $rec->serialType = $serialInfo['type'];
                         if (isset($serialInfo['error'])) {
                             $form->setError('serial', $serialInfo['error']);
@@ -498,19 +499,25 @@ class planning_ProductionTaskDetails extends doc_Detail
             core_Statuses::newStatus("Оттеглен е записа с номер|* <b>{$rec->serial}</b>");
         }
 
+        $serialProductId = $rec->productId;
+        if($rec->type == 'production'){
+            $originId = planning_Tasks::fetchField("#id = {$rec->taskId}", 'originId');
+            $serialProductId = planning_Jobs::fetchField("#containerId = {$originId}", 'productId');
+        }
+
         if (empty($rec->serial)) {
-            if ($Driver = cat_Products::getDriver($rec->productId)) {
+            if ($Driver = cat_Products::getDriver($serialProductId)) {
 
                 // Генериране на сериен номер, ако може
-                $serial = $Driver->generateSerial($rec->productId, 'planning_Tasks', $rec->taskId);
+                $serial = $Driver->generateSerial($serialProductId, 'planning_Tasks', $rec->taskId);
                 if(isset($serial)){
                     $rec->serial = $serial;
                     $rec->serialType = 'generated';
                 }
             }
         } else {
-            if ($Driver = cat_Products::getDriver($rec->productId)) {
-                $rec->serial = $Driver->canonizeSerial($rec->productId, $rec->serial);
+            if ($Driver = cat_Products::getDriver($serialProductId)) {
+                $rec->serial = $Driver->canonizeSerial($serialProductId, $rec->serial);
             }
         }
 
@@ -530,7 +537,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $res = array();
         if($exRec = self::fetch(array("#serial = '[#1#]'", $serial))){
-            $res['quantity'] = $exRec->quantity;
+            $res['quantity'] = $exRec->quantity - $exRec->scrappedQuantity;
             $res['productId'] = $exRec->productId;
         } else {
             if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
@@ -565,8 +572,14 @@ class planning_ProductionTaskDetails extends doc_Detail
         $exRec = self::fetch(array("#serial = '[#1#]'", $canonizedSerial));
 
         if (!empty($exRec)) {
+            $exProductId = $exRec->productId;
+            if($exRec->type == 'production'){
+                $exTaskOriginId = planning_Tasks::fetchField($exRec->taskId, 'originId');
+                $exProductId = planning_Jobs::fetchField("#containerId = {$exTaskOriginId}", 'productId');
+            }
+
             $res['type'] = 'existing';
-            $res['productId'] = $exRec->productId;
+            $res['productId'] = $exProductId;
             $res['batch'] = $exRec->batch;
             $res['quantity'] = $exRec->quantity;
 
@@ -579,6 +592,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             // Проверка дали серийния номер е за този артикул
             $pRec = $Driver->getRecBySerial($serial);
+
             $serialProductId = is_object($pRec) ? $pRec->id : null;
             if(empty($serialProductId)){
                 if($serialPrintId = label_CounterItems::fetchField(array("#number = '[#1#]'", $serial), 'printId')){
@@ -623,7 +637,9 @@ class planning_ProductionTaskDetails extends doc_Detail
         $row->ROW_ATTR['class'] = ($rec->state == 'rejected') ? 'state-rejected' : (($rec->type == 'input') ? 'row-added' : (($rec->type == 'production') ? 'state-active' : 'row-removed'));
 
         $pRec = cat_Products::fetch($rec->productId, 'measureId,code,isPublic,nameEn,name');
-        $row->productId = cat_Products::getAutoProductDesc($rec->productId, null, 'short', 'internal');
+        $row->productId = cat_Products::getVerbal($rec->productId, 'name');
+        $singleUrl = cat_Products::getSingleUrlArray($rec->productId);
+        $row->productId = countR($singleUrl) ? ht::createLinkRef($row->productId, $singleUrl) : $row->productId;
         $foundRec = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
 
         if($taskRec->productId != $foundRec->productId){
@@ -1041,7 +1057,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     protected static function on_BeforePrepareEditTitle($mvc, &$res, $data)
     {
         $rec = &$data->form->rec;
-        $data->singleTitle = ($rec->type == 'input') ? 'влагане' : (($rec->type == 'waste') ? 'отпадък' : 'произвеждане');
+        $data->singleTitle = ($rec->type == 'input') ? 'влагане' : (($rec->type == 'waste') ? 'отпадък' : 'прогрес');
     }
 
 
@@ -1080,7 +1096,8 @@ class planning_ProductionTaskDetails extends doc_Detail
         $normFormQuantity = planning_type_ProductionRate::getInSecsByQuantity($rec->norm, $quantity);
         $normFormQuantity = round($normFormQuantity);
         if($verbal) {
-            $normFormQuantity = "|Заработка|*: {$normFormQuantity} s";
+            $normFormQuantityVerbal = ($normFormQuantity > 60) ? round($normFormQuantity / 60, 2) . " min" : $normFormQuantity . " s";
+            $normFormQuantity = "|Заработка|*: {$normFormQuantityVerbal}";
             if(haveRole('debug')){
                 $quantity = round($quantity, 5);
                 $normFormQuantity .= " [N:{$rec->norm} - Q:{$quantity}]";

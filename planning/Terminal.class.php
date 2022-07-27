@@ -242,19 +242,19 @@ class planning_Terminal extends peripheral_Terminal
      * @param mixed $id
      * @return core_ET $tpl
      */
-    private function getJobHtml($id)
+    public function getJobHtml($id)
     {
-        $rec = planning_Points::fetchRec($id);
+        //$rec = planning_Points::fetchRec($id);
         
         $tpl = new core_ET(" ");
-        if($taskId = Mode::get("currentTaskId{$rec->id}")){
-            $jobContainerId = planning_Tasks::fetchField($taskId, 'originId');
-            $jobObject = doc_Containers::getDocument($jobContainerId);
+        //if($taskId = Mode::get("currentTaskId{$rec->id}")){
+            //$jobContainerId = planning_Tasks::fetchField($taskId, 'originId');
+            $jobObject = doc_Containers::getDocument(290176);
             
             Mode::push('noBlank', true);
             $tpl = $jobObject->getInlineDocumentBody('xhtml');
             Mode::pop('noBlank', true);
-        }
+       // }
         
         return $tpl;
     }

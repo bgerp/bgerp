@@ -119,7 +119,19 @@ class colab_Folders extends core_Manager
                 $row->title = $title;
                 
                 if (colab_Threads::haveRightFor('list', (object) array('folderId' => $rec->id))) {
-                    $row->title = ht::createLink($row->title, array('colab_Threads', 'list', 'folderId' => $rec->id), false, 'ef_icon=img/16/folder-icon.png');
+                    $class = '';
+                    $lastFolderSee = bgerp_Recently::getLastFolderSee($rec->id);
+                    if ($lastFolderSee && ($rec->last > $lastFolderSee)) {
+                        // Проверяваме дали има промяна по документ, който може да се види от колаборатора
+                        $otherDocChanges = doc_Threads::fetch(array("#folderId = '[#1#]' AND #state != 'rejected' AND #partnerDocLast > '[#2#]'",
+                            $rec->id, $lastFolderSee));
+
+                        if ($otherDocChanges) {
+                            $class = ',class=tUnsighted';
+                        }
+                    }
+
+                    $row->title = ht::createLink($row->title, array('colab_Threads', 'list', 'folderId' => $rec->id), false, "ef_icon=img/16/folder-icon.png{$class}");
                 }
                 
                 $data->rows[$id] = $row;

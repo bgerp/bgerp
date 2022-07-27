@@ -1,10 +1,9 @@
 [#/doc/tpl/DocumentsSingleLayoutHeader.shtml#]
-  <!--ET_BEGIN description-->
+  <!--ET_BEGIN productDescription-->
   <div class="groupTitle">
       <div style='margin: 2px 0;'><b>|Спецификация|* </b>[#toggleBtn#]<div style="display: none; margin-top: 5px;" id='[#tId#]inf'>[#productDescription#]</div></div>
   </div>
-  <div style="margin-bottom: 10px;">[#description#]</div>
-  <!--ET_END description-->
+  <!--ET_END productDescription-->
   [#PARAMS#]
   <!--ET_BEGIN ADDITIONAL-->
       [#ADDITIONAL#]
@@ -15,4 +14,7 @@
       <!--ET_END ADDITIONAL_VALUE-->
      </div>
       <!--ET_END ADDITIONAL-->
+<!--ET_BEGIN description-->
+<div style="margin-bottom: 10px;"><div style="display:inline-block"><div style="display:inline-block"><b>|Описание|*</b>:</div> [#description#]</div></div>
+<!--ET_END description-->
 [#/doc/tpl/DocumentsSingleLayoutFooter.shtml#]

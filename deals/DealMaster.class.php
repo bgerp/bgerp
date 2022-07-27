@@ -1683,10 +1683,16 @@ abstract class deals_DealMaster extends deals_DealBase
     /**
      * Приключва остарелите сделки
      */
-    public function closeOldDeals($olderThan, $closeDocName, $limit)
+    public function closeOldDeals($olderThan, $daysAfterAccDate, $closeDocName, $limit)
     {
         $className = get_called_class();
-        
+
+        $now = dt::now();
+        $day = dt::mysql2verbal($now, 'd');
+        $oldBefore = dt::addSecs(-1 * $olderThan, $now);
+        $accDay = acc_Setup::get('DATE_FOR_INVOICE_DATE') + $daysAfterAccDate;
+        $firstDayOfMonth = date('Y-m-01') . " 23:59:59";
+
         expect(cls::haveInterface('bgerp_DealAggregatorIntf', $className));
         $query = $className::getQuery();
         $ClosedDeals = cls::get($closeDocName);
@@ -1694,8 +1700,6 @@ abstract class deals_DealMaster extends deals_DealBase
         $tolerance = $conf->ACC_MONEY_TOLERANCE;
         
         // Нишката им да е модифицирана преди зададеното време
-        $now = dt::mysql2timestamp(dt::now());
-        $oldBefore = dt::timestamp2mysql($now - $olderThan);
         $query->EXT('threadModifiedOn', 'doc_Threads', 'externalName=last,externalKey=threadId');
 
         // Закръглената оставаща сума за плащане
@@ -1713,8 +1717,8 @@ abstract class deals_DealMaster extends deals_DealBase
         $query->where('#minDelivered <= #deliveredRound');
         
         // На които треда им не е променян от определено време
-        $query->where("#threadModifiedOn <= '{$oldBefore}'");
-      
+        $query->where("(((#currencyId = 'BGN' OR #currencyId = 'EUR') AND #threadModifiedOn <= '{$oldBefore}') OR (#currencyId != 'BGN' AND #currencyId != 'EUR' AND {$day} >= {$accDay} AND #threadModifiedOn <= '{$firstDayOfMonth}'))");
+
         // Крайното салдо, и Аванса за фактуриране по сметката на сделката трябва да е в допустимия толеранс или да е NULL
         $query->where("#amountBl BETWEEN -{$tolerance} AND {$tolerance}");
         $query->where("#amountInvoicedDownpaymentToDeduct BETWEEN -{$tolerance} AND {$tolerance} OR #amountInvoicedDownpaymentToDeduct IS NULL");

@@ -184,11 +184,18 @@ class acc_reports_MovementArtRep extends frame2_driver_TableData
         $jQuery4 = clone $jQuery;
         $jRecs4 = $jQuery4->where("#docType = {$id1}");
         $jRecs4 = $jQuery4->fetchAll();
-       
+        
+        // инвентаризация
+        $id3 = store_InventoryNotes::getClassid();
+        $jQuery6 = clone $jQuery; //bp($jRecs6,$id3);
+        $jRecs6 = $jQuery6->where("#docType = {$id3}");
+        $jRecs6 = $jQuery6->fetchAll();
+        
+   
         $jRecs3 = array_diff_key($jRecs, $jRecs2); 
         
-        $jRecs5 = array_merge($jRecs2,$jRecs4);
-   
+        $jRecs5 = array_merge($jRecs2,$jRecs4,$jRecs6);
+        
         $recs = array();
        
         log_System::add(get_called_class(), 'jRecsCnt: ' . countR($jRecs) . ', producsCnt: ' . countR($productArr), null, 'debug', 1);

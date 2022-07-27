@@ -1349,6 +1349,8 @@ abstract class deals_Helper
             $Detail = cls::get($masterMvc->mainDetail);
             $dQuery = $Detail->getQuery();
             $dQuery->where("#{$Detail->masterKey} = {$rec->id}");
+
+            Mode::push("stopMasterUpdate{$rec->id}", true);
             while ($dRec = $dQuery->fetch()) {
                 $dRec->{$priceFld} = ($dRec->{$priceFld} / $rec->{$rateFld}) * $newRate;
 
@@ -1359,6 +1361,7 @@ abstract class deals_Helper
 
                 $Detail->save($dRec);
             }
+            Mode::pop("stopMasterUpdate{$rec->id}");
 
             $updateMaster = true;
             $rec->{$rateFld} = $newRate;
@@ -1382,7 +1385,6 @@ abstract class deals_Helper
             }
         }
         $rec->_recalcRate = true;
-
         $masterMvc->save($rec);
         $masterMvc->logWrite('Ръчна промяна на курса', $rec->id);
 
