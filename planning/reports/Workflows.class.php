@@ -175,6 +175,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             $query->in('fixedAsset', $assetArr);
         }
+
         $indTimeSumArr = array();
         while ($tRec = $query->fetch()) {
             $id = self::breakdownBy($tRec, $rec);
@@ -205,10 +206,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $quantity = round(($tRec->quantity / $quantityInPack), 3);
                 }
 
-                // $normTime = planning_type_ProductionRate::getInSecsByQuantity($iRec->indTime, $quantity);
                 $normTime = planning_ProductionTaskDetails::calcNormByRec($tRec);
 
-                $divisor = countR(keylist::toArray($tRec->employees));
+
+                if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+                    $divisor = countR(keylist::toArray($tRec->employees));
+                }else{
+                    $divisor = 1;
+                }
                 if ($rec->typeOfReport == 'short') {
 
                     $id = $val;
@@ -221,6 +226,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 if ($divisor) {
 
                     $timeAlocation = ($tRec->indTimeAllocation == 'common') ? 1 / $divisor : 1;
+
                     $indTimeSum = $timeAlocation * $normTime;
 
                 } else {
@@ -279,15 +285,24 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             //Разпределяне по работници, когато са повече от един
             foreach ($recs as $key => $val) {
-                if (countR(keylist::toArray($val->employees)) > 1) {
+
+                if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+                    $divisor = countR(keylist::toArray($val->employees));
+                    $arr = keylist::toArray($val->employees);
+                }else{
+                    $arr = array($val->assetResources => $val->assetResources);
+                    $divisor = 1;
+                }
+
+     //           if (countR(keylist::toArray($val->employees)) > 1) {
                     $clone = clone $val;
 
-                    $divisor = countR(keylist::toArray($val->employees));
 
-                    foreach (keylist::toArray($val->employees) as $k => $v) {
+
+                    foreach ($arr as $k => $v) {
                         unset($id);
 
-                        if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees))) {
+                        if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees))) {bp();
                             continue;
                         }
 
@@ -312,9 +327,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         } else {
                             $indTimeSum = 0;
                         }
-                        $indTimeSum = $clone->indTimeSum;
-                        $clone = clone $val;
 
+                            $indTimeSum = $clone->indTimeSum;
+                        $aaa[$id] =  $clone->indTimeSum;
+
+                        $clone = clone $val;
+                        unset($recs[$key]);
                         if (!array_key_exists($id, $recs)) {
                             $recs[$id] = (object)array(
 
@@ -353,8 +371,8 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             $obj->indTimeSum += $indTimeSum;
                         }
                     }
-                    unset($recs[$key]);
-                }
+
+    //            }
             }
 
             foreach ($recs as $key => $val) {
@@ -495,7 +513,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
             $row->assetResources = '';
         }
 
-
+//bp($dRec);
         $row->min = $Double->toVerbal($dRec->indTimeSum / 60);
         return $row;
     }
