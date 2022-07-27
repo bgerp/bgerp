@@ -2152,34 +2152,36 @@ class planning_Tasks extends core_Master
                 $origin = doc_Containers::getDocument($rec->originId);
                 $jobProductId = $origin->fetchField('productId');
 
-                // Взимане с приотитет от кеша на параметрите на артикула от заданието
+                // Взимане с приоритет от кеша на параметрите на артикула от заданието
                 $jobParams = core_Permanent::get("taskListJobParams{$jobProductId}");
                 if(!is_array($jobParams)){
                     $jobParams = cat_Products::getParams($jobProductId, null, true);
                     core_Permanent::set("taskListJobParams{$jobProductId}", $jobParams, 5*60);
                 }
 
-                // Кои от продуктовите параметри ще се показват в лист изгледа за планиране
-                $displayParams = array_intersect_key($jobParams, $data->listFieldsParams);
-                foreach ($displayParams as $pId => $pValue){
+                foreach ($data->listFieldsParams as $paramId){
                     $live = true;
-                    if(is_array($taskSpecificParams[$rec->id]) && array_key_exists($pId, $taskSpecificParams[$rec->id])){
-                        $pValue = $taskSpecificParams[$rec->id][$pId];
+                    $pValue = array_key_exists($paramId, $jobParams) ? $jobParams[$paramId] : null;
+                    if(is_array($taskSpecificParams[$rec->id]) && array_key_exists($paramId, $taskSpecificParams[$rec->id])){
+                        $pValue = $taskSpecificParams[$rec->id][$paramId];
                         $live = false;
                     }
 
-                    $pSuffix = cat_Params::getVerbal($pId, 'suffix');
-                    $row->{"param_{$pId}"} = $pValue;
-                    if(!empty($pSuffix)){
-                        $row->{"param_{$pId}"} .= " {$pSuffix}";
-                    }
-                    if($live){
-                        $row->{"param_{$pId}"} = "<span style='color:blue'>{$row->{"param_{$pId}"}}</span>";
+                    if(isset($pValue)){
+                        $pSuffix = cat_Params::getVerbal($paramId, 'suffix');
+                        $row->{"param_{$paramId}"} = $pValue;
+                        if(!empty($pSuffix)){
+                            $row->{"param_{$paramId}"} .= " {$pSuffix}";
+                        }
+                        if($live){
+                            $row->{"param_{$paramId}"} = "<span style='color:blue'>{$row->{"param_{$paramId}"}}</span>";
+                        }
                     }
                 }
             }
         }
     }
+
 
     /**
      * Функция по подразбиране, за връщане на хеша на резултата
