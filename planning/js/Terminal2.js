@@ -135,15 +135,23 @@ function setWorkers()
  */
 function setProduct()
 {
-	setCmd('Артикул');
+	setCmd('Производство');
 }
 
 /**
  * Задава команда за етикет
  */
-function setLabel()
+function setPutting()
 {
-	setCmd('Етикет');
+	setCmd('Влагане');
+}
+
+/**
+ * Задава команда за етикет
+ */
+function setWaste()
+{
+	setCmd('Отпадък');
 }
 
 /**
@@ -312,6 +320,9 @@ function init(evn) {
 	  }
 	}, false);
 
+	// Стартиране на отзивчивото скролиране
+	dragToScroll.run();
+
 	setInterval(updateWeight, 1000);
 }
 
@@ -332,6 +343,79 @@ function toggleFullScreen() {
   }
 }
 
+
+dragToScroll = { 
+	
+    'run': function () {
+		console.log(document.querySelectorAll('.ef-drag-scroll'));
+        document.querySelectorAll('.ef-drag-scroll').forEach((el) => {
+            this.mount(el);
+        })
+    },
+
+    'mount': function (el) {
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+        let timer;
+
+        el.addEventListener('mousedown', (e) => {
+            isDown = true;
+            startX = e.pageX - el.offsetLeft;
+            scrollLeft = el.scrollLeft;
+        });
+        el.addEventListener('touchstart', (e) => {
+            isDown = true;
+            startX = e.changedTouches[0].pageX - el.offsetLeft;
+            scrollLeft = el.scrollLeft;
+        });
+
+        el.addEventListener('touchend', (e) => {
+            isDown = false;
+            el.classList.remove('ef-ds-active');
+        });
+        el.addEventListener('mouseleave', (e) => {
+            isDown = false;
+            el.classList.remove('ef-ds-active');
+        });
+        el.addEventListener('mouseup', (e) => {
+            isDown = false;
+            el.classList.remove('ef-ds-active');
+        });
+
+        el.addEventListener('touchmove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            for (i = 0; i < e.changedTouches.length; i++) {
+                let x = e.changedTouches[i].pageX - el.offsetLeft;
+                let newX = scrollLeft - (x - startX); //scroll-fast
+                if (newX < 0) newX = 0;
+                let maxScrollLeft = el.scrollWidth - el.clientWidth;
+                if (newX > maxScrollLeft) newX = maxScrollLeft;
+                if (newX !== el.scrollLeft) {
+                    el.classList.add('ef-ds-active');
+                    el.scrollLeft = newX;
+                }
+            }
+            return false;
+        });
+        el.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - el.offsetLeft;
+            let newX = scrollLeft - (x - startX); //scroll-fast
+            if (newX < 0) newX = 0;
+            const maxScrollLeft = el.scrollWidth - el.clientWidth;
+            if (newX > maxScrollLeft) newX = maxScrollLeft;
+            if (newX !== el.scrollLeft) {
+                el.classList.add('ef-ds-active');
+                el.scrollLeft = newX;
+            }
+            return false;
+        });
+    }
+}
 
 
 /**

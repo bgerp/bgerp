@@ -1492,7 +1492,7 @@ class planning_Jobs extends core_Master
 
         $notClosedTasks = array();
         $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#originId = {$rec->containerId} AND #state IN ('active', 'wakeup', 'stopped')");
+        $tQuery->where("#originId = {$rec->containerId} AND #state IN ('active', 'wakeup', 'stopped', 'pending', 'draft')");
         $tQuery->show('id');
         while($tRec = $tQuery->fetch()){
             $notClosedTasks[] = "#" . planning_Tasks::getHandle($tRec->id);

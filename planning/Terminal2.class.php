@@ -73,6 +73,14 @@ class planning_Terminal2 extends core_Mvc
             $res['menuBackgroundColor'] = "#696";
         }
 
+        if(strpos($cmd, 'Задание:') === 0) {
+            $res['menuTitle'] = "Задание";
+            $res['menuBody'] = "
+                <div>Инфо ... </div>
+            ";
+            $res['menuBackgroundColor'] = "#966";
+        }
+
         $res = json_encode($res);
 
         echo $res;

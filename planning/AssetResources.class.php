@@ -64,8 +64,14 @@ class planning_AssetResources extends core_Master
      * Кой има право да разглежда сингъла?
      */
     public $canSingle = 'ceo, planning, support, taskWorker';
-    
-    
+
+
+    /**
+     * Кой има право да форсира преизчисляването на времето?
+     */
+    public $canRecalctime = 'ceo, taskPlanning, debug';
+
+
     /**
      * Полета, които ще се показват в листов изглед
      */
@@ -355,6 +361,14 @@ class planning_AssetResources extends core_Master
             $groupState = planning_AssetGroups::fetchField($rec->groupId, 'state');
             if ($groupState == 'closed') {
                 $requiredRoles = 'no_one';
+            }
+        }
+
+        if($action == 'recalctime' && isset($rec)){
+            if(isset($rec->isDebug)){
+                if(!haveRole('debug')){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
     }
@@ -813,8 +827,12 @@ class planning_AssetResources extends core_Master
      */
     protected static function on_AfterPrepareSingleToolbar($mvc, &$data)
     {
-        if (haveRole('debug')) {
-            $data->toolbar->addBtn('Подреждане', array($mvc, 'recalcTimes', $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/bug.png,title=Тестово преизчисляване на времена');
+        if ($mvc->haveRightFor('recalctime', (object)array('id' => $data->rec->id))) {
+            $data->toolbar->addBtn('Преизчисляване', array($mvc, 'recalcTimes', $data->rec->id, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png,title=Преизчисляване на времената на операциите към оборудването');
+        }
+
+        if ($mvc->haveRightFor('recalctime', (object)array('id' => $data->rec->id, 'isDebug' => 1))) {
+            $data->toolbar->addBtn('Подреждане (Дебъг)', array($mvc, 'recalcTimes', $data->rec->id, 'isDebug' => 1, 'ret_url' => true), 'ef_icon=img/16/bug.png,title=Дебъг преизчисляване на времената');
         }
     }
 
@@ -1077,19 +1095,20 @@ class planning_AssetResources extends core_Master
 
 
     /**
-     * @todo тестов екшън да се премахне
+     * Екшън за рекалкулиране на времето на едно оборудване
      */
     public function act_recalcTimes()
     {
-        self::requireRightFor('debug');
-        expect($id = Request::get('id', 'int'));
-
-        echo "<li>FROM: " . dt::now();
-        echo "<li>TO: " . dt::addSecs(planning_Setup::get('ASSET_HORIZON'));
-
+        $this->requireRightFor('recalctime');
+        $id = Request::get('id', 'int');
+        $isDebug = Request::get('isDebug', 'int');
+        $this->requireRightFor('recalctime', (object)array('id' => $id, 'isDebug' => $isDebug));
         $updateRecs = static::recalcTaskTimes($id);
+        if($isDebug){
+            bp($updateRecs);
+        }
 
-        bp($updateRecs);
+        followRetUrl(null, 'Времената са преизчислени|*!');
     }
 
 
@@ -1102,10 +1121,10 @@ class planning_AssetResources extends core_Master
         $tQuery = planning_Tasks::getQuery();
         $tQuery->in('state', array('pending', 'stopped', 'active', 'wakeup'));
         $tQuery->where('#assetId IS NOT NULl');
-        $tQuery->show('assetId,id,progress,orderByAssetId,indTime,indPackagingId,plannedQuantity,state,timeStart,timeDuration');
+        $tQuery->show('assetId,id,progress,orderByAssetId,indTime,indPackagingId,plannedQuantity,state,timeStart,timeDuration,simultaneity');
         $assetArr = array();
         while($tRec = $tQuery->fetch()){
-            $key = "{$tRec->plannedQuantity}|{$tRec->state}|{$tRec->indTime}|{$tRec->indPackagingId}|{$tRec->timeStart}|{$tRec->timeDuration}";
+            $key = "{$tRec->plannedQuantity}|{$tRec->state}|{$tRec->indTime}|{$tRec->indPackagingId}|{$tRec->timeStart}|{$tRec->timeDuration}|{$tRec->simultaneity}";
             $assetArr[$tRec->assetId][$tRec->orderByAssetId] = array('key' => $key, 'id' => $tRec->id);
         }
 
@@ -1113,7 +1132,7 @@ class planning_AssetResources extends core_Master
         if(!countR($assetArr)) return;
 
         $from = dt::now();
-        $to = dt::addSecs(planning_Setup::get('ASSET_HORIZON'));
+        $to = dt::addSecs(planning_Setup::get('ASSET_HORIZON'), $from);
 
         // За всяко оборудване
         foreach ($assetArr as $assetId => $assetData){

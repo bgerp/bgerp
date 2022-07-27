@@ -60,6 +60,8 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
 
         $fieldset->FLD('sill', 'double', 'caption=Да не се показват фактури по приключени сделки при разлика под->Неплатено/Надплатено,unit=лв.,input=hidden,after=checkDate,silent,single=none');
 
+        $fieldset->FLD('seeProformаs', 'set(yes = )', 'caption=Покажи проформа фактурите,after=sill,input,single=none');
+
         $fieldset->FNC('totalInvoiceValueAll', 'double', 'input=none,single=none');
         $fieldset->FNC('totalInvoicePayoutAll', 'double', 'input=none,single=none');
         $fieldset->FNC('totalInvoiceNotPaydAll', 'double', 'input=none,single=none');
@@ -81,18 +83,21 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
         $form = $data->form;
         $rec = $form->rec;
 
+        $form->setDefault('seeProformаs', null);
+
         if ($rec->unpaid == 'unpaid') {
             unset($rec->fromDate);
             $form->setField('fromDate', 'input=none');
             $form->setField('sill', 'input');
+            $form->setField('seeProformаs', 'input=none');
         }
 
         if ($rec->unpaid == 'all') {
             $form->setDefault('fromDate', null);
-        }
-        if ($rec->unpaid == 'all') {
+
             $checkDate = dt::today();
             $form->setDefault('checkDate', "{$checkDate}");
+
         }
 
 
@@ -186,10 +191,17 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
             $isRec = array();
             $totalInvoiceContragent = $totalInvoiceContragentAll = array();
 
-            foreach (array('sales_Invoices', 'sales_Proformas') as $InvDoc) {
+            $docsArr = array('sales_Invoices');
 
-                //Ако са  избрани само неплатени фактури, не отчита проформите
-                if ($InvDoc == 'sales_Proformas' && $rec->unpaid == 'unpaid') continue;
+            if($rec->seeProformаs == 'yes' && $rec->unpaid == 'all'){
+
+                array_push($docsArr,'sales_Proformas');
+
+                $proformWithPayDocArr = array_keys(self::getProformsWithPaymant()); //Масив с всички проформи, към които има насочени плащания
+
+            }
+
+            foreach ($docsArr as $InvDoc) {
 
                 $invQuery = $InvDoc::getQuery();
 
@@ -288,13 +300,15 @@ class acc_reports_InvoicesByContragent extends frame2_driver_TableData
                     core_App::setTimeLimit($maxTimeLimit);
                 }
 
+                if($rec->seeProformаs == 'yes' && $rec->unpaid == 'all'){
+                    $proformWithPayDocArr = array_keys(self::getProformsWithPaymant()); //Масив с всички проформи, към които има насочени плащания
+                }
+
 
                 while ($salesInvoice = $invQuery->fetch()) {
 
                     //Ако към проформата НЯМА изрично насочени плащания, НЕ Я ВКЛЮЧВАМЕ в справката
-                    $proformWithPayDocArr = array_keys(self::getProformsWithPaymant());
-
-                    if (($InvDoc == 'sales_Proformas') && (!in_array($salesInvoice->id, $proformWithPayDocArr))) continue;
+                    if (($rec->seeProformаs == 'yes') && ($InvDoc == 'sales_Proformas') && (!in_array($salesInvoice->id, $proformWithPayDocArr))) continue;
 
                     $firstDocument = doc_Threads::getFirstDocument($salesInvoice->threadId);
 

@@ -255,7 +255,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
                     if($rest > 0){
-                        $form->setDefault('quantity', $rest);
+                        $form->setField('quantity', "placeholder={$rest}");
+                        $form->rec->_defaultQuantity = $rest;
                     }
                 }
             }
@@ -273,6 +274,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $fieldName = 'quantity';
             if($rec->type == 'production' && isset($masterRec->labelPackagingId) && $masterRec->labelPackagingId != $masterRec->measureId && $productIsTaskProduct){
+
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->labelPackagingId);
                 $form->setField($fieldName, "unit={$unit}");
                 $defaultQuantity = $masterRec->labelQuantityInPack;
@@ -762,7 +764,11 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $row->scrappedQuantity = '';
             if (!empty($rec->scrappedQuantity)) {
-                $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity / $masterRec->quantityInPack);
+                if(isset($masterRec->quantityInPack)){
+                    $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity / $masterRec->quantityInPack);
+                } else {
+                    $row->scrappedQuantity = null;
+                }
                 $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
             }
 
@@ -1015,9 +1021,12 @@ class planning_ProductionTaskDetails extends doc_Detail
     public static function on_AfterGetRequiredRoles($mvc, &$requiredRoles, $action, $rec = null, $userId = null)
     {
         if (in_array($action, array('add', 'edit', 'delete', 'reject', 'fix')) && isset($rec->taskId)) {
-            $state = $mvc->Master->fetchField($rec->taskId, 'state');
-            if (!in_array($state, array('active', 'wakeup', 'pending'))) {
-                $requiredRoles = 'no_one';
+            $masterRec = $mvc->Master->fetch($rec->taskId, 'timeClosed,state');
+            if (!in_array($masterRec->state, array('active', 'wakeup', 'pending'))) {
+                $howLong = dt::addSecs(planning_Setup::get('TASK_PROGRESS_ALLOWED_AFTER_CLOSURE'), $masterRec->timeClosed);
+                if(dt::now() >= $howLong){
+                    $requiredRoles = 'no_one';
+                }
             }
         }
         
