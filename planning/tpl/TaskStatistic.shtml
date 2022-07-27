@@ -45,6 +45,9 @@
                   <!--ET_BEGIN followBatchesForFinalProduct-->
                   <span style='font-weight:normal'>|Отчитане|*</span>: [#followBatchesForFinalProduct#]<br>
                   <!--ET_END followBatchesForFinalProduct-->
+                  <!--ET_BEGIN dependantProgress-->
+                  <span style='font-weight:normal'>|Предх.Оп.|*</span>: [#dependantProgress#]<br>
+                  <!--ET_END dependantProgress-->
     			</td>
            </tr>
            <tr><td colspan='4'>[#progressBar#] [#progress#]</td></tr>

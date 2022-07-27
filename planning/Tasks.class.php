@@ -92,7 +92,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title,progress,folderId,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,originId=@';
     
     
     /**
@@ -246,6 +246,12 @@ class planning_Tasks extends core_Master
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'dependantProgress';
 
 
     /**
@@ -489,6 +495,11 @@ class planning_Tasks extends core_Master
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
+            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true);
+            if(is_array($dependentTasks[$rec->id])){
+                $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
+            }
+
             if(isset($rec->assetId)){
                 if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $rec->assetId))){
                     $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
@@ -2092,7 +2103,7 @@ class planning_Tasks extends core_Master
                     $paramFields["param_{$paramId}"] = "|*<small>{$paramExt[1]}</small>";
                     $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'tdClass=taskParamCol');
                 }
-                arr::placeInAssocArray($data->listFields, $paramFields, null, 'progress');
+                arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
             }
         }
 
@@ -2113,8 +2124,18 @@ class planning_Tasks extends core_Master
             }
         }
 
+        // Еднократно извличане на зависимите предходни операции
+        $dependentTasks = planning_StepConditions::getDependantTasksProgress($data->recs, true);
+
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
+
+            // Ако има планирани предходни операции - да се показват с техните прогреси
+            if(isset($dependentTasks[$rec->id])){
+                if(is_array($dependentTasks[$rec->id])){
+                    $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
+                }
+            }
 
             // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
@@ -2159,7 +2180,6 @@ class planning_Tasks extends core_Master
             }
         }
     }
-
 
     /**
      * Функция по подразбиране, за връщане на хеша на резултата
