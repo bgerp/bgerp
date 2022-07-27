@@ -255,7 +255,8 @@ class planning_ProductionTaskDetails extends doc_Detail
             if ($pRec->canStore != 'yes' && $rec->productId == $masterRec->productId) {
                 if ($rest = $masterRec->plannedQuantity - $masterRec->totalQuantity) {
                     if($rest > 0){
-                        $form->setDefault('quantity', $rest);
+                        $form->setField('quantity', "placeholder={$rest}");
+                        $form->rec->_defaultQuantity = $rest;
                     }
                 }
             }
@@ -273,6 +274,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $fieldName = 'quantity';
             if($rec->type == 'production' && isset($masterRec->labelPackagingId) && $masterRec->labelPackagingId != $masterRec->measureId && $productIsTaskProduct){
+
                 $unit = $shortMeasure . ' / ' . cat_UoM::getShortName($masterRec->labelPackagingId);
                 $form->setField($fieldName, "unit={$unit}");
                 $defaultQuantity = $masterRec->labelQuantityInPack;
