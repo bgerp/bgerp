@@ -764,7 +764,11 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $row->scrappedQuantity = '';
             if (!empty($rec->scrappedQuantity)) {
-                $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity / $masterRec->quantityInPack);
+                if(isset($masterRec->quantityInPack)){
+                    $row->scrappedQuantity = core_Type::getByName('double(smartRound)')->toVerbal($rec->scrappedQuantity / $masterRec->quantityInPack);
+                } else {
+                    $row->scrappedQuantity = null;
+                }
                 $row->scrappedQuantity = " (" . tr('Брак') . ": {$row->scrappedQuantity})";
             }
 

@@ -72,9 +72,9 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Да се скрива ли филтъра по дата от лист изгледа
+     * Дали да се подреждат по дата
      */
-    public $hidePeriodFilter = true;
+    public $orderByDateField = false;
     
     
     /**
