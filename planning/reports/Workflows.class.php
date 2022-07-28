@@ -209,7 +209,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 $normTime = planning_ProductionTaskDetails::calcNormByRec($tRec);
 
 
-                if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+                if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines' || $rec->typeOfReport == 'short') {
                     $divisor = countR(keylist::toArray($tRec->employees));
                 } else {
                     $divisor = 1;
@@ -277,13 +277,14 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
         }
 
+
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
             if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
                 $this->groupByField = 'employees';
             }
 
-            //Разпределяне по работници, когато са повече от един
+            //Разпределяне по работници,или по машини
             foreach ($recs as $key => $val) {
 
                 if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
@@ -380,7 +381,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
         }
 
         $rec->indTimeSumArr = $indTimeSumArr;
-
+       // bp($recs);
         return $recs;
     }
 
