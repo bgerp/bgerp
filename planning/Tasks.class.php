@@ -2534,6 +2534,7 @@ class planning_Tasks extends core_Master
         $this->requireRightFor('recalcindtimes', $rec);
 
         planning_ProductionTaskDetails::recalcIndTime($rec->id);
+        $this->touchRec($rec);
         $this->logWrite('Преизчисляване на заработките', $rec->id);
 
         followRetUrl(null, 'Заработките са преизчислени успешно|*!');
