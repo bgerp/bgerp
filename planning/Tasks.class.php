@@ -1145,6 +1145,7 @@ class planning_Tasks extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
 
@@ -1481,9 +1482,11 @@ class planning_Tasks extends core_Master
 
         if (isset($rec->id)) {
             $form->setReadOnly('productId');
-            if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
+            if($data->action != 'clone' && planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
                 $form->setReadOnly('labelPackagingId');
-                $form->setReadOnly('labelQuantityInPack');
+                if($form->getFieldParam('labelQuantityInPack', 'input') != 'hidden'){
+                    $form->setReadOnly('labelQuantityInPack');
+                }
                 $form->setReadOnly('measureId');
             }
         }
