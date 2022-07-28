@@ -126,6 +126,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * Кой може да преизчислява заработките на прогреса на операцията?
+     */
+    public $canRecalcindtime = 'ceo,planningMaster';
+
+
+    /**
      * Кой може да го активира?
      */
     public $canActivate = 'ceo, taskPlanning';
@@ -1070,6 +1076,12 @@ class planning_Tasks extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'recalcindtime' && isset($rec)){
+            if(!planning_ProductionTaskDetails::count("#taskId = {$rec->id}") || $rec->state == 'rejected'){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -1866,6 +1878,11 @@ class planning_Tasks extends core_Master
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието,row=2');
         }
 
+        // Бутон за добавяне на документ за влагане
+        if ($mvc->haveRightFor('recalcindtime', $rec)) {
+            $data->toolbar->addBtn('Преиз. заработки', array($mvc, 'recalcindtimes', $rec->id, 'ret_url' => true), 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на заработките към операцията,row=2,warning=Наистина ли желаете да преизчислите заработките в прогреса|*?');
+        }
+
         if($data->toolbar->haveButton('btnActivate')){
             $data->toolbar->renameBtn('btnActivate', 'Стартиране');
         }
@@ -2506,12 +2523,19 @@ class planning_Tasks extends core_Master
     }
 
 
-    function act_Test()
+    /**
+     * Екшън за рекалкулиране на заработките
+     */
+    function act_Recalcindtimes()
     {
-        $taskId = 876;
-        $type = 'production';
-        $productId = null;
+        $this->requireRightFor('recalcindtimes');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('recalcindtimes', $rec);
 
-        planning_ProductionTaskDetails::recalcIndTime($taskId, $type, $productId);
+        planning_ProductionTaskDetails::recalcIndTime($rec->id);
+        $this->logWrite('Преизчисляване на заработките', $rec->id);
+
+        followRetUrl(null, 'Заработките са преизчислени успешно|*!');
     }
 }
