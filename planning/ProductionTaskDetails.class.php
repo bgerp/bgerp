@@ -1423,4 +1423,27 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         return $tpl;
     }
+
+    public static function recalcIndTime($taskId, $type = 'production', $productId = null)
+    {
+        $me = cls::get(get_called_class());
+        $toSave = array();
+        $query = $me->getQuery();
+        $query->where("#taskId = {$taskId} AND #type = '{$type}'");
+        if(isset($productId)){
+            $query->where("#productId = {$productId}");
+        }
+
+        while($rec = $query->fetch()){
+            $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
+            if (isset($info->indTime) && $rec->norm != $info->indTime) {
+                $rec->norm = $info->indTime;
+                $toSave[$rec->id] = $rec;
+            }
+        }
+
+        if(countR($toSave)){
+            $me->saveArray($toSave, 'id,norm');
+        }
+    }
 }

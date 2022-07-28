@@ -237,6 +237,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * На кои операции трябва да се преизчисли нормата на детайлите
+     */
+    protected $recalcProducedDetailIndTime = array();
+
+
+    /**
      * Работен кеш
      */
     public $changedAssets = array();
@@ -2265,6 +2271,14 @@ class planning_Tasks extends core_Master
                 $mvc->reorderTasksInAssetId[$rec->_exAssetId] = $rec->_exAssetId;
             }
         }
+
+        // Маркиране на операцията, ако е променена нормата ѝ, да се преизчислят нормите на детайлите ѝ
+        if($rec->_exIndTime != $rec->indTime){
+            $product4Task = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
+            if(planning_ProductionTaskDetails::count("#taskId = {$rec->id} AND #type = 'production' AND #productId = {$product4Task}")){
+                $mvc->recalcProducedDetailIndTime[$rec->id] = (object)array('id' => $rec->id, 'productId' => $product4Task);
+            }
+        }
     }
 
 
@@ -2279,6 +2293,13 @@ class planning_Tasks extends core_Master
                 if(isset($assetId)){
                     planning_AssetResources::reOrderTasks($assetId);
                 }
+            }
+        }
+
+        if (countR($mvc->recalcProducedDetailIndTime)) {
+            foreach ($mvc->recalcProducedDetailIndTime as $rec) {
+                planning_ProductionTaskDetails::recalcIndTime($rec->id, 'production', $rec->productId);
+                core_Statuses::newStatus('Нормата е променена. Преизчислени са заработките на прогреса|*!');
             }
         }
     }
@@ -2400,10 +2421,12 @@ class planning_Tasks extends core_Master
 
         $rec->freeTimeAfter = 'no';
 
+        // Запомняне на предишните стойностти на определени полета
         if(isset($rec->id)){
-            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId', false);
+            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId,indTime', false);
             $rec->_exAssetId = $exRec->assetId;
             $rec->_exOrderByAssetId = $exRec->orderByAssetId;
+            $rec->_exIndTime = $exRec->indTime;
             if(isset($rec->assetId) && $rec->assetId != $rec->_exAssetId){
                 $rec->prevAssetId = $rec->_exAssetId;
             }
@@ -2480,5 +2503,15 @@ class planning_Tasks extends core_Master
                 $data->toolbar->addBtn('Преизчисляване', array('planning_AssetResources', 'recalcTimes', $assetId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
             }
         }
+    }
+
+
+    function act_Test()
+    {
+        $taskId = 876;
+        $type = 'production';
+        $productId = null;
+
+        planning_ProductionTaskDetails::recalcIndTime($taskId, $type, $productId);
     }
 }
