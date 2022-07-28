@@ -27,9 +27,13 @@ function readScale() {
 function beforeSubmit() {
     if ($("[name=[#_weight#]]").length && $("[name=[#_weight#]]").attr('type') != 'hidden') {
         $(document.body).on('submit', "[#_formIdName#]", function(e) {
-            if (!$("input[name=[#_weight#]]").val().length) {
-                var inpVal = $("input[name=[#_liveWeight#]]").val();
-                $("input[name=[#_weight#]]").val(inpVal);
+            var vWal = $("input[name=[#_weight#]]");
+            if (!vWal.val().length) {
+                var lWal = $("input[name=[#_liveWeight#]]");
+                if (lWal) {
+                    var inpVal = lWal.val();
+                    vWal.val(inpVal);
+                }
             }
         });
     }
