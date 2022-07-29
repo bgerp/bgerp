@@ -1927,8 +1927,10 @@ class fileman_Files extends core_Master
         if ($form->isSubmitted()) {
             
             // Преименува файла
-            self::renameFile($fRec, $form->rec->name, true);
-            
+            $this->renameFile($fRec, $form->rec->name, true);
+
+            $this->logWrite('Преименуване', $fRec->id);
+
             // Редиректваме
             return new Redirect($retUrl);
         }
@@ -2442,6 +2444,13 @@ class fileman_Files extends core_Master
         
         if ($mvc->haveRightFor('editfile', $data->rec->id)) {
             $data->toolbar->addBtn('Преименуване', array($mvc, 'editFile', $data->rec->fileHnd, 'ret_url' => true), 'id=btn-rename', 'ef_icon = img/16/edit-icon.png, title=Преименуване на файла, row=2');
+        }
+
+        if (log_Data::haveRightFor('list')) {
+            $historyCnt = log_Data::getObjectCnt($mvc, $data->rec->id);
+            if ($historyCnt) {
+                $data->toolbar->addBtn("История|* ({$historyCnt})", array('log_Data', 'list', 'class' => 'fileman_Files', 'object' => $data->rec->id, 'ret_url' => true), 'id=btn-history', 'ef_icon = img/16/book_open.png, title=Разглеждане на историята на файла, row=2');
+            }
         }
     }
 
