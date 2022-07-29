@@ -520,14 +520,15 @@ abstract class store_DocumentMaster extends core_Master
             }
 
             $row->storeId = store_Stores::getHyperlink($rec->storeId);
-            core_Lg::pop();
-            
+
             if ($rec->isReverse == 'yes') {
                 $row->operationSysId = tr('Връщане на стока');
                 if(isset($rec->reverseContainerId)){
                     $row->operationSysId .= tr("|* |от|* ") . doc_Containers::getDocument($rec->reverseContainerId)->getLink(0, array('ef_icon' => false));
                 }
             }
+
+            core_Lg::pop();
         } elseif (isset($fields['-list'])) {
             if (doc_Setup::get('LIST_FIELDS_EXTRA_LINE') != 'no') {
                 $row->title = '<b>' . $row->title . '</b>';
