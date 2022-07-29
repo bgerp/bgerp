@@ -1208,7 +1208,7 @@ class planning_Tasks extends core_Master
         
         if (isset($rec->productId)) {
             $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
-            $form->setFieldTypeParams("wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId, 'hasnotProperties' => 'generic'));
+            $form->setFieldTypeParams("wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
             $form->setField('labelType', 'input');
             $form->setField('measureId', 'input');
 
