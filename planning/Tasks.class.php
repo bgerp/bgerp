@@ -1582,7 +1582,7 @@ class planning_Tasks extends core_Master
                 $row->assetId = planning_AssetResources::getShortName($rec->assetId, !Mode::isReadOnly());
             }
 
-         //   bp($row->_rowTools);
+            $row->title = ht::createElement("span", array('id' => planning_Tasks::getHandle($rec->id)), $row->title);
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
@@ -2086,7 +2086,15 @@ class planning_Tasks extends core_Master
                         $data->retUrl = $retUrl;
                     }
                 } elseif($retUrl['Act'] == 'single'){
-                    $data->retUrl = $retUrl;
+                    $jobThreadId = planning_Jobs::fetchField($retUrl['id'], 'threadId');
+                    if(doc_Threads::haveRightFor('single', $jobThreadId)){
+                        $newRetUrl = array('doc_Containers', 'list', 'threadId' => $jobThreadId, "#" => $mvc->getHandle($data->form->rec->id));
+                    } else {
+                        $newRetUrl = $retUrl;
+                        $newRetUrl["#"] = $mvc->getHandle($data->form->rec->id);
+                    }
+
+                    $data->retUrl = $newRetUrl;
                 }
             }
         }
