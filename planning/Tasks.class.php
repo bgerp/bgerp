@@ -627,7 +627,7 @@ class planning_Tasks extends core_Master
             }
         } else {
             $row->assetId = "<span class='quiet'>N/A</span>";
-            $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!');
+            $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!', 'warning');
         }
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
