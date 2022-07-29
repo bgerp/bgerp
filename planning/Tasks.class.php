@@ -1653,6 +1653,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
+        $data->listFilter->setField('folder', 'autoFilter');
         $data->query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $orderByField = 'orderByDate';
 
