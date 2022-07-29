@@ -34,7 +34,7 @@ class plg_StructureAndOrder extends core_Plugin
         $mvc->FNC('saoPosition', 'enum(next=След,prev=Преди,subLevel=Под ниво)', 'caption=Структура и подредба->Положение,input=none,column=none,order=100000,maxRadio=3,columns=3');
         $mvc->FNC('saoRelative', 'int', 'caption=Структура и подредба->Спрямо,input=none,column=none,order=100000,class=w100');
         $mvc->FLD('saoParentId', 'int', 'caption=Структура и подредба->Родител,input=none,column=none,order=100000');
-        $mvc->FLD('saoOrder', 'double', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
+        $mvc->FLD('saoOrder', 'double(smartRound)', 'caption=Структура и подредба->Подредба,input=none,column=none,order=100000');
         $mvc->FLD('saoLevel', 'int', 'caption=Структура и подредба->Ниво,input=none,column=none,order=100000');
         
         $mvc->listItemsPerPage = max($mvc->listItemsPerPage, 1000);
@@ -324,7 +324,7 @@ class plg_StructureAndOrder extends core_Plugin
                 if ($f = $mvc->saoTitleField) {
                     $row->{$f} = $mvc->saoGetTitle($rec, $row->{$f});
                 }
-                $ddTools = $row->_rowTools;
+
                 if ($lastRec && $rec->saoLevel == $lastRec->saoLevel && $mvc->haveRightFor('edit', $rec)) {
                     $row->_rowTools->addLink(
                         'Нагоре',
