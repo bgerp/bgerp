@@ -661,8 +661,9 @@ class cat_products_Params extends doc_Detail
 
             if($class instanceof planning_Tasks){
                 $tQuery = planning_Tasks::getQuery();
-                $tQuery->where("#productId = {$planningStepProductId} AND #state NOT IN ('draft', 'rejected')");
+                $tQuery->where("#productId = {$planningStepProductId} AND #state NOT IN ('draft', 'rejected') AND #originId = {$form->rec->originId}");
                 $tQuery->show('id');
+
                 $prevTaskIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
                 if(countR($prevTaskIds)){
 
@@ -679,9 +680,6 @@ class cat_products_Params extends doc_Detail
                 }
             }
         }
-
-
-        //bp($prevParamQuery->fetchAll());
 
         $plannedProductName = cat_Products::getVerbal($productId, 'name');
         $plannedProductName = str_replace(',', ' ', $plannedProductName);
