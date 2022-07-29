@@ -334,7 +334,7 @@ class plg_StructureAndOrder extends core_Plugin
                     $lastRow->_rowTools->addLink(
                         'Надолу',
                         array($mvc, 'SaoMove', $lastRec->id, 'direction' => 'down', 'rId' => $rec->id, 'ret_url' => true),
-                        "ef_icon=img/16/arrow_down.png,title=Преместване на елемента нагоре,id=saoup{$rec->id}"
+                        "ef_icon=img/16/arrow_down.png,title=Преместване на елемента нагоре,id=saodown{$rec->id}"
                     );
                 }
                 $lastRec = $rec;
