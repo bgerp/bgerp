@@ -1167,7 +1167,13 @@ class planning_Tasks extends core_Master
         }
         
         // За произвеждане може да се избере само артикула от заданието
-        $origin = doc_Containers::getDocument($rec->originId);
+        try{
+            $origin = doc_Containers::getDocument($rec->originId);
+        } catch(core_exception_Expect $e){
+            wp($e, $rec, $form, core_Users::getCurrent());
+            followRetUrl(null, 'Има грешка при създаването', 'error');
+        }
+
         $originRec = $origin->fetch();
         
         // Добавяне на допустимите опции
