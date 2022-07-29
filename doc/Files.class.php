@@ -372,6 +372,10 @@ class doc_Files extends core_Manager
 
         // Обхождаме всички линкнати файлове
         foreach ($linked as $fh => $name) {
+            if (!$fh) {
+                continue;
+            }
+
             // Данните за файла
             $dataId = fileman_Files::fetchByFh($fh, 'dataId');
             
@@ -396,10 +400,15 @@ class doc_Files extends core_Manager
             $nRec->fileHnd = $fh;
             $nRec->dataId = $dataId;
             $nRec->show = $show;
-            
+
+            $fRec = fileman::fetchByFh($fh);
+            cls::get('fileman_Files')->logRead('Добавяне към документ', $fRec->id);
+
             static::save($nRec, null, 'IGNORE');
         }
-        
+
+        log_Data::flush();
+
         // Ако са останали файлоаве, които не са премахнати от записите
         if (countR($savedFh)) {
             
