@@ -707,7 +707,7 @@ class planning_Tasks extends core_Master
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->title = cat_Products::getTitleById($rec->productId);
 
-            if($form->cmd == 'save_pending'){
+            if(in_array($form->cmd, array('save_pending', 'save_pending_new'))){
                 if(empty($rec->indTime) && empty($rec->timeDuration)){
                     $form->setError('timeDuration,indTime', "На операцията трябва да може да ѝ се изчисли продължителността|*!");
                 }
@@ -1148,11 +1148,6 @@ class planning_Tasks extends core_Master
 
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
-
-        if($form->cmd == 'save_pending_new'){
-            $form->cmd = 'save_pending';
-            $form->_pendingAndNew = true;
-        }
 
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
@@ -2053,7 +2048,7 @@ class planning_Tasks extends core_Master
 
             $retUrl = getRetUrl();
             if($retUrl['Ctr'] == 'planning_Jobs' && $retUrl['Act'] == 'selectTaskAction'){
-                if($data->form->_pendingAndNew){
+                if($data->form->cmd == 'save_pending_new'){
                     $data->retUrl = $retUrl;
                 }
             }
