@@ -27,6 +27,7 @@ class hr_EmailCreatePlg extends core_Plugin
         $mvc->interfaces = arr::make($mvc->interfaces);
         setIfNot($mvc->interfaces['email_DocumentIntf'], 'email_DocumentIntf');
         setIfNot($mvc->useOriginContragentData, true);
+        setIfNot($mvc->getContragentDataFromLastDoc, false);
     }
 
 
