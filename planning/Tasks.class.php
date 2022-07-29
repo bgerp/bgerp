@@ -21,8 +21,16 @@ class planning_Tasks extends core_Master
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = true;
-    
-    
+
+
+    /**
+     * Може ли подредбата да има поднива
+     *
+     * @see plg_StructureAndOrder
+     */
+    public $canHaveSubLevel = false;
+
+
     /**
      * Шаблон за единичен изглед
      */
@@ -38,7 +46,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, plg_StructureAndOrder, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
 
 
     /**
@@ -1553,7 +1561,7 @@ class planning_Tasks extends core_Master
         $query = $this->getQuery();
         $query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $query->where("#state != 'rejected'");
-        $query->orderBy('orderByDate', 'ASC');
+        $query->orderBy('saoOrder', 'ASC');
         if($data->masterMvc instanceof planning_AssetResources){
             $query->where("#assetId = {$data->masterId}");
         } else {
@@ -1603,7 +1611,10 @@ class planning_Tasks extends core_Master
 
             $data->rows[$rec->id] = $row;
         }
-        
+
+        Mode::push('forListRows', true);
+        $this->invoke('AfterPrepareListRows', array($data, $data));
+
         // Ако потребителя може да добавя операция от съответния тип, ще показваме бутон за добавяне
         if($data->masterMvc instanceof planning_Jobs){
             if ($this->haveRightFor('add', (object) array('originId' => $data->masterData->rec->containerId))) {
@@ -1631,7 +1642,7 @@ class planning_Tasks extends core_Master
         $listTableMvc->FNC('costsCount', 'int');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = arr::make('expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info');
+        $fields = arr::make('saoOrder=Ред,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info');
         if($data->masterMvc instanceof planning_AssetResources){
             unset($fields['assetId']);
         }
@@ -2555,5 +2566,39 @@ class planning_Tasks extends core_Master
         $this->logWrite('Преизчисляване на заработките', $rec->id);
 
         followRetUrl(null, 'Заработките са преизчислени успешно|*!');
+    }
+
+
+    /**
+     * Необходим метод за подреждането
+     * @see plg_StructureAndOrder
+     */
+    public static function getSaoItems($rec)
+    {
+        $res = array();
+        $query = self::getQuery();
+        $query->where("#originId = {$rec->originId}");
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $rec;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Преди рендиране на тулбара в лист таблицата
+     * @see plg_RowTools2
+     */
+    protected static function on_BeforeRenderListTableRowToolbar($mvc, &$tools, $data)
+    {
+        if(isset($data->masterMvc)) return;
+
+        if(is_array($data->recs) && countR($data->recs)){
+            foreach ($data->recs as $rec){
+                $tools->removeBtn("saoup{$rec->id}");
+                $tools->removeBtn("saodown{$rec->id}");
+            }
+        }
     }
 }
