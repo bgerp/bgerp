@@ -1423,4 +1423,42 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         return $tpl;
     }
+
+
+    /**
+     * Рекалкулиране на заработките на конкретната ПО
+     *
+     * @param int $taskId         - ид на операция
+     * @param string|null $type   - тип на прогреса (null за всички)
+     * @param int|null $productId - ид на артикул
+     * @return void
+     */
+    public static function recalcIndTime($taskId, $type = null, $productId = null)
+    {
+        $toSave = array();
+        $me = cls::get(get_called_class());
+
+        // Филтриране на нужните редове
+        $query = $me->getQuery();
+        $query->where("#taskId = {$taskId}");
+        if(isset($type)){
+            $query->where("#type = '{$type}'");
+        }
+        if(isset($productId)){
+            $query->where("#productId = {$productId}");
+        }
+
+        // За всеки ред се изчислява наново нормата му, ако е променена се обновява
+        while($rec = $query->fetch()){
+            $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
+            if (isset($info->indTime) && $rec->norm != $info->indTime) {
+                $rec->norm = $info->indTime;
+                $toSave[$rec->id] = $rec;
+            }
+        }
+
+        if(countR($toSave)){
+            $me->saveArray($toSave, 'id,norm');
+        }
+    }
 }

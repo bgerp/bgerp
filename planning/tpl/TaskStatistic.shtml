@@ -78,6 +78,9 @@
                     <!--ET_BEGIN previousJob-->
                     <span style='font-weight:normal'>[#previousJobCaption#]</span>: [#previousJob#]<br>
                     <!--ET_END previousJob-->
+                    <!--ET_BEGIN modifiedOn-->
+                    <span style='font-weight:normal'>|Модифициране|*</span>: [#modifiedOn#] |от|* [#modifiedBy#]<br>
+                    <!--ET_END modifiedOn-->
                 </td>
             </tr>
         </table>
