@@ -522,7 +522,9 @@ class planning_Tasks extends core_Master
 
             if(isset($rec->assetId)){
                 if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $rec->assetId))){
-                    $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+                    if(!in_array($rec->state, array('draft', 'waiting', 'rejected'))){
+                        $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+                    }
                 }
             }
 
@@ -1580,6 +1582,7 @@ class planning_Tasks extends core_Master
                 $row->assetId = planning_AssetResources::getShortName($rec->assetId, !Mode::isReadOnly());
             }
 
+         //   bp($row->_rowTools);
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
@@ -2077,8 +2080,12 @@ class planning_Tasks extends core_Master
         if (isset($data->form) && $data->form->isSubmitted() && $data->form->rec->id) {
 
             $retUrl = getRetUrl();
-            if($retUrl['Ctr'] == 'planning_Jobs' && $retUrl['Act'] == 'selectTaskAction'){
-                if($data->form->cmd == 'save_pending_new'){
+            if($retUrl['Ctr'] == 'planning_Jobs'){
+                if($retUrl['Act'] == 'selectTaskAction'){
+                    if($data->form->cmd == 'save_pending_new'){
+                        $data->retUrl = $retUrl;
+                    }
+                } elseif($retUrl['Act'] == 'single'){
                     $data->retUrl = $retUrl;
                 }
             }
