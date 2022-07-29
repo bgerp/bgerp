@@ -661,7 +661,7 @@ class cat_products_Params extends doc_Detail
 
             if($class instanceof planning_Tasks){
                 $tQuery = planning_Tasks::getQuery();
-                $tQuery->where("#productId = {$planningStepProductId} AND #state NOT IN ('draft', 'rejected') AND #originId = {$form->rec->originId}");
+                $tQuery->where("#state NOT IN ('draft', 'rejected') AND #originId = {$form->rec->originId}");
                 $tQuery->show('id');
 
                 $prevTaskIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
