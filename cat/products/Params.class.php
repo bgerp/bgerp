@@ -740,9 +740,10 @@ class cat_products_Params extends doc_Detail
     {
         $Class = cls::get($class);
         foreach ($rec->{$paramField} as $k => $o) {
+
             if (!isset($rec->{$k})) continue;
             $paramDriver = cat_Params::getDriver($o->paramId);
-            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html) && empty($rec->{$k})) continue;
+            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image) && empty($rec->{$k})) continue;
 
             $nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $Class->getClassId(), 'productId' => $rec->id);
             if ($id = cat_products_Params::fetchField("#classId = {$Class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')) {
