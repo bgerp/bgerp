@@ -1371,12 +1371,9 @@ class planning_Jobs extends core_Master
                 }
 
                 $productionSteps = planning_Centers::getPlanningStepOptionsByFolderId($depFolderId);
-                if(!countR($productionSteps)){
-                    $urlLink = ht::createErrBtn('Създаване', 'В избрания център, няма посочени производствени етапи|*!');
-                } else {
-                    $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, "title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png");
-                }
+                if(!countR($productionSteps)) continue;
 
+                $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, "title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png");
                 $dName = doc_Folders::recToVerbal($depFolderId)->title;
                 $trClass = ($readyOptions) ? 'newTaskBtn' : null;
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1, 'DEFAULT_TASK_TR_CLASS' => $trClass);

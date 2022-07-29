@@ -69,7 +69,6 @@ class acc_plg_ForceExpenceAllocation extends core_Plugin
         // Кои разходи са отнесени към сделката, със зададено автоматично разпределяне
         $costQuery = acc_CostAllocations::getQuery();
         $costQuery->where("#expenseItemId = {$expenseItemId} AND #allocationBy != 'no'");
-        $costQuery->show('id,quantity,allocationBy,containerId,productsData,allocationBy,allocationFilter');
         
         // За всеки запис
         while ($costRec = $costQuery->fetch()){
