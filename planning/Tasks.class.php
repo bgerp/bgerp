@@ -748,7 +748,7 @@ class planning_Tasks extends core_Master
                 if(isset($rec->wasteProductId)){
                     $wasteRec = cat_Products::fetch($rec->wasteProductId, 'measureId,generic');
                     if($wasteRec->generic == 'yes'){
-                        $form->setError('wasteProductId', "Избраният отпадък е генеричен|*! |Трябва да бъде заместен|*!");
+                        $form->setError('wasteProductId', "Избраният отпадък е генеричен (обобщаващ)|*! |Трябва да бъде заместен с конкретния такъв|*!");
                     } else {
                         if(!cat_Products::convertToUom($productId, $wasteRec->measureId)){
                             $wasteMeasureName = cat_UoM::getShortName($wasteRec->measureId);
