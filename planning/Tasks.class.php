@@ -2584,7 +2584,7 @@ class planning_Tasks extends core_Master
     {
         $res = array();
         $query = self::getQuery();
-        $query->where("#originId = {$rec->originId}");
+        $query->where("#originId = {$rec->originId} AND #state != 'rejected'");
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;
         }
