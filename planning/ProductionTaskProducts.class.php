@@ -148,7 +148,7 @@ class planning_ProductionTaskProducts extends core_Detail
         if (isset($rec->type)) {
             $meta = ($rec->type == 'input') ? 'canConvert' : (($rec->type == 'waste') ? 'canStore,canConvert' : 'canManifacture');
             $onlyInGroups = ($rec->type == 'waste') ? cat_Groups::getKeylistBySysIds('waste') : null;
-            $form->setFieldTypeParams('productId', array('hasProperties' => $meta, 'groups' => $onlyInGroups, 'hasnotProperties' => 'generic'));
+            $form->setFieldTypeParams('productId', array('hasProperties' => $meta, 'groups' => $onlyInGroups));
         }
         
         if (isset($rec->productId)) {
