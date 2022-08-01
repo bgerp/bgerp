@@ -301,7 +301,13 @@ class store_Receipts extends store_DocumentMaster
         $tplArr[] = array('name' => 'Складова разписка с цени',
             'content' => 'store/tpl/SingleLayoutReceiptPrices.shtml', 'lang' => 'bg', 'narrowContent' => 'store/tpl/SingleLayoutReceiptPricesNarrow.shtml',
             'toggleFields' => array('masterFld' => null, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
-        
+        $tplArr[] = array('name' => 'Stock receipt',
+            'content' => 'store/tpl/SingleLayoutReceiptEn.shtml', 'lang' => 'en', 'narrowContent' => 'store/tpl/SingleLayoutReceiptEnNarrow.shtml',
+            'toggleFields' => array('masterFld' => null, 'store_ReceiptDetails' => 'packagingId,packQuantity,weight,volume'));
+        $tplArr[] = array('name' => 'Stock receipt with prices',
+            'content' => 'store/tpl/SingleLayoutReceiptPricesEn.shtml', 'lang' => 'en', 'narrowContent' => 'store/tpl/SingleLayoutReceiptPricesEnNarrow.shtml',
+            'toggleFields' => array('masterFld' => null, 'store_ReceiptDetails' => 'packagingId,packQuantity,packPrice,discount,amount'));
+
         $res .= doc_TplManager::addOnce($this, $tplArr);
     }
     
