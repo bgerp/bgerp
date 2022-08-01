@@ -575,6 +575,7 @@ class planning_Tasks extends core_Master
             $row->originId = $origin->getHyperlink(true);
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
+                $row->wasteStart = isset($row->wasteStart) ? $row->wasteStart : 'n/a';
                 $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
         } else {
@@ -743,11 +744,6 @@ class planning_Tasks extends core_Master
                     $wasteRec = cat_Products::fetch($rec->wasteProductId, 'measureId,generic');
                     if($wasteRec->generic == 'yes'){
                         $form->setError('wasteProductId', "Избраният отпадък е генеричен (обобщаващ)|*! |Трябва да бъде заместен с конкретния такъв|*!");
-                    } else {
-                        if(!cat_Products::convertToUom($productId, $wasteRec->measureId)){
-                            $wasteMeasureName = cat_UoM::getShortName($wasteRec->measureId);
-                            $form->setWarning('wasteProductId', "Планираното к-во не може да се конвертира към мярката на отпадъка|* <b>|{$wasteMeasureName}|*</b> |и ще бъде записано като 0|*");
-                        }
                     }
 
                     if(($rec->wasteStart + $rec->wastePercent) <= 0){
@@ -2507,15 +2503,13 @@ class planning_Tasks extends core_Master
             $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
             $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
 
+            $calcedWasteQuantity = null;
             if($conversionRate = cat_Products::convertToUom($productId, $wasteMeasureId)){
 
                 // Калкулира се прогнозното количество на отпадъка
                 $calcedWasteQuantity = $rec->wasteStart + ($rec->plannedQuantity * $rec->quantityInPack * $conversionRate) * $rec->wastePercent;
                 $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
                 $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
-            } else {
-                $calcedWasteQuantity = 0;
-                core_Statuses::newStatus('Прогнозното количество на отпадъка не може да бъде изчислено и ще бъде записано като|* "0"!', 'warning');
             }
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
