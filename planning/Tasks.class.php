@@ -1674,7 +1674,6 @@ class planning_Tasks extends core_Master
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
         $data->listFilter->setField('folder', 'autoFilter');
-        $data->query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $orderByField = 'orderByDate';
 
         // Добавят се за избор само използваните в ПО оборудвания
@@ -1686,6 +1685,7 @@ class planning_Tasks extends core_Master
             $data->listFilter->input('assetId');
         }
 
+        $mvc->listItemsPerPage = 20;
         if($filter = $data->listFilter->rec){
             if (isset($filter->assetId)) {
                 $mvc->listItemsPerPage = 200;
@@ -1693,23 +1693,34 @@ class planning_Tasks extends core_Master
                 $orderByField = 'orderByAssetId';
             }
         }
-        
+
+        $orderByDir = 'ASC';
         if (!Request::get('Rejected', 'int')) {
             $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
             $data->listFilter->showFields .= ',state';
             $data->listFilter->input('state');
             $data->listFilter->setDefault('state', 'activeAndPending');
 
+            $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 9999999999999)';
             if ($state = $data->listFilter->rec->state) {
                 if ($state == 'activeAndPending') {
-                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped')");
+                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif($state != 'all') {
-                    $data->query->where("#state = '{$state}'");
+                    $data->query->where("#state = '{$state}' OR #state = 'rejected'");
+
+                    if($state == 'closed'){
+                        $orderByDir = 'DESC';
+                        $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
+                    }
                 }
             }
+        } else {
+            $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 0)';
+            $orderByDir = 'DESC';
         }
 
-        $data->query->orderBy($orderByField, 'ASC');
+        $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
+        $data->query->orderBy($orderByField, $orderByDir);
     }
     
     
