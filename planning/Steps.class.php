@@ -435,11 +435,13 @@ class planning_Steps extends core_Extender
         }
 
         if($Extended = $mvc->getExtended($rec)){
-            if($Extended->haveRightFor('editplanned')){
-                if(empty($rec->planningActions)){
-                    $row->planningActions = "<i class='quiet'>n/a</i>";
+            if(empty($rec->planningActions)){
+                $row->planningActions = "<i class='quiet'>n/a</i>";
+            }
+            if(!Mode::is('printing')){
+                if($Extended->haveRightFor('editplanned')){
+                    $row->planningActions .= ht::createLink('', array($Extended->getInstance(), 'editplanned', $Extended->that, 'ret_url' => true), false, 'ef_icon=img/16/edit.png');
                 }
-                $row->planningActions .= ht::createLink('', array($Extended->getInstance(), 'editplanned', $Extended->that, 'ret_url' => true), false, 'ef_icon=img/16/edit.png');
             }
 
             $row->norm = null;
