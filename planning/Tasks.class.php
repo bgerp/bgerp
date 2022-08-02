@@ -576,6 +576,7 @@ class planning_Tasks extends core_Master
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
                 $row->wasteStart = isset($row->wasteStart) ? $row->wasteStart : 'n/a';
+                $row->wastePercent = isset($row->wastePercent) ? $row->wastePercent : 'n/a';
                 $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
         } else {
@@ -2514,13 +2515,16 @@ class planning_Tasks extends core_Master
             $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
             $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
 
-            $calcedWasteQuantity = null;
-            if($conversionRate = cat_Products::convertToUom($productId, $wasteMeasureId)){
+            $calcedWasteQuantity = $rec->wasteStart;
+            if(isset($rec->wastePercent)){
 
                 // Калкулира се прогнозното количество на отпадъка
-                $calcedWasteQuantity = $rec->wasteStart + ($rec->plannedQuantity * $rec->quantityInPack * $conversionRate) * $rec->wastePercent;
-                $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
-                $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
+                $calcedWasteQuantity = null;
+                if($conversionRate = cat_Products::convertToUom($productId, $wasteMeasureId)){
+                    $calcedWasteQuantity = $rec->wasteStart + ($rec->plannedQuantity * $rec->quantityInPack * $conversionRate) * $rec->wastePercent;
+                    $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
+                    $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
+                }
             }
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
