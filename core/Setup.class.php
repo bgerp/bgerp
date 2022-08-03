@@ -220,7 +220,7 @@ define('CORE_LAST_DB_VERSION', '18.25-Shabran');
  * Тази константа не трябва да се ползва с core_Setup::getConfig(),
  * а само с: core_setup::CURRENT_VERSION
  */
-define('CORE_CODE_VERSION', '21.45-Dzhano');
+define('CORE_CODE_VERSION', '22.31-Orlovets');
 
 
 /**

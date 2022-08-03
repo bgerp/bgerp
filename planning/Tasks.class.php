@@ -1920,7 +1920,7 @@ class planning_Tasks extends core_Master
 
         // Бутон за добавяне на документ за влагане
         if ($mvc->haveRightFor('recalcindtime', $rec)) {
-            $data->toolbar->addBtn('Преиз. заработки', array($mvc, 'recalcindtimes', $rec->id, 'ret_url' => true), 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на заработките към операцията,row=2,warning=Наистина ли желаете да преизчислите заработките в прогреса|*?');
+            $data->toolbar->addBtn('Преизч. заработки', array($mvc, 'recalcindtimes', $rec->id, 'ret_url' => true), 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на заработките към операцията,row=2,warning=Наистина ли желаете да преизчислите заработките в прогреса|*?');
         }
 
         if($data->toolbar->haveButton('btnActivate')){
