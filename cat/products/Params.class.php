@@ -647,8 +647,9 @@ class cat_products_Params extends doc_Detail
         // Показване на параметрите за задача във формата, като задължителни полета
         $paramValues = cat_Products::getParams($productId);
         $params = array_combine(array_keys($paramValues), array_keys($paramValues));
+        $class = cls::get($classId);
 
-        $stepParams = array();
+        $stepParams = $prevRecValues = array();
         if(isset($planningStepProductId)){
             if($StepDriver = cat_Products::getDriver($planningStepProductId)){
                 $pData = $StepDriver->getProductionData($planningStepProductId);
@@ -657,11 +658,31 @@ class cat_products_Params extends doc_Detail
                 }
                 $stepParams = cat_Products::getParams($planningStepProductId);
             }
+
+            if($class instanceof planning_Tasks){
+                $tQuery = planning_Tasks::getQuery();
+                $tQuery->where("#state NOT IN ('draft', 'rejected') AND #originId = {$form->rec->originId}");
+                $tQuery->show('id');
+
+                $prevTaskIds = arr::extractValuesFromArray($tQuery->fetchAll(), 'id');
+                if(countR($prevTaskIds)){
+
+                    // Какви са предишните стойности на параметрите от ПО-та за този етап
+                    $prevParamQuery = cat_products_Params::getQuery();
+                    $prevParamQuery->where("#classId = {$class->getClassId()}");
+                    $prevParamQuery->in('productId', $prevTaskIds);
+                    $prevParamQuery->in("paramId", $params);
+                    $prevParamQuery->orderBy('id', 'ASC');
+                    $prevParamQuery->show('paramValue,paramId');
+                    while($prevRec = $prevParamQuery->fetch()){
+                        $prevRecValues[$prevRec->paramId] = $prevRec->paramValue;
+                    }
+                }
+            }
         }
 
         $plannedProductName = cat_Products::getVerbal($productId, 'name');
         $plannedProductName = str_replace(',', ' ', $plannedProductName);
-        $class = cls::get($classId);
 
         // Сортиране на намерените параметри
         if(countR($params)){
@@ -673,7 +694,8 @@ class cat_products_Params extends doc_Detail
         }
 
         foreach ($params as $pId) {
-            $v = (array_key_exists($pId, $paramValues)) ? $paramValues[$pId] : $stepParams[$pId];
+            $v = (array_key_exists($pId, $paramValues)) ? $paramValues[$pId] : (array_key_exists($pId, $stepParams) ? $stepParams[$pId] : $prevRecValues[$pId]);
+
             $paramRec = cat_Params::fetch($pId);
             $name = cat_Params::getVerbal($paramRec, 'name');
             if(!empty($paramRec->group)){
@@ -718,9 +740,10 @@ class cat_products_Params extends doc_Detail
     {
         $Class = cls::get($class);
         foreach ($rec->{$paramField} as $k => $o) {
+
             if (!isset($rec->{$k})) continue;
             $paramDriver = cat_Params::getDriver($o->paramId);
-            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html) && empty($rec->{$k})) continue;
+            if(($paramDriver instanceof cond_type_Text || $paramDriver instanceof cond_type_Varchar || $paramDriver instanceof cond_type_File || $paramDriver instanceof cond_type_Html || $paramDriver instanceof cond_type_Image) && empty($rec->{$k})) continue;
 
             $nRec = (object)array('paramId' => $o->paramId, 'paramValue' => $rec->{$k}, 'classId' => $Class->getClassId(), 'productId' => $rec->id);
             if ($id = cat_products_Params::fetchField("#classId = {$Class->getClassId()} AND #productId = {$rec->id} AND #paramId = {$o->paramId}", 'id')) {

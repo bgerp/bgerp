@@ -650,9 +650,8 @@ abstract class deals_DealMaster extends deals_DealBase
             unset($data->listFields['createdBy']);
             unset($data->listFields['createdOn']);
         }
-
-
     }
+
 
     /**
      * Рендира заявката за създаване на резюме

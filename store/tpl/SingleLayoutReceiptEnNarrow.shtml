@@ -1,0 +1,154 @@
+<div class='scrolling-holder'>
+    <table class="innerTable border-table paddingCells">
+        <tbody>
+        <tr>
+            <td class='centered'>
+                <div class="document-title">stock receipt</div>
+                <div style="padding-top:5px;">
+                  <span class="state [#STATE_CLASS#]">
+                  № <span class="bigData">[#id#]</span> /
+                  <span class="bigData">[#valior#]</span>
+                      <!--ET_BEGIN reff-->
+                        <div>Your reff <span class="bigData">[#reff#]</span></div>
+                      <!--ET_END reff-->
+                  </span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="cell custom-header-bg"><b>Receiver</b></td>
+        </tr>
+        <tr>
+            <td>
+                <b>[#MyCompany#]</b>
+                <div class='address-block'>
+                    [#MyAddress#]
+                </div>
+                <!--ET_BEGIN storeId-->
+                <hr style="margin: 3px 0 1px;">
+                <div>
+                    To store: [#storeId#]
+                </div>
+                <!--ET_END storeId-->
+            </td>
+        </tr>
+        <tr>
+            <td class="cell custom-header-bg"><b>Supplier</b></td>
+        </tr>
+        <tr>
+            <td>
+                <b>[#contragentName#]</b>
+                <div class='address-block'>
+                    [#contragentCountryId#]
+                    <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                </div>
+                <!--ET_BEGIN locationId-->
+                <hr style="margin: 3px 0 1px;">
+                <div>
+                    Location: [#locationId#]
+                </div>
+                <!--ET_END locationId-->
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div class="lines"></div>
+<div class='scrolling-holder'>
+    <div class="details">
+        [#store_ReceiptDetails#]
+        <!--ET_BEGIN store_DocumentPackagingDetail-->
+        <div class="lines"></div>
+        <div style="margin-top2:1px">
+            <div class="safeKeepingDetail">Safekeeping</div>
+            [#store_DocumentPackagingDetail#]
+        </div>
+        <!--ET_END store_DocumentPackagingDetail-->
+    </div>
+</div>
+<div class="lines"></div>
+<div class='scrolling-holder'>
+    <table class="innerTable footer-notes paddingCells" style='width:100%;'>
+        <tbody>
+        <tr>
+            <td class="topCell first vtop">
+                <table style='width:100%;'>
+                    <!--ET_BEGIN deliveryTime-->
+                    <tr>
+                        <td class='quiet' style='width:1%'>[#deliveryTimeCaption#]:</td>
+                        <td>[#deliveryTime#]</td>
+                    </tr>
+                    <!--ET_END deliveryTime-->
+                    <!--ET_BEGIN deliveryOn-->
+                    <tr>
+                        <td class='quiet nowrap aright' style="width: 1%">Delivery on:</td>
+                        <td>[#deliveryOn#]</td>
+                    </tr>
+                    <!--ET_END deliveryOn-->
+                    <!--ET_BEGIN deliveryAddressBlock-->
+                    [#deliveryAddressBlock#]
+                    <tr>
+                        <td class='quiet nowrap aright'>From address:</td>
+                        <td>
+                            [#deliveryTo#] [#deliveryLocationAddress#]
+                        </td>
+                    </tr>
+                    <!--ET_END deliveryAddressBlock-->
+                    <!--ET_BEGIN lineId-->
+                    <tr>
+                        <td class='quiet'  style='width:1%'>Transport: </td>
+                        <td>[#lineId#]</td>
+                    </tr>
+                    <!--ET_END lineId-->
+                    <!--ET_BEGIN lineForwarderId-->
+                    <tr>
+                        <td class='nowrap quiet aright'>Forwarder: </td>
+                        <td>[#lineForwarderId#]</td>
+                    </tr>
+                    <!--ET_END lineForwarderId-->
+                    <!--ET_BEGIN lineVehicleId-->
+                    <tr>
+                        <td class='nowrap quiet aright'>Motor vehicle: </td>
+                        <td>[#lineVehicleId#]</td>
+                    </tr>
+                    <!--ET_END lineVehicleId-->
+                    <tr>
+                        <td colspan="2">
+                            <div>
+                                <hr>
+                                Total weight:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;<b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
+                            </div>
+                        </td>
+                    </tr>
+                    <!--ET_BEGIN logisticInfo-->
+                    <tr>
+                        <td colspan="2" ><hr><span class='quiet'>Logistic units:</span> [#logisticInfo#]</td>
+
+                    </tr>
+                    <!--ET_END logisticInfo-->
+
+                    <!--ET_BEGIN note-->
+                    <tr>
+                        <td colspan="2" >
+                            <hr>
+                            [#note#]
+                        </td>
+                    </tr>
+                    <!--ET_END note-->
+                </table>
+                <hr>
+                <!--ET_BEGIN responsible-->
+                <div>Received: [#responsible#]</div>
+                <!--ET_END responsible-->
+                <!--ET_BEGIN username-->
+                <div>Created by: [#username#]</div>
+                <!--ET_END username-->
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class='footerDocBlock'   style="border-top: none !important">
+        [#/doc/tpl/Copyright.shtml#]
+    </div>
+</div>

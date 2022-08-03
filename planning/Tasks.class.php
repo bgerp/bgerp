@@ -286,11 +286,9 @@ class planning_Tasks extends core_Master
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано');
         $this->FLD('isFinal', 'enum(yes=Да,no=Не)', 'input=hidden,caption=Финална,silent');
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=К-во в мярка,input=none');
-
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|freeTimeAfter|simultaneity');
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
-
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
         $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
@@ -300,21 +298,17 @@ class planning_Tasks extends core_Master
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,caption=Нормиране->Опаковка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=common');
-
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
-
-        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
-        $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
-        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
-
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,formOrder=103');
-
+        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
+        $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
+        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes,autohide');
         $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-,autohide');
         $this->FLD('weightDeviationWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Предупреждение,unit=+/-,autohide');
@@ -522,7 +516,9 @@ class planning_Tasks extends core_Master
 
             if(isset($rec->assetId)){
                 if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $rec->assetId))){
-                    $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+                    if(!in_array($rec->state, array('draft', 'waiting', 'rejected'))){
+                        $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+                    }
                 }
             }
 
@@ -579,6 +575,8 @@ class planning_Tasks extends core_Master
             $row->originId = $origin->getHyperlink(true);
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
+                $row->wasteStart = isset($row->wasteStart) ? $row->wasteStart : 'n/a';
+                $row->wastePercent = isset($row->wastePercent) ? $row->wastePercent : 'n/a';
                 $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
         } else {
@@ -625,7 +623,7 @@ class planning_Tasks extends core_Master
             }
         } else {
             $row->assetId = "<span class='quiet'>N/A</span>";
-            $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!');
+            $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!', 'warning');
         }
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
@@ -746,12 +744,7 @@ class planning_Tasks extends core_Master
                 if(isset($rec->wasteProductId)){
                     $wasteRec = cat_Products::fetch($rec->wasteProductId, 'measureId,generic');
                     if($wasteRec->generic == 'yes'){
-                        $form->setError('wasteProductId', "Избраният отпадък е генеричен|*! |Трябва да бъде заместен|*!");
-                    } else {
-                        if(!cat_Products::convertToUom($productId, $wasteRec->measureId)){
-                            $wasteMeasureName = cat_UoM::getShortName($wasteRec->measureId);
-                            $form->setWarning('wasteProductId', "Планираното к-во не може да се конвертира към мярката на отпадъка|* <b>|{$wasteMeasureName}|*</b> |и ще бъде записано като 0|*");
-                        }
+                        $form->setError('wasteProductId', "Избраният отпадък е генеричен (обобщаващ)|*! |Трябва да бъде заместен с конкретния такъв|*!");
                     }
 
                     if(($rec->wasteStart + $rec->wastePercent) <= 0){
@@ -1160,6 +1153,8 @@ class planning_Tasks extends core_Master
 
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
+        $form->setField('saoRelative', "caption=Подредба в заданието->Спрямо");
+        $form->setField('saoPosition', "caption=Подредба в заданието->Положение");
 
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
@@ -1580,6 +1575,7 @@ class planning_Tasks extends core_Master
                 $row->assetId = planning_AssetResources::getShortName($rec->assetId, !Mode::isReadOnly());
             }
 
+            $row->title = ht::createElement("span", array('id' => planning_Tasks::getHandle($rec->id)), $row->title);
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
@@ -1679,7 +1675,6 @@ class planning_Tasks extends core_Master
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
         $data->listFilter->setField('folder', 'autoFilter');
-        $data->query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $orderByField = 'orderByDate';
 
         // Добавят се за избор само използваните в ПО оборудвания
@@ -1691,6 +1686,7 @@ class planning_Tasks extends core_Master
             $data->listFilter->input('assetId');
         }
 
+        $mvc->listItemsPerPage = 20;
         if($filter = $data->listFilter->rec){
             if (isset($filter->assetId)) {
                 $mvc->listItemsPerPage = 200;
@@ -1698,23 +1694,34 @@ class planning_Tasks extends core_Master
                 $orderByField = 'orderByAssetId';
             }
         }
-        
+
+        $orderByDir = 'ASC';
         if (!Request::get('Rejected', 'int')) {
             $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
             $data->listFilter->showFields .= ',state';
             $data->listFilter->input('state');
             $data->listFilter->setDefault('state', 'activeAndPending');
 
+            $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 9999999999999)';
             if ($state = $data->listFilter->rec->state) {
                 if ($state == 'activeAndPending') {
-                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped')");
+                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif($state != 'all') {
-                    $data->query->where("#state = '{$state}'");
+                    $data->query->where("#state = '{$state}' OR #state = 'rejected'");
+
+                    if($state == 'closed'){
+                        $orderByDir = 'DESC';
+                        $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
+                    }
                 }
             }
+        } else {
+            $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 0)';
+            $orderByDir = 'DESC';
         }
 
-        $data->query->orderBy($orderByField, 'ASC');
+        $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
+        $data->query->orderBy($orderByField, $orderByDir);
     }
     
     
@@ -2077,9 +2084,21 @@ class planning_Tasks extends core_Master
         if (isset($data->form) && $data->form->isSubmitted() && $data->form->rec->id) {
 
             $retUrl = getRetUrl();
-            if($retUrl['Ctr'] == 'planning_Jobs' && $retUrl['Act'] == 'selectTaskAction'){
-                if($data->form->cmd == 'save_pending_new'){
-                    $data->retUrl = $retUrl;
+            if($retUrl['Ctr'] == 'planning_Jobs'){
+                if($retUrl['Act'] == 'selectTaskAction'){
+                    if($data->form->cmd == 'save_pending_new'){
+                        $data->retUrl = $retUrl;
+                    }
+                } elseif($retUrl['Act'] == 'single'){
+                    $jobThreadId = planning_Jobs::fetchField($retUrl['id'], 'threadId');
+                    if(doc_Threads::haveRightFor('single', $jobThreadId)){
+                        $newRetUrl = array('doc_Containers', 'list', 'threadId' => $jobThreadId, "#" => $mvc->getHandle($data->form->rec->id));
+                    } else {
+                        $newRetUrl = $retUrl;
+                        $newRetUrl["#"] = $mvc->getHandle($data->form->rec->id);
+                    }
+
+                    $data->retUrl = $newRetUrl;
                 }
             }
         }
@@ -2496,15 +2515,16 @@ class planning_Tasks extends core_Master
             $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
             $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
 
-            if($conversionRate = cat_Products::convertToUom($productId, $wasteMeasureId)){
+            $calcedWasteQuantity = $rec->wasteStart;
+            if(isset($rec->wastePercent)){
 
                 // Калкулира се прогнозното количество на отпадъка
-                $calcedWasteQuantity = $rec->wasteStart + ($rec->plannedQuantity * $rec->quantityInPack * $conversionRate) * $rec->wastePercent;
-                $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
-                $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
-            } else {
-                $calcedWasteQuantity = 0;
-                core_Statuses::newStatus('Прогнозното количество на отпадъка не може да бъде изчислено и ще бъде записано като|* "0"!', 'warning');
+                $calcedWasteQuantity = null;
+                if($conversionRate = cat_Products::convertToUom($productId, $wasteMeasureId)){
+                    $calcedWasteQuantity = $rec->wasteStart + ($rec->plannedQuantity * $rec->quantityInPack * $conversionRate) * $rec->wastePercent;
+                    $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
+                    $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
+                }
             }
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
@@ -2577,7 +2597,7 @@ class planning_Tasks extends core_Master
     {
         $res = array();
         $query = self::getQuery();
-        $query->where("#originId = {$rec->originId}");
+        $query->where("#originId = {$rec->originId} AND #state != 'rejected'");
         while ($rec = $query->fetch()) {
             $res[$rec->id] = $rec;
         }
