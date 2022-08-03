@@ -31,7 +31,7 @@
 		<!--ET_END planning_Steps_employees-->
 		<!--ET_BEGIN planning_Steps_planningParams-->
 		<tr>
-			<td class='quiet'>|Планиране|*:</td>
+			<td class='quiet'>|Параметри|*:</td>
 			<td>[#planning_Steps_planningParams#]</td>
 		</tr>
 		<!--ET_END planning_Steps_planningParams-->
