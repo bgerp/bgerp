@@ -272,6 +272,9 @@ class planning_ProductionTaskProducts extends core_Detail
     {
         if(!Mode::is('taskInTerminal')){
             $data->TabCaption = 'Планиране';
+            if(static::fetchField("#taskId = {$data->masterId} AND #type = 'waste' AND #plannedQuantity IS NULL")){
+                $data->TabCaption = ht::createHint($data->TabCaption, 'Планираното к-во на отпадъка не може да бъде изчислено|*!', 'warning');
+            }
             $data->Tab = 'top';
         }
         
@@ -298,10 +301,14 @@ class planning_ProductionTaskProducts extends core_Detail
             $row->indTime = "<span class='quiet'>N/A</span>";
         }
 
-        $row->plannedQuantity = "<span class='green'>{$row->plannedQuantity}</span>";
-        if($rec->totalQuantity > $rec->plannedQuantity){
-            $row->totalQuantity = "<span class='red'>{$row->totalQuantity}</span>";
-            $row->totalQuantity = ht::createHint($row->totalQuantity, 'Изпълнено е повече от планираното', 'warning', false);
+        if(isset($rec->plannedQuantity)){
+            $row->plannedQuantity = ht::styleNumber($row->plannedQuantity, $rec->plannedQuantity, 'green');
+            if($rec->totalQuantity > $rec->plannedQuantity){
+                $row->totalQuantity = "<span class='red'>{$row->totalQuantity}</span>";
+                $row->totalQuantity = ht::createHint($row->totalQuantity, 'Изпълнено е повече от планираното', 'warning', false);
+            }
+        } else {
+            $row->plannedQuantity = "<span class='quiet'>n/a</span>";
         }
     }
     
