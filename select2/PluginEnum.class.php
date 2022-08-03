@@ -57,14 +57,14 @@ class select2_PluginEnum extends core_Plugin
             
             return ;
         }
-        
+
         // Ако все още няма id
         if (!$attr['id']) {
             $attr['id'] = str::getRand('aaaaaaaa');
         }
         
         $minItems = isset($invoker->params['select2MinItems']) ? $invoker->params['select2MinItems'] : self::$minItems;
-        
+
         $optionsCnt = countR($invoker->options);
         
         // Ако опциите са под минималното - нищо не правим
@@ -78,7 +78,7 @@ class select2_PluginEnum extends core_Plugin
             
             return;
         }
-        
+
         // Ако ще са радиобутони
         if ($invoker->params['maxRadio'] && ($invoker->params['maxRadio'] >= $optionsCnt)) {
             
@@ -92,8 +92,10 @@ class select2_PluginEnum extends core_Plugin
         } else {
             $allowClear = (self::$allowClear) ? (self::$allowClear) : false;
         }
-        
+
+        $minimumResultsForSearch = isset($invoker->params['minimumResultsForSearch']) ? $invoker->params['minimumResultsForSearch'] : null;
+
         // Добавяме необходимите файлове и стартирам select2
-        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen']);
+        select2_Adapter::appendAndRun($tpl, $attr['id'], $select, $allowClear, null, '', false, $invoker->params['forceOpen'], $minimumResultsForSearch);
     }
 }
