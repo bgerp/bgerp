@@ -176,8 +176,9 @@ class planning_ProductionTaskDetails extends doc_Detail
             // Задаване на дефолти за скрапа
             $scrapRec = $mvc->fetch($rec->scrapRecId);
             $availableScrap = static::getAvailableScrap($scrapRec->serial, $scrapRec->taskId);
-            $measureRound = cat_UoM::fetchField($data->masterRec->measureId, 'round');
+            $scrapRecQuantity = $scrapRec->quantity;
             if(planning_ProductionTaskProducts::isProduct4Task($scrapRec->taskId, $scrapRec->productId)){
+                $measureRound = cat_UoM::fetchField($data->masterRec->measureId, 'round');
                 $scrapRecQuantity = round($scrapRec->quantity / $data->masterRec->quantityInPack, $measureRound);
             }
 
@@ -472,7 +473,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 $limit = '';
-                if (isset($rec->productId) && $rec->type !== 'production') {
+                if (isset($rec->productId) && !in_array($rec->type, array('production', 'scrap'))) {
                     if (!$mvc->checkLimit($rec, $limit)) {
                         $limit = core_Type::getByName('double(smartRound)')->toVerbal($limit);
                         $form->setError('quantity', "Надвишаване на допустимото максимално количество|* <b>{$limit}</b>");
@@ -480,7 +481,6 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 $info = planning_ProductionTaskProducts::getInfo($rec->taskId, $rec->productId, $rec->type, $rec->fixedAsset);
-
                 if (isset($info->indTime)) {
                     $rec->norm = $info->indTime;
                 }
@@ -1040,7 +1040,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
                 if($rec->type == 'scrap' && isset($rec->scrapRecId)){
                     $exRec = static::fetch("#id = {$rec->scrapRecId}", 'type,state');
-                    if($exRec->state == 'rejected' || $exRec->type != 'production'){
+                    if($exRec->state == 'rejected' || $exRec->type != 'production' || $exRec->taskId != $rec->taskId){
                         $requiredRoles = 'no_one';
                     }
                 }
@@ -1055,12 +1055,6 @@ class planning_ProductionTaskDetails extends doc_Detail
 
         if($action == 'fix' && isset($rec)){
             if($rec->state == 'rejected' || $rec->type != 'production'){
-                $requiredRoles = 'no_one';
-            }
-        }
-
-        if($action == 'edit' && isset($rec)){
-            if($rec->type != 'production' || $rec->state == 'rejected'){
                 $requiredRoles = 'no_one';
             }
         }
@@ -1255,8 +1249,9 @@ class planning_ProductionTaskDetails extends doc_Detail
      */
     public static function add($taskId, $params)
     {
+        //@todo да го преработя за брака да може да се добавя
         expect($taskRec = planning_Tasks::fetch($taskId), 'Няма така задача');
-        expect(in_array($params['type'], array('production', 'input', 'waste')));
+        expect(in_array($params['type'], array('production', 'input', 'waste', 'scrap')));
         $productId = (isset($params['productId'])) ? $params['productId'] : (($params['type'] == 'production') ? $taskRec->productId : null);
         expect($productId, 'Не е посочен артикул');
         $options = planning_ProductionTaskProducts::getOptionsByType($taskRec->id, $params['type']);
@@ -1373,7 +1368,6 @@ class planning_ProductionTaskDetails extends doc_Detail
         expect($id = Request::get('id', 'int'));
         expect($rec = $this->fetch($id));
         $this->requireRightFor('fix', $rec);
-        $masterRec = planning_Tasks::fetch($rec->taskId);
 
         $form = cls::get('core_Form');
         $row = $this->recToVerbal($rec);
@@ -1394,7 +1388,6 @@ class planning_ProductionTaskDetails extends doc_Detail
             $rec->weight = $form->rec->weight;
             $logMsg = "Промяна на тегло";
             $statusMsg = 'Теглото е променено успешно|*!';
-
             $this->save_($rec, 'weight');
             planning_Tasks::logWrite($logMsg, $rec->taskId);
             followRetUrl(null, $statusMsg);

@@ -223,7 +223,6 @@ class planning_ProductionTaskProducts extends core_Detail
         $rec = &$form->rec;
         
         if ($form->isSubmitted()) {
-            $masterRec = planning_Tasks::fetch($rec->taskId);
             if(!empty($rec->inputedQuantity) && empty($rec->employees)){
                 $form->setError('inputedQuantity,employees', 'При директно изпълнение, трябва да са посочени оператори');
             }
@@ -453,7 +452,7 @@ class planning_ProductionTaskProducts extends core_Detail
      */
     public static function getInfo($taskId, $productId, $type, $assetId = null)
     {
-       // expect(in_array($type, array('input', 'waste', 'production', 'scrap')), $type);
+        expect(in_array($type, array('input', 'waste', 'production', 'scrap')), $type);
 
         if($type == 'scrap') return static::getInfo($taskId, $productId, 'production', $assetId);
 
