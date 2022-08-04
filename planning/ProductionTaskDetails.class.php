@@ -229,7 +229,7 @@ class planning_ProductionTaskDetails extends doc_Detail
             $optionField = 'serial';
             $form->setField('serial', 'removeAndRefreshForm=productId|quantity|scrapRecId');
             $form->setFieldType('serial', "enum("  . arr::fromArray($options) . ")");
-            $form->setField('serial','select2MinItems=2');
+            $form->setFieldTypeParams('serial', 'minimumResultsForSearch=0');
             $form->setDefault('serial', key($options));
         } else {
             $optionField = 'productId';
@@ -1039,7 +1039,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                 }
 
                 if($rec->type == 'scrap' && isset($rec->scrapRecId)){
-                    $exRec = static::fetch("#id = {$rec->scrapRecId}", 'type,state');
+                    $exRec = static::fetch("#id = {$rec->scrapRecId}", 'type,state,taskId');
                     if($exRec->state == 'rejected' || $exRec->type != 'production' || $exRec->taskId != $rec->taskId){
                         $requiredRoles = 'no_one';
                     }
@@ -1084,7 +1084,7 @@ class planning_ProductionTaskDetails extends doc_Detail
     {
         $quantity = $rec->quantity;
 
-        if($rec->type == 'production') {
+        if(in_array($rec->type, array('production', 'scrap'))) {
             $taskRec = is_object($taskRec) ? $taskRec : planning_Tasks::fetch($rec->taskId, 'originId,isFinal,productId,measureId,indPackagingId,labelPackagingId,indTimeAllocation,quantityInPack');
             $jobProductId = planning_Jobs::fetchField("#containerId = {$taskRec->originId}", 'productId');
 
@@ -1169,6 +1169,7 @@ class planning_ProductionTaskDetails extends doc_Detail
 
             $normFormQuantity = static::calcNormByRec($rec, $taskRec);
             $timePerson = ($rec->indTimeAllocation == 'individual') ? $normFormQuantity : ($normFormQuantity / countR($persons));
+            $sign = ($rec->type != 'scrap') ? 1 : -1;
 
             $date = !empty($rec->date) ? $rec->date : $rec->createdOn;
             $date = dt::verbal2mysql($date, false);
@@ -1184,7 +1185,7 @@ class planning_ProductionTaskDetails extends doc_Detail
                                                    'isRejected'  => ($rec->state == 'rejected'));
                 }
                 
-                $result[$key]->value += $timePerson;
+                $result[$key]->value += $sign * $timePerson;
             }
         }
         
