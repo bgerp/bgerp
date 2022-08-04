@@ -155,7 +155,7 @@ class planning_Steps extends core_Extender
         $form->setDefault("{$mvc->className}_centerId", planning_Centers::UNDEFINED_ACTIVITY_CENTER_ID);
         $form->input("{$mvc->className}_canStore,{$mvc->className}_centerId,measureId,{$mvc->className}_labelPackagingId", 'silent');
         $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
-        $form->setFieldTypeParams("{$mvc->className}_wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId, 'hasnotProperties' => 'generic'));
+        $form->setFieldTypeParams("{$mvc->className}_wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
 
         // Добавяне на избор само на Параметрите за производствени операции
         $paramOptions = array();
@@ -435,11 +435,13 @@ class planning_Steps extends core_Extender
         }
 
         if($Extended = $mvc->getExtended($rec)){
-            if($Extended->haveRightFor('editplanned')){
-                if(empty($rec->planningActions)){
-                    $row->planningActions = "<i class='quiet'>n/a</i>";
+            if(empty($rec->planningActions)){
+                $row->planningActions = "<i class='quiet'>n/a</i>";
+            }
+            if(!Mode::is('printing')){
+                if($Extended->haveRightFor('editplanned')){
+                    $row->planningActions .= ht::createLink('', array($Extended->getInstance(), 'editplanned', $Extended->that, 'ret_url' => true), false, 'ef_icon=img/16/edit.png');
                 }
-                $row->planningActions .= ht::createLink('', array($Extended->getInstance(), 'editplanned', $Extended->that, 'ret_url' => true), false, 'ef_icon=img/16/edit.png');
             }
 
             $row->norm = null;

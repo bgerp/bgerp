@@ -100,6 +100,7 @@ class acc_plg_DocumentSummary extends core_Plugin
         setIfNot($mvc->canViewpsingle, 'powerUser');
         setIfNot($mvc->hidePeriodFilter, false);
         setIfNot($mvc->filterDateField, 'valior');
+        setIfNot($mvc->orderByDateField, true);
         setIfNot($mvc->filterCurrencyField, 'currencyId');
         setIfNot($mvc->rememberListFilterFolderId, false);
         setIfNot($mvc->filterFieldUsers, 'createdBy');
@@ -400,7 +401,9 @@ class acc_plg_DocumentSummary extends core_Plugin
                 }
                 
                 $toField = $fromField;
-                $data->query->orderBy($fromField, 'DESC');
+                if($mvc->orderByDateField){
+                    $data->query->orderBy($fromField, 'DESC');
+                }
             } else {
                 $fromField = ($mvc->filterFieldDateTo) ? $mvc->filterFieldDateTo : $mvc->filterDateField;
                 $toField = ($mvc->filterFieldDateFrom) ? $mvc->filterFieldDateFrom : $mvc->filterDateField;

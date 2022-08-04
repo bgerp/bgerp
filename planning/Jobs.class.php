@@ -138,7 +138,7 @@ class planning_Jobs extends core_Master
     /**
      * Поле за дата по което ще филтрираме
      */
-    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn';
+    public $filterDateField = 'createdOn,dueDate,deliveryDate,modifiedOn,activatedOn';
     
     
     /**
@@ -539,9 +539,9 @@ class planning_Jobs extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('view', 'enum(createdOn=По дата на създаване,dueDate=По дата на падеж,deliveryDate=По дата за доставка,progress=Според изпълнението,all=Всички,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
+            $data->listFilter->FNC('view', 'enum(all=Всички,progress=Според изпълнението,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
             $data->listFilter->input('view', 'silent');
-            $data->listFilter->setDefault('view', 'createdOn');
+            $data->listFilter->setDefault('view', 'all');
             $data->listFilter->showFields .= ',view';
         }
         
@@ -567,9 +567,8 @@ class planning_Jobs extends core_Master
                 }
             }
 
-            // Филтър по изглед
-            if (isset($filter->view)) {
-                switch ($filter->view) {
+            if (isset($filter->filterDateField)) {
+                switch ($filter->filterDateField) {
                     case 'createdOn':
                         unset($data->listFields['modifiedOn']);
                         unset($data->listFields['modifiedBy']);
@@ -581,10 +580,23 @@ class planning_Jobs extends core_Master
                         $data->query->orderBy('dueDate', 'ASC');
                         $data->query->where("#state = 'active'");
                         break;
+                    case 'activatedOn':
+                        unset($data->listFields['activatedOn']);
+                        unset($data->listFields['activatedBy']);
+                        $data->listFields['activatedOn'] = 'Активиране||Activated->На';
+                        $data->listFields['activatedBy'] = 'Активиране||Activated->От||By';
+                        $data->query->orderBy('activatedOn', 'DESC');
+                        break;
                     case 'deliveryDate':
                         arr::placeInAssocArray($data->listFields, array('deliveryDate' => 'Дата за доставка'), 'modifiedOn');
                         $data->query->orderBy('deliveryDate', 'ASC');
                         break;
+                }
+            }
+
+            // Филтър по изглед
+            if (isset($filter->view)) {
+                switch ($filter->view) {
                     case 'draft':
                     case 'active':
                     case 'stopped':
@@ -1371,12 +1383,9 @@ class planning_Jobs extends core_Master
                 }
 
                 $productionSteps = planning_Centers::getPlanningStepOptionsByFolderId($depFolderId);
-                if(!countR($productionSteps)){
-                    $urlLink = ht::createErrBtn('Създаване', 'В избрания център, няма посочени производствени етапи|*!');
-                } else {
-                    $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, "title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png");
-                }
+                if(!countR($productionSteps)) continue;
 
+                $urlLink = ht::createBtn('Създаване', $urlNewTask, false, false, "title=Създаване на нова производствена операция в избрания център,ef_icon=img/16/add.png");
                 $dName = doc_Folders::recToVerbal($depFolderId)->title;
                 $trClass = ($readyOptions) ? 'newTaskBtn' : null;
                 $options[] = (object)array('DEFAULT_TASK_CAPTION' => $dName, 'DEFAULT_TASK_LINK' => $urlLink, 'DEFAULT_TASK_CAPTION_COLSPAN' => 1, 'DEFAULT_TASK_TR_CLASS' => $trClass);
@@ -1492,7 +1501,7 @@ class planning_Jobs extends core_Master
 
         $notClosedTasks = array();
         $tQuery = planning_Tasks::getQuery();
-        $tQuery->where("#originId = {$rec->containerId} AND #state IN ('active', 'wakeup', 'stopped')");
+        $tQuery->where("#originId = {$rec->containerId} AND #state IN ('active', 'wakeup', 'stopped', 'pending', 'draft')");
         $tQuery->show('id');
         while($tRec = $tQuery->fetch()){
             $notClosedTasks[] = "#" . planning_Tasks::getHandle($tRec->id);

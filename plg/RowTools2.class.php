@@ -205,7 +205,8 @@ class plg_RowTools2 extends core_Plugin
                     // Махаме го
                     $tools->removeBtn("single{$rec->id}");
                 }
-                
+
+                $mvc->invoke('BeforeRenderListTableRowToolbar', array(&$tools, $data));
                 $tools = $tools->renderHtml($mvc->rowToolsMinLinksToShow);
                 
                 if ($tools) {

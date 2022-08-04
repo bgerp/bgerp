@@ -1,0 +1,167 @@
+<div class='scrolling-holder'>
+    <table class="innerTable border-table paddingCells">
+        <tbody>
+        <tr>
+            <td class="cell custom-header-bg vtop" style='width:38%;'><b>Receiver</b></td>
+            <td class="cell centered" rowspan='2'>
+                <div class="document-title">stock receipt</div>
+                <!--ET_BEGIN operationSysId-->
+                <small>( [#operationSysId#] )</small>
+                <!--ET_END operationSysId-->
+                <div style='padding-top:5px;'>
+                    № <span class="bigData">[#id#]</span> /
+                    <span class="bigData">[#valior#]</span>
+                    <!--ET_BEGIN reff-->
+                    <div>Your reff <span class="bigData">[#reff#]</span></div>
+                    <!--ET_END reff-->
+                </div>
+                <!--ET_BEGIN state-->
+                <div class="state [#STATE_CLASS#]" style='margin:5px 0'>[#state#]</div>
+                <!--ET_END state-->
+            </td>
+            <td class="cell custom-header-bg vtop" style='width:38%;'><b>Supplier</b></td>
+        </tr>
+        <tr>
+            <td class="cell">
+                <b>[#MyCompany#]</b>
+                <div class='address-block'>
+                    [#MyAddress#]
+                </div>
+                <!--ET_BEGIN storeId-->
+                <hr style="margin: 3px 0 1px;">
+                <div>
+                    To store: [#storeId#]
+                </div>
+                <!--ET_END storeId-->
+            </td>
+            <td class="cell">
+                <b>[#contragentName#]</b>
+                <div class='address-block'>
+                    [#contragentCountryId#]
+                    <!--ET_BEGIN contragentAddress-->[#contragentAddress#] <!--ET_END contragentAddress-->
+                </div>
+                <!--ET_BEGIN locationId-->
+                <hr style="margin: 3px 0 1px;">
+                <div>
+                    Location: [#locationId#]
+                </div>
+                <!--ET_END locationId-->
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div class="lines"></div>
+<div class='scrolling-holder'>
+    <div class="details">
+        [#store_ReceiptDetails#]
+        <!--ET_BEGIN store_DocumentPackagingDetail-->
+        <div class="lines"></div>
+        <div style="margin-top2:1px">
+            <div class="safeKeepingDetail">Safekeeping</div>
+            [#store_DocumentPackagingDetail#]
+        </div>
+        <!--ET_END store_DocumentPackagingDetail-->
+    </div>
+</div>
+<div class="lines"></div>
+<div class='scrolling-holder'>
+    <table class="innerTable footer-notes paddingCells" style='width:100%;'>
+        <tbody>
+        <tr>
+            <td class="topCell first vtop" style='width:50%;'>
+                <table class='shipment-table' style='width:100%;'>
+                    <!--ET_BEGIN deliveryTime-->
+                    <tr>
+                        <td class='quiet nowrap aright' style='width:1%;'>[#deliveryTimeCaption#]:</td>
+                        <td>[#deliveryTime#]</td>
+                    </tr>
+                    <!--ET_END deliveryTime-->
+                    <!--ET_BEGIN deliveryOn-->
+                    <tr>
+                        <td class='quiet nowrap aright' style="width: 1%">Delivery on:</td>
+                        <td>[#deliveryOn#]</td>
+                    </tr>
+                    <!--ET_END deliveryOn-->
+                    <!--ET_BEGIN deliveryAddressBlock-->
+                    [#deliveryAddressBlock#]
+                    <tr>
+                        <td class='quiet nowrap aright'>From address:</td>
+                        <td>
+                            [#deliveryTo#] [#deliveryLocationAddress#]
+                        </td>
+                    </tr>
+                    <!--ET_END deliveryAddressBlock-->
+                    <!--ET_BEGIN lineId-->
+                    <tr>
+                        <td class='quiet nowrap aright' style='width:1%;'>Transport: </td>
+                        <td>[#lineId#]</td>
+                    </tr>
+                    <!--ET_END lineId-->
+                    <!--ET_BEGIN lineForwarderId-->
+                    <tr>
+                        <td class='nowrap quiet aright'>Forwarder: </td>
+                        <td>[#lineForwarderId#]</td>
+                    </tr>
+                    <!--ET_END lineForwarderId-->
+                    <!--ET_BEGIN lineVehicleId-->
+                    <tr>
+                        <td class='nowrap quiet aright'>Motor vehicle: </td>
+                        <td>[#lineVehicleId#]</td>
+                    </tr>
+                    <!--ET_END lineVehicleId-->
+                    <tr>
+                        <td colspan="2">
+                            <div>
+                                Total weight:&nbsp;<b>[#weight#]</b> &nbsp;&nbsp;&nbsp;&nbsp; Total volume:&nbsp;<b>[#volume#]</b> <!--ET_BEGIN palletCountInput--> &nbsp;&nbsp;&nbsp;&nbsp; |Брой палети|*: <b>[#palletCountInput#]</b><!--ET_END palletCountInput-->
+                            </div>
+                        </td>
+                    </tr>
+                    <!--ET_BEGIN logisticInfo-->
+                    <tr>
+                        <td colspan="2" ><hr><span class='quiet'>Logistic units</span> [#logisticInfo#]</td>
+                    </tr>
+                    <!--ET_END logisticInfo-->
+                </table>
+                <!--ET_BEGIN note-->
+                <hr>
+                [#note#]
+                <!--ET_END note-->
+            </td>
+            <td class="topCell aright vtop">
+                [#/deals/tpl/DocumentPiceInfo.shtml#]
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <table class='signature-table' style='width:1%;'>
+                    <tr>
+                        <td style='width:1%;'>Received:  </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td class='nowrap'><span class="sign_names">[#responsible#]</span></td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <table class='fright signature-table' style='width:1%;'>
+                    <tr>
+                        <td style='width:1%;'>Created by:  </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td class='nowrap'><span class="sign_names">[#username#]</span></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class='footerDocBlock'  style="border-top: none !important">
+        [#/doc/tpl/Copyright.shtml#]
+    </div>
+</div>

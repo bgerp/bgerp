@@ -21,8 +21,16 @@ class planning_Tasks extends core_Master
      * Дали може да бъде само в началото на нишка
      */
     public $onlyFirstInThread = true;
-    
-    
+
+
+    /**
+     * Може ли подредбата да има поднива
+     *
+     * @see plg_StructureAndOrder
+     */
+    public $canHaveSubLevel = false;
+
+
     /**
      * Шаблон за единичен изглед
      */
@@ -38,7 +46,7 @@ class planning_Tasks extends core_Master
     /**
      * Плъгини за зареждане
      */
-    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, planning_plg_StateManager, plg_Sorting, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
+    public $loadList = 'doc_plg_Prototype, doc_DocumentPlg, plg_RowTools2, planning_plg_StateManager, plg_Sorting, plg_StructureAndOrder, planning_Wrapper, acc_plg_DocumentSummary, plg_Search, plg_Clone, plg_Printing, plg_RefreshRows, plg_LastUsedKeys, bgerp_plg_Blank';
 
 
     /**
@@ -72,9 +80,9 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Да се скрива ли филтъра по дата от лист изгледа
+     * Дали да се подреждат по дата
      */
-    public $hidePeriodFilter = true;
+    public $orderByDateField = false;
     
     
     /**
@@ -92,7 +100,7 @@ class planning_Tasks extends core_Master
     /**
      * Полета, които ще се показват в листов изглед
      */
-    public $listFields = 'expectedTimeStart=Начало,title,progress,folderId,originId=@';
+    public $listFields = 'expectedTimeStart=Начало,title,progress,dependantProgress=Предх.Оп.,folderId,originId=@';
     
     
     /**
@@ -123,6 +131,12 @@ class planning_Tasks extends core_Master
      * Кой може да разглежда сингъла на документите?
      */
     public $canSingle = 'ceo,taskWorker';
+
+
+    /**
+     * Кой може да преизчислява заработките на прогреса на операцията?
+     */
+    public $canRecalcindtime = 'ceo,planningMaster';
 
 
     /**
@@ -237,6 +251,12 @@ class planning_Tasks extends core_Master
 
 
     /**
+     * На кои операции трябва да се преизчисли нормата на детайлите
+     */
+    protected $recalcProducedDetailIndTime = array();
+
+
+    /**
      * Работен кеш
      */
     public $changedAssets = array();
@@ -246,6 +266,12 @@ class planning_Tasks extends core_Master
      * Брой записи на страница
      */
     public $listItemsPerPage = 20;
+
+
+    /**
+     * Кои полета от листовия изглед да се скриват ако няма записи в тях
+     */
+    public $hideListFieldsIfEmpty = 'dependantProgress';
 
 
     /**
@@ -260,13 +286,11 @@ class planning_Tasks extends core_Master
         $this->FLD('plannedQuantity', 'double(smartRound,Min=0)', 'mandatory,caption=Планирано');
         $this->FLD('isFinal', 'enum(yes=Да,no=Не)', 'input=hidden,caption=Финална,silent');
         $this->FLD('quantityInPack', 'double', 'mandatory,caption=К-во в мярка,input=none');
-
         $this->FLD('storeId', 'key(mvc=store_Stores,select=name,allowEmpty)', 'caption=Склад,input=none');
         $this->FLD('assetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване,silent,removeAndRefreshForm=orderByAssetId|startAfter|freeTimeAfter|simultaneity');
         $this->FLD('simultaneity', 'double(min=0)', 'caption=Едновременност,input=hidden');
-
         $this->FLD('prevAssetId', 'key(mvc=planning_AssetResources,select=name)', 'caption=Оборудване (Старо),input=none');
-        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,input=hidden,silent');
+        $this->FLD('employees', 'keylist(mvc=crm_Persons,select=id,makeLinks,select2MinItems=20)', 'caption=Оператори,silent');
         $this->FNC('startAfter', 'varchar', 'caption=Започва след,silent,placeholder=Първа');
         if(core_Packs::isInstalled('batch')){
             $this->FLD('followBatchesForFinalProduct', 'enum(yes=На производство по партида,no=Без отчитане)', 'caption=Отчитане,input=none');
@@ -274,21 +298,17 @@ class planning_Tasks extends core_Master
         $this->FLD('indTime', 'planning_type_ProductionRate', 'caption=Нормиране->Норма,smartCenter');
         $this->FLD('indPackagingId', 'key(mvc=cat_UoM,select=name)', 'silent,class=w25,removeAndRefreshForm,caption=Нормиране->Опаковка,input=hidden,tdClass=small-field nowrap');
         $this->FLD('indTimeAllocation', 'enum(common=Общо,individual=Поотделно)', 'caption=Нормиране->Разпределяне,smartCenter,notNull,value=common');
-
         $this->FLD('labelPackagingId', 'key(mvc=cat_UoM,select=name)', 'caption=Етикиране->Опаковка,input=hidden,tdClass=small-field nowrap,placeholder=Няма,silent,removeAndRefreshForm=labelQuantityInPack|labelTemplate,oldFieldName=packagingId');
         $this->FLD('labelQuantityInPack', 'double(smartRound,Min=0)', 'caption=Етикиране->В опаковка,tdClass=small-field nowrap,input=hidden,oldFieldName=packagingQuantityInPack');
         $this->FLD('labelType', 'enum(print=Отпечатване,scan=Сканиране,both=Сканиране и отпечатване)', 'caption=Етикиране->Етикет,tdClass=small-field nowrap,notNull,value=both,input=hidden');
         $this->FLD('labelTemplate', 'key(mvc=label_Templates,select=title)', 'caption=Етикиране->Шаблон,tdClass=small-field nowrap,input=hidden');
-
-        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
-        $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
-        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
-
         $this->FLD('timeStart', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Начало, changable, tdClass=leftColImportant');
         $this->FLD('timeDuration', 'time', 'caption=Целеви времена->Продължителност,changable');
         $this->FLD('calcedDuration', 'time', 'caption=Целеви времена->Нетна продължителност,input=none');
         $this->FLD('timeEnd', 'datetime(timeSuggestions=08:00|09:00|10:00|11:00|12:00|13:00|14:00|15:00|16:00|17:00|18:00,format=smartTime)', 'caption=Целеви времена->Край,changable, tdClass=leftColImportant,formOrder=103');
-
+        $this->FLD('wasteProductId', 'key2(mvc=cat_Products,select=name,selectSourceArr=cat_Products::getProductOptions,allowEmpty,maxSuggestions=100,forceAjax)', 'caption=Отпадък->Артикул,silent,class=w100,removeAndRefreshForm=wasteStart|wastePercent,autohide');
+        $this->FLD('wasteStart', 'double(smartRound)', 'caption=Отпадък->Начален,autohide');
+        $this->FLD('wastePercent', 'percent(Min=0)', 'caption=Отпадък->Допустим,autohide');
         $this->FLD('showadditionalUom', 'enum(no=Изключено,yes=Включено,mandatory=Задължително)', 'caption=Отчитане на теглото->Режим,notNull,value=yes,autohide');
         $this->FLD('weightDeviationNotice', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Отбелязване,unit=+/-,autohide');
         $this->FLD('weightDeviationWarning', 'percent(suggestions=1 %|2 %|3 %)', 'caption=Отчитане на теглото->Предупреждение,unit=+/-,autohide');
@@ -489,6 +509,19 @@ class planning_Tasks extends core_Master
 
         // Показване на разширеното описание на артикула
         if (isset($fields['-single'])) {
+            $dependentTasks = planning_StepConditions::getDependantTasksProgress($rec, true);
+            if(is_array($dependentTasks[$rec->id])){
+                $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
+            }
+
+            if(isset($rec->assetId)){
+                if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $rec->assetId))){
+                    if(!in_array($rec->state, array('draft', 'waiting', 'rejected'))){
+                        $row->recalcBtn = ht::createLink('', array('planning_AssetResources', 'recalcTimes', $rec->assetId, 'ret_url' => true), false, 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+                    }
+                }
+            }
+
             $row->toggleBtn = "<a href=\"javascript:toggleDisplay('{$rec->id}inf')\"  style=\"background-image:url(" . sbf('img/16/toggle1.png', "'") . ');" class=" plus-icon more-btn"> </a>';
             $row->productDescription = cat_Products::getAutoProductDesc($rec->productId, null, 'detailed', 'job');
             $row->tId = $rec->id;
@@ -542,6 +575,8 @@ class planning_Tasks extends core_Master
             $row->originId = $origin->getHyperlink(true);
             if(isset($rec->wasteProductId)){
                 $row->wasteProductId = cat_Products::getHyperlink($rec->wasteProductId, true);
+                $row->wasteStart = isset($row->wasteStart) ? $row->wasteStart : 'n/a';
+                $row->wastePercent = isset($row->wastePercent) ? $row->wastePercent : 'n/a';
                 $row->wasteProductId = ht::createHint($row->wasteProductId, "Начален|*: {$row->wasteStart}, |Допустим|*: {$row->wastePercent}");
             }
         } else {
@@ -588,7 +623,7 @@ class planning_Tasks extends core_Master
             }
         } else {
             $row->assetId = "<span class='quiet'>N/A</span>";
-            $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!');
+            $row->assetId = ht::createHint($row->assetId, 'Операцията няма да може да стане заявка/да бъде активирана, докато няма избрано оборудване|*!', 'warning');
         }
 
         $canStore = cat_products::fetchField($rec->productId, 'canStore');
@@ -661,7 +696,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterInputEditForm($mvc, &$form)
     {
         $rec = &$form->rec;
-        
+
         if ($form->isSubmitted()) {
 
             // Ако е финална операция
@@ -678,7 +713,7 @@ class planning_Tasks extends core_Master
             $rec->quantityInPack = (is_object($packRec)) ? $packRec->quantity : 1;
             $rec->title = cat_Products::getTitleById($rec->productId);
 
-            if($form->cmd == 'save_pending'){
+            if(in_array($form->cmd, array('save_pending', 'save_pending_new'))){
                 if(empty($rec->indTime) && empty($rec->timeDuration)){
                     $form->setError('timeDuration,indTime', "На операцията трябва да може да ѝ се изчисли продължителността|*!");
                 }
@@ -705,19 +740,20 @@ class planning_Tasks extends core_Master
                 $form->setWarning('startAfter', "Операцията е чернова. Автоматично ще се добави последна към избраното оборудване|*!");
             }
 
-            if(isset($rec->wasteProductId)){
-                if(($rec->wasteStart + $rec->wastePercent) <= 0){
-                    $form->setError('wasteStart,wastePercent', "Количеството на отпадъка не може да се сметне|*!");
-                }
+            if(!$form->rec->_editActive){
+                if(isset($rec->wasteProductId)){
+                    $wasteRec = cat_Products::fetch($rec->wasteProductId, 'measureId,generic');
+                    if($wasteRec->generic == 'yes'){
+                        $form->setError('wasteProductId', "Избраният отпадък е генеричен (обобщаващ)|*! |Трябва да бъде заместен с конкретния такъв|*!");
+                    }
 
-                $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
-                if(!cat_Products::convertToUom($productId, $wasteMeasureId)){
-                    $wasteMeasureName = cat_UoM::getShortName($wasteMeasureId);
-                    $form->setWarning('wasteProductId', "Планираното к-во не може да се конвертира към мярката на отпадъка|* <b>|{$wasteMeasureName}|*</b> |и ще бъде записано като 0|*");
-                }
-            } else {
-                if(isset($rec->wasteStart) || isset($rec->wastePercent)){
-                    $form->setError('wasteProductId,wasteStart,wastePercent', "Не е посочен отпадък|*!");
+                    if(($rec->wasteStart + $rec->wastePercent) <= 0){
+                        $form->setError('wasteStart,wastePercent', "Количеството на отпадъка не може да се сметне|*!");
+                    }
+                } else {
+                    if(isset($rec->wasteStart) || isset($rec->wastePercent)){
+                        $form->setError('wasteProductId,wasteStart,wastePercent', "Не е посочен отпадък|*!");
+                    }
                 }
             }
 
@@ -1045,6 +1081,12 @@ class planning_Tasks extends core_Master
                 $requiredRoles = 'no_one';
             }
         }
+
+        if($action == 'recalcindtime' && isset($rec)){
+            if(!planning_ProductionTaskDetails::count("#taskId = {$rec->id}") || $rec->state == 'rejected'){
+                $requiredRoles = 'no_one';
+            }
+        }
     }
     
     
@@ -1108,10 +1150,12 @@ class planning_Tasks extends core_Master
     {
         $form = &$data->form;
         $rec = $form->rec;
+
         $form->setField('state', 'input=hidden');
         $fixedAssetOptions = array();
+        $form->setField('saoRelative', "caption=Подредба в заданието->Спрямо");
+        $form->setField('saoPosition', "caption=Подредба в заданието->Положение");
 
-        if($rec->showadditionalUom)
         if (isset($rec->systemId)) {
             $form->setField('prototypeId', 'input=none');
         }
@@ -1122,14 +1166,21 @@ class planning_Tasks extends core_Master
             }
         } else {
             if($data->action != 'clone' && in_array($rec->state, array('active', 'wakeup', 'stopped'))){
-                $form->setField('wasteProductId', 'input=hidden');
-                $form->setField('wasteStart', 'input=hidden');
-                $form->setField('wastePercent', 'input=hidden');
+                $form->setField('wasteProductId', 'input=none');
+                $form->setField('wasteStart', 'input=none');
+                $form->setField('wastePercent', 'input=none');
+                $form->rec->_editActive = true;
             }
         }
         
         // За произвеждане може да се избере само артикула от заданието
-        $origin = doc_Containers::getDocument($rec->originId);
+        try{
+            $origin = doc_Containers::getDocument($rec->originId);
+        } catch(core_exception_Expect $e){
+            wp($e, $rec, $form, core_Users::getCurrent());
+            followRetUrl(null, 'Има грешка при създаването', 'error');
+        }
+
         $originRec = $origin->fetch();
         
         // Добавяне на допустимите опции
@@ -1165,7 +1216,7 @@ class planning_Tasks extends core_Master
         
         if (isset($rec->productId)) {
             $wasteSysId = cat_Groups::getKeylistBySysIds('waste');
-            $form->setFieldTypeParams("wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId, 'hasnotProperties' => 'generic'));
+            $form->setFieldTypeParams("wasteProductId", array('hasProperties' => 'canStore,canConvert', 'groups' => $wasteSysId));
             $form->setField('labelType', 'input');
             $form->setField('measureId', 'input');
 
@@ -1189,16 +1240,24 @@ class planning_Tasks extends core_Master
                 }
             }
 
+            // Ако артикула от етапа е генеричен предлагат се за избор неговите еквивалентни
+            if(isset($productionData['wasteProductId'])){
+                $wasteOptions = planning_GenericMapper::getEquivalentProducts($productionData['wasteProductId']);
+                if(countR($wasteOptions)){
+                    $form->setFieldType('wasteProductId', 'int');
+                    $form->setOptions('wasteProductId', $wasteOptions);
+                }
+            }
+
             if(isset($productionData['fixedAssets'])){
                 $fixedAssetOptions = $productionData['fixedAssets'];
             }
 
-            if(!empty($rec->employees)){
-                $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
-                if(countR($employeeOptions)){
-                    $form->setField('employees', 'input');
-                    $form->setSuggestions('employees', $employeeOptions);
-                }
+            $employeeOptions = planning_Hr::getByFolderId($rec->folderId, $rec->employees);
+            if(countR($employeeOptions)){
+                $form->setSuggestions('employees', $employeeOptions);
+            } else {
+                $form->setField('employees', 'input=none');
             }
 
             $productId4Form = ($rec->isFinal == 'yes') ? $originRec->productId : $rec->productId;
@@ -1387,6 +1446,8 @@ class planning_Tasks extends core_Master
                 $wasteProductMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
                 $form->setField("wasteStart", "unit=" . cat_UoM::getShortName($wasteProductMeasureId));
             }
+        } else {
+            $form->setField('employees', 'input=hidden');
         }
 
         // Добавяне на наличните за избор оборудвания
@@ -1438,9 +1499,11 @@ class planning_Tasks extends core_Master
 
         if (isset($rec->id)) {
             $form->setReadOnly('productId');
-            if(planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
+            if($data->action != 'clone' && planning_ProductionTaskDetails::fetchField("#taskId = {$rec->id}")){
                 $form->setReadOnly('labelPackagingId');
-                $form->setReadOnly('labelQuantityInPack');
+                if($form->getFieldParam('labelQuantityInPack', 'input') != 'hidden'){
+                    $form->setReadOnly('labelQuantityInPack');
+                }
                 $form->setReadOnly('measureId');
             }
         }
@@ -1493,7 +1556,7 @@ class planning_Tasks extends core_Master
         $query = $this->getQuery();
         $query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
         $query->where("#state != 'rejected'");
-        $query->orderBy('orderByDate', 'ASC');
+        $query->orderBy('saoOrder', 'ASC');
         if($data->masterMvc instanceof planning_AssetResources){
             $query->where("#assetId = {$data->masterId}");
         } else {
@@ -1512,6 +1575,7 @@ class planning_Tasks extends core_Master
                 $row->assetId = planning_AssetResources::getShortName($rec->assetId, !Mode::isReadOnly());
             }
 
+            $row->title = ht::createElement("span", array('id' => planning_Tasks::getHandle($rec->id)), $row->title);
             $row->plannedQuantity .= " " . $row->measureId;
             $row->totalQuantity .= " " . $row->measureId;
             $row->producedQuantity .= " " . $row->measureId;
@@ -1543,7 +1607,10 @@ class planning_Tasks extends core_Master
 
             $data->rows[$rec->id] = $row;
         }
-        
+
+        Mode::push('forListRows', true);
+        $this->invoke('AfterPrepareListRows', array($data, $data));
+
         // Ако потребителя може да добавя операция от съответния тип, ще показваме бутон за добавяне
         if($data->masterMvc instanceof planning_Jobs){
             if ($this->haveRightFor('add', (object) array('originId' => $data->masterData->rec->containerId))) {
@@ -1571,7 +1638,7 @@ class planning_Tasks extends core_Master
         $listTableMvc->FNC('costsCount', 'int');
 
         $table = cls::get('core_TableView', array('mvc' => $listTableMvc));
-        $fields = arr::make('expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info');
+        $fields = arr::make('saoOrder=Ред,expectedTimeStart=Начало,title=Операция,progress=Прогрес,plannedQuantity=Планирано,totalQuantity=Произведено,producedQuantity=Заскладено,costsCount=Разходи, assetId=Оборудване,info=@info');
         if($data->masterMvc instanceof planning_AssetResources){
             unset($fields['assetId']);
         }
@@ -1607,7 +1674,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         $data->listFilter->setFieldTypeParams('folder', array('containingDocumentIds' => planning_Tasks::getClassId()));
-        $data->query->XPR('orderByDate', 'datetime', "COALESCE(#expectedTimeStart, 9999999999999)");
+        $data->listFilter->setField('folder', 'autoFilter');
         $orderByField = 'orderByDate';
 
         // Добавят се за избор само използваните в ПО оборудвания
@@ -1619,6 +1686,7 @@ class planning_Tasks extends core_Master
             $data->listFilter->input('assetId');
         }
 
+        $mvc->listItemsPerPage = 20;
         if($filter = $data->listFilter->rec){
             if (isset($filter->assetId)) {
                 $mvc->listItemsPerPage = 200;
@@ -1626,23 +1694,34 @@ class planning_Tasks extends core_Master
                 $orderByField = 'orderByAssetId';
             }
         }
-        
+
+        $orderByDir = 'ASC';
         if (!Request::get('Rejected', 'int')) {
             $data->listFilter->setOptions('state', arr::make('activeAndPending=Заявки+Активни+Събудени+Спрени,draft=Чернова,active=Активен,closed=Приключен, stopped=Спрян, wakeup=Събуден,waiting=Чакащо,pending=Заявка,all=Всички', true));
             $data->listFilter->showFields .= ',state';
             $data->listFilter->input('state');
             $data->listFilter->setDefault('state', 'activeAndPending');
 
+            $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 9999999999999)';
             if ($state = $data->listFilter->rec->state) {
                 if ($state == 'activeAndPending') {
-                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped')");
+                    $data->query->where("#state IN ('active', 'pending', 'wakeup', 'stopped', 'rejected')");
                 } elseif($state != 'all') {
-                    $data->query->where("#state = '{$state}'");
+                    $data->query->where("#state = '{$state}' OR #state = 'rejected'");
+
+                    if($state == 'closed'){
+                        $orderByDir = 'DESC';
+                        $orderByDateCoalesce = 'COALESCE(#timeClosed, 0)';
+                    }
                 }
             }
+        } else {
+            $orderByDateCoalesce = 'COALESCE(#expectedTimeStart, 0)';
+            $orderByDir = 'DESC';
         }
 
-        $data->query->orderBy($orderByField, 'ASC');
+        $data->query->XPR('orderByDate', 'datetime', $orderByDateCoalesce);
+        $data->query->orderBy($orderByField, $orderByDir);
     }
     
     
@@ -1835,6 +1914,11 @@ class planning_Tasks extends core_Master
             $data->toolbar->addBtn('Връщане', $pUrl, 'ef_icon = img/16/produce_out.png,title=Създаване на протокол за връщане към заданието,row=2');
         }
 
+        // Бутон за добавяне на документ за влагане
+        if ($mvc->haveRightFor('recalcindtime', $rec)) {
+            $data->toolbar->addBtn('Преизч. заработки', array($mvc, 'recalcindtimes', $rec->id, 'ret_url' => true), 'ef_icon = img/16/arrow_refresh.png,title=Преизчисляване на заработките към операцията,row=2,warning=Наистина ли желаете да преизчислите заработките в прогреса|*?');
+        }
+
         if($data->toolbar->haveButton('btnActivate')){
             $data->toolbar->renameBtn('btnActivate', 'Стартиране');
         }
@@ -2000,9 +2084,21 @@ class planning_Tasks extends core_Master
         if (isset($data->form) && $data->form->isSubmitted() && $data->form->rec->id) {
 
             $retUrl = getRetUrl();
-            if($retUrl['Ctr'] == 'planning_Jobs' && $retUrl['Act'] == 'selectTaskAction'){
-                if($data->form->cmd == 'save_pending'){
-                    $data->retUrl = $retUrl;
+            if($retUrl['Ctr'] == 'planning_Jobs'){
+                if($retUrl['Act'] == 'selectTaskAction'){
+                    if($data->form->cmd == 'save_pending_new'){
+                        $data->retUrl = $retUrl;
+                    }
+                } elseif($retUrl['Act'] == 'single'){
+                    $jobThreadId = planning_Jobs::fetchField($retUrl['id'], 'threadId');
+                    if(doc_Threads::haveRightFor('single', $jobThreadId)){
+                        $newRetUrl = array('doc_Containers', 'list', 'threadId' => $jobThreadId, "#" => $mvc->getHandle($data->form->rec->id));
+                    } else {
+                        $newRetUrl = $retUrl;
+                        $newRetUrl["#"] = $mvc->getHandle($data->form->rec->id);
+                    }
+
+                    $data->retUrl = $newRetUrl;
                 }
             }
         }
@@ -2082,7 +2178,7 @@ class planning_Tasks extends core_Master
                     $paramFields["param_{$paramId}"] = "|*<small>{$paramExt[1]}</small>";
                     $data->listTableMvc->FNC("param_{$paramId}", 'varchar', 'tdClass=taskParamCol');
                 }
-                arr::placeInAssocArray($data->listFields, $paramFields, null, 'progress');
+                arr::placeInAssocArray($data->listFields, $paramFields, null, 'dependantProgress');
             }
         }
 
@@ -2103,8 +2199,18 @@ class planning_Tasks extends core_Master
             }
         }
 
+        // Еднократно извличане на зависимите предходни операции
+        $dependentTasks = planning_StepConditions::getDependantTasksProgress($data->recs, true);
+
         foreach ($rows as $id => $row) {
             $rec = $data->recs[$id];
+
+            // Ако има планирани предходни операции - да се показват с техните прогреси
+            if(isset($dependentTasks[$rec->id])){
+                if(is_array($dependentTasks[$rec->id])){
+                    $row->dependantProgress = implode("", $dependentTasks[$rec->id]);
+                }
+            }
 
             // Добавяне на дата атрибут за да може с драг и дроп да се преподреждат ПО в списъка
             $row->ROW_ATTR['data-id'] = $rec->id;
@@ -2121,29 +2227,30 @@ class planning_Tasks extends core_Master
                 $origin = doc_Containers::getDocument($rec->originId);
                 $jobProductId = $origin->fetchField('productId');
 
-                // Взимане с приотитет от кеша на параметрите на артикула от заданието
+                // Взимане с приоритет от кеша на параметрите на артикула от заданието
                 $jobParams = core_Permanent::get("taskListJobParams{$jobProductId}");
                 if(!is_array($jobParams)){
                     $jobParams = cat_Products::getParams($jobProductId, null, true);
                     core_Permanent::set("taskListJobParams{$jobProductId}", $jobParams, 5*60);
                 }
 
-                // Кои от продуктовите параметри ще се показват в лист изгледа за планиране
-                $displayParams = array_intersect_key($jobParams, $data->listFieldsParams);
-                foreach ($displayParams as $pId => $pValue){
+                foreach ($data->listFieldsParams as $paramId){
                     $live = true;
-                    if(is_array($taskSpecificParams[$rec->id]) && array_key_exists($pId, $taskSpecificParams[$rec->id])){
-                        $pValue = $taskSpecificParams[$rec->id][$pId];
+                    $pValue = array_key_exists($paramId, $jobParams) ? $jobParams[$paramId] : null;
+                    if(is_array($taskSpecificParams[$rec->id]) && array_key_exists($paramId, $taskSpecificParams[$rec->id])){
+                        $pValue = $taskSpecificParams[$rec->id][$paramId];
                         $live = false;
                     }
 
-                    $pSuffix = cat_Params::getVerbal($pId, 'suffix');
-                    $row->{"param_{$pId}"} = $pValue;
-                    if(!empty($pSuffix)){
-                        $row->{"param_{$pId}"} .= " {$pSuffix}";
-                    }
-                    if($live){
-                        $row->{"param_{$pId}"} = "<span style='color:blue'>{$row->{"param_{$pId}"}}</span>";
+                    if(isset($pValue)){
+                        $pSuffix = cat_Params::getVerbal($paramId, 'suffix');
+                        $row->{"param_{$paramId}"} = $pValue;
+                        if(!empty($pSuffix)){
+                            $row->{"param_{$paramId}"} .= " {$pSuffix}";
+                        }
+                        if($live){
+                            $row->{"param_{$paramId}"} = "<span style='color:blue'>{$row->{"param_{$paramId}"}}</span>";
+                        }
                     }
                 }
             }
@@ -2229,6 +2336,14 @@ class planning_Tasks extends core_Master
                 $mvc->reorderTasksInAssetId[$rec->_exAssetId] = $rec->_exAssetId;
             }
         }
+
+        // Маркиране на операцията, ако е променена нормата ѝ, да се преизчислят нормите на детайлите ѝ
+        if($rec->_exIndTime != $rec->indTime){
+            $product4Task = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
+            if(planning_ProductionTaskDetails::count("#taskId = {$rec->id} AND #type = 'production' AND #productId = {$product4Task}")){
+                $mvc->recalcProducedDetailIndTime[$rec->id] = (object)array('id' => $rec->id, 'productId' => $product4Task);
+            }
+        }
     }
 
 
@@ -2243,6 +2358,13 @@ class planning_Tasks extends core_Master
                 if(isset($assetId)){
                     planning_AssetResources::reOrderTasks($assetId);
                 }
+            }
+        }
+
+        if (countR($mvc->recalcProducedDetailIndTime)) {
+            foreach ($mvc->recalcProducedDetailIndTime as $rec) {
+                planning_ProductionTaskDetails::recalcIndTime($rec->id, 'production', $rec->productId);
+                core_Statuses::newStatus('Нормата е променена. Преизчислени са заработките на прогреса|*!');
             }
         }
     }
@@ -2332,9 +2454,14 @@ class planning_Tasks extends core_Master
         }
 
         if($form->toolbar->haveButton('btnPending')){
+            if(empty($form->rec->id)){
+                $data->form->toolbar->addSbBtn('Запис и Нов', 'save_pending_new', null, array('id' => 'saveAndNew', 'ef_icon' => 'img/16/tick-circle-frame.png', 'title' => 'Записване на операцията и към следващата'));
+            }
+
             $form->toolbar->renameBtn('btnPending', 'Запис');
+            $form->toolbar->setBtnOrder('saveAndNew', '2');
             $form->toolbar->setBtnOrder('btnPending', '1');
-            $form->toolbar->setBtnOrder('save', '2');
+            $form->toolbar->setBtnOrder('save', '3');
             if(isset($rec->id) && $rec->state != 'draft'){
                 $form->toolbar->removeBtn('save');
             }
@@ -2359,10 +2486,12 @@ class planning_Tasks extends core_Master
 
         $rec->freeTimeAfter = 'no';
 
+        // Запомняне на предишните стойностти на определени полета
         if(isset($rec->id)){
-            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId', false);
+            $exRec = $mvc->fetch($rec->id, 'orderByAssetId,assetId,indTime', false);
             $rec->_exAssetId = $exRec->assetId;
             $rec->_exOrderByAssetId = $exRec->orderByAssetId;
+            $rec->_exIndTime = $exRec->indTime;
             if(isset($rec->assetId) && $rec->assetId != $rec->_exAssetId){
                 $rec->prevAssetId = $rec->_exAssetId;
             }
@@ -2376,6 +2505,7 @@ class planning_Tasks extends core_Master
     protected static function on_AfterActivation($mvc, &$rec)
     {
         $saveRecs = array();
+
         if(isset($rec->wasteProductId)){
 
             // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
@@ -2384,15 +2514,17 @@ class planning_Tasks extends core_Master
             // Добавяне на отпадъка при първоначално активиране
             $wasteMeasureId = cat_Products::fetchField($rec->wasteProductId, 'measureId');
             $productId = ($rec->isFinal == 'yes') ? planning_Jobs::fetchField("#containerId = {$rec->originId}", 'productId') : $rec->productId;
-            if($conversionRate = cat_Products::convertToUom($productId, $wasteMeasureId)){
+
+            $calcedWasteQuantity = $rec->wasteStart;
+            if(isset($rec->wastePercent)){
 
                 // Калкулира се прогнозното количество на отпадъка
-                $calcedWasteQuantity = $rec->wasteStart + ($rec->plannedQuantity * $rec->quantityInPack * $conversionRate) * $rec->wastePercent;
-                $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
-                $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
-            } else {
-                $calcedWasteQuantity = 0;
-                core_Statuses::newStatus('Прогнозното количество на отпадъка не може да бъде изчислено и ще бъде записано като|* "0"!', 'warning');
+                $calcedWasteQuantity = null;
+                if($conversionRate = cat_Products::convertToUom($productId, $wasteMeasureId)){
+                    $calcedWasteQuantity = $rec->wasteStart + ($rec->plannedQuantity * $rec->quantityInPack * $conversionRate) * $rec->wastePercent;
+                    $uomRound = cat_UoM::fetchField($wasteMeasureId, 'round');
+                    $calcedWasteQuantity = round($calcedWasteQuantity, $uomRound);
+                }
             }
 
             $wasteRec = (object)array('taskId' => $rec->id, 'productId' => $rec->wasteProductId, 'type' => 'waste', 'quantityInPack' => 1, 'plannedQuantity' => $calcedWasteQuantity, 'packagingId' => $wasteMeasureId);
@@ -2421,6 +2553,72 @@ class planning_Tasks extends core_Master
 
         if(countR($saveRecs)){
             cls::get('planning_ProductionTaskProducts')->saveArray($saveRecs);
+        }
+    }
+
+
+    /**
+     * Извиква се след подготовката на toolbar-а за табличния изглед
+     */
+    protected static function on_AfterPrepareListToolbar($mvc, &$res, $data)
+    {
+        $assetId = Request::get('assetId', 'int');
+        if(isset($assetId)){
+            if(planning_AssetResources::haveRightFor('recalctime', (object)array('id' => $assetId))){
+                $data->toolbar->addBtn('Преизчисляване', array('planning_AssetResources', 'recalcTimes', $assetId, 'ret_url' => true), 'ef_icon=img/16/arrow_refresh.png, title=Преизчисляване на времената на операциите към оборудването');
+            }
+        }
+    }
+
+
+    /**
+     * Екшън за рекалкулиране на заработките
+     */
+    function act_Recalcindtimes()
+    {
+        $this->requireRightFor('recalcindtimes');
+        expect($id = Request::get('id', 'int'));
+        expect($rec = $this->fetch($id));
+        $this->requireRightFor('recalcindtimes', $rec);
+
+        planning_ProductionTaskDetails::recalcIndTime($rec->id);
+        $this->touchRec($rec);
+        $this->logWrite('Преизчисляване на заработките', $rec->id);
+
+        followRetUrl(null, 'Заработките са преизчислени успешно|*!');
+    }
+
+
+    /**
+     * Необходим метод за подреждането
+     * @see plg_StructureAndOrder
+     */
+    public static function getSaoItems($rec)
+    {
+        $res = array();
+        $query = self::getQuery();
+        $query->where("#originId = {$rec->originId} AND #state != 'rejected'");
+        while ($rec = $query->fetch()) {
+            $res[$rec->id] = $rec;
+        }
+
+        return $res;
+    }
+
+
+    /**
+     * Преди рендиране на тулбара в лист таблицата
+     * @see plg_RowTools2
+     */
+    protected static function on_BeforeRenderListTableRowToolbar($mvc, &$tools, $data)
+    {
+        if(isset($data->masterMvc)) return;
+
+        if(is_array($data->recs) && countR($data->recs)){
+            foreach ($data->recs as $rec){
+                $tools->removeBtn("saoup{$rec->id}");
+                $tools->removeBtn("saodown{$rec->id}");
+            }
         }
     }
 }
