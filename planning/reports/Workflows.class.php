@@ -221,6 +221,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                     $labelQuantity = 1 / $divisor;
 
                     $employees = $val;
+                    $employeesName = crm_Persons::getTitleById($val);
                 }
 
                 if ($divisor) {
@@ -234,6 +235,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                 }
 
                 $pRec = cat_Products::fetch($tRec->productId, 'measureId,name');
+
 
                 // Запис в масива
                 if (!array_key_exists($id, $recs)) {
@@ -249,6 +251,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                         'quantityInPack' => $iRec->quantityInPack,
 
                         'employees' => $employees,
+                        'employeesName' => $employeesName,
                         'assetResources' => $tRec->fixedAsset,
 
                         'productId' => $tRec->productId,
@@ -277,6 +280,9 @@ class planning_reports_Workflows extends frame2_driver_TableData
             }
         }
 
+        if (countR($recs)) {
+            arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
+        }
 
         //Когато е избран тип на справката - ПОДРОБНА
         if ($rec->typeOfReport == 'full') {
@@ -303,6 +309,12 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
                     if (!is_null($rec->employees) && !in_array($v, keylist::toArray($rec->employees))) {
                         continue;
+                    }
+
+                    if ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines') {
+                        $employeesName = crm_Persons::getTitleById($v);
+                    }else{
+                        $employeesName = '';
                     }
 
                     if ($rec->resultsOn == 'arts') {
@@ -344,6 +356,7 @@ class planning_reports_Workflows extends frame2_driver_TableData
                             'indTimeSum' => $indTimeSum,
 
                             'employees' => '|' . $v . '|',
+                            'employeesName' => $employeesName,
                             'assetResources' => $clone->assetResources,
 
                             'productId' => $clone->productId,
@@ -378,10 +391,15 @@ class planning_reports_Workflows extends frame2_driver_TableData
 
             }
             arr::sortObjects($recs, 'taskId', 'asc');
+
+            if ((countR($recs) && ($rec->resultsOn == 'users' || $rec->resultsOn == 'usersMachines'))) {
+                arr::sortObjects($recs, 'employeesName', 'asc', 'stri');
+            }
+
         }
 
         $rec->indTimeSumArr = $indTimeSumArr;
-       // bp($recs);
+
         return $recs;
     }
 

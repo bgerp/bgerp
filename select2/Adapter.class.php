@@ -41,8 +41,9 @@ class select2_Adapter
      * @param string|NULL|FALSE $lg
      * @param boolean $isTree
      * @param boolean $forceOpen
+     * @param null|int $minimumResultsForSearch
      */
-    public static function appendAndRun(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false, $forceOpen = false)
+    public static function appendAndRun(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false, $forceOpen = false, $minimumResultsForSearch = null)
     {
         if (!($tpl instanceof core_ET)) {
             
@@ -54,7 +55,7 @@ class select2_Adapter
         }
         
         self::appendFiles($tpl, $lg, $isTree);
-        self::run($tpl, $id, $placeHolder, $allowClear, $lg, $ajaxUrl, $isTree);
+        self::run($tpl, $id, $placeHolder, $allowClear, $lg, $ajaxUrl, $isTree, $minimumResultsForSearch);
 
         if ($forceOpen) {
             if (!Request::get('ajax_mode')) {
@@ -118,20 +119,23 @@ class select2_Adapter
      * @param bool              $allowClear
      * @param string|NULL|FALSE $lg
      * @param boolean $isTree
+     * @param null|int $minimumResultsForSearch
      */
-    public static function run(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false)
+    public static function run(&$tpl, $id, $placeHolder = null, $allowClear = false, $lg = null, $ajaxUrl = '', $isTree = false, $minimumResultsForSearch = null)
     {
         if (!($tpl instanceof core_ET)) {
             
             return ;
         }
-        
-        if ($ajaxUrl) {
-            $minimumResultsForSearch = 0;
-        } else {
-            $minimumResultsForSearch = mode::is('screenMode', 'narrow') ? select2_Setup::get('NARROW_MIN_SEARCH_ITEMS_CNT') : select2_Setup::get('WIDE_MIN_SEARCH_ITEMS_CNT');
+
+        if (!isset($minimumResultsForSearch)) {
+            if ($ajaxUrl) {
+                $minimumResultsForSearch = 0;
+            } else {
+                $minimumResultsForSearch = mode::is('screenMode', 'narrow') ? select2_Setup::get('NARROW_MIN_SEARCH_ITEMS_CNT') : select2_Setup::get('WIDE_MIN_SEARCH_ITEMS_CNT');
+            }
         }
-        
+
         if ($isTree) {
             $select2Str = "$('#" . $id . "').addClass('select2-src').select2ToTree({placeholder: '{$placeHolder}', allowClear: '{$allowClear}', language: '{$lg}', minimumResultsForSearch: {$minimumResultsForSearch}";
         } else {

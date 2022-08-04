@@ -301,8 +301,10 @@ class type_Key2 extends type_Int
                 $allowClear = true;
             }
 
+            $minimumResultsForSearch = isset($this->params['minimumResultsForSearch']) ? $this->params['minimumResultsForSearch'] : null;
+
             // Добавяме необходимите файлове и стартирам select2
-            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl, false, $this->params['forceOpen']);
+            select2_Adapter::appendAndRun($tpl, $attr['id'], $attr['placeholder'], $allowClear, null, $ajaxUrl, false, $this->params['forceOpen'], $minimumResultsForSearch);
         } elseif ((!defined('TEST_MODE') && !TEST_MODE) && ($this->params['forceAjax'] || ($optionsCnt >= $maxSuggestions && !Mode::is('javascript', 'no')))) {
             // Показваме Combobox
             

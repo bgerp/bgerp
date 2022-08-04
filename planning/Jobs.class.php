@@ -539,7 +539,7 @@ class planning_Jobs extends core_Master
     protected static function on_AfterPrepareListFilter($mvc, $data)
     {
         if (!Request::get('Rejected', 'int')) {
-            $data->listFilter->FNC('view', 'enum(createdOn=По дата на създаване,dueDate=По дата на падеж,deliveryDate=По дата за доставка,progress=Според изпълнението,all=Всички,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
+            $data->listFilter->FNC('view', 'enum(createdOn=По дата на създаване,activatedOn=По дата на Активиране,dueDate=По дата на падеж,deliveryDate=По дата за доставка,progress=Според изпълнението,all=Всички,draft=Черновите,active=Активните,activenotasks=Активните без задачи,stopped=Спрените,closed=Приключените,wakeup=Събудените)', 'caption=Изглед,input,silent');
             $data->listFilter->input('view', 'silent');
             $data->listFilter->setDefault('view', 'createdOn');
             $data->listFilter->showFields .= ',view';
