@@ -263,5 +263,18 @@ class batch_BatchTypeIntf extends embed_DriverIntf
     {
         return $this->class->canAutoAllocate();
     }
+
+
+    /**
+     * Подрежда на партидите при рендиране за показване
+     *
+     * @param array $batches - партиди за показване
+     *                               ['batch_name'] => $tpl
+     * @return void
+     */
+    public function orderBatchesForDisplay(&$batches)
+    {
+        return $this->class->canAutoAllocate($batches);
+    }
 }
 
