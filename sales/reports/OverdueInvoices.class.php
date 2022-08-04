@@ -61,7 +61,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         );
         $fieldset->FLD('listForEmail', 'blob', 'caption=Списък за имейл,single=none,after=countryGroup,input=hidden');
         $fieldset->FLD('excludedFromEmail', 'text', 'caption=Изключени за имейл фирми,single=none,after=listForEmail,input=hidden');
-        $fieldset->FLD('unsentEmails', 'text', 'caption=Неизпратени имейли,single=none,after=listForEmail,input=hidden');
+        $fieldset->FLD('unsentEmails', 'blob', 'caption=Неизпратени имейли,single=none,after=listForEmail,input=hidden');
 
         $fieldset->FNC('salesTotalOverDue', 'double', 'caption=Общо просрочени,input=none,single=none');
         $fieldset->FNC('salesTotalPayout', 'double', 'caption=Общо плащания,input=none,single=none');
@@ -904,7 +904,7 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $rec->unsentEmails = $unsentEmails;
         frame2_Reports::save($rec);
 
-        status_Messages::newStatus('На ' . countR($unsentEmails).' контрагента не бяха изпратени имейли' .  frame2_Reports::getLinkToSingle($rec->id), 'warning');
+       // status_Messages::newStatus('На ' . countR($unsentEmails).' контрагента не бяха изпратени имейли' .  frame2_Reports::getLinkToSingle($rec->id), 'warning');
 
         return $listForEmail;
     }
@@ -968,6 +968,8 @@ class sales_reports_OverdueInvoices extends frame2_driver_TableData
         $res = blast_Emails::createListAndEmail($listArr, $blastArr);
 
         expect($res['blastId']);
+
+        status_Messages::newStatus('На ' . countR($rec->unsentEmails).' контрагента не бяха изпратени имейли. Виж :' .  frame2_Reports::getLinkToSingle($rec->id), 'warning');
 
         if (blast_Emails::haveRightFor('single', $res['blastId'])) {
             return new Redirect(array('blast_Emails', 'single', $res['blastId']));
