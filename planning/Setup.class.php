@@ -257,6 +257,7 @@ class planning_Setup extends core_ProtoSetup
         'migrate::updateTaskAssets',
         'migrate::reorderTasks2',
         'migrate::migrateOldTasks',
+        'migrate::updateLabelType',
     );
     
     
@@ -458,5 +459,25 @@ class planning_Setup extends core_ProtoSetup
 
         $Tasks->saveArray($saveTasks, 'id,isFinal');
         cls::get('planning_ProductionTaskProducts')->saveArray($saveDetails);
+    }
+
+
+    /**
+     * Мигриране на етикетирането
+     */
+    function updateLabelType()
+    {
+        $Tasks = cls::get('planning_Tasks');
+        $Tasks->setupMvc();
+
+        $labelTypeColName = str::phpToMysqlName('labelType');
+        $query = "UPDATE {$Tasks->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
+        $Tasks->db->query($query);
+
+        $Steps = cls::get('planning_Steps');
+        $Steps->setupMvc();
+
+        $query = "UPDATE {$Steps->dbTableName} SET {$labelTypeColName} = 'both' WHERE {$labelTypeColName} = 'print'";
+        $Steps->db->query($query);
     }
 }
