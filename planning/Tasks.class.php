@@ -2504,12 +2504,13 @@ class planning_Tasks extends core_Master
 
 
     /**
-     * Функция, която прихваща след активирането на документа
+     * След като документа става чакащ
      */
-    protected static function on_AfterActivation($mvc, &$rec)
+    public static function on_AfterSavePendingDocument($mvc, &$rec)
     {
-        $saveRecs = array();
+        if($rec->state == 'waiting') return;
 
+        $saveRecs = array();
         if(isset($rec->wasteProductId)){
 
             // Ако отпадъчният артикул е ръчно добавен - нищо не се прави
